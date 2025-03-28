@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -42,20 +41,13 @@ internal readonly struct DiagnosticAnalysisResult
     /// </summary>
     private readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> _nonLocals;
 
-    /// <summary>
-    /// Diagnostics that don't have locations.
-    /// </summary>
-    private readonly ImmutableArray<DiagnosticData> _others;
-
     private DiagnosticAnalysisResult(
         ProjectId projectId,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> syntaxLocals,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> semanticLocals,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> nonLocals,
-        ImmutableArray<DiagnosticData> others,
         ImmutableHashSet<DocumentId>? documentIds)
     {
-        Debug.Assert(!others.IsDefault);
         Debug.Assert(!syntaxLocals.Values.Any(item => item.IsDefault));
         Debug.Assert(!semanticLocals.Values.Any(item => item.IsDefault));
         Debug.Assert(!nonLocals.Values.Any(item => item.IsDefault));
@@ -65,7 +57,6 @@ internal readonly struct DiagnosticAnalysisResult
         _syntaxLocals = syntaxLocals;
         _semanticLocals = semanticLocals;
         _nonLocals = nonLocals;
-        _others = others;
 
         DocumentIds = documentIds ?? GetDocumentIds(syntaxLocals, semanticLocals, nonLocals);
     }
@@ -77,8 +68,7 @@ internal readonly struct DiagnosticAnalysisResult
             documentIds: [],
             syntaxLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
             semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-            nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-            others: []);
+            nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty);
     }
 
     public static DiagnosticAnalysisResult Create(
@@ -86,7 +76,6 @@ internal readonly struct DiagnosticAnalysisResult
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> syntaxLocalMap,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> semanticLocalMap,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> nonLocalMap,
-        ImmutableArray<DiagnosticData> others,
         ImmutableHashSet<DocumentId>? documentIds)
     {
         VerifyDocumentMap(project, syntaxLocalMap);
@@ -98,7 +87,6 @@ internal readonly struct DiagnosticAnalysisResult
             syntaxLocalMap,
             semanticLocalMap,
             nonLocalMap,
-            others,
             documentIds);
     }
 
@@ -109,7 +97,6 @@ internal readonly struct DiagnosticAnalysisResult
             builder.SyntaxLocals,
             builder.SemanticLocals,
             builder.NonLocals,
-            builder.Others,
             builder.DocumentIds);
     }
 
@@ -135,8 +122,6 @@ internal readonly struct DiagnosticAnalysisResult
         foreach (var (_, data) in _nonLocals)
             result.AddRange(data);
 
-        result.AddRange(_others);
-
         return result.ToImmutableAndClear();
     }
 
@@ -154,9 +139,6 @@ internal readonly struct DiagnosticAnalysisResult
         return [];
     }
 
-    public ImmutableArray<DiagnosticData> GetOtherDiagnostics()
-        => _others;
-
     public DiagnosticAnalysisResult DropExceptSyntax()
     {
         // quick bail out
@@ -171,7 +153,6 @@ internal readonly struct DiagnosticAnalysisResult
            _syntaxLocals,
            semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
            nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-           others: [],
            documentIds: null);
     }
 
