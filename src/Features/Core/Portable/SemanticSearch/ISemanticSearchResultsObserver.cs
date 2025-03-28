@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis.SemanticSearch;
 internal interface ISemanticSearchResultsObserver
 {
     ValueTask OnUserCodeExceptionAsync(UserCodeExceptionInfo exception, CancellationToken cancellationToken);
-    ValueTask OnCompilationFailureAsync(ImmutableArray<QueryCompilationError> errors, CancellationToken cancellationToken);
     ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken);
     ValueTask AddItemsAsync(int itemCount, CancellationToken cancellationToken);
     ValueTask ItemsCompletedAsync(int itemCount, CancellationToken cancellationToken);
