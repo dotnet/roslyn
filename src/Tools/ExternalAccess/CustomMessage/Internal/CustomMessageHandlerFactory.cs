@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -15,8 +16,10 @@ namespace Microsoft.CodeAnalysis.CustomMessageHandler;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CustomMessageHandlerFactory() : ICustomMessageHandlerFactory
 {
-    public IEnumerable<ICustomMessageDocumentHandlerWrapper> CreateMessageDocumentHandlers(Assembly assembly)
+    public ImmutableArray<ICustomMessageDocumentHandlerWrapper> CreateMessageDocumentHandlers(Assembly assembly)
     {
+        var resultBuilder = ImmutableArray.CreateBuilder<ICustomMessageDocumentHandlerWrapper>();
+
         foreach (var t in assembly.GetTypes())
         {
             var (handler, handlerInterface) = CreateHandlerIfInterfaceIsImplemented(t, typeof(ICustomMessageDocumentHandler<,>));
@@ -25,12 +28,16 @@ internal sealed class CustomMessageHandlerFactory() : ICustomMessageHandlerFacto
                 continue;
             }
 
-            yield return new CustomMessageDocumentHandlerWrapper(handler, handlerInterface);
+            resultBuilder.Add(new CustomMessageDocumentHandlerWrapper(handler, handlerInterface);
         }
+
+        return resultBuilder.ToImmutable();
     }
 
-    public IEnumerable<ICustomMessageHandlerWrapper> CreateMessageHandlers(Assembly assembly)
+    public ImmutableArray<ICustomMessageHandlerWrapper> CreateMessageHandlers(Assembly assembly)
     {
+        var resultBuilder = ImmutableArray.CreateBuilder<ICustomMessageHandlerWrapper>();
+
         foreach (var t in assembly.GetTypes())
         {
             var (handler, handlerInterface) = CreateHandlerIfInterfaceIsImplemented(t, typeof(ICustomMessageHandler<,>));
@@ -39,8 +46,10 @@ internal sealed class CustomMessageHandlerFactory() : ICustomMessageHandlerFacto
                 continue;
             }
 
-            yield return new CustomMessageHandlerWrapper(handler, handlerInterface);
+            resultBuilder.Add(new CustomMessageHandlerWrapper(handler, handlerInterface);
         }
+
+        return resultBuilder.ToImmutable();
     }
 
     // unboundInterfaceType is either ICustomMessageHandler<,> or ICustomMessageDocumentHandler<,>

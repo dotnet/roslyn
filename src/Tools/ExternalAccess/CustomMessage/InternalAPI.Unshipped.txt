@@ -6,8 +6,8 @@ Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageDocumentHandlerWrapper.
 Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageDocumentHandlerWrapper.Name.get -> string!
 Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageDocumentHandlerWrapper.ResponseType.get -> System.Type!
 Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageHandlerFactory
-Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageHandlerFactory.CreateMessageDocumentHandlers(System.Reflection.Assembly! assembly) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CustomMessageHandler.ICustomMessageDocumentHandlerWrapper!>!
-Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageHandlerFactory.CreateMessageHandlers(System.Reflection.Assembly! assembly) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CustomMessageHandler.ICustomMessageHandlerWrapper!>!
+Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageHandlerFactory.CreateMessageDocumentHandlers(System.Reflection.Assembly! assembly) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CustomMessageHandler.ICustomMessageDocumentHandlerWrapper!>
+Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageHandlerFactory.CreateMessageHandlers(System.Reflection.Assembly! assembly) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CustomMessageHandler.ICustomMessageHandlerWrapper!>
 Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageHandlerFactory.CustomMessageHandlerFactory() -> void
 Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageHandlerWrapper
 Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageHandlerWrapper.CustomMessageHandlerWrapper(object! handler, System.Type! iCustomMessageHandlerInterface) -> void

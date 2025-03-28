@@ -8,11 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using System.Text.Json;
 using System.Threading;
@@ -210,9 +208,9 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
     }
 
     public async ValueTask<string> HandleCustomDocumentMessageAsync(
+        Document document,
         string messageName,
         string jsonMessage,
-        Document document,
         CancellationToken cancellationToken)
     {
         ICustomMessageDocumentHandlerWrapper handler;
