@@ -233,53 +233,6 @@ public sealed class DiagnosticAnalyzerServiceTests
     }
 
     [Fact]
-    public async Task TestHostAnalyzerOrderingAsync()
-    {
-        using var workspace = CreateWorkspace();
-        var exportProvider = workspace.Services.SolutionServices.ExportProvider;
-
-        var analyzerReference = new AnalyzerImageReference(
-        [
-            new Priority20Analyzer(),
-            new Priority15Analyzer(),
-            new Priority10Analyzer(),
-            new Priority1Analyzer(),
-            new Priority0Analyzer(),
-            new CSharpCompilerDiagnosticAnalyzer(),
-            new Analyzer()
-,
-        ]);
-
-        workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
-
-        var project = workspace.AddProject(
-                      ProjectInfo.Create(
-                          ProjectId.CreateNewId(),
-                          VersionStamp.Create(),
-                          "Dummy",
-                          "Dummy",
-                          LanguageNames.CSharp));
-
-        var service = Assert.IsType<DiagnosticAnalyzerService>(exportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
-
-        var analyzers = await service.GetTestAccessor().GetAnalyzersAsync(project, CancellationToken.None).ConfigureAwait(false);
-        var analyzersArray = analyzers.ToArray();
-
-        AssertEx.Equal(
-        [
-            typeof(FileContentLoadAnalyzer),
-            typeof(GeneratorDiagnosticsPlaceholderAnalyzer),
-            typeof(CSharpCompilerDiagnosticAnalyzer),
-            typeof(Analyzer),
-            typeof(Priority0Analyzer),
-            typeof(Priority1Analyzer),
-            typeof(Priority10Analyzer),
-            typeof(Priority15Analyzer),
-            typeof(Priority20Analyzer)
-        ], analyzersArray.Select(a => a.GetType()));
-    }
-
-    [Fact]
     public async Task TestHostAnalyzerErrorNotLeaking()
     {
         using var workspace = CreateWorkspace();
@@ -931,44 +884,6 @@ public sealed class DiagnosticAnalyzerServiceTests
         }
     }
 
-    private sealed class NoNameAnalyzer : DocumentDiagnosticAnalyzer
-    {
-        internal static readonly DiagnosticDescriptor s_syntaxRule = new DiagnosticDescriptor("syntax", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
-
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [s_syntaxRule];
-
-        public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
-            => Task.FromResult(ImmutableArray.Create(Diagnostic.Create(s_syntaxRule, Location.Create(document.FilePath, TextSpan.FromBounds(0, 0), new LinePositionSpan(new LinePosition(0, 0), new LinePosition(0, 0))))));
-
-        public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
-            => SpecializedTasks.Default<ImmutableArray<Diagnostic>>();
-    }
-
-    private sealed class Priority20Analyzer : PriorityTestDocumentDiagnosticAnalyzer
-    {
-        public Priority20Analyzer() : base(priority: 20) { }
-    }
-
-    private sealed class Priority15Analyzer : PriorityTestProjectDiagnosticAnalyzer
-    {
-        public Priority15Analyzer() : base(priority: 15) { }
-    }
-
-    private sealed class Priority10Analyzer : PriorityTestDocumentDiagnosticAnalyzer
-    {
-        public Priority10Analyzer() : base(priority: 10) { }
-    }
-
-    private sealed class Priority1Analyzer : PriorityTestProjectDiagnosticAnalyzer
-    {
-        public Priority1Analyzer() : base(priority: 1) { }
-    }
-
-    private sealed class Priority0Analyzer : PriorityTestDocumentDiagnosticAnalyzer
-    {
-        public Priority0Analyzer() : base(priority: -1) { }
-    }
-
     private class PriorityTestDocumentDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
     {
         protected PriorityTestDocumentDiagnosticAnalyzer(int priority)
@@ -979,17 +894,6 @@ public sealed class DiagnosticAnalyzerServiceTests
         public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
             => Task.FromResult(ImmutableArray<Diagnostic>.Empty);
         public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
-            => Task.FromResult(ImmutableArray<Diagnostic>.Empty);
-    }
-
-    private class PriorityTestProjectDiagnosticAnalyzer : ProjectDiagnosticAnalyzer
-    {
-        protected PriorityTestProjectDiagnosticAnalyzer(int priority)
-            => Priority = priority;
-
-        public override int Priority { get; }
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [];
-        public override Task<ImmutableArray<Diagnostic>> AnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
             => Task.FromResult(ImmutableArray<Diagnostic>.Empty);
     }
 
