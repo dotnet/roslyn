@@ -71,14 +71,14 @@ internal struct DiagnosticAnalysisResultBuilder(Project project)
                         else
                         {
                             // non local diagnostics without location
-                            AddOtherDiagnostic(DiagnosticData.Create(Project, diagnostic));
+                            AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
                         }
 
                         break;
                     }
 
                 case LocationKind.None:
-                    AddOtherDiagnostic(DiagnosticData.Create(Project, diagnostic));
+                    AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
                     break;
 
                 case LocationKind.SourceFile:
@@ -145,13 +145,13 @@ internal struct DiagnosticAnalysisResultBuilder(Project project)
                 }
                 else
                 {
-                    AddOtherDiagnostic(DiagnosticData.Create(Project, diagnostic));
+                    AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
                 }
 
                 break;
 
             case LocationKind.None:
-                AddOtherDiagnostic(DiagnosticData.Create(Project, diagnostic));
+                AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
                 break;
 
             case LocationKind.SourceFile:
@@ -169,7 +169,7 @@ internal struct DiagnosticAnalysisResultBuilder(Project project)
                 else
                 {
                     // non local diagnostics without location
-                    AddOtherDiagnostic(DiagnosticData.Create(Project, diagnostic));
+                    AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
                 }
 
                 break;

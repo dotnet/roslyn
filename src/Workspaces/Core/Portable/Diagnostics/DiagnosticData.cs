@@ -186,7 +186,7 @@ internal sealed class DiagnosticData(
         }
     }
 
-    public static DiagnosticData Create(Project project, Diagnostic diagnostic)
+    public static DiagnosticData Create(Diagnostic diagnostic, Project project)
         => Create(diagnostic, project.Id, project.Language,
             location: new DiagnosticDataLocation(new FileLinePositionSpan(project.FilePath ?? project.Solution.FilePath ?? "", span: default)),
             additionalLocations: default, additionalProperties: null);
@@ -314,7 +314,7 @@ internal sealed class DiagnosticData(
         }
 
         var diagnostic = Diagnostic.Create(descriptor, Location.None, effectiveSeverity, additionalLocations: null, properties: null, messageArgs: messageArguments);
-        diagnosticData = Create(project, diagnostic);
+        diagnosticData = Create(diagnostic, project);
         return true;
     }
 

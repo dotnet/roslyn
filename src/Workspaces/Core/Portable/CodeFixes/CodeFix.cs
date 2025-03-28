@@ -72,6 +72,6 @@ internal sealed class CodeFix
                 return DiagnosticData.Create(diagnostic, document);
         }
 
-        return DiagnosticData.Create(Project, diagnostic);
+        return DiagnosticData.Create(diagnostic, Project);
     }
 }
