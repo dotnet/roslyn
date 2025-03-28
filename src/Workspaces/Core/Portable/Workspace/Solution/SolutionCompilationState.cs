@@ -994,8 +994,8 @@ internal sealed partial class SolutionCompilationState
             arg: mode,
             static (oldDocumentState, root, mode) =>
                 oldDocumentState.TryGetSyntaxTree(out var oldTree) && oldTree.TryGetRoot(out var oldRoot) && oldRoot == root
-                ? oldDocumentState
-                : oldDocumentState.UpdateTree(root, mode));
+                    ? oldDocumentState
+                    : oldDocumentState.UpdateTree(root, mode));
 
         state = state.WithFrozenSourceGeneratedDocuments(sourceGeneratedDocuments);
 
