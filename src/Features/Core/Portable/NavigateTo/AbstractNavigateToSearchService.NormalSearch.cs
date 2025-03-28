@@ -76,6 +76,9 @@ internal abstract partial class AbstractNavigateToSearchService
                     var (patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemsFound) = args;
                     await SearchSingleDocumentAsync(
                         documentAndSpan.document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet,
+                        // This is the entry point when a user is in a document searching for symbols in that document.
+                        // We want to search this document regardless of whether it is generated code or not.
+                        searchGeneratedCode: true,
                         item =>
                         {
                             // Ensure that the results found while searching the single document intersect the desired
@@ -147,6 +150,7 @@ internal abstract partial class AbstractNavigateToSearchService
         ImmutableArray<Document> priorityDocuments,
         string searchPattern,
         IImmutableSet<string> kinds,
+        bool searchGeneratedCode,
         Document? activeDocument,
         Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound,
         Func<Task> onProjectCompleted,
@@ -173,14 +177,14 @@ internal abstract partial class AbstractNavigateToSearchService
                 // on the oop side.
                 solution,
                 (service, solutionInfo, callbackId, cancellationToken) =>
-                    service.SearchProjectsAsync(solutionInfo, projects.SelectAsArray(p => p.Id), priorityDocumentIds, searchPattern, [.. kinds], callbackId, cancellationToken),
+                    service.SearchProjectsAsync(solutionInfo, projects.SelectAsArray(p => p.Id), priorityDocumentIds, searchPattern, [.. kinds], searchGeneratedCode, callbackId, cancellationToken),
                 callback, cancellationToken).ConfigureAwait(false);
 
             return;
         }
 
         await SearchProjectsInCurrentProcessAsync(
-            projects, priorityDocuments, searchPattern, kinds, onItemsFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
+            projects, priorityDocuments, searchPattern, kinds, searchGeneratedCode, onItemsFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
     }
 
     public static async Task SearchProjectsInCurrentProcessAsync(
@@ -188,6 +192,7 @@ internal abstract partial class AbstractNavigateToSearchService
         ImmutableArray<Document> priorityDocuments,
         string searchPattern,
         IImmutableSet<string> kinds,
+        bool searchGeneratedCode,
         Func<ImmutableArray<RoslynNavigateToItem>, VoidResult, CancellationToken, Task> onItemsFound,
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
@@ -220,7 +225,7 @@ internal abstract partial class AbstractNavigateToSearchService
                 Prioritize(project.Documents, highPriDocs.Contains),
                 cancellationToken,
                 (document, cancellationToken) => SearchSingleDocumentAsync(
-                    document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, cancellationToken)).ConfigureAwait(false);
+                    document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, searchGeneratedCode, onItemFound, cancellationToken)).ConfigureAwait(false);
 
             await onProjectCompleted().ConfigureAwait(false);
         }
