@@ -83,7 +83,6 @@
   </Target>
 
   <Target Name="AddCrossAssemblyOptimizationSwitch"
-    Condition="'$(TargetFramework)' != 'net6.0'"
     DependsOnTargets="ResolveProjectReferences"
     AfterTargets="ResolveProjectReferences">
     <!-- We used to use - -opt-cross-module:* as a switch, but inlining code
