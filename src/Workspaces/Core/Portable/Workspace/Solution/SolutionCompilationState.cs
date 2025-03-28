@@ -802,6 +802,9 @@ internal sealed partial class SolutionCompilationState
         (ImmutableArray<(DocumentId, SourceText)>,
          ImmutableArray<(SourceGeneratedDocumentIdentity, DateTime, SourceText, SyntaxNode?)>) GetOrdinaryAndSourceGeneratedDocuments()
         {
+            if (!texts.Any(static t => t.documentId.IsSourceGenerated))
+                return (texts, []);
+
             using var _1 = ArrayBuilder<(DocumentId, SourceText)>.GetInstance(capacity: texts.Length, out var ordinaryDocuments);
             using var _2 = ArrayBuilder<(SourceGeneratedDocumentIdentity, DateTime, SourceText, SyntaxNode?)>.GetInstance(out var sourceGeneratedDocuments);
             foreach (var doc in texts)
@@ -1004,6 +1007,9 @@ internal sealed partial class SolutionCompilationState
         (ImmutableArray<(DocumentId, SyntaxNode)>,
          ImmutableArray<(SourceGeneratedDocumentIdentity, DateTime, SourceText, SyntaxNode?)>) GetOrdinaryAndSourceGeneratedDocuments()
         {
+            if (!syntaxRoots.Any(static t => t.documentId.IsSourceGenerated))
+                return (syntaxRoots, []);
+
             using var _1 = ArrayBuilder<(DocumentId, SyntaxNode)>.GetInstance(capacity: syntaxRoots.Length, out var ordinaryDocuments);
             using var _2 = ArrayBuilder<(SourceGeneratedDocumentIdentity, DateTime, SourceText, SyntaxNode?)>.GetInstance(out var sourceGeneratedDocuments);
             foreach (var doc in syntaxRoots)
