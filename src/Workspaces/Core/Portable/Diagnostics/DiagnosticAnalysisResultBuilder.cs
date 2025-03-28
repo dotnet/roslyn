@@ -20,15 +20,12 @@ internal struct DiagnosticAnalysisResultBuilder(Project project)
 {
     public readonly Project Project = project;
 
-    private HashSet<DocumentId>? _lazyDocumentsWithDiagnostics = null;
-
     private Dictionary<DocumentId, List<DiagnosticData>>? _lazySyntaxLocals = null;
     private Dictionary<DocumentId, List<DiagnosticData>>? _lazySemanticLocals = null;
     private Dictionary<DocumentId, List<DiagnosticData>>? _lazyNonLocals = null;
 
     private List<DiagnosticData>? _lazyOthers = null;
 
-    public readonly ImmutableHashSet<DocumentId> DocumentIds => _lazyDocumentsWithDiagnostics == null ? [] : [.. _lazyDocumentsWithDiagnostics];
     public readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> SyntaxLocals => Convert(_lazySyntaxLocals);
     public readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> SemanticLocals => Convert(_lazySemanticLocals);
     public readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> NonLocals => Convert(_lazyNonLocals);
@@ -61,12 +58,12 @@ internal struct DiagnosticAnalysisResultBuilder(Project project)
                         if (documentId == diagnosticDocumentId)
                         {
                             // local diagnostics to a file
-                            AddDocumentDiagnostic(ref lazyLocals, Project.GetTextDocument(diagnosticDocumentId), diagnostic);
+                            AddDocumentDiagnostic(ref lazyLocals, Project.GetRequiredTextDocument(diagnosticDocumentId), diagnostic);
                         }
                         else if (diagnosticDocumentId != null)
                         {
                             // non local diagnostics to a file
-                            AddDocumentDiagnostic(ref _lazyNonLocals, Project.GetTextDocument(diagnosticDocumentId), diagnostic);
+                            AddDocumentDiagnostic(ref _lazyNonLocals, Project.GetRequiredTextDocument(diagnosticDocumentId), diagnostic);
                         }
                         else
                         {
@@ -93,18 +90,13 @@ internal struct DiagnosticAnalysisResultBuilder(Project project)
         }
     }
 
-    private void AddDocumentDiagnostic(ref Dictionary<DocumentId, List<DiagnosticData>>? map, TextDocument? document, Diagnostic diagnostic)
+    private static void AddDocumentDiagnostic(ref Dictionary<DocumentId, List<DiagnosticData>>? map, TextDocument document, Diagnostic diagnostic)
     {
-        if (document is null || !document.SupportsDiagnostics())
-        {
+        if (!document.SupportsDiagnostics())
             return;
-        }
 
         map ??= [];
-        map.GetOrAdd(document.Id, _ => []).Add(DiagnosticData.Create(diagnostic, document));
-
-        _lazyDocumentsWithDiagnostics ??= [];
-        _lazyDocumentsWithDiagnostics.Add(document.Id);
+        map.GetOrAdd(document.Id, static _ => []).Add(DiagnosticData.Create(diagnostic, document));
     }
 
     private void AddOtherDiagnostic(DiagnosticData data)
@@ -159,12 +151,12 @@ internal struct DiagnosticAnalysisResultBuilder(Project project)
                 if (tree != null && diagnosticTree == tree)
                 {
                     // local diagnostics to a file
-                    AddDocumentDiagnostic(ref lazyLocals, Project.GetDocument(diagnosticTree), diagnostic);
+                    AddDocumentDiagnostic(ref lazyLocals, Project.GetRequiredDocument(diagnosticTree), diagnostic);
                 }
                 else if (diagnosticTree != null)
                 {
                     // non local diagnostics to a file
-                    AddDocumentDiagnostic(ref _lazyNonLocals, Project.GetDocument(diagnosticTree), diagnostic);
+                    AddDocumentDiagnostic(ref _lazyNonLocals, Project.GetRequiredDocument(diagnosticTree), diagnostic);
                 }
                 else
                 {

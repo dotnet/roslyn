@@ -215,11 +215,7 @@ internal sealed class InProcOrRemoteHostAnalyzerRunner
             cancellationToken).ConfigureAwait(false);
 
         if (!result.HasValue)
-        {
             return DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
-        }
-
-        var documentIds = (documentAnalysisScope != null) ? ImmutableHashSet.Create(documentAnalysisScope.TextDocument.Id) : null;
 
         return new DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>(
             result.Value.Diagnostics.ToImmutableDictionary(
@@ -229,8 +225,7 @@ internal sealed class InProcOrRemoteHostAnalyzerRunner
                     syntaxLocalMap: Hydrate(entry.diagnosticMap.Syntax, project),
                     semanticLocalMap: Hydrate(entry.diagnosticMap.Semantic, project),
                     nonLocalMap: Hydrate(entry.diagnosticMap.NonLocal, project),
-                    others: entry.diagnosticMap.Other,
-                    documentIds)),
+                    others: entry.diagnosticMap.Other)),
             result.Value.Telemetry.ToImmutableDictionary(
                 entry => IReadOnlyDictionaryExtensions.GetValueOrDefault(projectAnalyzerMap, entry.analyzerId) ?? hostAnalyzerMap[entry.analyzerId],
                 entry => entry.telemetry));
