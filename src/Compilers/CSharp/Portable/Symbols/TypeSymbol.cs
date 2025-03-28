@@ -2189,7 +2189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool? isOperator = null;
 
-            if (interfaceMember is MethodSymbol { IsStatic: true} interfaceMethod)
+            if (interfaceMember is MethodSymbol { IsStatic: true } interfaceMethod)
             {
                 isOperator = interfaceMethod.MethodKind is MethodKind.UserDefinedOperator or MethodKind.Conversion;
             }
