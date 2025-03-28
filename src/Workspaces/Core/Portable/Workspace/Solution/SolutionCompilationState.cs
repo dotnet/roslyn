@@ -785,7 +785,7 @@ internal sealed partial class SolutionCompilationState
     /// <remarks>
     /// This method supports updating ordinary documents and source generated documents.
     /// </remarks>
-    internal SolutionCompilationState WithDocumentTexts1(ImmutableArray<(DocumentId documentId, SourceText text)> texts, PreservationMode mode)
+    internal SolutionCompilationState WithDocumentTexts(ImmutableArray<(DocumentId documentId, SourceText text)> texts, PreservationMode mode)
     {
         var (ordinaryDocuments, sourceGeneratedDocuments) = GetOrdinaryAndSourceGeneratedDocuments();
 
@@ -803,7 +803,7 @@ internal sealed partial class SolutionCompilationState
          ImmutableArray<(SourceGeneratedDocumentIdentity, DateTime, SourceText, SyntaxNode?)>) GetOrdinaryAndSourceGeneratedDocuments()
         {
             using var _1 = ArrayBuilder<(DocumentId, SourceText)>.GetInstance(capacity: texts.Length, out var ordinaryDocuments);
-            using var _2 = ArrayBuilder<(SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText sourceText, SyntaxNode? syntaxNode)>.GetInstance(out var sourceGeneratedDocuments);
+            using var _2 = ArrayBuilder<(SourceGeneratedDocumentIdentity, DateTime, SourceText, SyntaxNode?)>.GetInstance(out var sourceGeneratedDocuments);
             foreach (var doc in texts)
             {
                 if (!doc.documentId.IsSourceGenerated)
@@ -812,7 +812,7 @@ internal sealed partial class SolutionCompilationState
                 }
                 else if (TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(doc.documentId) is { Identity: var identity })
                 {
-                    sourceGeneratedDocuments.Add((identity, DateTime.UtcNow, doc.text, syntaxNode: null));
+                    sourceGeneratedDocuments.Add((identity, DateTime.UtcNow, doc.text, null));
                 }
             }
 
@@ -987,10 +987,7 @@ internal sealed partial class SolutionCompilationState
     /// </remarks>
     public SolutionCompilationState WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root)> syntaxRoots, PreservationMode mode)
     {
-        ImmutableArray<(SourceGeneratedDocumentIdentity, DateTime, SourceText, SyntaxNode?)> sourceGeneratedUpdates = [];
-        var ordinaryDocuments = syntaxRoots.Any(static d => d.documentId.IsSourceGenerated)
-            ? GetOrdinaryAndSourceGeneratedDocuments(out sourceGeneratedUpdates)
-            : syntaxRoots;
+        var (ordinaryDocuments, sourceGeneratedDocuments) = GetOrdinaryAndSourceGeneratedDocuments();
 
         var state = UpdateDocumentsInMultipleProjects<DocumentState, SyntaxNode, PreservationMode>(
             ordinaryDocuments,
@@ -1000,17 +997,15 @@ internal sealed partial class SolutionCompilationState
                 ? oldDocumentState
                 : oldDocumentState.UpdateTree(root, mode));
 
-        if (!sourceGeneratedUpdates.IsEmpty)
-        {
-            state = state.WithFrozenSourceGeneratedDocuments(sourceGeneratedUpdates);
-        }
+        state = state.WithFrozenSourceGeneratedDocuments(sourceGeneratedDocuments);
 
         return state;
 
-        ImmutableArray<(DocumentId, SyntaxNode)> GetOrdinaryAndSourceGeneratedDocuments(out ImmutableArray<(SourceGeneratedDocumentIdentity, DateTime, SourceText, SyntaxNode?)> sourceGeneratedUpdates)
+        (ImmutableArray<(DocumentId, SyntaxNode)>,
+         ImmutableArray<(SourceGeneratedDocumentIdentity, DateTime, SourceText, SyntaxNode?)>) GetOrdinaryAndSourceGeneratedDocuments()
         {
             using var _1 = ArrayBuilder<(DocumentId, SyntaxNode)>.GetInstance(capacity: syntaxRoots.Length, out var ordinaryDocuments);
-            using var _2 = ArrayBuilder<(SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText text, SyntaxNode? syntaxNode)>.GetInstance(out var sourceGeneratedUpdatesBuilder);
+            using var _2 = ArrayBuilder<(SourceGeneratedDocumentIdentity, DateTime, SourceText, SyntaxNode?)>.GetInstance(out var sourceGeneratedDocuments);
             foreach (var doc in syntaxRoots)
             {
                 if (!doc.documentId.IsSourceGenerated)
@@ -1021,12 +1016,11 @@ internal sealed partial class SolutionCompilationState
                 {
                     // Source generated documents always do a full parse, and source generator authors are only allowed to provide
                     // strings, so we follow suit here and just take the text from the root.
-                    sourceGeneratedUpdatesBuilder.Add((identity, DateTime.UtcNow, doc.root.GetText(), doc.root));
+                    sourceGeneratedDocuments.Add((identity, DateTime.UtcNow, doc.root.GetText(), doc.root));
                 }
             }
 
-            sourceGeneratedUpdates = sourceGeneratedUpdatesBuilder.ToImmutableAndClear();
-            return ordinaryDocuments.ToImmutableAndClear();
+            return (ordinaryDocuments.ToImmutableAndClear(), sourceGeneratedDocuments.ToImmutableAndClear());
         }
     }
 
