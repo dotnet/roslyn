@@ -1391,6 +1391,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         d = [k:v];
                         return d;
                     }
+                    static MyDictionary<K, V> FromPair3<K, V>(K k, V v)
+                    {
+                        MyDictionary<K, V> d = [k:v];
+                        return d;
+                    }
+                    static MyDictionary<K, V> FromPair4<K, V>(ref K k, ref V v)
+                    {
+                        return [k:v];
+                    }
+                    static MyDictionary<K, V> FromPair5<K, V>(V v)
+                    {
+                        MyDictionary<K, V> d = [MakeKey<K>():v];
+                        return d;
+                    }
+                    static K MakeKey<K>() => default;
                 }
                 """;
             var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net90);
@@ -1403,7 +1418,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_RefReturnParameter, "k").WithArguments("k").WithLocation(6, 11),
                 // (12,13): error CS9203: A collection expression of type 'MyDictionary<K, V>' cannot be used in this context because it may be exposed outside of the current scope.
                 //         d = [k:v];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[k:v]").WithArguments("MyDictionary<K, V>").WithLocation(12, 13));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[k:v]").WithArguments("MyDictionary<K, V>").WithLocation(12, 13),
+                // (18,16): error CS8352: Cannot use variable 'd' in this context because it may expose referenced variables outside of their declaration scope
+                //         return d;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "d").WithArguments("d").WithLocation(18, 16),
+                // (22,16): error CS9203: A collection expression of type 'MyDictionary<K, V>' cannot be used in this context because it may be exposed outside of the current scope.
+                //         return [k:v];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[k:v]").WithArguments("MyDictionary<K, V>").WithLocation(22, 16),
+                // (27,16): error CS8352: Cannot use variable 'd' in this context because it may expose referenced variables outside of their declaration scope
+                //         return d;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "d").WithArguments("d").WithLocation(27, 16));
         }
 
         [Fact]
