@@ -1875,18 +1875,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         FromSpread1<int, string>(y);
                         FromSpread2<int, string>(y);
                     }
-                    static {{typeName}} FromSpread1<K, V>(dynamic e) => [..e];
-                    static {{typeName}} FromSpread2<K, V>(IEnumerable e) => [..e];
+                    static {{typeName}}
+                        FromSpread1<K, V>(dynamic e) => [..e];
+                    static {{typeName}}
+                        FromSpread2<K, V>(IEnumerable e) => [..e];
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyEmitDiagnostics(
-                // (11,64): error CS0029: Cannot implicitly convert type 'object' to 'System.Collections.Generic.KeyValuePair<K, V>'
-                //     static Dictionary<K, V> FromSpread1<K, V>(dynamic e) => [..e];
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "e").WithArguments("object", "System.Collections.Generic.KeyValuePair<K, V>").WithLocation(11, 64),
-                // (12,68): error CS0029: Cannot implicitly convert type 'object' to 'System.Collections.Generic.KeyValuePair<K, V>'
-                //     static Dictionary<K, V> FromSpread2<K, V>(IEnumerable e) => [..e];
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "e").WithArguments("object", "System.Collections.Generic.KeyValuePair<K, V>").WithLocation(12, 68));
+                // (12,44): error CS0029: Cannot implicitly convert type 'object' to 'System.Collections.Generic.KeyValuePair<K, V>'
+                //         FromSpread1<K, V>(dynamic e) => [..e];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "e").WithArguments("object", "System.Collections.Generic.KeyValuePair<K, V>").WithLocation(12, 44),
+                // (14,48): error CS0029: Cannot implicitly convert type 'object' to 'System.Collections.Generic.KeyValuePair<K, V>'
+                //         FromSpread2<K, V>(IEnumerable e) => [..e];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "e").WithArguments("object", "System.Collections.Generic.KeyValuePair<K, V>").WithLocation(14, 48));
         }
 
         [Fact]
@@ -2268,6 +2270,125 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0076:  ret
                 }
                 """);
+        }
+
+        [Fact]
+        public void EvaluationOrder_03()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                class MyKeyValuePair<K, V>
+                {
+                    public MyKeyValuePair(K key, V value)
+                    {
+                        Key = key;
+                        Value = value;
+                    }
+                    public readonly K Key;
+                    public readonly V Value;
+                    public static implicit operator KeyValuePair<K, V>(MyKeyValuePair<K, V> kvp)
+                    {
+                        Console.WriteLine("conversion to MyKeyValuePair<{0}, {1}>: {2}, {3}", typeof(K).Name, typeof(V).Name, kvp.Key, kvp.Value);
+                        return new(kvp.Key, kvp.Value);
+                    }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = new MyKeyValuePair<int, string>(1, "one");
+                        var y = new MyKeyValuePair<int, string>[] { new(2, "two"), new(3, "three") };
+                        F(x, y).Report();
+                    }
+                    static IDictionary<K, V> F<K, V>(MyKeyValuePair<K, V> x, IEnumerable<MyKeyValuePair<K, V>> y)
+                    {
+                        return [Identity(x), ..Identity(y)];
+                    }
+                    static T Identity<T>(T value)
+                    {
+                        Console.WriteLine(value);
+                        return value;
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [source, s_dictionaryExtensions],
+                expectedOutput: """
+                    MyKeyValuePair`2[System.Int32,System.String]
+                    conversion to MyKeyValuePair<Int32, String>: 1, one
+                    MyKeyValuePair`2[System.Int32,System.String][]
+                    conversion to MyKeyValuePair<Int32, String>: 2, two
+                    conversion to MyKeyValuePair<Int32, String>: 2, two
+                    conversion to MyKeyValuePair<Int32, String>: 3, three
+                    conversion to MyKeyValuePair<Int32, String>: 3, three
+                    [1:one, 2:two, 3:three], 
+                    """);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void EvaluationOrder_04()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+                class A<T>
+                {
+                    public readonly T Value;
+                    public A(T value) { Value = value; }
+                    public static implicit operator A<T>(T value)
+                    {
+                        Console.WriteLine("conversion to A<{0}>: {1}", typeof(T).Name, value);
+                        return new(value);
+                    }
+                    public override string ToString() => Value.ToString();
+                    public class Comparer : IEqualityComparer<A<T>>
+                    {
+                        public Comparer()
+                        {
+                            Console.WriteLine("new Comparer<{0}>()", typeof(T).Name);
+                        }
+                        public bool Equals(A<T> x, A<T> y) => object.Equals(x.Value, y.Value);
+                        public int GetHashCode(A<T> a) => a.Value.GetHashCode();
+                    }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = new KeyValuePair<int, string>(1, "one");
+                        var y = new KeyValuePair<int, string>[] { new(2, "two"), new(3, "three") };
+                        var d = F(x, y);
+                        d.Select(kvp => new KeyValuePair<int, string>(kvp.Key.Value, kvp.Value.Value)).Report();
+                    }
+                    static Dictionary<A<K>, A<V>> F<K, V>(KeyValuePair<K, V> x, IEnumerable<KeyValuePair<K, V>> y)
+                    {
+                        return [with(comparer: new A<K>.Comparer()), Identity(x), ..Identity(y)];
+                    }
+                    static T Identity<T>(T value)
+                    {
+                        Console.WriteLine(value);
+                        return value;
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensions],
+                expectedOutput: """
+                    new Comparer<Int32>()
+                    [1, one]
+                    conversion to A<Int32>: 1
+                    conversion to A<String>: one
+                    System.Collections.Generic.KeyValuePair`2[System.Int32,System.String][]
+                    conversion to A<Int32>: 2
+                    conversion to A<String>: two
+                    conversion to A<Int32>: 3
+                    conversion to A<String>: three
+                    [[1, one], [2, two], [3, three]], 
+                    """);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
