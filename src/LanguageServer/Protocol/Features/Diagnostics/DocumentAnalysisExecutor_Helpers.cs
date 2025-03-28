@@ -16,30 +16,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal sealed partial class DocumentAnalysisExecutor
 {
-    // These are the error codes of the compiler warnings. 
-    // Keep the ids the same so that de-duplication against compiler errors
-    // works in the error list (after a build).
-    internal const string WRN_AnalyzerCannotBeCreatedIdCS = "CS8032";
-    internal const string WRN_AnalyzerCannotBeCreatedIdVB = "BC42376";
-    internal const string WRN_NoAnalyzerInAssemblyIdCS = "CS8033";
-    internal const string WRN_NoAnalyzerInAssemblyIdVB = "BC42377";
-    internal const string WRN_UnableToLoadAnalyzerIdCS = "CS8034";
-    internal const string WRN_UnableToLoadAnalyzerIdVB = "BC42378";
-    internal const string WRN_AnalyzerReferencesNetFrameworkIdCS = "CS8850";
-    internal const string WRN_AnalyzerReferencesNetFrameworkIdVB = "BC42503";
-    internal const string WRN_AnalyzerReferencesNewerCompilerIdCS = "CS9057";
-    internal const string WRN_AnalyzerReferencesNewerCompilerIdVB = "BC42506";
-
     // Shared with Compiler
-    internal const string AnalyzerExceptionDiagnosticId = "AD0001";
-    internal const string AnalyzerDriverExceptionDiagnosticId = "AD0002";
-
-    // IDE only errors
-    internal const string WRN_AnalyzerCannotBeCreatedId = "AD1000";
-    internal const string WRN_NoAnalyzerInAssemblyId = "AD1001";
-    internal const string WRN_UnableToLoadAnalyzerId = "AD1002";
-    internal const string WRN_AnalyzerReferencesNetFrameworkId = "AD1003";
-    internal const string WRN_AnalyzerReferencesNewerCompilerId = "AD1004";
+    public const string AnalyzerExceptionDiagnosticId = "AD0001";
 
     private const string AnalyzerExceptionDiagnosticCategory = "Intellisense";
 
@@ -66,62 +44,6 @@ internal sealed partial class DocumentAnalysisExecutor
             customTags: WellKnownDiagnosticTags.AnalyzerException);
 
         return Diagnostic.Create(descriptor, Location.None, analyzerName, e.GetType(), e.Message);
-    }
-
-    public static DiagnosticData CreateAnalyzerLoadFailureDiagnostic(AnalyzerLoadFailureEventArgs e, string fullPath, ProjectId? projectId, string? language)
-    {
-        static string GetLanguageSpecificId(string? language, string noLanguageId, string csharpId, string vbId)
-            => language == null ? noLanguageId : (language == LanguageNames.CSharp) ? csharpId : vbId;
-
-        string id, message;
-
-        switch (e.ErrorCode)
-        {
-            case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer:
-                id = GetLanguageSpecificId(language, WRN_UnableToLoadAnalyzerId, WRN_UnableToLoadAnalyzerIdCS, WRN_UnableToLoadAnalyzerIdVB);
-                message = string.Format(FeaturesResources.Unable_to_load_Analyzer_assembly_0_colon_1, fullPath, e.Message);
-                break;
-
-            case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer:
-                id = GetLanguageSpecificId(language, WRN_AnalyzerCannotBeCreatedId, WRN_AnalyzerCannotBeCreatedIdCS, WRN_AnalyzerCannotBeCreatedIdVB);
-                message = string.Format(FeaturesResources.An_instance_of_analyzer_0_cannot_be_created_from_1_colon_2, e.TypeName, fullPath, e.Message);
-                break;
-
-            case AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers:
-                id = GetLanguageSpecificId(language, WRN_NoAnalyzerInAssemblyId, WRN_NoAnalyzerInAssemblyIdCS, WRN_NoAnalyzerInAssemblyIdVB);
-                message = string.Format(FeaturesResources.The_assembly_0_does_not_contain_any_analyzers, fullPath);
-                break;
-
-            case AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesFramework:
-                id = GetLanguageSpecificId(language, WRN_AnalyzerReferencesNetFrameworkId, WRN_AnalyzerReferencesNetFrameworkIdCS, WRN_AnalyzerReferencesNetFrameworkIdVB);
-                message = string.Format(FeaturesResources.The_assembly_0_containing_type_1_references_NET_Framework, fullPath, e.TypeName);
-                break;
-
-            case AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesNewerCompiler:
-                id = GetLanguageSpecificId(language, WRN_AnalyzerReferencesNewerCompilerId, WRN_AnalyzerReferencesNewerCompilerIdCS, WRN_AnalyzerReferencesNewerCompilerIdVB);
-                message = string.Format(FeaturesResources.The_assembly_0_references_compiler_version_1_newer_than_2, fullPath, e.ReferencedCompilerVersion, typeof(AnalyzerLoadFailureEventArgs).Assembly.GetName().Version);
-                break;
-
-            default:
-                throw ExceptionUtilities.UnexpectedValue(e.ErrorCode);
-        }
-
-        var description = e.Exception.CreateDiagnosticDescription();
-
-        return new DiagnosticData(
-            id,
-            FeaturesResources.Roslyn_HostError,
-            message,
-            severity: DiagnosticSeverity.Warning,
-            defaultSeverity: DiagnosticSeverity.Warning,
-            isEnabledByDefault: true,
-            warningLevel: 0,
-            customTags: [],
-            properties: ImmutableDictionary<string, string?>.Empty,
-            projectId: projectId,
-            location: new DiagnosticDataLocation(new FileLinePositionSpan(fullPath, span: default)),
-            description: description,
-            language: language);
     }
 
     /// <summary>
