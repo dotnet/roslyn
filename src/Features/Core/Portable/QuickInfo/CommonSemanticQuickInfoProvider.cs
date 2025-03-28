@@ -195,21 +195,16 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         var syntaxFacts = languageServices.GetRequiredService<ISyntaxFactsService>();
         var enclosingType = semanticModel.GetEnclosingNamedType(token.SpanStart, cancellationToken);
 
-        var symbols = GetSymbolsFromToken(token, services, semanticModel, cancellationToken);
-
         var bindableParent = syntaxFacts.TryGetBindableParent(token);
-        var overloads = bindableParent != null
-            ? semanticModel.GetMemberGroup(bindableParent, cancellationToken)
-            : [];
 
-        symbols = [.. symbols.Where(IsOk)
-                         .Where(s => IsAccessible(s, enclosingType))
-                         .Concat(overloads)
-                         .Distinct(SymbolEquivalenceComparer.Instance)];
+        var symbolSet = new HashSet<ISymbol>(SymbolEquivalenceComparer.Instance);
+        using var _ = ArrayBuilder<ISymbol>.GetInstance(out var filteredSymbols);
 
-        if (symbols.Any())
+        AddSymbols(GetSymbolsFromToken(token, services, semanticModel, cancellationToken), checkAccessibility: true);
+        AddSymbols(bindableParent != null ? semanticModel.GetMemberGroup(bindableParent, cancellationToken) : [], checkAccessibility: false);
+
+        if (filteredSymbols is [var firstSymbol, ..])
         {
-            var firstSymbol = symbols.First();
             var isAwait = syntaxFacts.IsAwaitKeyword(token);
             var nullableFlowState = NullableFlowState.None;
             if (bindableParent != null)
@@ -217,7 +212,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
                 nullableFlowState = GetNullabilityAnalysis(semanticModel, firstSymbol, bindableParent, cancellationToken);
             }
 
-            return new TokenInformation(symbols, isAwait, nullableFlowState);
+            return new TokenInformation(filteredSymbols.ToImmutableAndClear(), isAwait, nullableFlowState);
         }
 
         // Couldn't bind the token to specific symbols.  If it's an operator, see if we can at
@@ -226,12 +221,25 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         {
             var typeInfo = semanticModel.GetTypeInfo(token.Parent!, cancellationToken);
             if (IsOk(typeInfo.Type))
-            {
                 return new TokenInformation([typeInfo.Type]);
-            }
         }
 
-        return new TokenInformation([]);
+        return default;
+
+        void AddSymbols(ImmutableArray<ISymbol> symbols, bool checkAccessibility)
+        {
+            foreach (var symbol in symbols)
+            {
+                if (!IsOk(symbol))
+                    continue;
+
+                if (checkAccessibility && !IsAccessible(symbol, enclosingType))
+                    continue;
+
+                if (symbolSet.Add(symbol))
+                    filteredSymbols.Add(symbol);
+            }
+        }
     }
 
     private ImmutableArray<ISymbol> GetSymbolsFromToken(SyntaxToken token, SolutionServices services, SemanticModel semanticModel, CancellationToken cancellationToken)
