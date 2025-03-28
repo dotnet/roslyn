@@ -918,6 +918,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // '{0}' must be required because it overrides required member '{1}'
                     diagnostics.Add(ErrorCode.ERR_OverrideMustHaveRequired, overridingMemberLocation, overridingMember, overriddenMember);
                 }
+                else if (overriddenMember is MethodSymbol overridden && overridden.IsOperator() != ((MethodSymbol)overridingMember).IsOperator())
+                {
+                    diagnostics.Add(ErrorCode.ERR_OperatorMismatchOnOverride, overridingMemberLocation, overridingMember, overriddenMember);
+                }
                 else
                 {
                     // As in dev11, we don't compare obsoleteness to the immediately-overridden member,
