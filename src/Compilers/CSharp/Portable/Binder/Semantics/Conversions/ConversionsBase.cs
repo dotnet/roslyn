@@ -1769,23 +1769,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal static bool CollectionUsesKeyValuePairs(
+        internal static (TypeSymbol Key, TypeSymbol Value)? TryGetCollectionKeyValuePairTypes(
             CSharpCompilation compilation,
             CollectionExpressionTypeKind collectionTypeKind,
-            TypeSymbol elementType,
-            [NotNullWhen(true)] out TypeSymbol? keyType,
-            [NotNullWhen(true)] out TypeSymbol? valueType)
+            TypeSymbol elementType)
         {
             // PROTOTYPE: Should apply to any collection of KeyValuePair<,>, not just dictionaries.
             if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer or CollectionExpressionTypeKind.DictionaryInterface)
             {
-                bool usesKeyValuePairs = IsKeyValuePairType(compilation, elementType, out keyType, out valueType);
-                Debug.Assert(usesKeyValuePairs);
-                return usesKeyValuePairs;
+                if (IsKeyValuePairType(compilation, elementType, out var keyType, out var valueType))
+                {
+                    return (keyType, valueType);
+                }
+                Debug.Assert(false);
             }
-            keyType = null;
-            valueType = null;
-            return false;
+            return null;
         }
 #nullable disable
 

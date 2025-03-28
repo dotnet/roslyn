@@ -292,7 +292,7 @@ unsafe record struct R(
 }
 ```
 
-## `with()` as a collection expression element is treated as collection *arguments*
+## `with()` as a collection expression element is treated as collection construction *arguments*
 
 ***Introduced in Visual Studio 2022 version 17.14***
 

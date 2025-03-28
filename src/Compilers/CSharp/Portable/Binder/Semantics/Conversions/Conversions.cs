@@ -204,138 +204,109 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            ImmutableArray<Conversion> elementConversions;
-            if (CollectionUsesKeyValuePairs(Compilation, collectionTypeKind, elementType, out var keyType, out var valueType))
+            var elementKeyValueTypes = TryGetCollectionKeyValuePairTypes(Compilation, collectionTypeKind, elementType);
+            var builder = ArrayBuilder<Conversion>.GetInstance(elements.Length);
+            foreach (var element in elements)
             {
-                var builder = ArrayBuilder<Conversion>.GetInstance(elements.Length * 2);
-                foreach (var element in elements)
+                if (element is BoundCollectionExpressionWithElement)
                 {
-                    switch (element)
-                    {
-                        case BoundCollectionExpressionWithElement:
-                            // Collection arguments do not affect convertibility.
-                            continue;
-                        case BoundCollectionExpressionSpreadElement spreadElement:
-                            {
-                                var enumeratorInfo = spreadElement.EnumeratorInfoOpt;
-                                if (enumeratorInfo is { })
-                                {
-                                    if (IsKeyValuePairType(Compilation, enumeratorInfo.ElementType, out var itemKeyType, out var itemValueType))
-                                    {
-                                        var keyConversion = ClassifyImplicitConversionFromType(itemKeyType, keyType, ref useSiteInfo);
-                                        var valueConversion = ClassifyImplicitConversionFromType(itemValueType, valueType, ref useSiteInfo);
-                                        if (keyConversion.Exists && valueConversion.Exists)
-                                        {
-                                            builder.Add(keyConversion);
-                                            builder.Add(valueConversion);
-                                            continue;
-                                        }
-                                    }
-                                }
-                            }
-                            break;
-                        case BoundKeyValuePairElement keyValuePairElement:
-                            {
-                                var keyConversion = ClassifyImplicitConversionFromExpression(keyValuePairElement.Key, keyType, ref useSiteInfo);
-                                var valueConversion = ClassifyImplicitConversionFromExpression(keyValuePairElement.Value, valueType, ref useSiteInfo);
-                                if (keyConversion.Exists && valueConversion.Exists)
-                                {
-                                    builder.Add(keyConversion);
-                                    builder.Add(valueConversion);
-                                    continue;
-                                }
-                            }
-                            break;
-                        case BoundExpression expressionElement:
-                            {
-                                if (expressionElement.Type is { })
-                                {
-                                    if (IsKeyValuePairType(Compilation, expressionElement.Type, out var elementKeyType, out var elementValueType))
-                                    {
-                                        var keyConversion = ClassifyImplicitConversionFromType(elementKeyType, keyType, ref useSiteInfo);
-                                        var valueConversion = ClassifyImplicitConversionFromType(elementValueType, valueType, ref useSiteInfo);
-                                        if (keyConversion.Exists && valueConversion.Exists)
-                                        {
-                                            builder.Add(keyConversion);
-                                            builder.Add(valueConversion);
-                                            continue;
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    var expressionConversion = ClassifyImplicitConversionFromExpression(expressionElement, elementType, ref useSiteInfo);
-                                    if (expressionConversion.Exists)
-                                    {
-                                        builder.Add(expressionConversion);
-                                        continue;
-                                    }
-                                }
-                            }
-                            break;
-                    }
+                    // Collection arguments do not affect convertibility.
+                    continue;
+                }
+                Conversion elementConversion = GetCollectionExpressionElementConversion(element, elementType, elementKeyValueTypes, ref useSiteInfo);
+                if (!elementConversion.Exists)
+                {
                     builder.Free();
                     return Conversion.NoConversion;
                 }
-                elementConversions = builder.ToImmutableAndFree();
-            }
-            else
-            {
-                var builder = ArrayBuilder<Conversion>.GetInstance(elements.Length);
-                foreach (var element in elements)
-                {
-                    switch (element)
-                    {
-                        case BoundCollectionExpressionWithElement:
-                            // Collection arguments do not affect convertibility.
-                            continue;
-                        case BoundCollectionExpressionSpreadElement spreadElement:
-                            {
-                                var elementConversion = GetCollectionExpressionSpreadElementConversion(spreadElement, elementType, ref useSiteInfo);
-                                if (elementConversion.Exists)
-                                {
-                                    builder.Add(elementConversion);
-                                    continue;
-                                }
-                            }
-                            break;
-                        case BoundExpression expressionElement:
-                            {
-                                var elementConversion = ClassifyImplicitConversionFromExpression(expressionElement, elementType, ref useSiteInfo);
-                                if (elementConversion.Exists)
-                                {
-                                    builder.Add(elementConversion);
-                                    continue;
-                                }
-                            }
-                            break;
-                    }
-                    builder.Free();
-                    return Conversion.NoConversion;
-                }
-                elementConversions = builder.ToImmutableAndFree();
+                builder.Add(elementConversion);
             }
 
+            var elementConversions = builder.ToImmutableAndFree();
             return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType, constructor, isExpanded, elementConversions);
         }
 
-        internal Conversion GetCollectionExpressionSpreadElementConversion(
-            BoundCollectionExpressionSpreadElement element,
-            TypeSymbol targetType,
+        private Conversion GetCollectionExpressionElementConversion(
+            BoundNode element,
+            TypeSymbol elementType,
+            (TypeSymbol Key, TypeSymbol Value)? elementKeyValueTypes,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            var enumeratorInfo = element.EnumeratorInfoOpt;
-            if (enumeratorInfo is null)
+            switch (element)
             {
-                return Conversion.NoConversion;
+                case BoundCollectionExpressionSpreadElement spreadElement:
+                    {
+                        var enumeratorInfo = spreadElement.EnumeratorInfoOpt;
+                        if (enumeratorInfo is { })
+                        {
+                            var elementConversion = GetCollectionExpressionSpreadElementConversion(spreadElement.Syntax, elementType, enumeratorInfo, ref useSiteInfo);
+                            if (elementConversion.Exists)
+                            {
+                                return elementConversion;
+                            }
+                            else if (elementKeyValueTypes is (var keyType, var valueType) &&
+                                IsKeyValuePairType(Compilation, enumeratorInfo.ElementType, out var itemKeyType, out var itemValueType))
+                            {
+                                var keyConversion = ClassifyImplicitConversionFromType(itemKeyType, keyType, ref useSiteInfo);
+                                var valueConversion = ClassifyImplicitConversionFromType(itemValueType, valueType, ref useSiteInfo);
+                                if (keyConversion.Exists && valueConversion.Exists)
+                                {
+                                    return Conversion.CreateKeyValuePairConversion(keyConversion, valueConversion);
+                                }
+                            }
+                        }
+                    }
+                    break;
+                case BoundKeyValuePairElement keyValuePairElement:
+                    {
+                        if (elementKeyValueTypes is (var keyType, var valueType))
+                        {
+                            var keyConversion = ClassifyImplicitConversionFromExpression(keyValuePairElement.Key, keyType, ref useSiteInfo);
+                            var valueConversion = ClassifyImplicitConversionFromExpression(keyValuePairElement.Value, valueType, ref useSiteInfo);
+                            if (keyConversion.Exists && valueConversion.Exists)
+                            {
+                                return Conversion.CreateKeyValuePairConversion(keyConversion, valueConversion);
+                            }
+                        }
+                    }
+                    break;
+                case BoundExpression expressionElement:
+                    {
+                        var elementConversion = ClassifyImplicitConversionFromExpression(expressionElement, elementType, ref useSiteInfo);
+                        if (elementConversion.Exists)
+                        {
+                            return elementConversion;
+                        }
+                        else if (expressionElement.Type is { } &&
+                            elementKeyValueTypes is (var keyType, var valueType) &&
+                            IsKeyValuePairType(Compilation, expressionElement.Type, out var elementKeyType, out var elementValueType))
+                        {
+                            var keyConversion = ClassifyImplicitConversionFromType(elementKeyType, keyType, ref useSiteInfo);
+                            var valueConversion = ClassifyImplicitConversionFromType(elementValueType, valueType, ref useSiteInfo);
+                            if (keyConversion.Exists && valueConversion.Exists)
+                            {
+                                return Conversion.CreateKeyValuePairConversion(keyConversion, valueConversion);
+                            }
+                        }
+                    }
+                    break;
             }
+            return Conversion.NoConversion;
+        }
+
+        internal Conversion GetCollectionExpressionSpreadElementConversion(
+            SyntaxNode syntax,
+            TypeSymbol targetType,
+            ForEachEnumeratorInfo enumeratorInfo,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
             // This should be conversion from type rather than conversion from expression.
             // The difference is in handling of dynamic, and fixing this would be a breaking
             // change for that case. For instance, the following would become an error:
             // dynamic[] x = [1, 2, 3];
             // int[] y = [.. x];
             return ClassifyImplicitConversionFromExpression(
-                new BoundValuePlaceholder(element.Syntax, enumeratorInfo.ElementType),
+                new BoundValuePlaceholder(syntax, enumeratorInfo.ElementType),
                 targetType,
                 ref useSiteInfo);
         }
