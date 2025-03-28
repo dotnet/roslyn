@@ -3879,7 +3879,7 @@ outerDefault:
             hasAnyRefOmittedArgument = false;
 
             bool isNewExtensionMember = member.GetIsNewExtensionMember();
-            ImmutableArray<ParameterSymbol> parameters = isNewExtensionMember ? GetParametersIncludingReceiver(member) : member.GetParameters();
+            ImmutableArray<ParameterSymbol> parameters = member.GetParametersIncludingExtensionParameter();
 
             // We simulate an extra parameter for vararg methods 
             int parameterCount = parameters.Length + (member.GetIsVararg() ? 1 : 0);
@@ -4040,7 +4040,7 @@ outerDefault:
             var types = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             var refs = ArrayBuilder<RefKind>.GetInstance();
             bool anyRef = false;
-            var parameters = member.GetIsNewExtensionMember() ? GetParametersIncludingReceiver(member) : member.GetParameters();
+            var parameters = member.GetParametersIncludingExtensionParameter();
             bool hasAnyRefArg = argumentRefKinds.Any();
             hasAnyRefOmittedArgument = false;
             TypeWithAnnotations paramsIterationType = default;
