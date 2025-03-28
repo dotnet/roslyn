@@ -22,13 +22,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal sealed class InProcOrRemoteHostAnalyzerRunner
 {
+    private readonly bool _enabled;
     private readonly IAsynchronousOperationListener _asyncOperationListener;
     public DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; }
 
     public InProcOrRemoteHostAnalyzerRunner(
+        bool enabled,
         DiagnosticAnalyzerInfoCache analyzerInfoCache,
         IAsynchronousOperationListener? operationListener = null)
     {
+        _enabled = enabled;
         AnalyzerInfoCache = analyzerInfoCache;
         _asyncOperationListener = operationListener ?? AsynchronousOperationListenerProvider.NullListener;
     }
@@ -57,6 +60,9 @@ internal sealed class InProcOrRemoteHostAnalyzerRunner
         bool getTelemetryInfo,
         CancellationToken cancellationToken)
     {
+        if (!_enabled)
+            return DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
+
         var result = await AnalyzeCoreAsync().ConfigureAwait(false);
         Debug.Assert(getTelemetryInfo || result.TelemetryInfo.IsEmpty);
         return result;
@@ -79,6 +85,9 @@ internal sealed class InProcOrRemoteHostAnalyzerRunner
 
     public async Task<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(Project project, CancellationToken cancellationToken)
     {
+        if (!_enabled)
+            return [];
+
         var options = project.Solution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
         var remoteHostClient = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
         if (remoteHostClient != null)
