@@ -107,7 +107,7 @@ internal sealed partial class DiagnosticAnalyzerService
                     }
 
                     // check whether there is IDE specific project diagnostic analyzer
-                    Debug.Assert(ideAnalyzers.All(a => a is ProjectDiagnosticAnalyzer or DocumentDiagnosticAnalyzer));
+                    Debug.Assert(ideAnalyzers.All(a => a is DocumentDiagnosticAnalyzer));
                     return await MergeProjectDiagnosticAnalyzerDiagnosticsAsync(ideAnalyzers, result).ConfigureAwait(false);
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
@@ -121,7 +121,7 @@ internal sealed partial class DiagnosticAnalyzerService
             {
                 try
                 {
-                    var ideAnalyzers = analyzers.WhereAsArray(a => a is ProjectDiagnosticAnalyzer or DocumentDiagnosticAnalyzer);
+                    var ideAnalyzers = analyzers.WhereAsArray(a => a is DocumentDiagnosticAnalyzer);
 
                     return await ComputeDiagnosticsForAnalyzersAsync(ideAnalyzers).ConfigureAwait(false);
                 }
@@ -168,10 +168,6 @@ internal sealed partial class DiagnosticAnalyzerService
                                     }
                                 }
 
-                                break;
-
-                            case ProjectDiagnosticAnalyzer projectAnalyzer:
-                                builder.AddCompilationDiagnostics(await DocumentAnalysisExecutor.ComputeProjectDiagnosticAnalyzerDiagnosticsAsync(projectAnalyzer, project, compilation, cancellationToken).ConfigureAwait(false));
                                 break;
                         }
 
