@@ -48,15 +48,13 @@ internal class LspServiceLifeCycleManager : ILifeCycleManager
             if (client is not null)
             {
                 await client.TryInvokeAsync<IRemoteCustomMessageHandlerService>(
-                    (service, cancellationToken) => service.ResetAsync(
-                        cancellationToken),
+                    (service, cancellationToken) => service.ResetAsync(cancellationToken),
                     CancellationToken.None).ConfigureAwait(false);
             }
             else
             {
                 var service = hostWorkspace.Services.GetRequiredService<ICustomMessageHandlerService>();
-                await service.ResetAsync(
-                        CancellationToken.None).ConfigureAwait(false);
+                await service.ResetAsync(CancellationToken.None).ConfigureAwait(false);
             }
         }
 

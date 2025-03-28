@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CustomMessageHandler;
@@ -47,7 +48,7 @@ internal class CustomMessageLoadHandler()
                 throw new InvalidOperationException("The remote message handler didn't return any value.");
             }
 
-            return new(response.Value.Handlers, response.Value.DocumentHandlers);
+            return new(response.Value.Handlers.ToArray(), response.Value.DocumentHandlers.ToArray());
         }
         else
         {
@@ -57,7 +58,7 @@ internal class CustomMessageLoadHandler()
                     request.AssemblyFileName,
                     cancellationToken).ConfigureAwait(false);
 
-            return new(response.Handlers, response.DocumentHandlers);
+            return new(response.Handlers.ToArray(), response.DocumentHandlers.ToArray());
         }
     }
 }

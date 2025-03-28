@@ -59,6 +59,11 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
         string assemblyFileName,
         CancellationToken cancellationToken)
     {
+        if (assemblyFileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+        {
+            throw new ArgumentException($"{assemblyFileName} is not a valid file name", nameof(assemblyFileName));
+        }
+
         var assemblyPath = Path.Combine(assemblyFolderPath, assemblyFileName);
 
         CustomMessageHandlerExtension? extension;

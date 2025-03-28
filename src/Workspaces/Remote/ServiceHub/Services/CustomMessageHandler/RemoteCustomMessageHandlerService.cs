@@ -51,9 +51,9 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
 
                 var service = solution.Services.GetRequiredService<ICustomMessageHandlerService>();
                 return await service.HandleCustomDocumentMessageAsync(
+                    document,
                     messageName,
                     jsonMessage,
-                    document,
                     cancellationToken).ConfigureAwait(false);
             },
             cancellationToken);
@@ -71,10 +71,10 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
             {
                 var service = solution.Services.GetRequiredService<ICustomMessageHandlerService>();
                 return service.HandleCustomMessageAsync(
-                solution,
-                messageName,
-                jsonMessage,
-                cancellationToken);
+                    solution,
+                    messageName,
+                    jsonMessage,
+                    cancellationToken);
             },
             cancellationToken);
     }
