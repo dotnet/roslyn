@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
     {
         private static readonly LocalizableString s_localizableTitle = CreateLocalizableResourceString(nameof(DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkRuleTitle));
         private static readonly LocalizableString s_localizableDescription = CreateLocalizableResourceString(nameof(DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkRuleDescription));
-        private const string HelpLinkUri = "https://github.com/dotnet/roslyn-analyzers/blob/main/docs/rules/RS1041.md";
+        private const string HelpLinkUri = "https://github.com/dotnet/roslyn/blob/main/docs/roslyn-analyzers/rules/RS1041.md";
 
         public static readonly DiagnosticDescriptor DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkStrictRule = new(
             DiagnosticIds.DoNotRegisterCompilerTypesWithBadTargetFrameworkRuleId,

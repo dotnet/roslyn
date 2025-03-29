@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         private static readonly LocalizableString s_localizableTitle = CreateLocalizableResourceString(nameof(DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleTitle));
         private static readonly LocalizableString s_localizableDescription = CreateLocalizableResourceString(nameof(DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleDescription));
-        private const string HelpLinkUri = "https://github.com/dotnet/roslyn-analyzers/blob/main/docs/rules/RS1038.md";
+        private const string HelpLinkUri = "https://github.com/dotnet/roslyn/blob/main/docs/roslyn-analyzers/rules/RS1038.md";
 
         public static readonly DiagnosticDescriptor DoNotDeclareCompilerFeatureInAssemblyWithWorkspacesReferenceStrictRule = new(
             DiagnosticIds.DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleId,
