@@ -190,13 +190,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 // their content no longer comes from the source generator, so thats our cue to know when to handle.
                 // Changes to non-frozen documents don't need to be included, because changes to the origin document would
                 // cause the generator to re-generate the same changed content.
-                if (newSolution.CompilationState.FrozenSourceGeneratedDocumentStates is not null)
-                {
-                    await AddTextDocumentEditsAsync(
-                        changes.GetChangedFrozenSourceGeneratedDocuments(),
-                        newSolution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId,
-                        solution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId).ConfigureAwait(false);
-                }
+                await AddTextDocumentEditsAsync(
+                    changes.GetChangedFrozenSourceGeneratedDocuments(),
+                    newSolution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId,
+                    solution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId).ConfigureAwait(false);
 
                 // Changed analyzer config documents
                 await AddTextDocumentEditsAsync(

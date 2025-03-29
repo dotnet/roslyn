@@ -1742,9 +1742,7 @@ public partial class Solution
         }
 
         // For source generated documents we expect them to be already generated to use any of the APIs that call this
-        if (documentId.IsSourceGenerated &&
-            ContainsProject(documentId.ProjectId) &&
-            this.GetRequiredProject(documentId.ProjectId).TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId) is not null)
+        if (documentId.IsSourceGenerated && ContainsSourceGeneratedDocument(documentId))
         {
             return;
         }
@@ -1755,6 +1753,19 @@ public partial class Solution
         }
 
         throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+
+        bool ContainsSourceGeneratedDocument(DocumentId documentId)
+        {
+            if (!ContainsProject(documentId.ProjectId))
+                return false;
+
+            var project = this.GetRequiredProject(documentId.ProjectId);
+
+            if (project.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId) is null)
+                return false;
+
+            return true;
+        }
     }
 
     private void CheckContainsDocuments(ImmutableArray<DocumentId> documentIds)

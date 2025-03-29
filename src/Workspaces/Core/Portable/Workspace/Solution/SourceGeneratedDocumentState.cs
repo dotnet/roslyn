@@ -191,6 +191,10 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
 
     public SourceGeneratedDocumentState WithSyntaxRoot(SyntaxNode newRoot)
     {
+        // See if we can reuse this instance directly
+        if (this.TryGetSyntaxTree(out var tree) && tree == newRoot.SyntaxTree)
+            return this;
+
         var newTreeVersion = GetNewTreeVersionForUpdatedTree(newRoot, GetNewerVersion(), PreservationMode.PreserveValue);
         var newTreeSource = SimpleTreeAndVersionSource.Create(new TreeAndVersion(newRoot.SyntaxTree, newTreeVersion));
 

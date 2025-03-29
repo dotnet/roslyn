@@ -93,8 +93,7 @@ public readonly struct SolutionChanges
         foreach (var (id, _) in _newSolution.CompilationState.FrozenSourceGeneratedDocumentStates.States)
         {
             var oldState = _oldSolution.CompilationState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(id);
-            if (oldState is not null)
-                oldStateBuilder.Add(oldState);
+            oldStateBuilder.AddIfNotNull(oldState);
         }
 
         var oldStates = new TextDocumentStates<SourceGeneratedDocumentState>(oldStateBuilder);
