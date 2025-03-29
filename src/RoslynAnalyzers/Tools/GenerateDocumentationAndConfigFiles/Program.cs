@@ -210,7 +210,7 @@ namespace GenerateDocumentationAndConfigFiles
 
             if (fileNamesWithValidationFailures.Count > 0)
             {
-                await Console.Error.WriteLineAsync("One or more auto-generated documentation files were either edited manually, or not updated. Please revert changes made to the following files (if manually edited) and run `msbuild /t:pack` at the root of the repo to automatically update them:").ConfigureAwait(false);
+                await Console.Error.WriteLineAsync("One or more auto-generated documentation files were either edited manually, or not updated. Please revert changes made to the following files (if manually edited) and run `dotnet msbuild /t:pack` at the root of the repo to automatically update them:").ConfigureAwait(false);
                 fileNamesWithValidationFailures.ForEach(fileName => Console.Error.WriteLine($"    {fileName}"));
                 return 1;
             }
@@ -272,7 +272,7 @@ namespace GenerateDocumentationAndConfigFiles
                     fileContents =
                         $"""
                         <Project>
-                          <!-- 
+                          <!--
                             PropertyGroup to disable built-in analyzers from .NET SDK that have the identical CA rules to those implemented in this package.
                             This props file should only be present in the analyzer NuGet package, it should **not** be inserted into the .NET SDK.
                           -->
@@ -296,7 +296,7 @@ namespace GenerateDocumentationAndConfigFiles
 
                         return $"""
 
-                              <!-- 
+                              <!--
                                 This import includes an additional props file that disables built-in analyzers from .NET SDK that have the identical CA rules to those implemented in this package.
                                 This additional props file should only be present in the analyzer NuGet package, it should **not** be inserted into the .NET SDK.
                               -->
@@ -323,7 +323,7 @@ namespace GenerateDocumentationAndConfigFiles
                 var allRuleIds = string.Join(';', allRulesById.Keys);
                 return $"""
 
-                      <!-- 
+                      <!--
                         This property group handles 'CodeAnalysisTreatWarningsAsErrors = false' for the CA rule ids implemented in this package.
                       -->
                       <PropertyGroup>
@@ -1596,7 +1596,7 @@ namespace GenerateDocumentationAndConfigFiles
                 {
                     builder.AppendLine($"""
 
-                          <!-- MSBuild properties to thread to the analyzers as options --> 
+                          <!-- MSBuild properties to thread to the analyzers as options -->
                           <ItemGroup>
                         """);
                     foreach (var compilerVisibleProperty in compilerVisibleProperties)
