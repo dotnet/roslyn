@@ -20,7 +20,7 @@ internal sealed class CSharpSemanticSearchUtilities
                 return compilation.Assembly.GlobalNamespace.GetMembers("C");
             }
             """,
-        GlobalUsings = """
+        GlobalUsingsAndTools = $$"""
             global using System;
             global using System.Collections.Generic;
             global using System.Collections.Immutable;
@@ -28,6 +28,17 @@ internal sealed class CSharpSemanticSearchUtilities
             global using System.Threading;
             global using System.Threading.Tasks;
             global using Microsoft.CodeAnalysis;
+
+            public static class {{SemanticSearchUtilities.ToolsTypeName}}
+            {
+                private static Func<ISymbol, IAsyncEnumerable<ISymbol>> {{SemanticSearchUtilities.FindReferencingSymbolsImplName}};
+
+                /// <summary>
+                /// Returns all symbols that reference (use) a given <paramref name="symbol" />.
+                /// </summary>
+                public static IAsyncEnumerable<ISymbol> FindReferencingSymbols(this ISymbol symbol)
+                    => {{SemanticSearchUtilities.FindReferencingSymbolsImplName}}(symbol);
+            }
             """,
         EditorConfig = """
             is_global = true

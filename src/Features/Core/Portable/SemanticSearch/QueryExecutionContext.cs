@@ -41,7 +41,7 @@ internal sealed class QueryExecutionContext(
     public long ExecutionTime => _executionTime;
     public int ProcessedProjectCount => _processedProjectCount;
 
-    public async Task InvokeAsync(Solution solution, QueryKind targetEntity, CancellationToken cancellationToken)
+    public async Task InvokeAsync(Solution solution, QueryKind queryKind, bool isAsync, CancellationToken cancellationToken)
     {
         // Invoke query on projects and types in parallel and on members serially.
         // Cancel execution if the query throws an exception.
@@ -63,16 +63,16 @@ internal sealed class QueryExecutionContext(
                     // only search source symbols:
                     var rootNamespace = compilation.Assembly.GlobalNamespace;
 
-                    switch (targetEntity)
+                    switch (queryKind)
                     {
                         case QueryKind.Compilation:
-                            await InvokeAsync(project, compilation, entity: compilation, symbolEnumerationCancellationSource, cancellationToken).ConfigureAwait(false);
+                            await InvokeAsync(project, compilation, entity: compilation, isAsync, symbolEnumerationCancellationSource, cancellationToken).ConfigureAwait(false);
                             break;
 
                         case QueryKind.Namespace:
                             await Parallel.ForEachAsync(rootNamespace.GetAllNamespaces(cancellationToken), cancellationToken, async (namespaceSymbol, cancellationToken) =>
                             {
-                                await InvokeAsync(project, compilation, entity: namespaceSymbol, symbolEnumerationCancellationSource, cancellationToken).ConfigureAwait(false);
+                                await InvokeAsync(project, compilation, entity: namespaceSymbol, isAsync, symbolEnumerationCancellationSource, cancellationToken).ConfigureAwait(false);
                             }).ConfigureAwait(false);
                             break;
 
@@ -82,13 +82,13 @@ internal sealed class QueryExecutionContext(
                         case QueryKind.Property:
                         case QueryKind.Event:
 
-                            var kind = GetSymbolKind(targetEntity);
+                            var kind = GetSymbolKind(queryKind);
 
                             await Parallel.ForEachAsync(rootNamespace.GetAllTypes(cancellationToken), async (type, cancellationToken) =>
                             {
                                 if (kind == SymbolKind.NamedType)
                                 {
-                                    await InvokeAsync(project, compilation, entity: type, symbolEnumerationCancellationSource, cancellationToken).ConfigureAwait(false);
+                                    await InvokeAsync(project, compilation, entity: type, isAsync, symbolEnumerationCancellationSource, cancellationToken).ConfigureAwait(false);
                                 }
                                 else
                                 {
@@ -96,7 +96,7 @@ internal sealed class QueryExecutionContext(
                                     {
                                         if (member.Kind == kind)
                                         {
-                                            await InvokeAsync(project, compilation, entity: member, symbolEnumerationCancellationSource, cancellationToken).ConfigureAwait(false);
+                                            await InvokeAsync(project, compilation, entity: member, isAsync, symbolEnumerationCancellationSource, cancellationToken).ConfigureAwait(false);
                                         }
                                     }
                                 }
@@ -118,7 +118,7 @@ internal sealed class QueryExecutionContext(
         }
     }
 
-    private async ValueTask InvokeAsync(Project project, Compilation compilation, object entity, CancellationTokenSource symbolEnumerationCancellationSource, CancellationToken cancellationToken)
+    private async ValueTask InvokeAsync(Project project, Compilation compilation, object entity, bool isAsync, CancellationTokenSource symbolEnumerationCancellationSource, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -130,30 +130,49 @@ internal sealed class QueryExecutionContext(
 
             try
             {
-                var symbols = (IEnumerable<ISymbol?>?)method.Invoke(null, [entity]) ?? [];
+                var symbols = method.Invoke(null, [entity]);
+                if (symbols != null)
+                {
+                    if (isAsync)
+                    {
+                        await foreach (var symbol in ((IAsyncEnumerable<ISymbol?>)symbols).WithCancellation(cancellationToken).ConfigureAwait(false))
+                        {
+                            await ObserveSymbolAsync(symbol).ConfigureAwait(false);
+                        }
+                    }
+                    else
+                    {
+                        foreach (var symbol in (IEnumerable<ISymbol?>)symbols)
+                        {
+                            await ObserveSymbolAsync(symbol).ConfigureAwait(false);
+                        }
+                    }
+                }
 
-                foreach (var symbol in symbols)
+                async ValueTask ObserveSymbolAsync(ISymbol? symbol)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (symbol != null)
+                    if (symbol == null)
                     {
-                        executionTime += Stopwatch.GetElapsedTime(executionStart);
-
-                        try
-                        {
-                            var definitionItem = await symbol.ToClassifiedDefinitionItemAsync(
-                                classificationOptions, project.Solution, s_findReferencesSearchOptions, isPrimary: true, includeHiddenLocations: false, cancellationToken).ConfigureAwait(false);
-
-                            await resultsObserver.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
-                        }
-                        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-                        {
-                            // skip symbol
-                        }
-
-                        executionStart = Stopwatch.GetTimestamp();
+                        return;
                     }
+
+                    executionTime += Stopwatch.GetElapsedTime(executionStart);
+
+                    try
+                    {
+                        var definitionItem = await symbol.ToClassifiedDefinitionItemAsync(
+                            classificationOptions, project.Solution, s_findReferencesSearchOptions, isPrimary: true, includeHiddenLocations: false, cancellationToken).ConfigureAwait(false);
+
+                        await resultsObserver.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+                    {
+                        // skip symbol
+                    }
+
+                    executionStart = Stopwatch.GetTimestamp();
                 }
             }
             finally
