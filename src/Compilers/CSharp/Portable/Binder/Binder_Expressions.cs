@@ -6631,6 +6631,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundCall(
                     syntax,
                     receiverOpt: expr,
+                    // initialBindingReceiverIsSubjectToCloning is used for ref safety analysis, KeyValuePair<,> is
+                    // a struct, not a ref struct, and the well-known accessors get_Key and get_Value do not have
+                    // ref parameters or return values, so there should be no ref safety issues due to cloning.
+                    // Therefore, we can use ThreeState.False.
                     initialBindingReceiverIsSubjectToCloning: ThreeState.False,
                     method: getMethod,
                     arguments: [],
@@ -6664,10 +6668,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCall(
                 syntax,
                 receiverOpt: implicitReceiver,
-                // initialBindingReceiverIsSubjectToCloning is used for ref safety analysis, KeyValuePair<,> is
-                // a struct, not a ref struct, and the well-known accessors get_Key and get_Value do not have
-                // ref parameters or return values, so there should be no ref safety issues due to cloning.
-                // Therefore, we can use ThreeState.False.
                 initialBindingReceiverIsSubjectToCloning: ThreeState.False,
                 method: setMethod,
                 arguments: [key, value],
