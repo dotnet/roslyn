@@ -1290,6 +1290,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">運算子</target>
         <note />
       </trans-unit>
+      <trans-unit id="Parameter_type_0_is_not_among_supported_types_1">
+        <source>Parameter type '{0}' is not among supported types: {1}</source>
+        <target state="new">Parameter type '{0}' is not among supported types: {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Please_resolve_errors_in_your_code_before_renaming_this_element">
         <source>Please resolve errors in your code before renaming this element.</source>
         <target state="translated">請先解決程式碼中的錯誤，再重新命名此元素。</target>
@@ -2560,6 +2565,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">解析模組: '{0}' 之 '{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Return_type_0_is_not_among_supported_types_1">
+        <source>Return type '{0}' is not among supported types: {1}</source>
+        <target state="new">Return type '{0}' is not among supported types: {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">粗略編輯</target>
@@ -2758,11 +2768,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Trailing_comma_not_allowed">
         <source>Trailing comma not allowed</source>
         <target state="translated">尾端不得為逗號</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Type_0_is_not_among_supported_types_1">
-        <source>Type '{0}' is not among supported types: {1}</source>
-        <target state="new">Type '{0}' is not among supported types: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Types_colon">

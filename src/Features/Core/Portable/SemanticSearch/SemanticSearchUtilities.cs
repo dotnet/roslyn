@@ -17,9 +17,11 @@ namespace Microsoft.CodeAnalysis.SemanticSearch;
 internal static class SemanticSearchUtilities
 {
     public const string ReferenceAssemblyDirectoryName = "SemanticSearchRefs";
-    public const string GlobalUsingsDocumentName = "GlobalUsings";
+    public const string GlobalUsingsAndToolsDocumentName = "GlobalUsings";
     public const string ConfigDocumentName = ".editorconfig";
     public const string FindMethodName = "Find";
+    public const string ToolsTypeName = "Tools";
+    public const string FindReferencingSymbolsImplName = "s_findReferencingSymbols";
 
     public static readonly string QueryProjectName = FeaturesResources.SemanticSearch;
     public static readonly string QueryDocumentName = FeaturesResources.Query;
