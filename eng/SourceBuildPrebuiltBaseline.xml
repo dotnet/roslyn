@@ -3,10 +3,10 @@
 
 <UsageData>
   <IgnorePatterns>
-    <!-- These are cases where the component chooses, when built in isolation, to 
+    <!-- These are cases where the component chooses, when built in isolation, to
          remain dependent on stable versions. These versions may not have source build intermediates associated with them.
          They cannot be source build reference packages because they actually provide functionality. In full source build, these versions are
-         overridden by previous repo outputs or come from previously source-built artifacts.  --> 
+         overridden by previous repo outputs or come from previously source-built artifacts.  -->
     <UsagePattern IdentityGlob="Microsoft.CodeAnalysis.Analyzers/*" />
     <UsagePattern IdentityGlob="Microsoft.CodeAnalysis.AnalyzerUtilities/*" />
     <UsagePattern IdentityGlob="Microsoft.CodeAnalysis.CSharp.CodeStyle/*" />
@@ -49,6 +49,15 @@
     <UsagePattern IdentityGlob="System.Text.Json/9.0*" />
     <UsagePattern IdentityGlob="System.Threading.Tasks.Dataflow/9.0*" />
     <UsagePattern IdentityGlob="System.Windows.Extensions/9.0*" />
+
+    <!-- This is the version of Microsoft.CodeAnalysis used by RoslynAnalyzers for tooling executed
+         in repo source-build, as well as unit tests. -->
+    <UsagePattern IdentityGlob="Microsoft.CodeAnalysis*/*3.11.0*" />
+    <UsagePattern IdentityGlob="Microsoft.CodeAnalysis*/*4.0.1*" />
+    <UsagePattern IdentityGlob="Microsoft.CodeAnalysis*/*4.1.0*" />
+    <UsagePattern IdentityGlob="Microsoft.CodeAnalysis*/*4.6.0-1.final*" />
+    <!-- Dependency of Microsoft.CodeAnalysis.Common 4.6.0-1.final -->
+    <UsagePattern IdentityGlob="Microsoft.CodeAnalysis.Analyzers/*3.3.4*" />
   </IgnorePatterns>
   <Usages>
     <Usage Id="Microsoft.Build" Version="17.3.4" IsDirectDependency="true" />
