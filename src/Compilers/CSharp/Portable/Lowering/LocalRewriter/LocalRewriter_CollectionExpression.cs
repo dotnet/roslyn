@@ -489,7 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var typeArguments = interfaceType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
             var collectionType = _factory.WellKnownType(WellKnownType.System_Collections_Generic_Dictionary_KV).Construct(typeArguments);
 
-            // PROTOTYPE: Create a custom interface implementation for IReadOnlyDictionary<K, V> to enforce immutability?
+            // https://github.com/dotnet/roslyn/issues/77878: Create a custom interface implementation for IReadOnlyDictionary<K, V> to enforce immutability.
             // Dictionary<K, V> dictionary = new();
             var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor)).AsMember(collectionType);
             var rewrittenReceiver = _factory.New(constructor, ImmutableArray<BoundExpression>.Empty);

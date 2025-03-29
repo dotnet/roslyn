@@ -16309,7 +16309,6 @@ partial class Program
                 }
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
-            // PROTOTYPE: ERR_CollectionBuilderAttributeMethodNotFound error message is stale. It should say "... with a first parameter of type 'ReadOnlySpan<object> callable with no additional arguments, ...".
             comp.VerifyEmitDiagnostics(
                 // (6,34): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<object>' and return type 'MyCollection<T>'.
                 //         MyCollection<object> x = [];

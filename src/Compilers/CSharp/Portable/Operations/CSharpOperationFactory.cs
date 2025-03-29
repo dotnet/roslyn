@@ -304,9 +304,9 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.StackAllocArrayCreation:
                 case BoundKind.TypeExpression:
                 case BoundKind.TypeOrValueExpression:
-                case BoundKind.KeyValuePairElement: // PROTOTYPE: Implement IOperation support.
-                case BoundKind.CollectionExpressionWithElement: // PROTOTYPE: Implement IOperation support.
-                case BoundKind.KeyValuePairExpressionElement: // PROTOTYPE: Implement IOperation support.
+                case BoundKind.KeyValuePairElement: // https://github.com/dotnet/roslyn/issues/77872: Implement IOperation support.
+                case BoundKind.CollectionExpressionWithElement: // https://github.com/dotnet/roslyn/issues/77872: Implement IOperation support.
+                case BoundKind.KeyValuePairExpressionElement: // https://github.com/dotnet/roslyn/issues/77872: Implement IOperation support.
                     ConstantValue? constantValue = (boundNode as BoundExpression)?.ConstantValueOpt;
                     bool isImplicit = boundNode.WasCompilerGenerated;
 
@@ -1281,7 +1281,7 @@ namespace Microsoft.CodeAnalysis.Operations
             SyntaxNode syntax = element.Syntax;
             bool isImplicit = element.WasCompilerGenerated;
             var elementType = element.EnumeratorInfoOpt?.ElementType.GetPublicSymbol();
-            // PROTOTYPE: For key-value pairs, we probably need a pair of conversions rather a single conversion.
+            // https://github.com/dotnet/roslyn/issues/77872: For key-value pairs, we probably need a pair of conversions rather a single conversion.
             var elementConversion = (expr.CollectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer or CollectionExpressionTypeKind.DictionaryInterface) ?
                 Conversion.Identity :
                 BoundNode.GetConversion(iteratorItem, element.ElementPlaceholder);

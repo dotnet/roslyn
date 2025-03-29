@@ -1414,7 +1414,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
-            // PROTOTYPE: [with(x)] and [with(x), y] should result in errors since x should not be included in the params argument.
+            // https://github.com/dotnet/roslyn/issues/77866: [with(x)] and [with(x), y] should
+            // result in errors since x should not be included in the params argument. Should
+            // be fixed when the last parameter of the builder method is the items parameter.
             comp.VerifyEmitDiagnostics();
         }
 
@@ -1473,8 +1475,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
-            // PROTOTYPE: Update the params-collection spec so it's clear that we require "... a factory method callable with no additional
-            // arguments, and with the type arguments from the params parameter declaration", and provide an example such as this case.
             comp.VerifyEmitDiagnostics(
                 // (3,58): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>)'
                 //     static MyCollection<T> NoConstraints<T>(T x, T y) => NoConstraintsParams(x, y);
@@ -3790,7 +3790,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 [sourceA, sourceB, sourceC],
                 targetFramework: TargetFramework.Net80,
                 verify: Verification.Skipped,
-                // PROTOTYPE: 1, ..., 2, ..., should be evaluated before 3, ..., 4, ... .
+                // https://github.com/dotnet/roslyn/issues/77866: 1, ..., 2, ..., should be evaluated before 3, ..., 4, ... .
+                // Should be fixed when the last parameter of the builder method is the items parameter.
                 expectedOutput: IncludeExpectedOutput("""
                     3
                     3 -> A
