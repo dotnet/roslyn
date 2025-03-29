@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 " + CommonAnalyzerReleaseTrackingContent;
         internal const string UnshippedAnalyzerReleaseTrackingFileDefaultContent = @"; Unshipped analyzer release
 " + CommonAnalyzerReleaseTrackingContent;
-        private const string CommonAnalyzerReleaseTrackingContent = @"; https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md
+        private const string CommonAnalyzerReleaseTrackingContent = @"; https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md
 
 ";
 
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
             CancellationToken cancellationToken)
         {
             // Split entries to add into New rule entries and Changed rule entries as they should be added to separate tables.
-            //  New rule entry: 
+            //  New rule entry:
             //      "Rule ID | Category | Severity | HelpLink (optional)"
             //      "   0    |     1    |    2     |        3           "
             //
