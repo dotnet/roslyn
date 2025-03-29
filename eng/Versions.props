@@ -91,6 +91,7 @@
     <SystemIdentityModelTokensJwtVersion>6.34.0</SystemIdentityModelTokensJwtVersion>
     <MicrosoftIdentityClientVersion>4.61.3</MicrosoftIdentityClientVersion>
     <SystemIdentityModelTokensJwtVersion>6.34.0</SystemIdentityModelTokensJwtVersion>
+    <MicrosoftDotNetIBCMergeVersion>5.1.0-beta.21473.1</MicrosoftDotNetIBCMergeVersion>
   </PropertyGroup>
   <PropertyGroup>
     <UsingToolVSSDK Condition="$([MSBuild]::IsOSPlatform('Windows'))">true</UsingToolVSSDK>
