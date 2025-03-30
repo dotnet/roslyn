@@ -242,7 +242,7 @@ public abstract class AbstractPdbSourceDocumentTests
         // to be available.
 
         return EditorTestCompositions.EditorFeatures
-            .WithExcludedPartTypes(ImmutableHashSet.Create(typeof(IMetadataAsSourceFileProvider)))
+            .WithExcludedPartTypes([typeof(IMetadataAsSourceFileProvider)])
             .AddParts(typeof(PdbSourceDocumentMetadataAsSourceFileProvider), typeof(NullResultMetadataAsSourceFileProvider));
     }
 

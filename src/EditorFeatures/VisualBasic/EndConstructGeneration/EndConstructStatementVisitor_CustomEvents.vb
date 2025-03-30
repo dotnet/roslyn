@@ -37,21 +37,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
         End Function
 
         Private Function GenerateAddOrRemoveHandler(eventStatement As EventStatementSyntax, kind As SyntaxKind) As String()
-            Dim type = _state.SemanticModel.GetTypeInfo(DirectCast(eventStatement.AsClause, SimpleAsClauseSyntax).Type, Me._cancellationToken)
+            Dim type = _semanticModel.GetTypeInfo(DirectCast(eventStatement.AsClause, SimpleAsClauseSyntax).Type, Me._cancellationToken)
             Dim position As Integer = eventStatement.SpanStart
             Dim aligningWhitespace = _subjectBuffer.CurrentSnapshot.GetAligningWhitespace(position) & "    "
-            Return {aligningWhitespace & SyntaxFacts.GetText(kind) & "(value As " & type.Type.ToMinimalDisplayString(_state.SemanticModel, position, SymbolDisplayFormats.NameFormat) & ")",
+            Return {aligningWhitespace & SyntaxFacts.GetText(kind) & "(value As " & type.Type.ToMinimalDisplayString(_semanticModel, position, SymbolDisplayFormats.NameFormat) & ")",
                     "",
                     aligningWhitespace & "End " & SyntaxFacts.GetText(kind)}
         End Function
 
         Private Function GenerateRaiseEventHandler(eventStatement As EventStatementSyntax) As String()
-            Dim type = TryCast(_state.SemanticModel.GetTypeInfo(DirectCast(eventStatement.AsClause, SimpleAsClauseSyntax).Type, Me._cancellationToken).Type, INamedTypeSymbol)
+            Dim type = TryCast(_semanticModel.GetTypeInfo(DirectCast(eventStatement.AsClause, SimpleAsClauseSyntax).Type, Me._cancellationToken).Type, INamedTypeSymbol)
             Dim signature = ""
 
             If type IsNot Nothing AndAlso type.DelegateInvokeMethod IsNot Nothing Then
                 Dim parameterStrings = type.DelegateInvokeMethod.Parameters.Select(
-                                           Function(p) p.ToMinimalDisplayString(_state.SemanticModel, eventStatement.SpanStart))
+                                           Function(p) p.ToMinimalDisplayString(_semanticModel, eventStatement.SpanStart))
                 signature = String.Join(", ", parameterStrings)
             End If
 

@@ -70,3 +70,10 @@ interface I1 { void M() { } }
 interface I2 { int M => 0;   }
 interface I : I1, I2 { }
 ```
+
+# Assumptions about well-known types/members
+
+The compiler is free to make assumptions about the shape and behavior of well-known types/members.
+It may not check for unexpected constraints, `Obsolete` attribute, or `UnmanagedCallersOnly` attribute.
+It may perform some optimizations based on expectations that the types/members are well-behaved.
+Note: the compiler should remain resilient to missing well-known types/members.

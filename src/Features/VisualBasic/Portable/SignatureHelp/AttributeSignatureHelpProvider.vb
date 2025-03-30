@@ -169,7 +169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Private Shared Function GetParameterPrefixDisplayParts(i As Integer) As List(Of SymbolDisplayPart)
             If i = 0 Then
                 Return New List(Of SymbolDisplayPart) From {
-                    New SymbolDisplayPart(SymbolDisplayPartKind.Text, Nothing, VBFeaturesResources.Properties),
+                    New SymbolDisplayPart(SymbolDisplayPartKind.Text, Nothing, FeaturesResources.Properties),
                     Punctuation(SyntaxKind.ColonToken),
                     Space()
                 }

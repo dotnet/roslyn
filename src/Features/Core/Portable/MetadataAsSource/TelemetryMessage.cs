@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource;
 
-internal class TelemetryMessage : IDisposable
+internal sealed class TelemetryMessage : IDisposable
 {
     private string? _pdbSource;
     private string? _sourceFileSource;

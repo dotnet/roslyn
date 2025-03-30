@@ -5842,4 +5842,73 @@ System.Diagnostics.Debug.Assert(x == true); }
 
         await TestInRegularAndScriptAsync(code, expected);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60552")]
+    public async Task TestNullable1()
+    {
+        var code = """
+            #nullable enable
+
+            public class C
+            {
+                private struct S
+                {
+                }
+
+                public string M()
+                {
+                    S s;
+                    var [||]a = "" + s; // "Inline temporary variable" for a
+                    return a;
+                }
+            }
+            """;
+
+        var expected = """
+            #nullable enable
+
+            public class C
+            {
+                private struct S
+                {
+                }
+
+                public string M()
+                {
+                    S s;
+                    // "Inline temporary variable" for a
+                    return "" + s;
+                }
+            }
+            """;
+
+        await TestInRegularAndScriptAsync(code, expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69869")]
+    public async Task InlineTemporaryNoNeededVariable()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+            class A
+            {
+                void M(string[] args)
+                {
+                    var [||]a = Math.Round(1.1D);
+                    var b = a;
+                }
+            }
+            """,
+            """
+            using System;
+            class A
+            {
+                void M(string[] args)
+                {
+                    var b = Math.Round(1.1D);
+                }
+            }
+            """);
+    }
 }

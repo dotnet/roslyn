@@ -168,6 +168,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var embeddedTypes = moduleBeingBuiltOpt.GetEmbeddedTypes(diagnostics);
                 methodCompiler.CompileSynthesizedMethods(embeddedTypes, diagnostics);
 
+                // Create and compile HotReloadException type if emitting deltas even if it is not used.
+                // We might need to use it for deleted members, which we determine when indexing metadata.
+                if (moduleBeingBuiltOpt.TryGetOrCreateSynthesizedHotReloadExceptionType() is { } hotReloadException)
+                {
+                    methodCompiler.CompileSynthesizedMethods([(NamedTypeSymbol)hotReloadException], diagnostics);
+                }
+
                 if (emitMethodBodies)
                 {
                     // By this time we have processed all types reachable from module's global namespace
@@ -664,8 +671,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (Cci.IMethodDefinition definition in privateImplClass.GetMethods(context).Concat(privateImplClass.GetTopLevelAndNestedTypeMethods(context)))
             {
                 var method = (MethodSymbol)definition.GetInternalSymbol();
-                Debug.Assert(method.SynthesizesLoweredBoundBody);
-                method.GenerateMethodBody(compilationState, diagnostics);
+                if (method is not null)
+                {
+                    Debug.Assert(method.SynthesizesLoweredBoundBody);
+                    method.GenerateMethodBody(compilationState, diagnostics);
+                }
             }
 
             CompileSynthesizedMethods(compilationState);
@@ -2180,7 +2190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private sealed class EmptyRewriter : BoundTreeRewriterWithStackGuard
+        private sealed class EmptyRewriter : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
         {
         }
 

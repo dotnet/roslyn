@@ -27,11 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         MetadataDecoder metadataDecoder,
         CSharpSymbolMatcher previousSourceToMetadata,
         CSharpSymbolMatcher sourceToMetadata,
-        CSharpSymbolMatcher? previousSourceToCurrentSource,
+        CSharpSymbolMatcher? sourceToPreviousSource,
         EmitBaseline baseline) : DefinitionMap(edits, baseline)
     {
         private readonly MetadataDecoder _metadataDecoder = metadataDecoder;
-        private readonly CSharpSymbolMatcher _sourceToPrevious = previousSourceToCurrentSource ?? sourceToMetadata;
+        private readonly CSharpSymbolMatcher _sourceToPrevious = sourceToPreviousSource ?? sourceToMetadata;
 
         public override SymbolMatcher SourceToMetadataSymbolMatcher { get; } = sourceToMetadata;
         public override SymbolMatcher SourceToPreviousSymbolMatcher => _sourceToPrevious;

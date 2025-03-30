@@ -148,7 +148,7 @@ namespace Microsoft.Cci
 
             if (blob.Length > 0)
             {
-                _symWriter.DefineCustomMetadata(blob);
+                _symWriter.DefineCustomMetadata(blob, methodBody.MethodDefinition);
             }
 
             CloseMethod(methodBody.IL.Length);

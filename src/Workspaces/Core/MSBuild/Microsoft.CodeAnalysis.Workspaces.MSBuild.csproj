@@ -50,6 +50,7 @@
     <Compile Include="..\..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
       <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Shared\NamedPipeUtil.cs" Link="InternalUtilities\NamedPipeUtil.cs" />
     <Compile Include="..\MSBuild.BuildHost\Rpc\Contracts\*.cs" Link="Rpc\Contracts\%(FileName).cs"/>
   </ItemGroup>
   <ItemGroup>

@@ -14,6 +14,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal static partial class TypeSymbolExtensions
     {
+        private sealed class VisitTypeData
+        {
+            public Symbol? Symbol;
+            public CompoundUseSiteInfo<AssemblySymbol> UseSiteInfo;
+        }
+
+        private static readonly ObjectPool<VisitTypeData> s_visitTypeDataPool
+            = new ObjectPool<VisitTypeData>(() => new VisitTypeData(), size: 4);
+
         public static bool ImplementsInterface(this TypeSymbol subType, TypeSymbol superInterface, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             foreach (NamedTypeSymbol @interface in subType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
@@ -663,11 +672,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool IsAtLeastAsVisibleAs(this TypeSymbol type, Symbol sym, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            CompoundUseSiteInfo<AssemblySymbol> localUseSiteInfo = useSiteInfo;
-            var result = type.VisitType((type1, symbol, unused) => IsTypeLessVisibleThan(type1, symbol, ref localUseSiteInfo), sym,
-                                        canDigThroughNullable: true); // System.Nullable is public
-            useSiteInfo = localUseSiteInfo;
-            return result is null;
+            var visitTypeData = s_visitTypeDataPool.Allocate();
+
+            try
+            {
+                visitTypeData.UseSiteInfo = useSiteInfo;
+                visitTypeData.Symbol = sym;
+
+                var result = type.VisitType(static (type1, arg, unused) => IsTypeLessVisibleThan(type1, arg.Symbol!, ref arg.UseSiteInfo),
+                                            arg: visitTypeData,
+                                            canDigThroughNullable: true); // System.Nullable is public
+
+                useSiteInfo = visitTypeData.UseSiteInfo;
+                return result is null;
+            }
+            finally
+            {
+                visitTypeData.UseSiteInfo = default;
+                visitTypeData.Symbol = null;
+                s_visitTypeDataPool.Free(visitTypeData);
+            }
         }
 
         private static bool IsTypeLessVisibleThan(TypeSymbol type, Symbol sym, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -1336,6 +1360,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return false;
+        }
+
+        internal static bool IsSpan(this TypeSymbol type)
+        {
+            return type is NamedTypeSymbol
+            {
+                Name: "Span",
+                IsValueType: true,
+                IsRefLikeType: true,
+                Arity: 1,
+                ContainingType: null,
+                ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true },
+            };
+        }
+
+        internal static bool IsReadOnlySpan(this TypeSymbol type)
+        {
+            return type is NamedTypeSymbol
+            {
+                Name: "ReadOnlySpan",
+                IsValueType: true,
+                IsRefLikeType: true,
+                Arity: 1,
+                ContainingType: null,
+                ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true },
+            };
         }
 
         internal static bool IsSpanChar(this TypeSymbol type)
@@ -2085,6 +2135,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return typeSymbol is NamedTypeSymbol { Name: WellKnownMemberNames.LockTypeName, Arity: 0, ContainingType: null } &&
                 typeSymbol.IsContainedInNamespace(nameof(System), nameof(System.Threading));
+        }
+
+        internal static bool IsMicrosoftCodeAnalysisEmbeddedAttribute(this TypeSymbol typeSymbol)
+        {
+            return typeSymbol is NamedTypeSymbol
+            {
+                Name: "EmbeddedAttribute",
+                Arity: 0,
+                ContainingType: null,
+            }
+            && typeSymbol.IsContainedInNamespace("Microsoft", "CodeAnalysis");
         }
 
         private static bool IsWellKnownInteropServicesTopLevelType(this TypeSymbol typeSymbol, string name)

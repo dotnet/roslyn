@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return analyzers;
             }
 
-            return ImmutableArray<DiagnosticAnalyzer>.Empty;
+            return [];
         }
 
         public TestAnalyzerReferenceByLanguage WithAdditionalAnalyzers(string language, IEnumerable<DiagnosticAnalyzer> analyzers)

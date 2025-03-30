@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationDestructorSymbol(
+internal sealed class CodeGenerationDestructorSymbol(
     INamedTypeSymbol containingType,
     ImmutableArray<AttributeData> attributes) : CodeGenerationMethodSymbol(containingType,
          attributes,
@@ -18,9 +18,9 @@ internal class CodeGenerationDestructorSymbol(
          refKind: RefKind.None,
          explicitInterfaceImplementations: default,
          name: string.Empty,
-         typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
-         parameters: ImmutableArray<IParameterSymbol>.Empty,
-         returnTypeAttributes: ImmutableArray<AttributeData>.Empty)
+         typeParameters: [],
+         parameters: [],
+         returnTypeAttributes: [])
 {
     public override MethodKind MethodKind => MethodKind.Destructor;
 

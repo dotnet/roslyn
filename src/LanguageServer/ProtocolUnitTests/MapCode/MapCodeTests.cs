@@ -121,7 +121,7 @@ public class MapCodeTests : AbstractLanguageServerProtocolTests
             var textDocumentEdits = results.DocumentChanges!.Value.First.Single();
             Assert.Equal(textDocumentEdits.TextDocument.Uri, mapCodeParams.Mappings.Single().TextDocument!.Uri);
 
-            edits = textDocumentEdits.Edits.Select(e => e.Unify()).ToArray();
+            edits = [.. textDocumentEdits.Edits.Select(e => e.Unify())];
         }
         else
         {

@@ -334,7 +334,7 @@ internal partial class EditorInProcess : ITextViewWindowInProcess
             var classifierAggregatorService = await TestServices.Shell.GetComponentModelServiceAsync<IViewClassifierAggregatorService>(cancellationToken);
             classifier = classifierAggregatorService.GetClassifier(textView);
             var classifiedSpans = classifier.GetClassificationSpans(selectionSpan);
-            return classifiedSpans.Select(x => x.ClassificationType.Classification).ToArray();
+            return [.. classifiedSpans.Select(x => x.ClassificationType.Classification)];
         }
         finally
         {
@@ -745,7 +745,7 @@ internal partial class EditorInProcess : ITextViewWindowInProcess
         var view = await GetActiveTextViewAsync(cancellationToken);
 
         var broker = await GetComponentModelServiceAsync<ILightBulbBroker>(cancellationToken);
-        return (await GetLightBulbActionsAsync(broker, view, cancellationToken)).Select(a => a.DisplayText).ToArray();
+        return [.. (await GetLightBulbActionsAsync(broker, view, cancellationToken)).Select(a => a.DisplayText)];
     }
 
     public async Task<bool> ApplyLightBulbActionAsync(string actionName, FixAllScope? fixAllScope, bool blockUntilComplete, CancellationToken cancellationToken)

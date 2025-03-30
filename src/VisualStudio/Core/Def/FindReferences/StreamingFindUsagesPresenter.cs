@@ -128,7 +128,7 @@ internal sealed partial class StreamingFindUsagesPresenter : IStreamingFindUsage
             return classificationFormatMapService.GetClassificationFormatMap("tooltip");
         });
 
-        _customColumns = columns.ToImmutableArray();
+        _customColumns = [.. columns];
     }
 
     public IClassificationFormatMap ClassificationFormatMap

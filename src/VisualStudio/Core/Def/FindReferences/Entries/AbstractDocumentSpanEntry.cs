@@ -52,11 +52,16 @@ internal partial class StreamingFindUsagesPresenter
             var document = Document;
             var documentNavigationService = document.Project.Solution.Services.GetRequiredService<IDocumentNavigationService>();
 
-            await documentNavigationService.TryNavigateToSpanAsync(
+            await documentNavigationService.TryNavigateToPositionAsync(
                 threadingContext,
                 document.Project.Solution.Workspace,
                 document.Id,
-                NavigateToTargetSpan,
+                NavigateToTargetSpan.Start,
+                virtualSpace: 0,
+                // The location we're trying to navigate to may be gone at this point.  For example if the location was
+                // at the end of a file, and the user edited the document to be shorter.  We want to not throw in this
+                // case as stale results are a normal part of how find-references works.
+                allowInvalidPosition: true,
                 options,
                 cancellationToken).ConfigureAwait(false);
         }

@@ -9,9 +9,9 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
-internal partial class ITypeSymbolExtensions
+internal static partial class ITypeSymbolExtensions
 {
-    private class CollectTypeParameterSymbolsVisitor(
+    private sealed class CollectTypeParameterSymbolsVisitor(
          IList<ITypeParameterSymbol> typeParameters,
         bool onlyMethodTypeParameters) : SymbolVisitor
     {

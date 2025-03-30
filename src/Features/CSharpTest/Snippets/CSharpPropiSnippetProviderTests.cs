@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Snippets;
 
@@ -50,7 +51,7 @@ public sealed class CSharpPropiSnippetProviderTests : AbstractCSharpAutoProperty
             """);
     }
 
-    public override async Task InsertSnippetInInterfaceTest()
+    public override async Task VerifySnippetInInterfaceTest()
     {
         await VerifyDefaultPropertyAsync("""
             interface MyInterface
@@ -59,4 +60,9 @@ public sealed class CSharpPropiSnippetProviderTests : AbstractCSharpAutoProperty
             }
             """);
     }
+
+    [Theory]
+    [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]
+    public override Task InsertSnippetAfterAllowedAccessibilityModifierTest(string modifier)
+        => base.InsertSnippetAfterAllowedAccessibilityModifierTest(modifier);
 }

@@ -22,7 +22,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
         /// <summary>
         /// Code action to edit/remove/add the pragma directives for removing diagnostic suppression.
         /// </summary>
-        private class PragmaRemoveAction : RemoveSuppressionCodeAction, IPragmaBasedCodeAction
+        private sealed class PragmaRemoveAction : RemoveSuppressionCodeAction, IPragmaBasedCodeAction
         {
             private readonly Document _document;
             private readonly SyntaxFormattingOptions _options;

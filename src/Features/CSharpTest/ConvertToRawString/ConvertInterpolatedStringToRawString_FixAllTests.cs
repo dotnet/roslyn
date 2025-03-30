@@ -270,10 +270,7 @@ public class ConvertInterpolatedStringToRawString_FixAllTests : AbstractCSharpCo
                 var singleLine1 = $"a";
                 var singleLine2 = @$"goo""bar";
 
-                var multiLine1 = $"""
-                    goo
-                    bar
-                    """;
+                var multiLine1 = $"goo\r\nbar";
                 var multiLine2 = $"""
                     goo
                     bar
@@ -296,10 +293,7 @@ public class ConvertInterpolatedStringToRawString_FixAllTests : AbstractCSharpCo
                 var singleLine1 = $"a";
                 var singleLine2 = @$"goo""bar";
 
-                var multiLine1 = $"""
-                    goo
-                    bar
-                    """;
+                var multiLine1 = $"goo\r\nbar";
                 var multiLine2 = $"""
                     goo
                     bar

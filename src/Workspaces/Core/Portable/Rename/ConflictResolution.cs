@@ -98,7 +98,7 @@ internal readonly partial struct ConflictResolution
     public ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)> GetComplexifiedSpans(DocumentId documentId)
         => _documentToComplexifiedSpansMap.TryGetValue(documentId, out var complexifiedSpans)
             ? complexifiedSpans.SelectAsArray(c => (c.OriginalSpan, c.NewSpan))
-            : ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)>.Empty;
+            : [];
 
     public ImmutableDictionary<TextSpan, TextSpan> GetModifiedSpanMap(DocumentId documentId)
     {

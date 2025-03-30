@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
 
-internal partial class UnitTestingSolutionCrawlerRegistrationService : IUnitTestingSolutionCrawlerRegistrationService
+internal sealed partial class UnitTestingSolutionCrawlerRegistrationService : IUnitTestingSolutionCrawlerRegistrationService
 {
     /// <summary>
     /// Progress reporter
@@ -94,7 +94,7 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService : IUnitTest
     /// <summary>
     /// reporter that doesn't do anything
     /// </summary>
-    private class UnitTestingNullReporter : IUnitTestingSolutionCrawlerProgressReporter
+    private sealed class UnitTestingNullReporter : IUnitTestingSolutionCrawlerProgressReporter
     {
         public static readonly UnitTestingNullReporter Instance = new();
 

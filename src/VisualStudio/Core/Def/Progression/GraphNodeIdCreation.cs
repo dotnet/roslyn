@@ -192,7 +192,7 @@ internal static class GraphNodeIdCreation
                 foreach (var arg in namedType.TypeArguments)
                 {
                     var nodes = await GetPartialsForNamespaceAndTypeAsync(arg, includeNamespace: true, solution: solution, cancellationToken: cancellationToken, isInGenericArguments: true).ConfigureAwait(false);
-                    genericArguments.Add(GraphNodeId.GetNested(nodes.ToArray()));
+                    genericArguments.Add(GraphNodeId.GetNested([.. nodes]));
                 }
 
                 partials.Add(GraphNodeId.GetArray(
@@ -266,7 +266,7 @@ internal static class GraphNodeIdCreation
         {
             var nodes = await GetPartialsForNamespaceAndTypeAsync(typeParameterSymbol, false, solution, cancellationToken).ConfigureAwait(false);
             return GraphNodeId.GetPartial(nodeName,
-                new GraphNodeIdCollection(false, nodes.ToArray()));
+                new GraphNodeIdCollection(false, [.. nodes]));
         }
     }
 

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Formatting;
 /// It will maintain information changed compared to original token information. and answers
 /// information about tokens.
 /// </summary>
-internal partial class TokenStream
+internal sealed partial class TokenStream
 {
     // number to guess number of tokens in a formatting span
     private const int MagicTextLengthToTokensRatio = 10;

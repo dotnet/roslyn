@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 namespace Roslyn.Utilities;
 
 /// <inheritdoc cref="AsyncBatchingWorkQueue{TItem, TResult}"/>
-internal class AsyncBatchingWorkQueue(
+internal sealed class AsyncBatchingWorkQueue(
     TimeSpan delay,
     Func<CancellationToken, ValueTask> processBatchAsync,
     IAsynchronousOperationListener asyncListener,

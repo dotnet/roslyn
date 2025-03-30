@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationConstructedMethodSymbol : CodeGenerationAbstractMethodSymbol
+internal sealed class CodeGenerationConstructedMethodSymbol : CodeGenerationAbstractMethodSymbol
 {
     private readonly CodeGenerationAbstractMethodSymbol _constructedFrom;
     private readonly ImmutableArray<ITypeSymbol> _typeArguments;

@@ -47,7 +47,7 @@ End Class", HangMitigatingCancellationToken);
         Assert.False(await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
     }
 
-    [IdeTheory, CombinatorialData]
+    [IdeTheory(Skip = "https://github.com/dotnet/roslyn/issues/75458"), CombinatorialData]
     public async Task ObjectBrowserNavigation(bool navigateToObjectBrowser)
     {
         var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
@@ -85,7 +85,7 @@ End Class", HangMitigatingCancellationToken);
         }
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75458")]
     public async Task GoToBaseFromMetadataAsSource()
     {
         var project = ProjectName;

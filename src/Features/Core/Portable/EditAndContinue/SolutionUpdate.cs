@@ -30,7 +30,7 @@ internal readonly struct SolutionUpdate(
         bool hasEmitErrors)
         => new(
             new(syntaxError != null || hasEmitErrors ? ModuleUpdateStatus.Blocked : ModuleUpdateStatus.RestartRequired, []),
-            ImmutableArray<(Guid, ImmutableArray<(ManagedModuleMethodId, NonRemappableRegion)>)>.Empty,
+            [],
             [],
             diagnostics,
             documentsWithRudeEdits,

@@ -4,6 +4,8 @@
 
 #nullable disable
 
+using Microsoft.Cci;
+using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -16,6 +18,9 @@ namespace Microsoft.DiaSymReader
 {
     internal sealed class SymUnmanagedWriterImpl : SymUnmanagedWriter
     {
+        // This constant is verified in PDBTests.NativeWriterLimit_Under and NativeWriterLimit_Over.
+        internal const int CustomMetadataByteLimit = 65_504;
+
         private static readonly object s_zeroInt32 = 0;
 
         private ISymUnmanagedWriter5 _symWriter;
@@ -532,7 +537,7 @@ namespace Microsoft.DiaSymReader
             }
         }
 
-        public override unsafe void DefineCustomMetadata(byte[] metadata)
+        public override unsafe void DefineCustomMetadata(byte[] metadata, IMethodDefinition methodDefinition)
         {
             if (metadata == null)
             {
@@ -542,6 +547,15 @@ namespace Microsoft.DiaSymReader
             if (metadata.Length == 0)
             {
                 return;
+            }
+
+            if (metadata.Length > CustomMetadataByteLimit)
+            {
+                throw new SymUnmanagedWriterException(string.Format(
+                    CodeAnalysisResources.SymWriterMetadataOverLimit,
+                    methodDefinition,
+                    metadata.Length,
+                    CustomMetadataByteLimit));
             }
 
             var symWriter = GetSymWriter();

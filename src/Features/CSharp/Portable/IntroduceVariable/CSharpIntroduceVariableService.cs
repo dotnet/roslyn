@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable;
 
 [ExportLanguageService(typeof(IIntroduceVariableService), LanguageNames.CSharp), Shared]
-internal partial class CSharpIntroduceVariableService :
+internal sealed partial class CSharpIntroduceVariableService :
     AbstractIntroduceVariableService<CSharpIntroduceVariableService, ExpressionSyntax, TypeSyntax, TypeDeclarationSyntax, QueryExpressionSyntax, NameSyntax>
 {
     [ImportingConstructor]

@@ -14073,6 +14073,51 @@ record A(int X)
             CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: "123").VerifyDiagnostics();
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72357")]
+        public void CopyCtor_AssemblyWarnings()
+        {
+            var comp1 = CreateCompilation("""
+                public record BaseRecord
+                {
+                    public required object Object1 { get; init; }
+                    public required object Object2 { get; init; }
+                }
+                """, assemblyName: "Base", targetFramework: TargetFramework.Net70);
+
+            var comp2 = CreateCompilation("""
+                var sut = new DerivedRecord
+                {
+                    Object1 = new object(),
+                    Object2 = new object()
+                };
+
+                var broken = sut with { Object2 = new object()};
+                System.Console.Write(broken.Object1 is null);
+
+                public record DerivedRecord : BaseRecord;
+                """, assemblyName: "Derived", references: [comp1.EmitToImageReference()], targetFramework: TargetFramework.Net80);
+
+            var verifier = CompileAndVerify(comp2, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "False" : null, verify: Verification.FailsPEVerify);
+
+            // Historical note: These warnings were the cause of the bug, so they are not being suppressed
+            var expectedDiagnostic =
+                // warning CS1701: Assuming assembly reference 'System.Runtime, Version=7.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' used by 'Base' matches identity 'System.Runtime, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' of 'System.Runtime', you may need to supply runtime policy
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("System.Runtime, Version=7.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "Base", "System.Runtime, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Runtime").WithLocation(1, 1);
+
+            verifier.VerifyDiagnostics(Enumerable.Repeat(expectedDiagnostic, 21).ToArray());
+
+            verifier.VerifyIL("DerivedRecord..ctor(DerivedRecord)", """
+                {
+                  // Code size        8 (0x8)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  call       "BaseRecord..ctor(BaseRecord)"
+                  IL_0007:  ret
+                }
+                """);
+        }
+
         [Fact]
         public void Deconstruct_Simple()
         {

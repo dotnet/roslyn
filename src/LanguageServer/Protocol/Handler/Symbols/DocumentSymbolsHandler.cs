@@ -38,17 +38,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public TextDocumentIdentifier GetTextDocumentIdentifier(RoslynDocumentSymbolParams request) => request.TextDocument;
 
-        public Task<SumType<DocumentSymbol[], SymbolInformation[]>> HandleRequestAsync(RoslynDocumentSymbolParams request, RequestContext context, CancellationToken cancellationToken)
+        public Task<SumType<DocumentSymbol[], SymbolInformation[]>> HandleRequestAsync(
+            RoslynDocumentSymbolParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.GetRequiredDocument();
             var clientCapabilities = context.GetRequiredClientCapabilities();
             var useHierarchicalSymbols = clientCapabilities.TextDocument?.DocumentSymbol?.HierarchicalDocumentSymbolSupport == true || request.UseHierarchicalSymbols;
-            var service = document.Project.Solution.Services.GetRequiredService<ILspSymbolInformationCreationService>();
+            var supportsVSExtensions = clientCapabilities.HasVisualStudioLspCapability();
 
-            return GetDocumentSymbolsAsync(document, useHierarchicalSymbols, service, cancellationToken);
+            return GetDocumentSymbolsAsync(document, useHierarchicalSymbols, supportsVSExtensions, cancellationToken);
         }
 
-        internal static async Task<SumType<DocumentSymbol[], SymbolInformation[]>> GetDocumentSymbolsAsync(Document document, bool useHierarchicalSymbols, ILspSymbolInformationCreationService symbolInformationCreationService, CancellationToken cancellationToken)
+        internal static async Task<SumType<DocumentSymbol[], SymbolInformation[]>> GetDocumentSymbolsAsync(
+            Document document, bool useHierarchicalSymbols, bool supportsVSExtensions, CancellationToken cancellationToken)
         {
             var navBarService = document.Project.Services.GetRequiredService<INavigationBarItemService>();
             var navBarItems = await navBarService.GetItemsAsync(document, supportsCodeGeneration: false, frozenPartialSemantics: false, cancellationToken).ConfigureAwait(false);
@@ -70,10 +72,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 using var _ = ArrayBuilder<SymbolInformation>.GetInstance(out var symbols);
                 foreach (var item in navBarItems)
                 {
-                    symbols.AddIfNotNull(GetSymbolInformation(item, document, text, containerName: null, symbolInformationCreationService));
+                    symbols.AddIfNotNull(GetSymbolInformation(item, document, text, containerName: null, supportsVSExtensions));
 
                     foreach (var childItem in item.ChildItems)
-                        symbols.AddIfNotNull(GetSymbolInformation(childItem, document, text, item.Text, symbolInformationCreationService));
+                        symbols.AddIfNotNull(GetSymbolInformation(childItem, document, text, item.Text, supportsVSExtensions));
                 }
 
                 return symbols.ToArray();
@@ -84,21 +86,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// Get a symbol information from a specified nav bar item.
         /// </summary>
         private static SymbolInformation? GetSymbolInformation(
-            RoslynNavigationBarItem item, Document document, SourceText text, string? containerName, ILspSymbolInformationCreationService symbolInformationCreationService)
+            RoslynNavigationBarItem item, Document document, SourceText text, string? containerName, bool supportsVSExtensions)
         {
             if (item is not RoslynNavigationBarItem.SymbolItem symbolItem || symbolItem.Location.InDocumentInfo == null)
                 return null;
 
-            return symbolInformationCreationService.Create(
-                GetDocumentSymbolName(item.Text),
-                containerName,
-                ProtocolConversions.GlyphToSymbolKind(item.Glyph),
-                new LSP.Location
-                {
-                    Uri = document.GetURI(),
-                    Range = ProtocolConversions.TextSpanToRange(symbolItem.Location.InDocumentInfo.Value.navigationSpan, text),
-                },
-                item.Glyph);
+            var name = GetDocumentSymbolName(item.Text);
+            var kind = ProtocolConversions.GlyphToSymbolKind(item.Glyph);
+            var location = new LSP.Location()
+            {
+                Uri = document.GetURI(),
+                Range = ProtocolConversions.TextSpanToRange(symbolItem.Location.InDocumentInfo.Value.navigationSpan, text),
+            };
+
+            return SymbolInformationFactory.Create(name, containerName, kind, location, item.Glyph, supportsVSExtensions);
         }
 
         /// <summary>

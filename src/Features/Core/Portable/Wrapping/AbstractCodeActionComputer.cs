@@ -48,7 +48,6 @@ internal abstract partial class AbstractSyntaxWrapper
 
         protected readonly Document OriginalDocument;
         protected readonly SourceText OriginalSourceText;
-        protected readonly CancellationToken CancellationToken;
         protected readonly SyntaxWrappingOptions Options;
 
         protected readonly SyntaxTriviaList NewLineTrivia;
@@ -65,13 +64,11 @@ internal abstract partial class AbstractSyntaxWrapper
             TWrapper service,
             Document document,
             SourceText originalSourceText,
-            SyntaxWrappingOptions options,
-            CancellationToken cancellationToken)
+            SyntaxWrappingOptions options)
         {
             Wrapper = service;
             OriginalDocument = document;
             OriginalSourceText = originalSourceText;
-            CancellationToken = cancellationToken;
             Options = options;
 
             var generator = SyntaxGenerator.GetGenerator(document);
@@ -80,12 +77,13 @@ internal abstract partial class AbstractSyntaxWrapper
             SingleWhitespaceTrivia = new SyntaxTriviaList(generator.Whitespace(" "));
         }
 
-        protected abstract Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync();
+        protected abstract Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync(CancellationToken cancellationToken);
 
-        protected string GetSmartIndentationAfter(SyntaxNodeOrToken nodeOrToken)
-            => GetIndentationAfter(nodeOrToken, FormattingOptions2.IndentStyle.Smart);
+        protected Task<string> GetSmartIndentationAfterAsync(SyntaxNodeOrToken nodeOrToken, CancellationToken cancellationToken)
+            => GetIndentationAfterAsync(nodeOrToken, FormattingOptions2.IndentStyle.Smart, cancellationToken);
 
-        protected string GetIndentationAfter(SyntaxNodeOrToken nodeOrToken, FormattingOptions2.IndentStyle indentStyle)
+        protected async Task<string> GetIndentationAfterAsync(
+            SyntaxNodeOrToken nodeOrToken, FormattingOptions2.IndentStyle indentStyle, CancellationToken cancellationToken)
         {
             var newLine = Options.FormattingOptions.NewLine;
             var newSourceText = OriginalSourceText.WithChanges(
@@ -100,12 +98,12 @@ internal abstract partial class AbstractSyntaxWrapper
             var originalLineNumber = newSourceText.Lines.GetLineFromPosition(nodeOrToken.Span.End).LineNumber;
 
             // TODO: should be async https://github.com/dotnet/roslyn/issues/61998
-            var newParsedDocument = ParsedDocument.CreateSynchronously(newDocument, CancellationToken);
+            var newParsedDocument = await ParsedDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
 
             var desiredIndentation = indentationService.GetIndentation(
                 newParsedDocument, originalLineNumber + 1,
                 indentationOptions,
-                CancellationToken);
+                cancellationToken);
 
             return desiredIndentation.GetIndentationString(newSourceText, Options.FormattingOptions.UseTabs, Options.FormattingOptions.TabSize);
         }
@@ -119,10 +117,10 @@ internal abstract partial class AbstractSyntaxWrapper
         ///     3. A previous code action was created that already had the same effect.
         /// </summary>
         protected async Task<WrapItemsAction?> TryCreateCodeActionAsync(
-            ImmutableArray<Edit> edits, string parentTitle, string title)
+            ImmutableArray<Edit> edits, string parentTitle, string title, CancellationToken cancellationToken)
         {
             // First, rewrite the tree with the edits provided.
-            var (root, rewrittenRoot, spanToFormat) = await RewriteTreeAsync(edits).ConfigureAwait(false);
+            var (root, rewrittenRoot, spanToFormat) = await RewriteTreeAsync(edits, cancellationToken).ConfigureAwait(false);
             if (rewrittenRoot == null)
             {
                 // Couldn't rewrite for some reason.  No code action to create.
@@ -131,8 +129,8 @@ internal abstract partial class AbstractSyntaxWrapper
 
             // Now, format the part of the tree that we edited.  This will ensure we properly 
             // respect the user preferences around things like comma/operator spacing.
-            var formattedDocument = await FormatDocumentAsync(rewrittenRoot, spanToFormat).ConfigureAwait(false);
-            var formattedRoot = await formattedDocument.GetRequiredSyntaxRootAsync(CancellationToken).ConfigureAwait(false);
+            var formattedDocument = await FormatDocumentAsync(rewrittenRoot, spanToFormat, cancellationToken).ConfigureAwait(false);
+            var formattedRoot = await formattedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // Now, check if this new formatted tree matches our starting tree, or any of the
             // trees we've already created for our other code actions.  If so, we don't want to
@@ -161,15 +159,17 @@ internal abstract partial class AbstractSyntaxWrapper
             return new WrapItemsAction(title, parentTitle, (_, _) => Task.FromResult(formattedDocument));
         }
 
-        private async Task<Document> FormatDocumentAsync(SyntaxNode rewrittenRoot, TextSpan spanToFormat)
+        private async Task<Document> FormatDocumentAsync(
+            SyntaxNode rewrittenRoot, TextSpan spanToFormat, CancellationToken cancellationToken)
         {
             var newDocument = OriginalDocument.WithSyntaxRoot(rewrittenRoot);
             var formattedDocument = await Formatter.FormatAsync(
-                newDocument, spanToFormat, Options.FormattingOptions, CancellationToken).ConfigureAwait(false);
+                newDocument, spanToFormat, Options.FormattingOptions, cancellationToken).ConfigureAwait(false);
             return formattedDocument;
         }
 
-        private async Task<(SyntaxNode root, SyntaxNode rewrittenRoot, TextSpan spanToFormat)> RewriteTreeAsync(ImmutableArray<Edit> edits)
+        private async Task<(SyntaxNode root, SyntaxNode rewrittenRoot, TextSpan spanToFormat)> RewriteTreeAsync(
+            ImmutableArray<Edit> edits, CancellationToken cancellationToken)
         {
             using var _1 = PooledDictionary<SyntaxToken, SyntaxTriviaList>.GetInstance(out var leftTokenToTrailingTrivia);
             using var _2 = PooledDictionary<SyntaxToken, SyntaxTriviaList>.GetInstance(out var rightTokenToLeadingTrivia);
@@ -200,7 +200,7 @@ internal abstract partial class AbstractSyntaxWrapper
             }
 
             return await RewriteTreeAsync(
-                leftTokenToTrailingTrivia, rightTokenToLeadingTrivia).ConfigureAwait(false);
+                leftTokenToTrailingTrivia, rightTokenToLeadingTrivia, cancellationToken).ConfigureAwait(false);
         }
 
         private static bool IsSafeToRemove(string text)
@@ -219,9 +219,10 @@ internal abstract partial class AbstractSyntaxWrapper
 
         private async Task<(SyntaxNode root, SyntaxNode rewrittenRoot, TextSpan spanToFormat)> RewriteTreeAsync(
             Dictionary<SyntaxToken, SyntaxTriviaList> leftTokenToTrailingTrivia,
-            Dictionary<SyntaxToken, SyntaxTriviaList> rightTokenToLeadingTrivia)
+            Dictionary<SyntaxToken, SyntaxTriviaList> rightTokenToLeadingTrivia,
+            CancellationToken cancellationToken)
         {
-            var root = await OriginalDocument.GetRequiredSyntaxRootAsync(CancellationToken).ConfigureAwait(false);
+            var root = await OriginalDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var tokens = leftTokenToTrailingTrivia.Keys.Concat(rightTokenToLeadingTrivia.Keys).Distinct().ToImmutableArray();
 
             // Find the closest node that contains all the tokens we're editing.  That's the
@@ -266,12 +267,12 @@ internal abstract partial class AbstractSyntaxWrapper
             return (root, rewrittenRoot, trackedNode.Span);
         }
 
-        public async Task<ImmutableArray<CodeAction>> GetTopLevelCodeActionsAsync()
+        public async Task<ImmutableArray<CodeAction>> GetTopLevelCodeActionsAsync(CancellationToken cancellationToken)
         {
             try
             {
                 // Ask subclass to produce whole nested list of wrapping code actions
-                var wrappingGroups = await ComputeWrappingGroupsAsync().ConfigureAwait(false);
+                var wrappingGroups = await ComputeWrappingGroupsAsync(cancellationToken).ConfigureAwait(false);
 
                 using var result = TemporaryArray<CodeAction>.Empty;
                 foreach (var group in wrappingGroups)
@@ -306,7 +307,7 @@ internal abstract partial class AbstractSyntaxWrapper
                 // both the top level items and the nested items are ordered appropriate.
                 return WrapItemsAction.SortActionsByMostRecentlyUsed(result.ToImmutableAndClear());
             }
-            catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, CancellationToken, ErrorSeverity.Diagnostic))
+            catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken, ErrorSeverity.Diagnostic))
             {
                 throw;
             }

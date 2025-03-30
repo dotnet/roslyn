@@ -921,11 +921,80 @@ public class ObjectCreationExpressionSignatureHelpProviderTests : AbstractCSharp
             }
             """;
 
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem($"Program(string s, string s2)", currentParameterIndex: expectedParameterIndex, isSelected: true),
-        };
+        await TestAsync(markup.Replace("ARGUMENTS", arguments),
+            [new($"Program(string s, string s2)", currentParameterIndex: expectedParameterIndex, isSelected: true)]);
+    }
 
-        await TestAsync(markup.Replace("ARGUMENTS", arguments), expectedOrderedItems);
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70235")]
+    public async Task ProtectedConstructor1()
+    {
+        var markup = """
+            public class Derived:BaseClass
+            {
+                public void Do()
+                {
+                    var baseInstance = new BaseClass($$);
+                }
+            }
+
+            public class BaseClass
+            {
+                public BaseClass(int val) { }
+                protected BaseClass(int val, int val1) { } 
+            }
+            """;
+
+        await TestAsync(markup,
+            [new SignatureHelpTestItem("BaseClass(int val)", currentParameterIndex: 0)],
+            usePreviousCharAsTrigger: true);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70235")]
+    public async Task ProtectedConstructor2()
+    {
+        var markup = """
+            public class BaseClass
+            {
+                public BaseClass(int val) { }
+                protected BaseClass(int val, int val1) { } 
+
+                public class Nested
+                {
+                    public void Do()
+                    {
+                        var baseInstance = new BaseClass($$);
+                    }
+                }
+            }
+            """;
+
+        await TestAsync(markup, [
+                new SignatureHelpTestItem("BaseClass(int val)", currentParameterIndex: 0),
+                new SignatureHelpTestItem("BaseClass(int val, int val1)", currentParameterIndex: 0),
+            ],
+            usePreviousCharAsTrigger: true);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70235")]
+    public async Task ProtectedConstructor3()
+    {
+        var markup = """
+            public class BaseClass
+            {
+                public BaseClass(int val) { }
+                protected BaseClass(int val, int val1) { } 
+
+                public void Do()
+                {
+                    var baseInstance = new BaseClass($$);
+                }
+            }
+            """;
+
+        await TestAsync(markup, [
+                new SignatureHelpTestItem("BaseClass(int val)", currentParameterIndex: 0),
+                new SignatureHelpTestItem("BaseClass(int val, int val1)", currentParameterIndex: 0),
+            ],
+            usePreviousCharAsTrigger: true);
     }
 }

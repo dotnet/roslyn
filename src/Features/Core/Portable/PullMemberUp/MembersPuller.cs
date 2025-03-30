@@ -48,10 +48,7 @@ internal static class MembersPuller
             return null;
         }
 
-        var title = selectedMembers.IsSingle()
-            ? string.Format(FeaturesResources.Pull_0_up_to_1, selectedMembers.Single().Name, result.Destination.Name)
-            : string.Format(FeaturesResources.Pull_selected_members_up_to_0, result.Destination.Name);
-
+        var title = result.Destination.Name;
         return SolutionChangeAction.Create(
             title,
             cancellationToken => PullMembersUpAsync(document, result, cancellationToken),
@@ -250,10 +247,7 @@ internal static class MembersPuller
                 accessibility: Accessibility.Public,
                 modifiers: modifiers);
 
-            var eventGenerationInfo = info.WithContext(new CodeGenerationContext(
-                null,
-                null,
-                generateMethodBodies: false));
+            var eventGenerationInfo = info.WithContext(new CodeGenerationContext(generateMethodBodies: false));
 
             var publicAndNonStaticSyntax = codeGenerationService.CreateEventDeclaration(publicAndNonStaticSymbol, CodeGenerationDestination.ClassType, eventGenerationInfo, cancellationToken);
             // Insert a new declaration and remove the original declaration
@@ -439,10 +433,9 @@ internal static class MembersPuller
     {
         return start.AncestorsAndSelf()
             .Where(node => node is ICompilationUnitSyntax || syntaxFacts.IsBaseNamespaceDeclaration(node))
-            .SelectMany(node => node is ICompilationUnitSyntax
+            .SelectManyAsArray(node => node is ICompilationUnitSyntax
                 ? syntaxFacts.GetImportsOfCompilationUnit(node)
-                : syntaxFacts.GetImportsOfBaseNamespaceDeclaration(node))
-            .ToImmutableArray();
+                : syntaxFacts.GetImportsOfBaseNamespaceDeclaration(node));
     }
 
     private static ISymbol MakeAbstractVersion(ISymbol member)
@@ -495,14 +488,9 @@ internal static class MembersPuller
     /// </summary>
     private static bool IsSelectedMemberDeclarationAlreadyInDestination(ISymbol selectedMember, INamedTypeSymbol destination)
     {
-        if (destination.TypeKind == TypeKind.Interface)
-        {
-            return IsSelectedMemberDeclarationAlreadyInDestinationInterface(selectedMember, destination);
-        }
-        else
-        {
-            return IsSelectedMemberDeclarationAlreadyInDestinationClass(selectedMember, destination);
-        }
+        return destination.TypeKind == TypeKind.Interface
+            ? IsSelectedMemberDeclarationAlreadyInDestinationInterface(selectedMember, destination)
+            : IsSelectedMemberDeclarationAlreadyInDestinationClass(selectedMember, destination);
     }
 
     private static bool IsSelectedMemberDeclarationAlreadyInDestinationClass(ISymbol selectedMember, INamedTypeSymbol destination)

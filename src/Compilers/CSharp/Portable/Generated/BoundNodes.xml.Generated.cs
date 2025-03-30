@@ -275,6 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
 
+
     internal abstract partial class BoundInitializer : BoundNode
     {
         protected BoundInitializer(BoundKind kind, SyntaxNode syntax, bool hasErrors)
@@ -499,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundCapturedReceiverPlaceholder : BoundValuePlaceholderBase
     {
-        public BoundCapturedReceiverPlaceholder(SyntaxNode syntax, BoundExpression receiver, uint localScopeDepth, TypeSymbol? type, bool hasErrors = false)
+        public BoundCapturedReceiverPlaceholder(SyntaxNode syntax, BoundExpression receiver, SafeContext localScopeDepth, TypeSymbol? type, bool hasErrors = false)
             : base(BoundKind.CapturedReceiverPlaceholder, syntax, type, hasErrors || receiver.HasErrors())
         {
 
@@ -510,12 +511,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public BoundExpression Receiver { get; }
-        public uint LocalScopeDepth { get; }
+        public SafeContext LocalScopeDepth { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitCapturedReceiverPlaceholder(this);
 
-        public BoundCapturedReceiverPlaceholder Update(BoundExpression receiver, uint localScopeDepth, TypeSymbol? type)
+        public BoundCapturedReceiverPlaceholder Update(BoundExpression receiver, SafeContext localScopeDepth, TypeSymbol? type)
         {
             if (receiver != this.Receiver || localScopeDepth != this.LocalScopeDepth || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
@@ -8028,7 +8029,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.Value = value;
             this.ConstantValue = constantValue;
+            Validate();
         }
+
+        [Conditional("DEBUG")]
+        private partial void Validate();
 
         public BoundExpression Value { get; }
         public ConstantValue ConstantValue { get; }
@@ -8057,7 +8062,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             RoslynDebug.Assert(inputType is object, "Field 'inputType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(narrowedType is object, "Field 'narrowedType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
+            Validate();
         }
+
+        [Conditional("DEBUG")]
+        private partial void Validate();
 
         public BoundDiscardPattern(SyntaxNode syntax, TypeSymbol inputType, TypeSymbol narrowedType)
             : base(BoundKind.DiscardPattern, syntax, inputType, narrowedType)
@@ -8113,7 +8122,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.DeclaredType = declaredType;
             this.IsVar = isVar;
+            Validate();
         }
+
+        [Conditional("DEBUG")]
+        private partial void Validate();
 
         public BoundTypeExpression DeclaredType { get; }
         public bool IsVar { get; }
@@ -8147,7 +8160,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Deconstruction = deconstruction;
             this.Properties = properties;
             this.IsExplicitNotNullTest = isExplicitNotNullTest;
+            Validate();
         }
+
+        [Conditional("DEBUG")]
+        private partial void Validate();
 
         public BoundTypeExpression? DeclaredType { get; }
         public MethodSymbol? DeconstructMethod { get; }
@@ -8268,7 +8285,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.GetLengthMethod = getLengthMethod;
             this.GetItemMethod = getItemMethod;
             this.Subpatterns = subpatterns;
+            Validate();
         }
+
+        [Conditional("DEBUG")]
+        private partial void Validate();
 
         public MethodSymbol GetLengthMethod { get; }
         public MethodSymbol GetItemMethod { get; }
@@ -8405,7 +8426,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.DeclaredType = declaredType;
             this.IsExplicitNotNullTest = isExplicitNotNullTest;
+            Validate();
         }
+
+        [Conditional("DEBUG")]
+        private partial void Validate();
 
         public BoundTypeExpression DeclaredType { get; }
         public bool IsExplicitNotNullTest { get; }
@@ -8439,7 +8464,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Disjunction = disjunction;
             this.Left = left;
             this.Right = right;
+            Validate();
         }
+
+        [Conditional("DEBUG")]
+        private partial void Validate();
 
         public bool Disjunction { get; }
         public BoundPattern Left { get; }
@@ -8471,7 +8500,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             RoslynDebug.Assert(narrowedType is object, "Field 'narrowedType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Negated = negated;
+            Validate();
         }
+
+        [Conditional("DEBUG")]
+        private partial void Validate();
 
         public BoundPattern Negated { get; }
 
@@ -8504,7 +8537,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Relation = relation;
             this.Value = value;
             this.ConstantValue = constantValue;
+            Validate();
         }
+
+        [Conditional("DEBUG")]
+        private partial void Validate();
 
         public BinaryOperatorKind Relation { get; }
         public BoundExpression Value { get; }

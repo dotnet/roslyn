@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -72,14 +73,66 @@ internal static partial class ISymbolExtensions
         return visibility;
     }
 
-    public static ISymbol? GetOverriddenMember(this ISymbol? symbol)
-        => symbol switch
+    public static ISymbol? GetOverriddenMember(this ISymbol? symbol, bool allowLooseMatch = false)
+    {
+        if (symbol is null)
+            return null;
+
+        ISymbol? exactMatch = symbol switch
         {
             IMethodSymbol method => method.OverriddenMethod,
             IPropertySymbol property => property.OverriddenProperty,
             IEventSymbol @event => @event.OverriddenEvent,
             _ => null,
         };
+
+        if (exactMatch != null)
+            return exactMatch;
+
+        if (allowLooseMatch &&
+            (symbol.IsVirtual || symbol.IsAbstract || symbol.IsOverride))
+        {
+            foreach (var baseType in symbol.ContainingType.GetBaseTypes())
+            {
+                if (TryFindLooseMatch(symbol, baseType, out var looseMatch))
+                    return looseMatch;
+            }
+        }
+
+        return null;
+
+        bool TryFindLooseMatch(ISymbol symbol, INamedTypeSymbol baseType, [NotNullWhen(true)] out ISymbol? looseMatch)
+        {
+            IMethodSymbol? bestMethod = null;
+            var parameterCount = symbol.GetParameters().Length;
+
+            foreach (var member in baseType.GetMembers(symbol.Name))
+            {
+                if (member.Kind != symbol.Kind)
+                    continue;
+
+                if (!member.IsOverridable())
+                    continue;
+
+                if (symbol.Kind is SymbolKind.Event or SymbolKind.Property)
+                {
+                    // We've found a matching event/property in the base type (perhaps differing by return type). This
+                    // is a good enough match to return as a loose match for the starting symbol.
+                    looseMatch = member;
+                    return true;
+                }
+                else if (member is IMethodSymbol method)
+                {
+                    // Prefer methods that are closed in parameter count to the original method we started with.
+                    if (bestMethod is null || Math.Abs(method.Parameters.Length - parameterCount) < Math.Abs(bestMethod.Parameters.Length - parameterCount))
+                        bestMethod = method;
+                }
+            }
+
+            looseMatch = bestMethod;
+            return looseMatch != null;
+        }
+    }
 
     public static ImmutableArray<ISymbol> ExplicitInterfaceImplementations(this ISymbol symbol)
         => symbol switch
@@ -95,25 +148,34 @@ internal static partial class ISymbolExtensions
         if (symbol.Kind is not SymbolKind.Method and not SymbolKind.Property and not SymbolKind.Event)
             return [];
 
-        var containingType = symbol.ContainingType;
-        var query = from iface in containingType.AllInterfaces
-                    from interfaceMember in iface.GetMembers()
-                    let impl = containingType.FindImplementationForInterfaceMember(interfaceMember)
-                    where symbol.Equals(impl)
-                    select interfaceMember;
-        return query.ToImmutableArray();
+        using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
+
+        foreach (var iface in symbol.ContainingType.AllInterfaces)
+        {
+            foreach (var interfaceMember in iface.GetMembers())
+            {
+                var impl = symbol.ContainingType.FindImplementationForInterfaceMember(interfaceMember);
+                if (symbol.Equals(impl))
+                    result.Add(interfaceMember);
+            }
+        }
+
+        // There are explicit methods that FindImplementationForInterfaceMember.  For exampl `abstract explicit impls`
+        // like `abstract void I<T>.M()`.  So add these back in directly using symbol.ExplicitInterfaceImplementations.
+        result.AddRange(symbol.ExplicitInterfaceImplementations());
+        result.RemoveDuplicates();
+
+        return result.ToImmutableAndClear();
     }
 
     public static ImmutableArray<ISymbol> ImplicitInterfaceImplementations(this ISymbol symbol)
-        => symbol.ExplicitOrImplicitInterfaceImplementations().Except(symbol.ExplicitInterfaceImplementations()).ToImmutableArray();
+        => [.. symbol.ExplicitOrImplicitInterfaceImplementations().Except(symbol.ExplicitInterfaceImplementations())];
 
     public static bool IsOverridable([NotNullWhen(true)] this ISymbol? symbol)
     {
-        // Members can only have overrides if they are virtual, abstract or override and is not
-        // sealed.
-        return symbol?.ContainingType?.TypeKind == TypeKind.Class &&
-               (symbol.IsVirtual || symbol.IsAbstract || symbol.IsOverride) &&
-               !symbol.IsSealed;
+        // Members can only have overrides if they are virtual, abstract or override and is not sealed.
+        return symbol is { ContainingType.TypeKind: TypeKind.Class, IsSealed: false } &&
+               (symbol.IsVirtual || symbol.IsAbstract || symbol.IsOverride);
     }
 
     public static bool IsImplementableMember([NotNullWhen(true)] this ISymbol? symbol)
@@ -280,6 +342,7 @@ internal static partial class ISymbolExtensions
             IMethodSymbol methodSymbol => methodSymbol.ReturnType,
             IEventSymbol eventSymbol => eventSymbol.Type,
             IParameterSymbol parameterSymbol => parameterSymbol.Type,
+            ILocalSymbol localSymbol => localSymbol.Type,
             _ => null,
         };
 
@@ -454,7 +517,7 @@ internal static partial class ISymbolExtensions
                     types = types.Concat((method.ReturnType ?? compilation.GetSpecialType(SpecialType.System_Object)).WithNullableAnnotation(method.ReturnNullableAnnotation));
                 }
 
-                return delegateType.TryConstruct(types.ToArray());
+                return delegateType.TryConstruct([.. types]);
             }
         }
 
@@ -745,4 +808,12 @@ internal static partial class ISymbolExtensions
             MetadataName: nameof(ObsoleteAttribute),
             ContainingNamespace.Name: nameof(System),
         });
+
+    public static bool HasAttribute([NotNullWhen(true)] this ISymbol? symbol, [NotNullWhen(true)] INamedTypeSymbol? attributeClass)
+    {
+        if (symbol is null || attributeClass is null)
+            return false;
+
+        return symbol.GetAttributes().Any(static (attribute, attributeClass) => attributeClass.Equals(attribute.AttributeClass), attributeClass);
+    }
 }

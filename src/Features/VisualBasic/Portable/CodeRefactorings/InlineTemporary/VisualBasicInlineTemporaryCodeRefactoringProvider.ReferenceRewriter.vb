@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                 If IsReference(node) Then
                     If HasConflict(node, _definition, _expressionToInline, _semanticModel) Then
                         Return node.Update(node.Identifier.WithAdditionalAnnotations(
-                            ConflictAnnotation.Create(VBFeaturesResources.Conflict_s_detected)))
+                            ConflictAnnotation.Create(FeaturesResources.Conflict_s_detected)))
                     End If
 
                     ' Make sure we attach any trailing trivia from the identifier node we're replacing

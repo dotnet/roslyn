@@ -319,8 +319,11 @@
     
     CompilerGeneratedFilesOutputPath controls the location the files will be output to.
     The compiler will not emit any generated files when the path is empty, and defaults to a /generated directory in $(IntermediateOutputPath) if $(IntermediateOutputPath) has a value.
+    A relative path is considered relative to the project directory.
+
     EmitCompilerGeneratedFiles allows the user to control if anything is emitted by clearing the property when not true.
     When EmitCompilerGeneratedFiles is true, we ensure that CompilerGeneatedFilesOutputPath has a value and issue a warning if not.
+
     We will create CompilerGeneratedFilesOutputPath if it does not exist.
     -->
   <PropertyGroup>

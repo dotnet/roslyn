@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -172,10 +173,11 @@ internal abstract class AbstractLanguageServer<TRequestContext>
         return _queue.Value;
     }
 
-    public virtual string GetLanguageForRequest(string methodName, object? serializedRequest)
+    public virtual bool TryGetLanguageForRequest(string methodName, object? serializedRequest, [NotNullWhen(true)] out string? language)
     {
         Logger.LogInformation($"Using default language handler for {methodName}");
-        return LanguageServerConstants.DefaultLanguageName;
+        language = LanguageServerConstants.DefaultLanguageName;
+        return true;
     }
 
     protected abstract DelegatingEntryPoint CreateDelegatingEntryPoint(string method);

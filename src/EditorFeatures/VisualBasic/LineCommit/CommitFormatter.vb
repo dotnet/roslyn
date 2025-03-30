@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     End If
                 End If
 
-                Dim changes = finalDocument.GetTextChangesAsync(document, cancellationToken).WaitAndGetResult(cancellationToken)
+                Dim changes = finalDocument.GetTextChangesSynchronously(document, cancellationToken)
                 buffer.ApplyChanges(changes)
             End Using
         End Sub

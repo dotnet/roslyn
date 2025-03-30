@@ -440,11 +440,6 @@ Enter 鍵行為;
         <target state="translated">一律不包含程式碼片段</target>
         <note />
       </trans-unit>
-      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
-        <source>Only add new line on enter after end of fully typed word</source>
-        <target state="translated">只在完整鍵入字的結尾處按 ENTER 來新增新行</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

@@ -10,6 +10,8 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Basic.Reference.Assemblies;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -1813,6 +1815,77 @@ partial class Program : TestBase
                 new[] { text, ExpressionTestLibrary },
                 expectedOutput: @"null
 S");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72571")]
+        public void LambdaWithBindingErrorInInitializerOfTargetTypedNew()
+        {
+            var src = """
+AddConfig(new()
+{
+    A = a =>
+    {
+        a // 1
+    },
+});
+
+static void AddConfig(Config config) { }
+
+class Config
+{
+    public System.Action<A> A { get; set; }
+}
+
+class A { }
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (5,10): error CS1002: ; expected
+                //         a // 1
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 10));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var s = GetSyntax<IdentifierNameSyntax>(tree, "a");
+            Assert.Equal("A a", model.GetSymbolInfo(s).Symbol.ToTestDisplayString());
+            Assert.Equal(new string[] { }, model.GetSymbolInfo(s).CandidateSymbols.ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72571")]
+        public void LambdaWithBindingErrorInInitializerWithReadonlyTarget()
+        {
+            var src = """
+AddConfig(new Config()
+{
+    A = a =>
+    {
+        a // 1
+    },
+});
+
+static void AddConfig(Config config) { }
+
+class Config
+{
+    public System.Action<A> A { get; }
+}
+
+class A { }
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (3,5): error CS0200: Property or indexer 'Config.A' cannot be assigned to -- it is read only
+                //     A = a =>
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "A").WithArguments("Config.A").WithLocation(3, 5),
+                // (5,10): error CS1002: ; expected
+                //         a // 1
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 10));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var s = GetSyntax<IdentifierNameSyntax>(tree, "a");
+            Assert.Equal("A a", model.GetSymbolInfo(s).Symbol.ToTestDisplayString());
+            Assert.Equal(new string[] { }, model.GetSymbolInfo(s).CandidateSymbols.ToTestDisplayStrings());
         }
 
         #region Regression Tests
@@ -5925,21 +5998,22 @@ class C : TestBase
         /// </summary>
         [WorkItem(1618, "https://github.com/dotnet/roslyn/issues/1618")]
         [Fact]
-        public void IgnoreInaccessibleExpressionMembers()
+        public void IgnoreInaccessibleExpressionMembers_01()
         {
             var source1 =
 @"namespace System.Linq.Expressions
 {
     public class Expression
     {
-        public static Expression Constant(object o, Type t) { return null; }
+        public static ConstantExpression Constant(object o, Type t) { return null; }
         protected static Expression Convert(object e, Type t) { return null; }
         public static Expression Convert(Expression e, object t) { return null; }
-        protected static void Lambda<T>(Expression e, ParameterExpression[] args) { }
+        protected static Expression<T> Lambda<T>(Expression e, ParameterExpression[] args) { return null; }
         public static Expression<T> Lambda<T>(Expression e, Expression[] args) { return null; }
     }
     public class Expression<T> { }
     public class ParameterExpression : Expression { }
+    public class ConstantExpression : Expression { }
 }";
             var compilation1 = CreateCompilationWithMscorlib461(source1);
             compilation1.VerifyDiagnostics();
@@ -5958,7 +6032,58 @@ class C
             using (var stream = new MemoryStream())
             {
                 var result = compilation2.Emit(stream);
-                result.Diagnostics.Verify();
+                result.Diagnostics.Verify(
+                    // (5,36): error CS0656: Missing compiler required member 'System.Linq.Expressions.Expression.Convert'
+                    //     static Expression<D> E = () => 1;
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1").WithArguments("System.Linq.Expressions.Expression", "Convert").WithLocation(5, 36)
+                    );
+            }
+        }
+
+        /// <summary>
+        /// Ignore inaccessible members of System.Linq.Expressions.Expression.
+        /// </summary>
+        [WorkItem(1618, "https://github.com/dotnet/roslyn/issues/1618")]
+        [Fact]
+        public void IgnoreInaccessibleExpressionMembers_02()
+        {
+            var source1 =
+@"namespace System.Linq.Expressions
+{
+    public class Expression
+    {
+        public static ConstantExpression Constant(object o, Type t) { return null; }
+        public static UnaryExpression Convert(Expression e, Type t) { return null; }
+        protected static Expression<T> Lambda<T>(Expression e, ParameterExpression[] args) { return null; }
+        public static Expression<T> Lambda<T>(Expression e, Expression[] args) { return null; }
+    }
+    public class Expression<T> { }
+    public class ParameterExpression : Expression { }
+    public class ConstantExpression : Expression { }
+    public class UnaryExpression : Expression { }
+}";
+            var compilation1 = CreateCompilationWithMscorlib461(source1);
+            compilation1.VerifyDiagnostics();
+            var reference1 = compilation1.EmitToImageReference();
+
+            var source2 =
+@"using System.Linq.Expressions;
+delegate object D();
+class C
+{
+    static Expression<D> E = () => 1;
+}";
+            var compilation2 = CreateCompilationWithMscorlib461(source2, references: new[] { reference1 });
+            compilation2.VerifyDiagnostics();
+
+            using (var stream = new MemoryStream())
+            {
+                var result = compilation2.Emit(stream);
+                result.Diagnostics.Verify(
+                    // (5,30): error CS0656: Missing compiler required member 'System.Linq.Expressions.Expression.Lambda'
+                    //     static Expression<D> E = () => 1;
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "() => 1").WithArguments("System.Linq.Expressions.Expression", "Lambda").WithLocation(5, 30)
+                    );
             }
         }
 

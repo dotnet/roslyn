@@ -18,35 +18,43 @@ internal sealed class StringLiteralExpressionStructureProvider : AbstractSyntaxN
         BlockStructureOptions options,
         CancellationToken cancellationToken)
     {
-        if (node.IsKind(SyntaxKind.StringLiteralExpression) &&
-            !node.ContainsDiagnostics &&
-            CouldBeMultiLine())
+        if (node.IsKind(SyntaxKind.StringLiteralExpression) && !node.ContainsDiagnostics)
         {
-            spans.Add(new BlockSpan(
-                isCollapsible: true,
-                textSpan: node.Span,
-                hintSpan: node.Span,
-                type: BlockTypes.Expression,
-                autoCollapse: true,
-                isDefaultCollapsed: false));
+            var type = GetStringLiteralType();
+            if (type != null)
+            {
+                spans.Add(new BlockSpan(
+                    type,
+                    isCollapsible: true,
+                    textSpan: node.Span,
+                    hintSpan: node.Span,
+                    autoCollapse: true,
+                    isDefaultCollapsed: false));
+            }
         }
 
         return;
 
-        bool CouldBeMultiLine()
+        string? GetStringLiteralType()
         {
+            // We explicitly pick non-structural here as we don't want 'structure' guides shown for raw string literals.
+            // We already have a specialized tagger for those showing the user the left side of it.  So having a
+            // structure guide as well is redundant.
             if (node.Token.Kind() is SyntaxKind.MultiLineRawStringLiteralToken or SyntaxKind.Utf8MultiLineRawStringLiteralToken)
-                return true;
+                return BlockTypes.Nonstructural;
 
             if (node.Token.IsVerbatimStringLiteral())
             {
                 var span = node.Span;
                 var sourceText = node.SyntaxTree.GetText(cancellationToken);
-                return sourceText.Lines.GetLineFromPosition(span.Start).LineNumber !=
-                       sourceText.Lines.GetLineFromPosition(span.End).LineNumber;
+                if (sourceText.Lines.GetLineFromPosition(span.Start).LineNumber !=
+                    sourceText.Lines.GetLineFromPosition(span.End).LineNumber)
+                {
+                    return BlockTypes.Expression;
+                }
             }
 
-            return false;
+            return null;
         }
     }
 }

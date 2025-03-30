@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
@@ -70,7 +69,6 @@ namespace Microsoft.CodeAnalysis.Interactive
             IInteractiveWindowCommandsFactory commandsFactory,
             ImmutableArray<IInteractiveWindowCommand> commands,
             ITextDocumentFactoryService textDocumentFactoryService,
-            EditorOptionsService editorOptionsService,
             InteractiveEvaluatorLanguageInfoProvider languageInfo,
             string initialWorkingDirectory)
         {
@@ -87,10 +85,8 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             _session = new InteractiveSession(
                 _workspace,
-                threadingContext,
                 listener,
                 textDocumentFactoryService,
-                editorOptionsService,
                 languageInfo,
                 initialWorkingDirectory);
 

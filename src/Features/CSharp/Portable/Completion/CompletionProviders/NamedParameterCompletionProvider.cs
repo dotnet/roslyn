@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 [ExportCompletionProvider(nameof(NamedParameterCompletionProvider), LanguageNames.CSharp)]
 [ExtensionOrder(After = nameof(AttributeNamedParameterCompletionProvider))]
 [Shared]
-internal partial class NamedParameterCompletionProvider : LSPCompletionProvider, IEqualityComparer<IParameterSymbol>
+internal sealed partial class NamedParameterCompletionProvider : LSPCompletionProvider, IEqualityComparer<IParameterSymbol>
 {
     private const string ColonString = ":";
 
@@ -117,7 +117,7 @@ internal partial class NamedParameterCompletionProvider : LSPCompletionProvider,
                 context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                     displayText: escapedName,
                     displayTextSuffix: ColonString,
-                    symbols: ImmutableArray.Create(parameter),
+                    symbols: [parameter],
                     rules: s_rules.WithMatchPriority(SymbolMatchPriority.PreferNamedArgument),
                     contextPosition: token.SpanStart,
                     filterText: escapedName));

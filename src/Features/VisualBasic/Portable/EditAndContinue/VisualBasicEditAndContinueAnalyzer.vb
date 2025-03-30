@@ -809,7 +809,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return
                     End If
 
-                    result.Add((oldSymbol.ContainingSymbol, newSymbol.ContainingSymbol, EditKind.Update))
+                    ' Reordering of data members is only allowed if the layout of the type doesn't change.
+                    ' Reordering of other members is a no-op, although the new order won't be reflected in metadata (Reflection will report original order).
+                    result.Add((oldSymbol, newSymbol, EditKind.Reorder))
 
                 Case EditKind.Delete
                     result.Add((oldSymbol, Nothing, editKind))
@@ -913,7 +915,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 Case SyntaxKind.FieldDeclaration
                     ' Attribute or modifier update
-                    If editKind = EditKind.Update Then
+                    If editKind = EditKind.Update OrElse editKind = EditKind.Reorder Then
                         Dim field = CType(node, FieldDeclarationSyntax)
                         If field.Declarators.Count = 1 AndAlso field.Declarators(0).Names.Count = 1 Then
                             node = field.Declarators(0).Names(0)
@@ -1796,55 +1798,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             Private Sub ClassifyReorder(oldNode As SyntaxNode, newNode As SyntaxNode)
                 Select Case newNode.Kind
-                    Case SyntaxKind.OptionStatement,
-                         SyntaxKind.ImportsStatement,
-                         SyntaxKind.AttributesStatement,
-                         SyntaxKind.NamespaceBlock,
-                         SyntaxKind.ClassBlock,
-                         SyntaxKind.StructureBlock,
-                         SyntaxKind.InterfaceBlock,
-                         SyntaxKind.ModuleBlock,
-                         SyntaxKind.EnumBlock,
-                         SyntaxKind.DelegateFunctionStatement,
-                         SyntaxKind.DelegateSubStatement,
-                         SyntaxKind.SubBlock,
-                         SyntaxKind.FunctionBlock,
-                         SyntaxKind.DeclareSubStatement,
-                         SyntaxKind.DeclareFunctionStatement,
-                         SyntaxKind.ConstructorBlock,
-                         SyntaxKind.OperatorBlock,
-                         SyntaxKind.PropertyBlock,
-                         SyntaxKind.EventBlock,
-                         SyntaxKind.GetAccessorBlock,
-                         SyntaxKind.SetAccessorBlock,
-                         SyntaxKind.AddHandlerAccessorBlock,
-                         SyntaxKind.RemoveHandlerAccessorBlock,
-                         SyntaxKind.RaiseEventAccessorBlock,
-                         SyntaxKind.ClassConstraint,
-                         SyntaxKind.StructureConstraint,
-                         SyntaxKind.NewConstraint,
-                         SyntaxKind.TypeConstraint,
-                         SyntaxKind.AttributeList,
-                         SyntaxKind.Attribute,
-                         SyntaxKind.Parameter
-                        ' We'll ignore these edits. A general policy is to ignore edits that are only discoverable via reflection.
-                        Return
-
-                    Case SyntaxKind.SubStatement,
-                         SyntaxKind.FunctionStatement
-                        ' Interface methods. We could allow reordering of non-COM interface methods.
-                        Debug.Assert(oldNode.Parent.IsKind(SyntaxKind.InterfaceBlock) AndAlso newNode.Parent.IsKind(SyntaxKind.InterfaceBlock))
-                        ReportError(RudeEditKind.Move)
-                        Return
-
-                    Case SyntaxKind.PropertyStatement,
-                         SyntaxKind.FieldDeclaration,
-                         SyntaxKind.EventStatement
-                        ' Maybe we could allow changing order of field declarations unless the containing type layout is sequential,
-                        ' and it's not a COM interface.
-                        ReportError(RudeEditKind.Move)
-                        Return
-
                     Case SyntaxKind.EnumMemberDeclaration
                         ' To allow this change we would need to check that values of all fields of the enum 
                         ' are preserved, or make sure we can update all method bodies that accessed those that changed.
@@ -1860,9 +1813,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         ' Identifier can be moved within the same type declaration.
                         ' Determine validity of such change in semantic analysis.
                         Return
-
-                    Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(newNode.Kind)
                 End Select
             End Sub
 

@@ -20,19 +20,15 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternCombinators;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
-public class CSharpUsePatternCombinatorsDiagnosticAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzerTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
     private static readonly ParseOptions CSharp9 = TestOptions.RegularPreview.WithLanguageVersion(LanguageVersion.CSharp9);
 
-    private static readonly OptionsCollection s_disabled = new OptionsCollection(LanguageNames.CSharp)
+    private static readonly OptionsCollection s_disabled = new(LanguageNames.CSharp)
     {
         { CSharpCodeStyleOptions.PreferPatternMatching, new CodeStyleOption2<bool>(false, NotificationOption2.None) }
     };
-
-    public CSharpUsePatternCombinatorsDiagnosticAnalyzerTests(ITestOutputHelper logger)
-         : base(logger)
-    {
-    }
 
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpUsePatternCombinatorsDiagnosticAnalyzer(), new CSharpUsePatternCombinatorsCodeFixProvider());
@@ -689,6 +685,36 @@ public class C
                     var @long = 2;
                     if (o is int or long)
                     {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75122")]
+    public async Task TestNotWithMultipleCallsToInvocationWithRefArgument()
+    {
+        await TestMissingAsync(
+            """
+            using System;
+
+            static class DataUtils
+            {
+                internal static string ReadLine(byte[] bytes, ref int index)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            class C
+            {
+                public void Main(byte[] bytes)
+                {
+                    int index = 0;
+
+                    if ([|DataUtils.ReadLine(bytes, ref index) != "YAFC" || DataUtils.ReadLine(bytes, ref index) != "ProjectPage"|])
+                    {
+                        throw new InvalidDataException();
                     }
                 }
             }

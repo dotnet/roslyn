@@ -7153,6 +7153,9 @@ public struct B
                 // (8,28): error CS0747: Invalid initializer member declarator
                 //         return this with { i, j++, M2(), X = 2};
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "i").WithLocation(8, 28),
+                // (8,28): error CS0117: 'B' does not contain a definition for 'i'
+                //         return this with { i, j++, M2(), X = 2};
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "i").WithArguments("B", "i").WithLocation(8, 28),
                 // (8,31): error CS0747: Invalid initializer member declarator
                 //         return this with { i, j++, M2(), X = 2};
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "j++").WithLocation(8, 31),
@@ -7177,9 +7180,16 @@ Block[B0] - Entry
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'this')
               Value:
                 IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: B) (Syntax: 'this')
-            IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'i')
-              Children(1):
-                  IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'i')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: 'i')
+              Left:
+                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'i')
+                  Children(1):
+                      IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'i')
+                        Children(1):
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: B, IsImplicit) (Syntax: 'this')
+              Right:
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'i')
+                  Children(0)
             IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'j++')
               Children(1):
                   IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, Type: System.Int32, IsInvalid) (Syntax: 'j++')
@@ -9912,6 +9922,9 @@ public class C
                 // (7,26): error CS0747: Invalid initializer member declarator
                 //         var b = a with { i, j++, M2(), A = 20 };
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "i").WithLocation(7, 26),
+                // (7,26): error CS0117: '<anonymous type: int A>' does not contain a definition for 'i'
+                //         var b = a with { i, j++, M2(), A = 20 };
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "i").WithArguments("<anonymous type: int A>", "i").WithLocation(7, 26),
                 // (7,29): error CS0747: Invalid initializer member declarator
                 //         var b = a with { i, j++, M2(), A = 20 };
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "j++").WithLocation(7, 29),
@@ -9962,9 +9975,8 @@ Block[B0] - Entry
             Predecessors: [B1]
             Statements (6)
                 ILocalReferenceOperation: a (OperationKind.LocalReference, Type: <anonymous type: System.Int32 A>) (Syntax: 'a')
-                IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'i')
-                  Children(1):
-                      IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'i')
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'i')
+                  Children(0)
                 IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'j++')
                   Children(1):
                       IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, Type: System.Int32, IsInvalid) (Syntax: 'j++')

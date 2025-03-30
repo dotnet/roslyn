@@ -44,6 +44,16 @@ namespace Roslyn.LanguageServer.Protocol
             set;
         }
 
+        /// <summary>
+        /// Gets or sets this project context represents miscellaneous files.
+        /// </summary>
+        [JsonPropertyName("_vs_is_miscellaneous")]
+        public bool IsMiscellaneous
+        {
+            get;
+            set;
+        }
+
         public static bool operator ==(VSProjectContext? value1, VSProjectContext? value2)
         {
             if (ReferenceEquals(value1, value2))

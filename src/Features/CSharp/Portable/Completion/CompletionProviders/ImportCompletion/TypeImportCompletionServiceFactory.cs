@@ -22,7 +22,7 @@ internal sealed class TypeImportCompletionServiceFactory : ILanguageServiceFacto
     public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         => new CSharpTypeImportCompletionService(languageServices.LanguageServices.SolutionServices);
 
-    private class CSharpTypeImportCompletionService(SolutionServices services) : AbstractTypeImportCompletionService(services)
+    private sealed class CSharpTypeImportCompletionService(SolutionServices services) : AbstractTypeImportCompletionService(services)
     {
         protected override string GenericTypeSuffix
             => "<>";

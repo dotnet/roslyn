@@ -34,13 +34,9 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
     [Collection(AssemblyLoadTestFixtureCollection.Name)]
     [UseExportProvider]
-    public class SnapshotSerializationTests
+    public sealed class SnapshotSerializationTests(AssemblyLoadTestFixture testFixture)
     {
-        private readonly AssemblyLoadTestFixture _testFixture;
-        public SnapshotSerializationTests(AssemblyLoadTestFixture testFixture)
-        {
-            _testFixture = testFixture;
-        }
+        private readonly AssemblyLoadTestFixture _testFixture = testFixture;
 
         private static Workspace CreateWorkspace(Type[] additionalParts = null)
             => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).WithTestHostParts(TestHost.OutOfProcess).GetHostServices());
@@ -58,19 +54,17 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                 var document2 = project2.AddDocument("Document2", SourceText.From(vbCode));
 
                 solution = document2.Project.Solution.GetRequiredProject(project1.Id)
-                    .AddProjectReference(new ProjectReference(project2.Id, ImmutableArray.Create("test")))
+                    .AddProjectReference(new ProjectReference(project2.Id, ["test"]))
                     .AddMetadataReference(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))
                     .AddAnalyzerReference(new AnalyzerFileReference(Path.Combine(TempRoot.Root, "path1"), new TestAnalyzerAssemblyLoader()))
-                    .AddAdditionalDocument("Additional", SourceText.From("hello"), ImmutableArray.Create("test"), @".\Add").Project.Solution;
+                    .AddAdditionalDocument("Additional", SourceText.From("hello"), ["test"], @".\Add").Project.Solution;
 
                 return solution
                     .WithAnalyzerReferences([new AnalyzerFileReference(Path.Combine(TempRoot.Root, "path2"), new TestAnalyzerAssemblyLoader())])
-                    .AddAnalyzerConfigDocuments(
-                    ImmutableArray.Create(
-                        DocumentInfo.Create(
-                            DocumentId.CreateNewId(project1.Id),
-                            ".editorconfig",
-                            loader: TextLoader.From(TextAndVersion.Create(SourceText.From("root = true"), VersionStamp.Create())))));
+                    .AddAnalyzerConfigDocuments([DocumentInfo.Create(
+                        DocumentId.CreateNewId(project1.Id),
+                        ".editorconfig",
+                        loader: TextLoader.From(TextAndVersion.Create(SourceText.From("root = true"), VersionStamp.Create())))]);
             }, WorkspaceChangeKind.SolutionChanged);
 
             return workspace.CurrentSolution;

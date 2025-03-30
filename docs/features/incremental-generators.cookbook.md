@@ -208,6 +208,15 @@ public class FileTransformGenerator : IIncrementalGenerator
 }
 ```
 
+Items need to be included in your csproj files by using the `AdditionalFiles` ItemGroup:
+
+```xml
+<ItemGroup>
+    <AdditionalFiles Include="file1.xml" />
+    <AdditionalFiles Include="file2.xml" />
+<ItemGroup>
+```
+
 ### Augment user code
 
 **User scenario:** As a generator author I want to be able to inspect and augment a user's code with new functionality.
@@ -223,7 +232,7 @@ Provide that attribute in a `RegisterPostInitializationOutput` step. Register fo
 ```csharp
 public partial class UserClass
 {
-    [Generate]
+    [GeneratedNamespace.Generated]
     public partial void UserMethod();
 }
 ```
@@ -244,7 +253,7 @@ public class AugmentingGenerator : IIncrementalGenerator
                     {
                     }
                 }
-                """, Encoding.UTF8));
+                """, Encoding.UTF8)));
 
         var pipeline = context.SyntaxProvider.ForAttributeWithMetadataName(
             fullyQualifiedMetadataName: "GeneratedNamespace.GeneratedAttribute",

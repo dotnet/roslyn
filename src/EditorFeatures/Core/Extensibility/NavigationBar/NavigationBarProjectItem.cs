@@ -14,8 +14,8 @@ internal sealed class NavigationBarProjectItem(
     Workspace workspace,
     DocumentId documentId,
     string language) : NavigationBarItem(textVersion: null, text, glyph,
-               spans: ImmutableArray<TextSpan>.Empty,
-               childItems: ImmutableArray<NavigationBarItem>.Empty,
+               spans: [],
+               childItems: [],
                indent: 0, bolded: false, grayed: false), IEquatable<NavigationBarProjectItem>
 {
     public Workspace Workspace { get; } = workspace;

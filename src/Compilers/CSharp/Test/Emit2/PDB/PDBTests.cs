@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -19,9 +18,11 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.DiaSymReader;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
@@ -365,6 +366,87 @@ public class C
                 Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("xxx"));
 
             Assert.False(result.Success);
+        }
+
+        /// <summary>
+        /// Verifies the constant <c>SymUnmanagedWriterImpl.CustomMetadataByteLimit</c> against the external sym writer library we depend on.
+        /// </summary>
+        [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75237")]
+        [CombinatorialData]
+        public void NativeWriterLimit_Under([CombinatorialRange(SymUnmanagedWriterImpl.CustomMetadataByteLimit - 9, 10)] int length)
+        {
+            CompileWithMockedCustomMetadata(length).Diagnostics.Verify();
+        }
+
+        /// <summary>
+        /// Verifies the constant <c>SymUnmanagedWriterImpl.CustomMetadataByteLimit</c> against the external sym writer library we depend on.
+        /// </summary>
+        [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75237")]
+        [CombinatorialData]
+        public void NativeWriterLimit_Over([CombinatorialRange(SymUnmanagedWriterImpl.CustomMetadataByteLimit + 1, 10)] int length)
+        {
+            CompileWithMockedCustomMetadata(length).Diagnostics.Verify(
+                // error CS0041: Unexpected error writing debug information -- 'Cannot emit native PDB for method 'C.M()' because its debug metadata size 65505 is over the limit 65504.'
+                Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments(string.Format(CodeAnalysisResources.SymWriterMetadataOverLimit, "C.M()", length, 65504)).WithLocation(1, 1));
+        }
+
+        private static EmitResult CompileWithMockedCustomMetadata(int length)
+        {
+            var comp = CreateCompilation("""
+                class C
+                {
+                    void M() { }
+                }
+                """);
+            return comp.Emit(
+                peStream: new MemoryStream(),
+                metadataPEStream: null,
+                pdbStream: new MemoryStream(),
+                xmlDocumentationStream: null,
+                cancellationToken: default,
+                win32Resources: null,
+                manifestResources: null,
+                options: null,
+                debugEntryPoint: null,
+                sourceLinkStream: null,
+                embeddedTexts: null,
+                rebuildData: null,
+                testData: new CompilationTestData
+                {
+                    SymWriterFactory = metadataProvider =>
+                    {
+                        var writer = SymWriterTestUtilities.CreateUnmanagedWriter(metadataProvider);
+                        return new CustomMetadataSymUnmanagedWriter(writer, new byte[length]);
+                    },
+                });
+        }
+
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75237")]
+        public void NativeWriterLimit_EndToEnd()
+        {
+            var locals = Enumerable.Range(0, 14_000)
+                .Select(i => $"""
+                    var local{i} = {i};
+                    M2(local{i});
+                    """)
+                .Join(Environment.NewLine);
+            var source = $$"""
+                namespace N;
+                class C
+                {
+                    void M1()
+                    {
+                        {{locals}}
+                    }
+                    void M2(int x) { }
+                }
+                """;
+            CreateCompilation(source, options: TestOptions.DebugDll).VerifyEmitDiagnostics(
+                // error CS0041: Unexpected error writing debug information -- 'Cannot emit native PDB for method 'N.C.M1()' because its debug metadata size 69096 is over the limit 65504.'
+                Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments(string.Format(CodeAnalysisResources.SymWriterMetadataOverLimit, "N.C.M1()", 69096, 65504)).WithLocation(1, 1));
         }
 
         [WorkItem(1067635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067635")]

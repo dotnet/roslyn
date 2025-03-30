@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Microsoft.CodeAnalysis.PooledObjects;
 
-internal partial class PooledStringBuilder : IPooled
+internal sealed partial class PooledStringBuilder : IPooled
 {
     public static PooledDisposer<PooledStringBuilder> GetInstance(out StringBuilder instance)
     {

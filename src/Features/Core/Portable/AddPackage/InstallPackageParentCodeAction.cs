@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.AddPackage;
 /// navigate through, and we don't want our child items confusingly being added to the
 /// top level light-bulb where it's not clear what effect they would have if invoked.
 /// </remarks>
-internal class InstallPackageParentCodeAction(
+internal sealed class InstallPackageParentCodeAction(
     IPackageInstallerService installerService,
     string source,
     string packageName,

@@ -99,6 +99,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             ISourceGenerator? generator = null)
         {
             Contract.ThrowIfNull(filePath);
+            Contract.ThrowIfFalse(generator == null || PathUtilities.IsAbsolute(filePath));
 
             ExportProvider = exportProvider;
             LanguageServiceProvider = languageServiceProvider;

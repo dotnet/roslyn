@@ -109,7 +109,7 @@ Class C
     End Sub
 
     Private Sub IGoo_Bar() Implements IGoo.Bar
-        Throw New System.NotImplementedException()
+        Bar()
     End Sub
 End Class")
         End Function
@@ -156,10 +156,10 @@ Class C
 
     Private Property I_M As Integer Implements I.M
         Get
-            Throw New System.NotImplementedException()
+            Return M
         End Get
         Set(value As Integer)
-            Throw New System.NotImplementedException()
+            M = Value
         End Set
     End Property
 End Class")
@@ -196,10 +196,10 @@ Class C
 
     Private Property I_M As Integer Implements I.M
         Get
-            Throw New System.NotImplementedException()
+            Return M
         End Get
         Set(value As Integer)
-            Throw New System.NotImplementedException()
+            M = Value
         End Set
     End Property
 End Class")
@@ -231,7 +231,7 @@ Class C
     Implements I
 
     Private Sub I_M() Implements I.M
-        Throw New System.NotImplementedException()
+        M()
     End Sub
 End Class")
         End Function
@@ -1683,10 +1683,10 @@ Class C
 
     Private Property I1_Bar As Integer Implements I1.Bar
         Get
-            Throw New System.NotImplementedException()
+            Return Bar
         End Get
         Set(value As Integer)
-            Throw New System.NotImplementedException()
+            Bar = Value
         End Set
     End Property
 End Class")
@@ -1730,10 +1730,10 @@ Class C
 
     Private Property I1_Bar As Integer Implements I1.Bar
         Get
-            Throw New System.NotImplementedException()
+            Return Bar
         End Get
         Set(value As Integer)
-            Throw New System.NotImplementedException()
+            Bar = Value
         End Set
     End Property
 

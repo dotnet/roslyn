@@ -48,7 +48,7 @@ internal class ExtractInterfaceDialogViewModel : AbstractNotifyPropertyChanged
             languageName,
             defaultNamespace,
             generatedNameTypeParameterSuffix,
-            conflictingTypeNames.ToImmutableArray(),
+            [.. conflictingTypeNames],
             syntaxFactsService);
     }
 

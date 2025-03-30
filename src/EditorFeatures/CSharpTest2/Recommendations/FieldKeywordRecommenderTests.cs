@@ -5,6 +5,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
@@ -511,5 +512,14 @@ public sealed class FieldKeywordRecommenderTests : KeywordRecommenderTests
             """
             $$
             """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68399")]
+    public async Task TestInRecordParameterAttribute()
+    {
+        await VerifyKeywordAsync(
+            """
+                record R([$$] int i) { }
+                """);
     }
 }

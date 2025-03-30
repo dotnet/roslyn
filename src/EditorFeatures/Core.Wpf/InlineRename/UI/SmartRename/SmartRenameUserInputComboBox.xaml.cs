@@ -6,7 +6,6 @@ using System;
 using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
@@ -23,6 +22,7 @@ internal sealed partial class SmartRenameUserInputComboBox : ComboBox, IRenameUs
     private readonly SmartRenameViewModel _smartRenameViewModel;
     private readonly RenameFlyoutViewModel _baseViewModel;
     private readonly Lazy<TextBox> _innerTextBox;
+    private bool _userChangedTextSelection;
 
     internal SmartRenameUserInputComboBox(RenameFlyoutViewModel viewModel)
     {
@@ -36,7 +36,9 @@ internal sealed partial class SmartRenameUserInputComboBox : ComboBox, IRenameUs
         _innerTextBox = new Lazy<TextBox>(() =>
         {
             ApplyTemplate();
-            return (TextBox)GetTemplateChild(InnerTextBox)!;
+            var textBox = (TextBox)GetTemplateChild(InnerTextBox)!;
+            textBox.SelectionChanged += (sender, e) => _userChangedTextSelection = true;
+            return textBox;
         });
 
         _smartRenameViewModel.SuggestedNames.CollectionChanged += SuggestedNames_CollectionChanged;
@@ -125,6 +127,12 @@ internal sealed partial class SmartRenameUserInputComboBox : ComboBox, IRenameUs
 
     private void SuggestedNames_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
     {
-        Focus();
+        // RenameFlyout handles GotFocus event by calling SelectAllText, which selects all text in the input text box.
+        // If user changed selection (e.g. by moving the caret or selecting text in the input text box we don't want
+        // to step on it once rename suggestions became available.
+        if (!_userChangedTextSelection)
+        {
+            Focus();
+        }
     }
 }

@@ -8,21 +8,17 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers;
 
-internal abstract class AbstractAddAccessibilityModifiersDiagnosticAnalyzer<TCompilationUnitSyntax>
-    : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal abstract class AbstractAddAccessibilityModifiersDiagnosticAnalyzer<TCompilationUnitSyntax>()
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(
+        IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId,
+        EnforceOnBuildValues.AddAccessibilityModifiers,
+        CodeStyleOptions2.AccessibilityModifiersRequired,
+        new LocalizableResourceString(nameof(AnalyzersResources.Add_accessibility_modifiers), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+        new LocalizableResourceString(nameof(AnalyzersResources.Accessibility_modifiers_required), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
     where TCompilationUnitSyntax : SyntaxNode
 {
     protected static readonly ImmutableDictionary<string, string?> ModifiersAddedProperties = ImmutableDictionary<string, string?>.Empty.Add(
         AddAccessibilityModifiersConstants.ModifiersAdded, AddAccessibilityModifiersConstants.ModifiersAdded);
-
-    protected AbstractAddAccessibilityModifiersDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId,
-               EnforceOnBuildValues.AddAccessibilityModifiers,
-               CodeStyleOptions2.AccessibilityModifiersRequired,
-               new LocalizableResourceString(nameof(AnalyzersResources.Add_accessibility_modifiers), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-               new LocalizableResourceString(nameof(AnalyzersResources.Accessibility_modifiers_required), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
-    {
-    }
 
     public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;

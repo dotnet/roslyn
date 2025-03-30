@@ -16,6 +16,7 @@ sealed class NetSdkDownloader : IDisposable
     static NetSdkDownloader()
     {
         s_httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("PostSharp.Engineering");
+        s_httpClient.Timeout = TimeSpan.FromMinutes(10);
     }
 
     private NetSdkDownloader(ZipArchive archive, SemanticVersion sdkVersion)

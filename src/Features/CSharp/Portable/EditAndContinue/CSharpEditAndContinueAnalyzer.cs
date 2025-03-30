@@ -1166,22 +1166,18 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
             case EditKind.Reorder:
                 Contract.ThrowIfNull(oldNode);
 
+                // When global statements are reordered, we issue an update edit for the synthesized main method, which is what
+                // oldSymbol and newSymbol will point to.
                 if (IsGlobalStatement(oldNode))
                 {
-                    // When global statements are reordered, we issue an update edit for the synthesized main method, which is what
-                    // oldSymbol and newSymbol will point to
                     result.Add((oldSymbol, newSymbol, EditKind.Update));
                     return;
                 }
 
-                // Otherwise, we don't do any semantic checks for reordering
-                // and we don't need to report them to the compiler either.
-                // Consider: Currently symbol ordering changes are not reflected in metadata (Reflection will report original order).
+                // Reordering of data members is only allowed if the layout of the type doesn't change.
+                // Reordering of other members is a no-op, although the new order won't be reflected in metadata (Reflection will report original order).
+                result.Add((oldSymbol, newSymbol, EditKind.Reorder));
 
-                // Consider: Reordering of fields is not allowed since it changes the layout of the type.
-                // This ordering should however not matter unless the type has explicit layout so we might want to allow it.
-                // We do not check changes to the order if they occur across multiple documents (the containing type is partial).
-                Debug.Assert(!IsDeclarationWithInitializer(oldNode!) && !IsDeclarationWithInitializer(newNode!));
                 return;
 
             case EditKind.Update:
@@ -1869,7 +1865,8 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
                 return ((AnonymousObjectCreationExpressionSyntax)node).NewKeyword.Span;
 
             case SyntaxKind.ParenthesizedLambdaExpression:
-                return ((ParenthesizedLambdaExpressionSyntax)node).ParameterList.Span;
+                var parenthesizedLambda = (ParenthesizedLambdaExpressionSyntax)node;
+                return CombineSpans(parenthesizedLambda.ReturnType?.Span ?? default, parenthesizedLambda.ParameterList.Span, defaultSpan: default);
 
             case SyntaxKind.SimpleLambdaExpression:
                 return ((SimpleLambdaExpressionSyntax)node).Parameter.Span;
@@ -1970,7 +1967,7 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
     internal override string GetDisplayName(INamedTypeSymbol symbol)
         => symbol.TypeKind switch
         {
-            TypeKind.Struct => symbol.IsRecord ? CSharpFeaturesResources.record_struct : CSharpFeaturesResources.struct_,
+            TypeKind.Struct => symbol.IsRecord ? CSharpFeaturesResources.record_struct : FeaturesResources.struct_,
             TypeKind.Class => symbol.IsRecord ? CSharpFeaturesResources.record_ : FeaturesResources.class_,
             _ => base.GetDisplayName(symbol)
         };
@@ -2029,7 +2026,7 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
                 return FeaturesResources.class_;
 
             case SyntaxKind.StructDeclaration:
-                return CSharpFeaturesResources.struct_;
+                return FeaturesResources.struct_;
 
             case SyntaxKind.InterfaceDeclaration:
                 return FeaturesResources.interface_;
@@ -2240,7 +2237,7 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
                 return CSharpFeaturesResources.tuple;
 
             case SyntaxKind.LocalFunctionStatement:
-                return CSharpFeaturesResources.local_function;
+                return FeaturesResources.local_function;
 
             case SyntaxKind.DeclarationExpression:
                 return CSharpFeaturesResources.out_var;
@@ -2391,14 +2388,6 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
 
             switch (newNode.Kind())
             {
-                case SyntaxKind.PropertyDeclaration:
-                case SyntaxKind.FieldDeclaration:
-                case SyntaxKind.EventFieldDeclaration:
-                case SyntaxKind.VariableDeclarator:
-                    // Maybe we could allow changing order of field declarations unless the containing type layout is sequential.
-                    ReportError(RudeEditKind.Move);
-                    return;
-
                 case SyntaxKind.EnumMemberDeclaration:
                     // To allow this change we would need to check that values of all fields of the enum 
                     // are preserved, or make sure we can update all method bodies that accessed those that changed.
@@ -3073,7 +3062,7 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
     }
 
     private static bool DeclareSameIdentifiers(SeparatedSyntaxList<VariableDeclaratorSyntax> oldVariables, SeparatedSyntaxList<VariableDeclaratorSyntax> newVariables)
-        => DeclareSameIdentifiers(oldVariables.Select(v => v.Identifier).ToArray(), newVariables.Select(v => v.Identifier).ToArray());
+        => DeclareSameIdentifiers([.. oldVariables.Select(v => v.Identifier)], [.. newVariables.Select(v => v.Identifier)]);
 
     private static bool DeclareSameIdentifiers(SyntaxToken[] oldVariables, SyntaxToken[] newVariables)
     {

@@ -6,6 +6,7 @@
 
 using System.Windows;
 using System.Windows.Controls;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.PlatformUI;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences
@@ -18,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         private readonly IManageNamingStylesInfoDialogViewModel _viewModel;
 
         public string OK => ServicesVSResources.OK;
-        public string Cancel => ServicesVSResources.Cancel;
+        public string Cancel => EditorFeaturesResources.Cancel;
         public string CannotBeDeletedExplanation => ServicesVSResources.This_item_cannot_be_deleted_because_it_is_used_by_an_existing_Naming_Rule;
         public string AddItemAutomationText => ServicesVSResources.Add_item;
         public string EditButtonAutomationText => ServicesVSResources.Edit_item;

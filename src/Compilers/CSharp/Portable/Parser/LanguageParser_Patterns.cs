@@ -193,9 +193,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 case SyntaxKind.OpenBracketToken:
                     return this.ParseListPattern(inSwitchArmPattern);
-                case SyntaxKind.DotDotToken:
-                    return _syntaxFactory.SlicePattern(EatToken(),
-                        IsPossibleSubpatternElement() ? ParsePattern(precedence, afterIs: false, inSwitchArmPattern) : null);
+                case SyntaxKind.DotToken when IsAtDotDotToken():
+                    return _syntaxFactory.SlicePattern(
+                        EatDotDotToken(),
+                        IsPossibleSubpatternElement()
+                            ? ParsePattern(precedence, afterIs: false, inSwitchArmPattern)
+                            : null);
                 case SyntaxKind.LessThanToken:
                 case SyntaxKind.LessThanEqualsToken:
                 case SyntaxKind.GreaterThanToken:

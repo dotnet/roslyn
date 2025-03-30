@@ -82,7 +82,7 @@ internal sealed partial class PublicWorkspacePullDiagnosticsHandler : AbstractWo
         return new WorkspaceDiagnosticReport
         {
             Items = progressValues != null
-            ? progressValues.SelectMany(report => report.Match(r => r.Items, partial => partial.Items)).ToArray()
+            ? [.. progressValues.SelectMany(report => report.Match(r => r.Items, partial => partial.Items))]
             : [],
         };
     }

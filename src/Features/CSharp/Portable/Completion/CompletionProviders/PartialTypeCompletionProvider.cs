@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 [ExportCompletionProvider(nameof(PartialTypeCompletionProvider), LanguageNames.CSharp)]
 [ExtensionOrder(After = nameof(PartialMethodCompletionProvider))]
 [Shared]
-internal partial class PartialTypeCompletionProvider : AbstractPartialTypeCompletionProvider<CSharpSyntaxContext>
+internal sealed partial class PartialTypeCompletionProvider : AbstractPartialTypeCompletionProvider<CSharpSyntaxContext>
 {
     private const string InsertionTextOnLessThan = nameof(InsertionTextOnLessThan);
 

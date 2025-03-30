@@ -33,10 +33,10 @@ internal sealed class RemoteSymbolSearchUpdateService : BrokeredServiceBase, IRe
             cancellationToken);
     }
 
-    public ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity, CancellationToken cancellationToken)
+    public ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(string source, TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken)
     {
         return RunServiceAsync(cancellationToken =>
-            _updateEngine.FindPackagesWithTypeAsync(source, name, arity, cancellationToken),
+            _updateEngine.FindPackagesAsync(source, typeQuery, namespaceQuery, cancellationToken),
             cancellationToken);
     }
 
@@ -47,10 +47,10 @@ internal sealed class RemoteSymbolSearchUpdateService : BrokeredServiceBase, IRe
             cancellationToken);
     }
 
-    public ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity, CancellationToken cancellationToken)
+    public ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken)
     {
         return RunServiceAsync(cancellationToken =>
-            _updateEngine.FindReferenceAssembliesWithTypeAsync(name, arity, cancellationToken),
+            _updateEngine.FindReferenceAssembliesAsync(typeQuery, namespaceQuery, cancellationToken),
             cancellationToken);
     }
 }

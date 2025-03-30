@@ -21,6 +21,7 @@ usage()
   echo "  --rebuild                  Rebuild all projects"
   echo "  --pack                     Build nuget packages"
   echo "  --publish                  Publish build artifacts"
+  echo "  --sign                     Sign build artifacts"
   echo "  --help                     Print help and exit"
   echo ""
   echo "Test actions:"
@@ -58,6 +59,7 @@ restore=false
 build=false
 rebuild=false
 pack=false
+sign=false
 publish=false
 test_core_clr=false
 test_mono=false
@@ -123,6 +125,9 @@ while [[ $# > 0 ]]; do
       ;;
     --publish)
       publish=true
+      ;;
+    --sign)
+      sign=true
       ;;
     --testcoreclr|--test|-t)
       test_core_clr=true
@@ -300,6 +305,7 @@ function BuildSolution {
     /p:Test=$test \
     /p:Pack=$pack \
     /p:Publish=$publish \
+    /p:Sign=$sign \
     /p:RunAnalyzersDuringBuild=$run_analyzers \
     /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation \
     /p:BootstrapBuildPath="$bootstrap_dir" \
@@ -377,6 +383,6 @@ if [[ "$test_core_clr" == true ]]; then
   if [[ "$ci" != true ]]; then
     runtests_args="$runtests_args --html"
   fi
-  dotnet exec "$scriptroot/../artifacts/bin/RunTests/${configuration}/net8.0/RunTests.dll" --runtime core --configuration ${configuration} --logs ${log_dir} --dotnet ${_InitializeDotNetCli}/dotnet $runtests_args
+  dotnet exec "$scriptroot/../artifacts/bin/RunTests/${configuration}/net9.0/RunTests.dll" --runtime core --configuration ${configuration} --logs ${log_dir} --dotnet ${_InitializeDotNetCli}/dotnet $runtests_args
 fi
 ExitWithExitCode 0

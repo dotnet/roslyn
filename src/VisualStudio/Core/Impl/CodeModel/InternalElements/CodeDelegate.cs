@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         internal override ImmutableArray<SyntaxNode> GetParameters()
-            => ImmutableArray.CreateRange(CodeModelService.GetParameterNodes(LookupNode()));
+            => [.. CodeModelService.GetParameterNodes(LookupNode())];
 
         public override EnvDTE.vsCMElement Kind
         {

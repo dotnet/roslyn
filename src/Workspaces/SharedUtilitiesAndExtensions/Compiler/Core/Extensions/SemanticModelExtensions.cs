@@ -91,7 +91,7 @@ internal static partial class SemanticModelExtensions
         => semanticModel.GetEnclosingSymbol<INamespaceSymbol>(position, cancellationToken);
 
     public static IEnumerable<ISymbol> GetExistingSymbols(
-                this SemanticModel semanticModel, SyntaxNode? container, CancellationToken cancellationToken, Func<SyntaxNode, bool>? descendInto = null)
+        this SemanticModel semanticModel, SyntaxNode? container, CancellationToken cancellationToken, Func<SyntaxNode, bool>? descendInto = null)
     {
         // Ignore an anonymous type property or tuple field.  It's ok if they have a name that
         // matches the name of the local we're introducing.

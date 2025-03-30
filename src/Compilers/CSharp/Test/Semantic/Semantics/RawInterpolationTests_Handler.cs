@@ -645,7 +645,7 @@ value:1,alignment:2:format:Y";
   .locals init (System.ReadOnlySpan<char> V_0, //a
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
   IL_0000:  ldstr      ""1""
-  IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
+  IL_0005:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_000a:  stloc.0
   IL_000b:  ldloca.s   V_1
   IL_000d:  ldc.i4.4
@@ -683,7 +683,7 @@ value:1,alignment:2:format:Y";
   .locals init (System.ReadOnlySpan<char> V_0, //a
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
   IL_0000:  ldstr      ""1""
-  IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
+  IL_0005:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_000a:  stloc.0
   IL_000b:  ldloca.s   V_1
   IL_000d:  ldc.i4.4
@@ -725,7 +725,7 @@ value:1,alignment:2:format:Y";
   .locals init (System.ReadOnlySpan<char> V_0, //a
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
   IL_0000:  ldstr      ""1""
-  IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
+  IL_0005:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_000a:  stloc.0
   IL_000b:  ldloca.s   V_1
   IL_000d:  ldc.i4.4
@@ -770,7 +770,7 @@ value:1,alignment:2:format:Y";
   .locals init (System.ReadOnlySpan<char> V_0, //a
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
   IL_0000:  ldstr      ""1""
-  IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
+  IL_0005:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_000a:  stloc.0
   IL_000b:  ldloca.s   V_1
   IL_000d:  ldc.i4.4
@@ -820,7 +820,7 @@ value:1,alignment:2:format:Y";
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1,
                 bool V_2)
   IL_0000:  ldstr      ""1""
-  IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
+  IL_0005:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_000a:  stloc.0
   IL_000b:  ldc.i4.4
   IL_000c:  ldc.i4.4
@@ -862,7 +862,7 @@ value:1,alignment:2:format:Y";
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1,
                 bool V_2)
   IL_0000:  ldstr      ""1""
-  IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
+  IL_0005:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_000a:  stloc.0
   IL_000b:  ldc.i4.4
   IL_000c:  ldc.i4.4
@@ -911,7 +911,7 @@ value:1,alignment:2:format:Y";
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1,
                 bool V_2)
   IL_0000:  ldstr      ""1""
-  IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
+  IL_0005:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_000a:  stloc.0
   IL_000b:  ldc.i4.4
   IL_000c:  ldc.i4.4
@@ -957,7 +957,7 @@ value:1,alignment:2:format:Y";
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1,
                 bool V_2)
   IL_0000:  ldstr      ""1""
-  IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
+  IL_0005:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_000a:  stloc.0
   IL_000b:  ldc.i4.4
   IL_000c:  ldc.i4.4

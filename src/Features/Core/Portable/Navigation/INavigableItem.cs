@@ -48,7 +48,7 @@ internal interface INavigableItem
 
     ImmutableArray<INavigableItem> ChildItems { get; }
 
-    public record NavigableDocument(NavigableProject Project, string Name, string? FilePath, IReadOnlyList<string> Folders, DocumentId Id, bool IsSourceGeneratedDocument, Workspace? Workspace)
+    public record NavigableDocument(NavigableProject Project, string Name, string? FilePath, IReadOnlyList<string> Folders, DocumentId Id, SourceGeneratedDocumentIdentity? SourceGeneratedDocumentIdentity, Workspace? Workspace)
     {
         public static NavigableDocument FromDocument(Document document)
             => new(
@@ -57,7 +57,7 @@ internal interface INavigableItem
                 document.FilePath,
                 document.Folders,
                 document.Id,
-                IsSourceGeneratedDocument: document is SourceGeneratedDocument,
+                SourceGeneratedDocumentIdentity: (document as SourceGeneratedDocument)?.Identity,
                 document.Project.Solution.TryGetWorkspace());
 
         /// <summary>
@@ -66,7 +66,7 @@ internal interface INavigableItem
         /// navigable item was constructed during a Find Symbols operation on the same solution instance.
         /// </summary>
         internal ValueTask<Document> GetRequiredDocumentAsync(Solution solution, CancellationToken cancellationToken)
-            => solution.GetRequiredDocumentAsync(Id, includeSourceGenerated: IsSourceGeneratedDocument, cancellationToken);
+            => solution.GetRequiredDocumentAsync(Id, includeSourceGenerated: SourceGeneratedDocumentIdentity is not null, cancellationToken);
 
         /// <summary>
         /// Get the <see cref="SourceText"/> of the <see cref="CodeAnalysis.Document"/> within

@@ -7,7 +7,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets;
 
-internal class SnippetCompletionItem
+internal sealed class SnippetCompletionItem
 {
     public static string LSPSnippetKey = "LSPSnippet";
     public static string SnippetIdentifierKey = "SnippetIdentifier";

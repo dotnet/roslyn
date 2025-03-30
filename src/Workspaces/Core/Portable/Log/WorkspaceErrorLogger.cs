@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 namespace Microsoft.CodeAnalysis.ErrorLogger;
 
 [ExportWorkspaceService(typeof(IErrorLoggerService)), Export(typeof(IErrorLoggerService)), Shared]
-internal class WorkspaceErrorLogger : IErrorLoggerService
+internal sealed class WorkspaceErrorLogger : IErrorLoggerService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

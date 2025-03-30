@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             var optionsWithUI = CSharpCodeStyleOptions.EditorConfigOptions
                 .Remove(CSharpCodeStyleOptions.PreferredModifierOrder);
 
-            AssertEx.SetEqual(optionsWithUI, dataSnapShot.Select(setting => setting.Key.Option));
+            AssertEx.SetEqual(optionsWithUI.OrderBy(o => o.Name), dataSnapShot.Select(setting => setting.Key.Option).OrderBy(o => o.Name));
         }
 
         [Fact]

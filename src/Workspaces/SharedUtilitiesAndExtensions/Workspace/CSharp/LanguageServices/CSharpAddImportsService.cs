@@ -21,15 +21,11 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.AddImport;
 
 [ExportLanguageService(typeof(IAddImportsService), LanguageNames.CSharp), Shared]
-internal sealed class CSharpAddImportsService : AbstractAddImportsService<
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpAddImportsService() : AbstractAddImportsService<
     CompilationUnitSyntax, BaseNamespaceDeclarationSyntax, UsingDirectiveSyntax, ExternAliasDirectiveSyntax>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpAddImportsService()
-    {
-    }
-
     protected override string Language
         => LanguageNames.CSharp;
 

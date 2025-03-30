@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
 
-internal partial class AbstractGenerateParameterizedMemberService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>
+internal abstract partial class AbstractGenerateParameterizedMemberService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>
 {
     internal abstract class State
     {
@@ -58,7 +58,7 @@ internal partial class AbstractGenerateParameterizedMemberService<TService, TSim
         protected async Task<bool> TryFinishInitializingStateAsync(TService service, SemanticDocument document, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            TypeToGenerateIn = await SymbolFinder.FindSourceDefinitionAsync(TypeToGenerateIn, document.Project.Solution, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
+            TypeToGenerateIn = SymbolFinderInternal.FindSourceDefinition(TypeToGenerateIn, document.Project.Solution, cancellationToken) as INamedTypeSymbol;
             if (TypeToGenerateIn.IsErrorType())
             {
                 return false;
