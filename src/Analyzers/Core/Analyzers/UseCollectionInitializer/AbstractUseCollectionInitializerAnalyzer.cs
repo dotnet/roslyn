@@ -47,7 +47,8 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
         TVariableDeclaratorSyntax,
         TAnalyzer>, new()
 {
-    protected abstract bool IsComplexElementInitializer(SyntaxNode expression);
+    protected abstract bool SupportsKeyValuePairElement();
+    protected abstract bool IsComplexElementInitializer(SyntaxNode expression, out int initializerElementCount);
     protected abstract bool HasExistingInvalidInitializerForCollection();
     protected abstract bool AnalyzeMatchesAndCollectionConstructorForCollectionExpression(
         ArrayBuilder<CollectionMatch<SyntaxNode>> preMatches, ArrayBuilder<CollectionMatch<SyntaxNode>> postMatches, CancellationToken cancellationToken);
@@ -102,15 +103,20 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
             if (initializerExpressions is [var firstInit, ..])
             {
                 // if we have an object creation, and it *already* has an initializer in it (like `new T { { x, y } }`)
-                // this can't legally become a collection expression.
-                if (_analyzeForCollectionExpression && this.IsComplexElementInitializer(firstInit))
-                    return false;
+                // this can't legally become a collection expression.  Unless there are exactly two elements in the
+                // initializer, and we support k:v elements.
+                if (_analyzeForCollectionExpression && this.IsComplexElementInitializer(firstInit, out var initializerElementCount))
+                {
+                    if (initializerElementCount != 2 || !this.SyntaxFacts.SupportsKeyValuePairElement(_objectCreationExpression.SyntaxTree.Options))
+                        return false;
+                }
 
                 seenIndexAssignment = this.SyntaxFacts.IsElementAccessInitializer(firstInit);
                 seenInvocation = !seenIndexAssignment;
 
-                // An indexer can't be used with a collection expression.  So fail out immediately if we see that.
-                if (seenIndexAssignment && _analyzeForCollectionExpression)
+                // An indexer can't be used with a collection expression (except for dictionary expressions).  So fail
+                // out immediately if we see that.
+                if (_analyzeForCollectionExpression && seenIndexAssignment && !this.SyntaxFacts.SupportsKeyValuePairElement(_objectCreationExpression.SyntaxTree.Options))
                     return false;
             }
         }
