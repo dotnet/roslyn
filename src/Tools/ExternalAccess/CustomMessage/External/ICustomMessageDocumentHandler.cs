@@ -7,7 +7,44 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CustomMessageHandler;
 
+/// <summary>
+/// The base interface required to implement a custom message handler
+/// for document-specific messages.
+/// </summary>
+/// <typeparam name="TMessage">The type of the message received by the
+/// hander. <typeparamref name="TMessage"/> must be serializable using
+/// System.Text.Json.</typeparam>
+/// <typeparam name="TResponse">The type of the response returned by the
+/// hander. <typeparamref name="TResponse"/> must be serializable using
+/// System.Text.Json.</typeparam>
+/// <remarks>
+/// <para>
+/// Custom message handlers allow IDE extensions to send messages to
+/// the compiler and receive responses. This is useful for scenarios
+/// where the IDE needs to query the compilation state or other
+/// information from the compiler.
+/// </para>
+/// <para>
+/// The lifetime of a custom handler object is tied to the solution:
+/// when the solution is closed, the assemblies that contain the handler
+/// are unloaded. The state of any static variable will be lost. When
+/// a new solution is opened, a new instance of the handler is created.
+/// Handlers that are defined in assemblies sharing the same folder are
+/// loaded in the same assembly context and can share static state.
+/// </para>
+/// </remarks>
 public interface ICustomMessageDocumentHandler<TMessage, TResponse>
 {
+    /// <summary>
+    /// The method that receives the message and returns the response.
+    /// </summary>
+    /// <param name="message">The message sent by the IDE.</param>
+    /// <param name="context">The context containing the current state
+    /// of the solution.</param>
+    /// <param name="document">The document object the message refers to.
+    /// </param>
+    /// <param name="cancellationToken">The cancellation token to cancel
+    /// the operation.</param>
+    /// <returns>The response to be returned to the IDE.</returns>
     Task<TResponse> ExecuteAsync(TMessage message, CustomMessageContext context, Document document, CancellationToken cancellationToken);
 }

@@ -6,6 +6,9 @@ using System;
 
 namespace Microsoft.CodeAnalysis.CustomMessageHandler;
 
+/// <summary>
+/// Represents the context of a custom message handler.
+/// </summary>
 public sealed class CustomMessageContext
 {
     internal CustomMessageContext(Solution solution)
@@ -13,5 +16,8 @@ public sealed class CustomMessageContext
         Solution = solution;
     }
 
+    /// <summary>
+    /// Gets the current solution state.
+    /// </summary>
     public Solution Solution { get; }
 }
