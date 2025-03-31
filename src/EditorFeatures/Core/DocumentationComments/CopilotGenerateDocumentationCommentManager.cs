@@ -67,7 +67,7 @@ internal sealed class CopilotGenerateDocumentationCommentManager
         var provider = textView.Properties.GetOrCreateSingletonProperty(typeof(CopilotGenerateDocumentationCommentProvider),
             () => new CopilotGenerateDocumentationCommentProvider(_threadingContext, copilotService));
 
-        await provider!.InitializeAsync(textView, _suggestionServiceBase!, cancellationToken).ConfigureAwait(false);
+        await provider.InitializeAsync(textView, _suggestionServiceBase!, cancellationToken).ConfigureAwait(false);
 
         return provider;
     }
