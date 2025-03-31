@@ -88,7 +88,9 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
     }
 
     protected sealed override bool TryAddMatches(
-        ArrayBuilder<CollectionMatch<SyntaxNode>> preMatches, ArrayBuilder<CollectionMatch<SyntaxNode>> postMatches, CancellationToken cancellationToken)
+        ArrayBuilder<CollectionMatch<SyntaxNode>> preMatches,
+        ArrayBuilder<CollectionMatch<SyntaxNode>> postMatches,
+        CancellationToken cancellationToken)
     {
         var seenInvocation = false;
         var seenIndexAssignment = false;
@@ -162,7 +164,7 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
                 this.State.ValuePatternMatches(instance))
             {
                 seenInvocation = true;
-                return new(expressionStatement, UseSpread: false);
+                return new(expressionStatement, UseSpread: false, UseWith: false);
             }
         }
 
@@ -172,7 +174,7 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
                 this.State.ValuePatternMatches(instance))
             {
                 seenIndexAssignment = true;
-                return new(expressionStatement, UseSpread: false);
+                return new(expressionStatement, UseSpread: false, UseWith: false);
             }
         }
 

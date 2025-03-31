@@ -307,17 +307,18 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                     .All(static t => t.IsWhitespaceOrEndOfLine()))
             {
                 // Remove any whitespace around the `.`, making the singly-wrapped fluent expression into a single line.
-                postMatchesInReverse.Add(new CollectionMatch<ArgumentSyntax>(
+                postMatchesInReverse.Add(new(
                     Argument(innerInvocation.WithExpression(
                         memberAccess.Update(
                             memberAccess.Expression.WithoutTrailingTrivia(),
                             memberAccess.OperatorToken.WithoutTrivia(),
                             memberAccess.Name.WithoutLeadingTrivia()))),
-                    UseSpread: true));
+                    UseSpread: true,
+                    UseWith: false));
                 return;
             }
 
-            postMatchesInReverse.Add(new CollectionMatch<ArgumentSyntax>(Argument(expression), UseSpread: true));
+            postMatchesInReverse.Add(new(Argument(expression), UseSpread: true, UseWith: false));
         }
 
         // We only want to offer this feature when the original collection was list-like (as opposed to being something
@@ -362,7 +363,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             return;
 
         for (var i = arguments.Count - 1; i >= 0; i--)
-            matchesInReverse.Add(new(arguments[i], useSpread));
+            matchesInReverse.Add(new(arguments[i], useSpread, UseWith: false));
     }
 
     /// <summary>

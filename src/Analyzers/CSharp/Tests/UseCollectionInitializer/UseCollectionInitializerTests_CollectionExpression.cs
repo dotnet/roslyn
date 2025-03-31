@@ -5,6 +5,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -5961,6 +5962,142 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
+    public async Task TestObjectCreationArgument1_CSharp14()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        List<int> list = [|new|] List<int>(values);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        List<int> list = [with(values)];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
+    public async Task TestObjectCreationArgument2_CSharp14()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        List<int> list = [|new|] List<int>(values) { 1, 2, 3 };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        List<int> list = [with(values), 1, 2, 3];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
+    public async Task TestObjectCreationArgument3_CSharp14()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        List<int> list = [|new|] List<int>(0) { 1, 2, 3 };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        List<int> list = [with(0), 1, 2, 3];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
+    public async Task TestObjectCreationArgument4_CSharp14()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        List<int> list = [|new|] List<int>(capacity: 0) { 1, 2, 3 };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        List<int> list = [with(capacity: 0), 1, 2, 3];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }

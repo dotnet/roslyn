@@ -364,7 +364,7 @@ internal readonly struct UpdateExpressionState<
             if (@this.TryAnalyzeInvocationForCollectionExpression(expression, allowLinq: false, cancellationToken, out var instance, out var useSpread) &&
                 @this.ValuePatternMatches(instance))
             {
-                return new(expressionStatement, useSpread);
+                return new(expressionStatement, useSpread, UseWith: false);
             }
 
             return null;
@@ -394,7 +394,7 @@ internal readonly struct UpdateExpressionState<
                 @this.ValuePatternMatches(instance))
             {
                 // `foreach` will become `..expr` when we make it into a collection expression.
-                return new(foreachStatement, UseSpread: true);
+                return new(foreachStatement, UseSpread: true, UseWith: false);
             }
 
             return null;
@@ -431,7 +431,7 @@ internal readonly struct UpdateExpressionState<
                 {
                     // add the form `.. x ? [y] : []` to the result
                     return @this.SyntaxFacts.SupportsCollectionExpressionNaturalType(ifStatement.SyntaxTree.Options)
-                        ? new(ifStatement, UseSpread: true)
+                        ? new(ifStatement, UseSpread: true, UseWith: false)
                         : null;
                 }
 
@@ -447,7 +447,7 @@ internal readonly struct UpdateExpressionState<
                     @this.ValuePatternMatches(instance))
                 {
                     // add the form `x ? y : z` to the result
-                    return new(ifStatement, UseSpread: false);
+                    return new(ifStatement, UseSpread: false, UseWith: false);
                 }
             }
 

@@ -751,7 +751,7 @@ internal static class UseCollectionExpressionHelpers
 
                         // this looks like a good statement, add to the right size of the assignment to track as that's what
                         // we'll want to put in the final collection expression.
-                        matches.Add(new(expressionStatement, UseSpread: false));
+                        matches.Add(new(expressionStatement, UseSpread: false, UseWith: false));
                         currentStatement = currentStatement.GetNextStatement();
                     }
                 }

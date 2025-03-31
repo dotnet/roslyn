@@ -206,11 +206,18 @@ internal static class CSharpCollectionExpressionRewriter
             //
             // For that sort of case.  Single element collections should stay closely associated with the original
             // expression.
+            return CollectionExpression([CreateElement(match)]).WithTriviaFrom(expressionToReplace);
+        }
+
+        CollectionElementSyntax CreateElement(CollectionMatch<TMatchNode> match)
+        {
+            if (match.UseWith)
+                return WithElement((ArgumentListSyntax)(object)match.Node);
+
             var expression = (ExpressionSyntax)(object)match.Node;
-            return CollectionExpression([
-                match.UseSpread
-                    ? SpreadElement(expression.WithoutTrivia())
-                    : ExpressionElement(expression.WithoutTrivia())]).WithTriviaFrom(expressionToReplace);
+            return match.UseSpread
+                ? SpreadElement(expression.WithoutTrivia())
+                : ExpressionElement(expression.WithoutTrivia());
         }
 
         CollectionExpressionSyntax CreateCollectionExpressionWithExistingElements()
@@ -531,6 +538,11 @@ internal static class CSharpCollectionExpressionRewriter
             {
                 yield return CreateCollectionElement(match.UseSpread, IndentExpression(parentStatement: null, expression, preferredIndentation));
             }
+            else if (node is ArgumentListSyntax argumentList)
+            {
+                Contract.ThrowIfFalse(match.UseWith);
+                yield return WithElement(argumentList.WithoutTrivia());
+            }
             else
             {
                 throw ExceptionUtilities.Unreachable();
@@ -747,7 +759,7 @@ internal static class CSharpCollectionExpressionRewriter
 
             bool CheckForMultiLine(ImmutableArray<CollectionMatch<TMatchNode>> matches)
             {
-                foreach (var (node, _) in matches)
+                foreach (var (node, _, _) in matches)
                 {
                     // if the statement we're replacing has any comments on it, then we need to be multiline to give them an
                     // appropriate place to go.
