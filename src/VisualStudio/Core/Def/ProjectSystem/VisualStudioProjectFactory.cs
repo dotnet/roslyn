@@ -40,10 +40,9 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
     private readonly IVisualStudioDiagnosticAnalyzerProviderFactory _vsixAnalyzerProviderFactory;
     private readonly ImmutableArray<IAnalyzerAssemblyRedirector> _analyzerAssemblyRedirectors;
     private readonly IVsService<SVsBackgroundSolution, IVsBackgroundSolution> _solution;
-    private VisualStudioDiagnosticAnalyzerProvider? _vsixAnalyzerProvider;
 
     private readonly AsyncBatchingWorkQueue<string> _uiContextUpdateWorkQueue;
-    private readonly JoinableTask _initializationTask;
+    private readonly JoinableTask<VisualStudioDiagnosticAnalyzerProvider> _initializationTask;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -85,7 +84,7 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
                 _visualStudioWorkspaceImpl.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
                 _visualStudioWorkspaceImpl.SubscribeToSourceGeneratorImpactingEvents();
 
-                _vsixAnalyzerProvider = await _vsixAnalyzerProviderFactory.GetOrCreateProviderAsync(cancellationToken).ConfigureAwait(true);
+                return await _vsixAnalyzerProviderFactory.GetOrCreateProviderAsync(cancellationToken).ConfigureAwait(true);
             });
     }
 
@@ -103,7 +102,7 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
     public async Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(
         string projectSystemName, string language, VisualStudioProjectCreationInfo creationInfo, CancellationToken cancellationToken)
     {
-        await _initializationTask.JoinAsync(cancellationToken).ConfigureAwait(false);
+        var vsixAnalyzerProvider = await _initializationTask.JoinAsync(cancellationToken).ConfigureAwait(false);
 
         // The rest of this method can be ran off the UI thread. We'll only switch though if the UI thread isn't already blocked -- the legacy project
         // system creates project synchronously, and during solution load we've seen traces where the thread pool is sufficiently saturated that this
@@ -124,7 +123,7 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
         _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.SolutionPath = solution?.SolutionFileName;
         _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.SolutionTelemetryId = GetSolutionSessionId();
 
-        var hostInfo = new ProjectSystemHostInfo(_dynamicFileInfoProviders, _vsixAnalyzerProvider!, _analyzerAssemblyRedirectors);
+        var hostInfo = new ProjectSystemHostInfo(_dynamicFileInfoProviders, vsixAnalyzerProvider, _analyzerAssemblyRedirectors);
         var project = await _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(projectSystemName, language, creationInfo, hostInfo).ConfigureAwait(true);
 
         _visualStudioWorkspaceImpl.AddProjectToInternalMaps(project, creationInfo.Hierarchy, creationInfo.ProjectGuid, projectSystemName);
