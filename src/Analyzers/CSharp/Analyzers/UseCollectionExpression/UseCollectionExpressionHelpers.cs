@@ -568,12 +568,16 @@ internal static class UseCollectionExpressionHelpers
         {
             if (expression is InitializerExpressionSyntax { Expressions: [var keyExpression, var valueExpression] } initializer)
             {
-                // An initializer will commonly be `{ key, value }`.  In this case, we want to drop the trailing space
-                // after 'value', if on a single line.
-                var keyValuePairOnSingleLine = wasOnSingleLine || text.AreOnSameLine(keyExpression.GetFirstToken(), valueExpression.GetLastToken());
+                // If we have `{ key, ... }` we want to move the leading trivia of the `{` to the key so that it is
+                // properly indented to the same level the `{` was.
+                var openBraceAndKeyOnSingleLine = wasOnSingleLine || text.AreOnSameLine(initializer.OpenBraceToken, keyExpression.GetLastToken());
+                if (openBraceAndKeyOnSingleLine)
+                    keyExpression = keyExpression.WithLeadingTrivia(initializer.OpenBraceToken.LeadingTrivia);
 
-                if (keyValuePairOnSingleLine && valueExpression.GetTrailingTrivia() is [.., (kind: SyntaxKind.WhitespaceTrivia)] trailingTrivia)
-                    valueExpression = valueExpression.WithTrailingTrivia(trailingTrivia.Take(trailingTrivia.Count - 1));
+                // If we have `{ ..., value }` we want to move the trailing trivia of the `}` to the value to preserve trailing comments.
+                var valueAndCloseBraceOnSingleLine = wasOnSingleLine || text.AreOnSameLine(valueExpression.GetLastToken(), initializer.CloseBraceToken);
+                if (valueAndCloseBraceOnSingleLine)
+                    valueExpression = valueExpression.WithTrailingTrivia(initializer.CloseBraceToken.TrailingTrivia);
 
                 return KeyValuePairElement(keyExpression, ColonToken.WithTriviaFrom(initializer.Expressions.GetSeparator(0)), valueExpression);
             }
