@@ -348,7 +348,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Insertion", "Insertion", "{
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DevDivInsertionFiles", "src\Setup\DevDivInsertionFiles\DevDivInsertionFiles.csproj", "{6362616E-6A47-48F0-9EE0-27800B306ACB}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExternalAccess", "ExternalAccess", "{8977A560-45C2-4EC2-A849-97335B382C74}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extensions", "Extensions", "{8977A560-45C2-4EC2-A849-97335B382C74}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.FSharp", "src\VisualStudio\ExternalAccess\FSharp\Microsoft.CodeAnalysis.ExternalAccess.FSharp.csproj", "{BD8CE303-5F04-45EC-8DCF-73C9164CD614}"
 EndProject
@@ -577,15 +577,15 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.CodeAnalysis.Cont
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Contracts.Package", "src\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.Package.csproj", "{A8D5CFFA-7F9E-C35B-4F19-D63F6EC1D5CA}"
 EndProject
-Project("{9a19103f-16f7-4668-be54-9a1e7a4f7556}") = "Microsoft.CodeAnalysis.ExternalAccess.Razor", "src\Tools\ExternalAccess\Razor\EditorFeatures\Microsoft.CodeAnalysis.ExternalAccess.Razor.csproj", "{068CD9AA-CEC3-CA68-1BAB-2B1B9FD711D3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.Razor", "src\Tools\ExternalAccess\Razor\EditorFeatures\Microsoft.CodeAnalysis.ExternalAccess.Razor.csproj", "{068CD9AA-CEC3-CA68-1BAB-2B1B9FD711D3}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared", "src\Tools\ExternalAccess\Razor\Shared\Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared.shproj", "{4853A78A-4EC4-4D86-9F02-D0DDEAE85520}"
 EndProject
-Project("{9a19103f-16f7-4668-be54-9a1e7a4f7556}") = "Microsoft.CodeAnalysis.ExternalAccess.Razor.Features", "src\Tools\ExternalAccess\Razor\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj", "{D5A8E20C-E8D2-4A57-906A-263994D8731D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.Razor.Features", "src\Tools\ExternalAccess\Razor\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj", "{D5A8E20C-E8D2-4A57-906A-263994D8731D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot", "src\VisualStudio\ExternalAccess\Copilot\Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot.csproj", "{9EB058F3-10C9-8F3F-AD9E-72CB362A0928}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.ExternalAccess.CustomMessage", "src\Tools\ExternalAccess\CustomMessage\Microsoft.CodeAnalysis.ExternalAccess.CustomMessage.csproj", "{5E56C644-BF09-F9CD-3A30-94AF5548F0DB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.ExternalAccess.Extensions", "src\Tools\ExternalAccess\Extensions\Microsoft.CodeAnalysis.ExternalAccess.Extensions.csproj", "{6C816C16-D563-884A-D65B-5E68C6FB6659}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1425,10 +1425,6 @@ Global
 		{A8D5CFFA-7F9E-C35B-4F19-D63F6EC1D5CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A8D5CFFA-7F9E-C35B-4F19-D63F6EC1D5CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A8D5CFFA-7F9E-C35B-4F19-D63F6EC1D5CA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9EB058F3-10C9-8F3F-AD9E-72CB362A0928}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9EB058F3-10C9-8F3F-AD9E-72CB362A0928}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9EB058F3-10C9-8F3F-AD9E-72CB362A0928}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9EB058F3-10C9-8F3F-AD9E-72CB362A0928}.Release|Any CPU.Build.0 = Release|Any CPU
 		{068CD9AA-CEC3-CA68-1BAB-2B1B9FD711D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{068CD9AA-CEC3-CA68-1BAB-2B1B9FD711D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{068CD9AA-CEC3-CA68-1BAB-2B1B9FD711D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -1437,10 +1433,14 @@ Global
 		{D5A8E20C-E8D2-4A57-906A-263994D8731D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D5A8E20C-E8D2-4A57-906A-263994D8731D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D5A8E20C-E8D2-4A57-906A-263994D8731D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5E56C644-BF09-F9CD-3A30-94AF5548F0DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5E56C644-BF09-F9CD-3A30-94AF5548F0DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5E56C644-BF09-F9CD-3A30-94AF5548F0DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5E56C644-BF09-F9CD-3A30-94AF5548F0DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9EB058F3-10C9-8F3F-AD9E-72CB362A0928}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9EB058F3-10C9-8F3F-AD9E-72CB362A0928}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9EB058F3-10C9-8F3F-AD9E-72CB362A0928}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9EB058F3-10C9-8F3F-AD9E-72CB362A0928}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6C816C16-D563-884A-D65B-5E68C6FB6659}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C816C16-D563-884A-D65B-5E68C6FB6659}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C816C16-D563-884A-D65B-5E68C6FB6659}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C816C16-D563-884A-D65B-5E68C6FB6659}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1707,11 +1707,11 @@ Global
 		{2559DAF9-784E-4C29-E0E1-70204B1FD56E} = {C2D1346B-9665-4150-B644-075CF1636BAA}
 		{BD974609-C68B-4BE6-9682-EB132462B50D} = {C2D1346B-9665-4150-B644-075CF1636BAA}
 		{A8D5CFFA-7F9E-C35B-4F19-D63F6EC1D5CA} = {C2D1346B-9665-4150-B644-075CF1636BAA}
-		{9EB058F3-10C9-8F3F-AD9E-72CB362A0928} = {5880FECB-91F1-4AB8-8726-75EAFA8A918E}
 		{068CD9AA-CEC3-CA68-1BAB-2B1B9FD711D3} = {8977A560-45C2-4EC2-A849-97335B382C74}
 		{4853A78A-4EC4-4D86-9F02-D0DDEAE85520} = {8977A560-45C2-4EC2-A849-97335B382C74}
 		{D5A8E20C-E8D2-4A57-906A-263994D8731D} = {8977A560-45C2-4EC2-A849-97335B382C74}
-		{5E56C644-BF09-F9CD-3A30-94AF5548F0DB} = {8977A560-45C2-4EC2-A849-97335B382C74}
+		{9EB058F3-10C9-8F3F-AD9E-72CB362A0928} = {5880FECB-91F1-4AB8-8726-75EAFA8A918E}
+		{6C816C16-D563-884A-D65B-5E68C6FB6659} = {8977A560-45C2-4EC2-A849-97335B382C74}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}

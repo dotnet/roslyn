@@ -12,12 +12,12 @@ using Microsoft.CodeAnalysis.CodeFixes.FullyQualify;
 using Microsoft.CodeAnalysis.CodeLens;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.ConvertTupleToStruct;
-using Microsoft.CodeAnalysis.CustomMessageHandler;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EncapsulateField;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteAsynchronousOperationListenerService), null),
             (typeof(IRemoteCodeLensReferencesService), null),
             (typeof(IRemoteConvertTupleToStructCodeRefactoringService), null),
-            (typeof(IRemoteCustomMessageHandlerService), null),
+            (typeof(IRemoteExtensionMessageHandlerService), null),
             (typeof(IRemoteDependentTypeFinderService), null),
             (typeof(IRemoteDesignerAttributeDiscoveryService), typeof(IRemoteDesignerAttributeDiscoveryService.ICallback)),
             (typeof(IRemoteDiagnosticAnalyzerService), null),

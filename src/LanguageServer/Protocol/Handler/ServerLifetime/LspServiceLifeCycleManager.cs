@@ -7,7 +7,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CustomMessageHandler;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -47,13 +47,13 @@ internal class LspServiceLifeCycleManager : ILifeCycleManager
             var client = await RemoteHostClient.TryGetClientAsync(hostWorkspace, CancellationToken.None).ConfigureAwait(false);
             if (client is not null)
             {
-                await client.TryInvokeAsync<IRemoteCustomMessageHandlerService>(
+                await client.TryInvokeAsync<IRemoteExtensionMessageHandlerService>(
                     (service, cancellationToken) => service.ResetAsync(cancellationToken),
                     CancellationToken.None).ConfigureAwait(false);
             }
             else
             {
-                var service = hostWorkspace.Services.GetRequiredService<ICustomMessageHandlerService>();
+                var service = hostWorkspace.Services.GetRequiredService<IExtensionMessageHandlerService>();
                 await service.ResetAsync(CancellationToken.None).ConfigureAwait(false);
             }
         }
