@@ -264,7 +264,7 @@ class C
                 VerifyCS.Diagnostic(AbstractDoNotCopyValue.NoAssignValueFromReferenceRule).WithLocation(0).WithArguments("System.Runtime.InteropServices.GCHandle"));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/77925")]
         public async Task TestPassToInstancePropertyGetterAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
@@ -300,7 +300,7 @@ class C
                 VerifyCS.Diagnostic(AbstractDoNotCopyValue.UnsupportedUseRule).WithLocation(1).WithArguments("System.Runtime.InteropServices.GCHandle", "LocalReference"));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/77925")]
         public async Task TestPassToInstanceMethodAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
