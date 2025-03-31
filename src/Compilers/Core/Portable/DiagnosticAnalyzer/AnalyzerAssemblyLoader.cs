@@ -146,9 +146,8 @@ namespace Microsoft.CodeAnalysis
 
             lock (_guard)
             {
-                if (_originalPathInfoMap.TryGetValue(originalPath, out var originalPathInfo))
+                if (_originalPathInfoMap.ContainsKey(originalPath))
                 {
-                    Debug.Assert(GeneratedPathComparer.Equals(_originalPathInfoMap[originalPath].ResolvedPath, originalPathInfo.ResolvedPath));
                     return;
                 }
             }
