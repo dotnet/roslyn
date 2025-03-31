@@ -153,6 +153,7 @@
          TargetFramework="$(TargetFramework)"
          ToolExe="$(CscToolExe)"
          ToolPath="$(CscToolPath)"
+         ToolsDirectory="$(RoslynToolsDirectory)"
          TreatWarningsAsErrors="$(TreatWarningsAsErrors)"
          UseHostCompilerIfAvailable="$(UseHostCompilerIfAvailable)"
          UseSharedCompilation="$(UseSharedCompilation)"

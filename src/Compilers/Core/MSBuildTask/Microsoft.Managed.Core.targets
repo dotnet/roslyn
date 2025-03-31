@@ -4,7 +4,7 @@
   <!--
     Common targets for managed compilers.
   -->
-  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.MapSourceRoots" AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll" />
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.MapSourceRoots" AssemblyFile="$(RoslynTargetsPath)\Microsoft.Build.Tasks.CodeAnalysis.dll" />
 
   <Import Project="Microsoft.Managed.Core.CurrentVersions.targets" />
 
@@ -58,7 +58,7 @@
     ========================
     
     -->
-  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.ShowMessageForImplicitlySkipAnalyzers" AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll" />
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.ShowMessageForImplicitlySkipAnalyzers" AssemblyFile="$(RoslynTargetsPath)\Microsoft.Build.Tasks.CodeAnalysis.dll" />
 
   <Target Name="_ComputeSkipAnalyzers" BeforeTargets="CoreCompile">
     <!-- First, force clear non-user facing properties '_SkipAnalyzers' and '_ImplicitlySkipAnalyzers'. -->
@@ -151,7 +151,7 @@
       <CompilerVisibleProperty Include="PropertyNameToEval" />
       <CompilerVisibleItemMetadata Include="ItemType" MetadataName="MetadataToRetrieve" />
     -->
-  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.GenerateMSBuildEditorConfig" AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll" />
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.GenerateMSBuildEditorConfig" AssemblyFile="$(RoslynTargetsPath)\Microsoft.Build.Tasks.CodeAnalysis.dll" />
 
   <Target Name="GenerateMSBuildEditorConfigFile"
           BeforeTargets="BeforeCompile;CoreCompile"
