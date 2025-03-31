@@ -503,8 +503,10 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             // Assert that there is a project reference between VBProject.vbproj and Library.csproj
             AssertSingleProjectReference(project, libraryFilePath);
 
-            // Assert that the project does not have any diagnostics in Program.vb
             var document = project.Documents.First(d => d.Name == "Program.vb");
+            Assert.Empty(document.Folders);
+
+            // Assert that the project does not have any diagnostics in Program.vb
             var semanticModel = await document.GetSemanticModelAsync();
             var diagnostics = semanticModel.GetDiagnostics();
             Assert.Empty(diagnostics.Where(d => d.Severity >= DiagnosticSeverity.Warning));

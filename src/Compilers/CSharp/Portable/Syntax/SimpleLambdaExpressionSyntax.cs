@@ -39,6 +39,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     public partial class SyntaxFactory
     {
+        /// <summary>Creates a new SimpleLambdaExpressionSyntax instance.</summary>
+        public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, ParameterSyntax parameter, BlockSyntax? block, ExpressionSyntax? expressionBody)
+            => SyntaxFactory.SimpleLambdaExpression(attributeLists, modifiers, parameter, SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), block, expressionBody);
+
+        /// <summary>Creates a new SimpleLambdaExpressionSyntax instance.</summary>
+        public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(ParameterSyntax parameter)
+            => SyntaxFactory.SimpleLambdaExpression(default, default(SyntaxTokenList), parameter, SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), null, null);
+
         public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(SyntaxToken asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
             => SimpleLambdaExpression(attributeLists: default, TokenList(asyncKeyword), parameter, arrowToken, block, expressionBody);
 

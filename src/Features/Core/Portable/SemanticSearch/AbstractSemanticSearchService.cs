@@ -120,13 +120,11 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
                     }
                 }
 
-                await observer.OnCompilationFailureAsync(
-                    emitResult.Diagnostics.SelectAsArray(
+                var errors = emitResult.Diagnostics.SelectAsArray(
                         d => d.Severity == DiagnosticSeverity.Error,
-                        d => new QueryCompilationError(d.Id, d.GetMessage(), (d.Location.SourceTree == queryTree) ? d.Location.SourceSpan : default)),
-                    cancellationToken).ConfigureAwait(false);
+                        d => new QueryCompilationError(d.Id, d.GetMessage(), (d.Location.SourceTree == queryTree) ? d.Location.SourceSpan : default));
 
-                return CreateResult(FeaturesResources.Semantic_search_query_failed_to_compile);
+                return CreateResult(errors, FeaturesResources.Semantic_search_query_failed_to_compile);
             }
 
             peStream.Position = 0;
@@ -145,7 +143,7 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
                 if (!TryGetFindMethod(queryAssembly, out var findMethod, out var queryKind, out var errorMessage, out var errorMessageArgs))
                 {
                     traceSource.TraceInformation($"Semantic search failed: {errorMessage}");
-                    return CreateResult(errorMessage, errorMessageArgs);
+                    return CreateResult(compilationErrors: [], errorMessage, errorMessageArgs);
                 }
 
                 var invocationContext = new QueryExecutionContext(queryText, findMethod, observer, classificationOptions, traceSource);
@@ -155,7 +153,7 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
 
                     if (invocationContext.TerminatedWithException)
                     {
-                        return CreateResult(FeaturesResources.Semantic_search_query_terminated_with_exception);
+                        return CreateResult(compilationErrors: [], FeaturesResources.Semantic_search_query_terminated_with_exception);
                     }
                 }
                 finally
@@ -175,10 +173,10 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
                 }
             }
 
-            return CreateResult(errorMessage: null);
+            return CreateResult(compilationErrors: [], errorMessage: null);
 
-            ExecuteQueryResult CreateResult(string? errorMessage, params string[]? args)
-                => new(errorMessage, args, emitTime, executionTime);
+            ExecuteQueryResult CreateResult(ImmutableArray<QueryCompilationError> compilationErrors, string? errorMessage, params string[]? args)
+                => new(compilationErrors, errorMessage, args, emitTime, executionTime);
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
         {

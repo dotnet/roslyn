@@ -2543,7 +2543,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Extension methods must be defined in a top level static class; {0} is a nested class</value>
   </data>
   <data name="ERR_ExtensionAttrNotFound" xml:space="preserve">
-    <value>Cannot define a new extension method because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</value>
+    <value>Cannot define a new extension because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</value>
   </data>
   <data name="ERR_ExplicitExtension" xml:space="preserve">
     <value>Do not use 'System.Runtime.CompilerServices.ExtensionAttribute'. Use the 'this' keyword instead.</value>
@@ -2600,7 +2600,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Invalid preprocessor expression</value>
   </data>
   <data name="ERR_InvalidMemberDecl" xml:space="preserve">
-    <value>Invalid token '{0}' in class, record, struct, or interface member declaration</value>
+    <value>Invalid token '{0}' in a member declaration</value>
   </data>
   <data name="ERR_MemberNeedsType" xml:space="preserve">
     <value>Method must have a return type</value>
@@ -8070,5 +8070,68 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_PartialConstructorInitializer" xml:space="preserve">
     <value>'{0}': only the implementing declaration of a partial constructor can have an initializer</value>
+  </data>
+  <data name="IDS_FeatureNullConditionalAssignment" xml:space="preserve">
+    <value>null conditional assignment</value>
+  </data>
+  <data name="IDS_FeatureExtensions" xml:space="preserve">
+    <value>extensions</value>
+  </data>
+  <data name="ERR_ExtensionDisallowsName" xml:space="preserve">
+    <value>Extension declarations may not have a name.</value>
+  </data>
+  <data name="ERR_ExtensionDisallowsMember" xml:space="preserve">
+    <value>Extension declarations can include only methods or properties</value>
+  </data>
+  <data name="ERR_BadExtensionContainingType" xml:space="preserve">
+    <value>Extensions must be declared in a top-level, non-generic, static class</value>
+  </data>
+  <data name="ERR_ExtensionParameterDisallowsDefaultValue" xml:space="preserve">
+    <value>The receiver parameter of an extension cannot have a default value</value>
+  </data>
+  <data name="ERR_ReceiverParameterOnlyOne" xml:space="preserve">
+    <value>An extension container can have only one receiver parameter</value>
+  </data>
+  <data name="ERR_ExtensionResolutionFailed" xml:space="preserve">
+    <value>'{0}' does not contain a definition for '{1}' and no accessible extension member '{1}' for receiver of type '{0}' could be found (are you missing a using directive or an assembly reference?)</value>
+  </data>
+  <data name="ERR_ReceiverParameterSameNameAsTypeParameter" xml:space="preserve">
+    <value>'{0}': a receiver parameter cannot have the same name as an extension container type parameter</value>
+  </data>
+  <data name="ERR_LocalSameNameAsExtensionTypeParameter" xml:space="preserve">
+    <value>'{0}': a parameter, local variable, or local function cannot have the same name as an extension container type parameter</value>
+  </data>
+  <data name="ERR_TypeParameterSameNameAsExtensionTypeParameter" xml:space="preserve">
+    <value>Type parameter '{0}' has the same name as an extension container type parameter</value>
+  </data>
+  <data name="ERR_LocalSameNameAsExtensionParameter" xml:space="preserve">
+    <value>'{0}': a parameter, local variable, or local function cannot have the same name as an extension parameter</value>
+  </data>
+  <data name="ERR_ValueParameterSameNameAsExtensionParameter" xml:space="preserve">
+    <value>'value': an automatically-generated parameter name conflicts with an extension parameter name</value>
+  </data>
+  <data name="ERR_TypeParameterSameNameAsExtensionParameter" xml:space="preserve">
+    <value>Type parameter '{0}' has the same name as an extension parameter</value>
+  </data>
+  <data name="ERR_InvalidExtensionParameterReference" xml:space="preserve">
+    <value>Cannot use extension parameter '{0}' in this context.</value>
+  </data>
+  <data name="ERR_ValueParameterSameNameAsExtensionTypeParameter" xml:space="preserve">
+    <value>'value': an automatically-generated parameter name conflicts with an extension type parameter name</value>
+  </data>
+  <data name="ERR_UnderspecifiedExtension" xml:space="preserve">
+    <value>The extended type '{0}' must reference all the type parameters declared by the extension, but type parameter '{1}' is not referenced.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsExtensionPropertyAccess" xml:space="preserve">
+    <value>An expression tree may not contain an extension property access</value>
+  </data>
+  <data name="ERR_PPIgnoredFollowsToken" xml:space="preserve">
+    <value>'#:' directives cannot be after first token in file</value>
+  </data>
+  <data name="ERR_PPIgnoredNeedsFileBasedProgram" xml:space="preserve">
+    <value>'#:' directives can be only used in file-based programs ('/feature:FileBasedProgram')</value>
+  </data>
+  <data name="ERR_PPIgnoredFollowsIf" xml:space="preserve">
+    <value>'#:' directives cannot be after '#if' directive</value>
   </data>
 </root>
