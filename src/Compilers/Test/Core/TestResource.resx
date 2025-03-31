@@ -758,6 +758,15 @@ namespace ConsoleApplication1
             List&lt;int&gt; i = null;
             int c = i.Count;
         }
+
+        static void DictionaryExpressions&lt;K, V&gt;(K k, V v, KeyValuePair&lt;K, V&gt; e, IEnumerable&lt;KeyValuePair&lt;K, V&gt;&gt; s)
+        {
+            IDictionary&lt;K, V&gt; d;
+            d = [e];
+            d = [.. s];
+            d = [k:v];
+            d = [with()];
+        }
     }
 }
 

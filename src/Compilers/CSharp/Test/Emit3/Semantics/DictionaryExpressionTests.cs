@@ -243,8 +243,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        // PROTOTYPE: Test ref safety analysis of indexer set calls for the various cases in [e, k:v, ..s].
-
         [Theory]
         [CombinatorialData]
         public void BreakingChange_DictionaryAdd_01(
@@ -637,8 +635,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """);
         }
-
-        // PROTOTYPE: Test async values: d = [await k : await v];
 
         [Theory]
         [InlineData("Dictionary")]
@@ -1357,6 +1353,106 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (6,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
                 // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[.. new KeyValuePair<int, string>[] { new(3, ""three"") }]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(6, 5));
+        }
+
+        [Fact]
+        public void RefSafety_Indexer()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Diagnostics.CodeAnalysis;
+                ref struct MyDictionary<K, V> : IEnumerable<KeyValuePair<K, V>>
+                {
+                    private ref readonly K _key;
+                    public IEnumerator<KeyValuePair<K, V>> GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    public V this[[UnscopedRef] in K key]  { get { return default; } set { _key = ref key; } }
+                }
+                """;
+            string sourceB = """
+                class Program
+                {
+                    static MyDictionary<K, V> FromPair1<K, V>(K k, V v)
+                    {
+                        MyDictionary<K, V> d = new();
+                        d[k] = v;
+                        return d;
+                    }
+                    static MyDictionary<K, V> FromPair2<K, V>(K k, V v)
+                    {
+                        MyDictionary<K, V> d;
+                        d = [k:v];
+                        return d;
+                    }
+                    static MyDictionary<K, V> FromPair3<K, V>(K k, V v)
+                    {
+                        MyDictionary<K, V> d = [k:v];
+                        return d;
+                    }
+                    static MyDictionary<K, V> FromPair4<K, V>(ref K k, ref V v)
+                    {
+                        return [k:v];
+                    }
+                    static MyDictionary<K, V> FromPair5<K, V>(V v)
+                    {
+                        MyDictionary<K, V> d = [MakeKey<K>():v];
+                        return d;
+                    }
+                    static K MakeKey<K>() => default;
+                }
+                """;
+            var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net90);
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS8350: This combination of arguments to 'MyDictionary<K, V>.this[in K]' is disallowed because it may expose variables referenced by parameter 'key' outside of their declaration scope
+                //         d[k] = v;
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "d[k]").WithArguments("MyDictionary<K, V>.this[in K]", "key").WithLocation(6, 9),
+                // (6,11): error CS8166: Cannot return a parameter by reference 'k' because it is not a ref parameter
+                //         d[k] = v;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "k").WithArguments("k").WithLocation(6, 11),
+                // (12,13): error CS9203: A collection expression of type 'MyDictionary<K, V>' cannot be used in this context because it may be exposed outside of the current scope.
+                //         d = [k:v];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[k:v]").WithArguments("MyDictionary<K, V>").WithLocation(12, 13),
+                // (18,16): error CS8352: Cannot use variable 'd' in this context because it may expose referenced variables outside of their declaration scope
+                //         return d;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "d").WithArguments("d").WithLocation(18, 16),
+                // (22,16): error CS9203: A collection expression of type 'MyDictionary<K, V>' cannot be used in this context because it may be exposed outside of the current scope.
+                //         return [k:v];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[k:v]").WithArguments("MyDictionary<K, V>").WithLocation(22, 16),
+                // (27,16): error CS8352: Cannot use variable 'd' in this context because it may expose referenced variables outside of their declaration scope
+                //         return d;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "d").WithArguments("d").WithLocation(27, 16));
+        }
+
+        [Fact]
+        public void Async()
+        {
+            string source = """
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+                class Program
+                {
+                    static async Task Main()
+                    {
+                        var x = new KeyValuePair<int, string>(2, "two");
+                        var y = new[] { new KeyValuePair<int, string>(3, "three") };
+                        (await Create(1, "one", x, y)).Report();
+                    }
+                    static async Task<IDictionary<object, object>> Create<K, V>(K k, V v, KeyValuePair<K, V> e, IEnumerable<KeyValuePair<K, V>> s)
+                    {
+                        return [await F(k):v, k:await F(v), await F(e), .. await F(s)];
+                    }
+                    static async Task<T> F<T>(T t)
+                    {
+                        await Task.Yield();
+                        return t;
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [source, s_dictionaryExtensions],
+                expectedOutput: "[1:one, 2:two, 3:three], ");
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -2663,7 +2759,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source);
-            // PROTOTYPE: Type inference should succeed for Identity([1:default, default:"2"]);.
+            // https://github.com/dotnet/roslyn/issues/77873: Type inference should succeed for Identity([1:default, default:"2"]);.
             comp.VerifyEmitDiagnostics(
                 // (6,9): error CS0411: The type arguments for method 'Program.Identity<K, V>(IDictionary<K, V>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Identity([default:default]);

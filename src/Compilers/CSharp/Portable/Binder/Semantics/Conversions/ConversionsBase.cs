@@ -1774,7 +1774,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CollectionExpressionTypeKind collectionTypeKind,
             TypeSymbol elementType)
         {
-            // PROTOTYPE: Should apply to any collection of KeyValuePair<,>, not just dictionaries.
+            // https://github.com/dotnet/roslyn/issues/77871: Should apply to any collection of KeyValuePair<,>, not just dictionaries.
             if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer or CollectionExpressionTypeKind.DictionaryInterface)
             {
                 if (IsKeyValuePairType(compilation, elementType, out var keyType, out var valueType))

@@ -881,10 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer)
                 {
-                    // PROTOTYPE: Should we return a BoundIndexerAccess from GetCollectionExpressionApplicableIndexer() and
-                    // use existing lowering for a property assignment rather than generating a call to the setter directly? And
-                    // for CollectionExpressionTypeKind.DictionaryInterface, should we generate a BoundIndexerAccess using the
-                    // Dictionary<K, V> indexer rather than using the System_Collections_Generic_Dictionary_KV__set_Item accessor?
+                    // https://github.com/dotnet/roslyn/issues/77865: Consider returning a BoundIndexerAccess from GetCollectionExpressionApplicableIndexer().
                     var indexer = GetCollectionExpressionApplicableIndexer(syntax, targetType, elementType, diagnostics);
                     setMethod = indexer?.GetOwnOrInheritedSetMethod();
                     Debug.Assert(setMethod is { });
@@ -907,8 +904,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var analyzedArguments = AnalyzedArguments.GetInstance();
                         withElement.AddToArguments(analyzedArguments);
-                        // PROTOTYPE: If there are multiple with() elements, should with() elements after
-                        // the first be bound for error recovery only rather than as a constructor call?
                         var collectionWithArguments = BindCollectionExpressionConstructor(syntax, targetType, constructor, analyzedArguments, diagnostics);
                         analyzedArguments.Free();
                         collectionCreation ??= collectionWithArguments;
@@ -989,8 +984,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (element is BoundCollectionExpressionWithElement withElement)
                     {
-                        // PROTOTYPE: If there are multiple with() elements, should with() elements after
-                        // the first be bound for error recovery only rather than as a factory method call?
                         var collectionWithArguments = BindCollectionBuilderCreate(
                             withElement.Syntax,
                             candidateMethodGroup,
@@ -1004,8 +997,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (collectionCreation is null)
                 {
                     // Bind collection creation with no arguments.
-                    // PROTOTYPE: Should we require a factory method callable with no arguments even if arguments are provided
-                    // at the call-site, or is this requirement for 'params' parameter types only? Either way, make it clear in the spec.
                     collectionCreation = BindCollectionBuilderCreate(
                         syntax,
                         candidateMethodGroup,
@@ -2203,7 +2194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         reportedErrors = true;
                     }
 
-                    // PROTOTYPE: Should we report diagnostics when GetCollectionExpressionApplicableIndexer() returns non-null?
+                    // https://github.com/dotnet/roslyn/issues/77879: Report diagnostics when GetCollectionExpressionApplicableIndexer() returns non-null?
                     if (GetCollectionExpressionApplicableIndexer(node.Syntax, targetType, elementTypeWithAnnotations.Type, BindingDiagnosticBag.Discarded) is { })
                     {
                         collectionTypeKind = CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer;
