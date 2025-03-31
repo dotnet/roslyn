@@ -43,9 +43,6 @@ internal sealed class RemoteSemanticSearchService(
 
         public ValueTask OnUserCodeExceptionAsync(UserCodeExceptionInfo exception, CancellationToken cancellationToken)
             => callback.InvokeAsync((callback, cancellationToken) => callback.OnUserCodeExceptionAsync(callbackId, exception, cancellationToken), cancellationToken);
-
-        public ValueTask OnCompilationFailureAsync(ImmutableArray<QueryCompilationError> errors, CancellationToken cancellationToken)
-            => callback.InvokeAsync((callback, cancellationToken) => callback.OnCompilationFailureAsync(callbackId, errors, cancellationToken), cancellationToken);
     }
 
     /// <summary>
@@ -64,7 +61,7 @@ internal sealed class RemoteSemanticSearchService(
             var service = solution.Services.GetLanguageServices(language).GetService<ISemanticSearchService>();
             if (service == null)
             {
-                return new ExecuteQueryResult(FeaturesResources.Semantic_search_only_supported_on_net_core);
+                return new ExecuteQueryResult(compilationErrors: [], FeaturesResources.Semantic_search_only_supported_on_net_core);
             }
 
             var clientCallbacks = new ClientCallbacks(callback, callbackId);
