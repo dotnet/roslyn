@@ -12,7 +12,6 @@ using Roslyn.Utilities;
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Globalization;
-using System.Runtime.Versioning;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
