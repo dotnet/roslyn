@@ -239,13 +239,8 @@ internal sealed class SerializationValidator
     internal void SolutionCompilationStateEqual(SolutionCompilationStateChecksums solutionObject1, SolutionCompilationStateChecksums solutionObject2)
     {
         Assert.Equal(solutionObject1.Checksum, solutionObject2.Checksum);
-        Assert.Equal(solutionObject1.FrozenSourceGeneratedDocumentIdentities.HasValue, solutionObject2.FrozenSourceGeneratedDocumentIdentities.HasValue);
-        if (solutionObject1.FrozenSourceGeneratedDocumentIdentities.HasValue)
-            AssertChecksumCollectionEqual(solutionObject1.FrozenSourceGeneratedDocumentIdentities.Value, solutionObject2.FrozenSourceGeneratedDocumentIdentities!.Value);
-
-        Assert.Equal(solutionObject1.FrozenSourceGeneratedDocuments.HasValue, solutionObject2.FrozenSourceGeneratedDocuments.HasValue);
-        if (solutionObject1.FrozenSourceGeneratedDocuments.HasValue)
-            AssertDocumentChecksumCollectionEqual(solutionObject1.FrozenSourceGeneratedDocuments.Value, solutionObject2.FrozenSourceGeneratedDocuments!.Value);
+        AssertChecksumCollectionEqual(solutionObject1.FrozenSourceGeneratedDocumentIdentities, solutionObject2.FrozenSourceGeneratedDocumentIdentities);
+        AssertDocumentChecksumCollectionEqual(solutionObject1.FrozenSourceGeneratedDocuments, solutionObject2.FrozenSourceGeneratedDocuments);
     }
 
     internal void SolutionStateEqual(SolutionStateChecksums solutionObject1, SolutionStateChecksums solutionObject2)
