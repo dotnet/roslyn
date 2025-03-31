@@ -77,6 +77,8 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
                 // HACK: Fetch this service to ensure it's still created on the UI thread; once this is
                 // moved off we'll need to fix up it's constructor to be free-threaded.
 
+                // yield if on the main thread, as the VisualStudioMetadataReferenceManager construction can be fairly expensive
+                // and we don't want the case where VisualStudioProjectFactory is constructed on the main thread to block on that.
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
                 _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
 
