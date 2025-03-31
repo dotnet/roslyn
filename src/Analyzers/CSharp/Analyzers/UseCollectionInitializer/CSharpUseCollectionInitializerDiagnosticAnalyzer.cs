@@ -73,7 +73,6 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
                 }
                 else if (match.Node is ArgumentListSyntax argumentList)
                 {
-                    Contract.ThrowIfFalse(match.UseWith);
                     yield return WithElement(argumentList.WithoutTrivia());
                 }
             }

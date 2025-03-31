@@ -313,12 +313,11 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                             memberAccess.Expression.WithoutTrailingTrivia(),
                             memberAccess.OperatorToken.WithoutTrivia(),
                             memberAccess.Name.WithoutLeadingTrivia()))),
-                    UseSpread: true,
-                    UseWith: false));
+                    UseSpread: true));
                 return;
             }
 
-            postMatchesInReverse.Add(new(Argument(expression), UseSpread: true, UseWith: false));
+            postMatchesInReverse.Add(new(Argument(expression), UseSpread: true));
         }
 
         // We only want to offer this feature when the original collection was list-like (as opposed to being something
@@ -363,7 +362,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             return;
 
         for (var i = arguments.Count - 1; i >= 0; i--)
-            matchesInReverse.Add(new(arguments[i], useSpread, UseWith: false));
+            matchesInReverse.Add(new(arguments[i], useSpread));
     }
 
     /// <summary>

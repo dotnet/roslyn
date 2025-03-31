@@ -211,8 +211,8 @@ internal static class CSharpCollectionExpressionRewriter
 
         CollectionElementSyntax CreateElement(CollectionMatch<TMatchNode> match)
         {
-            if (match.UseWith)
-                return WithElement((ArgumentListSyntax)(object)match.Node);
+            if (match.Node is ArgumentListSyntax argumentList)
+                return WithElement(argumentList.WithoutTrivia());
 
             var expression = (ExpressionSyntax)(object)match.Node;
             return match.UseSpread
@@ -540,7 +540,6 @@ internal static class CSharpCollectionExpressionRewriter
             }
             else if (node is ArgumentListSyntax argumentList)
             {
-                Contract.ThrowIfFalse(match.UseWith);
                 yield return WithElement(argumentList.WithoutTrivia());
             }
             else
@@ -759,7 +758,7 @@ internal static class CSharpCollectionExpressionRewriter
 
             bool CheckForMultiLine(ImmutableArray<CollectionMatch<TMatchNode>> matches)
             {
-                foreach (var (node, _, _) in matches)
+                foreach (var (node, _) in matches)
                 {
                     // if the statement we're replacing has any comments on it, then we need to be multiline to give them an
                     // appropriate place to go.

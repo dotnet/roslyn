@@ -164,7 +164,7 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
                 this.State.ValuePatternMatches(instance))
             {
                 seenInvocation = true;
-                return new(expressionStatement, UseSpread: false, UseWith: false);
+                return new(expressionStatement, UseSpread: false);
             }
         }
 
@@ -174,7 +174,7 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
                 this.State.ValuePatternMatches(instance))
             {
                 seenIndexAssignment = true;
-                return new(expressionStatement, UseSpread: false, UseWith: false);
+                return new(expressionStatement, UseSpread: false);
             }
         }
 

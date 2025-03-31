@@ -16,5 +16,4 @@ namespace Microsoft.CodeAnalysis.UseCollectionExpression;
 /// what form it is.</param>
 internal readonly record struct CollectionMatch<TMatchNode>(
     TMatchNode Node,
-    bool UseSpread,
-    bool UseWith) where TMatchNode : SyntaxNode;
+    bool UseSpread) where TMatchNode : SyntaxNode;
