@@ -575,7 +575,7 @@ internal static class UseCollectionExpressionHelpers
                 if (keyValuePairOnSingleLine && valueExpression.GetTrailingTrivia() is [.., (kind: SyntaxKind.WhitespaceTrivia)] trailingTrivia)
                     valueExpression = valueExpression.WithTrailingTrivia(trailingTrivia.Take(trailingTrivia.Count - 1));
 
-                KeyValuePairElement(keyExpression, ColonToken.WithTriviaFrom(initializer.Expressions.GetSeparator(0)), valueExpression);
+                return KeyValuePairElement(keyExpression, ColonToken.WithTriviaFrom(initializer.Expressions.GetSeparator(0)), valueExpression);
             }
 
             return ExpressionElement(expression);
