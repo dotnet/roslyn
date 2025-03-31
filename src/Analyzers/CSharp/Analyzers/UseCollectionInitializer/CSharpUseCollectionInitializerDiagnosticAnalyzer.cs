@@ -84,9 +84,24 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
             {
                 foreach (var expression in initializer.Expressions)
                 {
-                    yield return expression is InitializerExpressionSyntax { Expressions: [var keyExpression, var valueExpression] }
-                        ? KeyValuePairElement(keyExpression, valueExpression)
-                        : ExpressionElement(expression);
+                    if (expression is InitializerExpressionSyntax { Expressions: [var keyExpression, var valueExpression1] })
+                    {
+                        // { k, v } -> [k: v]
+                        yield return KeyValuePairElement(keyExpression, valueExpression1);
+                    }
+                    else if (expression is AssignmentExpressionSyntax
+                    {
+                        Left: ImplicitElementAccessSyntax { ArgumentList.Arguments: [var argument] },
+                        Right: var valueExpression2,
+                    })
+                    {
+                        // [k] = v -> [k: v]
+                        yield return KeyValuePairElement(argument.Expression, valueExpression2);
+                    }
+                    else
+                    {
+                        yield return ExpressionElement(expression);
+                    }
                 }
             }
         }

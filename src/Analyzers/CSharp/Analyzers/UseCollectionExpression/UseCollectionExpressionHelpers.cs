@@ -566,23 +566,39 @@ internal static class UseCollectionExpressionHelpers
 
         CollectionElementSyntax CreateElement(ExpressionSyntax expression)
         {
-            if (expression is InitializerExpressionSyntax { Expressions: [var keyExpression, var valueExpression] } initializer)
+            if (expression is InitializerExpressionSyntax { Expressions: [var keyExpression1, var valueExpression1] } initializer)
             {
                 // If we have `{ key, ... }` we want to move the leading trivia of the `{` to the key so that it is
                 // properly indented to the same level the `{` was.
-                var openBraceAndKeyOnSingleLine = wasOnSingleLine || text.AreOnSameLine(initializer.OpenBraceToken, keyExpression.GetLastToken());
+                var openBraceAndKeyOnSingleLine = wasOnSingleLine || text.AreOnSameLine(initializer.OpenBraceToken, keyExpression1.GetLastToken());
                 if (openBraceAndKeyOnSingleLine)
-                    keyExpression = keyExpression.WithLeadingTrivia(initializer.OpenBraceToken.LeadingTrivia);
+                    keyExpression1 = keyExpression1.WithLeadingTrivia(initializer.OpenBraceToken.LeadingTrivia);
 
                 // If we have `{ ..., value }` we want to move the trailing trivia of the `}` to the value to preserve trailing comments.
-                var valueAndCloseBraceOnSingleLine = wasOnSingleLine || text.AreOnSameLine(valueExpression.GetLastToken(), initializer.CloseBraceToken);
+                var valueAndCloseBraceOnSingleLine = wasOnSingleLine || text.AreOnSameLine(valueExpression1.GetLastToken(), initializer.CloseBraceToken);
                 if (valueAndCloseBraceOnSingleLine)
-                    valueExpression = valueExpression.WithTrailingTrivia(initializer.CloseBraceToken.TrailingTrivia);
+                    valueExpression1 = valueExpression1.WithTrailingTrivia(initializer.CloseBraceToken.TrailingTrivia);
 
-                return KeyValuePairElement(keyExpression, ColonToken.WithTriviaFrom(initializer.Expressions.GetSeparator(0)), valueExpression);
+                return KeyValuePairElement(keyExpression1, ColonToken.WithTriviaFrom(initializer.Expressions.GetSeparator(0)), valueExpression1);
             }
-
-            return ExpressionElement(expression);
+            else if (expression is AssignmentExpressionSyntax
+            {
+                Left: ImplicitElementAccessSyntax { ArgumentList.Arguments: [var argument] } implicitElementAccess,
+                OperatorToken: var equalsToken,
+                Right: var valueExpression2,
+            })
+            {
+                // If we have `[key] = value` we want to move the leading trivia of the `[` to the key.
+                var keyExpression2 = argument.Expression.WithLeadingTrivia(implicitElementAccess.GetLeadingTrivia());
+                return KeyValuePairElement(
+                    keyExpression2,
+                    ColonToken.WithTrailingTrivia(equalsToken.TrailingTrivia),
+                    valueExpression2);
+            }
+            else
+            {
+                return ExpressionElement(expression);
+            }
         }
     }
 
