@@ -96,13 +96,10 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
 
     private async ValueTask UpdateUIContextsAsync(ImmutableSegmentedList<string> list, CancellationToken cancellationToken)
     {
-        // This is not cancellable as we have already mutated the solution.
-        cancellationToken = CancellationToken.None;
-
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         foreach (var language in list)
-            await _visualStudioWorkspaceImpl.RefreshProjectExistsUIContextForLanguageAsync(language, cancellationToken).ConfigureAwait(false);
+            await _visualStudioWorkspaceImpl.RefreshProjectExistsUIContextForLanguageAsync(language, cancellationToken).ConfigureAwait(true);
     }
 
     public Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, CancellationToken cancellationToken)
