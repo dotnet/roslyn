@@ -317,8 +317,3 @@ dotnet_diagnostic.RS0058.severity = error
 dotnet_diagnostic.RS0059.severity = error
 dotnet_diagnostic.RS0060.severity = error
 dotnet_diagnostic.RS0061.severity = error
-
-[src/{RoslynAnalyzers}/**/*.{cs,vb,md}]
-# RS2007: Analyzer release file 'AnalyzerReleases.Shipped.md' has a missing or invalid release header
-# Release tables use borders and need https://github.com/dotnet/roslyn-analyzers/pull/7466 to be valid.
-dotnet_diagnostic.RS2007.severity = none
