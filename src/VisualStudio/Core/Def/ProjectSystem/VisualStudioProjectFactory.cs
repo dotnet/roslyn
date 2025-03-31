@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.CodeAnalysis.Workspaces.AnalyzerRedirecting;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
+using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.Shell;
@@ -38,8 +39,7 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
     private readonly ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> _dynamicFileInfoProviders;
     private readonly IVisualStudioDiagnosticAnalyzerProviderFactory _vsixAnalyzerProviderFactory;
     private readonly ImmutableArray<IAnalyzerAssemblyRedirector> _analyzerAssemblyRedirectors;
-    private readonly IVsService<SVsSolution, IVsSolution2> _solution2;
-    private string? _solutionFilePath;
+    private readonly IVsService<SVsBackgroundSolution, IVsBackgroundSolution> _solution;
     private VisualStudioDiagnosticAnalyzerProvider? _vsixAnalyzerProvider;
 
     private readonly AsyncBatchingWorkQueue<string> _uiContextUpdateWorkQueue;
@@ -53,7 +53,7 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
         [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> fileInfoProviders,
         IVisualStudioDiagnosticAnalyzerProviderFactory vsixAnalyzerProviderFactory,
         [ImportMany] IEnumerable<IAnalyzerAssemblyRedirector> analyzerAssemblyRedirectors,
-        IVsService<SVsSolution, IVsSolution2> solution2,
+        IVsService<SVsBackgroundSolution, IVsBackgroundSolution> solution,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
         _threadingContext = threadingContext;
@@ -61,7 +61,7 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
         _dynamicFileInfoProviders = fileInfoProviders.AsImmutableOrEmpty();
         _vsixAnalyzerProviderFactory = vsixAnalyzerProviderFactory;
         _analyzerAssemblyRedirectors = analyzerAssemblyRedirectors.AsImmutableOrEmpty();
-        _solution2 = solution2;
+        _solution = solution;
 
         _uiContextUpdateWorkQueue = new AsyncBatchingWorkQueue<string>(
             DelayTimeSpan.NearImmediate,
@@ -82,13 +82,6 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
 
                 _visualStudioWorkspaceImpl.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
                 _visualStudioWorkspaceImpl.SubscribeToSourceGeneratorImpactingEvents();
-
-                // Since we're on the UI thread here anyways, use that as an opportunity to grab the
-                // IVsSolution object and solution file path.
-                var solution = await _solution2.GetValueOrNullAsync(cancellationToken).ConfigureAwait(true);
-                _solutionFilePath = solution != null && ErrorHandler.Succeeded(solution.GetSolutionInfo(out _, out var filePath, out _))
-                    ? filePath
-                    : null;
 
                 _vsixAnalyzerProvider = await _vsixAnalyzerProviderFactory.GetOrCreateProviderAsync(cancellationToken).ConfigureAwait(true);
             });
@@ -124,7 +117,9 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
         cancellationToken = CancellationToken.None;
 #pragma warning restore IDE0059 // Unnecessary assignment of a value
 
-        _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.SolutionPath = _solutionFilePath;
+        var solution = await _solution.GetValueOrNullAsync(cancellationToken).ConfigureAwait(true);
+
+        _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.SolutionPath = solution?.SolutionFileName;
         _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.SolutionTelemetryId = GetSolutionSessionId();
 
         var hostInfo = new ProjectSystemHostInfo(_dynamicFileInfoProviders, _vsixAnalyzerProvider!, _analyzerAssemblyRedirectors);
