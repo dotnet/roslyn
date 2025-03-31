@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         public const string RazorUtilsAssemblyName = "Microsoft.AspNetCore.Razor.Utilities.Shared";
         public const string ObjectPoolAssemblyName = "Microsoft.Extensions.ObjectPool";
 
-        private const string ServiceHubCoreFolderName = "ServiceHubCore";
+        internal const string ServiceHubCoreFolderName = "ServiceHubCore";
 
         internal static readonly ImmutableArray<string> RazorAssemblyNames = [RazorCompilerAssemblyName, RazorUtilsAssemblyName, ObjectPoolAssemblyName];
 
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             // or the ServiceHubCore subfolder (razor). In the root directory these are netstandard2.0 targeted, in ServiceHubCore they are 
             // .net targeted. We need to always pick the same set of assemblies regardless of who causes us to load. Because this code only
             // runs in a .net based host, it's safe to always choose the .net targeted ServiceHubCore versions.
-            if (!directory.AsSpan().TrimEnd("/\\").EndsWith(ServiceHubCoreFolderName, StringComparison.OrdinalIgnoreCase))
+            if (!Path.GetFileName(directory.AsSpan().TrimEnd(Path.DirectorySeparatorChar)).Equals(ServiceHubCoreFolderName, StringComparison.OrdinalIgnoreCase))
             {
                 directory = Path.Combine(directory, ServiceHubCoreFolderName);
             }
