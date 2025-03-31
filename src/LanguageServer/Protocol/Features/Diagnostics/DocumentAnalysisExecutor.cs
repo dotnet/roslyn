@@ -78,20 +78,6 @@ internal sealed partial class DocumentAnalysisExecutor
 
         var document = textDocument as Document;
 
-        if (analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance)
-        {
-            // We will count generator diagnostics as semantic diagnostics; some filtering to either syntax/semantic is necessary or else we'll report diagnostics twice.
-            if (kind == AnalysisKind.Semantic)
-            {
-                var generatorDiagnostics = await GetSourceGeneratorDiagnosticsAsync(textDocument.Project, cancellationToken).ConfigureAwait(false);
-                return ConvertToLocalDiagnostics(generatorDiagnostics, textDocument, span);
-            }
-            else
-            {
-                return [];
-            }
-        }
-
         if (analyzer is DocumentDiagnosticAnalyzer documentAnalyzer)
         {
             // DocumentDiagnosticAnalyzer is a host-only analyzer
@@ -101,7 +87,7 @@ internal sealed partial class DocumentAnalysisExecutor
             var documentDiagnostics = await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
                 documentAnalyzer, textDocument, kind, _compilationWithAnalyzers?.HostCompilation, tree, cancellationToken).ConfigureAwait(false);
 
-            return ConvertToLocalDiagnostics(documentDiagnostics, textDocument, span);
+            return Extensions.ConvertToLocalDiagnostics(documentDiagnostics, textDocument, span);
         }
 
         // quick optimization to reduce allocations.
@@ -157,7 +143,7 @@ internal sealed partial class DocumentAnalysisExecutor
         var compilation = _compilationBasedProjectAnalyzersInAnalysisScope.Contains(analyzer) ? _compilationWithAnalyzers.ProjectCompilation : _compilationWithAnalyzers.HostCompilation;
         RoslynDebug.AssertNotNull(compilation);
         Debug.Assert(diags.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diags, compilation).Count());
-        Debug.Assert(diagnostics.Length == ConvertToLocalDiagnostics(diags, textDocument, span).Count());
+        Debug.Assert(diagnostics.Length == Extensions.ConvertToLocalDiagnostics(diags, textDocument, span).Count());
 #endif
 
         return diagnostics;
@@ -172,19 +158,6 @@ internal sealed partial class DocumentAnalysisExecutor
             var resultAndTelemetry = await _diagnosticAnalyzerRunner.AnalyzeDocumentAsync(
                 analysisScope, _compilationWithAnalyzers, _logPerformanceInfo, getTelemetryInfo: false, cancellationToken).ConfigureAwait(false);
             return resultAndTelemetry.AnalysisResult;
-        }
-        catch when (_onAnalysisException != null)
-        {
-            _onAnalysisException.Invoke();
-            throw;
-        }
-    }
-
-    private async Task<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(Project project, CancellationToken cancellationToken)
-    {
-        try
-        {
-            return await _diagnosticAnalyzerRunner.GetSourceGeneratorDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
         }
         catch when (_onAnalysisException != null)
         {
