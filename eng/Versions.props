@@ -19,7 +19,7 @@
 --> 
   <PropertyGroup>
     <!-- <Metalama> -->
-    <RoslynVersion>4.13.0-3.final</RoslynVersion>
+    <RoslynVersion>4.13.0</RoslynVersion>
     <!-- The Roslyn version must be changed above.
 
     <MajorVersion>4</MajorVersion>
