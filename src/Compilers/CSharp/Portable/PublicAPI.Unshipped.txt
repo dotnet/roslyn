@@ -41,3 +41,4 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ExtensionDeclaration(Microsof
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitExtensionDeclaration(Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax! node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitExtensionDeclaration(Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax! node) -> TResult?
 
+static Microsoft.CodeAnalysis.CSharp.SyntaxFacts.IsOverloadableCompoundAssignmentOperator(Microsoft.CodeAnalysis.CSharp.SyntaxKind kind) -> bool

@@ -484,7 +484,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool IsAnyOverloadableOperator(SyntaxKind kind)
         {
-            return IsOverloadableBinaryOperator(kind) || IsOverloadableUnaryOperator(kind);
+            return IsOverloadableBinaryOperator(kind) ||
+                   IsOverloadableUnaryOperator(kind) ||
+                   IsOverloadableCompoundAssignmentOperator(kind);
         }
 
         public static bool IsOverloadableBinaryOperator(SyntaxKind kind)
@@ -526,6 +528,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.MinusMinusToken:
                 case SyntaxKind.TrueKeyword:
                 case SyntaxKind.FalseKeyword:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        public static bool IsOverloadableCompoundAssignmentOperator(SyntaxKind kind)
+        {
+            switch (kind)
+            {
+                case SyntaxKind.PlusEqualsToken:
+                case SyntaxKind.MinusEqualsToken:
+                case SyntaxKind.AsteriskEqualsToken:
+                case SyntaxKind.SlashEqualsToken:
+                case SyntaxKind.PercentEqualsToken:
+                case SyntaxKind.AmpersandEqualsToken:
+                case SyntaxKind.BarEqualsToken:
+                case SyntaxKind.CaretEqualsToken:
+                case SyntaxKind.LessThanLessThanEqualsToken:
+                case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
                     return true;
                 default:
                     return false;

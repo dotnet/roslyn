@@ -8140,4 +8140,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_OperatorMismatchOnOverride" xml:space="preserve">
     <value>'{0}': cannot override inherited member '{1}' because one of them is not an operator.</value>
   </data>
+  <data name="ERR_BadCompoundAssignmentOpArgs" xml:space="preserve">
+    <value>Overloaded compound assignment operator '{0}' takes one parameter</value>
+  </data>
 </root>

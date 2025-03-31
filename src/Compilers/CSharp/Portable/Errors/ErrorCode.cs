@@ -2391,6 +2391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_OperatorMustReturnVoid = 9503,
         ERR_CloseUnimplementedInterfaceMemberOperatorMismatch = 9504,
         ERR_OperatorMismatchOnOverride = 9505,
+        ERR_BadCompoundAssignmentOpArgs = 9506,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
