@@ -32,8 +32,19 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
     protected override bool IsInitializerOfLocalDeclarationStatement(LocalDeclarationStatementSyntax localDeclarationStatement, BaseObjectCreationExpressionSyntax rootExpression, [NotNullWhen(true)] out VariableDeclaratorSyntax? variableDeclarator)
         => CSharpObjectCreationHelpers.IsInitializerOfLocalDeclarationStatement(localDeclarationStatement, rootExpression, out variableDeclarator);
 
-    protected override bool IsComplexElementInitializer(SyntaxNode expression)
-        => expression.IsKind(SyntaxKind.ComplexElementInitializerExpression);
+    protected override bool IsComplexElementInitializer(SyntaxNode expression, out int initializerElementCount)
+    {
+        if (expression is InitializerExpressionSyntax(SyntaxKind.ComplexElementInitializerExpression) initializer)
+        {
+            initializerElementCount = initializer.Expressions.Count;
+            return true;
+        }
+        else
+        {
+            initializerElementCount = 0;
+            return false;
+        }
+    }
 
     protected override bool HasExistingInvalidInitializerForCollection()
     {

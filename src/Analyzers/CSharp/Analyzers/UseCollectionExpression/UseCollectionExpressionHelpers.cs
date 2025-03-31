@@ -547,7 +547,7 @@ internal static class UseCollectionExpressionHelpers
         // if the initializer is already on multiple lines, keep it that way.  otherwise, squash from `{ 1, 2, 3 }` to `[1, 2, 3]`
         var openBracket = OpenBracketToken.WithTriviaFrom(initializer.OpenBraceToken);
         var elements = initializer.Expressions.GetWithSeparators().SelectAsArray(
-            i => i.IsToken ? i : ExpressionElement((ExpressionSyntax)i.AsNode()!));
+            i => i.IsToken ? i : CreateElement((ExpressionSyntax)i.AsNode()!));
         var closeBracket = CloseBracketToken.WithTriviaFrom(initializer.CloseBraceToken);
 
         // If it was on a single line to begin with, then remove the inner spaces on the `{ ... }` to create `[...]`. If
@@ -563,6 +563,14 @@ internal static class UseCollectionExpressionHelpers
         }
 
         return CollectionExpression(openBracket, SeparatedList<CollectionElementSyntax>(elements), closeBracket);
+
+        static CollectionElementSyntax CreateElement(ExpressionSyntax expression)
+        {
+            if (expression is InitializerExpressionSyntax { Expressions: [var keyExpression, var valueExpression] } initializer)
+                return KeyValuePairElement(keyExpression, ColonToken.WithTriviaFrom(initializer.Expressions.GetSeparator(0)), valueExpression);
+
+            return ExpressionElement(expression);
+        }
     }
 
     public static CollectionExpressionSyntax ReplaceWithCollectionExpression(

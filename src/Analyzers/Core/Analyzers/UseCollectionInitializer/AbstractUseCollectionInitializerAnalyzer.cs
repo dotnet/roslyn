@@ -47,7 +47,6 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
         TVariableDeclaratorSyntax,
         TAnalyzer>, new()
 {
-    protected abstract bool SupportsKeyValuePairElement();
     protected abstract bool IsComplexElementInitializer(SyntaxNode expression, out int initializerElementCount);
     protected abstract bool HasExistingInvalidInitializerForCollection();
     protected abstract bool AnalyzeMatchesAndCollectionConstructorForCollectionExpression(

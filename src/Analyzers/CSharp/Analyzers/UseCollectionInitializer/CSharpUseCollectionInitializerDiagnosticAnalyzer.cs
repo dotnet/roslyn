@@ -83,7 +83,11 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
             if (initializer != null)
             {
                 foreach (var expression in initializer.Expressions)
-                    yield return ExpressionElement(expression);
+                {
+                    yield return expression is InitializerExpressionSyntax { Expressions: [var keyExpression, var valueExpression] }
+                        ? KeyValuePairElement(keyExpression, valueExpression)
+                        : ExpressionElement(expression);
+                }
             }
         }
     }

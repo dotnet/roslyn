@@ -77,6 +77,9 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
     public bool SupportsFieldExpression(ParseOptions options)
         => options.LanguageVersion() >= LanguageVersionExtensions.CSharpNext;
 
+    public bool SupportsKeyValuePairElement(ParseOptions options)
+        => options.LanguageVersion() >= LanguageVersionExtensions.CSharpNext;
+
     public SyntaxToken ParseToken(string text)
         => SyntaxFactory.ParseToken(text);
 
