@@ -9,22 +9,20 @@ using Microsoft.CodeAnalysis.Host;
 namespace Microsoft.CodeAnalysis.CustomMessageHandler;
 
 /// <summary>
-/// This service is used to load, unload and execute custom message handlers.
+/// This service is used to register, unregister and execute custom message handlers.
 /// </summary>
 internal interface ICustomMessageHandlerService : IWorkspaceService
 {
     /// <summary>
-    /// Loads custom message handlers from the specified assembly.
+    /// Registers custom message handlers from the specified assembly.
     /// </summary>
     /// <param name="solution">The solution object.</param>
-    /// <param name="assemblyFolderPath">The folder containing <paramref name="assemblyFileName"/>.</param>
-    /// <param name="assemblyFileName">The assembly to load and create message handlers from.</param>
+    /// <param name="assemblyFilePath">The assembly to register and create message handlers from.</param>
     /// <param name="cancellationToken">Cancellation token to cancel the async operation.</param>
-    /// <returns>The names of the loaded handlers.</returns>
-    ValueTask<RegisterHandlersResponse> LoadCustomMessageHandlersAsync(
+    /// <returns>The names of the registered handlers.</returns>
+    ValueTask<RegisterHandlersResponse> RegisterCustomMessageHandlersAsync(
         Solution solution,
-        string assemblyFolderPath,
-        string assemblyFileName,
+        string assemblyFilePath,
         CancellationToken cancellationToken);
 
     /// <summary>
@@ -56,17 +54,17 @@ internal interface ICustomMessageHandlerService : IWorkspaceService
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Unloads custom message handlers for all assemblies previously loaded from <paramref name="assemblyFolderPath"/>.
+    /// Unregisters custom message handlers previously registered from <paramref name="assemblyFilePath"/>.
     /// </summary>
-    /// <param name="assemblyFolderPath">The path for which handlers should be unloaded.</param>
+    /// <param name="assemblyFilePath">The assembly for which handlers should be unregistered.</param>
     /// <param name="cancellationToken">Cancellation token to cancel the async operation.</param>
     /// <returns>A task representing the async operation.</returns>
-    ValueTask UnloadCustomMessageHandlersAsync(
-        string assemblyFolderPath,
+    ValueTask UnregisterCustomMessageHandlersAsync(
+        string assemblyFilePath,
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Unloads all custom message handlers.
+    /// Unregisters all custom message handlers.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token to cancel the async operation.</param>
     /// <returns>A task representing the async operation.</returns>

@@ -13,12 +13,12 @@ using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CustomMessage;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(CustomMessageLoadHandler)), Shared]
+[ExportCSharpVisualBasicStatelessLspService(typeof(CustomMessageRegisterHandler)), Shared]
 [Method(MethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class CustomMessageLoadHandler()
-    : ILspServiceRequestHandler<CustomMessageLoadParams, CustomMessageLoadResponse>
+internal class CustomMessageRegisterHandler()
+    : ILspServiceRequestHandler<CustomMessageRegisterParams, CustomMessageRegisterResponse>
 {
     private const string MethodName = "roslyn/customMessageLoad";
 
@@ -26,7 +26,7 @@ internal class CustomMessageLoadHandler()
 
     public bool RequiresLSPSolution => true;
 
-    public async Task<CustomMessageLoadResponse> HandleRequestAsync(CustomMessageLoadParams request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<CustomMessageRegisterResponse> HandleRequestAsync(CustomMessageRegisterParams request, RequestContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(context.Solution);
 
@@ -37,10 +37,9 @@ internal class CustomMessageLoadHandler()
         {
             var response = await client.TryInvokeAsync<IRemoteCustomMessageHandlerService, RegisterHandlersResponse>(
                 solution,
-                (service, solutionInfo, cancellationToken) => service.LoadCustomMessageHandlersAsync(
+                (service, solutionInfo, cancellationToken) => service.RegisterCustomMessageHandlersAsync(
                     solutionInfo,
-                    request.AssemblyFolderPath,
-                    request.AssemblyFileName,
+                    request.AssemblyFilePath,
                     cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
@@ -54,10 +53,9 @@ internal class CustomMessageLoadHandler()
         else
         {
             var service = solution.Services.GetRequiredService<ICustomMessageHandlerService>();
-            var response = await service.LoadCustomMessageHandlersAsync(
+            var response = await service.RegisterCustomMessageHandlersAsync(
                 solution,
-                request.AssemblyFolderPath,
-                request.AssemblyFileName,
+                request.AssemblyFilePath,
                 cancellationToken).ConfigureAwait(false);
 
             return new(response.Handlers.ToArray(), response.DocumentHandlers.ToArray());

@@ -12,12 +12,12 @@ using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CustomMessage;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(CustomMessageUnloadHandler)), Shared]
+[ExportCSharpVisualBasicStatelessLspService(typeof(CustomMessageUnregisterHandler)), Shared]
 [Method(MethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class CustomMessageUnloadHandler()
-    : ILspServiceNotificationHandler<CustomMessageUnloadParams>
+internal class CustomMessageUnregisterHandler()
+    : ILspServiceNotificationHandler<CustomMessageUnregisterParams>
 {
     private const string MethodName = "roslyn/customMessageUnload";
 
@@ -25,7 +25,7 @@ internal class CustomMessageUnloadHandler()
 
     public bool RequiresLSPSolution => true;
 
-    public async Task HandleNotificationAsync(CustomMessageUnloadParams request, RequestContext context, CancellationToken cancellationToken)
+    public async Task HandleNotificationAsync(CustomMessageUnregisterParams request, RequestContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(context.Solution);
 
@@ -36,16 +36,16 @@ internal class CustomMessageUnloadHandler()
         {
             await client.TryInvokeAsync<IRemoteCustomMessageHandlerService>(
                 solution,
-                (service, solutionInfo, cancellationToken) => service.UnloadCustomMessageHandlersAsync(
-                    request.AssemblyFolderPath,
+                (service, solutionInfo, cancellationToken) => service.UnregisterCustomMessageHandlersAsync(
+                    request.AssemblyFilePath,
                     cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
         else
         {
             var service = solution.Services.GetRequiredService<ICustomMessageHandlerService>();
-            await service.UnloadCustomMessageHandlersAsync(
-                    request.AssemblyFolderPath,
+            await service.UnregisterCustomMessageHandlersAsync(
+                    request.AssemblyFilePath,
                     cancellationToken).ConfigureAwait(false);
         }
     }

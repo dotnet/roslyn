@@ -22,10 +22,9 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
     {
     }
 
-    public ValueTask<RegisterHandlersResponse> LoadCustomMessageHandlersAsync(
+    public ValueTask<RegisterHandlersResponse> RegisterCustomMessageHandlersAsync(
         Checksum solutionChecksum,
-        string assemblyFolderPath,
-        string assemblyFileName,
+        string assemblyFilePath,
         CancellationToken cancellationToken)
     {
         return RunServiceAsync(
@@ -33,10 +32,9 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
             solution =>
             {
                 var service = solution.Services.GetRequiredService<ICustomMessageHandlerService>();
-                return service.LoadCustomMessageHandlersAsync(
+                return service.RegisterCustomMessageHandlersAsync(
                     solution,
-                    assemblyFolderPath,
-                    assemblyFileName,
+                    assemblyFilePath,
                     cancellationToken);
             },
             cancellationToken);
@@ -85,14 +83,14 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
             cancellationToken);
     }
 
-    public ValueTask UnloadCustomMessageHandlersAsync(
-        string assemblyFolderPath,
+    public ValueTask UnregisterCustomMessageHandlersAsync(
+        string assemblyFilePath,
         CancellationToken cancellationToken)
     {
         var service = this.GetWorkspace().Services.GetRequiredService<ICustomMessageHandlerService>();
         return RunServiceAsync(
-            (_) => service.UnloadCustomMessageHandlersAsync(
-                assemblyFolderPath,
+            (_) => service.UnregisterCustomMessageHandlersAsync(
+                assemblyFilePath,
                 cancellationToken),
             cancellationToken);
     }

@@ -9,8 +9,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CustomMessage;
 /// <summary>
 /// Response for the roslyn/customMessageLoad request.
 /// </summary>
-/// <param name="CustomMessageHandlerNames">Names of the loaded non-document-specific custom message handlers.</param>
-/// <param name="CustomMessageDocumentHandlerNames">Names of the loaded document-specific custom message handlers.</param>
-internal readonly record struct CustomMessageLoadResponse(
+/// <param name="CustomMessageHandlerNames">Names of the registered non-document-specific custom message handlers.</param>
+/// <param name="CustomMessageDocumentHandlerNames">Names of the registered document-specific custom message handlers.</param>
+internal readonly record struct CustomMessageRegisterResponse(
     [property: JsonPropertyName("customMessageHandlerNames")] string[] CustomMessageHandlerNames,
     [property: JsonPropertyName("customMessageDocumentHandlerNames")] string[] CustomMessageDocumentHandlerNames);

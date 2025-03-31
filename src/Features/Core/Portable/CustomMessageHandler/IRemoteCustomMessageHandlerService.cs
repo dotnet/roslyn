@@ -9,10 +9,9 @@ namespace Microsoft.CodeAnalysis.CustomMessageHandler;
 
 internal interface IRemoteCustomMessageHandlerService
 {
-    ValueTask<RegisterHandlersResponse> LoadCustomMessageHandlersAsync(
+    ValueTask<RegisterHandlersResponse> RegisterCustomMessageHandlersAsync(
         Checksum solutionChecksum,
-        string assemblyFolderPath,
-        string assemblyFileName,
+        string assemblyFilePath,
         CancellationToken cancellationToken);
 
     ValueTask<string> HandleCustomDocumentMessageAsync(
@@ -28,8 +27,8 @@ internal interface IRemoteCustomMessageHandlerService
         string jsonMessage,
         CancellationToken cancellationToken);
 
-    ValueTask UnloadCustomMessageHandlersAsync(
-        string assemblyFolderPath,
+    ValueTask UnregisterCustomMessageHandlersAsync(
+        string assemblyFilePath,
         CancellationToken cancellationToken);
 
     ValueTask ResetAsync(

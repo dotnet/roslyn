@@ -50,19 +50,16 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
         _customMessageHandlerFactory = customMessageHandlerFactory;
     }
 
-    public ValueTask<RegisterHandlersResponse> LoadCustomMessageHandlersAsync(
+    public ValueTask<RegisterHandlersResponse> RegisterCustomMessageHandlersAsync(
         Solution solution,
-        string assemblyFolderPath,
-        string assemblyFileName,
+        string assemblyFilePath,
         CancellationToken cancellationToken)
     {
-        if (assemblyFileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
-        {
-            throw new ArgumentException($"{assemblyFileName} is not a valid file name", nameof(assemblyFileName));
-        }
+        var assemblyFileName = Path.GetFileName(assemblyFilePath);
+        var assemblyFolderPath = Path.GetDirectoryName(assemblyFilePath)
+            ?? throw new InvalidOperationException($"Unable to get the directory name for {assemblyFilePath}.");
 
         var analyzerAssemblyLoaderProvider = solution.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-        var assemblyPath = Path.Combine(assemblyFolderPath, assemblyFileName);
 
         CustomMessageHandlerExtension? extension;
         lock (_lockObject)
@@ -108,7 +105,7 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
                 }
                 else
                 {
-                    throw new InvalidOperationException($"A previous attempt to load {assemblyPath} failed.");
+                    throw new InvalidOperationException($"A previous attempt to load {assemblyFilePath} failed.");
                 }
             }
             else
@@ -116,7 +113,7 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
                 var mustCleanupExtension = false;
                 try
                 {
-                    var assembly = extension.AnalyzerAssemblyLoader.LoadFromPath(assemblyPath);
+                    var assembly = extension.AnalyzerAssemblyLoader.LoadFromPath(assemblyFilePath);
                     var messageHandlers = _customMessageHandlerFactory.CreateMessageHandlers(assembly)
                         .ToDictionary(h => h.Name, h => h);
                     var messageDocumentHandlers = _customMessageHandlerFactory.CreateMessageDocumentHandlers(assembly)
@@ -130,7 +127,7 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
                         {
                             // extension is not in the _extensions dictionary anymore, so it's AnalyzerAssemblyLoader must be unloaded
                             mustCleanupExtension = true;
-                            throw new InvalidOperationException($"{assemblyPath} was unloaded while loading handlers.");
+                            throw new InvalidOperationException($"{assemblyFilePath} was unloaded while loading handlers.");
                         }
 
                         var duplicateHandler = _handlers.Keys.Intersect(messageHandlers.Keys).Concat(
@@ -167,7 +164,7 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
                 {
                     Logger.Log(
                         FunctionId.CustomMessageHandlerService_HandleCustomMessageAsync,
-                        $"Error loading handlers from {assemblyPath}: {e}",
+                        $"Error loading handlers from {assemblyFilePath}: {e}",
                         LogLevel.Error);
 
                     if (mustCleanupExtension)
@@ -231,10 +228,14 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
         return responseJson;
     }
 
-    public ValueTask UnloadCustomMessageHandlersAsync(
-        string assemblyFolderPath,
+    public ValueTask UnregisterCustomMessageHandlersAsync(
+        string assemblyFilePath,
         CancellationToken cancellationToken)
     {
+        var assemblyFileName = Path.GetFileName(assemblyFilePath);
+        var assemblyFolderPath = Path.GetDirectoryName(assemblyFilePath)
+            ?? throw new InvalidOperationException($"Unable to get the directory name for {assemblyFilePath}.");
+
         try
         {
             CustomMessageHandlerExtension? extension = null;
@@ -242,21 +243,18 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
             {
                 if (_extensions.TryGetValue(assemblyFolderPath, out extension))
                 {
-                    _extensions.Remove(assemblyFolderPath);
-
-                    foreach (var assembly in extension.Assemblies)
+                    if (extension.Assemblies.TryGetValue(assemblyFileName, out var extensionAssembly))
                     {
-                        if (assembly.Value.HasValue)
-                        {
-                            foreach (var handler in assembly.Value.Value.Handlers)
-                            {
-                                _handlers.Remove(handler);
-                            }
+                        extension.Assemblies.Remove(assemblyFileName);
+                        UnregisterHandlersForAssembly(extensionAssembly);
+                    }
 
-                            foreach (var documentHandler in assembly.Value.Value.DocumentHandlers)
-                            {
-                                _documentHandlers.Remove(documentHandler);
-                            }
+                    if (extension.Assemblies.Count == 0)
+                    {
+                        _extensions.Remove(assemblyFolderPath);
+                        foreach (var assembly in extension.Assemblies.Values)
+                        {
+                            UnregisterHandlersForAssembly(assembly);
                         }
                     }
                 }
@@ -269,16 +267,32 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
             // unreachable
         }
 
+        return ValueTask.CompletedTask;
+
         bool LogAndPropagate(Exception e)
         {
             Logger.Log(
                 FunctionId.CustomMessageHandlerService_UnloadCustomMessageHandlerAsync,
-                $"Error unloading {assemblyFolderPath}: {e}",
+                $"Error unregistering {assemblyFilePath}: {e}",
                 LogLevel.Error);
             return false;
         }
 
-        return ValueTask.CompletedTask;
+        void UnregisterHandlersForAssembly(CustomMessageHandlerAssembly? assembly)
+        {
+            if (assembly.HasValue)
+            {
+                foreach (var handler in assembly.Value.Handlers)
+                {
+                    _handlers.Remove(handler);
+                }
+
+                foreach (var documentHandler in assembly.Value.DocumentHandlers)
+                {
+                    _documentHandlers.Remove(documentHandler);
+                }
+            }
+        }
     }
 
     public ValueTask ResetAsync(CancellationToken cancellationToken)

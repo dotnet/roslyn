@@ -9,6 +9,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CustomMessage;
 /// <summary>
 /// Parameters for the roslyn/customMessageUnload request.
 /// </summary>
-/// <param name="AssemblyFolderPath">Full path to the folder that contains the message handler assemblies to unload.</param>
-internal readonly record struct CustomMessageUnloadParams(
-    [property: JsonPropertyName("assemblyFolderPath")] string AssemblyFolderPath);
+/// <param name="AssemblyFilePath">Full path to the assembly that contains the message handlers to unregister.</param>
+internal readonly record struct CustomMessageUnregisterParams(
+    [property: JsonPropertyName("assemblyFilePath")] string AssemblyFilePath);
