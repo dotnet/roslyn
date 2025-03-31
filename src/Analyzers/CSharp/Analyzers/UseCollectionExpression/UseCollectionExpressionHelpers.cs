@@ -542,7 +542,7 @@ internal static class UseCollectionExpressionHelpers
     }
 
     public static CollectionExpressionSyntax ConvertInitializerToCollectionExpression(
-        InitializerExpressionSyntax initializer, bool wasOnSingleLine)
+        SourceText text, InitializerExpressionSyntax initializer, bool wasOnSingleLine)
     {
         // if the initializer is already on multiple lines, keep it that way.  otherwise, squash from `{ 1, 2, 3 }` to `[1, 2, 3]`
         var openBracket = OpenBracketToken.WithTriviaFrom(initializer.OpenBraceToken);
@@ -564,10 +564,19 @@ internal static class UseCollectionExpressionHelpers
 
         return CollectionExpression(openBracket, SeparatedList<CollectionElementSyntax>(elements), closeBracket);
 
-        static CollectionElementSyntax CreateElement(ExpressionSyntax expression)
+        CollectionElementSyntax CreateElement(ExpressionSyntax expression)
         {
             if (expression is InitializerExpressionSyntax { Expressions: [var keyExpression, var valueExpression] } initializer)
-                return KeyValuePairElement(keyExpression, ColonToken.WithTriviaFrom(initializer.Expressions.GetSeparator(0)), valueExpression);
+            {
+                // An initializer will commonly be `{ key, value }`.  In this case, we want to drop the trailing space
+                // after 'value', if on a single line.
+                var keyValuePairOnSingleLine = wasOnSingleLine || text.AreOnSameLine(keyExpression.GetFirstToken(), valueExpression.GetLastToken());
+
+                if (keyValuePairOnSingleLine && valueExpression.GetTrailingTrivia() is [.., (kind: SyntaxKind.WhitespaceTrivia)] trailingTrivia)
+                    valueExpression = valueExpression.WithTrailingTrivia(trailingTrivia.Take(trailingTrivia.Count - 1));
+
+                KeyValuePairElement(keyExpression, ColonToken.WithTriviaFrom(initializer.Expressions.GetSeparator(0)), valueExpression);
+            }
 
             return ExpressionElement(expression);
         }
@@ -900,13 +909,13 @@ internal static class UseCollectionExpressionHelpers
                 if (arguments.Count == 1 &&
                     compilation.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes) &&
                     originalCreateMethod.Parameters is [
+                    {
+                        Type: INamedTypeSymbol
                         {
-                            Type: INamedTypeSymbol
-                            {
-                                Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
-                                TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
-                            } spanType
-                        }])
+                            Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
+                            TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
+                        } spanType
+                    }])
                 {
                     if (spanType.OriginalDefinition.Equals(compilation.SpanOfTType()) ||
                         spanType.OriginalDefinition.Equals(compilation.ReadOnlySpanOfTType()))
