@@ -27,6 +27,8 @@ Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.FSharpIDEDiagnosticIds
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.IFSharpDiagnosticAnalyzerService
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.IFSharpDocumentDiagnosticAnalyzer
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.IFSharpSimplifyNameDiagnosticAnalyzer
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.IFSharpUnnecessaryParenthesesDiagnosticAnalyzer
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.IFSharpUnnecessaryParenthesesDiagnosticAnalyzer.AnalyzeSyntaxAsync(Microsoft.CodeAnalysis.DiagnosticDescriptor! descriptor, Microsoft.CodeAnalysis.Document! document, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>>!
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.IFSharpUnusedDeclarationsDiagnosticAnalyzer
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.IFSharpUnusedOpensDiagnosticAnalyzer
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.DocumentHighlighting.FSharpDocumentHighlights
@@ -569,6 +571,7 @@ static Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem.
 ~static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.FSharpDiagnosticCustomTags.Microsoft.get -> string[]
 ~static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.FSharpDiagnosticCustomTags.Unnecessary.get -> string[]
 ~static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.FSharpIDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId.get -> string
+~static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.FSharpIDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId.get -> string
 ~static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.FSharpIDEDiagnosticIds.SimplifyNamesDiagnosticId.get -> string
 ~static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Shared.Extensions.FSharpDependencyObjectExtensions.SetDefaultTextProperties(this System.Windows.DependencyObject dependencyObject, Microsoft.VisualStudio.Text.Classification.IClassificationFormatMap formatMap) -> void
 ~static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Shared.Extensions.FSharpDependencyObjectExtensions.SetTextProperties(this System.Windows.DependencyObject dependencyObject, Microsoft.VisualStudio.Text.Formatting.TextFormattingRunProperties textProperties) -> void

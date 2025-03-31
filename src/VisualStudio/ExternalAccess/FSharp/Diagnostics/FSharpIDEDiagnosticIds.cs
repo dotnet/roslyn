@@ -12,5 +12,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics
     {
         public static string SimplifyNamesDiagnosticId => IDEDiagnosticIds.SimplifyNamesDiagnosticId;
         public static string RemoveUnnecessaryImportsDiagnosticId => IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId;
+        public static string RemoveUnnecessaryParenthesesDiagnosticId => IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId;
     }
 }
