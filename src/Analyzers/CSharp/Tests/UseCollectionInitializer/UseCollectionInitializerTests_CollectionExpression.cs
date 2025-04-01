@@ -6270,7 +6270,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     void M(int[] values)
                     {
                         Dictionary<int, string> map = [|new|] Dictionary<int, string>();
-                        map.Add(1, "x");
+                        [|map.Add(|]1, "x");
                     }
                 }
                 """,

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -189,10 +190,34 @@ internal readonly struct UpdateExpressionState<
             return false;
         }
 
-        // Collection expressions can only call the single argument Add method on a type. So if we don't have exactly
-        // one argument, fail out.
-        if (forCollectionExpression && arguments.Count != 1)
+        if (forCollectionExpression)
+        {
+            // A single-argument Add(x) can become a single expression element `x` in the collection expr.
+            if (arguments.Count == 1)
+                return true;
+
+            // A two-argument Add(x, y) can become a `x:y` element if the destination type has an indexer with
+            // complimentary type kinds as the Add method.
+            if (arguments.Count == 2 &&
+                this.SyntaxFacts.SupportsKeyValuePairElement(invocationExpression.SyntaxTree.Options) &&
+                this.SemanticModel.GetSymbolInfo(invocationExpression, cancellationToken).Symbol is IMethodSymbol
+                {
+                    Parameters: [var parameter1, var parameter2],
+                })
+            {
+                var instanceType = SemanticModel.GetTypeInfo(instance, cancellationToken).Type;
+                if (instanceType != null)
+                {
+                    return instanceType
+                        .GetMembers(WellKnownMemberNames.Indexer)
+                        .Any(m => m is IPropertySymbol { Type: var propertyType, Parameters: [var propertyParameter] } &&
+                                  Equals(parameter1.Type, propertyParameter.Type) &&
+                                  Equals(parameter2.Type, propertyType));
+                }
+            }
+
             return false;
+        }
 
         return true;
     }
