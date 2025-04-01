@@ -50,6 +50,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                Debug.Assert(PartialImplementationPart is null);
+
+                if (PartialDefinitionPart is { } definitionPart)
+                {
+                    return (SourceMemberMethodSymbol)definitionPart;
+                }
+
                 return this.MethodKind == MethodKind.EventAdd
                     ? (SourceMemberMethodSymbol)this.AssociatedEvent.RemoveMethod
                     : null;
@@ -67,15 +74,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
+            // If we are asking this question on a partial implementation symbol,
+            // it must be from a context which prefers to order implementation attributes before definition attributes.
+            // For example, the 'value' parameter of an add or remove accessor.
+            if (PartialDefinitionPart is { } definitionPart)
+            {
+                return OneOrMany.Create(
+                    this.AssociatedEvent.AttributeDeclarationSyntaxList,
+                    ((SourceEventAccessorSymbol)definitionPart).AssociatedEvent.AttributeDeclarationSyntaxList);
+            }
+
+            if (PartialImplementationPart is { } implementationPart)
+            {
+                return OneOrMany.Create(
+                    this.AssociatedEvent.AttributeDeclarationSyntaxList,
+                    ((SourceEventAccessorSymbol)implementationPart).AssociatedEvent.AttributeDeclarationSyntaxList);
+            }
+
             return OneOrMany.Create(this.AssociatedEvent.AttributeDeclarationSyntaxList);
-        }
-
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-
-            var compilation = this.DeclaringCompilation;
-            AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
         }
 
         protected override object MethodChecksLockObject

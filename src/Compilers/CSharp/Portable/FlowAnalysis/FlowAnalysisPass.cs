@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.AddRange(statements, n - 1);
                 builder.Add(AppendImplicitReturn((BoundBlock)statements[n - 1], method));
 
-                return body.Update(body.Locals, ImmutableArray<LocalFunctionSymbol>.Empty, body.HasUnsafeModifier, body.Instrumentation, builder.ToImmutableAndFree());
+                return body.Update(body.Locals, ImmutableArray<MethodSymbol>.Empty, body.HasUnsafeModifier, body.Instrumentation, builder.ToImmutableAndFree());
             }
             else
             {

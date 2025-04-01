@@ -11,7 +11,6 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 using Microsoft.CodeAnalysis.Snippets;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
@@ -45,7 +44,7 @@ internal class TestSnippetInfoService : ISnippetInfoService
         throw new NotImplementedException();
     }
 
-    public bool SnippetShortcutExists_NonBlocking(string shortcut)
+    public bool SnippetShortcutExists_NonBlocking(string? shortcut)
     {
         throw new NotImplementedException();
     }
