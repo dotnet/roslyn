@@ -1,4 +1,4 @@
-﻿# Generated, do not update manually
+# Generated, do not update manually
 Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo
 Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo.Equals(Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo)
 Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo.Equals(System.Object)

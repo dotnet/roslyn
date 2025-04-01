@@ -32,18 +32,44 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
     protected override bool IsInitializerOfLocalDeclarationStatement(LocalDeclarationStatementSyntax localDeclarationStatement, BaseObjectCreationExpressionSyntax rootExpression, [NotNullWhen(true)] out VariableDeclaratorSyntax? variableDeclarator)
         => CSharpObjectCreationHelpers.IsInitializerOfLocalDeclarationStatement(localDeclarationStatement, rootExpression, out variableDeclarator);
 
-    protected override bool IsComplexElementInitializer(SyntaxNode expression)
-        => expression.IsKind(SyntaxKind.ComplexElementInitializerExpression);
+    protected override bool IsComplexElementInitializer(SyntaxNode expression, out int initializerElementCount)
+    {
+        if (expression is InitializerExpressionSyntax(SyntaxKind.ComplexElementInitializerExpression) initializer)
+        {
+            initializerElementCount = initializer.Expressions.Count;
+            return true;
+        }
+        else
+        {
+            initializerElementCount = 0;
+            return false;
+        }
+    }
 
     protected override bool HasExistingInvalidInitializerForCollection()
     {
-        // Can't convert to a collection expression if it already has an object-initializer.  Note, we do allow
-        // conversion of empty `{ }` initializer.  So we only block if the expression count is more than zero.
-        return _objectCreationExpression.Initializer is InitializerExpressionSyntax
+        // Can't convert to a collection expression if it already has a { X = ... } object-initializer.
+        //
+        // Note 1: we do allow conversion of empty `{ }` initializer.  So we only block if the expression count is more than zero.
+        if (_objectCreationExpression.Initializer is InitializerExpressionSyntax(SyntaxKind.ObjectInitializerExpression)
+            {
+                Expressions: [var firstExpression, ..],
+            })
         {
-            RawKind: (int)SyntaxKind.ObjectInitializerExpression,
-            Expressions.Count: > 0,
-        };
+            // Note 2: we do allow `{ [k] = v }` initializers if k:v elements are supported.
+            if (firstExpression is AssignmentExpressionSyntax
+                {
+                    Left: ImplicitElementAccessSyntax { ArgumentList.Arguments.Count: 1 }
+                } &&
+                this.SyntaxFacts.SupportsKeyValuePairElement(_objectCreationExpression.SyntaxTree.Options))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     protected override bool AnalyzeMatchesAndCollectionConstructorForCollectionExpression(
@@ -64,7 +90,7 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
         // Otherwise, if we're in C#14 or above, we can use the 'with(args)' argument trivially.
         if (supportsWithArgument)
         {
-            preMatches.Add(new(argumentList, UseSpread: false));
+            preMatches.Add(new(argumentList, UseSpread: false, UseKeyValue: false));
             return true;
         }
 
@@ -103,7 +129,7 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
                 if (Equals(firstParameter.Type.OriginalDefinition, ienumerableOfTType) ||
                     firstParameter.Type.AllInterfaces.Any(i => Equals(i.OriginalDefinition, ienumerableOfTType)))
                 {
-                    preMatches.Add(new(argumentList.Arguments[0].Expression, UseSpread: true));
+                    preMatches.Add(new(argumentList.Arguments[0].Expression, UseSpread: true, UseKeyValue: false));
                     return true;
                 }
             }
