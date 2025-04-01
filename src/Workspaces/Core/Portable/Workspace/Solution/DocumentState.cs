@@ -549,7 +549,7 @@ internal partial class DocumentState : TextDocumentState
         }
     }
 
-    private VersionStamp GetNewTreeVersionForUpdatedTree(SyntaxNode newRoot, VersionStamp newTextVersion, PreservationMode mode)
+    protected VersionStamp GetNewTreeVersionForUpdatedTree(SyntaxNode newRoot, VersionStamp newTextVersion, PreservationMode mode)
     {
         RoslynDebug.Assert(TreeSource != null);
 
@@ -566,7 +566,7 @@ internal partial class DocumentState : TextDocumentState
         return oldRoot.IsEquivalentTo(newRoot, topLevel: true) ? oldTreeAndVersion.Version : newTextVersion;
     }
 
-    private VersionStamp GetNewerVersion()
+    protected VersionStamp GetNewerVersion()
     {
         if (TextAndVersionSource.TryGetValue(LoadTextOptions, out var textAndVersion))
         {

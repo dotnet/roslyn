@@ -122,8 +122,6 @@ internal sealed partial class DiagnosticAnalyzerService
                 {
                     var compilation = compilationWithAnalyzers?.HostCompilation;
 
-                    // result = await UpdateWithGeneratorFailuresAsync(result).ConfigureAwait(false);
-
                     foreach (var analyzer in ideAnalyzers)
                     {
                         var builder = new DiagnosticAnalysisResultBuilder(project);
