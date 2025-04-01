@@ -176,7 +176,7 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
 
         if (!seenInvocation)
         {
-            if (TryAnalyzeIndexAssignment(expressionStatement, cancellationToken, out var instance) &&
+            if (this.State.TryAnalyzeIndexAssignment(expressionStatement, cancellationToken, out var instance) &&
                 this.State.ValuePatternMatches(instance))
             {
                 seenIndexAssignment = true;
@@ -203,49 +203,5 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
             includeReducedExtensionMethods: true);
 
         return addMethods.Any(static m => m is IMethodSymbol methodSymbol && methodSymbol.Parameters.Any());
-    }
-
-    private bool TryAnalyzeIndexAssignment(
-        TExpressionStatementSyntax statement,
-        CancellationToken cancellationToken,
-        [NotNullWhen(true)] out TExpressionSyntax? instance)
-    {
-        instance = null;
-        if (!this.SyntaxFacts.SupportsIndexingInitializer(statement.SyntaxTree.Options))
-            return false;
-
-        if (!this.SyntaxFacts.IsSimpleAssignmentStatement(statement))
-            return false;
-
-        this.SyntaxFacts.GetPartsOfAssignmentStatement(statement, out var left, out var right);
-
-        if (!this.SyntaxFacts.IsElementAccessExpression(left))
-            return false;
-
-        // If we're initializing a variable, then we can't reference that variable on the right 
-        // side of the initialization.  Rewriting this into a collection initializer would lead
-        // to a definite-assignment error.
-        if (this.State.NodeContainsValuePatternOrReferencesInitializedSymbol(right, cancellationToken))
-            return false;
-
-        // Can't reference the variable being initialized in the arguments of the indexing expression.
-        this.SyntaxFacts.GetPartsOfElementAccessExpression(left, out var elementInstance, out var argumentList);
-        var elementAccessArguments = this.SyntaxFacts.GetArgumentsOfArgumentList(argumentList);
-        foreach (var argument in elementAccessArguments)
-        {
-            if (this.State.NodeContainsValuePatternOrReferencesInitializedSymbol(argument, cancellationToken))
-                return false;
-
-            // An index/range expression implicitly references the value being initialized.  So it cannot be used in the
-            // indexing expression.
-            var argExpression = this.SyntaxFacts.GetExpressionOfArgument(argument);
-            argExpression = this.SyntaxFacts.WalkDownParentheses(argExpression);
-
-            if (this.SyntaxFacts.IsIndexExpression(argExpression) || this.SyntaxFacts.IsRangeExpression(argExpression))
-                return false;
-        }
-
-        instance = elementInstance as TExpressionSyntax;
-        return instance != null;
     }
 }
