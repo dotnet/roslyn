@@ -296,6 +296,7 @@ function BuildSolution {
   # Warnings reported from other msbuild tasks are not treated as errors for now.
   MSBuild $toolset_build_proj \
     $bl \
+    /check \
     /p:Configuration=$configuration \
     /p:Projects="$projects" \
     /p:RepoRoot="$repo_root" \
