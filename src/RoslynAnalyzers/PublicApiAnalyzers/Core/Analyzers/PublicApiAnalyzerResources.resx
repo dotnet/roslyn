@@ -1,0 +1,296 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="DeclarePublicApiTitle" xml:space="preserve">
+    <value>Add public types and members to the declared API</value>
+  </data>
+  <data name="DeclarePublicApiMessage" xml:space="preserve">
+    <value>Symbol '{0}' is not part of the declared public API</value>
+  </data>
+  <data name="DeclarePublicApiDescription" xml:space="preserve">
+    <value>All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</value>
+  </data>
+  <data name="AnnotatePublicApiTitle" xml:space="preserve">
+    <value>Annotate nullability of public types and members in the declared API</value>
+  </data>
+  <data name="AnnotatePublicApiMessage" xml:space="preserve">
+    <value>Symbol '{0}' is missing nullability annotations in the declared API</value>
+  </data>
+  <data name="AnnotatePublicApiDescription" xml:space="preserve">
+    <value>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</value>
+  </data>
+  <data name="ShouldAnnotatePublicApiFilesTitle" xml:space="preserve">
+    <value>Enable tracking of nullability of reference types in the declared API</value>
+  </data>
+  <data name="ShouldAnnotatePublicApiFilesMessage" xml:space="preserve">
+    <value>PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</value>
+  </data>
+  <data name="ShouldAnnotatePublicApiFilesDescription" xml:space="preserve">
+    <value>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</value>
+  </data>
+  <data name="ObliviousPublicApiTitle" xml:space="preserve">
+    <value>Public members should not use oblivious types</value>
+  </data>
+  <data name="ObliviousPublicApiMessage" xml:space="preserve">
+    <value>Symbol '{0}' uses some oblivious reference types</value>
+  </data>
+  <data name="ObliviousPublicApiDescription" xml:space="preserve">
+    <value>All public members should use either nullable or non-nullable reference types, but no oblivious reference types.</value>
+  </data>
+  <data name="RemoveDeletedPublicApiTitle" xml:space="preserve">
+    <value>Remove deleted types and members from the declared API</value>
+  </data>
+  <data name="RemoveDeletedPublicApiMessage" xml:space="preserve">
+    <value>Symbol '{0}' is part of the declared API, but is either not public or could not be found</value>
+  </data>
+  <data name="RemoveDeletedPublicApiDescription" xml:space="preserve">
+    <value>When removing a public type or member, put that entry in PublicAPI.Unshipped.txt with '*REMOVED*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</value>
+    <comment>{Locked="*REMOVED*"}</comment>
+  </data>
+  <data name="ExposedNoninstantiableTypeMessage" xml:space="preserve">
+    <value>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members</value>
+  </data>
+  <data name="ExposedNoninstantiableTypeTitle" xml:space="preserve">
+    <value>Constructor make noninheritable base class inheritable</value>
+  </data>
+  <data name="PublicApiFilesInvalidTitle" xml:space="preserve">
+    <value>The contents of the public API files are invalid</value>
+  </data>
+  <data name="PublicApiFilesInvalidMessage" xml:space="preserve">
+    <value>The contents of the public API files are invalid: {0}</value>
+  </data>
+  <data name="PublicApiFileMissingTitle" xml:space="preserve">
+    <value>Missing shipped or unshipped public API file</value>
+  </data>
+  <data name="PublicApiFileMissingMessage" xml:space="preserve">
+    <value>Public API file '{0}' is missing or not marked as an additional analyzer file</value>
+  </data>
+  <data name="DuplicateSymbolsInPublicApiFilesTitle" xml:space="preserve">
+    <value>Do not duplicate symbols in public API files</value>
+  </data>
+  <data name="DuplicateSymbolsInPublicApiFilesMessage" xml:space="preserve">
+    <value>The symbol '{0}' appears more than once in the public API files</value>
+  </data>
+  <data name="ImplicitConstructorErrorMessageName" xml:space="preserve">
+    <value>implicit constructor for '{0}'</value>
+  </data>
+  <data name="AvoidMultipleOverloadsWithOptionalParametersTitle" xml:space="preserve">
+    <value>Do not add multiple public overloads with optional parameters</value>
+  </data>
+  <data name="AvoidMultipleOverloadsWithOptionalParametersMessage" xml:space="preserve">
+    <value>Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.</value>
+  </data>
+  <data name="OverloadWithOptionalParametersShouldHaveMostParametersTitle" xml:space="preserve">
+    <value>API with optional parameter(s) should have the most parameters amongst its public overloads</value>
+  </data>
+  <data name="OverloadWithOptionalParametersShouldHaveMostParametersMessage" xml:space="preserve">
+    <value>'{0}' violates the backcompat requirement: 'API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</value>
+  </data>
+  <data name="ImplicitGetAccessor" xml:space="preserve">
+    <value>implicit get-accessor for '{0}'</value>
+  </data>
+  <data name="ImplicitSetAccessor" xml:space="preserve">
+    <value>implicit set-accessor for '{0}'</value>
+  </data>
+  <data name="AddAllItemsInDocumentToTheApiTitle" xml:space="preserve">
+    <value>Add all items in document '{0}' to the API</value>
+  </data>
+  <data name="AddAllItemsInProjectToTheApiTitle" xml:space="preserve">
+    <value>Add all items in project '{0}' to the API</value>
+  </data>
+  <data name="AddAllItemsInTheSolutionToTheApiTitle" xml:space="preserve">
+    <value>Add all items in the solution to the API</value>
+  </data>
+  <data name="EnableNullableInProjectToTheApiTitle" xml:space="preserve">
+    <value>Enable nullability annotations in the API for project '{0}'</value>
+  </data>
+  <data name="EnableNullableInTheSolutionToTheApiTitle" xml:space="preserve">
+    <value>Enable nullability annotations in the API for the solution</value>
+  </data>
+  <data name="RemovedApiIsNotActuallyRemovedMessage" xml:space="preserve">
+    <value>Symbol '{0}' is marked as removed but it isn't deleted in source code</value>
+  </data>
+  <data name="RemovedApiIsNotActuallyRemovedTitle" xml:space="preserve">
+    <value>API is marked as removed but it exists in source code</value>
+  </data>
+  <data name="DeclareInternalApiTitle" xml:space="preserve">
+    <value>Add internal types and members to the declared API</value>
+  </data>
+  <data name="DeclareInternalApiMessage" xml:space="preserve">
+    <value>Symbol '{0}' is not part of the declared API</value>
+  </data>
+  <data name="DeclareInternalApiDescription" xml:space="preserve">
+    <value>All internal types and members should be declared in InternalAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</value>
+  </data>
+  <data name="AnnotateInternalApiTitle" xml:space="preserve">
+    <value>Annotate nullability of internal types and members in the declared API</value>
+  </data>
+  <data name="AnnotateInternalApiMessage" xml:space="preserve">
+    <value>Symbol '{0}' is missing nullability annotations in the declared API</value>
+  </data>
+  <data name="AnnotateInternalApiDescription" xml:space="preserve">
+    <value>All internal types and members should be declared with nullability annotations in InternalAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</value>
+  </data>
+  <data name="ShouldAnnotateInternalApiFilesTitle" xml:space="preserve">
+    <value>Enable tracking of nullability of reference types in the declared API</value>
+  </data>
+  <data name="ShouldAnnotateInternalApiFilesMessage" xml:space="preserve">
+    <value>InternalAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</value>
+  </data>
+  <data name="ShouldAnnotateInternalApiFilesDescription" xml:space="preserve">
+    <value>InternalAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, InternalAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</value>
+  </data>
+  <data name="ObliviousInternalApiTitle" xml:space="preserve">
+    <value>Internal members should not use oblivious types</value>
+  </data>
+  <data name="ObliviousInternalApiMessage" xml:space="preserve">
+    <value>Symbol '{0}' uses some oblivious reference types</value>
+  </data>
+  <data name="ObliviousInternalApiDescription" xml:space="preserve">
+    <value>All internal members should use either nullable or non-nullable reference types, but no oblivious reference types.</value>
+  </data>
+  <data name="RemoveDeletedInternalApiTitle" xml:space="preserve">
+    <value>Remove deleted types and members from the declared internal API</value>
+  </data>
+  <data name="RemoveDeletedInternalApiMessage" xml:space="preserve">
+    <value>Symbol '{0}' is part of the declared internal API, but is either not internal or could not be found</value>
+  </data>
+  <data name="RemoveDeletedInternalApiDescription" xml:space="preserve">
+    <value>When removing a internal type or member, put that entry in InternalAPI.Unshipped.txt with '*REMOVED*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</value>
+    <comment>{Locked="*REMOVED*"}</comment>
+  </data>
+  <data name="InternalApiFilesInvalidTitle" xml:space="preserve">
+    <value>The contents of the internal API files are invalid</value>
+  </data>
+  <data name="InternalApiFilesInvalidMessage" xml:space="preserve">
+    <value>The contents of the internal API files are invalid: {0}</value>
+  </data>
+  <data name="InternalApiFileMissingTitle" xml:space="preserve">
+    <value>Missing shipped or unshipped internal API file</value>
+  </data>
+  <data name="InternalApiFileMissingMessage" xml:space="preserve">
+    <value>Internal API file '{0}' is missing or not marked as an additional analyzer file</value>
+  </data>
+  <data name="DuplicateSymbolsInInternalApiFilesTitle" xml:space="preserve">
+    <value>Do not duplicate symbols in internal API files</value>
+  </data>
+  <data name="DuplicateSymbolsInInternalApiFilesMessage" xml:space="preserve">
+    <value>The symbol '{0}' appears more than once in the internal API files</value>
+  </data>
+</root>
