@@ -481,10 +481,10 @@ internal static class CSharpCollectionExpressionRewriter
                 {
                     var invocation = (InvocationExpressionSyntax)expressionStatement.Expression;
                     var arguments = invocation.ArgumentList.Arguments;
-                    yield return IndentNode(
-                        expressionStatement,
-                        KeyValuePairElement(arguments[0].Expression, ColonToken.WithTriviaFrom(arguments.GetSeparator(0)), arguments[1].Expression),
-                        preferredIndentation);
+                    yield return KeyValuePairElement(
+                        IndentNode(expressionStatement, arguments[0].Expression, preferredIndentation),
+                        ColonToken.WithTriviaFrom(arguments.GetSeparator(0)),
+                        IndentNode(expressionStatement, arguments[1].Expression, preferredIndentation));
                 }
                 else
                 {

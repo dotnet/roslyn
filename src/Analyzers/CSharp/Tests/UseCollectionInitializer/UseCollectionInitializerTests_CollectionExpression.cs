@@ -6282,10 +6282,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
                     void M(int[] values)
                     {
-                        Dictionary<int, string> map =
-                        [
-                            1: "x"
-                        ];
+                        Dictionary<int, string> map = [1: "x"];
                     }
                 }
                 """,
