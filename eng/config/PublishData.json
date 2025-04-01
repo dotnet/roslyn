@@ -173,9 +173,9 @@
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "rel/d17.14",
+      "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.14 P2]",
+      "insertionTitlePrefix": "[d17.14 P3]",
       "insertionCreateDraftPR": false
     },
     "release/dev17.15": {
@@ -185,7 +185,7 @@
       ],
       "vsBranch": "feature/d18initial",
       "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.15 P1]",
+      "insertionTitlePrefix": "[d17.15 P1 initial]",
       "insertionCreateDraftPR": false
     },
     "main": {
@@ -195,8 +195,8 @@
       ],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.14 P3]"
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[d17.15 P1]"
     }
   }
 }
