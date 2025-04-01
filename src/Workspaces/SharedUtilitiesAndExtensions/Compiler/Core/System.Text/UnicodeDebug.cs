@@ -12,65 +12,64 @@
 
 using System.Diagnostics;
 
-namespace System.Text
+namespace System.Text;
+
+internal static class UnicodeDebug
 {
-    internal static class UnicodeDebug
+    [Conditional("DEBUG")]
+    internal static void AssertIsHighSurrogateCodePoint(uint codePoint)
     {
-        [Conditional("DEBUG")]
-        internal static void AssertIsHighSurrogateCodePoint(uint codePoint)
+        if (!UnicodeUtility.IsHighSurrogateCodePoint(codePoint))
         {
-            if (!UnicodeUtility.IsHighSurrogateCodePoint(codePoint))
-            {
-                Debug.Fail($"The value {ToHexString(codePoint)} is not a valid UTF-16 high surrogate code point.");
-            }
+            Debug.Fail($"The value {ToHexString(codePoint)} is not a valid UTF-16 high surrogate code point.");
         }
+    }
 
-        [Conditional("DEBUG")]
-        internal static void AssertIsLowSurrogateCodePoint(uint codePoint)
+    [Conditional("DEBUG")]
+    internal static void AssertIsLowSurrogateCodePoint(uint codePoint)
+    {
+        if (!UnicodeUtility.IsLowSurrogateCodePoint(codePoint))
         {
-            if (!UnicodeUtility.IsLowSurrogateCodePoint(codePoint))
-            {
-                Debug.Fail($"The value {ToHexString(codePoint)} is not a valid UTF-16 low surrogate code point.");
-            }
+            Debug.Fail($"The value {ToHexString(codePoint)} is not a valid UTF-16 low surrogate code point.");
         }
+    }
 
-        [Conditional("DEBUG")]
-        internal static void AssertIsValidCodePoint(uint codePoint)
+    [Conditional("DEBUG")]
+    internal static void AssertIsValidCodePoint(uint codePoint)
+    {
+        if (!UnicodeUtility.IsValidCodePoint(codePoint))
         {
-            if (!UnicodeUtility.IsValidCodePoint(codePoint))
-            {
-                Debug.Fail($"The value {ToHexString(codePoint)} is not a valid Unicode code point.");
-            }
+            Debug.Fail($"The value {ToHexString(codePoint)} is not a valid Unicode code point.");
         }
+    }
 
-        [Conditional("DEBUG")]
-        internal static void AssertIsValidScalar(uint scalarValue)
+    [Conditional("DEBUG")]
+    internal static void AssertIsValidScalar(uint scalarValue)
+    {
+        if (!UnicodeUtility.IsValidUnicodeScalar(scalarValue))
         {
-            if (!UnicodeUtility.IsValidUnicodeScalar(scalarValue))
-            {
-                Debug.Fail($"The value {ToHexString(scalarValue)} is not a valid Unicode scalar value.");
-            }
+            Debug.Fail($"The value {ToHexString(scalarValue)} is not a valid Unicode scalar value.");
         }
+    }
 
-        [Conditional("DEBUG")]
-        internal static void AssertIsValidSupplementaryPlaneScalar(uint scalarValue)
+    [Conditional("DEBUG")]
+    internal static void AssertIsValidSupplementaryPlaneScalar(uint scalarValue)
+    {
+        if (!UnicodeUtility.IsValidUnicodeScalar(scalarValue) || UnicodeUtility.IsBmpCodePoint(scalarValue))
         {
-            if (!UnicodeUtility.IsValidUnicodeScalar(scalarValue) || UnicodeUtility.IsBmpCodePoint(scalarValue))
-            {
-                Debug.Fail($"The value {ToHexString(scalarValue)} is not a valid supplementary plane Unicode scalar value.");
-            }
+            Debug.Fail($"The value {ToHexString(scalarValue)} is not a valid supplementary plane Unicode scalar value.");
         }
+    }
 
-        /// <summary>
-        /// Formats a code point as the hex string "U+XXXX".
-        /// </summary>
-        /// <remarks>
-        /// The input value doesn't have to be a real code point in the Unicode codespace. It can be any integer.
-        /// </remarks>
-        private static string ToHexString(uint codePoint)
-        {
-            return FormattableString.Invariant($"U+{codePoint:X4}");
-        }
+    /// <summary>
+    /// Formats a code point as the hex string "U+XXXX".
+    /// </summary>
+    /// <remarks>
+    /// The input value doesn't have to be a real code point in the Unicode codespace. It can be any integer.
+    /// </remarks>
+    private static string ToHexString(uint codePoint)
+    {
+        return FormattableString.Invariant($"U+{codePoint:X4}");
     }
 }
 

@@ -3,12 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -17,11 +18,9 @@ using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -32,9 +31,9 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
     private readonly IThreadingContext _threadingContext;
     private readonly IVsService<IVsTextManager> _textManagerService;
     private readonly OpenTextBufferProvider _openTextBufferProvider;
-    private readonly IMetadataAsSourceFileService _fileTrackingMetadataAsSourceService;
+    private readonly Lazy<IMetadataAsSourceFileService> _fileTrackingMetadataAsSourceService;
 
-    private readonly Dictionary<Guid, LanguageInformation> _languageInformationByLanguageGuid = [];
+    private readonly ConcurrentDictionary<Guid, LanguageInformation> _languageInformationByLanguageGuid = [];
 
     /// <summary>
     /// <see cref="WorkspaceRegistration"/> instances for all open buffers being tracked by by this object
@@ -48,9 +47,7 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
     /// </summary>
     private readonly Dictionary<string, (ProjectId projectId, SourceTextContainer textContainer)> _monikersToProjectIdAndContainer = [];
 
-    private readonly ImmutableArray<MetadataReference> _metadataReferences;
-
-    private IVsTextManager? _textManager;
+    private readonly Lazy<ImmutableArray<MetadataReference>> _metadataReferences;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -58,24 +55,18 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
         IThreadingContext threadingContext,
         IVsService<SVsTextManager, IVsTextManager> textManagerService,
         OpenTextBufferProvider openTextBufferProvider,
-        IMetadataAsSourceFileService fileTrackingMetadataAsSourceService,
-        VisualStudioWorkspace visualStudioWorkspace)
-        : base(visualStudioWorkspace.Services.HostServices, WorkspaceKind.MiscellaneousFiles)
+        Lazy<IMetadataAsSourceFileService> fileTrackingMetadataAsSourceService,
+        Composition.ExportProvider exportProvider)
+        : base(VisualStudioMefHostServices.Create(exportProvider), WorkspaceKind.MiscellaneousFiles)
     {
         _threadingContext = threadingContext;
         _textManagerService = textManagerService;
         _openTextBufferProvider = openTextBufferProvider;
         _fileTrackingMetadataAsSourceService = fileTrackingMetadataAsSourceService;
 
-        _metadataReferences = [.. CreateMetadataReferences()];
+        _metadataReferences = new(() => [.. CreateMetadataReferences()]);
 
         _openTextBufferProvider.AddListener(this);
-    }
-
-    public async Task InitializeAsync()
-    {
-        await TaskScheduler.Default;
-        _textManager = await _textManagerService.GetValueAsync().ConfigureAwait(false);
     }
 
     void IOpenTextBufferEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? _) => TrackOpenedDocument(moniker, textBuffer);
@@ -116,9 +107,12 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
 
     private LanguageInformation? TryGetLanguageInformation(string filename)
     {
+        _threadingContext.ThrowIfNotOnUIThread();
+
         LanguageInformation? languageInformation = null;
 
-        if (_textManager != null && ErrorHandler.Succeeded(_textManager.MapFilenameToLanguageSID(filename, out var fileLanguageGuid)))
+        var textManager = _threadingContext.JoinableTaskFactory.Run(() => _textManagerService.GetValueOrNullAsync(CancellationToken.None));
+        if (textManager != null && ErrorHandler.Succeeded(textManager.MapFilenameToLanguageSID(filename, out var fileLanguageGuid)))
         {
             _languageInformationByLanguageGuid.TryGetValue(fileLanguageGuid, out languageInformation);
         }
@@ -128,6 +122,10 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
 
     private IEnumerable<MetadataReference> CreateMetadataReferences()
     {
+        // VisualStudioMetadataReferenceManager construction requires the main thread
+        // TODO: Determine if main thread affinity can be removed: https://github.com/dotnet/roslyn/issues/77791
+        _threadingContext.ThrowIfNotOnUIThread();
+
         var manager = this.Services.GetService<VisualStudioMetadataReferenceManager>();
         var searchPaths = VisualStudioMetadataReferenceManager.GetReferencePaths();
 
@@ -267,7 +265,7 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
     {
         _threadingContext.ThrowIfNotOnUIThread();
 
-        if (_fileTrackingMetadataAsSourceService.TryAddDocumentToWorkspace(moniker, textBuffer.AsTextContainer(), out var _))
+        if (_fileTrackingMetadataAsSourceService.Value.TryAddDocumentToWorkspace(moniker, textBuffer.AsTextContainer(), out var _))
         {
             // We already added it, so we will keep it excluded from the misc files workspace
             return;
@@ -288,6 +286,10 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
     /// </summary>
     private ProjectInfo CreateProjectInfoForDocument(string filePath)
     {
+        // Potential calculation of _metadataReferences requires being on the main thread
+        // TODO: Determine if main thread affinity can be removed: https://github.com/dotnet/roslyn/issues/77791
+        _threadingContext.ThrowIfNotOnUIThread();
+
         // This should always succeed since we only got here if we already confirmed the moniker is acceptable
         var languageInformation = TryGetLanguageInformation(filePath);
         Contract.ThrowIfNull(languageInformation);
@@ -295,13 +297,13 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
         var checksumAlgorithm = SourceHashAlgorithms.Default;
         var fileLoader = new WorkspaceFileTextLoader(Services.SolutionServices, filePath, defaultEncoding: null);
         return MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
-            this, filePath, fileLoader, languageInformation, checksumAlgorithm, Services.SolutionServices, _metadataReferences);
+            this, filePath, fileLoader, languageInformation, checksumAlgorithm, Services.SolutionServices, _metadataReferences.Value);
     }
 
     private void DetachFromDocument(string moniker)
     {
         _threadingContext.ThrowIfNotOnUIThread();
-        if (_fileTrackingMetadataAsSourceService.TryRemoveDocumentFromWorkspace(moniker))
+        if (_fileTrackingMetadataAsSourceService.Value.TryRemoveDocumentFromWorkspace(moniker))
         {
             return;
         }

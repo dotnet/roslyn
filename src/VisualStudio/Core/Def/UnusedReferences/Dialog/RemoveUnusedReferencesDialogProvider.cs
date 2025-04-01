@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.Dialog;
 
 [Export(typeof(RemoveUnusedReferencesDialogProvider)), Shared]
-internal class RemoveUnusedReferencesDialogProvider
+internal sealed class RemoveUnusedReferencesDialogProvider
 {
     private readonly UnusedReferencesTableProvider _tableProvider;
 

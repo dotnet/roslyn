@@ -42,7 +42,7 @@ internal sealed class CSharpRenameConflictLanguageService() : AbstractRenameRewr
         return renameAnnotationRewriter.Visit(parameters.SyntaxRoot)!;
     }
 
-    private class RenameRewriter : CSharpSyntaxRewriter
+    private sealed class RenameRewriter : CSharpSyntaxRewriter
     {
         private readonly DocumentId _documentId;
         private readonly RenameAnnotation _renameRenamableSymbolDeclaration;

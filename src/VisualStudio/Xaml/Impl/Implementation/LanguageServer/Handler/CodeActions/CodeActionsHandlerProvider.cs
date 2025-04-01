@@ -10,31 +10,30 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
-{
-    [ExportStatelessXamlLspService(typeof(CodeActionsHandler)), Shared]
-    internal class XamlCodeActionsHandler : CodeActionsHandler
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public XamlCodeActionsHandler(
-            ICodeFixService codeFixService,
-            ICodeRefactoringService codeRefactoringService,
-            IGlobalOptionService globalOptions) : base(codeFixService, codeRefactoringService, globalOptions)
-        {
-        }
-    }
+namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler;
 
-    [ExportStatelessXamlLspService(typeof(CodeActionResolveHandler)), Shared]
-    internal class XamlCodeActionResolveHandler : CodeActionResolveHandler
+[ExportStatelessXamlLspService(typeof(CodeActionsHandler)), Shared]
+internal sealed class XamlCodeActionsHandler : CodeActionsHandler
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public XamlCodeActionsHandler(
+        ICodeFixService codeFixService,
+        ICodeRefactoringService codeRefactoringService,
+        IGlobalOptionService globalOptions) : base(codeFixService, codeRefactoringService, globalOptions)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public XamlCodeActionResolveHandler(
-            ICodeFixService codeFixService,
-            ICodeRefactoringService codeRefactoringService,
-            IGlobalOptionService globalOptions) : base(codeFixService, codeRefactoringService, globalOptions)
-        {
-        }
+    }
+}
+
+[ExportStatelessXamlLspService(typeof(CodeActionResolveHandler)), Shared]
+internal sealed class XamlCodeActionResolveHandler : CodeActionResolveHandler
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public XamlCodeActionResolveHandler(
+        ICodeFixService codeFixService,
+        ICodeRefactoringService codeRefactoringService,
+        IGlobalOptionService globalOptions) : base(codeFixService, codeRefactoringService, globalOptions)
+    {
     }
 }

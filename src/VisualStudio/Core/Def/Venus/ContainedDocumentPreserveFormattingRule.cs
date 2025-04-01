@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 
-internal class ContainedDocumentPreserveFormattingRule : AbstractFormattingRule
+internal sealed class ContainedDocumentPreserveFormattingRule : AbstractFormattingRule
 {
     public static readonly AbstractFormattingRule Instance = new ContainedDocumentPreserveFormattingRule();
 

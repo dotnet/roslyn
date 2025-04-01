@@ -13,41 +13,40 @@ using Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
+
+/// <summary>
+/// Represents light bulb menu item for code fixes.
+/// </summary>
+internal sealed class CodeFixSuggestedAction : SuggestedActionWithNestedFlavors, ICodeFixSuggestedAction, ITelemetryDiagnosticID<string>
 {
-    /// <summary>
-    /// Represents light bulb menu item for code fixes.
-    /// </summary>
-    internal sealed class CodeFixSuggestedAction : SuggestedActionWithNestedFlavors, ICodeFixSuggestedAction, ITelemetryDiagnosticID<string>
+    public CodeFix CodeFix { get; }
+
+    public CodeFixSuggestedAction(
+        IThreadingContext threadingContext,
+        SuggestedActionsSourceProvider sourceProvider,
+        Workspace workspace,
+        TextDocument originalDocument,
+        ITextBuffer subjectBuffer,
+        CodeFix fix,
+        object provider,
+        CodeAction action,
+        SuggestedActionSet fixAllFlavors)
+        : base(threadingContext,
+               sourceProvider,
+               workspace,
+               originalDocument,
+               subjectBuffer,
+               provider,
+               action,
+               fixAllFlavors)
     {
-        public CodeFix CodeFix { get; }
-
-        public CodeFixSuggestedAction(
-            IThreadingContext threadingContext,
-            SuggestedActionsSourceProvider sourceProvider,
-            Workspace workspace,
-            TextDocument originalDocument,
-            ITextBuffer subjectBuffer,
-            CodeFix fix,
-            object provider,
-            CodeAction action,
-            SuggestedActionSet fixAllFlavors)
-            : base(threadingContext,
-                   sourceProvider,
-                   workspace,
-                   originalDocument,
-                   subjectBuffer,
-                   provider,
-                   action,
-                   fixAllFlavors)
-        {
-            CodeFix = fix;
-        }
-
-        public string GetDiagnosticID()
-            => CodeFix.PrimaryDiagnostic.GetTelemetryDiagnosticID();
-
-        protected override DiagnosticData GetDiagnostic()
-            => CodeFix.GetPrimaryDiagnosticData();
+        CodeFix = fix;
     }
+
+    public string GetDiagnosticID()
+        => CodeFix.PrimaryDiagnostic.GetTelemetryDiagnosticID();
+
+    protected override DiagnosticData GetDiagnostic()
+        => CodeFix.GetPrimaryDiagnosticData();
 }

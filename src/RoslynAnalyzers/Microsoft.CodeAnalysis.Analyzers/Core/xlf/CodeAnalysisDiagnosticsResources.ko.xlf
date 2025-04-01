@@ -1,0 +1,835 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ko" original="../CodeAnalysisDiagnosticsResources.resx">
+    <body>
+      <trans-unit id="AddCompilationEndCustomTagDescription">
+        <source>'DiagnosticDescriptor' assigned to field is used to report a compilation end diagnostic, but the 'DiagnosticDescriptor' constructor used to initialize it does not pass in the required custom tag "CompilationEnd". See documentation for 'WellKnownDiagnosticTags.CompilationEnd' for details.</source>
+        <target state="translated">필드에 할당된 'DiagnosticDescriptor'는 컴파일 종료 진단을 보고하는 데 사용되지만 이를 초기화하는 데 사용되는 'DiagnosticDescriptor' 생성자는 필요한 사용자 지정 태그 "CompilationEnd"를 전달하지 않습니다. 자세한 내용은 'WellKnownDiagnosticTags.CompilationEnd'에 대한 설명서를 참조하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddCompilationEndCustomTagMessage">
+        <source>Add "CompilationEnd" custom tag to the diagnostic descriptor used to initialize field '{0}' as it is used to report a compilation end diagnostic</source>
+        <target state="translated">컴파일 종료 진단을 보고하는 데 사용되므로 필드 '{0}'을(를) 초기화하는 데 사용되는 진단 설명자에 "CompilationEnd" 사용자 지정 태그를 추가합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddCompilationEndCustomTagTitle">
+        <source>Add "CompilationEnd" custom tag to compilation end diagnostic descriptor</source>
+        <target state="translated">컴파일 종료 진단 설명자에 "CompilationEnd" 사용자 지정 태그를 추가합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddEntryForDiagnosticIdInAnalyzerReleaseCodeFixTitle">
+        <source>Add rule entry to unshipped release file</source>
+        <target state="translated">제공되지 않은 릴리스 파일에 규칙 항목 추가</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ClassIsNotDiagnosticAnalyzerMessage">
+        <source>Inherit type '{0}' from DiagnosticAnalyzer or remove the DiagnosticAnalyzerAttribute(s)</source>
+        <target state="translated">DiagnosticAnalyzer에서 '{0}' 형식을 상속하거나 DiagnosticAnalyzerAttribute를 제거하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ClassIsNotDiagnosticAnalyzerTitle">
+        <source>Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer</source>
+        <target state="translated">DiagnosticAnalyzerAttribute로 표시된 형식은 DiagnosticAnalyzer에서 상속되어야 함</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompareSymbolsCorrectlyCodeFix">
+        <source>Use a 'SymbolEqualityComparer' for symbol comparison</source>
+        <target state="translated">기호 비교에 'SymbolEqualityComparer' 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompareSymbolsCorrectlyDescription">
+        <source>Symbols should be compared for equality, not identity. Use an overload accepting an 'IEqualityComparer' and pass 'SymbolEqualityComparer'.</source>
+        <target state="translated">기호는 ID가 아니라 같은지 비교해야 합니다. 'IEqualityComparer'를 허용하는 오버로드를 사용하고 'SymbolEqualityComparer'를 전달하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompareSymbolsCorrectlyDescriptionGetHashCode">
+        <source>Symbols should be compared for equality, not identity. An explicit call to 'GetHashCode' will likely result in the wrong behavior.</source>
+        <target state="translated">기호는 ID가 아니라 같은지 비교해야 합니다. 'GetHashCode'를 명시적으로 호출하면 잘못된 동작이 수행될 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompareSymbolsCorrectlyMessage">
+        <source>Use 'SymbolEqualityComparer' when comparing symbols</source>
+        <target state="translated">기호를 비교할 때 'SymbolEqualityComparer' 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompareSymbolsCorrectlyTitle">
+        <source>Symbols should be compared for equality</source>
+        <target state="translated">기호는 동등성을 위해 비교되어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ConfigureGeneratedCodeAnalysisFix">
+        <source>Configure generated code analysis</source>
+        <target state="translated">생성된 코드 분석 구성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ConfigureGeneratedCodeAnalysisMessage">
+        <source>Configure generated code analysis</source>
+        <target state="translated">생성된 코드 분석 구성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ConfigureGeneratedCodeAnalysisTitle">
+        <source>Configure generated code analysis</source>
+        <target state="translated">생성된 코드 분석 구성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DeclareDiagnosticIdInAnalyzerReleaseDescription">
+        <source>All supported analyzer diagnostic IDs should be part of an analyzer release.</source>
+        <target state="translated">지원되는 모든 분석기 진단 ID는 분석기 릴리스에 포함되어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DeclareDiagnosticIdInAnalyzerReleaseMessage">
+        <source>Rule '{0}' is not part of any analyzer release</source>
+        <target state="translated">'{0}' 규칙은 분석기 릴리스에 포함되지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DeclareDiagnosticIdInAnalyzerReleaseTitle">
+        <source>Add analyzer diagnostic IDs to analyzer release</source>
+        <target state="translated">분석기 릴리스에 분석기 진단 ID 추가</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticDescriptionCorrectlyMessage">
+        <source>The diagnostic description should be one or multiple sentences ending with a punctuation sign and should not have any leading or trailing whitespaces</source>
+        <target state="translated">진단 설명은 문장 부호로 끝나는 하나 이상의 문장이어야 하며 선행 또는 후행 공백이 없어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticDescriptionCorrectlyTitle">
+        <source>Define diagnostic description correctly</source>
+        <target state="translated">진단 설명 올바르게 정의</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticMessageCorrectlyMessage">
+        <source>The diagnostic message should not contain any line return character nor any leading or trailing whitespaces and should either be a single sentence without a trailing period or a multi-sentences with a trailing period</source>
+        <target state="translated">진단 메시지에 줄 바꿈 문자 또는 선행이나 후행 공백을 포함할 수 없으며, 마침표가 없는 단일 문장이거나 마침표가 있는 여러 문장이어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticMessageCorrectlyTitle">
+        <source>Define diagnostic message correctly</source>
+        <target state="translated">진단 메시지 올바르게 정의</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticTitleCorrectlyMessage">
+        <source>The diagnostic title should not contain a period, nor any line return character, nor any leading or trailing whitespaces</source>
+        <target state="translated">진단 제목에는 마침표, 줄 바꿈 문자 또는 선행이나 후행 공백을 포함할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticTitleCorrectlyTitle">
+        <source>Define diagnostic title correctly</source>
+        <target state="translated">진단 제목을 올바르게 정의</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotDeclareCSharpCompilerFeatureInAssemblyWithVisualBasicReferenceMessage">
+        <source>This C# compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.VisualBasic. The Microsoft.CodeAnalysis.VisualBasic assembly is not always provided during C# compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</source>
+        <target state="translated">이 C# 컴파일러 확장은 Microsoft.CodeAnalysis.VisualBasic에 대한 참조를 포함하는 어셈블리에서 구현되면 안 됩니다. Microsoft.CodeAnalysis.VisualBasic 어셈블리는 C# 컴파일 시나리오 중에 항상 제공되는 것은 아니기 때문에 이를 참조하면 컴파일러 확장이 예기치 않게 동작할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkMessage">
+        <source>This compiler extension should not be implemented in an assembly with target framework '{0}'. References to other target frameworks will cause the compiler to behave unpredictably.</source>
+        <target state="translated">이 컴파일러 확장은 대상 프레임워크 '{0}'가 있는 어셈블리에서 구현되어서는 안 됩니다. 다른 대상 프레임워크를 참조하면 컴파일러가 예기치 않게 동작합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkRuleDescription">
+        <source>Types which implement compiler extension points should only be declared in assemblies targeting netstandard2.0. More specific target frameworks are only available in a subset of supported compilation scenarios, so targeting them may cause the feature to behave unpredictably.</source>
+        <target state="translated">컴파일러 확장 지점을 구현하는 형식은 netstandard2.0을 대상으로 하는 어셈블리에서만 선언되어야 합니다. 보다 구체적인 대상 프레임워크는 지원되는 컴파일 시나리오의 하위 집합에서만 사용할 수 있으므로 해당 프레임워크를 대상으로 지정하면 기능이 예기치 않게 동작할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkRuleTitle">
+        <source>Compiler extensions should be implemented in assemblies targeting netstandard2.0</source>
+        <target state="translated">컴파일러 확장은 netstandard2.0을 대상으로 하는 어셈블리에서 구현되어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithWorkspacesReferenceMessage">
+        <source>This compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.Workspaces. The Microsoft.CodeAnalysis.Workspaces assembly is not provided during command line compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</source>
+        <target state="translated">이 컴파일러 확장은 Microsoft.CodeAnalysis.Workspaces에 대한 참조를 포함하는 어셈블리에서 구현되면 안 됩니다. Microsoft.CodeAnalysis.Workspaces 어셈블리는 명령줄 컴파일 시나리오 중에 제공되지 않기 때문에 이를 참조하면 컴파일러 확장이 예기치 않게 동작할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotDeclareVisualBasicCompilerFeatureInAssemblyWithCSharpReferenceMessage">
+        <source>This Visual Basic compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.CSharp. The Microsoft.CodeAnalysis.CSharp assembly is not always provided during Visual Basic compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</source>
+        <target state="translated">이 Visual Basic 컴파일러 확장은 Microsoft.CodeAnalysis.CSharp에 대한 참조를 포함하는 어셈블리에서 구현되면 안 됩니다. Microsoft.CodeAnalysis.CSharp 어셈블리는 Visual Basic 컴파일 시나리오 중에 항상 제공되는 것은 아니기 때문에 이를 참조하면 컴파일러 확장이 예기치 않게 동작할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleDescription">
+        <source>Types which implement compiler extension points should not be declared in assemblies that contain references to assemblies which are not provided by all compilation scenarios. Doing so may cause the feature to behave unpredictably.</source>
+        <target state="translated">컴파일러 확장 지점을 구현하는 형식은 모든 컴파일 시나리오에서 제공되는 어셈블리에 대한 참조를 포함하는 어셈블리에서 선언해야 합니다. 그렇지 않으면 기능이 예기치 않게 동작할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleTitle">
+        <source>Compiler extensions should be implemented in assemblies with compiler-provided references</source>
+        <target state="translated">컴파일러 확장은 컴파일러 제공 참조가 있는 어셈블리에서 구현해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseCompilationGetSemanticModelDescription">
+        <source>'GetSemanticModel' is an expensive method to invoke within a diagnostic analyzer because it creates a completely new semantic model, which does not share compilation data with the compiler or other analyzers. This incurs an additional performance cost during semantic analysis. Instead, consider registering a different analyzer action which allows used of a shared 'SemanticModel', such as 'RegisterOperationAction', 'RegisterSyntaxNodeAction', or 'RegisterSemanticModelAction'.</source>
+        <target state="translated">'GetSemanticModel'은 컴파일러나 다른 분석기와 컴파일 데이터를 공유하지 않는 완전히 새로운 의미 체계 모델을 만들므로 진단 분석기 내에서 호출하는 데 부담이 큰 메서드입니다. 이 메서드를 사용하면 의미 체계 분석 중 추가 성능 비용이 발생합니다. 대신 공유 'SemanticModel'을 사용할 수 있는 'RegisterOperationAction', 'RegisterSyntaxNodeAction', 'RegisterSemanticModelAction' 등과 같은 다른 분석기 작업을 등록하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseCompilationGetSemanticModelMessage">
+        <source>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</source>
+        <target state="translated">진단 분석기 내에서 Compilation.GetSemanticModel() 메서드를 호출하지 마세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseCompilationGetSemanticModelTitle">
+        <source>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</source>
+        <target state="translated">진단 분석기 내에서 Compilation.GetSemanticModel() 메서드를 호출하지 마세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseFileTypesForAnalyzersOrGeneratorsDescription">
+        <source>Using a 'file' type is not allowed for implementing analyzers, generators, or code fixers. This can break analyzer loading on some platforms.</source>
+        <target state="new">Using a 'file' type is not allowed for implementing analyzers, generators, or code fixers. This can break analyzer loading on some platforms.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseFileTypesForAnalyzersOrGeneratorsMessage">
+        <source>Type '{0}' should not be marked with 'file'</source>
+        <target state="new">Type '{0}' should not be marked with 'file'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseFileTypesForAnalyzersOrGeneratorsTitle">
+        <source>Do not use file types for implementing analyzers, generators, and code fixers</source>
+        <target state="new">Do not use file types for implementing analyzers, generators, and code fixers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseReservedDiagnosticIdDescription">
+        <source>DiagnosticId for analyzers should not use reserved IDs.</source>
+        <target state="translated">분석기의 DiagnosticId에는 예약된 ID를 사용해서는 안 됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseReservedDiagnosticIdMessage">
+        <source>'{0}' is a reserved diagnostic ID</source>
+        <target state="translated">'{0}'은(는) 예약된 진단 ID입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseReservedDiagnosticIdTitle">
+        <source>Do not use reserved diagnostic IDs</source>
+        <target state="translated">예약된 진단 ID를 사용하면 안 됨</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableAnalyzerReleaseTrackingRuleDescription">
+        <source>Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</source>
+        <target state="translated">분석기 패키지에 대해 릴리스 추적을 사용하도록 설정하면 각 분석기 릴리스와 함께 제공 및/또는 변경되는 분석기 진단을 추적하고 문서화하는 데 도움이 됩니다. 자세한 내용은 https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md를 참조하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableAnalyzerReleaseTrackingRuleMessage">
+        <source>Enable analyzer release tracking for the analyzer project containing rule '{0}'</source>
+        <target state="translated">'{0}' 규칙을 포함하는 분석기 프로젝트에 대해 분석기 릴리스 추적 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableAnalyzerReleaseTrackingRuleTitle">
+        <source>Enable analyzer release tracking</source>
+        <target state="translated">분석기 릴리스 추적 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableConcurrentExecutionFix">
+        <source>Enable concurrent execution</source>
+        <target state="translated">동시 실행 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableConcurrentExecutionMessage">
+        <source>Enable concurrent execution</source>
+        <target state="translated">동시 실행 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableConcurrentExecutionTitle">
+        <source>Enable concurrent execution</source>
+        <target state="translated">동시 실행 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImplementationIsObsoleteDescription">
+        <source>The author of this interface has deprecated implementing this interface.</source>
+        <target state="new">The author of this interface has deprecated implementing this interface.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImplementationIsObsoleteMessage">
+        <source>Type {0} cannot implement interface {1} because {1} is obsolete for implementation. See {2} for more details.</source>
+        <target state="new">Type {0} cannot implement interface {1} because {1} is obsolete for implementation. See {2} for more details.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImplementationIsObsoleteTitle">
+        <source>Implementations of this interface are not allowed</source>
+        <target state="new">Implementations of this interface are not allowed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleDescription">
+        <source>Invalid entry in analyzer release file.</source>
+        <target state="translated">분석기 릴리스 파일에 잘못된 항목이 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleMessage">
+        <source>Analyzer release file '{0}' has an invalid entry '{1}'</source>
+        <target state="translated">분석기 릴리스 파일 '{0}'에 잘못된 항목 '{1}'이(가) 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleTitle">
+        <source>Invalid entry in analyzer release file</source>
+        <target state="translated">분석기 릴리스 파일에 잘못된 항목이 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidHeaderInAnalyzerReleasesFileRuleMessage">
+        <source>Analyzer release file '{0}' has a missing or invalid release header '{1}'</source>
+        <target state="translated">분석기 릴리스 파일 '{0}'에 누락되거나 잘못된 릴리스 헤더 '{1}'이(가) 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRuleMessageMessage">
+        <source>Analyzer release file '{0}' has an invalid '{1}' entry without a prior shipped release for the rule '{2}'. Instead, add a separate '{1}' entry for the rule in unshipped release file.</source>
+        <target state="translated">분석기 릴리스 파일 '{0}'에 '{2}' 규칙에 대해 제공된 이전 릴리스가 없는 잘못된 '{1}' 항목이 있습니다. 제공되지 않은 릴리스 파일에서 해당 규칙에 대한 별도의 '{1}' 항목을 대신 추가합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidUndetectedEntryInAnalyzerReleasesFileRuleMessage">
+        <source>Analyzer release file '{0}' has an entry with one or more 'Undetected' fields that need to be manually filled in '{1}'</source>
+        <target state="translated">분석기 릴리스 파일 '{0}'에 '{1}'에 수동으로 채워야 하는 하나 이상의 '검색되지 않은' 필드가 있는 항목이 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingAttributeMessage">
+        <source>Missing '{0}' attribute</source>
+        <target state="translated">'{0}' 특성이 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingDiagnosticAnalyzerAttributeTitle">
+        <source>Missing diagnostic analyzer attribute</source>
+        <target state="translated">진단 분석기 특성이 없음</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingDiagnosticAnalyzerAttributeDescription">
+        <source>Non-abstract sub-types of DiagnosticAnalyzer should be marked with DiagnosticAnalyzerAttribute(s). The argument to this attribute(s), if any, determine the supported languages for the analyzer. Analyzer types without this attribute will be ignored by the analysis engine.</source>
+        <target state="translated">DiagnosticAnalyzer의 비추상 하위 형식은 DiagnosticAnalyzerAttribute로 표시되어야 합니다. 이 특성에 대한 인수가 있는 경우 해당 인수가 분석기에 지원되는 언어를 결정합니다. 이 특성이 없는 분석기 형식은 분석 엔진에 의해 무시됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddLanguageSupportToAnalyzerMessage">
+        <source>Diagnostic analyzer '{0}' may be able to support both C# and Visual Basic. Consider adding an argument to DiagnosticAnalyzerAttribute for '{1}' language support.</source>
+        <target state="translated">'{0}' 진단 분석기는 C# 및 Visual Basic을 모두 지원할 수 있습니다. '{1}' 언어 지원을 위해 DiagnosticAnalyzerAttribute에 대한 인수를 추가하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddLanguageSupportToAnalyzerTitle">
+        <source>Recommend adding language support to diagnostic analyzer</source>
+        <target state="translated">진단 분석기에 언어 지원을 추가하는 것이 좋음</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddLanguageSupportToAnalyzerDescription">
+        <source>Diagnostic analyzer is marked as supporting only one language, but the analyzer assembly doesn't seem to refer to any language specific CodeAnalysis assemblies, and so is likely to work for more than one language. Consider adding an additional language argument to DiagnosticAnalyzerAttribute.</source>
+        <target state="translated">진단 분석기는 1개의 언어만 지원하는 것으로 표시되지만, 분석기 어셈블리가 언어 특정 CodeAnalysis 어셈블리를 참조하지 않는 것으로 보이므로 2개 이상의 언어로 작업할 가능성이 있습니다. DiagnosticAnalyzerAttribute에 언어 인수를 추가하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ApplyDiagnosticAnalyzerAttribute_1">
+        <source>Apply DiagnosticAnalyzer attribute for '{0}'.</source>
+        <target state="translated">'{0}'에 대한 DiagnosticAnalyzer 특성을 적용하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ApplyDiagnosticAnalyzerAttribute_2">
+        <source>Apply DiagnosticAnalyzer attribute for both '{0}' and '{1}'.</source>
+        <target state="translated">'{0}' 및 '{1}'에 대한 DiagnosticAnalyzer 특성을 적용하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingSymbolKindArgumentToRegisterActionMessage">
+        <source>Specify at least one SymbolKind of interest when registering a symbol analyzer action</source>
+        <target state="translated">기호 분석기 작업을 등록할 때 관심 있는 SymbolKind를 하나 이상 지정하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingSyntaxKindArgumentToRegisterActionMessage">
+        <source>Specify at least one SyntaxKind of interest when registering a syntax node analyzer action</source>
+        <target state="translated">구문 노드 분석기 작업을 등록할 때 관심 있는 SyntaxKind를 하나 이상 지정하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingOperationKindArgumentToRegisterActionMessage">
+        <source>Specify at least one OperationKind of interest when registering an operation analyzer action</source>
+        <target state="translated">작업 분석기 작업을 등록할 때 관심 있는 OperationKind를 하나 이상 지정하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingKindArgumentToRegisterActionTitle">
+        <source>Missing kind argument when registering an analyzer action</source>
+        <target state="translated">분석기 작업을 등록할 때 종류 인수가 없음</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingKindArgumentToRegisterActionDescription">
+        <source>You must specify at least one syntax, symbol or operation kind when registering a syntax, symbol, or operation analyzer action respectively. Otherwise, the registered action will never be invoked during analysis.</source>
+        <target state="translated">구문, 기호 또는 작업 분석기 작업을 각각 등록할 때 하나 이상의 구문, 기호 또는 작업 종류를 지정해야 합니다. 지정하지 않으면 등록된 작업이 분석하는 동안 호출되지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NoSettingSpecifiedSymbolIsBannedInAnalyzersDescription">
+        <source>A project containing analyzers or source generators should specify the property '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'.</source>
+        <target state="translated">분석기 또는 원본 생성기를 포함하는 프로젝트는 속성 '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'을(를) 지정해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NoSettingSpecifiedSymbolIsBannedInAnalyzersMessage">
+        <source>'{0}': A project containing analyzers or source generators should specify the property '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'</source>
+        <target state="translated">'{0}': 분석기 또는 원본 생성기를 포함하는 프로젝트는 속성 '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'을(를) 지정해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NoSettingSpecifiedSymbolIsBannedInAnalyzersTitle">
+        <source>Specify analyzer banned API enforcement setting</source>
+        <target state="translated">분석기 금지 API 적용 설정 지정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindDescription">
+        <source>Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.</source>
+        <target state="translated">구문 종류를 확인할 때 'syntax.IsKind(kind)' ~ 'syntax.Kind() == kind'를 선호합니다. 'IsKind'를 사용하는 코드는 런타임 시 약간 더 효율적이므로 해당하는 경우 이 형식을 일관되게 사용하면 복잡한 분석 시나리오에서 성능을 향상하는 데 도움이 됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindFix">
+        <source>Use 'IsKind' instead of 'Kind'</source>
+        <target state="translated">'Kind' 대신 'IsKind' 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindMessage">
+        <source>Prefer 'IsKind' for checking syntax kinds</source>
+        <target state="translated">구문 종류 확인에 'IsKind' 선호</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindTitle">
+        <source>Prefer 'IsKind' for checking syntax kinds</source>
+        <target state="translated">구문 종류 확인에 'IsKind' 선호</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideCustomTagsInDescriptorDescription">
+        <source>The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.</source>
+        <target state="translated">'customTags' 값은 특정 태그 값을 기준으로 진단 설명자에서 특정 작업 및 필터를 사용하도록 설정하는 방법으로 사용됩니다. 모든 Roslyn 분석기에는 'WellKnownDiagnosticTags' 클래스의 태그가 하나 이상 있어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideCustomTagsInDescriptorMessage">
+        <source>Consider providing a non-null 'customTags' to diagnostic descriptor constructor to enable metatada filtering of diagnostic descriptors</source>
+        <target state="translated">진단 설명자 생성자에 null이 아닌 'customTags'를 제공하여 진단 설명자의 메타데이터 필터링을 사용하도록 설정하는 것이 좋습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideCustomTagsInDescriptorTitle">
+        <source>Provide non-null 'customTags' value to diagnostic descriptor constructor</source>
+        <target state="translated">null이 아닌 'customTags' 값을 진단 설명자 생성자에 제공</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleDescription">
+        <source>Remove duplicate entries for diagnostic ID between analyzer releases.</source>
+        <target state="translated">분석기 릴리스 간에 진단 ID의 중복 항목을 제거합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleMessage">
+        <source>Rule '{0}' has duplicate entry between release '{1}' and release '{2}'</source>
+        <target state="translated">'{0}' 규칙에서 '{1}' 릴리스 및 '{2}' 릴리스 간에 중복 항목이 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleTitle">
+        <source>Remove duplicate entries for diagnostic ID between analyzer releases</source>
+        <target state="translated">분석기 릴리스 간에 진단 ID의 중복 항목 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleDescription">
+        <source>Remove duplicate entries for diagnostic ID in the same analyzer release.</source>
+        <target state="translated">동일한 분석기 릴리스에서 진단 ID의 중복 항목을 제거합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleMessage">
+        <source>Rule '{0}' has more then one entry for release '{1}' in analyzer release file '{2}'</source>
+        <target state="translated">'{0}' 규칙에 분석기 릴리스 파일 '{2}'의 '{1}' 릴리스에 대한 항목이 둘 이상 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleTitle">
+        <source>Remove duplicate entries for diagnostic ID in the same analyzer release</source>
+        <target state="translated">동일한 분석기 릴리스에서 진단 ID의 중복 항목 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveShippedDeletedDiagnosticIdDescription">
+        <source>Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.</source>
+        <target state="translated">더 이상 보고되지 않는 제공된 진단 ID는 제공되지 않은 파일의 '제거된 규칙' 테이블에 항목이 있어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveShippedDeletedDiagnosticIdMessage">
+        <source>Rule '{0}' was shipped in analyzer release '{1}', but is no longer a supported diagnostic for any analyzer. Add an entry for this rule in a 'Removed Rules' table to unshipped file.</source>
+        <target state="translated">'{0}' 규칙은 분석기 릴리스 '{1}'에서 제공되었지만 더 이상 모든 분석기를 지원하는 진단이 아닙니다. '제거된 규칙' 테이블에서 이 규칙에 대한 항목을 제공되지 않은 파일에 추가합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveShippedDeletedDiagnosticIdTitle">
+        <source>Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file</source>
+        <target state="translated">더 이상 보고되지 않는 제공된 진단 ID는 제공되지 않은 파일의 '제거된 규칙' 테이블에 항목이 있어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveUnshippedDeletedDiagnosticIdDescription">
+        <source>Entries for analyzer diagnostic IDs that are no longer reported and never shipped can be removed from unshipped analyzer release.</source>
+        <target state="translated">더 이상 보고되지 않고 제공되지 않는 분석기 진단 ID의 항목은 제공되지 않은 분석기 릴리스에서 제거될 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveUnshippedDeletedDiagnosticIdMessage">
+        <source>Rule '{0}' is part of the next unshipped analyzer release, but is not a supported diagnostic for any analyzer</source>
+        <target state="translated">'{0}' 규칙은 제공되지 않은 다음 분석기 릴리스에 포함되지만 모든 분석기를 지원하는 진단이 아닙니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveUnshippedDeletedDiagnosticIdTitle">
+        <source>Do not add removed analyzer diagnostic IDs to unshipped analyzer release</source>
+        <target state="translated">제거된 분석기 진단 ID를 제공되지 않은 분석기 릴리스에 추가하면 안 됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullDescription">
+        <source>Calling 'SemanticModel.GetDeclaredSymbol' with on certain types inheriting from 'SyntaxNode', for example 'GlobalStatementSyntax' and 'IncompleteMemberSyntax' will always return 'null'.</source>
+        <target state="translated">'SyntaxNode'에서 상속되는 특정 형식을 사용하여 'SemanticModel.GetDeclaredSymbol'을 호출합니다(예: 'GlobalStatementSyntax' 및 'IncompleteMemberSyntax'는 항상 'null'을 반환합니다.)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullForFieldDescription">
+        <source>Calling 'SemanticModel.GetDeclaredSymbol' with an argument of type 'FieldDeclarationSyntax' or 'EventFieldDeclarationSyntax' will always return 'null'. Call 'GetDeclaredSymbol' with the variable declarators from the field instead.</source>
+        <target state="translated">'FieldDeclarationSyntax' 또는 'EventFieldDeclarationSyntax' 형식의 인수를 사용하여 'SemanticModel.GetDeclaredSymbol'을 호출하면 항상 'null'이 반환됩니다. 대신 필드의 변수 선언자를 사용하여 'GetDeclaredSymbol'을 호출합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullForFieldMessage">
+        <source>A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</source>
+        <target state="translated">'SemanticModel.GetDeclaredSymbol({0})'에 대한 호출은 항상 'null'을 반환합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullMessage">
+        <source>A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</source>
+        <target state="translated">'SemanticModel.GetDeclaredSymbol({0})'에 대한 호출은 항상 'null'을 반환합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullTitle">
+        <source>This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'</source>
+        <target state="translated">'SemanticModel.GetDeclaredSymbol()'에 대한 이 호출은 항상 'null'을 반환합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolIsBannedInAnalyzersDescription">
+        <source>The symbol has been marked as banned for use in analyzers, and an alternate should be used instead.</source>
+        <target state="translated">기호가 분석기에서 사용 금지된 것으로 표시되었으며 대신 대체 기호를 사용해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolIsBannedInAnalyzersMessage">
+        <source>The symbol '{0}' is banned for use by analyzers{1}</source>
+        <target state="translated">기호 '{0}'은(는) 분석기에서 사용할 수 없습니다{1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolIsBannedInAnalyzersTitle">
+        <source>Do not use APIs banned for analyzers</source>
+        <target state="translated">분석기에서 금지된 API 사용 안 함</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdDescription">
+        <source>Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers.</source>
+        <target state="translated">분석기 릴리스 파일에서 제거된 것으로 표시된 진단 ID는 분석기에서 보고되면 안 됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdMessage">
+        <source>Rule '{0}' is marked as removed in the latest analyzer release, but is still being reported</source>
+        <target state="translated">'{0}' 규칙이 최신 분석기 릴리스에서 제거된 것으로 표시되었지만 계속 보고됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdTitle">
+        <source>Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers</source>
+        <target state="translated">분석기 릴리스 파일에서 제거된 것으로 표시된 진단 ID는 분석기에서 보고되면 안 됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedSymbolKindArgumentToRegisterActionMessage">
+        <source>SymbolKind '{0}' is not supported for symbol analyzer actions</source>
+        <target state="translated">SymbolKind '{0}'이(가) 기호 분석기 작업에서 지원되지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedSymbolKindArgumentToRegisterActionTitle">
+        <source>Unsupported SymbolKind argument when registering a symbol analyzer action</source>
+        <target state="translated">기호 분석기 작업을 등록할 때 지원되지 않는 SymbolKind 인수</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidReportDiagnosticMessage">
+        <source>ReportDiagnostic invoked with an unsupported DiagnosticDescriptor '{0}'</source>
+        <target state="translated">지원되지 않는 DiagnosticDescriptor '{0}'을(를) 사용하여 호출된 ReportDiagnostic입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidReportDiagnosticTitle">
+        <source>ReportDiagnostic invoked with an unsupported DiagnosticDescriptor</source>
+        <target state="translated">지원되지 않는 DiagnosticDescriptor를 사용하여 호출된 ReportDiagnostic</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidReportDiagnosticDescription">
+        <source>ReportDiagnostic should only be invoked with supported DiagnosticDescriptors that are returned from DiagnosticAnalyzer.SupportedDiagnostics property. Otherwise, the reported diagnostic will be filtered out by the analysis engine.</source>
+        <target state="translated">ReportDiagnostic은 DiagnosticAnalyzer.SupportedDiagnostics 속성에서 반환된 지원되는 DiagnosticDescriptors를 통해서만 호출되어야 합니다. 그러지 않으면 보고된 진단이 분석 엔진에 의해 필터링됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidSyntaxKindTypeArgumentMessage">
+        <source>Type argument '{0}' for type parameter '{1}' of method '{2}' is not a SyntaxKind enum</source>
+        <target state="translated">'{2}' 메서드의 '{1}' 형식 매개 변수에 대한 형식 인수 '{0}'은(는) SyntaxKind 열거형이 아닙니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidSyntaxKindTypeArgumentTitle">
+        <source>Invalid type argument for DiagnosticAnalyzer's Register method</source>
+        <target state="translated">DiagnosticAnalyzer의 Register 메서드에 대한 형식 인수가 잘못됨</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidSyntaxKindTypeArgumentDescription">
+        <source>DiagnosticAnalyzer's language-specific Register methods, such as RegisterSyntaxNodeAction, RegisterCodeBlockStartAction and RegisterCodeBlockEndAction, expect a language-specific 'SyntaxKind' type argument for it's '{0}' type parameter. Otherwise, the registered analyzer action can never be invoked during analysis.</source>
+        <target state="translated">RegisterSyntaxNodeAction, RegisterCodeBlockStartAction 및 RegisterCodeBlockEndAction 등의 DiagnosticAnalyzer의 언어 특정 Register 메서드에는 '{0}' 형식 매개 변수에 대한 언어 특정 'SyntaxKind' 형식 인수를 사용해야 합니다. 그러지 않으면 등록된 분석기 작업이 분석하는 동안 호출되지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StartActionWithOnlyEndActionTitle">
+        <source>Start action has no registered non-end actions</source>
+        <target state="translated">시작 작업에 등록된 비종료 작업이 없음</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StartActionWithNoRegisteredActionsMessage">
+        <source>'{0}' does not register any analyzer actions. Consider moving actions registered in '{1}' that depend on this start action to '{0}'.</source>
+        <target state="translated">'{0}'은(는) 분석기 작업을 등록하지 않습니다. 이 시작 작업에 종속된 '{1}'에 등록된 작업을 '{0}'(으)로 이동하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StartActionWithNoRegisteredActionsTitle">
+        <source>Start action has no registered actions</source>
+        <target state="translated">시작 작업에 등록된 작업이 없음</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StartActionWithOnlyEndActionMessage">
+        <source>'{0}' does not register any analyzer actions, except for a '{1}'. Consider replacing this start/end action pair with a '{2}' or moving actions registered in '{3}' that depend on this start action to '{0}'.</source>
+        <target state="translated">'{0}'은(는) '{1}'을(를) 제외하고 분석기 작업을 등록하지 않았습니다. 이 시작/종료 작업 쌍을 '{2}'(으)로 바꾸거나 이 시작 작업에 종속된 '{3}'에 등록된 작업을 '{0}'(으)로 이동하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StatefulAnalyzerRegisterActionsDescription">
+        <source>An analyzer start action enables performing stateful analysis over a given code unit, such as a code block, compilation, etc. Careful design is necessary to achieve efficient analyzer execution without memory leaks. Use the following guidelines for writing such analyzers:
+1. Define a new scope for the registered start action, possibly with a private nested type for analyzing each code unit.
+2. If required, define and initialize state in the start action.
+3. Register at least one non-end action that refers to this state in the start action. If no such action is necessary, consider replacing the start action with a non-start action. For example, a CodeBlockStartAction with no registered actions or only a registered CodeBlockEndAction should be replaced with a CodeBlockAction.
+4. If required, register an end action to report diagnostics based on the final state.</source>
+        <target state="translated">분석기 시작 작업으로 코드 블록, 컴파일 등의 특정 코드 단위에서 상태 저장 분석을 수행할 수 있습니다. 메모리 누수 없이 분석기를 효율적으로 실행하려면 신중한 설계가 필요합니다. 이러한 분석기를 쓰려면 다음 지침을 따르세요.
+1. 등록된 시작 작업에 대해 각 코드 단위를 분석하기 위한 프라이빗 중첩 형식이 있는 새 범위를 정의합니다.
+2. 필요한 경우 시작 작업에서 상태를 정의하고 초기화합니다.
+3. 시작 작업에서 이 상태를 참조하는 비종료 작업을 하나 이상 등록합니다. 이러한 작업이 필요하지 않은 경우 시작 작업을 비종료 작업으로 바꾸는 것이 좋습니다. 예를 들어 등록된 작업이 없는 CodeBlockStartAction 또는 등록된 CodeBlockEndAction만 CodeBlockAction으로 바꿀 수 있습니다.
+4. 필요한 경우 종료 작업을 등록하여 최종 상태를 기준으로 진단을 보고합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpdateDiagnosticIdInAnalyzerReleaseDescription">
+        <source>Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release.</source>
+        <target state="translated">분석기 진단 ID의 최신 항목이 분석기 릴리스에 추가되었는지 확인합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpdateDiagnosticIdInAnalyzerReleaseMessage">
+        <source>Rule '{0}' has a changed 'Category' or 'Severity' from the last release. Either revert the update(s) in source or add a new up-to-date entry to unshipped release file.</source>
+        <target state="translated">'{0}' 규칙에는 마지막 릴리스에서 변경된 '범주' 또는 '심각도'가 있습니다. 소스에서 업데이트를 되돌리거나 제공되지 않은 릴리스 파일에 새 최신 항목을 추가합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpdateDiagnosticIdInAnalyzerReleaseTitle">
+        <source>Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release</source>
+        <target state="translated">분석기 진단 ID의 최신 항목이 분석기 릴리스에 추가되었는지 확인</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpdateEntryForDiagnosticIdInAnalyzerReleaseCodeFixTitle">
+        <source>Update rule entry in unshipped release file</source>
+        <target state="translated">제공되지 않은 릴리스 파일의 규칙 항목 업데이트</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseLocalizableStringsInDescriptorMessage">
+        <source>Consider providing localizable arguments of type '{0}' to diagnostic descriptor constructor to ensure the descriptor is localizable</source>
+        <target state="translated">'{0}' 형식의 지역화 가능 인수를 진단 설명자 생성자에 제공하여 설명자가 지역화 가능하도록 하는 것이 좋습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseLocalizableStringsInDescriptorTitle">
+        <source>Provide localizable arguments to diagnostic descriptor constructor</source>
+        <target state="translated">지역화 가능 인수를 진단 설명자 생성자에 제공</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseLocalizableStringsInDescriptorDescription">
+        <source>If your diagnostic analyzer and it's reported diagnostics need to be localizable, then the supported DiagnosticDescriptors used for constructing the diagnostics must also be localizable. If so, then localizable argument(s) must be provided for parameter 'title' (and optionally 'description') to the diagnostic descriptor constructor to ensure that the descriptor is localizable.</source>
+        <target state="translated">진단 분석기 및 보고된 진단을 현지화해야 하는 경우 진단을 생성하는 데 사용된 지원되는 DiagnosticDescriptors도 현지화할 수 있어야 합니다. 이 경우 매개 변수 '제목'(선택적으로 '설명')에 대해 현지화할 수 있는 인수를 진단 설명자 생성자에 제공하여 설명자를 현지화할 수 있는지 확인해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotStorePerCompilationDataOntoFieldsMessage">
+        <source>Avoid storing per-compilation data of type '{0}' into the fields of a diagnostic analyzer</source>
+        <target state="translated">'{0}' 형식의 컴파일당 데이터를 진단 분석기의 필드에 저장하지 마세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotStorePerCompilationDataOntoFieldsTitle">
+        <source>Avoid storing per-compilation data into the fields of a diagnostic analyzer</source>
+        <target state="translated">컴파일당 데이터를 진단 분석기의 필드에 저장하면 안 됨</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotStorePerCompilationDataOntoFieldsDescription">
+        <source>Instance of a diagnostic analyzer might outlive the lifetime of compilation. Hence, storing per-compilation data, such as symbols, into the fields of a diagnostic analyzer might cause stale compilations to stay alive and cause memory leaks.  Instead, you should store this data on a separate type instantiated in a compilation start action, registered using '{0}.{1}' API. An instance of this type will be created per-compilation and it won't outlive compilation's lifetime, hence avoiding memory leaks.</source>
+        <target state="translated">진단 분석기의 인스턴스는 컴파일 수명보다 더 오래 활성화될 수 있습니다. 그러므로 기호와 같은 컴파일당 데이터를 진단 분석기 필드에 저장하면 활성화된 컴파일의 상태가 부실하여 메모리 손실 문제를 일으킬 수 있습니다.  대신 인스턴스화된 별도 형식의 데이터를 '{0}.{1}' API를 사용하여 등록된 컴파일 시작 작업에 저장해야 합니다. 이 형식의 컴파일당 인스턴스가 만들어지며 컴파일의 수명보다 오래 활성화되지 않아 메모리 손실을 방지할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalImplementationOnlyDescription">
+        <source>The author of this interface did not intend to have third party implementations of this interface and reserves the right to change it. Implementing this interface could therefore result in a source or binary compatibility issue with a future version of this interface.</source>
+        <target state="translated">이 인터페이스 작성자는 이 인터페이스를 타사에서 구현하도록 의도하지 않았으며 변경할 권리를 갖습니다. 그러므로 이 인터페이스를 구현하면 향후 버전에서 소스 또는 이진 호환성 문제가 발생할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalImplementationOnlyMessage">
+        <source>Type {0} cannot implement interface {1} because {1} is not available for public implementation</source>
+        <target state="translated">{1}을(를) 공개 구현할 수 없으므로 {0} 형식은 {1} 인터페이스를 구현할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalImplementationOnlyTitle">
+        <source>Only internal implementations of this interface are allowed</source>
+        <target state="translated">이 인터페이스의 내부 구현만 허용됨</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CodeActionNeedsEquivalenceKeyDescription">
+        <source>A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique for each kind of code action created by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</source>
+        <target state="translated">모든 발생 수정을 지원하는 CodeFixProvider에 이 수정 도구에서 만들어진 각 종류의 코드 작업에 대해 고유한 명시적이고 null이 아닌 동등 키를 할당하여 등록된 코드 작업을 동등 클래스로 분류해야 합니다. 이렇게 하면 FixAllProvider가 트리거 코드 작업의 동등 클래스에 있는 수정 도구의 코드 작업을 적용하여 필수 범위에서 모든 진단을 수정할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CreateCodeActionWithEquivalenceKeyMessage">
+        <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique for each kind of code action created by this fixer</source>
+        <target state="translated">이 수정 도구에서 생성된 각 종류의 코드 작업에 대해 고유하고 null이 아닌 선택적 매개 변수 '{0}'의 명시적 인수를 제공하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CreateCodeActionWithEquivalenceKeyTitle">
+        <source>Create code actions should have a unique EquivalenceKey for FixAll occurrences support</source>
+        <target state="translated">코드 생성 작업에는 FixAll 발생 지원을 위한 고유 EquivalenceKey가 있어야 함</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideCodeActionEquivalenceKeyMessage">
+        <source>'{0}' has the default value of 'null' for property '{1}'. Either override this property on '{0}' to return a non-null and unique value across all code actions per-fixer or use such an existing code action.</source>
+        <target state="translated">'{0}'에는 '{1}' 속성에 대한 'null'의 기본값이 있습니다. '{0}'의 속성을 재정의하여 수정 도구당 모든 코드 작업에서 null이 아닌 고유 값을 반환하거나 기존 코드 작업을 사용하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideCodeActionEquivalenceKeyTitle">
+        <source>Use code actions that have a unique EquivalenceKey for FixAll occurrences support</source>
+        <target state="translated">FixAll 발생 지원을 위한 고유 EquivalenceKey가 있는 코드 작업 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationDescription">
+        <source>Many objects exposed by Roslyn are immutable. The return value from a method invocation on these objects should not be ignored.</source>
+        <target state="translated">Roslyn에서 노출한 대부분의 개체는 변경할 수 없습니다. 이 개체에 대한 메서드 호출의 반환 값은 무시할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationMessage">
+        <source>'{0}' is immutable and '{1}' will not have any effect on it. Consider using the return value from '{1}'.</source>
+        <target state="translated">'{0}'을(를) 변경할 수 없으며 '{1}'은(는) 아무런 영향을 주지 않습니다. '{1}'의 반환 값을 사용하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationTitle">
+        <source>Do not ignore values returned by methods on immutable objects</source>
+        <target state="translated">변경할 수 없는 개체의 메서드에서 반환된 값을 무시하지 마세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideGetFixAllProviderTitle">
+        <source>Code fix providers should provide FixAll support</source>
+        <target state="translated">코드 수정 공급자가 FixAll 지원을 제공해야 함</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideGetFixAllProviderMessage">
+        <source>'{0}' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.</source>
+        <target state="translated">'{0}'은(는) 하나 이상의 코드 수정 사항을 등록하지만 'CodeFixProvider.GetFixAllProvider' 메서드를 재정의하지 않습니다. 이 메서드를 재정의하고 FixAll 지원에 대해 null이 아닌 FixAllProvider(잠재적으로 'WellKnownFixAllProviders.BatchFixer')를 제공하세요. 'null'은 FixAll 지원을 명시적으로 사용하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideGetFixAllProviderDescription">
+        <source>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md for further details.</source>
+        <target state="translated">사용자가 단일 코드 수정 사항을 사용하여 기본 진단의 여러 인스턴스를 수정할 수 있도록 하려면 CodeFixProvider가 FixAll 지원을 제공해야 합니다. 자세한 내용은 https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md에 있는 문서를 참조하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideGetFixAllProviderCodeFixTitle">
+        <source>Override GetFixAllProvider.</source>
+        <target state="translated">GetFixAllProvider를 재정의하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideHelpUriInDescriptorMessage">
+        <source>Consider providing a non-null 'helpLinkUri' to diagnostic descriptor constructor to show information when this diagnostic appears in the error list</source>
+        <target state="translated">null이 아닌 'helpLinkUri'를 진단 설명자 생성자에 제공하여 이 진단이 오류 목록에 나타날 때 정보를 표시하는 것이 좋습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideHelpUriInDescriptorTitle">
+        <source>Provide non-null 'helpLinkUri' value to diagnostic descriptor constructor</source>
+        <target state="translated">null이 아닌 'helpLinkUri' 값을 진단 설명자 생성자에 제공</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideHelpUriInDescriptorDescription">
+        <source>The 'helpLinkUri' value is used to show information when this diagnostic in the error list. Every analyzer should have a helpLinkUri specified which points to a help page that does not change over time.</source>
+        <target state="translated">'helpLinkUri' 값은 이 진단이 오류 목록에 표시될 때 정보를 표시하는 데 사용됩니다. 모든 분석기에 시간이 지나도 변경되지 않는 도움말 페이지를 가리키는 지정된 helpLinkUri가 있어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatTitle">
+        <source>DiagnosticId for analyzers must be in specified format</source>
+        <target state="translated">분석기의 진단 ID는 지정된 형식이어야 함</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatMessage">
+        <source>Diagnostic Id '{0}' belonging to category '{1}' is not in the required range and/or format '{2}' specified in the file '{3}'</source>
+        <target state="translated">'{1}' 범주에 속하는 진단 ID '{0}'이(가) 필요한 범위 내에 있지 않고/않거나 '{3}' 파일에 지정된 '{2}' 형식이 아닙니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatDescription">
+        <source>DiagnosticId for analyzers must be in specified format.</source>
+        <target state="translated">분석기에 대한 진단 ID는 지정된 형식이어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseUniqueDiagnosticIdTitle">
+        <source>DiagnosticId must be unique across analyzers</source>
+        <target state="translated">진단 ID는 분석기 간에 고유해야 함</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseUniqueDiagnosticIdMessage">
+        <source>Diagnostic Id '{0}' is already used by analyzer '{1}'. Please use a different diagnostic ID.</source>
+        <target state="translated">진단 ID '{0}'이(가) 분석기 '{1}'에서 이미 사용되고 있습니다. 다른 진단 ID를 사용하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseUniqueDiagnosticIdDescription">
+        <source>DiagnosticId must be unique across analyzers.</source>
+        <target state="translated">진단 ID는 분석기 간에 고유해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseCategoriesFromSpecifiedRangeTitle">
+        <source>Category for analyzers must be from the specified values</source>
+        <target state="translated">분석기 범주는 지정된 값이어야 함</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseCategoriesFromSpecifiedRangeMessage">
+        <source>Category '{0}' is not from the allowed categories specified in the file '{1}'</source>
+        <target state="translated">'{0}' 범주가 '{1}' 파일에 지정된 허용 범주에 속해 있지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseCategoriesFromSpecifiedRangeDescription">
+        <source>Category for analyzers must be from the specified values.</source>
+        <target state="translated">분석기에 대한 범주는 지정된 값이어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidTitle">
+        <source>Invalid entry in analyzer category and diagnostic ID range specification file</source>
+        <target state="translated">분석기 범주 및 진단 ID 범위 사양 파일의 항목이 잘못됨</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidMessage">
+        <source>Invalid entry '{0}' in analyzer category and diagnostic ID range specification file '{1}'</source>
+        <target state="translated">분석기 범주 및 진단 ID 범위 사양 파일 '{1}'의 '{0}' 항목이 잘못되었습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidDescription">
+        <source>Invalid entry in analyzer category and diagnostic ID range specification file.</source>
+        <target state="translated">분석기 범주 및 진단 ID 범위 지정 파일의 항목이 잘못되었습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdMustBeAConstantTitle">
+        <source>DiagnosticId for analyzers must be a non-null constant</source>
+        <target state="translated">분석기의 진단 ID는 null이 아닌 상수여야 함</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdMustBeAConstantMessage">
+        <source>Diagnostic Id for rule '{0}' must be a non-null constant</source>
+        <target state="translated">'{0}' 규칙의 진단 ID는 null이 아닌 상수여야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdMustBeAConstantDescription">
+        <source>DiagnosticId for analyzers must be a non-null constant.</source>
+        <target state="translated">분석기에 대한 진단 ID는 null이 아닌 상수여야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseTypesFromAssemblyRuleDescription">
+        <source>Diagnostic analyzer types should not use types from Workspaces assemblies. Workspaces assemblies are only available when the analyzer executes in Visual Studio IDE live analysis, but are not available during command line build. Referencing types from Workspaces assemblies will lead to runtime exception during analyzer execution in command line build.</source>
+        <target state="translated">진단 분석기 형식은 작업 영역 어셈블리의 형식을 사용해서는 안 됩니다. 작업 영역 어셈블리는 분석기가 Visual Studio IDE 라이브 분석에서 실행될 때에만 사용 가능하지만, 명령줄 빌드 중에는 사용할 수 없습니다. 작업 영역 어셈블리의 형식을 참조하면 명령줄 빌드에서 분석기 실행 중 런타임 예외가 발생합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseTypesFromAssemblyRuleTitle">
+        <source>Do not use types from Workspaces assembly in an analyzer</source>
+        <target state="translated">분석기에서 작업 영역 어셈블리의 형식을 사용하지 마세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseTypesFromAssemblyRuleIndirectMessage">
+        <source>Change diagnostic analyzer type '{0}' to remove all direct and/or indirect accesses to type(s) '{1}', which access type(s) '{2}'</source>
+        <target state="translated">진단 분석기 형식 '{0}'을(를) 변경하여 '{1}' 형식에 대해 액세스 형식이 '{2}'인 모든 직접 및/또는 간접 액세스를 제거합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseTypesFromAssemblyRuleDirectMessage">
+        <source>Change diagnostic analyzer type '{0}' to remove all direct accesses to type(s) '{1}'</source>
+        <target state="translated">진단 분석기 형식 '{0}'을(를) 변경하여 '{1}' 형식에 대해 모든 직접 액세스를 제거합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpgradeMSBuildWorkspaceDescription">
+        <source>MSBuildWorkspace has moved to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package and there are breaking API changes.</source>
+        <target state="translated">MSBuildWorkspace가 Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet 패키지로 이동되었으며 새로운 API 변경 내용이 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpgradeMSBuildWorkspaceMessage">
+        <source>Please upgrade MSBuildWorkspace by adding a package reference to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package. See https://go.microsoft.com/fwlink/?linkid=874285 for details on using MSBuildWorkspace successfully.</source>
+        <target state="translated">Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet 패키지에 패키지 참조를 추가하여 MSBuildWorkspace를 업그레이드하세요. 성공적인 MSBuildWorkspace 사용에 대한 자세한 내용은 https://go.microsoft.com/fwlink/?linkid=874285를 참조하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpgradeMSBuildWorkspaceTitle">
+        <source>Upgrade MSBuildWorkspace</source>
+        <target state="translated">MSBuildWorkspace 업그레이드</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

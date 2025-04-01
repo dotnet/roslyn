@@ -6,15 +6,14 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure
-{
-    internal class FSharpBlockStructure
-    {
-        public ImmutableArray<FSharpBlockSpan> Spans { get; }
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure;
 
-        public FSharpBlockStructure(ImmutableArray<FSharpBlockSpan> spans)
-        {
-            Spans = spans;
-        }
+internal class FSharpBlockStructure
+{
+    public ImmutableArray<FSharpBlockSpan> Spans { get; }
+
+    public FSharpBlockStructure(ImmutableArray<FSharpBlockSpan> spans)
+    {
+        Spans = spans;
     }
 }

@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 
-internal record RunTestsPartialResult(
+internal sealed record RunTestsPartialResult(
     [property: JsonPropertyName("stage")] string Stage,
     [property: JsonPropertyName("message")] string Message,
     [property: JsonPropertyName("progress"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] TestProgress? Progress

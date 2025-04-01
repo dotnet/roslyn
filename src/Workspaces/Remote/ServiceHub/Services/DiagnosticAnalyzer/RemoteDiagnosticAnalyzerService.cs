@@ -63,7 +63,6 @@ internal sealed class RemoteDiagnosticAnalyzerService : BrokeredServiceBase, IRe
                         documentSpan,
                         arguments.ProjectAnalyzerIds, arguments.HostAnalyzerIds, documentAnalysisKind,
                         _analyzerInfoCache, hostWorkspaceServices,
-                        isExplicit: arguments.IsExplicit,
                         logPerformanceInfo: arguments.LogPerformanceInfo,
                         getTelemetryInfo: arguments.GetTelemetryInfo,
                         cancellationToken).ConfigureAwait(false);
@@ -93,7 +92,7 @@ internal sealed class RemoteDiagnosticAnalyzerService : BrokeredServiceBase, IRe
                     var document = solution.GetDocument(diagnostic.Location.SourceTree);
                     var data = document != null
                         ? DiagnosticData.Create(diagnostic, document)
-                        : DiagnosticData.Create(solution, diagnostic, project);
+                        : DiagnosticData.Create(diagnostic, project);
                     builder.Add(data);
                 }
 

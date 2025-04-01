@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
 
 internal sealed partial class SettingsEditorPane
 {
-    internal class SearchTask : VsSearchTask
+    internal sealed class SearchTask : VsSearchTask
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IWpfTableControl[] _controls;

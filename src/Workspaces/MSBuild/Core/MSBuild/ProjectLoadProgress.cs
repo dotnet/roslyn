@@ -4,40 +4,39 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.MSBuild
+namespace Microsoft.CodeAnalysis.MSBuild;
+
+/// <summary>
+/// Provides details as a project is loaded.
+/// </summary>
+public readonly struct ProjectLoadProgress
 {
     /// <summary>
-    /// Provides details as a project is loaded.
+    /// The project for which progress is being reported.
     /// </summary>
-    public readonly struct ProjectLoadProgress
+    public string FilePath { get; }
+
+    /// <summary>
+    /// The operation that has just completed.
+    /// </summary>
+    public ProjectLoadOperation Operation { get; }
+
+    /// <summary>
+    /// The target framework of the project being built or resolved. This property is only valid for SDK-style projects
+    /// during the <see cref="ProjectLoadOperation.Resolve"/> operation.
+    /// </summary>
+    public string? TargetFramework { get; }
+
+    /// <summary>
+    /// The amount of time elapsed for this operation.
+    /// </summary>
+    public TimeSpan ElapsedTime { get; }
+
+    internal ProjectLoadProgress(string filePath, ProjectLoadOperation operation, string? targetFramework, TimeSpan elapsedTime)
     {
-        /// <summary>
-        /// The project for which progress is being reported.
-        /// </summary>
-        public string FilePath { get; }
-
-        /// <summary>
-        /// The operation that has just completed.
-        /// </summary>
-        public ProjectLoadOperation Operation { get; }
-
-        /// <summary>
-        /// The target framework of the project being built or resolved. This property is only valid for SDK-style projects
-        /// during the <see cref="ProjectLoadOperation.Resolve"/> operation.
-        /// </summary>
-        public string? TargetFramework { get; }
-
-        /// <summary>
-        /// The amount of time elapsed for this operation.
-        /// </summary>
-        public TimeSpan ElapsedTime { get; }
-
-        internal ProjectLoadProgress(string filePath, ProjectLoadOperation operation, string? targetFramework, TimeSpan elapsedTime)
-        {
-            FilePath = filePath;
-            Operation = operation;
-            TargetFramework = targetFramework;
-            ElapsedTime = elapsedTime;
-        }
+        FilePath = filePath;
+        Operation = operation;
+        TargetFramework = targetFramework;
+        ElapsedTime = elapsedTime;
     }
 }

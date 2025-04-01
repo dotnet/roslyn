@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.6</remarks>
-internal class ColorPresentationParams : ITextDocumentParams, IWorkDoneProgressParams, IPartialResultParams<ColorPresentation[]>
+internal sealed class ColorPresentationParams : ITextDocumentParams, IWorkDoneProgressParams, IPartialResultParams<ColorPresentation[]>
 {
     /// <summary>
     /// The text document.

@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.CompletionSetSources;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class NamespaceContextTests : AbstractContextTests
+public sealed class NamespaceContextTests : AbstractContextTests
 {
     protected override void CheckResult(bool validLocation, int position, SyntaxTree syntaxTree)
         => Assert.Equal(validLocation, syntaxTree.IsNamespaceContext(position, CancellationToken.None));

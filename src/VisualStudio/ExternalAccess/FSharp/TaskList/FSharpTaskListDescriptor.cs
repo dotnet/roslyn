@@ -4,17 +4,16 @@
 
 using Microsoft.CodeAnalysis.TaskList;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList;
+
+internal readonly struct FSharpTaskListDescriptor
 {
-    internal readonly struct FSharpTaskListDescriptor
+    internal readonly TaskListItemDescriptor Descriptor;
+
+    public string Text => Descriptor.Text;
+
+    internal FSharpTaskListDescriptor(TaskListItemDescriptor descriptor)
     {
-        internal readonly TaskListItemDescriptor Descriptor;
-
-        public string Text => Descriptor.Text;
-
-        internal FSharpTaskListDescriptor(TaskListItemDescriptor descriptor)
-        {
-            Descriptor = descriptor;
-        }
+        Descriptor = descriptor;
     }
 }

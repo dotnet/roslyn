@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId;
 
-public partial class SymbolKeyTest : SymbolKeyTestBase
+public sealed partial class SymbolKeyTest : SymbolKeyTestBase
 {
     #region "No change to symbol"
 

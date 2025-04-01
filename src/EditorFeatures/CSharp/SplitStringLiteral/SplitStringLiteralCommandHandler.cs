@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
 [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class SplitStringLiteralCommandHandler(
+internal sealed partial class SplitStringLiteralCommandHandler(
     ITextUndoHistoryRegistry undoHistoryRegistry,
     IEditorOperationsFactoryService editorOperationsFactoryService,
     EditorOptionsService editorOptionsService) : ICommandHandler<ReturnKeyCommandArgs>
