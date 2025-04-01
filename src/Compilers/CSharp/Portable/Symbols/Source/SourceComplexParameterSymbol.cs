@@ -1591,7 +1591,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 checkIsAtLeastAsVisible(syntax, binder, constructor, diagnostics);
                             }
 
-                            // PROTOTYPE: Should we report diagnostics when GetCollectionExpressionApplicableIndexer() returns non-null?
+                            // https://github.com/dotnet/roslyn/issues/77879: Report diagnostics when GetCollectionExpressionApplicableIndexer() returns non-null?
                             if (binder.GetCollectionExpressionApplicableIndexer(syntax, Type, elementTypeWithAnnotations.Type, BindingDiagnosticBag.Discarded) is null)
                             {
                                 if (!binder.HasCollectionExpressionApplicableAddMethod(syntax, Type, out ImmutableArray<MethodSymbol> addMethods, diagnostics))
@@ -1649,25 +1649,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             Debug.Assert(builderType is { });
                             Debug.Assert(!string.IsNullOrEmpty(methodName));
 
-                            var candidateMethods = binder.GetAndValidateCollectionBuilderMethods(syntax, targetType.OriginalDefinition, builderType, methodName, diagnostics);
-                            if (candidateMethods.Any())
+                            MethodSymbol? collectionBuilderMethod = binder.GetAndValidateCollectionBuilderMethod(syntax, targetType.OriginalDefinition, builderType, methodName, diagnostics);
+                            if (collectionBuilderMethod is null)
                             {
-                                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
-                                var spanType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T).Construct(elementType);
-                                var typeArguments = targetType.GetAllTypeArguments(ref useSiteInfo);
-                                diagnostics.Add(syntax, useSiteInfo);
-                                var candidateMethodGroup = binder.BindCollectionBuilderMethodGroup(syntax, methodName, typeArguments, candidateMethods);
-                                var collectionCreation = binder.BindCollectionBuilderCreate(
-                                    syntax,
-                                    candidateMethodGroup,
-                                    spanArgument: new BoundDefaultExpression(syntax, spanType),
-                                    withElement: null, diagnostics);
+                                return;
+                            }
 
-                                if (collectionCreation is BoundCall { Method: var collectionBuilderMethod } &&
-                                    ContainingSymbol.ContainingSymbol is NamedTypeSymbol) // No need to check for lambdas or local function
-                                {
-                                    checkIsAtLeastAsVisible(syntax, binder, collectionBuilderMethod, diagnostics);
-                                }
+                            if (ContainingSymbol.ContainingSymbol is NamedTypeSymbol) // No need to check for lambdas or local function
+                            {
+                                checkIsAtLeastAsVisible(syntax, binder, collectionBuilderMethod, diagnostics);
                             }
                         }
                         break;

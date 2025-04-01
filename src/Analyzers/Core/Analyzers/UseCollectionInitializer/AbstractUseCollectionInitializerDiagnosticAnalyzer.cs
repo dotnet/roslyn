@@ -117,9 +117,9 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         // as a non-local diagnostic and would not participate in lightbulb for computing code fixes.
         var expressionType = context.Compilation.ExpressionOfTType();
         context.RegisterCodeBlockStartAction<TSyntaxKind>(blockStartContext =>
-                blockStartContext.RegisterSyntaxNodeAction(
-                    nodeContext => AnalyzeNode(nodeContext, ienumerableType, expressionType),
-                    matchKindsArray));
+            blockStartContext.RegisterSyntaxNodeAction(
+                nodeContext => AnalyzeNode(nodeContext, ienumerableType, expressionType),
+                matchKindsArray));
     }
 
     private void AnalyzeNode(

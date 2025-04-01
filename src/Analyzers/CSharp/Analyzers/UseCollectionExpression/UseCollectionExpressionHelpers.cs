@@ -542,12 +542,12 @@ internal static class UseCollectionExpressionHelpers
     }
 
     public static CollectionExpressionSyntax ConvertInitializerToCollectionExpression(
-        InitializerExpressionSyntax initializer, bool wasOnSingleLine)
+        SourceText text, InitializerExpressionSyntax initializer, bool wasOnSingleLine)
     {
         // if the initializer is already on multiple lines, keep it that way.  otherwise, squash from `{ 1, 2, 3 }` to `[1, 2, 3]`
         var openBracket = OpenBracketToken.WithTriviaFrom(initializer.OpenBraceToken);
         var elements = initializer.Expressions.GetWithSeparators().SelectAsArray(
-            i => i.IsToken ? i : ExpressionElement((ExpressionSyntax)i.AsNode()!));
+            i => i.IsToken ? i : CreateElement((ExpressionSyntax)i.AsNode()!));
         var closeBracket = CloseBracketToken.WithTriviaFrom(initializer.CloseBraceToken);
 
         // If it was on a single line to begin with, then remove the inner spaces on the `{ ... }` to create `[...]`. If
@@ -563,6 +563,43 @@ internal static class UseCollectionExpressionHelpers
         }
 
         return CollectionExpression(openBracket, SeparatedList<CollectionElementSyntax>(elements), closeBracket);
+
+        CollectionElementSyntax CreateElement(ExpressionSyntax expression)
+        {
+            if (expression is InitializerExpressionSyntax { Expressions: [var keyExpression1, var valueExpression1] } initializer)
+            {
+                // If we have `{ key, ... }` we want to move the leading trivia of the `{` to the key so that it is
+                // properly indented to the same level the `{` was.
+                var openBraceAndKeyOnSingleLine = wasOnSingleLine || text.AreOnSameLine(initializer.OpenBraceToken, keyExpression1.GetLastToken());
+                if (openBraceAndKeyOnSingleLine)
+                    keyExpression1 = keyExpression1.WithLeadingTrivia(initializer.OpenBraceToken.LeadingTrivia);
+
+                // If we have `{ ..., value }` we want to move the trailing trivia of the `}` to the value to preserve trailing comments.
+                var valueAndCloseBraceOnSingleLine = wasOnSingleLine || text.AreOnSameLine(valueExpression1.GetLastToken(), initializer.CloseBraceToken);
+                if (valueAndCloseBraceOnSingleLine)
+                    valueExpression1 = valueExpression1.WithTrailingTrivia(initializer.CloseBraceToken.TrailingTrivia);
+
+                return KeyValuePairElement(keyExpression1, ColonToken.WithTriviaFrom(initializer.Expressions.GetSeparator(0)), valueExpression1);
+            }
+            else if (expression is AssignmentExpressionSyntax
+            {
+                Left: ImplicitElementAccessSyntax { ArgumentList.Arguments: [var argument] } implicitElementAccess,
+                OperatorToken: var equalsToken,
+                Right: var valueExpression2,
+            })
+            {
+                // If we have `[key] = value` we want to move the leading trivia of the `[` to the key.
+                var keyExpression2 = argument.Expression.WithLeadingTrivia(implicitElementAccess.GetLeadingTrivia());
+                return KeyValuePairElement(
+                    keyExpression2,
+                    ColonToken.WithTrailingTrivia(equalsToken.TrailingTrivia),
+                    valueExpression2);
+            }
+            else
+            {
+                return ExpressionElement(expression);
+            }
+        }
     }
 
     public static CollectionExpressionSyntax ReplaceWithCollectionExpression(
@@ -751,7 +788,7 @@ internal static class UseCollectionExpressionHelpers
 
                         // this looks like a good statement, add to the right size of the assignment to track as that's what
                         // we'll want to put in the final collection expression.
-                        matches.Add(new(expressionStatement, UseSpread: false));
+                        matches.Add(new(expressionStatement, UseSpread: false, UseKeyValue: false));
                         currentStatement = currentStatement.GetNextStatement();
                     }
                 }
@@ -892,13 +929,13 @@ internal static class UseCollectionExpressionHelpers
                 if (arguments.Count == 1 &&
                     compilation.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes) &&
                     originalCreateMethod.Parameters is [
+                    {
+                        Type: INamedTypeSymbol
                         {
-                            Type: INamedTypeSymbol
-                            {
-                                Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
-                                TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
-                            } spanType
-                        }])
+                            Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
+                            TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
+                        } spanType
+                    }])
                 {
                     if (spanType.OriginalDefinition.Equals(compilation.SpanOfTType()) ||
                         spanType.OriginalDefinition.Equals(compilation.ReadOnlySpanOfTType()))

@@ -16309,7 +16309,6 @@ partial class Program
                 }
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
-            // PROTOTYPE: ERR_CollectionBuilderAttributeMethodNotFound error message is stale. It should say "... with a first parameter of type 'ReadOnlySpan<object> callable with no additional arguments, ...".
             comp.VerifyEmitDiagnostics(
                 // (6,34): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<object>' and return type 'MyCollection<T>'.
                 //         MyCollection<object> x = [];
@@ -18115,11 +18114,13 @@ partial class Program
                 }
                 """;
             comp = CreateCompilation([sourceB, s_collectionExtensions], references: new[] { refA }, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            comp.VerifyEmitDiagnostics();
-            CompileAndVerify(
-                comp,
-                verify: Verification.Skipped,
-                expectedOutput: IncludeExpectedOutput("[], [1, 2, 3], "));
+            comp.VerifyEmitDiagnostics(
+                // (6,34): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+                //         MyCollection<string> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 34),
+                // (8,31): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+                //         MyCollection<int> y = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(8, 31));
         }
 
         [CombinatorialData]
@@ -19208,10 +19209,7 @@ partial class Program
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "[1, 2, 3]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)").WithLocation(7, 31),
                 // (9,13): warning CS0612: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' is obsolete
                 //         y = Params(4, 5);
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Params(4, 5)").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)").WithLocation(9, 13),
-                // (11,38): warning CS0612: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' is obsolete
-                //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "params MyCollection<T> c").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)").WithLocation(11, 38));
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Params(4, 5)").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)").WithLocation(9, 13));
         }
 
         [CombinatorialData]
@@ -19262,10 +19260,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[1, 2, 3]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "message 4").WithLocation(7, 31),
                 // (9,13): error CS0619: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' is obsolete: 'message 4'
                 //         y = Params(4, 5);
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Params(4, 5)").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "message 4").WithLocation(9, 13),
-                // (11,38): error CS0619: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' is obsolete: 'message 4'
-                //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "params MyCollection<T> c").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "message 4").WithLocation(11, 38));
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Params(4, 5)").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "message 4").WithLocation(9, 13));
         }
 
         [Fact]
@@ -19314,9 +19309,6 @@ partial class Program
                 // 1.cs(9,13): error CS8901: 'MyCollectionBuilder.Create<int>(ReadOnlySpan<int>)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 //         y = Params(4, 5);
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "Params(4, 5)").WithArguments("MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)").WithLocation(9, 13),
-                // 1.cs(11,38): error CS8901: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
-                //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "params MyCollection<T> c").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)").WithLocation(11, 38),
                 // 0.cs(14,6): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(14, 6),
@@ -19424,9 +19416,6 @@ partial class Program
                 // (7,28): error CS0310: 'T' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'MyCollection<T>'
                 //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "Params").WithArguments("MyCollection<T>", "T", "T").WithLocation(7, 28),
-                // (7,38): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)'
-                //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "params MyCollection<T> c").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(7, 38),
                 // (7,61): error CS0310: 'T' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'MyCollection<T>'
                 //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "c").WithArguments("MyCollection<T>", "T", "T").WithLocation(7, 61));
@@ -19527,10 +19516,7 @@ partial class Program
             comp.VerifyEmitDiagnostics(
                 // (5,9): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)'
                 //         Params<object>(4, 5);
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Params<object>(4, 5)").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "object").WithLocation(5, 9),
-                // (7,38): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)'
-                //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "params MyCollection<T> c").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(7, 38));
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Params<object>(4, 5)").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "object").WithLocation(5, 9));
         }
 
         [Fact]
@@ -20175,10 +20161,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Create<object>").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "MyFeature").WithLocation(8, 54),
                 // (9,13): error CS9041: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' requires compiler feature 'MyFeature', which is not supported by this version of the C# compiler.
                 //         x = Params(1, 2);
-                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Params(1, 2)").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "MyFeature").WithLocation(9, 13),
-                // (11,38): error CS9041: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' requires compiler feature 'MyFeature', which is not supported by this version of the C# compiler.
-                //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
-                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "params MyCollection<T> c").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "MyFeature").WithLocation(11, 38));
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Params(1, 2)").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "MyFeature").WithLocation(9, 13));
         }
 
         [Fact]
@@ -20243,10 +20226,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Create<object>").WithArguments("MyCollectionBuilder", "MyFeature").WithLocation(8, 54),
                 // (9,13): error CS9041: 'MyCollectionBuilder' requires compiler feature 'MyFeature', which is not supported by this version of the C# compiler.
                 //         x = Params(1, 2);
-                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Params(1, 2)").WithArguments("MyCollectionBuilder", "MyFeature").WithLocation(9, 13),
-                // (11,38): error CS9041: 'MyCollectionBuilder' requires compiler feature 'MyFeature', which is not supported by this version of the C# compiler.
-                //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
-                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "params MyCollection<T> c").WithArguments("MyCollectionBuilder", "MyFeature").WithLocation(11, 38));
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Params(1, 2)").WithArguments("MyCollectionBuilder", "MyFeature").WithLocation(9, 13));
         }
 
         [Fact]
