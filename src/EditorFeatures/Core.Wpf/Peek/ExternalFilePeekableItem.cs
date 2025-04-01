@@ -8,45 +8,44 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.VisualStudio.Language.Intellisense;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek;
+
+internal sealed class ExternalFilePeekableItem : PeekableItem
 {
-    internal class ExternalFilePeekableItem : PeekableItem
+    private readonly FileLinePositionSpan _span;
+    private readonly IPeekRelationship _relationship;
+
+    public ExternalFilePeekableItem(
+        FileLinePositionSpan span,
+        IPeekRelationship relationship,
+        IPeekResultFactory peekResultFactory)
+        : base(peekResultFactory)
     {
-        private readonly FileLinePositionSpan _span;
-        private readonly IPeekRelationship _relationship;
+        _span = span;
+        _relationship = relationship;
+    }
 
-        public ExternalFilePeekableItem(
-            FileLinePositionSpan span,
-            IPeekRelationship relationship,
-            IPeekResultFactory peekResultFactory)
-            : base(peekResultFactory)
+    public override IEnumerable<IPeekRelationship> Relationships
+        => [_relationship];
+
+    public override IPeekResultSource GetOrCreateResultSource(string relationshipName)
+        => new ResultSource(this);
+
+    private sealed class ResultSource : IPeekResultSource
+    {
+        private readonly ExternalFilePeekableItem _peekableItem;
+
+        public ResultSource(ExternalFilePeekableItem peekableItem)
+            => _peekableItem = peekableItem;
+
+        public void FindResults(string relationshipName, IPeekResultCollection resultCollection, CancellationToken cancellationToken, IFindPeekResultsCallback callback)
         {
-            _span = span;
-            _relationship = relationship;
-        }
-
-        public override IEnumerable<IPeekRelationship> Relationships
-            => [_relationship];
-
-        public override IPeekResultSource GetOrCreateResultSource(string relationshipName)
-            => new ResultSource(this);
-
-        private sealed class ResultSource : IPeekResultSource
-        {
-            private readonly ExternalFilePeekableItem _peekableItem;
-
-            public ResultSource(ExternalFilePeekableItem peekableItem)
-                => _peekableItem = peekableItem;
-
-            public void FindResults(string relationshipName, IPeekResultCollection resultCollection, CancellationToken cancellationToken, IFindPeekResultsCallback callback)
+            if (relationshipName != _peekableItem._relationship.Name)
             {
-                if (relationshipName != _peekableItem._relationship.Name)
-                {
-                    return;
-                }
-
-                resultCollection.Add(PeekHelpers.CreateDocumentPeekResult(_peekableItem._span.Path, _peekableItem._span.Span, _peekableItem._span.Span, _peekableItem.PeekResultFactory));
+                return;
             }
+
+            resultCollection.Add(PeekHelpers.CreateDocumentPeekResult(_peekableItem._span.Path, _peekableItem._span.Span, _peekableItem._span.Span, _peekableItem.PeekResultFactory));
         }
     }
 }

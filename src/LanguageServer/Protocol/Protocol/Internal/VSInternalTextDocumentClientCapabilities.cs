@@ -2,24 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Roslyn.LanguageServer.Protocol
-{
-    using System.Text.Json.Serialization;
+namespace Roslyn.LanguageServer.Protocol;
 
+using System.Text.Json.Serialization;
+
+/// <summary>
+/// Text document capabilities specific to Visual Studio.
+/// </summary>
+internal sealed class VSInternalTextDocumentClientCapabilities : TextDocumentClientCapabilities
+{
     /// <summary>
-    /// Text document capabilities specific to Visual Studio.
+    /// Gets or sets the setting which determines if on auto insert can be dynamically registered.
     /// </summary>
-    internal class VSInternalTextDocumentClientCapabilities : TextDocumentClientCapabilities
+    [JsonPropertyName("_vs_onAutoInsert")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DynamicRegistrationSetting? OnAutoInsert
     {
-        /// <summary>
-        /// Gets or sets the setting which determines if on auto insert can be dynamically registered.
-        /// </summary>
-        [JsonPropertyName("_vs_onAutoInsert")]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DynamicRegistrationSetting? OnAutoInsert
-        {
-            get;
-            set;
-        }
+        get;
+        set;
     }
 }

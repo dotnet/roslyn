@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf;
 
-public partial class InvertIfTests
+public sealed partial class InvertIfTests
 {
     [Fact]
     public async Task IfWithoutElse_MoveIfBodyToElseClause1()

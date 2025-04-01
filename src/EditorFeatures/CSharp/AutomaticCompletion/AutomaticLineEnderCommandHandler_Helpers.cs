@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion;
 using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
-internal partial class AutomaticLineEnderCommandHandler
+internal sealed partial class AutomaticLineEnderCommandHandler
 {
     #region NodeReplacementHelpers
 

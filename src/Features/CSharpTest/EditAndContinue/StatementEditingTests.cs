@@ -17,7 +17,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
 
 [UseExportProvider]
-public class StatementEditingTests : EditingTestBase
+public sealed class StatementEditingTests : EditingTestBase
 {
     private readonly string s_asyncIteratorStateMachineAttributeSource = @"
 namespace System.Runtime.CompilerServices

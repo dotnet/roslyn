@@ -22,7 +22,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 
-public partial class PreviewTests : AbstractCSharpCodeActionTest
+public sealed partial class PreviewTests : AbstractCSharpCodeActionTest
 {
     private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeaturesWpf
         .AddParts(
@@ -49,7 +49,7 @@ public partial class PreviewTests : AbstractCSharpCodeActionTest
             return Task.CompletedTask;
         }
 
-        private class TestCodeAction : CodeAction
+        private sealed class TestCodeAction : CodeAction
         {
             private readonly Document _oldDocument;
 

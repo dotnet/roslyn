@@ -6,11 +6,10 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp;
+
+internal sealed partial class Controller
 {
-    internal partial class Controller
-    {
-        internal override void OnTextViewBufferPostChanged(object sender, EventArgs args)
-            => Retrigger();
-    }
+    internal override void OnTextViewBufferPostChanged(object sender, EventArgs args)
+        => Retrigger();
 }

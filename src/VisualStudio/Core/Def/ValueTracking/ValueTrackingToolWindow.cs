@@ -12,7 +12,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking;
 
 [Guid(Guids.ValueTrackingToolWindowIdString)]
-internal class ValueTrackingToolWindow : ToolWindowPane
+internal sealed class ValueTrackingToolWindow : ToolWindowPane
 {
     private readonly ValueTrackingRoot _root = new();
 

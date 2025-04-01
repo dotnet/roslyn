@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
 /// unparseable code.
 /// </summary>
 [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-public class InvalidIdentifierStructureTests : AbstractSyntaxStructureProviderTests
+public sealed class InvalidIdentifierStructureTests : AbstractSyntaxStructureProviderTests
 {
     protected override string LanguageName => LanguageNames.CSharp;
     protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;

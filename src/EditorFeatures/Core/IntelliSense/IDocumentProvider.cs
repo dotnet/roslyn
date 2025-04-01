@@ -17,7 +17,7 @@ internal interface IDocumentProvider
     Document GetDocument(ITextSnapshot snapshot, CancellationToken cancellationToken);
 }
 
-internal class DocumentProvider(IThreadingContext threadingContext) : IDocumentProvider
+internal sealed class DocumentProvider(IThreadingContext threadingContext) : IDocumentProvider
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
 

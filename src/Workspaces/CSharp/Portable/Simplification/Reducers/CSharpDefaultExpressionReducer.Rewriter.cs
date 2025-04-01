@@ -12,9 +12,9 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification;
 
-internal partial class CSharpDefaultExpressionReducer
+internal sealed partial class CSharpDefaultExpressionReducer
 {
-    private class Rewriter : AbstractReductionRewriter
+    private sealed class Rewriter : AbstractReductionRewriter
     {
         public Rewriter(ObjectPool<IReductionRewriter> pool)
             : base(pool)

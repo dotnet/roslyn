@@ -11,7 +11,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseThrowExpression;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
-public partial class UseThrowExpressionTests
+public sealed partial class UseThrowExpressionTests
 {
     [Fact]
     public async Task FixAllInDocument1()

@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-internal partial class TriviaDataFactory
+internal sealed partial class TriviaDataFactory
 {
     private struct CodeShapeAnalyzer
     {

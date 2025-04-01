@@ -13,7 +13,7 @@ using Roslyn.VisualStudio.IntegrationTests;
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
 [TestService]
-internal partial class ImmediateWindowInProcess
+internal sealed partial class ImmediateWindowInProcess
 {
     public async Task ShowAsync(CancellationToken cancellationToken)
     {

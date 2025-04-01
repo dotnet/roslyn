@@ -11,17 +11,17 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting;
+
+[Trait(Traits.Feature, Traits.Features.Formatting)]
+public sealed class FormattingTests_Patterns : CSharpFormattingTestBase
 {
-    [Trait(Traits.Feature, Traits.Features.Formatting)]
-    public class FormattingTests_Patterns : CSharpFormattingTestBase
+    [Theory, CombinatorialData]
+    public async Task FormatRelationalPatterns1(
+        [CombinatorialValues("<", "<=", ">", ">=")] string operatorText,
+        BinaryOperatorSpacingOptions spacing)
     {
-        [Theory, CombinatorialData]
-        public async Task FormatRelationalPatterns1(
-            [CombinatorialValues("<", "<=", ">", ">=")] string operatorText,
-            BinaryOperatorSpacingOptions spacing)
-        {
-            var content = $@"
+        var content = $@"
 class A
 {{
     bool Method(int value)
@@ -31,7 +31,7 @@ class A
 }}
 ";
 
-            var expectedSingle = $@"
+        var expectedSingle = $@"
 class A
 {{
     bool Method(int value)
@@ -40,7 +40,7 @@ class A
     }}
 }}
 ";
-            var expectedIgnore = $@"
+        var expectedIgnore = $@"
 class A
 {{
     bool Method(int value)
@@ -49,7 +49,7 @@ class A
     }}
 }}
 ";
-            var expectedRemove = $@"
+        var expectedRemove = $@"
 class A
 {{
     bool Method(int value)
@@ -59,28 +59,28 @@ class A
 }}
 ";
 
-            var expected = spacing switch
-            {
-                BinaryOperatorSpacingOptions.Single => expectedSingle,
-                BinaryOperatorSpacingOptions.Ignore => expectedIgnore,
-                BinaryOperatorSpacingOptions.Remove => expectedRemove,
-                _ => throw ExceptionUtilities.Unreachable(),
-            };
-
-            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
-            {
-                { CSharpFormattingOptions2.SpacingAroundBinaryOperator, spacing },
-            };
-            await AssertFormatAsync(expected, content, changedOptionSet: changingOptions);
-        }
-
-        [Theory, CombinatorialData]
-        public async Task FormatRelationalPatterns2(
-            [CombinatorialValues("<", "<=", ">", ">=")] string operatorText,
-            BinaryOperatorSpacingOptions spacing,
-            bool spaceWithinExpressionParentheses)
+        var expected = spacing switch
         {
-            var content = $@"
+            BinaryOperatorSpacingOptions.Single => expectedSingle,
+            BinaryOperatorSpacingOptions.Ignore => expectedIgnore,
+            BinaryOperatorSpacingOptions.Remove => expectedRemove,
+            _ => throw ExceptionUtilities.Unreachable(),
+        };
+
+        var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { CSharpFormattingOptions2.SpacingAroundBinaryOperator, spacing },
+        };
+        await AssertFormatAsync(expected, content, changedOptionSet: changingOptions);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task FormatRelationalPatterns2(
+        [CombinatorialValues("<", "<=", ">", ">=")] string operatorText,
+        BinaryOperatorSpacingOptions spacing,
+        bool spaceWithinExpressionParentheses)
+    {
+        var content = $@"
 class A
 {{
     bool Method(int value)
@@ -90,7 +90,7 @@ class A
 }}
 ";
 
-            var expectedSingleFalse = $@"
+        var expectedSingleFalse = $@"
 class A
 {{
     bool Method(int value)
@@ -99,7 +99,7 @@ class A
     }}
 }}
 ";
-            var expectedIgnoreFalse = $@"
+        var expectedIgnoreFalse = $@"
 class A
 {{
     bool Method(int value)
@@ -108,7 +108,7 @@ class A
     }}
 }}
 ";
-            var expectedRemoveFalse = $@"
+        var expectedRemoveFalse = $@"
 class A
 {{
     bool Method(int value)
@@ -117,7 +117,7 @@ class A
     }}
 }}
 ";
-            var expectedSingleTrue = $@"
+        var expectedSingleTrue = $@"
 class A
 {{
     bool Method(int value)
@@ -126,7 +126,7 @@ class A
     }}
 }}
 ";
-            var expectedIgnoreTrue = $@"
+        var expectedIgnoreTrue = $@"
 class A
 {{
     bool Method(int value)
@@ -135,7 +135,7 @@ class A
     }}
 }}
 ";
-            var expectedRemoveTrue = $@"
+        var expectedRemoveTrue = $@"
 class A
 {{
     bool Method(int value)
@@ -145,29 +145,29 @@ class A
 }}
 ";
 
-            var expected = (spacing, spaceWithinExpressionParentheses) switch
-            {
-                (BinaryOperatorSpacingOptions.Single, false) => expectedSingleFalse,
-                (BinaryOperatorSpacingOptions.Ignore, false) => expectedIgnoreFalse,
-                (BinaryOperatorSpacingOptions.Remove, false) => expectedRemoveFalse,
-                (BinaryOperatorSpacingOptions.Single, true) => expectedSingleTrue,
-                (BinaryOperatorSpacingOptions.Ignore, true) => expectedIgnoreTrue,
-                (BinaryOperatorSpacingOptions.Remove, true) => expectedRemoveTrue,
-                _ => throw ExceptionUtilities.Unreachable(),
-            };
-
-            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
-            {
-                { CSharpFormattingOptions2.SpacingAroundBinaryOperator, spacing },
-                { CSharpFormattingOptions2.SpaceBetweenParentheses, CSharpFormattingOptions2.SpaceBetweenParentheses.DefaultValue.WithFlagValue(SpacePlacementWithinParentheses.Expressions, spaceWithinExpressionParentheses) },
-            };
-            await AssertFormatAsync(expected, content, changedOptionSet: changingOptions);
-        }
-
-        [Theory, CombinatorialData]
-        public async Task FormatNotPatterns1(BinaryOperatorSpacingOptions spacing)
+        var expected = (spacing, spaceWithinExpressionParentheses) switch
         {
-            var content = $@"
+            (BinaryOperatorSpacingOptions.Single, false) => expectedSingleFalse,
+            (BinaryOperatorSpacingOptions.Ignore, false) => expectedIgnoreFalse,
+            (BinaryOperatorSpacingOptions.Remove, false) => expectedRemoveFalse,
+            (BinaryOperatorSpacingOptions.Single, true) => expectedSingleTrue,
+            (BinaryOperatorSpacingOptions.Ignore, true) => expectedIgnoreTrue,
+            (BinaryOperatorSpacingOptions.Remove, true) => expectedRemoveTrue,
+            _ => throw ExceptionUtilities.Unreachable(),
+        };
+
+        var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { CSharpFormattingOptions2.SpacingAroundBinaryOperator, spacing },
+            { CSharpFormattingOptions2.SpaceBetweenParentheses, CSharpFormattingOptions2.SpaceBetweenParentheses.DefaultValue.WithFlagValue(SpacePlacementWithinParentheses.Expressions, spaceWithinExpressionParentheses) },
+        };
+        await AssertFormatAsync(expected, content, changedOptionSet: changingOptions);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task FormatNotPatterns1(BinaryOperatorSpacingOptions spacing)
+    {
+        var content = $@"
 class A
 {{
     bool Method(int value)
@@ -177,7 +177,7 @@ class A
 }}
 ";
 
-            var expectedSingle = $@"
+        var expectedSingle = $@"
 class A
 {{
     bool Method(int value)
@@ -186,7 +186,7 @@ class A
     }}
 }}
 ";
-            var expectedIgnore = $@"
+        var expectedIgnore = $@"
 class A
 {{
     bool Method(int value)
@@ -195,7 +195,7 @@ class A
     }}
 }}
 ";
-            var expectedRemove = $@"
+        var expectedRemove = $@"
 class A
 {{
     bool Method(int value)
@@ -205,27 +205,27 @@ class A
 }}
 ";
 
-            var expected = spacing switch
-            {
-                BinaryOperatorSpacingOptions.Single => expectedSingle,
-                BinaryOperatorSpacingOptions.Ignore => expectedIgnore,
-                BinaryOperatorSpacingOptions.Remove => expectedRemove,
-                _ => throw ExceptionUtilities.Unreachable(),
-            };
-
-            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
-            {
-                { CSharpFormattingOptions2.SpacingAroundBinaryOperator, spacing },
-            };
-            await AssertFormatAsync(expected, content, changedOptionSet: changingOptions);
-        }
-
-        [Theory, CombinatorialData]
-        public async Task FormatNotPatterns2(
-            BinaryOperatorSpacingOptions spacing,
-            bool spaceWithinExpressionParentheses)
+        var expected = spacing switch
         {
-            var content = $@"
+            BinaryOperatorSpacingOptions.Single => expectedSingle,
+            BinaryOperatorSpacingOptions.Ignore => expectedIgnore,
+            BinaryOperatorSpacingOptions.Remove => expectedRemove,
+            _ => throw ExceptionUtilities.Unreachable(),
+        };
+
+        var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { CSharpFormattingOptions2.SpacingAroundBinaryOperator, spacing },
+        };
+        await AssertFormatAsync(expected, content, changedOptionSet: changingOptions);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task FormatNotPatterns2(
+        BinaryOperatorSpacingOptions spacing,
+        bool spaceWithinExpressionParentheses)
+    {
+        var content = $@"
 class A
 {{
     bool Method(int value)
@@ -235,7 +235,7 @@ class A
 }}
 ";
 
-            var expectedSingleFalse = $@"
+        var expectedSingleFalse = $@"
 class A
 {{
     bool Method(int value)
@@ -244,7 +244,7 @@ class A
     }}
 }}
 ";
-            var expectedIgnoreFalse = $@"
+        var expectedIgnoreFalse = $@"
 class A
 {{
     bool Method(int value)
@@ -253,7 +253,7 @@ class A
     }}
 }}
 ";
-            var expectedRemoveFalse = $@"
+        var expectedRemoveFalse = $@"
 class A
 {{
     bool Method(int value)
@@ -262,7 +262,7 @@ class A
     }}
 }}
 ";
-            var expectedSingleTrue = $@"
+        var expectedSingleTrue = $@"
 class A
 {{
     bool Method(int value)
@@ -271,7 +271,7 @@ class A
     }}
 }}
 ";
-            var expectedIgnoreTrue = $@"
+        var expectedIgnoreTrue = $@"
 class A
 {{
     bool Method(int value)
@@ -280,7 +280,7 @@ class A
     }}
 }}
 ";
-            var expectedRemoveTrue = $@"
+        var expectedRemoveTrue = $@"
 class A
 {{
     bool Method(int value)
@@ -290,29 +290,29 @@ class A
 }}
 ";
 
-            var expected = (spacing, spaceWithinExpressionParentheses) switch
-            {
-                (BinaryOperatorSpacingOptions.Single, false) => expectedSingleFalse,
-                (BinaryOperatorSpacingOptions.Ignore, false) => expectedIgnoreFalse,
-                (BinaryOperatorSpacingOptions.Remove, false) => expectedRemoveFalse,
-                (BinaryOperatorSpacingOptions.Single, true) => expectedSingleTrue,
-                (BinaryOperatorSpacingOptions.Ignore, true) => expectedIgnoreTrue,
-                (BinaryOperatorSpacingOptions.Remove, true) => expectedRemoveTrue,
-                _ => throw ExceptionUtilities.Unreachable(),
-            };
-
-            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
-            {
-                { CSharpFormattingOptions2.SpacingAroundBinaryOperator, spacing },
-                { CSharpFormattingOptions2.SpaceBetweenParentheses, CSharpFormattingOptions2.SpaceBetweenParentheses.DefaultValue.WithFlagValue(SpacePlacementWithinParentheses.Expressions, spaceWithinExpressionParentheses) },
-            };
-            await AssertFormatAsync(expected, content, changedOptionSet: changingOptions);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46284")]
-        public async Task FormatMultiLinePattern1()
+        var expected = (spacing, spaceWithinExpressionParentheses) switch
         {
-            var content = @"
+            (BinaryOperatorSpacingOptions.Single, false) => expectedSingleFalse,
+            (BinaryOperatorSpacingOptions.Ignore, false) => expectedIgnoreFalse,
+            (BinaryOperatorSpacingOptions.Remove, false) => expectedRemoveFalse,
+            (BinaryOperatorSpacingOptions.Single, true) => expectedSingleTrue,
+            (BinaryOperatorSpacingOptions.Ignore, true) => expectedIgnoreTrue,
+            (BinaryOperatorSpacingOptions.Remove, true) => expectedRemoveTrue,
+            _ => throw ExceptionUtilities.Unreachable(),
+        };
+
+        var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { CSharpFormattingOptions2.SpacingAroundBinaryOperator, spacing },
+            { CSharpFormattingOptions2.SpaceBetweenParentheses, CSharpFormattingOptions2.SpaceBetweenParentheses.DefaultValue.WithFlagValue(SpacePlacementWithinParentheses.Expressions, spaceWithinExpressionParentheses) },
+        };
+        await AssertFormatAsync(expected, content, changedOptionSet: changingOptions);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46284")]
+    public async Task FormatMultiLinePattern1()
+    {
+        var content = @"
 class TypeName
 {
     bool MethodName(string value)
@@ -325,7 +325,7 @@ class TypeName
     }
 }
 ";
-            var expected = @"
+        var expected = @"
 class TypeName
 {
     bool MethodName(string value)
@@ -339,13 +339,13 @@ class TypeName
 }
 ";
 
-            await AssertFormatAsync(expected, content);
-        }
+        await AssertFormatAsync(expected, content);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46284")]
-        public async Task FormatMultiLinePattern2()
-        {
-            var content = @"
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46284")]
+    public async Task FormatMultiLinePattern2()
+    {
+        var content = @"
 class TypeName
 {
     private static bool IsCallingConventionModifier(CustomModifier modifier)
@@ -371,7 +371,7 @@ class TypeName
     }
 }
 ";
-            var expected = @"
+        var expected = @"
 class TypeName
 {
     private static bool IsCallingConventionModifier(CustomModifier modifier)
@@ -398,13 +398,13 @@ class TypeName
 }
 ";
 
-            await AssertFormatAsync(expected, content);
-        }
+        await AssertFormatAsync(expected, content);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46284")]
-        public async Task FormatMultiLinePattern3()
-        {
-            var content = @"
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46284")]
+    public async Task FormatMultiLinePattern3()
+    {
+        var content = @"
 class TypeName
 {
     private static bool IsCallingConventionModifier(CustomModifier modifier)
@@ -430,7 +430,7 @@ ContainingNamespace: { IsGlobalNamespace: true }
     }
 }
 ";
-            var expected = @"
+        var expected = @"
 class TypeName
 {
     private static bool IsCallingConventionModifier(CustomModifier modifier)
@@ -457,13 +457,13 @@ class TypeName
 }
 ";
 
-            await AssertFormatAsync(expected, content);
-        }
+        await AssertFormatAsync(expected, content);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
-        public async Task FormatMultiLinePattern4()
-        {
-            var content = @"
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
+    public async Task FormatMultiLinePattern4()
+    {
+        var content = @"
 class TypeName
 {
     void MethodName(string value)
@@ -477,7 +477,7 @@ class TypeName
     }
 }
 ";
-            var expected = @"
+        var expected = @"
 class TypeName
 {
     void MethodName(string value)
@@ -492,13 +492,13 @@ class TypeName
 }
 ";
 
-            await AssertFormatAsync(expected, content);
-        }
+        await AssertFormatAsync(expected, content);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
-        public async Task FormatMultiLinePattern5()
-        {
-            var content = @"
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
+    public async Task FormatMultiLinePattern5()
+    {
+        var content = @"
 class TypeName
 {
     void MethodName(string value)
@@ -512,7 +512,7 @@ class TypeName
     }
 }
 ";
-            var expected = @"
+        var expected = @"
 class TypeName
 {
     void MethodName(string value)
@@ -527,135 +527,134 @@ class TypeName
 }
 ";
 
-            await AssertFormatAsync(expected, content);
-        }
+        await AssertFormatAsync(expected, content);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
-        public async Task FormatNestedListPattern1()
-        {
-            var content = """
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
+    public async Task FormatNestedListPattern1()
+    {
+        var content = """
+            class C
+            {
+                void M(string[] ss)
                 {
-                    void M(string[] ss)
+                    if (ss is [ [  ]  ])
                     {
-                        if (ss is [ [  ]  ])
-                        {
 
-                        }
                     }
                 }
-                """;
+            }
+            """;
 
-            var expected = """
-                class C
+        var expected = """
+            class C
+            {
+                void M(string[] ss)
                 {
-                    void M(string[] ss)
+                    if (ss is [[]])
                     {
-                        if (ss is [[]])
-                        {
-                
-                        }
+            
                     }
                 }
-                """;
+            }
+            """;
 
-            await AssertFormatAsync(expected, content);
-        }
+        await AssertFormatAsync(expected, content);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
-        public async Task FormatNestedListPattern2()
-        {
-            var content = """
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
+    public async Task FormatNestedListPattern2()
+    {
+        var content = """
+            class C
+            {
+                void M(string[] ss)
                 {
-                    void M(string[] ss)
+                    if (ss is [ [  ],[ ]     ])
                     {
-                        if (ss is [ [  ],[ ]     ])
-                        {
 
-                        }
                     }
                 }
-                """;
+            }
+            """;
 
-            var expected = """
-                class C
+        var expected = """
+            class C
+            {
+                void M(string[] ss)
                 {
-                    void M(string[] ss)
+                    if (ss is [[], []])
                     {
-                        if (ss is [[], []])
-                        {
-                
-                        }
+            
                     }
                 }
-                """;
+            }
+            """;
 
-            await AssertFormatAsync(expected, content);
-        }
+        await AssertFormatAsync(expected, content);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
-        public async Task FormatNestedListPattern3()
-        {
-            var content = """
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
+    public async Task FormatNestedListPattern3()
+    {
+        var content = """
+            class C
+            {
+                void M(string[] ss)
                 {
-                    void M(string[] ss)
+                    if (ss is [    [  ],[ ]     , [   ]  ] )
                     {
-                        if (ss is [    [  ],[ ]     , [   ]  ] )
-                        {
 
-                        }
                     }
                 }
-                """;
+            }
+            """;
 
-            var expected = """
-                class C
+        var expected = """
+            class C
+            {
+                void M(string[] ss)
                 {
-                    void M(string[] ss)
+                    if (ss is [[], [], []])
                     {
-                        if (ss is [[], [], []])
-                        {
-                
-                        }
+            
                     }
                 }
-                """;
+            }
+            """;
 
-            await AssertFormatAsync(expected, content);
-        }
+        await AssertFormatAsync(expected, content);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
-        public async Task FormatNestedListPattern4()
-        {
-            var content = """
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
+    public async Task FormatNestedListPattern4()
+    {
+        var content = """
+            class C
+            {
+                void M(string[][] ss)
                 {
-                    void M(string[][] ss)
+                    if (ss is [    [ [ ] ] ] )
                     {
-                        if (ss is [    [ [ ] ] ] )
-                        {
 
-                        }
                     }
                 }
-                """;
+            }
+            """;
 
-            var expected = """
-                class C
+        var expected = """
+            class C
+            {
+                void M(string[][] ss)
                 {
-                    void M(string[][] ss)
+                    if (ss is [[[]]])
                     {
-                        if (ss is [[[]]])
-                        {
-                
-                        }
+            
                     }
                 }
-                """;
+            }
+            """;
 
-            await AssertFormatAsync(expected, content);
-        }
+        await AssertFormatAsync(expected, content);
     }
 }

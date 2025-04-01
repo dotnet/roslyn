@@ -16,7 +16,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearReference;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
-public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new CSharpMoveDeclarationNearReferenceCodeRefactoringProvider();

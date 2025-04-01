@@ -6,9 +6,9 @@ using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-internal partial class CSharpTriviaFormatter
+internal sealed partial class CSharpTriviaFormatter
 {
-    private class DocumentationCommentExteriorCommentRewriter : CSharpSyntaxRewriter
+    private sealed class DocumentationCommentExteriorCommentRewriter : CSharpSyntaxRewriter
     {
         private readonly bool _forceIndentation;
         private readonly int _indentation;

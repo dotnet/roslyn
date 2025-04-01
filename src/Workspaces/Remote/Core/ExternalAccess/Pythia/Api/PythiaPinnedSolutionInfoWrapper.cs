@@ -4,18 +4,17 @@
 
 using System.Runtime.Serialization;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api;
+
+[DataContract]
+internal readonly struct PythiaPinnedSolutionInfoWrapper
 {
-    [DataContract]
-    internal readonly struct PythiaPinnedSolutionInfoWrapper
-    {
-        [DataMember(Order = 0)]
-        internal readonly Checksum UnderlyingObject;
+    [DataMember(Order = 0)]
+    internal readonly Checksum UnderlyingObject;
 
-        public PythiaPinnedSolutionInfoWrapper(Checksum underlyingObject)
-            => UnderlyingObject = underlyingObject;
+    public PythiaPinnedSolutionInfoWrapper(Checksum underlyingObject)
+        => UnderlyingObject = underlyingObject;
 
-        public static implicit operator PythiaPinnedSolutionInfoWrapper(Checksum info)
-            => new(info);
-    }
+    public static implicit operator PythiaPinnedSolutionInfoWrapper(Checksum info)
+        => new(info);
 }

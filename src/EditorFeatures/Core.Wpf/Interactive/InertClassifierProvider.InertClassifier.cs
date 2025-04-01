@@ -10,32 +10,31 @@ using System.Linq;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 
-namespace Microsoft.CodeAnalysis.Interactive
-{
-    internal partial class InertClassifierProvider
-    {
-        private class InertClassifier : IClassifier
-        {
-            private readonly ITextBuffer _textBuffer;
+namespace Microsoft.CodeAnalysis.Interactive;
 
-            public InertClassifier(ITextBuffer textBuffer)
-                => _textBuffer = textBuffer;
+internal sealed partial class InertClassifierProvider
+{
+    private sealed class InertClassifier : IClassifier
+    {
+        private readonly ITextBuffer _textBuffer;
+
+        public InertClassifier(ITextBuffer textBuffer)
+            => _textBuffer = textBuffer;
 
 #pragma warning disable 67
-            public event EventHandler<ClassificationChangedEventArgs> ClassificationChanged;
+        public event EventHandler<ClassificationChangedEventArgs> ClassificationChanged;
 #pragma warning restore 67
 
-            public IList<ClassificationSpan> GetClassificationSpans(SnapshotSpan span)
+        public IList<ClassificationSpan> GetClassificationSpans(SnapshotSpan span)
+        {
+            // See if we have cached classifications for this text buffer and return the ones
+            // that intersect the requested span if we do.
+            if (_textBuffer.Properties.TryGetProperty<IList<ClassificationSpan>>(s_classificationsKey, out var classifications))
             {
-                // See if we have cached classifications for this text buffer and return the ones
-                // that intersect the requested span if we do.
-                if (_textBuffer.Properties.TryGetProperty<IList<ClassificationSpan>>(s_classificationsKey, out var classifications))
-                {
-                    return [.. classifications.Where(c => c.Span.IntersectsWith(span))];
-                }
-
-                return [];
+                return [.. classifications.Where(c => c.Span.IntersectsWith(span))];
             }
+
+            return [];
         }
     }
 }

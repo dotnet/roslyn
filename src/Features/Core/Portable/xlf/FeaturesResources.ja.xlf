@@ -320,11 +320,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">待機中のタスクは値を返しません</target>
         <note />
       </trans-unit>
-      <trans-unit id="Built_in_Copilot_analysis">
-        <source>Built-in Copilot analysis</source>
-        <target state="translated">組み込みの Copilot の分析</target>
-        <note />
-      </trans-unit>
       <trans-unit id="CSharp_VisualBasic_References">
         <source>C# and Visual Basic References</source>
         <target state="translated">C# および Visual Basic の参照</target>
@@ -505,7 +500,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">コメントは使用できません</target>
         <note />
       </trans-unit>
-      <trans-unit id="Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group number_0">
+      <trans-unit id="Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group_number_0">
         <source>Conditional alternation is missing a closing parenthesis after the group number {0}</source>
         <target state="new">Conditional alternation is missing a closing parenthesis after the group number {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0</note>
@@ -1333,11 +1328,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Pull_selected_members_up">
         <source>Pull selected members up</source>
         <target state="translated">選択したメンバーを選出</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Pull_selected_members_up_to_0">
-        <source>Pull selected members up to {0}</source>
-        <target state="translated">選択したメンバーを最大 {0} 人選出</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_0_following_nothing">
@@ -2750,11 +2740,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">) が多すぎます</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
       </trans-unit>
-      <trans-unit id="Top_level_function_0_must_have_a_single_parameter">
-        <source>Top-level function '{0}' must have a single parameter</source>
-        <target state="new">Top-level function '{0}' must have a single parameter</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Trailing_comma_not_allowed">
         <source>Trailing comma not allowed</source>
         <target state="translated">末尾にコンマは使用できない</target>
@@ -2978,11 +2963,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Updating_the_size_of_a_0_requires_restarting_the_application">
         <source>Updating the size of a {0} requires restarting the application.</source>
         <target state="translated">{0} のサイズを更新するには、アプリケーションを再起動する必要があります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_type_of_0_around_an_active_statement_requires_restarting_the_application">
-        <source>Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</source>
-        <target state="translated">アクティブなステートメントの前後の {0} の型を ('{1}' から '{2}' に) 更新するには、アプリケーションを再起動する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_type_of_0_requires_restarting_the_application">

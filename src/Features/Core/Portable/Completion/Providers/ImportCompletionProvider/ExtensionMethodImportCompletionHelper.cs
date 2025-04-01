@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
@@ -25,6 +26,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers;
 /// <remarks>It runs out-of-proc if it's enabled</remarks>
 internal static partial class ExtensionMethodImportCompletionHelper
 {
+    private static readonly ConditionalWeakTable<ProjectState, ExtensionMethodImportCompletionCacheEntry> s_projectItemsCache = new();
+
     public static async Task WarmUpCacheAsync(Project project, CancellationToken cancellationToken)
     {
         var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
@@ -255,7 +258,7 @@ internal static partial class ExtensionMethodImportCompletionHelper
         var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
 
         // Cache miss, create all requested items.
-        if (!cacheService.ProjectItemsCache.TryGetValue(project.Id, out var cacheEntry) ||
+        if (!s_projectItemsCache.TryGetValue(project.State, out var cacheEntry) ||
             cacheEntry.Checksum != checksum ||
             cacheEntry.Language != project.Language)
         {
@@ -278,7 +281,12 @@ internal static partial class ExtensionMethodImportCompletionHelper
             }
 
             cacheEntry = builder.ToCacheEntry();
-            cacheService.ProjectItemsCache[project.Id] = cacheEntry;
+#if NET
+            s_projectItemsCache.AddOrUpdate(project.State, cacheEntry);
+#else
+            s_projectItemsCache.Remove(project.State);
+            s_projectItemsCache.GetValue(project.State, _ => cacheEntry);
+#endif
         }
 
         return cacheEntry;

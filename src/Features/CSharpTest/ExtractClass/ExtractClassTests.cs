@@ -26,9 +26,9 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass;
 
 [UseExportProvider]
-public class ExtractClassTests
+public sealed class ExtractClassTests
 {
-    private class Test : CSharpCodeRefactoringVerifier<CSharpExtractClassCodeRefactoringProvider>.Test
+    private sealed class Test : CSharpCodeRefactoringVerifier<CSharpExtractClassCodeRefactoringProvider>.Test
     {
         public IEnumerable<(string name, bool makeAbstract)>? DialogSelection { get; set; }
         public bool SameFile { get; set; }
