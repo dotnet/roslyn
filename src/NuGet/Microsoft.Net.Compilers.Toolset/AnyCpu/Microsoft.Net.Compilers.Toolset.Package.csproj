@@ -53,7 +53,8 @@
       <_File Include="@(CoreClrCompilerToolsArtifact)" TargetDir="tasks/netcore"/>
       <_File Include="@(CoreClrCompilerBinArtifact)" TargetDir="tasks/netcore/bincore"/>
       <_File Include="@(CoreClrCompilerBinRuntimesArtifact)" TargetDir="tasks/netcore/bincore/runtimes"/>
-      <_File Include="@(DesktopCompilerArtifact)" Condition="'%(DesktopCompilerArtifact.IsBuildTask)' == 'true'" TargetDir="tasks/netcore/binfx"/>
+      <_File Include="@(DesktopCompilerArtifact)" Condition="'%(DesktopCompilerArtifact.NeededForBuildTask)' == 'true'" TargetDir="tasks/netcore/binfx"/>
+      <_File Include="@(DesktopCompilerResourceArtifact)" Condition="'%(DesktopCompilerResourceArtifact.NeededForBuildTask)' == 'true'" TargetDir="tasks/netcore/binfx"/>
 
       <_FileWithPath Include="@(_File)" TargetPath="%(_File.TargetDir)/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
 
