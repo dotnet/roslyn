@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders;
 
-internal class BaseMemberFinder : AbstractCallFinder
+internal sealed class BaseMemberFinder : AbstractCallFinder
 {
     private readonly string _text;
 

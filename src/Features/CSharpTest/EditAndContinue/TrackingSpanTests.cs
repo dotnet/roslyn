@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
 
 [UseExportProvider]
-public class TrackingSpanTests : EditingTestBase
+public sealed class TrackingSpanTests : EditingTestBase
 {
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846042")]
     public void MovedOutsideOfMethod1()

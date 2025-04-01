@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting;
 using Verify = CSharpCodeFixVerifier<CodeStyle.CSharpFormattingAnalyzer, CodeStyle.CSharpFormattingCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.Formatting)]
-public class FormattingAnalyzerTests
+public sealed class FormattingAnalyzerTests
 {
     [Fact]
     public async Task TrailingWhitespace()

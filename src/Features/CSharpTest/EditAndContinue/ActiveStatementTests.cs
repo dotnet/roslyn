@@ -19,7 +19,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
 
 [UseExportProvider]
-public class ActiveStatementTests : EditingTestBase
+public sealed class ActiveStatementTests : EditingTestBase
 {
     #region Update
 
@@ -12574,7 +12574,7 @@ class C
     /// Custom exception class that has a fixed ToString so that tests aren't relying
     /// on stack traces, which could make them flaky
     /// </summary>
-    private class SimpleToStringException : Exception
+    private sealed class SimpleToStringException : Exception
     {
         public const string ToStringOutput = "<Exception>";
 

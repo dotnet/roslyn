@@ -19,7 +19,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseImplicitObjectCreationCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
-public class UseImplicitObjectCreationTests
+public sealed class UseImplicitObjectCreationTests
 {
     [Fact]
     public async Task TestMissingBeforeCSharp9()

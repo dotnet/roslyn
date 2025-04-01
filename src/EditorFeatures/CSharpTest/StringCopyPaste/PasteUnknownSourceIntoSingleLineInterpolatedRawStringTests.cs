@@ -6,7 +6,7 @@ using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste;
 
-public class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
+public sealed class PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests
     : StringCopyPasteCommandHandlerUnknownSourceTests
 {
     [WpfFact]

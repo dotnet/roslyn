@@ -8,7 +8,7 @@ using System.Runtime.Serialization;
 namespace Microsoft.CodeAnalysis.MSBuild;
 
 [DataContract]
-internal record FileGlobs(
+internal sealed record FileGlobs(
     [property: DataMember(Order = 0)] ImmutableArray<string> Includes,
     [property: DataMember(Order = 1)] ImmutableArray<string> Excludes,
     [property: DataMember(Order = 2)] ImmutableArray<string> Removes

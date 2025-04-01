@@ -12,7 +12,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting;
 
-public class FormattingEngineTests_Venus : CSharpFormattingEngineTestBase
+public sealed class FormattingEngineTests_Venus : CSharpFormattingEngineTestBase
 {
     public FormattingEngineTests_Venus(ITestOutputHelper output) : base(output) { }
 

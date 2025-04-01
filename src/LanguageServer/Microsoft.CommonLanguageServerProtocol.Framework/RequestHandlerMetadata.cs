@@ -7,7 +7,7 @@
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
-internal record RequestHandlerMetadata(string MethodName, TypeRef? RequestTypeRef, TypeRef? ResponseTypeRef, string Language)
+internal sealed record RequestHandlerMetadata(string MethodName, TypeRef? RequestTypeRef, TypeRef? ResponseTypeRef, string Language)
 {
     internal string HandlerDescription { get; } = $"{MethodName} ({Language})";
 }

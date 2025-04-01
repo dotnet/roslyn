@@ -11,7 +11,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
-public class WorkspaceProjectFactoryServiceTests(ITestOutputHelper testOutputHelper)
+public sealed class WorkspaceProjectFactoryServiceTests(ITestOutputHelper testOutputHelper)
     : AbstractLanguageServerHostTests(testOutputHelper)
 {
     [Fact]

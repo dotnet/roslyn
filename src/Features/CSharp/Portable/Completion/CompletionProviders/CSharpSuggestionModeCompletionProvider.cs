@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 [ExtensionOrder(After = nameof(ObjectAndWithInitializerCompletionProvider))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class CSharpSuggestionModeCompletionProvider() : AbstractSuggestionModeCompletionProvider
+internal sealed class CSharpSuggestionModeCompletionProvider() : AbstractSuggestionModeCompletionProvider
 {
     internal override string Language => LanguageNames.CSharp;
 

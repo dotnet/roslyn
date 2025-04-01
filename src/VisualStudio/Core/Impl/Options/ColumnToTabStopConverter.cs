@@ -8,19 +8,18 @@ using System.Globalization;
 using System.Windows.Controls;
 using Microsoft.VisualStudio.PlatformUI;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options;
+
+/// <summary>
+/// DataGridTemplateColumns have custom controls that should be focused instead of the cell.
+/// </summary>
+internal sealed class ColumnToTabStopConverter : ValueConverter<DataGridColumn, bool>
 {
-    /// <summary>
-    /// DataGridTemplateColumns have custom controls that should be focused instead of the cell.
-    /// </summary>
-    internal class ColumnToTabStopConverter : ValueConverter<DataGridColumn, bool>
+    protected override bool Convert(DataGridColumn value, object parameter, CultureInfo culture)
     {
-        protected override bool Convert(DataGridColumn value, object parameter, CultureInfo culture)
-        {
-            // We use DataGridTemplateColumns in our options grids to contain controls (as opposed
-            // to plain text in DataGridTextColumns). We want the tab stop to be on the contained
-            // control and not the cell itself, so don't have DataGridTemplateColumns be tab stops.
-            return value is not DataGridTemplateColumn;
-        }
+        // We use DataGridTemplateColumns in our options grids to contain controls (as opposed
+        // to plain text in DataGridTextColumns). We want the tab stop to be on the contained
+        // control and not the cell itself, so don't have DataGridTemplateColumns be tab stops.
+        return value is not DataGridTemplateColumn;
     }
 }

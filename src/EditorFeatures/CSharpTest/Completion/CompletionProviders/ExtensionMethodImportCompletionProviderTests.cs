@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class ExtensionMethodImportCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     public ExtensionMethodImportCompletionProviderTests()
     {

@@ -20,7 +20,7 @@ using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class CrefCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class CrefCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType()
         => typeof(CrefCompletionProvider);

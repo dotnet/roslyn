@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-public class GenerateEqualsAndGetHashCodeFromMembersTests
+public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
 {
-    private class TestWithDialog : VerifyCS.Test
+    private sealed class TestWithDialog : VerifyCS.Test
     {
         private static readonly TestComposition s_composition =
             EditorTestCompositions.EditorFeatures.AddParts(typeof(TestPickMembersService));

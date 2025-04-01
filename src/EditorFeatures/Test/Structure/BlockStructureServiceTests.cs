@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.Outlining)]
-public class BlockStructureServiceTests
+public sealed class BlockStructureServiceTests
 {
     [Fact]
     public async Task TestSimpleLambda()
