@@ -31,7 +31,7 @@ internal abstract class ExternalSourcesFilterHandlerBase : FilterHandlerBase
         return new EntryFilter(IncludeExact, IncludeExactMetadata, IncludeOther);
     }
 
-    private class EntryFilter : IEntryFilter
+    private sealed class EntryFilter : IEntryFilter
     {
         private readonly bool _includeExact;
         private readonly bool _includeExactMetadata;

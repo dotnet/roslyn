@@ -7,13 +7,12 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp;
+
+internal static class FSharpGlyphTags
 {
-    internal static class FSharpGlyphTags
+    public static ImmutableArray<string> GetTags(FSharpGlyph glyph)
     {
-        public static ImmutableArray<string> GetTags(FSharpGlyph glyph)
-        {
-            return GlyphTags.GetTags(FSharpGlyphHelpers.ConvertTo(glyph));
-        }
+        return GlyphTags.GetTags(FSharpGlyphHelpers.ConvertTo(glyph));
     }
 }

@@ -17,9 +17,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
 
-internal partial class CSharpRemoveUnnecessaryImportsService
+internal sealed partial class CSharpRemoveUnnecessaryImportsService
 {
-    private class Rewriter : CSharpSyntaxRewriter
+    private sealed class Rewriter : CSharpSyntaxRewriter
     {
         private readonly ISet<UsingDirectiveSyntax> _unnecessaryUsingsDoNotAccessDirectly;
         private readonly CancellationToken _cancellationToken;

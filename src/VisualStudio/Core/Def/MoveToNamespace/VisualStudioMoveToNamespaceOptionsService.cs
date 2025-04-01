@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace;
 
 [Export(typeof(IMoveToNamespaceOptionsService)), Shared]
-internal class VisualStudioMoveToNamespaceOptionsService : IMoveToNamespaceOptionsService
+internal sealed class VisualStudioMoveToNamespaceOptionsService : IMoveToNamespaceOptionsService
 {
     private const int HistorySize = 3;
 

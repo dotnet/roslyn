@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.Language.CallHierarchy;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders;
 
-internal class InterfaceImplementationCallFinder : AbstractCallFinder
+internal sealed class InterfaceImplementationCallFinder : AbstractCallFinder
 {
     private readonly string _text;
 

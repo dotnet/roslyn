@@ -17,7 +17,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 namespace Microsoft.CodeAnalysis.ErrorReporting;
 
 [ExportWorkspaceService(typeof(IErrorReportingService), ServiceLayer.Host), Shared]
-internal partial class VisualStudioErrorReportingService : IErrorReportingService
+internal sealed partial class VisualStudioErrorReportingService : IErrorReportingService
 {
     private readonly IThreadingContext _threadingContext;
     private readonly IVsService<IVsActivityLog> _activityLog;

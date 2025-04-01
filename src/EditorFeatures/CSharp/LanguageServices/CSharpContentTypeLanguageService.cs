@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices;
 [ExportContentTypeLanguageService(ContentTypeNames.CSharpContentType, LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class CSharpContentTypeLanguageService(IContentTypeRegistryService contentTypeRegistry) : IContentTypeLanguageService
+internal sealed class CSharpContentTypeLanguageService(IContentTypeRegistryService contentTypeRegistry) : IContentTypeLanguageService
 {
     private readonly IContentTypeRegistryService _contentTypeRegistry = contentTypeRegistry;
 

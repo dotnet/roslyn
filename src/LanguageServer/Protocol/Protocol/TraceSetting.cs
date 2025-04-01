@@ -2,33 +2,32 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Roslyn.LanguageServer.Protocol
+namespace Roslyn.LanguageServer.Protocol;
+
+using System.ComponentModel;
+using System.Text.Json.Serialization;
+
+/// <summary>
+/// Value representing the language server trace setting.
+///
+/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#traceValue">Language Server Protocol specification</see> for additional information.
+/// </summary>
+[JsonConverter(typeof(StringEnumConverter<TraceSetting>))]
+[TypeConverter(typeof(StringEnumConverter<TraceSetting>.TypeConverter))]
+internal readonly record struct TraceSetting(string Value) : IStringEnum
 {
-    using System.ComponentModel;
-    using System.Text.Json.Serialization;
+    /// <summary>
+    /// Setting for 'off'.
+    /// </summary>
+    public static readonly TraceSetting Off = new("off");
 
     /// <summary>
-    /// Value representing the language server trace setting.
-    ///
-    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#traceValue">Language Server Protocol specification</see> for additional information.
+    /// Setting for 'messages'.
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter<TraceSetting>))]
-    [TypeConverter(typeof(StringEnumConverter<TraceSetting>.TypeConverter))]
-    internal readonly record struct TraceSetting(string Value) : IStringEnum
-    {
-        /// <summary>
-        /// Setting for 'off'.
-        /// </summary>
-        public static readonly TraceSetting Off = new("off");
+    public static readonly TraceSetting Messages = new("messages");
 
-        /// <summary>
-        /// Setting for 'messages'.
-        /// </summary>
-        public static readonly TraceSetting Messages = new("messages");
-
-        /// <summary>
-        /// Setting for 'verbose'.
-        /// </summary>
-        public static readonly TraceSetting Verbose = new("verbose");
-    }
+    /// <summary>
+    /// Setting for 'verbose'.
+    /// </summary>
+    public static readonly TraceSetting Verbose = new("verbose");
 }

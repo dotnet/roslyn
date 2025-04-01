@@ -7,65 +7,64 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel;
+
+internal static class SyntaxNodeExtensions
 {
-    internal static class SyntaxNodeExtensions
+    public static bool TryGetAttributeLists(this SyntaxNode node, out SyntaxList<AttributeListSyntax> attributeLists)
     {
-        public static bool TryGetAttributeLists(this SyntaxNode node, out SyntaxList<AttributeListSyntax> attributeLists)
+        if (node is CompilationUnitSyntax compilationUnit)
         {
-            if (node is CompilationUnitSyntax compilationUnit)
-            {
-                attributeLists = compilationUnit.AttributeLists;
-                return true;
-            }
-            else if (node is BaseTypeDeclarationSyntax baseType)
-            {
-                attributeLists = baseType.AttributeLists;
-                return true;
-            }
-            else if (node is BaseMethodDeclarationSyntax baseMethod)
-            {
-                attributeLists = baseMethod.AttributeLists;
-                return true;
-            }
-            else if (node is BasePropertyDeclarationSyntax baseProperty)
-            {
-                attributeLists = baseProperty.AttributeLists;
-                return true;
-            }
-            else if (node is BaseFieldDeclarationSyntax baseField)
-            {
-                attributeLists = baseField.AttributeLists;
-                return true;
-            }
-            else if (node is DelegateDeclarationSyntax delegateDeclaration)
-            {
-                attributeLists = delegateDeclaration.AttributeLists;
-                return true;
-            }
-            else if (node is EnumMemberDeclarationSyntax enumMember)
-            {
-                attributeLists = enumMember.AttributeLists;
-                return true;
-            }
-            else if (node is ParameterSyntax parameter)
-            {
-                attributeLists = parameter.AttributeLists;
-                return true;
-            }
-
-            attributeLists = default;
-            return false;
+            attributeLists = compilationUnit.AttributeLists;
+            return true;
+        }
+        else if (node is BaseTypeDeclarationSyntax baseType)
+        {
+            attributeLists = baseType.AttributeLists;
+            return true;
+        }
+        else if (node is BaseMethodDeclarationSyntax baseMethod)
+        {
+            attributeLists = baseMethod.AttributeLists;
+            return true;
+        }
+        else if (node is BasePropertyDeclarationSyntax baseProperty)
+        {
+            attributeLists = baseProperty.AttributeLists;
+            return true;
+        }
+        else if (node is BaseFieldDeclarationSyntax baseField)
+        {
+            attributeLists = baseField.AttributeLists;
+            return true;
+        }
+        else if (node is DelegateDeclarationSyntax delegateDeclaration)
+        {
+            attributeLists = delegateDeclaration.AttributeLists;
+            return true;
+        }
+        else if (node is EnumMemberDeclarationSyntax enumMember)
+        {
+            attributeLists = enumMember.AttributeLists;
+            return true;
+        }
+        else if (node is ParameterSyntax parameter)
+        {
+            attributeLists = parameter.AttributeLists;
+            return true;
         }
 
-        public static SyntaxToken GetFirstTokenAfterAttributes(this SyntaxNode node)
-        {
-            if (node.TryGetAttributeLists(out var attributeLists) && attributeLists.Count > 0)
-            {
-                return attributeLists.Last().GetLastToken().GetNextToken();
-            }
+        attributeLists = default;
+        return false;
+    }
 
-            return node.GetFirstToken();
+    public static SyntaxToken GetFirstTokenAfterAttributes(this SyntaxNode node)
+    {
+        if (node.TryGetAttributeLists(out var attributeLists) && attributeLists.Count > 0)
+        {
+            return attributeLists.Last().GetLastToken().GetNextToken();
         }
+
+        return node.GetFirstToken();
     }
 }

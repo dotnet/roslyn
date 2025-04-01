@@ -17,7 +17,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseCollectionExpressionForFluentCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionExpression)]
-public class UseCollectionExpressionForFluentTests
+public sealed class UseCollectionExpressionForFluentTests
 {
     [Fact]
     public async Task TestNotInCSharp11()

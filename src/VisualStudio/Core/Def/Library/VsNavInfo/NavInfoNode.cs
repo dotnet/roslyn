@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavInfo;
 
-internal class NavInfoNode : IVsNavInfoNode
+internal sealed class NavInfoNode : IVsNavInfoNode
 {
     public string Name { get; }
     public _LIB_LISTTYPE ListType { get; }

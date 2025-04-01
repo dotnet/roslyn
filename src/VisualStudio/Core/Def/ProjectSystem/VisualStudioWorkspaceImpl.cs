@@ -96,8 +96,6 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     /// </summary>
     private readonly Dictionary<string, UIContext?> _languageToProjectExistsUIContext = [];
 
-    private VirtualMemoryNotificationListener? _memoryListener;
-
     private OpenFileTracker? _openFileTracker;
     internal IFileChangeWatcher FileChangeWatcher { get; }
 
@@ -195,7 +193,6 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         solutionClosingContext.UIContextChanged += (_, e) => ProjectSystemProjectFactory.SolutionClosing = e.Activated;
 
         var openFileTracker = await OpenFileTracker.CreateAsync(this, ProjectSystemProjectFactory, asyncServiceProvider).ConfigureAwait(true);
-        var memoryListener = await VirtualMemoryNotificationListener.CreateAsync(this, _threadingContext, asyncServiceProvider, _globalOptions, _threadingContext.DisposalToken).ConfigureAwait(true);
 
         // Update our fields first, so any asynchronous work that needs to use these is able to see the service.
         // WARNING: if we do .ConfigureAwait(true) here, it means we're trying to transition to the UI thread while
@@ -203,7 +200,6 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
         {
             _openFileTracker = openFileTracker;
-            _memoryListener = memoryListener;
         }
 
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
@@ -928,7 +924,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
             return false;
 
         // All checks pass, so let's treat this special.
-        var dte = _threadingContext.JoinableTaskFactory.Run(() => _asyncServiceProvider.GetServiceAsync<SDTE, EnvDTE.DTE>(_threadingContext.JoinableTaskFactory));
+        var dte = _threadingContext.JoinableTaskFactory.Run(() => _asyncServiceProvider.GetServiceAsync<SDTE, EnvDTE.DTE>(_threadingContext.DisposalToken));
 
         const string SolutionItemsFolderName = "Solution Items";
 

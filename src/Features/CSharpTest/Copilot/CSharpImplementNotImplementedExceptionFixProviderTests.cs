@@ -570,7 +570,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         return resultsBuilder.ToImmutable();
     }
 
-    private class CustomCompositionCSharpTest : VerifyCS.Test
+    private sealed class CustomCompositionCSharpTest : VerifyCS.Test
     {
         private TestComposition? _testComposition;
         private TestWorkspace? _testWorkspace;

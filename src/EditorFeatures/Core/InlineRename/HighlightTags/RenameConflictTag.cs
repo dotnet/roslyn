@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags;
 
-internal class RenameConflictTag : TextMarkerTag
+internal sealed class RenameConflictTag : TextMarkerTag
 {
     // Only used for theming, does not need localized
     internal const string TagId = "RoslynRenameConflictTag";

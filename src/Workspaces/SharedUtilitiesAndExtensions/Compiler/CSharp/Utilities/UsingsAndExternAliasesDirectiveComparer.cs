@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities;
 
-internal class UsingsAndExternAliasesDirectiveComparer : IComparer<SyntaxNode?>
+internal sealed class UsingsAndExternAliasesDirectiveComparer : IComparer<SyntaxNode?>
 {
     public static readonly IComparer<SyntaxNode> NormalInstance = new UsingsAndExternAliasesDirectiveComparer(
         NameSyntaxComparer.Create(TokenComparer.NormalInstance),
