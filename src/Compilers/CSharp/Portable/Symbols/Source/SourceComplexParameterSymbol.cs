@@ -1591,11 +1591,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                                 Debug.Assert(!addMethods.IsDefaultOrEmpty);
 
-                            if (addMethods[0].IsExtensionMethod || addMethods[0].GetIsNewExtensionMember()) // No need to check other methods, extensions are never mixed with instance methods
-                            {
-                                diagnostics.Add(ErrorCode.ERR_ParamsCollectionExtensionAddMethod, syntax, Type);
-                                return;
-                            }
+                                if (addMethods[0].IsExtensionMethod || addMethods[0].GetIsNewExtensionMember()) // No need to check other methods, extensions are never mixed with instance methods
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_ParamsCollectionExtensionAddMethod, syntax, Type);
+                                    return;
+                                }
 
                                 MethodSymbol? reportAsLessVisible = null;
 
