@@ -4,17 +4,16 @@
 
 #nullable disable
 
-namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Structure
-{
-    internal static class XamlStructureTypes
-    {
-        // Trivia
-        public const string Comment = nameof(Comment);
-        public const string Region = nameof(Region);
+namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Structure;
 
-        // Top level declarations
-        public const string Namespaces = nameof(Namespaces);
-        public const string Type = nameof(Type);
-        public const string Member = nameof(Member);
-    }
+internal static class XamlStructureTypes
+{
+    // Trivia
+    public const string Comment = nameof(Comment);
+    public const string Region = nameof(Region);
+
+    // Top level declarations
+    public const string Namespaces = nameof(Namespaces);
+    public const string Type = nameof(Type);
+    public const string Member = nameof(Member);
 }

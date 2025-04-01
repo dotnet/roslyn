@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
 [TestService]
-internal partial class GenerateTypeDialogInProcess
+internal sealed partial class GenerateTypeDialogInProcess
 {
     private async Task<GenerateTypeDialog?> TryGetDialogAsync(CancellationToken cancellationToken)
     {

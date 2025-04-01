@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.LanguageServices.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers;
 
-internal class PickMembersDialogViewModel : AbstractNotifyPropertyChanged
+internal sealed class PickMembersDialogViewModel : AbstractNotifyPropertyChanged
 {
     private readonly List<MemberSymbolViewModel> _allMembers;
 
@@ -177,7 +177,7 @@ internal class PickMembersDialogViewModel : AbstractNotifyPropertyChanged
         SelectedIndex += delta;
     }
 
-    internal class OptionViewModel : AbstractNotifyPropertyChanged
+    internal sealed class OptionViewModel : AbstractNotifyPropertyChanged
     {
         public PickMembersOption Option { get; }
 

@@ -18,7 +18,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpMakeStructReadOnlyCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
-public class MakeStructReadOnlyTests
+public sealed class MakeStructReadOnlyTests
 {
     private static Task TestMissingAsync(string testCode, LanguageVersion version = LanguageVersion.CSharp12)
         => TestAsync(testCode, testCode, version);

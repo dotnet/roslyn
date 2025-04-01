@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview;
 
-internal class HighlightTag : TextMarkerTag
+internal sealed class HighlightTag : TextMarkerTag
 {
     public HighlightTag() : base("blue")
     {

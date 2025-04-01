@@ -23,7 +23,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests;
 
 [UseExportProvider]
-public class SymbolFinderTests : TestBase
+public sealed class SymbolFinderTests : TestBase
 {
     private static Solution AddProjectWithMetadataReferences(Solution solution, string projectName, string languageName, string code, MetadataReference metadataReference, params ProjectId[] projectReferences)
     {

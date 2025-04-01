@@ -22,7 +22,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSetSources;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class SymbolCompletionProviderTests_NoInteractive : AbstractCSharpCompletionProviderTests
+public sealed class SymbolCompletionProviderTests_NoInteractive : AbstractCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType()
         => typeof(SymbolCompletionProvider);

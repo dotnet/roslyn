@@ -11,7 +11,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.ArgumentProviders;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class DefaultArgumentProviderTests : AbstractCSharpArgumentProviderTests
+public sealed class DefaultArgumentProviderTests : AbstractCSharpArgumentProviderTests
 {
     internal override Type GetArgumentProviderType()
         => typeof(DefaultArgumentProvider);

@@ -4,18 +4,17 @@
 
 using System.Text.Json.Serialization;
 
-namespace Roslyn.LanguageServer.Protocol
+namespace Roslyn.LanguageServer.Protocol;
+
+/// <summary>
+/// Report for workspace spell checkable range request.
+/// </summary>
+internal sealed class VSInternalWorkspaceSpellCheckableReport : VSInternalSpellCheckableRangeReport, ITextDocumentParams
 {
     /// <summary>
-    /// Report for workspace spell checkable range request.
+    /// Gets or sets the document for which the spell checkable ranges are returned.
     /// </summary>
-    internal class VSInternalWorkspaceSpellCheckableReport : VSInternalSpellCheckableRangeReport, ITextDocumentParams
-    {
-        /// <summary>
-        /// Gets or sets the document for which the spell checkable ranges are returned.
-        /// </summary>
-        [JsonPropertyName("_vs_textDocument")]
-        [JsonRequired]
-        public TextDocumentIdentifier TextDocument { get; set; }
-    }
+    [JsonPropertyName("_vs_textDocument")]
+    [JsonRequired]
+    public TextDocumentIdentifier TextDocument { get; set; }
 }

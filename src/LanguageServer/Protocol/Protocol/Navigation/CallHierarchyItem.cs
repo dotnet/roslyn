@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal class CallHierarchyItem
+internal sealed class CallHierarchyItem
 {
     /// <summary>
     /// The name of this item.

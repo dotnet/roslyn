@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.14</remarks>
-internal class LocationLink : IEquatable<LocationLink>
+internal sealed class LocationLink : IEquatable<LocationLink>
 {
     /// <summary>
     /// Span of the origin of this link.

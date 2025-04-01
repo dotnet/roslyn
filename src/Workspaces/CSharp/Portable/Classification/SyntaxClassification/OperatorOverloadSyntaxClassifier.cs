@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification;
 
-internal class OperatorOverloadSyntaxClassifier : AbstractSyntaxClassifier
+internal sealed class OperatorOverloadSyntaxClassifier : AbstractSyntaxClassifier
 {
     public override ImmutableArray<Type> SyntaxNodeTypes { get; } =
     [

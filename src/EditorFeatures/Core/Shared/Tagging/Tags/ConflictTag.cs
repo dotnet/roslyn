@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 
-internal class ConflictTag : TextMarkerTag
+internal sealed class ConflictTag : TextMarkerTag
 {
     public const string TagId = "RoslynConflictTag";
 

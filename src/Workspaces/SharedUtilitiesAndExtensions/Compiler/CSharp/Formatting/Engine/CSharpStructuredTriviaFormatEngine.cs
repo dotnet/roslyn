@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-internal class CSharpStructuredTriviaFormatEngine : AbstractFormatEngine
+internal sealed class CSharpStructuredTriviaFormatEngine : AbstractFormatEngine
 {
     public static IFormattingResult Format(
         SyntaxTrivia trivia,

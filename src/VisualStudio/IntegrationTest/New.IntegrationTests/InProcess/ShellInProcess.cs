@@ -22,7 +22,7 @@ using IAsyncDisposable = System.IAsyncDisposable;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing;
 
-internal partial class ShellInProcess
+internal sealed partial class ShellInProcess
 {
     /// <returns>True if the AllInOneSearch is being used for Navigation</returns>
     public async Task<bool> ShowNavigateToDialogAsync(CancellationToken cancellationToken)

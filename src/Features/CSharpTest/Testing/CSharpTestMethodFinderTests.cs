@@ -17,7 +17,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests;
 
 [UseExportProvider]
-public class CSharpTestMethodFinderTests
+public sealed class CSharpTestMethodFinderTests
 {
     #region Xunit
 

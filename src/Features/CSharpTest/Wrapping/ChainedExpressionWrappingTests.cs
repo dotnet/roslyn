@@ -11,7 +11,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-public class ChainedExpressionWrappingTests : AbstractWrappingTests
+public sealed class ChainedExpressionWrappingTests : AbstractWrappingTests
 {
     [Fact]
     public async Task TestMissingWithSyntaxError()

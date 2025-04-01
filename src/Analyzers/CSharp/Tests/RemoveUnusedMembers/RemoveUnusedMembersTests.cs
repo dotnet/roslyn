@@ -20,7 +20,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpRemoveUnusedMembersCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
-public class RemoveUnusedMembersTests
+public sealed class RemoveUnusedMembersTests
 {
     [Theory, CombinatorialData]
     public void TestStandardProperty(AnalyzerProperty property)

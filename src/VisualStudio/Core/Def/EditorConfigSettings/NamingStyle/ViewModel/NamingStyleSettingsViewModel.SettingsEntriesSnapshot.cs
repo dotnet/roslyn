@@ -8,9 +8,9 @@ using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.ViewModel;
 
-internal partial class NamingStyleSettingsViewModel
+internal sealed partial class NamingStyleSettingsViewModel
 {
-    internal class SettingsEntriesSnapshot : SettingsEntriesSnapshotBase<NamingStyleSetting>
+    internal sealed class SettingsEntriesSnapshot : SettingsEntriesSnapshotBase<NamingStyleSetting>
     {
         public SettingsEntriesSnapshot(ImmutableArray<NamingStyleSetting> data, int currentVersionNumber) : base(data, currentVersionNumber) { }
 
