@@ -108,13 +108,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
 
                 default:
-                    if (contextualKind == SyntaxKind.ExclamationToken && hashPosition == 0 && !hash.HasTrailingTrivia)
+                    if (lexer.Options.Kind == SourceCodeKind.Script && contextualKind == SyntaxKind.ExclamationToken && hashPosition == 0 && !hash.HasTrailingTrivia)
                     {
                         result = this.ParseShebangDirective(hash, this.EatToken(SyntaxKind.ExclamationToken), isActive);
-                    }
-                    else if (contextualKind == SyntaxKind.ColonToken && !hash.HasTrailingTrivia)
-                    {
-                        result = this.ParseIgnoredDirective(hash, this.EatToken(SyntaxKind.ColonToken), isActive, isFollowingToken);
                     }
                     else
                     {
@@ -683,26 +679,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // (before all other directives), so they should always be active.
             Debug.Assert(isActive);
             return SyntaxFactory.ShebangDirectiveTrivia(hash, exclamation, this.ParseEndOfDirectiveWithOptionalPreprocessingMessage(), isActive);
-        }
-
-        private DirectiveTriviaSyntax ParseIgnoredDirective(SyntaxToken hash, SyntaxToken colon, bool isActive, bool isFollowingToken)
-        {
-            if (!lexer.Options.FileBasedProgram)
-            {
-                colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredNeedsFileBasedProgram);
-            }
-
-            if (isFollowingToken)
-            {
-                colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredFollowsToken);
-            }
-
-            if (_context.SeenAnyIfDirectives)
-            {
-                colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredFollowsIf);
-            }
-
-            return SyntaxFactory.IgnoredDirectiveTrivia(hash, colon, this.ParseEndOfDirectiveWithOptionalPreprocessingMessage(), isActive);
         }
 
         private SyntaxToken ParseEndOfDirectiveWithOptionalPreprocessingMessage()

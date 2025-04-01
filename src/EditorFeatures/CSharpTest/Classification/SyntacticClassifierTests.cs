@@ -1504,7 +1504,8 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
 
         var expected = new[]
         {
-            Comment("#!/usr/bin/env scriptcs"),
+            PPKeyword("#"),
+            PPText("!/usr/bin/env scriptcs"),
             Identifier("System"),
             Operators.Dot,
             Identifier("Console"),

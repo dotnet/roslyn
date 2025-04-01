@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
@@ -21,8 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public abstract class ParsingTests : CSharpTestBase
     {
         private CSharpSyntaxNode? _node;
-        private IEnumerator<SyntaxNodeOrTokenOrTrivia>? _treeEnumerator;
-        private bool _verifyTrivia;
+        private IEnumerator<SyntaxNodeOrToken>? _treeEnumerator;
         private readonly ITestOutputHelper _output;
 
         public ParsingTests(ITestOutputHelper output)
@@ -194,12 +192,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             _treeEnumerator = nodes.GetEnumerator();
         }
 
-        protected void VerifyTrivia(bool enabled = true)
-        {
-            VerifyEnumeratorConsumed();
-            _verifyTrivia = enabled;
-        }
-
         /// <summary>
         /// Moves the enumerator and asserts that the current node is of the given kind.
         /// </summary>
@@ -212,7 +204,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var current = _treeEnumerator.Current;
 
                 Assert.Equal(kind, current.Kind());
-                Assert.False(current.IsTrivia);
                 Assert.False(current.IsMissing);
 
                 if (value != null)
@@ -220,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Assert.Equal(current.ToString(), value);
                 }
 
-                return current.NodeOrToken;
+                return current;
             }
             catch when (DumpAndCleanup())
             {
@@ -238,53 +229,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             try
             {
                 Assert.True(_treeEnumerator!.MoveNext());
-                var current = _treeEnumerator.Current;
+                SyntaxNodeOrToken current = _treeEnumerator.Current;
                 Assert.Equal(kind, current.Kind());
                 Assert.True(current.IsMissing);
-                return current.NodeOrToken;
-            }
-            catch when (DumpAndCleanup())
-            {
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// Asserts leading trivia.
-        /// </summary>
-        [DebuggerHidden]
-        protected SyntaxTrivia L(SyntaxKind kind, string? value = null)
-        {
-            return Trivia(kind, value, trailing: false);
-        }
-
-        /// <summary>
-        /// Asserts trailing trivia.
-        /// </summary>
-        [DebuggerHidden]
-        protected SyntaxTrivia T(SyntaxKind kind, string? value = null)
-        {
-            return Trivia(kind, value, trailing: true);
-        }
-
-        [DebuggerHidden]
-        private SyntaxTrivia Trivia(SyntaxKind kind, string? value, bool trailing)
-        {
-            try
-            {
-                Assert.True(_treeEnumerator!.MoveNext());
-                var current = _treeEnumerator.Current;
-
-                Assert.Equal(kind, current.Kind());
-                Assert.True(current.IsTrivia);
-                Assert.Equal(trailing, current.IsTrailing);
-
-                if (value != null)
-                {
-                    Assert.Equal(current.ToString().ReplaceLineEndings("\n"), value);
-                }
-
-                return current.Trivia;
+                return current;
             }
             catch when (DumpAndCleanup())
             {
@@ -306,80 +254,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        private IEnumerable<SyntaxNodeOrTokenOrTrivia> EnumerateNodes(CSharpSyntaxNode node, bool dump)
+        private IEnumerable<SyntaxNodeOrToken> EnumerateNodes(CSharpSyntaxNode node, bool dump)
         {
             Print(node, dump);
             yield return node;
 
-            var stack = new Stack<(SyntaxTriviaList.Enumerator, ChildSyntaxList.Enumerator, SyntaxTriviaList.Enumerator)>(24);
-            stack.Push((default, node.ChildNodesAndTokens().GetEnumerator(), default));
+            var stack = new Stack<ChildSyntaxList.Enumerator>(24);
+            stack.Push(node.ChildNodesAndTokens().GetEnumerator());
             Open(dump);
 
             while (stack.Count > 0)
             {
-                var (en1, en2, en3) = stack.Pop();
-
-                byte en;
-                SyntaxTrivia currentTrivia = default;
-                SyntaxNodeOrToken currentChild = default;
-
-                if (en1.MoveNext())
-                {
-                    currentTrivia = en1.Current;
-                    en = 1;
-                }
-                else if (en2.MoveNext())
-                {
-                    currentChild = en2.Current;
-                    en = 2;
-                }
-                else if (en3.MoveNext())
-                {
-                    currentTrivia = en3.Current;
-                    en = 3;
-                }
-                else
+                var en = stack.Pop();
+                if (!en.MoveNext())
                 {
                     // no more down this branch
                     Close(dump);
                     continue;
                 }
 
-                stack.Push((en1, en2, en3)); // put it back on stack (struct enumerator)
+                var current = en.Current;
+                stack.Push(en); // put it back on stack (struct enumerator)
 
-                if (en != 2) // we are on a trivia
-                {
-                    Print(currentTrivia, trailing: en == 3, dump);
-                    yield return new SyntaxNodeOrTokenOrTrivia(currentTrivia, trailing: en == 3);
+                Print(current, dump);
+                yield return current;
 
-                    if (currentTrivia.TryGetStructure(out var triviaStructure))
-                    {
-                        // trivia has a structure, so consider its children
-                        stack.Push((default, triviaStructure.ChildNodesAndTokens().GetEnumerator(), default));
-                        Open(dump);
-                    }
-
-                    continue;
-                }
-
-                Print(currentChild, dump);
-                yield return currentChild;
-
-                if (currentChild.AsNode(out var currentChildNode))
+                if (current.IsNode)
                 {
                     // not token, so consider children
-                    stack.Push((default, currentChildNode.ChildNodesAndTokens().GetEnumerator(), default));
-                    Open(dump);
-                    continue;
-                }
-
-                if (_verifyTrivia && currentChild.AsToken(out var currentChildToken) &&
-                    (currentChildToken.HasLeadingTrivia || currentChildToken.HasTrailingTrivia))
-                {
-                    // token with trivia
-                    stack.Push((currentChildToken.GetLeadingTrivia().GetEnumerator(),
-                        default,
-                        currentChildToken.GetTrailingTrivia().GetEnumerator()));
+                    stack.Push(current.ChildNodesAndTokens().GetEnumerator());
                     Open(dump);
                     continue;
                 }
@@ -392,51 +295,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             if (dump)
             {
-                if (!node.IsMissing && ShouldIncludeText(node.Kind()))
+                switch (node.Kind())
                 {
-                    var value = node.ToString().Replace("\"", "\\\"");
-                    _output.WriteLine(@"N(SyntaxKind.{0}, ""{1}"");", node.Kind(), value);
-                }
-                else
-                {
-                    _output.WriteLine("{0}(SyntaxKind.{1});", node.IsMissing ? "M" : "N", node.Kind());
+                    case SyntaxKind.IdentifierToken:
+                    case SyntaxKind.NumericLiteralToken:
+                    case SyntaxKind.StringLiteralToken:
+                    case SyntaxKind.Utf8StringLiteralToken:
+                    case SyntaxKind.SingleLineRawStringLiteralToken:
+                    case SyntaxKind.Utf8SingleLineRawStringLiteralToken:
+                    case SyntaxKind.MultiLineRawStringLiteralToken:
+                    case SyntaxKind.Utf8MultiLineRawStringLiteralToken:
+                        if (node.IsMissing)
+                        {
+                            goto default;
+                        }
+                        var value = node.ToString().Replace("\"", "\\\"");
+                        _output.WriteLine(@"N(SyntaxKind.{0}, ""{1}"");", node.Kind(), value);
+                        break;
+                    default:
+                        _output.WriteLine("{0}(SyntaxKind.{1});", node.IsMissing ? "M" : "N", node.Kind());
+                        break;
                 }
             }
-        }
-
-        private void Print(SyntaxTrivia trivia, bool trailing, bool dump)
-        {
-            if (dump)
-            {
-                string? value = ShouldIncludeText(trivia.Kind())
-                    ? $"""
-                        , "{trivia.ToString().Replace("\"", "\\\"").ReplaceLineEndings("\\n")}"
-                        """
-                    : null;
-                _output.WriteLine($"""
-                    {(trailing ? "T" : "L")}(SyntaxKind.{trivia.Kind()}{value});
-                    """);
-            }
-        }
-
-        private static bool ShouldIncludeText(SyntaxKind kind)
-        {
-            // This can be changed without failing existing tests,
-            // it only affects the baseline output printed when a test fails.
-            return kind
-                is SyntaxKind.IdentifierToken
-                or SyntaxKind.NumericLiteralToken
-                or SyntaxKind.StringLiteralToken
-                or SyntaxKind.Utf8StringLiteralToken
-                or SyntaxKind.SingleLineRawStringLiteralToken
-                or SyntaxKind.Utf8SingleLineRawStringLiteralToken
-                or SyntaxKind.MultiLineRawStringLiteralToken
-                or SyntaxKind.Utf8MultiLineRawStringLiteralToken
-                or SyntaxKind.BadToken
-                or SyntaxKind.WhitespaceTrivia
-                or SyntaxKind.EndOfLineTrivia
-                or SyntaxKind.PreprocessingMessageTrivia
-                ;
         }
 
         private void Open(bool dump)
@@ -497,46 +377,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
 
                 return tokensBuilder.ToImmutableAndFree();
-            }
-        }
-
-        private readonly struct SyntaxNodeOrTokenOrTrivia
-        {
-            public bool IsTrivia { get; }
-            public bool IsTrailing { get; }
-            public SyntaxNodeOrToken NodeOrToken { get; }
-            public SyntaxTrivia Trivia { get; }
-
-            public SyntaxNodeOrTokenOrTrivia(SyntaxNodeOrToken nodeOrToken)
-            {
-                NodeOrToken = nodeOrToken;
-                Trivia = default;
-                IsTrivia = false;
-                IsTrailing = false;
-            }
-
-            public SyntaxNodeOrTokenOrTrivia(SyntaxTrivia trivia, bool trailing)
-            {
-                NodeOrToken = default;
-                Trivia = trivia;
-                IsTrivia = true;
-                IsTrailing = trailing;
-            }
-
-            public bool IsMissing => !IsTrivia && NodeOrToken.IsMissing;
-
-            public SyntaxKind Kind() => IsTrivia ? Trivia.Kind() : NodeOrToken.Kind();
-
-            public override string ToString() => IsTrivia ? Trivia.ToString() : NodeOrToken.ToString();
-
-            public static implicit operator SyntaxNodeOrTokenOrTrivia(SyntaxNode node)
-            {
-                return new SyntaxNodeOrTokenOrTrivia(node);
-            }
-
-            public static implicit operator SyntaxNodeOrTokenOrTrivia(SyntaxNodeOrToken nodeOrToken)
-            {
-                return new SyntaxNodeOrTokenOrTrivia(nodeOrToken);
             }
         }
     }

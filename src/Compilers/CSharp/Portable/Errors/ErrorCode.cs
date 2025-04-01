@@ -2386,19 +2386,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnderspecifiedExtension = 9295,
         ERR_ExpressionTreeContainsExtensionPropertyAccess = 9296,
 
-        ERR_PPIgnoredFollowsToken = 9297,
-        ERR_PPIgnoredNeedsFileBasedProgram = 9298,
-        ERR_PPIgnoredFollowsIf = 9299,
-
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
-        //  2) Add message to CSharpResources.resx
 
         // Note: you will need to do the following after adding warnings:
         //  1) Re-generate compiler code (eng\generate-compiler-code.cmd).
         //  2) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  3) Update ErrorFacts.GetWarningLevel (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  4) Update DiagnosticTest.WarningLevel_2 (src/Compilers/CSharp/Test/Syntax/Diagnostics/DiagnosticTest.cs)
-        //  5) Add message and '_Title' to CSharpResources.resx
     }
 }

@@ -2600,11 +2600,6 @@ top:
                     info.Kind = SyntaxKind.MinusToken;
                     break;
 
-                case ':':
-                    TextWindow.AdvanceChar();
-                    info.Kind = SyntaxKind.ColonToken;
-                    break;
-
                 case '!':
                     TextWindow.AdvanceChar();
                     if (TextWindow.PeekChar() == '=')

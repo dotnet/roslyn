@@ -9716,7 +9716,8 @@ Console.WriteLine(""Hi!"");", TestOptions.Script);
         [Fact]
         public void ShebangNotInScript()
         {
-            ParseAndValidate("#!/usr/bin/env csi", TestOptions.Regular);
+            ParseAndValidate("#!/usr/bin/env csi", TestOptions.Regular,
+                new ErrorDescription { Code = (int)ErrorCode.ERR_PPDirectiveExpected, Line = 1, Column = 1 });
         }
 
         private void TestShebang(SyntaxTrivia trivia, string expectedSkippedText)
