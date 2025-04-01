@@ -2,7 +2,7 @@
 {
     "merge-flow-configurations": {
         "main": {
-            "MergeToBranch": "release/dev17.15",
+            "MergeToBranch": "release/dev17.14",
             "ExtraSwitches": "-QuietComments"
         }
     }
