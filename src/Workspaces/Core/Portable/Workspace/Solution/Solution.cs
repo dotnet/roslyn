@@ -1756,15 +1756,11 @@ public partial class Solution
 
         bool ContainsSourceGeneratedDocument(DocumentId documentId)
         {
-            if (!ContainsProject(documentId.ProjectId))
+            var project = this.GetProject(documentId.ProjectId);
+            if (project is null)
                 return false;
 
-            var project = this.GetRequiredProject(documentId.ProjectId);
-
-            if (project.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId) is null)
-                return false;
-
-            return true;
+            return project.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId) is not null;
         }
     }
 

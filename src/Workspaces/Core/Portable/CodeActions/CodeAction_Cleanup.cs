@@ -65,7 +65,7 @@ public abstract partial class CodeAction
             .GetProjectChanges()
             .SelectMany(p => p.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true).Concat(p.GetAddedDocuments()))
             .Concat(solutionChanges.GetAddedProjects().SelectMany(p => p.DocumentIds))
-            .Concat(solutionChanges.GetChangedFrozenSourceGeneratedDocuments());
+            .Concat(solutionChanges.GetExplicitlyChangedSourceGeneratedDocuments());
 
         return documentIds.ToImmutableArray();
     }

@@ -1436,14 +1436,11 @@ internal sealed partial class SolutionCompilationState
             }
         }
 
-        if (FrozenSourceGeneratedDocumentStates is not null)
+        // We also carry forward any previously frozen source generated documents that were not part of this freeze. This ensures multiple
+        // freezes are additive, and everything will be unfrozen correctly, without us needing to have a chain of compilation trackers
+        foreach (var (id, state) in FrozenSourceGeneratedDocumentStates.States)
         {
-            // We also carry forward any previously frozen source generated documents that were not part of this freeze. This ensures multiple
-            // freezes are additive, and everything will be unfrozen correctly, without us needing to have a chain of compilation trackers
-            foreach (var (id, state) in FrozenSourceGeneratedDocumentStates.States)
-            {
-                documentStates.TryAdd(id, state);
-            }
+            documentStates.TryAdd(id, state);
         }
 
         // If every document we looked at matched what we've already generated, we have nothing new to do

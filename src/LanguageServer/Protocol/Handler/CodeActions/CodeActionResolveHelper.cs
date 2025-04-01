@@ -191,7 +191,7 @@ internal sealed class CodeActionResolveHelper
             // Changes to non-frozen documents don't need to be included, because changes to the origin document would
             // cause the generator to re-generate the same changed content.
             await AddTextDocumentEditsAsync(
-                changes.GetChangedFrozenSourceGeneratedDocuments(),
+                changes.GetExplicitlyChangedSourceGeneratedDocuments(),
                 newSolution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId,
                 solution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId).ConfigureAwait(false);
 

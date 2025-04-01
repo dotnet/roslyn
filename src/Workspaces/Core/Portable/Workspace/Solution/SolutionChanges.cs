@@ -84,9 +84,17 @@ public readonly struct SolutionChanges
         }
     }
 
-    internal IEnumerable<DocumentId> GetChangedFrozenSourceGeneratedDocuments()
+    /// <summary>
+    /// Gets changed source generated document ids that were modified with <see cref="Solution.WithFrozenSourceGeneratedDocuments(System.Collections.Immutable.ImmutableArray{ValueTuple{SourceGeneratedDocumentIdentity, DateTime, Text.SourceText}})"/>
+    /// </summary>
+    /// <remarks>
+    /// It is possible for a source generated document to be "frozen" without it existing in the solution, and in that case
+    /// this method will not return that document. This only returns changes to source generated documents, hence they had
+    /// to already be observed in the old solution.
+    /// </remarks>
+    internal IEnumerable<DocumentId> GetExplicitlyChangedSourceGeneratedDocuments()
     {
-        if (_newSolution.CompilationState.FrozenSourceGeneratedDocumentStates is null)
+        if (_newSolution.CompilationState.FrozenSourceGeneratedDocumentStates.IsEmpty)
             return [];
 
         using var _ = ArrayBuilder<SourceGeneratedDocumentState>.GetInstance(out var oldStateBuilder);
