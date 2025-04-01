@@ -68,7 +68,13 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
             foreach (var match in preMatches)
             {
                 if (match.Node is ExpressionSyntax expression)
+                {
                     yield return match.UseSpread ? SpreadElement(expression) : ExpressionElement(expression);
+                }
+                else if (match.Node is ArgumentListSyntax argumentList)
+                {
+                    yield return WithElement(argumentList.WithoutTrivia());
+                }
             }
         }
 

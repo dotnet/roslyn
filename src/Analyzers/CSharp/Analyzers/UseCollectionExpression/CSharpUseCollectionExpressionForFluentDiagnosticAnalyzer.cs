@@ -307,7 +307,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                     .All(static t => t.IsWhitespaceOrEndOfLine()))
             {
                 // Remove any whitespace around the `.`, making the singly-wrapped fluent expression into a single line.
-                postMatchesInReverse.Add(new CollectionMatch<ArgumentSyntax>(
+                postMatchesInReverse.Add(new(
                     Argument(innerInvocation.WithExpression(
                         memberAccess.Update(
                             memberAccess.Expression.WithoutTrailingTrivia(),
@@ -317,7 +317,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                 return;
             }
 
-            postMatchesInReverse.Add(new CollectionMatch<ArgumentSyntax>(Argument(expression), UseSpread: true));
+            postMatchesInReverse.Add(new(Argument(expression), UseSpread: true));
         }
 
         // We only want to offer this feature when the original collection was list-like (as opposed to being something

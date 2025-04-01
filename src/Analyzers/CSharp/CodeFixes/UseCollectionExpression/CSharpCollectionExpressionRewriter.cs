@@ -206,11 +206,18 @@ internal static class CSharpCollectionExpressionRewriter
             //
             // For that sort of case.  Single element collections should stay closely associated with the original
             // expression.
+            return CollectionExpression([CreateElement(match)]).WithTriviaFrom(expressionToReplace);
+        }
+
+        CollectionElementSyntax CreateElement(CollectionMatch<TMatchNode> match)
+        {
+            if (match.Node is ArgumentListSyntax argumentList)
+                return WithElement(argumentList.WithoutTrivia());
+
             var expression = (ExpressionSyntax)(object)match.Node;
-            return CollectionExpression([
-                match.UseSpread
-                    ? SpreadElement(expression.WithoutTrivia())
-                    : ExpressionElement(expression.WithoutTrivia())]).WithTriviaFrom(expressionToReplace);
+            return match.UseSpread
+                ? SpreadElement(expression.WithoutTrivia())
+                : ExpressionElement(expression.WithoutTrivia());
         }
 
         CollectionExpressionSyntax CreateCollectionExpressionWithExistingElements()
@@ -530,6 +537,10 @@ internal static class CSharpCollectionExpressionRewriter
             else if (node is ExpressionSyntax expression)
             {
                 yield return CreateCollectionElement(match.UseSpread, IndentExpression(parentStatement: null, expression, preferredIndentation));
+            }
+            else if (node is ArgumentListSyntax argumentList)
+            {
+                yield return WithElement(argumentList.WithoutTrivia());
             }
             else
             {
