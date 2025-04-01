@@ -9,12 +9,10 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Threading;
 using Microsoft.CodeAnalysis.Workspaces.AnalyzerRedirecting;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
@@ -41,7 +39,6 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
     private readonly ImmutableArray<IAnalyzerAssemblyRedirector> _analyzerAssemblyRedirectors;
     private readonly IVsService<SVsBackgroundSolution, IVsBackgroundSolution> _solution;
 
-    private readonly AsyncBatchingWorkQueue<string> _uiContextUpdateWorkQueue;
     private readonly JoinableTask<VisualStudioDiagnosticAnalyzerProvider> _initializationTask;
 
     [ImportingConstructor]
@@ -62,17 +59,11 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
         _analyzerAssemblyRedirectors = analyzerAssemblyRedirectors.AsImmutableOrEmpty();
         _solution = solution;
 
-        _uiContextUpdateWorkQueue = new AsyncBatchingWorkQueue<string>(
-            DelayTimeSpan.NearImmediate,
-            UpdateUIContextsAsync,
-            StringComparer.OrdinalIgnoreCase,
-            listenerProvider.GetListener(FeatureAttribute.Workspace),
-            _threadingContext.DisposalToken);
-
         _initializationTask = _threadingContext.JoinableTaskFactory.RunAsync(
             async () =>
             {
                 var cancellationToken = _threadingContext.DisposalToken;
+
                 // HACK: Fetch this service to ensure it's still created on the UI thread; once this is
                 // moved off we'll need to fix up it's constructor to be free-threaded.
 
@@ -86,14 +77,6 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
 
                 return await _vsixAnalyzerProviderFactory.GetOrCreateProviderAsync(cancellationToken).ConfigureAwait(true);
             });
-    }
-
-    private async ValueTask UpdateUIContextsAsync(ImmutableSegmentedList<string> list, CancellationToken cancellationToken)
-    {
-        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-        foreach (var language in list)
-            await _visualStudioWorkspaceImpl.RefreshProjectExistsUIContextForLanguageAsync(language, cancellationToken).ConfigureAwait(true);
     }
 
     public Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, CancellationToken cancellationToken)
@@ -129,11 +112,9 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
         _visualStudioWorkspaceImpl.AddProjectToInternalMaps(project, creationInfo.Hierarchy, creationInfo.ProjectGuid, projectSystemName);
 
         // Ensure that other VS contexts get accurate information that the UIContext for this language is now active.
-        _uiContextUpdateWorkQueue.AddWork(language);
+        await _visualStudioWorkspaceImpl.RefreshProjectExistsUIContextForLanguageAsync(language, cancellationToken).ConfigureAwait(true);
 
         return project;
-
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
         static Guid GetSolutionSessionId()
         {

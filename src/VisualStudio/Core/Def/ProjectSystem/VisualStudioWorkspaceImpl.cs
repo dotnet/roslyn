@@ -92,9 +92,10 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     private readonly Dictionary<string, List<ProjectSystemProject>> _projectSystemNameToProjectsMap = [];
 
     /// <summary>
-    /// Only safe to use on the UI thread.
+    /// Mapping from language name to existing UIContext and it's active state.
+    /// Only access when holding _gate
     /// </summary>
-    private readonly Dictionary<string, UIContext?> _languageToProjectExistsUIContext = [];
+    private readonly Dictionary<string, (UIContext?, bool)> _languageToProjectExistsUIContext = [];
 
     private OpenFileTracker? _openFileTracker;
     internal IFileChangeWatcher FileChangeWatcher { get; }
@@ -1563,16 +1564,29 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
     internal async Task RefreshProjectExistsUIContextForLanguageAsync(string language, CancellationToken cancellationToken)
     {
+        UIContext? uiContext;
+
+        using (_gate.DisposableWait(cancellationToken))
+        {
+            (uiContext, var isContextActive) = _languageToProjectExistsUIContext.GetOrAdd(
+                language,
+                language => (Services.GetLanguageServices(language).GetService<IProjectExistsUIContextProviderLanguageService>()?.GetUIContext(), false));
+
+            // UIContexts can be "zombied" if UIContexts aren't supported because we're in a command line build or in
+            // other scenarios.
+            if (uiContext == null || uiContext.IsZombie)
+                return;
+
+            // Determine if there is a project with a matching language. Uses _projectSystemNameToProjectsMap as 
+            // that data structure is updated before calling into this method, whereas CurrentSolution may not be.
+            var projectExistsWithLanguage = _projectSystemNameToProjectsMap.Any(projects => projects.Value.Any(project => project.Language == language));
+            if (projectExistsWithLanguage == isContextActive)
+                return;
+
+            _languageToProjectExistsUIContext[language] = (uiContext, projectExistsWithLanguage);
+        }
+
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-
-        var uiContext = _languageToProjectExistsUIContext.GetOrAdd(
-            language,
-            language => Services.GetLanguageServices(language).GetService<IProjectExistsUIContextProviderLanguageService>()?.GetUIContext());
-
-        // UIContexts can be "zombied" if UIContexts aren't supported because we're in a command line build or in
-        // other scenarios.
-        if (uiContext == null || uiContext.IsZombie)
-            return;
 
         // Note: it's safe to read CurrentSolution here outside of any sort of lock.  We do all work here on the UI
         // thread, so that acts as a natural ordering mechanism here.  If, say, a BG piece of work was mutating this
