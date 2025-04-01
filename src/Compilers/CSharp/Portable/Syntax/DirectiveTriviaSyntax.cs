@@ -56,6 +56,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         return ((LoadDirectiveTriviaSyntax)this).LoadKeyword;
                     case SyntaxKind.ShebangDirectiveTrivia:
                         return ((ShebangDirectiveTriviaSyntax)this).ExclamationToken;
+                    case SyntaxKind.IgnoredDirectiveTrivia:
+                        return ((IgnoredDirectiveTriviaSyntax)this).ColonToken;
                     case SyntaxKind.NullableDirectiveTrivia:
                         return ((NullableDirectiveTriviaSyntax)this).NullableKeyword;
                     default:

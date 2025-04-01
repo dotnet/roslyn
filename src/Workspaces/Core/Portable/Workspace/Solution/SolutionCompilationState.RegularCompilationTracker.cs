@@ -118,11 +118,14 @@ namespace Microsoft.CodeAnalysis
                 return finalState.RootedSymbolSet.ContainsAssemblyOrModuleOrDynamic(symbol, primary, out compilation, out referencedThrough);
             }
 
+            ICompilationTracker ICompilationTracker.Fork(ProjectState newProjectState, TranslationAction? translate)
+                => Fork(newProjectState, translate);
+
             /// <summary>
             /// Creates a new instance of the compilation info, retaining any already built
             /// compilation state as the now 'old' state
             /// </summary>
-            public ICompilationTracker Fork(
+            public RegularCompilationTracker Fork(
                 ProjectState newProjectState,
                 TranslationAction? translate)
             {
@@ -680,7 +683,10 @@ namespace Microsoft.CodeAnalysis
                 return finalState.HasSuccessfullyLoaded;
             }
 
-            public ICompilationTracker WithCreateCreationPolicy(bool forceRegeneration)
+            ICompilationTracker ICompilationTracker.WithCreateCreationPolicy(bool forceRegeneration)
+                => WithCreateCreationPolicy(forceRegeneration);
+
+            public RegularCompilationTracker WithCreateCreationPolicy(bool forceRegeneration)
             {
                 var state = this.ReadState();
 
@@ -736,7 +742,10 @@ namespace Microsoft.CodeAnalysis
                     skeletonReferenceCacheToClone: _skeletonReferenceCache);
             }
 
-            public ICompilationTracker WithDoNotCreateCreationPolicy()
+            ICompilationTracker ICompilationTracker.WithDoNotCreateCreationPolicy()
+                => WithDoNotCreateCreationPolicy();
+
+            public RegularCompilationTracker WithDoNotCreateCreationPolicy()
             {
                 var state = this.ReadState();
 
@@ -1008,7 +1017,6 @@ namespace Microsoft.CodeAnalysis
 
             private AsyncLazy<VersionStamp>? _lazyDependentVersion;
             private AsyncLazy<VersionStamp>? _lazyDependentSemanticVersion;
-            private AsyncLazy<Checksum>? _lazyDependentChecksum;
 
             public Task<VersionStamp> GetDependentVersionAsync(
                 SolutionCompilationState compilationState, CancellationToken cancellationToken)
@@ -1085,66 +1093,6 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return version;
-            }
-
-            public Task<Checksum> GetDependentChecksumAsync(
-                SolutionCompilationState compilationState, CancellationToken cancellationToken)
-            {
-                if (_lazyDependentChecksum == null)
-                {
-                    // note: solution is captured here, but it will go away once GetValueAsync executes.
-                    Interlocked.CompareExchange(
-                        ref _lazyDependentChecksum,
-                        AsyncLazy.Create(static (arg, c) =>
-                            arg.self.ComputeDependentChecksumAsync(arg.compilationState, c),
-                            arg: (self: this, compilationState)),
-                        null);
-                }
-
-                return _lazyDependentChecksum.GetValueAsync(cancellationToken);
-            }
-
-            private async Task<Checksum> ComputeDependentChecksumAsync(
-                SolutionCompilationState solution, CancellationToken cancellationToken)
-            {
-                using var _ = ArrayBuilder<Checksum>.GetInstance(out var tempChecksumArray);
-
-                // Mix in the SG information for this project.  That way if it changes, we will have a different
-                // checksum (since semantics could have changed because of this).
-                if (solution.SourceGeneratorExecutionVersionMap.Map.TryGetValue(this.ProjectState.Id, out var executionVersion))
-                    tempChecksumArray.Add(executionVersion.Checksum);
-
-                // Get the checksum for the project itself.
-                var projectChecksum = await this.ProjectState.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
-                tempChecksumArray.Add(projectChecksum);
-
-                // Calculate a checksum this project and for each dependent project that could affect semantics for this
-                // project. We order the projects so that we are resilient to the underlying in-memory graph structure
-                // changing this arbitrarily.  We do not want that to cause us to change our semantic version.. Note: we
-                // use the project filepath+name as a unique way to reference a project.  This matches the logic in our
-                // persistence-service implementation as to how information is associated with a project.
-                var transitiveDependencies = solution.SolutionState.GetProjectDependencyGraph().GetProjectsThatThisProjectTransitivelyDependsOn(this.ProjectState.Id);
-                var orderedProjectIds = transitiveDependencies.OrderBy(id =>
-                {
-                    var depProject = solution.SolutionState.GetRequiredProjectState(id);
-                    return (depProject.FilePath, depProject.Name);
-                });
-
-                foreach (var projectId in orderedProjectIds)
-                {
-                    // Mix in the SG information for the dependent project.  That way if it changes, we will have a
-                    // different checksum (since semantics could have changed because of this).
-                    if (solution.SourceGeneratorExecutionVersionMap.Map.TryGetValue(projectId, out executionVersion))
-                        tempChecksumArray.Add(executionVersion.Checksum);
-
-                    // Note that these checksums should only actually be calculated once, if the project is unchanged
-                    // the same checksum will be returned.
-                    var referencedProject = solution.SolutionState.GetRequiredProjectState(projectId);
-                    var referencedProjectChecksum = await referencedProject.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
-                    tempChecksumArray.Add(referencedProjectChecksum);
-                }
-
-                return Checksum.Create(tempChecksumArray);
             }
 
             #endregion

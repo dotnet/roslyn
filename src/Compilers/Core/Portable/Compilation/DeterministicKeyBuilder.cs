@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis
                 foreach (var generator in generators)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    WriteType(writer, generator.GetType());
+                    WriteType(writer, generator.GetGeneratorType());
                 }
                 writer.WriteArrayEnd();
             }

@@ -3,12 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.CodeDom;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -416,5 +414,52 @@ public sealed class CSharpSemanticSearchServiceTests
             $"   at Program.<>c.<<Main>$>b__0_2(ISymbol x) in {FeaturesResources.Query}:line 5" + Environment.NewLine +
             $"   at <Select Iterator>()" + Environment.NewLine,
             Regex.Replace(exception.StackTrace.JoinText(), @"System\.Linq\.Enumerable\..*\.MoveNext", "<Select Iterator>"));
+    }
+
+    /// <summary>
+    /// Checks that flow pass handles semantic query code end-to-end
+    /// (specifically, module cancellation and stack overflow instrumentation).
+    /// </summary>
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public async Task FlowPass()
+    {
+        using var workspace = TestWorkspace.Create(DefaultWorkspaceXml, composition: FeaturesTestCompositions.Features);
+
+        var solution = workspace.CurrentSolution;
+
+        var service = solution.Services.GetRequiredLanguageService<ISemanticSearchService>(LanguageNames.CSharp);
+
+        var query = """
+        using Microsoft.CodeAnalysis.CSharp;
+        using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+        static IEnumerable<ISymbol> Find(IMethodSymbol method)
+        {
+            var syntaxReference = method.DeclaringSyntaxReferences.FirstOrDefault();
+            if (syntaxReference != null)
+            {
+                while (true)
+                {
+                    var syntaxNode = syntaxReference.GetSyntax() as MethodDeclarationSyntax;
+                    if (syntaxNode != null)
+                    {
+                        yield return method;
+                    }
+
+                    break;
+                }
+            }
+        }
+        """;
+
+        var results = new List<DefinitionItem>();
+        var observer = new MockSemanticSearchResultsObserver() { OnDefinitionFoundImpl = results.Add };
+        var traceSource = new TraceSource("test");
+
+        var options = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var result = await service.ExecuteQueryAsync(solution, query, s_referenceAssembliesDir, observer, options, traceSource, CancellationToken.None);
+
+        Assert.Null(result.ErrorMessage);
+        AssertEx.Equal(["void C.VisibleMethod(int)"], results.Select(Inspect));
     }
 }
