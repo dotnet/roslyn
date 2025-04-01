@@ -42,6 +42,7 @@ internal abstract partial class AbstractNavigateToSearchService
         string patternName,
         string? patternContainer,
         DeclaredSymbolInfoKindSet kinds,
+        bool searchGeneratedCode,
         Action<RoslynNavigateToItem> onItemFound,
         CancellationToken cancellationToken)
     {
@@ -51,6 +52,9 @@ internal abstract partial class AbstractNavigateToSearchService
         // Get the index for the file we're searching, as well as for its linked siblings.  We'll use the latter to add
         // the information to a symbol about all the project TFMs is can be found in.
         var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
+        if (!searchGeneratedCode && index.IsGeneratedCode)
+            return;
+
         using var _ = ArrayBuilder<(TopLevelSyntaxTreeIndex, ProjectId)>.GetInstance(out var linkedIndices);
 
         foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
