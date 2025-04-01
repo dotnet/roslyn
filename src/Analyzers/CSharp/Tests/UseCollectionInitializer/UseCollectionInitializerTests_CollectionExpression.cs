@@ -6354,7 +6354,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
                     void M(int[] values)
                     {
-                        Dictionary<int, string> map = [with(StringComparer.Ordinal), "x": "y"];
+                        Dictionary<string, string> map = [with(StringComparer.Ordinal), "x": "y"];
                     }
                 }
                 """,
