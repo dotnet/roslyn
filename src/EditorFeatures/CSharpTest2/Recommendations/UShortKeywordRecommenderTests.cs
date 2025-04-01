@@ -10,7 +10,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-    public class UShortKeywordRecommenderTests : KeywordRecommenderTests
+    public sealed class UShortKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact]
         public async Task TestAtRoot_Interactive()
@@ -350,9 +350,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             => await VerifyAbsenceAsync(@"partial $$");
 
         [Fact]
-        public async Task TestNotAfterNestedPartial()
+        public async Task TestAfterNestedPartial()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
                 """
                 class C {
                     partial $$
@@ -1109,5 +1109,20 @@ $@"{type} N
         }
 
         #endregion
+
+        [Fact]
+        public async Task TestWithinExtension()
+        {
+            await VerifyKeywordAsync(
+                """
+                static class C
+                {
+                    extension(string s)
+                    {
+                        $$
+                    }
+                }
+                """, CSharpNextParseOptions);
+        }
     }
 }

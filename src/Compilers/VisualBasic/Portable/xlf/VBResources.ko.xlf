@@ -629,13 +629,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
-        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="translated">분석기 어셈블리 '{0}'은(는) 컴파일러의 '{1}' 버전을 참조하며, 이 버전은 현재 실행 중인 버전 '{2}'보다 최신 버전입니다.</target>
+        <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="needs-review-translation">분석기 어셈블리 '{0}'은(는) 컴파일러의 '{1}' 버전을 참조하며, 이 버전은 현재 실행 중인 버전 '{2}'보다 최신 버전입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
-        <source>The analyzer assembly references a newer version of the compiler than the currently running version.</source>
-        <target state="translated">분석기 어셈블리는 현재 실행 중인 버전보다 최신 버전의 컴파일러를 참조합니다.</target>
+        <source>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</source>
+        <target state="needs-review-translation">분석기 어셈블리는 현재 실행 중인 버전보다 최신 버전의 컴파일러를 참조합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
