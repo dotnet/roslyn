@@ -16,12 +16,12 @@ using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.ServerLifetime;
 
-internal sealed class LspServiceLifeCycleManager : ILifeCycleManager
+internal sealed class LspServiceLifeCycleManager : ILifeCycleManager, ILspService
 {
     private readonly IClientLanguageServerManager _clientLanguageServerManager;
     private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
 
-    [ExportCSharpVisualBasicLspServiceFactory(typeof(ILifeCycleManager)), Shared]
+    [ExportCSharpVisualBasicLspServiceFactory(typeof(LspServiceLifeCycleManager)), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     internal class LspLifeCycleManagerFactory(LspWorkspaceRegistrationService lspWorkspaceRegistrationService) : ILspServiceFactory

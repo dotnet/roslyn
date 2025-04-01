@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.ServerLifetime;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
@@ -81,6 +82,7 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         AddService<ILspLogger>(logger);
         AddService<AbstractLspLogger>(logger);
         AddService<ICapabilitiesProvider>(capabilitiesProvider);
+        AddLazyService<ILifeCycleManager>((lspServices) => lspServices.GetRequiredService<LspServiceLifeCycleManager>());
         AddService(new ServerInfoProvider(serverKind, supportedLanguages));
         AddLazyService<AbstractRequestContextFactory<RequestContext>>((lspServices) => new RequestContextFactory(lspServices));
         AddLazyService<AbstractTelemetryService>((lspServices) => new TelemetryService(lspServices));
