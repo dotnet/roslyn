@@ -32640,4 +32640,321 @@ static class E
         comp.VerifyEmitDiagnostics();
         CompileAndVerify(comp, expectedOutput: "ran ran");
     }
+
+    [Fact]
+    public void RefAnalysis_Invocation_01()
+    {
+        string source = """
+class C
+{
+    ref int M2()
+    {
+        int i = 0;
+        return ref i.M();
+    }
+
+    ref int M3()
+    {
+        int i = 0;
+        return ref E.M(ref i);
+    }
+}
+
+static class E
+{
+    extension(ref int i)
+    {
+        public ref int M() => ref i;
+    }
+}
+""";
+
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (6,20): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+            //         return ref i.M();
+            Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(6, 20),
+            // (6,20): error CS8347: Cannot use a result of 'E.extension(ref int).M()' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+            //         return ref i.M();
+            Diagnostic(ErrorCode.ERR_EscapeCall, "i.M()").WithArguments("E.extension(ref int).M()", "i").WithLocation(6, 20),
+            // (12,20): error CS8347: Cannot use a result of 'E.M(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+            //         return ref E.M(ref i);
+            Diagnostic(ErrorCode.ERR_EscapeCall, "E.M(ref i)").WithArguments("E.M(ref int)", "i").WithLocation(12, 20),
+            // (12,28): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+            //         return ref E.M(ref i);
+            Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(12, 28));
+    }
+
+    [Fact]
+    public void RefAnalysis_Invocation_02()
+    {
+        string source = """
+class C
+{
+    ref int M2()
+    {
+        int i = 0;
+        ref int ri = ref i;
+        return ref ri.M();
+    }
+
+    ref int M3()
+    {
+        int i = 0;
+        ref int ri = ref i;
+        return ref E.M(ref ri);
+    }
+}
+
+static class E
+{
+    extension(ref int i)
+    {
+        public ref int M() => ref i;
+    }
+}
+""";
+
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (7,20): error CS8157: Cannot return 'ri' by reference because it was initialized to a value that cannot be returned by reference
+            //         return ref ri.M();
+            Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "ri").WithArguments("ri").WithLocation(7, 20),
+            // (7,20): error CS8347: Cannot use a result of 'E.extension(ref int).M()' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+            //         return ref ri.M();
+            Diagnostic(ErrorCode.ERR_EscapeCall, "ri.M()").WithArguments("E.extension(ref int).M()", "i").WithLocation(7, 20),
+            // (14,20): error CS8347: Cannot use a result of 'E.M(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+            //         return ref E.M(ref ri);
+            Diagnostic(ErrorCode.ERR_EscapeCall, "E.M(ref ri)").WithArguments("E.M(ref int)", "i").WithLocation(14, 20),
+            // (14,28): error CS8157: Cannot return 'ri' by reference because it was initialized to a value that cannot be returned by reference
+            //         return ref E.M(ref ri);
+            Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "ri").WithArguments("ri").WithLocation(14, 28));
+    }
+
+    [Fact]
+    public void RefAnalysis_Invocation_03()
+    {
+        string source = """
+class C
+{
+    RS MA(RS rs) => rs.M1();
+    RS MB(RS rs) => E.M1(rs);
+
+    ref RS MC(ref RS rs) => ref rs.M2();
+    ref RS MD(ref RS rs) => ref E.M2(ref rs);
+}
+
+static class E
+{
+    extension(RS rs)
+    {
+        public RS M1() => rs;
+    }
+    extension(ref RS rs)
+    {
+        public ref RS M2() => ref rs;
+    }
+}
+
+ref struct RS { }
+""";
+
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void RefAnalysis_Invocation_04()
+    {
+        string source = """
+class C
+{
+    ref int MA(ref int a)
+    {
+        int b = 42;
+        return ref a.M(ref b); // 1
+    }
+    ref int MB(ref int a)
+    {
+        int b = 42;
+        return ref b.M(ref a); // 2
+    }
+    ref int MC(ref int a)
+    {
+        int b = 42;
+        return ref E.M(ref a, ref b); // 3
+    }
+}
+
+static class E
+{
+    extension(ref int i)
+    {
+        public ref int M(ref int j) => throw null;
+    }
+}
+
+ref struct RS { }
+""";
+
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (6,20): error CS8347: Cannot use a result of 'E.extension(ref int).M(ref int)' in this context because it may expose variables referenced by parameter 'j' outside of their declaration scope
+            //         return ref a.M(ref b); // 1
+            Diagnostic(ErrorCode.ERR_EscapeCall, "a.M(ref b)").WithArguments("E.extension(ref int).M(ref int)", "j").WithLocation(6, 20),
+            // (6,28): error CS8168: Cannot return local 'b' by reference because it is not a ref local
+            //         return ref a.M(ref b); // 1
+            Diagnostic(ErrorCode.ERR_RefReturnLocal, "b").WithArguments("b").WithLocation(6, 28),
+            // (11,20): error CS8168: Cannot return local 'b' by reference because it is not a ref local
+            //         return ref b.M(ref a); // 2
+            Diagnostic(ErrorCode.ERR_RefReturnLocal, "b").WithArguments("b").WithLocation(11, 20),
+            // (11,20): error CS8347: Cannot use a result of 'E.extension(ref int).M(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+            //         return ref b.M(ref a); // 2
+            Diagnostic(ErrorCode.ERR_EscapeCall, "b.M(ref a)").WithArguments("E.extension(ref int).M(ref int)", "i").WithLocation(11, 20),
+            // (16,20): error CS8347: Cannot use a result of 'E.M(ref int, ref int)' in this context because it may expose variables referenced by parameter 'j' outside of their declaration scope
+            //         return ref E.M(ref a, ref b); // 3
+            Diagnostic(ErrorCode.ERR_EscapeCall, "E.M(ref a, ref b)").WithArguments("E.M(ref int, ref int)", "j").WithLocation(16, 20),
+            // (16,35): error CS8168: Cannot return local 'b' by reference because it is not a ref local
+            //         return ref E.M(ref a, ref b); // 3
+            Diagnostic(ErrorCode.ERR_RefReturnLocal, "b").WithArguments("b").WithLocation(16, 35));
+    }
+
+    [Fact]
+    public void RefAnalysis_Invocation_05()
+    {
+        var text = """
+class Program
+{
+    void Test1()
+    {
+        S1 rOuter = default;
+
+        System.Span<int> inner = stackalloc int[1];
+        S1 rInner = MayWrap(ref inner);
+
+        rOuter.MayAssign(ref rOuter);
+        rInner.MayAssign(ref rInner);
+
+        rOuter.MayAssign(ref rInner); // 1
+        rInner.MayAssign(ref rOuter); // 2
+    }
+
+    static S1 MayWrap(ref System.Span<int> arg) => default;
+}
+
+ref struct S1 { }
+
+static class E
+{
+    extension(ref S1 arg1)
+    {
+        public void MayAssign(ref S1 arg2) { arg1 = arg2; }
+    }
+}
+""";
+        var comp = CreateCompilation(text, targetFramework: TargetFramework.Net90);
+        comp.VerifyDiagnostics(
+            // (13,30): error CS8352: Cannot use variable 'rInner' in this context because it may expose referenced variables outside of their declaration scope
+            //         rOuter.MayAssign(ref rInner); // 1
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "rInner").WithArguments("rInner").WithLocation(13, 30),
+            // (13,9): error CS8350: This combination of arguments to 'E.extension(ref S1).MayAssign(ref S1)' is disallowed because it may expose variables referenced by parameter 'arg2' outside of their declaration scope
+            //         rOuter.MayAssign(ref rInner); // 1
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "rOuter.MayAssign(ref rInner)").WithArguments("E.extension(ref S1).MayAssign(ref S1)", "arg2").WithLocation(13, 9),
+            // (14,9): error CS8352: Cannot use variable 'rInner' in this context because it may expose referenced variables outside of their declaration scope
+            //         rInner.MayAssign(ref rOuter); // 2
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "rInner").WithArguments("rInner").WithLocation(14, 9),
+            // (14,9): error CS8350: This combination of arguments to 'E.extension(ref S1).MayAssign(ref S1)' is disallowed because it may expose variables referenced by parameter 'arg1' outside of their declaration scope
+            //         rInner.MayAssign(ref rOuter); // 2
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "rInner.MayAssign(ref rOuter)").WithArguments("E.extension(ref S1).MayAssign(ref S1)", "arg1").WithLocation(14, 9));
+    }
+
+    [Fact]
+    public void RefAnalysis_PropertyAccess_01()
+    {
+        string source = """
+class C
+{
+    ref int M2()
+    {
+        int i = 0;
+        return ref i.P;
+    }
+
+    ref int M3()
+    {
+        int i = 0;
+        return ref E.get_P(ref i);
+    }
+}
+
+static class E
+{
+    extension(ref int i)
+    {
+        public ref int P => ref i;
+    }
+}
+""";
+
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (6,20): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+            //         return ref i.P;
+            Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(6, 20),
+            // (6,20): error CS8347: Cannot use a result of 'E.extension(ref int).P' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+            //         return ref i.P;
+            Diagnostic(ErrorCode.ERR_EscapeCall, "i.P").WithArguments("E.extension(ref int).P", "i").WithLocation(6, 20),
+            // (12,20): error CS8347: Cannot use a result of 'E.get_P(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+            //         return ref E.get_P(ref i);
+            Diagnostic(ErrorCode.ERR_EscapeCall, "E.get_P(ref i)").WithArguments("E.get_P(ref int)", "i").WithLocation(12, 20),
+            // (12,32): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+            //         return ref E.get_P(ref i);
+            Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(12, 32));
+    }
+
+    [Fact]
+    public void RefAnalysis_PropertyAccess_02()
+    {
+        string source = """
+class C
+{
+    ref int M2()
+    {
+        int i = 0;
+        ref int ri = ref i;
+        return ref ri.P;
+    }
+
+    ref int M3()
+    {
+        int i = 0;
+        ref int ri = ref i;
+        return ref E.get_P(ref ri);
+    }
+}
+
+static class E
+{
+    extension(ref int i)
+    {
+        public ref int P => ref i;
+    }
+}
+""";
+
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (7,20): error CS8157: Cannot return 'ri' by reference because it was initialized to a value that cannot be returned by reference
+            //         return ref ri.P;
+            Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "ri").WithArguments("ri").WithLocation(7, 20),
+            // (7,20): error CS8347: Cannot use a result of 'E.extension(ref int).P' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+            //         return ref ri.P;
+            Diagnostic(ErrorCode.ERR_EscapeCall, "ri.P").WithArguments("E.extension(ref int).P", "i").WithLocation(7, 20),
+            // (14,20): error CS8347: Cannot use a result of 'E.get_P(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+            //         return ref E.get_P(ref ri);
+            Diagnostic(ErrorCode.ERR_EscapeCall, "E.get_P(ref ri)").WithArguments("E.get_P(ref int)", "i").WithLocation(14, 20),
+            // (14,32): error CS8157: Cannot return 'ri' by reference because it was initialized to a value that cannot be returned by reference
+            //         return ref E.get_P(ref ri);
+            Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "ri").WithArguments("ri").WithLocation(14, 32));
+    }
 }

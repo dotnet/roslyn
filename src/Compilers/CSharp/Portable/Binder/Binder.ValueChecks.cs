@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -2253,7 +2252,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // For consistency with C#10 implementation, we don't report an additional error
                         // for the receiver. (In both implementations, the call to Check*Escape() above
                         // will have reported a specific escape error for the receiver though.)
-                        if ((object)((argument as BoundCapturedReceiverPlaceholder)?.Receiver ?? argument) != receiver && symbol is not SignatureOnlyMethodSymbol)
+                        bool argumentIsReceiver = (object)((argument as BoundCapturedReceiverPlaceholder)?.Receiver ?? argument) == receiver;
+                        if ((!argumentIsReceiver || param?.IsExtensionParameter() == true) && symbol is not SignatureOnlyMethodSymbol)
                         {
                             ReportInvocationEscapeError(syntax, symbol, param, checkingReceiver, diagnostics);
                         }
@@ -2289,25 +2289,46 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (receiver is { })
             {
-                Debug.Assert(receiver.Type is { });
-                Debug.Assert(receiverIsSubjectToCloning != ThreeState.Unknown);
-                var method = methodInfo.Method;
-                if (receiverIsSubjectToCloning == ThreeState.True)
+                MethodSymbol? method = methodInfo.Method;
+                if (method?.GetIsNewExtensionMember() == true)
                 {
-                    Debug.Assert(receiver is not BoundValuePlaceholderBase && method is not null && receiver.Type?.IsReferenceType == false);
-#if DEBUG
-                    AssertVisited(receiver);
-#endif
-                    // Equivalent to a non-ref local with the underlying receiver as an initializer provided at declaration 
-                    receiver = new BoundCapturedReceiverPlaceholder(receiver.Syntax, receiver, _localScopeDepth, receiver.Type).MakeCompilerGenerated();
+                    // Analyze the receiver as an argument
+                    var parameter = method.ContainingType.ExtensionParameter;
+
+                    if (mixableArguments is not null
+                        && isMixableParameter(parameter)
+                        // assume any expression variable is a valid mixing destination,
+                        // since we will infer a legal val-escape for it (if it doesn't already have a narrower one).
+                        && isMixableArgument(receiver))
+                    {
+                        mixableArguments.Add(new MixableDestination(parameter, receiver));
+                    }
+
+                    var refKind = parameter?.RefKind ?? RefKind.None;
+
+                    escapeArguments.Add(new EscapeArgument(parameter, receiver, refKind));
                 }
-
-                var tuple = getReceiver(methodInfo, receiver);
-                escapeArguments.Add(tuple);
-
-                if (mixableArguments is not null && isMixableParameter(tuple.Parameter))
+                else
                 {
-                    mixableArguments.Add(new MixableDestination(tuple.Parameter, receiver));
+                    Debug.Assert(receiver.Type is { });
+                    Debug.Assert(receiverIsSubjectToCloning != ThreeState.Unknown);
+                    if (receiverIsSubjectToCloning == ThreeState.True)
+                    {
+                        Debug.Assert(receiver is not BoundValuePlaceholderBase && method is not null && receiver.Type?.IsReferenceType == false);
+#if DEBUG
+                        AssertVisited(receiver);
+#endif
+                        // Equivalent to a non-ref local with the underlying receiver as an initializer provided at declaration 
+                        receiver = new BoundCapturedReceiverPlaceholder(receiver.Syntax, receiver, _localScopeDepth, receiver.Type).MakeCompilerGenerated();
+                    }
+
+                    var tuple = getReceiver(methodInfo, receiver);
+                    escapeArguments.Add(tuple);
+
+                    if (mixableArguments is not null && isMixableParameter(tuple.Parameter))
+                    {
+                        mixableArguments.Add(new MixableDestination(tuple.Parameter, receiver));
+                    }
                 }
             }
 
