@@ -11,7 +11,7 @@ using Roslyn.Core.Imaging;
 
 namespace Roslyn.LanguageServer.Protocol;
 
-internal class OptimizedVSCompletionListJsonConverter : JsonConverter<OptimizedVSCompletionList>
+internal sealed class OptimizedVSCompletionListJsonConverter : JsonConverter<OptimizedVSCompletionList>
 {
     public static readonly OptimizedVSCompletionListJsonConverter Instance = new();
     private static readonly ConcurrentDictionary<ImageId, string> IconRawJson = new ConcurrentDictionary<ImageId, string>();

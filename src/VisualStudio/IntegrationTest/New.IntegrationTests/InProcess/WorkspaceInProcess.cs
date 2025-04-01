@@ -24,7 +24,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing;
 
-internal partial class WorkspaceInProcess
+internal sealed partial class WorkspaceInProcess
 {
     private static bool s_initializedAsyncSaveListener;
     private static IVsRunningDocTableEvents? s_runningDocTableEventListener;

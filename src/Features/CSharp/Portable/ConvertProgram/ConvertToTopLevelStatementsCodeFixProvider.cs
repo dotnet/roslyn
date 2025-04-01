@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram;
 using static ConvertProgramTransform;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConvertToTopLevelStatements), Shared]
-internal class ConvertToTopLevelStatementsCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+internal sealed class ConvertToTopLevelStatementsCodeFixProvider : SyntaxEditorBasedCodeFixProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

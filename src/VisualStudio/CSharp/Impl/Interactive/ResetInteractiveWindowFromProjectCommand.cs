@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive;
 /// Implements View/Other Windows/C# Interactive command.
 /// </summary>
 [VisualStudioContribution]
-internal class ResetInteractiveWindowFromProjectCommand(
+internal sealed class ResetInteractiveWindowFromProjectCommand(
     MefInjection<IThreadingContext> mefThreadingContext,
     MefInjection<CSharpVsInteractiveWindowProvider> mefInteractiveWindowProvider,
     MefInjection<VisualStudioWorkspace> mefWorkspace,

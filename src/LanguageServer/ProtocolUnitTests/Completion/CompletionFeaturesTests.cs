@@ -27,7 +27,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion;
 
-public class CompletionFeaturesTests : AbstractLanguageServerProtocolTests
+public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTests
 {
     protected override TestComposition Composition => FeaturesLspComposition;
 

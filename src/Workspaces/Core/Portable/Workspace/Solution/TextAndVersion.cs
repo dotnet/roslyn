@@ -31,13 +31,13 @@ public sealed class TextAndVersion
     /// <summary>
     /// If an error occurred while loading the text the corresponding diagnostic, otherwise null.
     /// </summary>
-    internal Diagnostic? LoadDiagnostic { get; }
+    internal string? ExceptionMessage { get; }
 
-    private TextAndVersion(SourceText text, VersionStamp version, string? filePath, Diagnostic? loadDiagnostic)
+    private TextAndVersion(SourceText text, VersionStamp version, string? filePath, string? exceptionMessage)
     {
         Text = text;
         Version = version;
-        LoadDiagnostic = loadDiagnostic;
+        ExceptionMessage = exceptionMessage;
 
 #pragma warning disable CS0618 // Type or member is obsolete
         FilePath = filePath ?? string.Empty;
@@ -51,14 +51,13 @@ public sealed class TextAndVersion
     /// <param name="version">The version</param>
     /// <param name="filePath">Obsolete.</param>
     public static TextAndVersion Create(SourceText text, VersionStamp version, string? filePath = null)
-        => new(text ?? throw new ArgumentNullException(nameof(text)), version, filePath, loadDiagnostic: null);
+        => new(text ?? throw new ArgumentNullException(nameof(text)), version, filePath, exceptionMessage: null);
 
     /// <summary>
     /// Create a new <see cref="TextAndVersion"/> instance.
     /// </summary>
     /// <param name="text">The text</param>
     /// <param name="version">The version</param>
-    /// <param name="loadDiagnostic">Diagnostic describing failure to load the source text.</param>
-    internal static TextAndVersion Create(SourceText text, VersionStamp version, Diagnostic? loadDiagnostic)
-        => new(text, version, filePath: null, loadDiagnostic);
+    internal static TextAndVersion Create(SourceText text, VersionStamp version, string? filePath, string? exceptionMessage)
+        => new(text, version, filePath, exceptionMessage);
 }

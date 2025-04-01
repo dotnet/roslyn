@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 /// This service provides diagnostic analyzers from the analyzer assets specified in the manifest files of installed VSIX extensions.
 /// These analyzers are used across this workspace session.
 /// </summary>
-internal partial class VisualStudioDiagnosticAnalyzerProvider : IHostDiagnosticAnalyzerProvider
+internal sealed partial class VisualStudioDiagnosticAnalyzerProvider : IHostDiagnosticAnalyzerProvider
 {
     private const string AnalyzerContentTypeName = "Microsoft.VisualStudio.Analyzer";
 

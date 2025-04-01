@@ -6,32 +6,31 @@
 
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp;
+
+internal sealed partial class Controller
 {
-    internal partial class Controller
+    internal sealed partial class Session : Session<Controller, Model, ISignatureHelpPresenterSession>
     {
-        internal partial class Session : Session<Controller, Model, ISignatureHelpPresenterSession>
+        public Session(Controller controller, ISignatureHelpPresenterSession presenterSession)
+            : base(controller, new ModelComputation<Model>(controller.ThreadingContext, controller), presenterSession)
         {
-            public Session(Controller controller, ISignatureHelpPresenterSession presenterSession)
-                : base(controller, new ModelComputation<Model>(controller.ThreadingContext, controller), presenterSession)
-            {
-                this.PresenterSession.ItemSelected += OnPresenterSessionItemSelected;
-            }
+            this.PresenterSession.ItemSelected += OnPresenterSessionItemSelected;
+        }
 
-            public override void Stop()
-            {
-                this.Computation.ThreadingContext.ThrowIfNotOnUIThread();
-                this.PresenterSession.ItemSelected -= OnPresenterSessionItemSelected;
-                base.Stop();
-            }
+        public override void Stop()
+        {
+            this.Computation.ThreadingContext.ThrowIfNotOnUIThread();
+            this.PresenterSession.ItemSelected -= OnPresenterSessionItemSelected;
+            base.Stop();
+        }
 
-            private void OnPresenterSessionItemSelected(object sender, SignatureHelpItemEventArgs e)
-            {
-                this.Computation.ThreadingContext.ThrowIfNotOnUIThread();
-                Contract.ThrowIfFalse(ReferenceEquals(this.PresenterSession, sender));
+        private void OnPresenterSessionItemSelected(object sender, SignatureHelpItemEventArgs e)
+        {
+            this.Computation.ThreadingContext.ThrowIfNotOnUIThread();
+            Contract.ThrowIfFalse(ReferenceEquals(this.PresenterSession, sender));
 
-                SetModelExplicitlySelectedItem(m => e.SignatureHelpItem);
-            }
+            SetModelExplicitlySelectedItem(m => e.SignatureHelpItem);
         }
     }
 }

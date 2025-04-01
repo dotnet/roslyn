@@ -18,7 +18,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
 
 [UseExportProvider]
-public class LineEditTests : EditingTestBase
+public sealed class LineEditTests : EditingTestBase
 {
     #region Top-level Code
 

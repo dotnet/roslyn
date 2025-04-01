@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.FindReferences;
 [Export(typeof(ICommandHandler))]
 [ContentType(ContentTypeNames.RoslynContentType)]
 [Name(PredefinedCommandHandlerNames.FindReferences)]
-internal class FindReferencesCommandHandler : ICommandHandler<FindReferencesCommandArgs>
+internal sealed class FindReferencesCommandHandler : ICommandHandler<FindReferencesCommandArgs>
 {
     private readonly IStreamingFindUsagesPresenter _streamingPresenter;
     private readonly IGlobalOptionService _globalOptions;

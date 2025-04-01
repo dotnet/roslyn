@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpUseDefaultLiteralDiagnosticAnalyzer : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpUseDefaultLiteralDiagnosticAnalyzer : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
 {
     public CSharpUseDefaultLiteralDiagnosticAnalyzer()
         : base(IDEDiagnosticIds.UseDefaultLiteralDiagnosticId,

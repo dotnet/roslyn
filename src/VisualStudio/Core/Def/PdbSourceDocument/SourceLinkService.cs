@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Debugger.Contracts.SymbolLocator;
 namespace Microsoft.VisualStudio.LanguageServices.PdbSourceDocument;
 
 [Export(typeof(ISourceLinkService)), Shared]
-internal class SourceLinkService : AbstractSourceLinkService
+internal sealed class SourceLinkService : AbstractSourceLinkService
 {
     private readonly IDebuggerSymbolLocatorService _debuggerSymbolLocatorService;
     private readonly IDebuggerSourceLinkService _debuggerSourceLinkService;

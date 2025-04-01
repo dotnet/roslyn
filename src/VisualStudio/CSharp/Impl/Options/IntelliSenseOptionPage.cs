@@ -8,12 +8,11 @@ using System;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options;
+
+[Guid(Guids.CSharpOptionPageIntelliSenseIdString)]
+internal sealed class IntelliSenseOptionPage : AbstractOptionPage
 {
-    [Guid(Guids.CSharpOptionPageIntelliSenseIdString)]
-    internal class IntelliSenseOptionPage : AbstractOptionPage
-    {
-        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
-            => new IntelliSenseOptionPageControl(optionStore);
-    }
+    protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
+        => new IntelliSenseOptionPageControl(optionStore);
 }

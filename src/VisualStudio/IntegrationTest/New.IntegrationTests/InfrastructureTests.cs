@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests;
 
-public class InfrastructureTests : AbstractEditorTest
+public sealed class InfrastructureTests : AbstractEditorTest
 {
     public InfrastructureTests()
         : base(nameof(InfrastructureTests), WellKnownProjectTemplates.CSharpNetCoreClassLibrary)

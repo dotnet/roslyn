@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentSymbolRegistrationOptions">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal class DocumentSymbolRegistrationOptions : DocumentSymbolOptions, ITextDocumentRegistrationOptions
+internal sealed class DocumentSymbolRegistrationOptions : DocumentSymbolOptions, ITextDocumentRegistrationOptions
 {
     /// <summary>
     /// A document selector to identify the scope of the registration. If set to

@@ -11,7 +11,7 @@ using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.ServerLifetime;
 
-internal class LspServiceLifeCycleManager : ILifeCycleManager, ILspService
+internal sealed class LspServiceLifeCycleManager : ILifeCycleManager, ILspService
 {
     private readonly IClientLanguageServerManager _clientLanguageServerManager;
 

@@ -17,11 +17,11 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting;
 
 [UseExportProvider]
-public class RazorLineFormattingOptionsTests
+public sealed class RazorLineFormattingOptionsTests
 {
     private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures;
 
-    private class TestRazorDocumentServiceProvider : IDocumentServiceProvider
+    private sealed class TestRazorDocumentServiceProvider : IDocumentServiceProvider
     {
         public TService? GetService<TService>() where TService : class, IDocumentService
             => typeof(TService) == typeof(DocumentPropertiesService) ? (TService?)(object)new PropertiesService() : null;

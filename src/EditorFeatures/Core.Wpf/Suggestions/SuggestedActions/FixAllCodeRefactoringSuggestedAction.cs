@@ -9,31 +9,30 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
+
+/// <summary>
+/// Suggested action for fix all occurrences for a code refactoring.  Note: this is only used
+/// as a 'flavor' inside CodeRefactoringSuggestionAction.
+/// </summary>
+internal sealed class FixAllCodeRefactoringSuggestedAction : AbstractFixAllSuggestedAction, IFixAllCodeRefactoringSuggestedAction
 {
-    /// <summary>
-    /// Suggested action for fix all occurrences for a code refactoring.  Note: this is only used
-    /// as a 'flavor' inside CodeRefactoringSuggestionAction.
-    /// </summary>
-    internal sealed class FixAllCodeRefactoringSuggestedAction : AbstractFixAllSuggestedAction, IFixAllCodeRefactoringSuggestedAction
+    public FixAllCodeRefactoringSuggestedAction(
+        IThreadingContext threadingContext,
+        SuggestedActionsSourceProvider sourceProvider,
+        Workspace workspace,
+        Solution originalSolution,
+        ITextBuffer subjectBuffer,
+        IFixAllState fixAllState,
+        CodeAction originalCodeAction)
+        : base(threadingContext,
+               sourceProvider,
+               workspace,
+               originalSolution,
+               subjectBuffer,
+               fixAllState,
+               originalCodeAction,
+               new FixAllCodeRefactoringCodeAction(fixAllState))
     {
-        public FixAllCodeRefactoringSuggestedAction(
-            IThreadingContext threadingContext,
-            SuggestedActionsSourceProvider sourceProvider,
-            Workspace workspace,
-            Solution originalSolution,
-            ITextBuffer subjectBuffer,
-            IFixAllState fixAllState,
-            CodeAction originalCodeAction)
-            : base(threadingContext,
-                   sourceProvider,
-                   workspace,
-                   originalSolution,
-                   subjectBuffer,
-                   fixAllState,
-                   originalCodeAction,
-                   new FixAllCodeRefactoringCodeAction(fixAllState))
-        {
-        }
     }
 }

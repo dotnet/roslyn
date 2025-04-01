@@ -4,10 +4,9 @@
 
 using Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer
+namespace Microsoft.CodeAnalysis.LanguageServer;
+
+internal interface ICapabilitiesProvider : ILspService
 {
-    internal interface ICapabilitiesProvider : ILspService
-    {
-        ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities);
-    }
+    ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities);
 }

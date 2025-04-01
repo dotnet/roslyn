@@ -6,7 +6,7 @@ using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste;
 
-public class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
+public sealed class PasteUnknownSourceIntoVerbatimInterpolatedStringTests
     : StringCopyPasteCommandHandlerUnknownSourceTests
 {
     #region Paste from external source into verbatim interpolated string no hole
