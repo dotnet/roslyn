@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         public const string RazorUtilsAssemblyName = "Microsoft.AspNetCore.Razor.Utilities.Shared";
         public const string ObjectPoolAssemblyName = "Microsoft.Extensions.ObjectPool";
 
+        internal const string ServiceHubCoreFolderName = "ServiceHubCore";
+
         internal static readonly ImmutableArray<string> RazorAssemblyNames = [RazorCompilerAssemblyName, RazorUtilsAssemblyName, ObjectPoolAssemblyName];
 
         public Assembly? Resolve(AnalyzerAssemblyLoader loader, AssemblyName assemblyName, AssemblyLoadContext directoryContext, string directory) =>
@@ -54,6 +56,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             }
 
             var assemblyFileName = $"{assemblyName.Name}.dll";
+
+            // Depending on who wins the race to load these assemblies, the base directory will either be the tooling root (if Roslyn wins)
+            // or the ServiceHubCore subfolder (razor). In the root directory these are netstandard2.0 targeted, in ServiceHubCore they are 
+            // .net targeted. We need to always pick the same set of assemblies regardless of who causes us to load. Because this code only
+            // runs in a .net based host, it's safe to always choose the .net targeted ServiceHubCore versions.
+            if (!Path.GetFileName(directory.AsSpan().TrimEnd(Path.DirectorySeparatorChar)).Equals(ServiceHubCoreFolderName, StringComparison.OrdinalIgnoreCase))
+            {
+                directory = Path.Combine(directory, ServiceHubCoreFolderName);
+            }
+
             var assemblyPath = Path.Combine(directory, assemblyFileName);
             if (File.Exists(assemblyPath))
             {

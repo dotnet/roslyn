@@ -184,6 +184,17 @@ internal sealed class CodeActionResolveHelper
                 newSolution.GetDocument,
                 solution.GetDocument).ConfigureAwait(false);
 
+            // Razor calls through our code action handlers with documents that come from the Razor source generator
+            // Those changes are not visible in project changes, because they happen in the compilation state, so we
+            // make sure to pull changes out from that too. Changed source generated documents are "frozen" because
+            // their content no longer comes from the source generator, so thats our cue to know when to handle.
+            // Changes to non-frozen documents don't need to be included, because changes to the origin document would
+            // cause the generator to re-generate the same changed content.
+            await AddTextDocumentEditsAsync(
+                changes.GetExplicitlyChangedSourceGeneratedDocuments(),
+                newSolution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId,
+                solution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId).ConfigureAwait(false);
+
             // Changed analyzer config documents
             await AddTextDocumentEditsAsync(
                 projectChanges.SelectMany(pc => pc.GetChangedAnalyzerConfigDocuments()),
