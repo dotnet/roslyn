@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.AnalyzerRedirecting;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
@@ -49,8 +48,7 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
         [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> fileInfoProviders,
         IVisualStudioDiagnosticAnalyzerProviderFactory vsixAnalyzerProviderFactory,
         [ImportMany] IEnumerable<IAnalyzerAssemblyRedirector> analyzerAssemblyRedirectors,
-        IVsService<SVsBackgroundSolution, IVsBackgroundSolution> solution,
-        IAsynchronousOperationListenerProvider listenerProvider)
+        IVsService<SVsBackgroundSolution, IVsBackgroundSolution> solution)
     {
         _threadingContext = threadingContext;
         _visualStudioWorkspaceImpl = visualStudioWorkspaceImpl;
