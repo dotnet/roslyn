@@ -31,6 +31,7 @@ internal sealed class SolutionCompilationStateChecksums
         FrozenSourceGeneratedDocuments = frozenSourceGeneratedDocuments;
         FrozenSourceGeneratedDocumentIdentities = frozenSourceGeneratedDocumentIdentities;
         FrozenSourceGeneratedDocumentGenerationDateTimes = frozenSourceGeneratedDocumentGenerationDateTimes;
+        Contract.ThrowIfFalse(frozenSourceGeneratedDocumentIdentities.Count == frozenSourceGeneratedDocuments.Length);
 
         // note: intentionally not mixing in FrozenSourceGeneratedDocumentGenerationDateTimes as that is not part of the
         // identity contract of this type.
