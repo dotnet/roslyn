@@ -446,6 +446,7 @@ internal readonly struct UpdateExpressionState<
                 return new(expressionStatement, useSpread, useKeyValue);
             }
 
+            // `x[y] = z` can be converted to `y:z` element if the destination type has an indexer with exactly 1 arg.
             if (@this.SyntaxFacts.SupportsKeyValuePairElement(expression.SyntaxTree.Options) &&
                 @this.TryAnalyzeIndexAssignment(expressionStatement, cancellationToken, out instance, supportedArgumentCount: 1) &&
                 @this.ValuePatternMatches(instance))
