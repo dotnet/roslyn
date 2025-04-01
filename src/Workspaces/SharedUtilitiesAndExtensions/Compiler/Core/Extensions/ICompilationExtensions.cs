@@ -76,7 +76,7 @@ internal static class ICompilationExtensions
         => compilation.GetTypeByMetadataName(typeof(Attribute).FullName!);
 
     public static INamedTypeSymbol? DictionaryOfKVType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(Dictionary<,>).FullName);
+        => compilation.GetTypeByMetadataName(typeof(Dictionary<,>).FullName!);
 
     public static INamedTypeSymbol? ExceptionType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(Exception).FullName!);
