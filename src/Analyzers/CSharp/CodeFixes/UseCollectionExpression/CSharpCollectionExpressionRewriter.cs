@@ -484,17 +484,17 @@ internal static class CSharpCollectionExpressionRewriter
                     {
                         var arguments = invocation.ArgumentList.Arguments;
                         yield return KeyValuePairElement(
-                            IndentNode(expressionStatement, arguments[0].Expression, preferredIndentation),
+                            IndentExpression(expressionStatement, arguments[0].Expression, preferredIndentation),
                             ColonToken.WithTriviaFrom(arguments.GetSeparator(0)),
-                            IndentNode(expressionStatement, arguments[1].Expression, preferredIndentation));
+                            IndentExpression(expressionStatement, arguments[1].Expression, preferredIndentation));
                     }
                     else if (expressionStatement.Expression is AssignmentExpressionSyntax assignment)
                     {
                         var elementAccess = (ElementAccessExpressionSyntax)assignment.Left;
                         yield return KeyValuePairElement(
-                            IndentNode(expressionStatement, elementAccess.ArgumentList.Arguments[0].Expression, preferredIndentation),
+                            IndentExpression(expressionStatement, elementAccess.ArgumentList.Arguments[0].Expression, preferredIndentation),
                             ColonToken.WithTrailingTrivia(assignment.OperatorToken.TrailingTrivia),
-                            IndentNode(expressionStatement, assignment.Right, preferredIndentation));
+                            IndentExpression(expressionStatement, assignment.Right, preferredIndentation));
                     }
                     else
                     {
@@ -503,7 +503,7 @@ internal static class CSharpCollectionExpressionRewriter
                 }
                 else
                 {
-                    var expressions = ConvertExpressions(expressionStatement.Expression, expr => IndentNode(expressionStatement, expr, preferredIndentation));
+                    var expressions = ConvertExpressions(expressionStatement.Expression, expr => IndentExpression(expressionStatement, expr, preferredIndentation));
 
                     Contract.ThrowIfTrue(expressions.Length >= 2 && match.UseSpread);
 
@@ -535,11 +535,11 @@ internal static class CSharpCollectionExpressionRewriter
                 // Create: `.. x` for `foreach (var v in x) collection.Add(v)`
                 yield return CreateCollectionElement(
                     match.UseSpread,
-                    IndentNode(foreachStatement, foreachStatement.Expression, preferredIndentation));
+                    IndentExpression(foreachStatement, foreachStatement.Expression, preferredIndentation));
             }
             else if (node is IfStatementSyntax ifStatement)
             {
-                var condition = IndentNode(ifStatement, ifStatement.Condition, preferredIndentation).Parenthesize(includeElasticTrivia: false);
+                var condition = IndentExpression(ifStatement, ifStatement.Condition, preferredIndentation).Parenthesize(includeElasticTrivia: false);
                 var trueStatement = (ExpressionStatementSyntax)UnwrapEmbeddedStatement(ifStatement.Statement);
 
                 if (ifStatement.Else is null)
@@ -565,7 +565,7 @@ internal static class CSharpCollectionExpressionRewriter
             }
             else if (node is ExpressionSyntax expression)
             {
-                yield return CreateCollectionElement(match.UseSpread, IndentNode(parentStatement: null, expression, preferredIndentation));
+                yield return CreateCollectionElement(match.UseSpread, IndentExpression(parentStatement: null, expression, preferredIndentation));
             }
             else if (node is ArgumentListSyntax argumentList)
             {
@@ -577,10 +577,10 @@ internal static class CSharpCollectionExpressionRewriter
             }
         }
 
-        TNode IndentNode<TNode>(
+        ExpressionSyntax IndentExpression(
             StatementSyntax? parentStatement,
-            TNode node,
-            string? preferredIndentation) where TNode : SyntaxNode
+            ExpressionSyntax node,
+            string? preferredIndentation)
         {
             // This must be called from an expression from the original tree.  Not something we're already transforming.
             // Otherwise, we'll have no idea how to apply the preferredIndentation if present.
@@ -688,10 +688,10 @@ internal static class CSharpCollectionExpressionRewriter
                 : preferredIndentation);
         }
 
-        static TNode TransferParentStatementComments<TNode>(
+        static ExpressionSyntax TransferParentStatementComments(
             StatementSyntax? parentStatement,
-            TNode expression,
-            string preferredIndentation) where TNode : SyntaxNode
+            ExpressionSyntax expression,
+            string preferredIndentation)
         {
             if (parentStatement is null)
                 return expression;
