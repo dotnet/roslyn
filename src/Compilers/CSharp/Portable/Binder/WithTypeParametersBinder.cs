@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         // TODO: Change this to a data structure that won't allocate enumerators
         protected abstract MultiDictionary<string, TypeParameterSymbol> TypeParameterMap { get; }
 
-        // This is only overridden by WithMethodTypeParametersBinder.
         protected virtual LookupOptions LookupMask
         {
             get

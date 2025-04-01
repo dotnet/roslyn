@@ -209,12 +209,19 @@ internal static class UseConditionalExpressionForAssignmentHelpers
 
         // Both the WhenTrue and WhenFalse statements must be of the form:
         //      target = value;
-        if (statement is IExpressionStatementOperation exprStatement &&
-            exprStatement.Operation is ISimpleAssignmentOperation assignmentOp &&
-            assignmentOp.Target != null)
+        if (statement is IExpressionStatementOperation exprStatement)
         {
-            assignment = assignmentOp;
-            return true;
+            if (exprStatement.Operation is ISimpleAssignmentOperation { Target: not null } assignmentOp1)
+            {
+                assignment = assignmentOp1;
+                return true;
+            }
+
+            if (exprStatement.Operation is IConditionalAccessOperation { WhenNotNull: ISimpleAssignmentOperation assignmentOp2 })
+            {
+                assignment = assignmentOp2;
+                return true;
+            }
         }
 
         return false;

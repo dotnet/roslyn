@@ -786,7 +786,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (TextWindow.PeekChar(1) is '$' or '@' or '"')
             {
                 // $$ - definitely starts a raw interpolated string.
-                // $@ - definitely starts an interplated string.
+                // $@ - definitely starts an interpolated string.
                 //
                 // This will also match for $@@.  This is an error case when the user thinks they can mix verbatim and raw
                 // interpolations together.  This will be properly handled in ScanInterpolatedStringLiteral
@@ -2598,6 +2598,11 @@ top:
                 case '-':
                     TextWindow.AdvanceChar();
                     info.Kind = SyntaxKind.MinusToken;
+                    break;
+
+                case ':':
+                    TextWindow.AdvanceChar();
+                    info.Kind = SyntaxKind.ColonToken;
                     break;
 
                 case '!':

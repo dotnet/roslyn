@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CodeLens;
 
@@ -123,7 +122,7 @@ internal sealed class RemoteCodeLensReferencesService : ICodeLensReferencesServi
             var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var result = await client.TryInvokeAsync<IRemoteCodeLensReferencesService, string>(
+                var result = await client.TryInvokeAsync<IRemoteCodeLensReferencesService, string?>(
                     solution,
                     (service, solutionInfo, cancellationToken) => service.GetFullyQualifiedNameAsync(solutionInfo, documentId, syntaxNode.Span, cancellationToken),
                     cancellationToken).ConfigureAwait(false);

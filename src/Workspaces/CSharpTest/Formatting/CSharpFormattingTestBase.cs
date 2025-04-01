@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Formatting;
@@ -21,7 +22,7 @@ public class CSharpFormattingTestBase : FormattingTestBase
         => SyntaxFactory.ParseCompilationUnit(text, options: (CSharpParseOptions?)parseOptions);
 
     private protected Task AssertNoFormattingChangesAsync(
-        string code,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
         OptionsCollection? changedOptionSet = null,
         bool testWithTransformation = true,
         ParseOptions? parseOptions = null)
@@ -30,8 +31,8 @@ public class CSharpFormattingTestBase : FormattingTestBase
     }
 
     private protected Task AssertFormatAsync(
-        string expected,
-        string code,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expected,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
         OptionsCollection? changedOptionSet = null,
         bool testWithTransformation = true,
         ParseOptions? parseOptions = null)
@@ -40,8 +41,8 @@ public class CSharpFormattingTestBase : FormattingTestBase
     }
 
     private protected Task AssertFormatAsync(
-        string expected,
-        string code,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expected,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
         IEnumerable<TextSpan> spans,
         OptionsCollection? changedOptionSet = null,
         bool testWithTransformation = true,

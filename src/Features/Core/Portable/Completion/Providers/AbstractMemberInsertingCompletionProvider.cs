@@ -38,7 +38,8 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
 
     protected abstract Task<ISymbol> GenerateMemberAsync(
         Document document, CompletionItem item, Compilation compilation, ISymbol member, INamedTypeSymbol containingType, CancellationToken cancellationToken);
-    protected abstract int GetTargetCaretPosition(SyntaxNode caretTarget);
+    protected abstract TextSpan GetTargetSelectionSpan(SyntaxNode caretTarget);
+
     protected abstract SyntaxNode GetSyntax(SyntaxToken commonSyntaxToken);
 
     protected static CompletionItemRules GetRules()
@@ -46,17 +47,17 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
 
     public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
     {
-        var (newDocument, newPosition) = await DetermineNewDocumentAsync(document, item, cancellationToken).ConfigureAwait(false);
+        var (newDocument, newSpan) = await DetermineNewDocumentAsync(document, item, cancellationToken).ConfigureAwait(false);
         var newText = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
         var changes = await newDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
         var changesArray = changes.ToImmutableArray();
         var change = Utilities.Collapse(newText, changesArray);
 
-        return CompletionChange.Create(change, changesArray, newPosition, includesCommitCharacter: true);
+        return CompletionChange.Create(change, changesArray, properties: ImmutableDictionary<string, string>.Empty, newSpan, includesCommitCharacter: true);
     }
 
-    private async Task<(Document, int? caretPosition)> DetermineNewDocumentAsync(
+    private async Task<(Document, TextSpan? caretPosition)> DetermineNewDocumentAsync(
         Document document,
         CompletionItem completionItem,
         CancellationToken cancellationToken)
@@ -168,7 +169,7 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
         return TextSpan.FromBounds(startToken.Value.SpanStart, line.EndIncludingLineBreak);
     }
 
-    private async Task<(Document Document, int? CaretPosition)> RemoveDestinationNodeAsync(
+    private async Task<(Document Document, TextSpan? Selection)> RemoveDestinationNodeAsync(
         Document memberContainingDocument, CodeCleanupOptions cleanupOptions, CancellationToken cancellationToken)
     {
         // We now have a replacement node inserted into the document, but we still have the source code that triggered completion (with associated trivia).
@@ -228,18 +229,18 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
         var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
         // We have basically the final tree.  Calculate the new caret position while we still have the annotations.
-        int? caretPosition = null;
+        TextSpan? newSpan = null;
         var caretTarget = root.GetAnnotatedNodes(_annotation).FirstOrDefault();
         if (caretTarget != null)
         {
-            var targetPosition = GetTargetCaretPosition(caretTarget);
+            var targetSelectionSpan = GetTargetSelectionSpan(caretTarget);
 
-            if (targetPosition > 0 && targetPosition <= text.Length)
+            if (targetSelectionSpan.Start > 0 && targetSelectionSpan.End <= text.Length)
             {
                 // The new replacement method should always be inserted before the destination span we're removing.
-                // This means the caret position in the inserted method should be safe to return as-is.
-                Debug.Assert(targetPosition < destinationSpan.Start);
-                caretPosition = targetPosition;
+                // This means the end selection position in the inserted method should be safe to return as-is.
+                Debug.Assert(targetSelectionSpan.End < destinationSpan.Start);
+                newSpan = targetSelectionSpan;
             }
         }
 
@@ -249,7 +250,7 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
         var textChange = new TextChange(text.Lines[lineNumber].SpanIncludingLineBreak, string.Empty);
 
         text = text.WithChanges(textChange);
-        return (document.WithText(text), caretPosition);
+        return (document.WithText(text), newSpan);
     }
 
     internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)

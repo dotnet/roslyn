@@ -10,13 +10,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class IntoKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class IntoKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.IntoKeyword)
 {
-    public IntoKeywordRecommender()
-        : base(SyntaxKind.IntoKeyword)
-    {
-    }
-
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         return
