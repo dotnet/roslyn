@@ -88,13 +88,13 @@ internal static class ICompilationExtensions
         => compilation.GetTypeByMetadataName(typeof(StructLayoutAttribute).FullName!);
 
     public static INamedTypeSymbol? IDictionaryOfKVType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(IDictionary<,>).FullName);
+        => compilation.GetTypeByMetadataName(typeof(IDictionary<,>).FullName!);
 
     public static INamedTypeSymbol? InlineArrayAttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.InlineArrayAttribute");
 
     public static INamedTypeSymbol? IReadOnlyDictionaryOfKVType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(IReadOnlyDictionary<,>).FullName);
+        => compilation.GetTypeByMetadataName(typeof(IReadOnlyDictionary<,>).FullName!);
 
     public static INamedTypeSymbol? DesignerCategoryAttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName("System.ComponentModel.DesignerCategoryAttribute");
