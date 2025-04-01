@@ -366,7 +366,8 @@ internal readonly struct UpdateExpressionState<
     public bool TryAnalyzeIndexAssignment(
         TStatementSyntax statement,
         CancellationToken cancellationToken,
-        [NotNullWhen(true)] out TExpressionSyntax? instance)
+        [NotNullWhen(true)] out TExpressionSyntax? instance,
+        int supportedArgumentCount = -1)
     {
         instance = null;
         if (!this.SyntaxFacts.SupportsIndexingInitializer(statement.SyntaxTree.Options))
@@ -389,6 +390,9 @@ internal readonly struct UpdateExpressionState<
         // Can't reference the variable being initialized in the arguments of the indexing expression.
         this.SyntaxFacts.GetPartsOfElementAccessExpression(left, out var elementInstance, out var argumentList);
         var elementAccessArguments = this.SyntaxFacts.GetArgumentsOfArgumentList(argumentList);
+        if (supportedArgumentCount >= 0 && elementAccessArguments.Count != supportedArgumentCount)
+            return false;
+
         foreach (var argument in elementAccessArguments)
         {
             if (this.NodeContainsValuePatternOrReferencesInitializedSymbol(argument, cancellationToken))
@@ -440,6 +444,13 @@ internal readonly struct UpdateExpressionState<
                 @this.ValuePatternMatches(instance))
             {
                 return new(expressionStatement, useSpread, useKeyValue);
+            }
+
+            if (@this.SyntaxFacts.SupportsKeyValuePairElement(expression.SyntaxTree.Options) &&
+                @this.TryAnalyzeIndexAssignment(expressionStatement, cancellationToken, out instance, supportedArgumentCount: 1) &&
+                @this.ValuePatternMatches(instance))
+            {
+                return new(expressionStatement, UseSpread: false, UseKeyValue: true);
             }
 
             return null;

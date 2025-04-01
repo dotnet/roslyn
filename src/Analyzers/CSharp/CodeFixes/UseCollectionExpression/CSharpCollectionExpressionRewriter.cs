@@ -473,18 +473,33 @@ internal static class CSharpCollectionExpressionRewriter
                 // Create:
                 //
                 //      `x: y` for `collection.Add(x, y)`
+                //      `x: y` for `collection[x] = y`
                 //      `x` for `collection.Add(x)`
-                //      `.. x` for `collection.AddRange(x)`
-                //      `x, y, z` for `collection.AddRange(x, y, z)`
+                //      `.. x` for `collection.AddRange(x)` // when useSpread=true
+                //      `x, y, z` for `collection.AddRange(x, y, z)` // when useSpread=false
 
                 if (match.UseKeyValue)
                 {
-                    var invocation = (InvocationExpressionSyntax)expressionStatement.Expression;
-                    var arguments = invocation.ArgumentList.Arguments;
-                    yield return KeyValuePairElement(
-                        IndentNode(expressionStatement, arguments[0].Expression, preferredIndentation),
-                        ColonToken.WithTriviaFrom(arguments.GetSeparator(0)),
-                        IndentNode(expressionStatement, arguments[1].Expression, preferredIndentation));
+                    if (expressionStatement.Expression is InvocationExpressionSyntax invocation)
+                    {
+                        var arguments = invocation.ArgumentList.Arguments;
+                        yield return KeyValuePairElement(
+                            IndentNode(expressionStatement, arguments[0].Expression, preferredIndentation),
+                            ColonToken.WithTriviaFrom(arguments.GetSeparator(0)),
+                            IndentNode(expressionStatement, arguments[1].Expression, preferredIndentation));
+                    }
+                    else if (expressionStatement.Expression is AssignmentExpressionSyntax assignment)
+                    {
+                        var elementAccess = (ElementAccessExpressionSyntax)assignment.Left;
+                        yield return KeyValuePairElement(
+                            IndentNode(expressionStatement, elementAccess.ArgumentList.Arguments[0].Expression, preferredIndentation),
+                            ColonToken.WithTrailingTrivia(assignment.OperatorToken.TrailingTrivia),
+                            IndentNode(expressionStatement, assignment.Right, preferredIndentation));
+                    }
+                    else
+                    {
+                        throw ExceptionUtilities.Unreachable();
+                    }
                 }
                 else
                 {
