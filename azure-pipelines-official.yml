@@ -7,6 +7,7 @@ trigger:
     - release/dev17.*
     - release/dev18.*
     - features/lsp_tools_host
+    - features/runtime-async
     exclude:
     - release/dev17.0
 pr: none
@@ -163,7 +164,7 @@ extends:
 
           - output: pipelineArtifact
             displayName: 'Publish Ngen Logs'
-            condition: succeeded()
+            condition: and(succeeded(), ${{ not(parameters.SkipApplyOptimizationData) }})
             targetPath: '$(Build.SourcesDirectory)\artifacts\log\$(BuildConfiguration)\ngen'
             artifactName: 'NGen Logs'
             publishLocation: Container
@@ -304,7 +305,7 @@ extends:
                        -configuration $(BuildConfiguration)
                        -officialBuildId $(Build.BuildNumber)
                        -officialSkipTests $(SkipTests)
-                       -officialSkipApplyOptimizationData $(SkipApplyOptimizationData)
+                       -officialSkipApplyOptimizationData ${{ parameters.SkipApplyOptimizationData }}
                        -officialSourceBranchName $(SourceBranchName)
                        -officialIbcDrop $(IbcDrop)
                        -officialVisualStudioDropAccessToken $(_DevDivDropAccessToken)

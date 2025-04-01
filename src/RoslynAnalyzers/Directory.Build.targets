@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project>
+
+  <PropertyGroup Condition="'$(IsTestProject)' == 'true' or '$(NonShipping)' == 'true' or '$(IsVsixProject)' == 'true'">
+    <ReleaseTrackingOptOut>true</ReleaseTrackingOptOut>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(ReleaseTrackingOptOut)' == 'true'">
+    <!-- RS2008: Enable analyzer release tracking -->
+    <NoWarn>$(NoWarn);RS2008</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!--
+      RS2007:  Analyzer release file 'AnalyzerReleases.Shipped.md' has a missing or invalid release header.
+      Release tables use borders and need https://github.com/dotnet/roslyn-analyzers/pull/7466 to be valid.
+    -->
+    <NoWarn>$(NoWarn);RS2007</NoWarn>
+  </PropertyGroup>
+
+  <!-- Add License and Third Party Notices files into each VSIX. -->
+  <ItemGroup>
+    <Content Include="$(MSBuildThisFileDirectory)\assets\EULA.txt">
+      <Link>EULA.txt</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(MSBuildThisFileDirectory)\assets\ThirdPartyNotices.txt">
+       <Link>ThirdPartyNotices.txt</Link>
+       <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+  </ItemGroup>
+
+  <!-- Add analyzer release tracking additional files -->
+  <!-- Unshipped release -->
+  <ItemGroup Condition="'$(ReleaseTrackingOptOut)' != 'true' AND Exists('$(MSBuildProjectDirectory)\AnalyzerReleases.Unshipped.md')">
+    <AdditionalFiles Include="$(MSBuildProjectDirectory)\AnalyzerReleases.Unshipped.md" />
+    <!-- Copy the unshipped releases file to output directory so it can be used in 'GenerateGlobalAnalyzerConfigs' post-build target -->
+    <!-- Include unshipped file also as 'None' - Workaround for 'CopyToOutputDirectory' not being respected for additional files -->
+    <None Update="AnalyzerReleases.Unshipped.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>AnalyzerReleases\$(AssemblyName)\AnalyzerReleases.Unshipped.md</Link>
+    </None>
+  </ItemGroup>
+  <!-- Shipped releases -->
+  <ItemGroup  Condition="'$(ReleaseTrackingOptOut)' != 'true' AND Exists('$(MSBuildProjectDirectory)\AnalyzerReleases.Shipped.md')">
+    <AdditionalFiles Include="$(MSBuildProjectDirectory)\AnalyzerReleases.Shipped.md" />
+    <!-- Copy the shipped releases file to output directory so it can be used in 'GenerateGlobalAnalyzerConfigs' post-build target -->
+    <!-- Include shipped file also as 'None' - Workaround for 'CopyToOutputDirectory' not being respected for additional files -->
+    <None Update="AnalyzerReleases.Shipped.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>AnalyzerReleases\$(AssemblyName)\AnalyzerReleases.Shipped.md</Link>
+    </None>
+  </ItemGroup>
+
+  <Target Name="BeforeBuild" Condition="'$(ReleaseTrackingOptOut)' != 'true'" >
+    <Error Condition="!Exists('$(MSBuildProjectDirectory)\AnalyzerReleases.Shipped.md')" Text="Create a new empty file named 'AnalyzerReleases.Shipped.md' in the project directory" />
+    <Error Condition="!Exists('$(MSBuildProjectDirectory)\AnalyzerReleases.Unshipped.md')" Text="Create a new empty file named 'AnalyzerReleases.Unshipped.md' in the project directory" />
+  </Target>
+
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.targets', '$(MSBuildThisFileDirectory)../'))" />
+</Project>

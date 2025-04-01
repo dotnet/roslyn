@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.NavigationBar.RoslynNavigationBarItem;
 
 namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar;

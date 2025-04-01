@@ -41,6 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
         Protected Overrides Function AnalyzeMatchesAndCollectionConstructorForCollectionExpression(
                 preMatches As ArrayBuilder(Of CollectionMatch(Of SyntaxNode)),
                 postMatches As ArrayBuilder(Of CollectionMatch(Of SyntaxNode)),
+                ByRef changesSemantics As Boolean,
                 cancellationToken As CancellationToken) As Boolean
             ' Only called for collection expressions, which VB does not support
             Throw ExceptionUtilities.Unreachable()

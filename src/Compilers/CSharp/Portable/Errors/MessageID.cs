@@ -294,10 +294,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureOverloadResolutionPriority = MessageBase + 12848,
 
         IDS_FeatureFirstClassSpan = MessageBase + 12849,
+
         IDS_FeatureUnboundGenericTypesInNameof = MessageBase + 12850,
         IDS_FeatureSimpleLambdaParameterModifiers = MessageBase + 12851,
-        IDS_FeatureDictionaryExpressions = MessageBase + 12852,
-        IDS_FeatureCollectionExpressionArguments = MessageBase + 12853,
+
+        IDS_FeaturePartialEventsAndConstructors = MessageBase + 12852,
+        IDS_FeatureExtensions = MessageBase + 12853,
+        IDS_FeatureNullConditionalAssignment = MessageBase + 12854,
+        IDS_FeatureDictionaryExpressions = MessageBase + 12855,
+        IDS_FeatureCollectionExpressionArguments = MessageBase + 12856,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -482,6 +487,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureFirstClassSpan:
                 case MessageID.IDS_FeatureUnboundGenericTypesInNameof:
                 case MessageID.IDS_FeatureSimpleLambdaParameterModifiers:
+                case MessageID.IDS_FeaturePartialEventsAndConstructors:
+                case MessageID.IDS_FeatureExtensions:
+                case MessageID.IDS_FeatureNullConditionalAssignment:
                 case MessageID.IDS_FeatureDictionaryExpressions: // semantic check
                 case MessageID.IDS_FeatureCollectionExpressionArguments:
                     return LanguageVersion.Preview;

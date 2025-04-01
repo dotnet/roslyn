@@ -29,6 +29,9 @@ internal static class LanguageVersionExtensions
     public static bool SupportsDictionaryExpressions(this LanguageVersion languageVersion)
         => languageVersion.IsCSharp14OrAbove();
 
+    public static bool SupportsExtensions(this LanguageVersion languageVersion)
+        => languageVersion.IsCSharp14OrAbove();
+
     /// <remarks>
     /// Corresponds to Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.CSharpNext.
     /// </remarks>
