@@ -94,12 +94,10 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
             await TaskScheduler.Default;
         }
 
-        // From this point on, we start mutating the solution.  So make us non cancellable.
-#pragma warning disable IDE0059 // Unnecessary assignment of a value
-        cancellationToken = CancellationToken.None;
-#pragma warning restore IDE0059 // Unnecessary assignment of a value
-
         var solution = await _solution.GetValueOrNullAsync(cancellationToken).ConfigureAwait(true);
+
+        // From this point on, we start mutating the solution.  So make us non cancellable.
+        cancellationToken = CancellationToken.None;
 
         _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.SolutionPath = solution?.SolutionFileName;
         _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.SolutionTelemetryId = GetSolutionSessionId();
