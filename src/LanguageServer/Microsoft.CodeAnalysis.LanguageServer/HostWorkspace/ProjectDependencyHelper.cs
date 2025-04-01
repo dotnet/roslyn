@@ -134,6 +134,6 @@ internal static class ProjectDependencyHelper
         await languageServerManager.SendRequestAsync(ProjectNeedsRestoreName, unresolvedParams, cancellationToken);
     }
 
-    private record UnresolvedDependenciesParams(
+    private sealed record UnresolvedDependenciesParams(
         [property: JsonPropertyName("projectFilePaths")] string[] ProjectFilePaths);
 }

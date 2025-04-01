@@ -4,14 +4,13 @@
 
 using Microsoft.CodeAnalysis.CodeRefactorings;
 
-namespace Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions
+namespace Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions;
+
+/// <summary>
+/// Common interface used by both local Roslyn and LSP to implement
+/// their specific versions of CodeRefactoringSuggestedAction.
+/// </summary>
+internal interface ICodeRefactoringSuggestedAction
 {
-    /// <summary>
-    /// Common interface used by both local Roslyn and LSP to implement
-    /// their specific versions of CodeRefactoringSuggestedAction.
-    /// </summary>
-    internal interface ICodeRefactoringSuggestedAction
-    {
-        CodeRefactoringProvider CodeRefactoringProvider { get; }
-    }
+    CodeRefactoringProvider CodeRefactoringProvider { get; }
 }

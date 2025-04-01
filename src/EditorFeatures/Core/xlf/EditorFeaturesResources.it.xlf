@@ -7,11 +7,6 @@
         <target state="translated">Si è verificato un errore durante la generazione della documentazione per questo codice.</target>
         <note />
       </trans-unit>
-      <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
-        <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
-        <target state="translated">Per l'identificatore '{0}' è attiva una sessione di ridenominazione inline. Richiamare nuovamente la ridenominazione inline per accedere alle opzioni aggiuntive. È possibile continuare a modificare l'identificatore da rinominare in qualsiasi momento.</target>
-        <note>For screenreaders. {0} is the identifier being renamed.</note>
-      </trans-unit>
       <trans-unit id="Applying_changes">
         <source>Applying changes</source>
         <target state="translated">Applicazione delle modifiche in corso</target>
@@ -982,11 +977,6 @@
         <target state="translated">Ricerca dell'elemento span dell'elemento di pari livello precedente...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_colon_0">
-        <source>Rename: {0}</source>
-        <target state="translated">Rinomina: {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">
         <source>Engine must be attached to an Interactive Window.</source>
         <target state="translated">Il motore deve essere collegato a una finestra interattiva.</target>
@@ -1102,13 +1092,6 @@
         <target state="translated">Formattazione automatica</target>
         <note />
       </trans-unit>
-      <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
-        <source>We can fix the error by not making struct "out/ref" parameter(s).
-Do you want to proceed?</source>
-        <target state="translated">Per correggere l'errore, non verranno creati i parametri "out/ref" dello struct. 
-Continuare?</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Change_Signature_colon">
         <source>Change Signature:</source>
         <target state="translated">Cambia firma:</target>
@@ -1167,11 +1150,6 @@ Continuare?</target>
       <trans-unit id="Preview_changes1">
         <source>_Preview changes</source>
         <target state="translated">_Anteprima modifiche</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Apply3">
-        <source>Apply</source>
-        <target state="translated">Applica</target>
         <note />
       </trans-unit>
       <trans-unit id="Cancel">
@@ -1242,16 +1220,6 @@ Continuare?</target>
       <trans-unit id="Go_To_Implementation">
         <source>Go To Implementation</source>
         <target state="translated">Vai all'implementazione</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="New_name_colon_0">
-        <source>New name: {0}</source>
-        <target state="translated">Nuovo nome: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modify_any_highlighted_location_to_begin_renaming">
-        <source>Modify any highlighted location to begin renaming.</source>
-        <target state="translated">Modificare eventuali percorsi evidenziati prima di avviare la ridenominazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="Paste">

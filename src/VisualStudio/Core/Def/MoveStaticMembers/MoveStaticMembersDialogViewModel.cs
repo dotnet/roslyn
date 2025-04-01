@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers;
 
-internal class MoveStaticMembersDialogViewModel : AbstractNotifyPropertyChanged
+internal sealed class MoveStaticMembersDialogViewModel : AbstractNotifyPropertyChanged
 {
     public StaticMemberSelectionViewModel MemberSelectionViewModel { get; }
 

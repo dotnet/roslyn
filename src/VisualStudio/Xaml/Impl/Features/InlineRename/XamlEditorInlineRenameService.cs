@@ -16,187 +16,186 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
+namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename;
+
+[ExportLanguageService(typeof(IEditorInlineRenameService), StringConstants.XamlLanguageName), Shared]
+internal sealed class XamlEditorInlineRenameService : IEditorInlineRenameService
 {
-    [ExportLanguageService(typeof(IEditorInlineRenameService), StringConstants.XamlLanguageName), Shared]
-    internal class XamlEditorInlineRenameService : IEditorInlineRenameService
+    private readonly IXamlRenameInfoService _renameService;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public XamlEditorInlineRenameService(IXamlRenameInfoService renameService)
     {
-        private readonly IXamlRenameInfoService _renameService;
+        _renameService = renameService;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public XamlEditorInlineRenameService(IXamlRenameInfoService renameService)
+    public bool IsEnabled => true;
+
+    public Task<ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>> GetRenameContextAsync(IInlineRenameInfo inlineRenameInfo, IInlineRenameLocationSet inlineRenameLocationSet, CancellationToken cancellationToken)
+    {
+        return Task.FromResult(ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>.Empty);
+    }
+
+    public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
+    {
+        var renameInfo = await _renameService.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
+
+        return new InlineRenameInfo(document, renameInfo);
+    }
+
+    private sealed class InlineRenameInfo : IInlineRenameInfo
+    {
+        private readonly Document _document;
+        private readonly IXamlRenameInfo _renameInfo;
+
+        public InlineRenameInfo(Document document, IXamlRenameInfo renameInfo)
         {
-            _renameService = renameService;
+            _document = document;
+            _renameInfo = renameInfo;
         }
 
-        public bool IsEnabled => true;
+        public bool CanRename => _renameInfo.CanRename;
 
-        public Task<ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>> GetRenameContextAsync(IInlineRenameInfo inlineRenameInfo, IInlineRenameLocationSet inlineRenameLocationSet, CancellationToken cancellationToken)
+        public string DisplayName => _renameInfo.DisplayName;
+
+        public string FullDisplayName => _renameInfo.FullDisplayName;
+
+        public Glyph Glyph => InlineRenameInfo.FromSymbolKind(_renameInfo.Kind);
+
+        public bool HasOverloads => false;
+
+        public bool MustRenameOverloads => false;
+
+        public string LocalizedErrorMessage => _renameInfo.LocalizedErrorMessage;
+
+        public TextSpan TriggerSpan => _renameInfo.TriggerSpan;
+
+        // This property isn't currently supported in XAML since it would involve modifying the IXamlRenameInfo interface.
+        public ImmutableArray<CodeAnalysis.DocumentSpan> DefinitionLocations => default;
+
+        public async Task<IInlineRenameLocationSet> FindRenameLocationsAsync(SymbolRenameOptions options, CancellationToken cancellationToken)
         {
-            return Task.FromResult(ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>.Empty);
+            var references = new List<InlineRenameLocation>();
+
+            var renameLocations = await _renameInfo.FindRenameLocationsAsync(
+                renameInStrings: options.RenameInStrings,
+                renameInComments: options.RenameInComments,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            references.AddRange(renameLocations.Select(
+                ds => new InlineRenameLocation(ds.Document, ds.TextSpan)));
+
+            return new InlineRenameLocationSet(
+                _renameInfo, _document.Project.Solution,
+                [.. references]);
         }
 
-        public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
+        public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string triggerText, string replacementText, CancellationToken cancellationToken)
         {
-            var renameInfo = await _renameService.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
-
-            return new InlineRenameInfo(document, renameInfo);
+            return location.TextSpan;
         }
 
-        private class InlineRenameInfo : IInlineRenameInfo
+        public string GetFinalSymbolName(string replacementText)
         {
-            private readonly Document _document;
+            return replacementText;
+        }
+
+        public TextSpan GetReferenceEditSpan(InlineRenameLocation location, string triggerText, CancellationToken cancellationToken)
+        {
+            return location.TextSpan;
+        }
+
+        public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText)
+        {
+            return true;
+        }
+
+        public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText)
+        {
+            return true;
+        }
+
+        private static Glyph FromSymbolKind(SymbolKind kind)
+        {
+            var glyph = Glyph.Error;
+
+            switch (kind)
+            {
+                case SymbolKind.Namespace:
+                    glyph = Glyph.Namespace;
+                    break;
+                case SymbolKind.NamedType:
+                    glyph = Glyph.ClassPublic;
+                    break;
+                case SymbolKind.Property:
+                    glyph = Glyph.PropertyPublic;
+                    break;
+                case SymbolKind.Event:
+                    glyph = Glyph.EventPublic;
+                    break;
+            }
+
+            return glyph;
+        }
+
+        public InlineRenameFileRenameInfo GetFileRenameInfo()
+            => InlineRenameFileRenameInfo.NotAllowed;
+
+        private sealed class InlineRenameLocationSet : IInlineRenameLocationSet
+        {
             private readonly IXamlRenameInfo _renameInfo;
+            private readonly Solution _oldSolution;
 
-            public InlineRenameInfo(Document document, IXamlRenameInfo renameInfo)
+            public InlineRenameLocationSet(IXamlRenameInfo renameInfo, Solution solution, ImmutableArray<InlineRenameLocation> locations)
             {
-                _document = document;
                 _renameInfo = renameInfo;
+                _oldSolution = solution;
+                Locations = locations;
             }
 
-            public bool CanRename => _renameInfo.CanRename;
+            public IList<InlineRenameLocation> Locations { get; }
 
-            public string DisplayName => _renameInfo.DisplayName;
-
-            public string FullDisplayName => _renameInfo.FullDisplayName;
-
-            public Glyph Glyph => InlineRenameInfo.FromSymbolKind(_renameInfo.Kind);
-
-            public bool HasOverloads => false;
-
-            public bool MustRenameOverloads => false;
-
-            public string LocalizedErrorMessage => _renameInfo.LocalizedErrorMessage;
-
-            public TextSpan TriggerSpan => _renameInfo.TriggerSpan;
-
-            // This property isn't currently supported in XAML since it would involve modifying the IXamlRenameInfo interface.
-            public ImmutableArray<CodeAnalysis.DocumentSpan> DefinitionLocations => default;
-
-            public async Task<IInlineRenameLocationSet> FindRenameLocationsAsync(SymbolRenameOptions options, CancellationToken cancellationToken)
+            public bool IsReplacementTextValid(string replacementText)
             {
-                var references = new List<InlineRenameLocation>();
-
-                var renameLocations = await _renameInfo.FindRenameLocationsAsync(
-                    renameInStrings: options.RenameInStrings,
-                    renameInComments: options.RenameInComments,
-                    cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                references.AddRange(renameLocations.Select(
-                    ds => new InlineRenameLocation(ds.Document, ds.TextSpan)));
-
-                return new InlineRenameLocationSet(
-                    _renameInfo, _document.Project.Solution,
-                    [.. references]);
+                return _renameInfo.IsReplacementTextValid(replacementText);
             }
 
-            public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string triggerText, string replacementText, CancellationToken cancellationToken)
+            public async Task<IInlineRenameReplacementInfo> GetReplacementsAsync(string replacementText, SymbolRenameOptions options, CancellationToken cancellationToken)
             {
-                return location.TextSpan;
-            }
-
-            public string GetFinalSymbolName(string replacementText)
-            {
-                return replacementText;
-            }
-
-            public TextSpan GetReferenceEditSpan(InlineRenameLocation location, string triggerText, CancellationToken cancellationToken)
-            {
-                return location.TextSpan;
-            }
-
-            public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText)
-            {
-                return true;
-            }
-
-            public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText)
-            {
-                return true;
-            }
-
-            private static Glyph FromSymbolKind(SymbolKind kind)
-            {
-                var glyph = Glyph.Error;
-
-                switch (kind)
+                var newSolution = _oldSolution;
+                foreach (var group in Locations.GroupBy(l => l.Document))
                 {
-                    case SymbolKind.Namespace:
-                        glyph = Glyph.Namespace;
-                        break;
-                    case SymbolKind.NamedType:
-                        glyph = Glyph.ClassPublic;
-                        break;
-                    case SymbolKind.Property:
-                        glyph = Glyph.PropertyPublic;
-                        break;
-                    case SymbolKind.Event:
-                        glyph = Glyph.EventPublic;
-                        break;
+                    var document = group.Key;
+                    var oldSource = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                    var newSource = oldSource.WithChanges(group.Select(l => new TextChange(l.TextSpan, replacementText)));
+                    newSolution = newSolution.WithDocumentText(document.Id, newSource);
                 }
 
-                return glyph;
+                return new InlineRenameReplacementInfo(this, newSolution, replacementText);
             }
 
-            public InlineRenameFileRenameInfo GetFileRenameInfo()
-                => InlineRenameFileRenameInfo.NotAllowed;
-
-            private class InlineRenameLocationSet : IInlineRenameLocationSet
+            private sealed class InlineRenameReplacementInfo : IInlineRenameReplacementInfo
             {
-                private readonly IXamlRenameInfo _renameInfo;
-                private readonly Solution _oldSolution;
+                private readonly InlineRenameLocationSet _inlineRenameLocationSet;
+                private readonly string _replacementText;
 
-                public InlineRenameLocationSet(IXamlRenameInfo renameInfo, Solution solution, ImmutableArray<InlineRenameLocation> locations)
+                public InlineRenameReplacementInfo(InlineRenameLocationSet inlineRenameLocationSet, Solution newSolution, string replacementText)
                 {
-                    _renameInfo = renameInfo;
-                    _oldSolution = solution;
-                    Locations = locations;
+                    NewSolution = newSolution;
+                    _inlineRenameLocationSet = inlineRenameLocationSet;
+                    _replacementText = replacementText;
                 }
 
-                public IList<InlineRenameLocation> Locations { get; }
+                public Solution NewSolution { get; }
 
-                public bool IsReplacementTextValid(string replacementText)
+                public IEnumerable<DocumentId> DocumentIds => _inlineRenameLocationSet.Locations.Select(l => l.Document.Id).Distinct();
+
+                public bool ReplacementTextValid => _inlineRenameLocationSet.IsReplacementTextValid(_replacementText);
+
+                public IEnumerable<InlineRenameReplacement> GetReplacements(DocumentId documentId)
                 {
-                    return _renameInfo.IsReplacementTextValid(replacementText);
-                }
-
-                public async Task<IInlineRenameReplacementInfo> GetReplacementsAsync(string replacementText, SymbolRenameOptions options, CancellationToken cancellationToken)
-                {
-                    var newSolution = _oldSolution;
-                    foreach (var group in Locations.GroupBy(l => l.Document))
-                    {
-                        var document = group.Key;
-                        var oldSource = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-                        var newSource = oldSource.WithChanges(group.Select(l => new TextChange(l.TextSpan, replacementText)));
-                        newSolution = newSolution.WithDocumentText(document.Id, newSource);
-                    }
-
-                    return new InlineRenameReplacementInfo(this, newSolution, replacementText);
-                }
-
-                private class InlineRenameReplacementInfo : IInlineRenameReplacementInfo
-                {
-                    private readonly InlineRenameLocationSet _inlineRenameLocationSet;
-                    private readonly string _replacementText;
-
-                    public InlineRenameReplacementInfo(InlineRenameLocationSet inlineRenameLocationSet, Solution newSolution, string replacementText)
-                    {
-                        NewSolution = newSolution;
-                        _inlineRenameLocationSet = inlineRenameLocationSet;
-                        _replacementText = replacementText;
-                    }
-
-                    public Solution NewSolution { get; }
-
-                    public IEnumerable<DocumentId> DocumentIds => _inlineRenameLocationSet.Locations.Select(l => l.Document.Id).Distinct();
-
-                    public bool ReplacementTextValid => _inlineRenameLocationSet.IsReplacementTextValid(_replacementText);
-
-                    public IEnumerable<InlineRenameReplacement> GetReplacements(DocumentId documentId)
-                    {
-                        yield break;
-                    }
+                    yield break;
                 }
             }
         }

@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 
-internal class StackTraceExplorerViewModel : ViewModelBase
+internal sealed class StackTraceExplorerViewModel : ViewModelBase
 {
     private readonly IThreadingContext _threadingContext;
     private readonly Workspace _workspace;

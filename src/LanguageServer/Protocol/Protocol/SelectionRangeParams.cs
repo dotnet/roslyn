@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.15</remarks>
-internal class SelectionRangeParams : ITextDocumentParams, IWorkDoneProgressParams, IPartialResultParams<SelectionRange[]>
+internal sealed class SelectionRangeParams : ITextDocumentParams, IWorkDoneProgressParams, IPartialResultParams<SelectionRange[]>
 {
     /// <summary>
     /// The text document.

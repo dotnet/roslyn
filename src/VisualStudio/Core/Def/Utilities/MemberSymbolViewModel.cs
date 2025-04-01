@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Utilities;
 
-internal class MemberSymbolViewModel : SymbolViewModel<ISymbol>
+internal sealed class MemberSymbolViewModel : SymbolViewModel<ISymbol>
 {
     public string MakeAbstractCheckBoxAutomationText => string.Format(ServicesVSResources.Make_0_abstract, Symbol.Name);
     public string RowSelectionAutomationText => ServicesVSResources.Select_member;

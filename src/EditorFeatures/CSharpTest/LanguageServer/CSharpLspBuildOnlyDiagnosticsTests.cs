@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Test.Utilities.LanguageServer;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.LanguageServer;
 
-public class CSharpLspBuildOnlyDiagnosticsTests : AbstractLspBuildOnlyDiagnosticsTests
+public sealed class CSharpLspBuildOnlyDiagnosticsTests : AbstractLspBuildOnlyDiagnosticsTests
 {
     protected override Type ErrorCodeType => typeof(ErrorCode);
 

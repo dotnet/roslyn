@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog;
 
-internal class PullMemberUpDialogViewModel : AbstractNotifyPropertyChanged
+internal sealed class PullMemberUpDialogViewModel : AbstractNotifyPropertyChanged
 {
     public bool OkButtonEnabled { get; set => SetProperty(ref field, value, nameof(OkButtonEnabled)); }
     public bool? SelectAllCheckBoxState { get; set => SetProperty(ref field, value, nameof(SelectAllCheckBoxState)); }

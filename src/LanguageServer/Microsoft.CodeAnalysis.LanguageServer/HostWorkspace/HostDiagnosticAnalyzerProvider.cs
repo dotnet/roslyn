@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
-internal class HostDiagnosticAnalyzerProvider : IHostDiagnosticAnalyzerProvider
+internal sealed class HostDiagnosticAnalyzerProvider : IHostDiagnosticAnalyzerProvider
 {
 
     private readonly ImmutableArray<(AnalyzerFileReference reference, string extensionId)> _analyzerReferences;
@@ -33,7 +33,7 @@ internal class HostDiagnosticAnalyzerProvider : IHostDiagnosticAnalyzerProvider
         return _analyzerReferences;
     }
 
-    private class SimpleAnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
+    private sealed class SimpleAnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
     {
         public void AddDependencyLocation(string fullPath)
         {

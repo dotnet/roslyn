@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 
-internal class MemberSelectionViewModel : AbstractNotifyPropertyChanged
+internal sealed class MemberSelectionViewModel : AbstractNotifyPropertyChanged
 {
     private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
     private readonly ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>>? _symbolToDependentsMap;

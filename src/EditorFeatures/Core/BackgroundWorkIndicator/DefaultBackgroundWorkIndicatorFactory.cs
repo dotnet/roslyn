@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 [ExportWorkspaceService(typeof(IBackgroundWorkIndicatorFactory)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class DefaultBackgroundWorkIndicatorFactory(
+internal sealed class DefaultBackgroundWorkIndicatorFactory(
     IUIThreadOperationExecutor uiThreadOperationExecutor) : IBackgroundWorkIndicatorFactory
 {
     private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor = uiThreadOperationExecutor;
@@ -32,7 +32,7 @@ internal class DefaultBackgroundWorkIndicatorFactory(
             description, description, allowCancellation: true, showProgress: true));
     }
 
-    private class DefaultBackgroundWorkIndicatorContext(IUIThreadOperationContext context) : IBackgroundWorkIndicatorContext
+    private sealed class DefaultBackgroundWorkIndicatorContext(IUIThreadOperationContext context) : IBackgroundWorkIndicatorContext
     {
         private readonly IUIThreadOperationContext _context = context;
 

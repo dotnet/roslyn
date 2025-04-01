@@ -12,47 +12,46 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
+
+internal abstract class AbstractAdornmentManagerProvider<TTag> :
+    IWpfTextViewCreationListener
+    where TTag : BrushTag
 {
-    internal abstract class AbstractAdornmentManagerProvider<TTag> :
-        IWpfTextViewCreationListener
-        where TTag : BrushTag
+    protected readonly IThreadingContext ThreadingContext;
+    protected readonly IViewTagAggregatorFactoryService TagAggregatorFactoryService;
+    protected readonly IAsynchronousOperationListener AsyncListener;
+    protected readonly IGlobalOptionService GlobalOptions;
+
+    protected AbstractAdornmentManagerProvider(
+        IThreadingContext threadingContext,
+        IViewTagAggregatorFactoryService tagAggregatorFactoryService,
+        IGlobalOptionService globalOptions,
+        IAsynchronousOperationListenerProvider listenerProvider)
     {
-        protected readonly IThreadingContext ThreadingContext;
-        protected readonly IViewTagAggregatorFactoryService TagAggregatorFactoryService;
-        protected readonly IAsynchronousOperationListener AsyncListener;
-        protected readonly IGlobalOptionService GlobalOptions;
+        ThreadingContext = threadingContext;
+        TagAggregatorFactoryService = tagAggregatorFactoryService;
+        GlobalOptions = globalOptions;
+        AsyncListener = listenerProvider.GetListener(this.FeatureAttributeName);
+    }
 
-        protected AbstractAdornmentManagerProvider(
-            IThreadingContext threadingContext,
-            IViewTagAggregatorFactoryService tagAggregatorFactoryService,
-            IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider listenerProvider)
+    protected abstract string FeatureAttributeName { get; }
+    protected abstract string AdornmentLayerName { get; }
+
+    protected abstract void CreateAdornmentManager(IWpfTextView textView);
+
+    public void TextViewCreated(IWpfTextView textView)
+    {
+        if (textView == null)
         {
-            ThreadingContext = threadingContext;
-            TagAggregatorFactoryService = tagAggregatorFactoryService;
-            GlobalOptions = globalOptions;
-            AsyncListener = listenerProvider.GetListener(this.FeatureAttributeName);
+            throw new ArgumentNullException(nameof(textView));
         }
 
-        protected abstract string FeatureAttributeName { get; }
-        protected abstract string AdornmentLayerName { get; }
-
-        protected abstract void CreateAdornmentManager(IWpfTextView textView);
-
-        public void TextViewCreated(IWpfTextView textView)
+        if (!GlobalOptions.GetOption(EditorComponentOnOffOptions.Adornment))
         {
-            if (textView == null)
-            {
-                throw new ArgumentNullException(nameof(textView));
-            }
-
-            if (!GlobalOptions.GetOption(EditorComponentOnOffOptions.Adornment))
-            {
-                return;
-            }
-
-            CreateAdornmentManager(textView);
+            return;
         }
+
+        CreateAdornmentManager(textView);
     }
 }

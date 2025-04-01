@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.ViewModel;
 
-internal class SeverityViewModel
+internal sealed class SeverityViewModel
 {
     private static readonly string[] s_severities =
     [

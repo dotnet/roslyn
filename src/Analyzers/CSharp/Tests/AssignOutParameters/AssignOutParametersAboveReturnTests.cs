@@ -16,7 +16,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     AssignOutParametersAboveReturnCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
-public class AssignOutParametersAboveReturnTests
+public sealed class AssignOutParametersAboveReturnTests
 {
     [Fact]
     public async Task TestForSimpleReturn()
