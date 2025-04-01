@@ -27,8 +27,6 @@ internal partial class DiagnosticAnalyzerService
                 documentId != null ? [documentId] : [.. project.DocumentIds, .. project.AdditionalDocumentIds],
                 includeLocalDocumentDiagnostics,
                 includeNonLocalDocumentDiagnostics,
-                // return diagnostics specific to one project or document
-                includeProjectNonLocalResult: documentId == null,
                 cancellationToken);
         }
 
@@ -44,7 +42,6 @@ internal partial class DiagnosticAnalyzerService
                documentIds: [],
                includeLocalDocumentDiagnostics: false,
                includeNonLocalDocumentDiagnostics: includeNonLocalDocumentDiagnostics,
-               includeProjectNonLocalResult: true,
                cancellationToken);
         }
 
@@ -55,7 +52,6 @@ internal partial class DiagnosticAnalyzerService
             IReadOnlyList<DocumentId> documentIds,
             bool includeLocalDocumentDiagnostics,
             bool includeNonLocalDocumentDiagnostics,
-            bool includeProjectNonLocalResult,
             CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
@@ -85,10 +81,6 @@ internal partial class DiagnosticAnalyzerService
                     if (includeNonLocalDocumentDiagnostics)
                         AddIncludedDiagnostics(builder, analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.NonLocal));
                 }
-
-                // include project diagnostics if there is no target document
-                if (includeProjectNonLocalResult)
-                    AddIncludedDiagnostics(builder, analysisResult.GetOtherDiagnostics());
             }
 
             return builder.ToImmutableAndClear();

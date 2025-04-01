@@ -707,7 +707,6 @@ class A
 
         Assert.Empty(diagnosticMap.Syntax);
         Assert.Empty(diagnosticMap.NonLocal);
-        Assert.Empty(diagnosticMap.Other);
     }
 
     [Theory, WorkItem(67257, "https://github.com/dotnet/roslyn/issues/67257")]
