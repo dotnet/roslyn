@@ -472,11 +472,11 @@ internal static class CSharpCollectionExpressionRewriter
             {
                 // Create:
                 //
-                //      `x: y` for `collection.Add(x, y)`
-                //      `x: y` for `collection[x] = y`
-                //      `x` for `collection.Add(x)`
-                //      `.. x` for `collection.AddRange(x)` // when useSpread=true
-                //      `x, y, z` for `collection.AddRange(x, y, z)` // when useSpread=false
+                //      `x: y` for `collection.Add(x, y)`               // when useKeyValue=true
+                //      `x: y` for `collection[x] = y`                  // when useKeyValue=true
+                //      `x` for `collection.Add(x)`                     // when useSpread=false
+                //      `.. x` for `collection.AddRange(x)`             // when useSpread=true
+                //      `x, y, z` for `collection.AddRange(x, y, z)`    // when useSpread=false
 
                 if (match.UseKeyValue)
                 {
