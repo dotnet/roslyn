@@ -21,9 +21,12 @@ using Microsoft.CodeAnalysis.Threading;
 
 namespace Microsoft.CodeAnalysis.SemanticSearch;
 
-internal sealed class ReferencingSymbolsFinder(Solution solution, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
+internal sealed class ReferencingSyntaxFinder(Solution solution, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
 {
-    public async IAsyncEnumerable<ISymbol> FindSymbolsAsync(ISymbol symbol)
+    public IEnumerable<SyntaxNode> FindSyntaxNodes(ISymbol symbol)
+        => FindSyntaxNodesAsync(symbol).ToBlockingEnumerable(cancellationToken);
+
+    public async IAsyncEnumerable<SyntaxNode> FindSyntaxNodesAsync(ISymbol symbol)
     {
         var syntaxRef = symbol.DeclaringSyntaxReferences.FirstOrDefault();
         if (syntaxRef == null)
@@ -61,19 +64,15 @@ internal sealed class ReferencingSymbolsFinder(Solution solution, OptionsProvide
 
         await foreach (var reference in channel.Reader.ReadAllAsync(cancellationToken))
         {
-            var semanticModel = await reference.SourceSpan.Document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (semanticModel == null)
+            // TODO: consider grouping by document to avoid repeated syntax root lookup
+
+            var root = await reference.SourceSpan.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (root == null)
             {
                 continue;
             }
 
-            var enclosingSymbol = semanticModel.GetEnclosingSymbol(reference.SourceSpan.SourceSpan.Start, cancellationToken);
-            if (enclosingSymbol == null)
-            {
-                continue;
-            }
-
-            yield return enclosingSymbol;
+            yield return root.FindNode(reference.SourceSpan.SourceSpan, findInTrivia: true, getInnermostNodeForTie: true);
         }
 
         await writeTask.ConfigureAwait(false);

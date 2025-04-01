@@ -265,7 +265,7 @@ public sealed class CSharpSemanticSearchServiceTests
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
-    public async Task FindReferencingSymbols()
+    public async Task FindReferencingSyntaxNodes()
     {
         using var workspace = TestWorkspace.Create("""
         <Workspace>
@@ -300,9 +300,10 @@ public sealed class CSharpSemanticSearchServiceTests
                 yield break;
             }
 
-            await foreach (var s in e.FindReferencingSymbols())
+            foreach (var node in e.FindReferencingSyntaxNodes())
             {
-                yield return s;
+                var model = await node.SyntaxTree.GetSemanticModelAsync()
+                yield return model.GetEnclosingSymbol(node.SpanStart);
             }
         }
         """;

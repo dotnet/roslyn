@@ -31,13 +31,20 @@ internal sealed class CSharpSemanticSearchUtilities
 
             public static class {{SemanticSearchUtilities.ToolsTypeName}}
             {
-                private static Func<ISymbol, IAsyncEnumerable<ISymbol>> {{SemanticSearchUtilities.FindReferencingSymbolsImplName}};
+                private static Func<ISymbol, IEnumerable<SyntaxNode>> {{SemanticSearchUtilities.FindReferencingSyntaxNodesImplName}};
+                private static Func<SyntaxTree, Task<SemanticModel>> {{SemanticSearchUtilities.GetSemanticModelImplName}};
 
                 /// <summary>
-                /// Returns all symbols that reference (use) a given <paramref name="symbol" />.
+                /// Returns all syntax nodes that reference the given <paramref name="symbol" />.
                 /// </summary>
-                public static IAsyncEnumerable<ISymbol> FindReferencingSymbols(this ISymbol symbol)
-                    => {{SemanticSearchUtilities.FindReferencingSymbolsImplName}}(symbol);
+                public static IEnumerable<SyntaxNode> FindReferencingSyntaxNodes(this ISymbol symbol)
+                    => {{SemanticSearchUtilities.FindReferencingSyntaxNodesImplName}}(symbol);
+
+                /// <summary>
+                /// Returns the semantic model for the given <paramref name="tree" />.
+                /// </summary>
+                public static Task<SemanticModel> GetSemanticModelAsync(this SyntaxTree tree)
+                    => {{SemanticSearchUtilities.GetSemanticModelImplName}}(tree);
             }
             """,
         EditorConfig = """

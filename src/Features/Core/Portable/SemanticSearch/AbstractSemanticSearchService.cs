@@ -137,7 +137,11 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
             {
                 var queryAssembly = loadContext.LoadFromStream(peStream, pdbStream);
                 SetModuleCancellationToken(queryAssembly, cancellationToken);
-                SetFindReferencingSymbolsImpl(queryAssembly, new ReferencingSymbolsFinder(solution, classificationOptions, cancellationToken));
+
+                SetToolImplementations(
+                    queryAssembly,
+                    new ReferencingSyntaxFinder(solution, classificationOptions, cancellationToken),
+                    new SemanticModelGetter(solution, cancellationToken));
 
                 if (!TryGetFindMethod(queryAssembly, out var findMethod, out var queryKind, out var isAsync, out var errorMessage, out var errorMessageArgs))
                 {
@@ -192,13 +196,20 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
         moduleCancellationTokenField.SetValue(null, cancellationToken);
     }
 
-    private static void SetFindReferencingSymbolsImpl(Assembly queryAssembly, ReferencingSymbolsFinder finder)
+    private static void SetToolImplementations(Assembly queryAssembly, ReferencingSyntaxFinder finder, SemanticModelGetter semanticModelGetter)
     {
         var toolsType = queryAssembly.GetType(SemanticSearchUtilities.ToolsTypeName, throwOnError: true);
         Contract.ThrowIfNull(toolsType);
-        var findReferencingSymbolsImplField = toolsType.GetField(SemanticSearchUtilities.FindReferencingSymbolsImplName, BindingFlags.NonPublic | BindingFlags.Static);
-        Contract.ThrowIfNull(findReferencingSymbolsImplField);
-        findReferencingSymbolsImplField.SetValue(null, new Func<ISymbol, IAsyncEnumerable<ISymbol>>(finder.FindSymbolsAsync));
+
+        SetFieldValue(SemanticSearchUtilities.FindReferencingSyntaxNodesImplName, new Func<ISymbol, IEnumerable<SyntaxNode>>(finder.FindSyntaxNodes));
+        SetFieldValue(SemanticSearchUtilities.GetSemanticModelImplName, new Func<SyntaxTree, Task<SemanticModel>>(semanticModelGetter.GetSemanticModelAsync));
+
+        void SetFieldValue(string fieldName, object value)
+        {
+            var field = toolsType.GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Static);
+            Contract.ThrowIfNull(field);
+            field.SetValue(null, value);
+        }
     }
 
     private static bool TryGetFindMethod(Assembly queryAssembly, [NotNullWhen(true)] out MethodInfo? method, out QueryKind queryKind, out bool isAsync, out string? error, out string[]? errorMessageArgs)
