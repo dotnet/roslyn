@@ -165,11 +165,12 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
                     requiredArgumentName: null,
                     forCollectionExpression: false,
                     cancellationToken,
-                    out var instance) &&
+                    out var instance,
+                    out var useKeyValue) &&
                 this.State.ValuePatternMatches(instance))
             {
                 seenInvocation = true;
-                return new(expressionStatement, UseSpread: false);
+                return new(expressionStatement, UseSpread: false, useKeyValue);
             }
         }
 
@@ -179,7 +180,7 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
                 this.State.ValuePatternMatches(instance))
             {
                 seenIndexAssignment = true;
-                return new(expressionStatement, UseSpread: false);
+                return new(expressionStatement, UseSpread: false, UseKeyValue: true);
             }
         }
 

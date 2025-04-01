@@ -90,7 +90,7 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
         // Otherwise, if we're in C#14 or above, we can use the 'with(args)' argument trivially.
         if (supportsWithArgument)
         {
-            preMatches.Add(new(argumentList, UseSpread: false));
+            preMatches.Add(new(argumentList, UseSpread: false, UseKeyValue: false));
             return true;
         }
 
@@ -129,7 +129,7 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
                 if (Equals(firstParameter.Type.OriginalDefinition, ienumerableOfTType) ||
                     firstParameter.Type.AllInterfaces.Any(i => Equals(i.OriginalDefinition, ienumerableOfTType)))
                 {
-                    preMatches.Add(new(argumentList.Arguments[0].Expression, UseSpread: true));
+                    preMatches.Add(new(argumentList.Arguments[0].Expression, UseSpread: true, UseKeyValue: false));
                     return true;
                 }
             }

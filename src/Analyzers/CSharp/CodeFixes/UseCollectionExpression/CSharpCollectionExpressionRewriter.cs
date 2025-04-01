@@ -472,33 +472,47 @@ internal static class CSharpCollectionExpressionRewriter
             {
                 // Create:
                 //
+                //      `x: y` for `collection.Add(x, y)`
                 //      `x` for `collection.Add(x)`
                 //      `.. x` for `collection.AddRange(x)`
                 //      `x, y, z` for `collection.AddRange(x, y, z)`
-                var expressions = ConvertExpressions(expressionStatement.Expression, expr => IndentExpression(expressionStatement, expr, preferredIndentation));
 
-                Contract.ThrowIfTrue(expressions.Length >= 2 && match.UseSpread);
-
-                if (match.UseSpread && expressions is [CollectionExpressionSyntax collectionExpression])
+                if (match.UseKeyValue)
                 {
-                    // If we're spreading a collection expression, just insert those inner collection expression
-                    // elements as is into the outer collection expression.
-                    foreach (var element in collectionExpression.Elements)
-                    {
-                        if (element is SpreadElementSyntax spreadElement)
-                        {
-                            yield return CreateCollectionElement(useSpread: true, spreadElement.Expression);
-                        }
-                        else if (element is ExpressionElementSyntax expressionElement)
-                        {
-                            yield return CreateCollectionElement(useSpread: false, expressionElement.Expression);
-                        }
-                    }
+                    var invocation = (InvocationExpressionSyntax)expressionStatement.Expression;
+                    var arguments = invocation.ArgumentList.Arguments;
+                    yield return IndentNode(
+                        expressionStatement,
+                        KeyValuePairElement(arguments[0].Expression, ColonToken.WithTriviaFrom(arguments.GetSeparator(0)), arguments[1].Expression),
+                        preferredIndentation);
                 }
                 else
                 {
-                    foreach (var expression in expressions)
-                        yield return CreateCollectionElement(match.UseSpread, expression);
+                    var expressions = ConvertExpressions(expressionStatement.Expression, expr => IndentNode(expressionStatement, expr, preferredIndentation));
+
+                    Contract.ThrowIfTrue(expressions.Length >= 2 && match.UseSpread);
+
+                    if (match.UseSpread && expressions is [CollectionExpressionSyntax collectionExpression])
+                    {
+                        // If we're spreading a collection expression, just insert those inner collection expression
+                        // elements as is into the outer collection expression.
+                        foreach (var element in collectionExpression.Elements)
+                        {
+                            if (element is SpreadElementSyntax spreadElement)
+                            {
+                                yield return CreateCollectionElement(useSpread: true, spreadElement.Expression);
+                            }
+                            else if (element is ExpressionElementSyntax expressionElement)
+                            {
+                                yield return CreateCollectionElement(useSpread: false, expressionElement.Expression);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        foreach (var expression in expressions)
+                            yield return CreateCollectionElement(match.UseSpread, expression);
+                    }
                 }
             }
             else if (node is ForEachStatementSyntax foreachStatement)
@@ -506,11 +520,11 @@ internal static class CSharpCollectionExpressionRewriter
                 // Create: `.. x` for `foreach (var v in x) collection.Add(v)`
                 yield return CreateCollectionElement(
                     match.UseSpread,
-                    IndentExpression(foreachStatement, foreachStatement.Expression, preferredIndentation));
+                    IndentNode(foreachStatement, foreachStatement.Expression, preferredIndentation));
             }
             else if (node is IfStatementSyntax ifStatement)
             {
-                var condition = IndentExpression(ifStatement, ifStatement.Condition, preferredIndentation).Parenthesize(includeElasticTrivia: false);
+                var condition = IndentNode(ifStatement, ifStatement.Condition, preferredIndentation).Parenthesize(includeElasticTrivia: false);
                 var trueStatement = (ExpressionStatementSyntax)UnwrapEmbeddedStatement(ifStatement.Statement);
 
                 if (ifStatement.Else is null)
@@ -536,7 +550,7 @@ internal static class CSharpCollectionExpressionRewriter
             }
             else if (node is ExpressionSyntax expression)
             {
-                yield return CreateCollectionElement(match.UseSpread, IndentExpression(parentStatement: null, expression, preferredIndentation));
+                yield return CreateCollectionElement(match.UseSpread, IndentNode(parentStatement: null, expression, preferredIndentation));
             }
             else if (node is ArgumentListSyntax argumentList)
             {
@@ -548,23 +562,23 @@ internal static class CSharpCollectionExpressionRewriter
             }
         }
 
-        ExpressionSyntax IndentExpression(
+        TNode IndentNode<TNode>(
             StatementSyntax? parentStatement,
-            ExpressionSyntax expression,
-            string? preferredIndentation)
+            TNode node,
+            string? preferredIndentation) where TNode : SyntaxNode
         {
             // This must be called from an expression from the original tree.  Not something we're already transforming.
             // Otherwise, we'll have no idea how to apply the preferredIndentation if present.
-            Contract.ThrowIfNull(expression.Parent);
+            Contract.ThrowIfNull(node.Parent);
             if (preferredIndentation is null)
-                return expression.WithoutLeadingTrivia();
+                return node.WithoutLeadingTrivia();
 
-            var startLine = document.Text.Lines.GetLineFromPosition(GetAnchorNode(expression).SpanStart);
+            var startLine = document.Text.Lines.GetLineFromPosition(GetAnchorNode(node).SpanStart);
             var firstTokenOnLineIndentationString = GetIndentationStringForToken(document.Root.FindToken(startLine.Start));
 
-            var expressionFirstToken = expression.GetFirstToken();
-            var updatedExpression = expression.ReplaceTokens(
-                expression.DescendantTokens(),
+            var expressionFirstToken = node.GetFirstToken();
+            var updatedExpression = node.ReplaceTokens(
+                node.DescendantTokens(),
                 (currentToken, _) =>
                 {
                     // Ensure the first token has the indentation we're moving the entire node to
@@ -659,10 +673,10 @@ internal static class CSharpCollectionExpressionRewriter
                 : preferredIndentation);
         }
 
-        static ExpressionSyntax TransferParentStatementComments(
+        static TNode TransferParentStatementComments<TNode>(
             StatementSyntax? parentStatement,
-            ExpressionSyntax expression,
-            string preferredIndentation)
+            TNode expression,
+            string preferredIndentation) where TNode : SyntaxNode
         {
             if (parentStatement is null)
                 return expression;
@@ -758,7 +772,7 @@ internal static class CSharpCollectionExpressionRewriter
 
             bool CheckForMultiLine(ImmutableArray<CollectionMatch<TMatchNode>> matches)
             {
-                foreach (var (node, _) in matches)
+                foreach (var (node, _, _) in matches)
                 {
                     // if the statement we're replacing has any comments on it, then we need to be multiline to give them an
                     // appropriate place to go.

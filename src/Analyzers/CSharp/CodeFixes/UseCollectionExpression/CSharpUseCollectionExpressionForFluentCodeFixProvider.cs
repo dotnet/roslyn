@@ -119,17 +119,17 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentCodeFixProvi
                     {
                         if (element is SpreadElementSyntax spreadElement)
                         {
-                            result.Add(new(spreadElement.Expression, UseSpread: true));
+                            result.Add(new(spreadElement.Expression, UseSpread: true, UseKeyValue: false));
                         }
                         else if (element is ExpressionElementSyntax expressionElement)
                         {
-                            result.Add(new(expressionElement.Expression, UseSpread: false));
+                            result.Add(new(expressionElement.Expression, UseSpread: false, UseKeyValue: false));
                         }
                     }
                 }
                 else
                 {
-                    result.Add(new(argument.Expression, match.UseSpread));
+                    result.Add(new(argument.Expression, match.UseSpread, UseKeyValue: false));
                 }
             }
 

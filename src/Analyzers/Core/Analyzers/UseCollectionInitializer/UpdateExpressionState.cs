@@ -133,7 +133,8 @@ internal readonly struct UpdateExpressionState<
         bool allowLinq,
         CancellationToken cancellationToken,
         [NotNullWhen(true)] out TExpressionSyntax? instance,
-        out bool useSpread)
+        out bool useSpread,
+        out bool useKeyValue)
     {
         // Look for a call to Add taking 1 arg
         if (this.TryAnalyzeAddInvocation(
@@ -141,7 +142,8 @@ internal readonly struct UpdateExpressionState<
                 requiredArgumentName: null,
                 forCollectionExpression: true,
                 cancellationToken,
-                out instance))
+                out instance,
+                out useKeyValue))
         {
             useSpread = false;
             return true;
@@ -177,8 +179,10 @@ internal readonly struct UpdateExpressionState<
         string? requiredArgumentName,
         bool forCollectionExpression,
         CancellationToken cancellationToken,
-        [NotNullWhen(true)] out TExpressionSyntax? instance)
+        [NotNullWhen(true)] out TExpressionSyntax? instance,
+        out bool useKeyValue)
     {
+        useKeyValue = false;
         if (!TryAnalyzeInvocation(
                 invocationExpression,
                 WellKnownMemberNames.CollectionInitializerAddMethodName,
@@ -206,13 +210,14 @@ internal readonly struct UpdateExpressionState<
                 })
             {
                 var instanceType = SemanticModel.GetTypeInfo(instance, cancellationToken).Type;
-                if (instanceType != null)
-                {
-                    return instanceType
+                if (instanceType?
                         .GetMembers(WellKnownMemberNames.Indexer)
                         .Any(m => m is IPropertySymbol { Type: var propertyType, Parameters: [var propertyParameter] } &&
                                   Equals(parameter1.Type, propertyParameter.Type) &&
-                                  Equals(parameter2.Type, propertyType));
+                                  Equals(parameter2.Type, propertyType)) is true)
+                {
+                    useKeyValue = true;
+                    return true;
                 }
             }
 
@@ -386,10 +391,11 @@ internal readonly struct UpdateExpressionState<
             var expression = (TExpressionSyntax)@this.SyntaxFacts.GetExpressionOfExpressionStatement(expressionStatement);
 
             // Look for a call to Add or AddRange
-            if (@this.TryAnalyzeInvocationForCollectionExpression(expression, allowLinq: false, cancellationToken, out var instance, out var useSpread) &&
+            if (@this.TryAnalyzeInvocationForCollectionExpression(
+                    expression, allowLinq: false, cancellationToken, out var instance, out var useSpread, out var useKeyValue) &&
                 @this.ValuePatternMatches(instance))
             {
-                return new(expressionStatement, useSpread);
+                return new(expressionStatement, useSpread, useKeyValue);
             }
 
             return null;
@@ -415,11 +421,12 @@ internal readonly struct UpdateExpressionState<
                     requiredArgumentName: identifier.Text,
                     forCollectionExpression: true,
                     cancellationToken,
-                    out var instance) &&
+                    out var instance,
+                    out var useKeyValue) &&
                 @this.ValuePatternMatches(instance))
             {
                 // `foreach` will become `..expr` when we make it into a collection expression.
-                return new(foreachStatement, UseSpread: true);
+                return new(foreachStatement, UseSpread: true, useKeyValue);
             }
 
             return null;
@@ -449,14 +456,15 @@ internal readonly struct UpdateExpressionState<
                     requiredArgumentName: null,
                     forCollectionExpression: true,
                     cancellationToken,
-                    out var instance) &&
+                    out var instance,
+                    out var useKeyValue) &&
                 @this.ValuePatternMatches(instance))
             {
                 if (whenFalse is null)
                 {
                     // add the form `.. x ? [y] : []` to the result
                     return @this.SyntaxFacts.SupportsCollectionExpressionNaturalType(ifStatement.SyntaxTree.Options)
-                        ? new(ifStatement, UseSpread: true)
+                        ? new(ifStatement, UseSpread: true, useKeyValue)
                         : null;
                 }
 
@@ -468,11 +476,12 @@ internal readonly struct UpdateExpressionState<
                         requiredArgumentName: null,
                         forCollectionExpression: true,
                         cancellationToken,
-                        out instance) &&
+                        out instance,
+                        out useKeyValue) &&
                     @this.ValuePatternMatches(instance))
                 {
                     // add the form `x ? y : z` to the result
-                    return new(ifStatement, UseSpread: false);
+                    return new(ifStatement, UseSpread: false, useKeyValue);
                 }
             }
 
