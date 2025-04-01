@@ -862,15 +862,25 @@ collection_expression
 
 collection_element
   : expression_element
+  | key_value_pair_element
   | spread_element
+  | with_element
   ;
 
 expression_element
   : expression
   ;
 
+key_value_pair_element
+  : expression ':' expression
+  ;
+
 spread_element
   : '..' expression
+  ;
+
+with_element
+  : 'with' argument_list
   ;
 
 conditional_access_expression

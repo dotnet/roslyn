@@ -175,7 +175,8 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
         IList<SymbolDisplayPart> separatorParts,
         IList<SymbolDisplayPart> suffixParts,
         IList<SignatureHelpSymbolParameter> parameters,
-        IList<SymbolDisplayPart>? descriptionParts)
+        IList<SymbolDisplayPart>? descriptionParts,
+        Func<ISymbol?, string?>? getNavigationHint = null)
     {
         descriptionParts = descriptionParts == null
             ? SpecializedCollections.EmptyList<SymbolDisplayPart>()
@@ -218,11 +219,11 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
             orderSymbol,
             isVariadic,
             documentationFactory,
-            prefixParts.ToTaggedText(),
-            separatorParts.ToTaggedText(),
-            suffixParts.ToTaggedText(),
+            prefixParts.ToTaggedText(getNavigationHint: getNavigationHint),
+            separatorParts.ToTaggedText(getNavigationHint: getNavigationHint),
+            suffixParts.ToTaggedText(getNavigationHint: getNavigationHint),
             parameters.Select(p => (SignatureHelpParameter)p),
-            descriptionParts.ToTaggedText());
+            descriptionParts.ToTaggedText(getNavigationHint: getNavigationHint));
     }
 
     private static SignatureHelpSymbolParameter ReplaceStructuralTypes(

@@ -1917,14 +1917,10 @@
     <Field Name="CollectionTypeKind" Type="CollectionExpressionTypeKind"/>
     <!-- An expression placeholder value representing the initialized collection. -->
     <Field Name="Placeholder" Type="BoundObjectOrCollectionValuePlaceholder?" Null="allow" SkipInVisitor="true"/>
-    <!-- Constructor call to create the empty collection type. -->
+    <!-- Constructor or factory method call to create the collection instance. -->
     <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow" SkipInVisitor="true"/>
-    <!-- Construct method for collection types with [CollectionBuilder]. -->
-    <Field Name="CollectionBuilderMethod" Type="MethodSymbol?" Null="allow"/>
-    <!-- Placeholder for collection builder method invocation. -->
-    <Field Name="CollectionBuilderInvocationPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
-    <!-- Conversion from collection builder method invocation to collection type. -->
-    <Field Name="CollectionBuilderInvocationConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
+    <!-- Placeholder for collection builder elements span. -->
+    <Field Name="CollectionBuilderSpanPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
     <!-- Indicates whether the collection expression was successfully target-typed (it is inside a conversion) -->
     <Field Name="WasTargetTyped" Type="bool" />
     <Field Name="UnconvertedCollectionExpression" Type="BoundUnconvertedCollectionExpression" Null="disallow" SkipInVisitor="true"/>
@@ -1947,6 +1943,38 @@
     <Field Name="ElementPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
     <!-- Statement executed for each collection element. -->
     <Field Name="IteratorBody" Type="BoundStatement?" SkipInVisitor="true" Null="allow"/>
+  </Node>
+
+  <!-- A key:value pair element within a collection expression. -->
+  <Node Name="BoundKeyValuePairElement" Base="BoundNode">
+    <!-- Key expression. -->
+    <Field Name="Key" Type="BoundExpression"/>
+    <!-- Value expression. -->
+    <Field Name="Value" Type="BoundExpression"/>
+    <!-- Placeholder for Key in assignment. -->
+    <Field Name="KeyPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!-- Placeholder for Value in assignment. -->
+    <Field Name="ValuePlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!-- Indexer assignment of key:value pair to containing dictionary. -->
+    <Field Name="IndexerAssignment" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
+  </Node>
+
+  <!-- An expression element of KeyValuePair&lt;,&gt; type in a collection expression where the target type is a collection of KeyValuePair&lt;,&gt;. -->
+  <Node Name="BoundKeyValuePairExpressionElement" Base="BoundNode">
+    <!-- Expression. -->
+    <Field Name="Expression" Type="BoundExpression"/>
+    <!-- Placeholder for Expression in assignment. -->
+    <Field Name="ExpressionPlaceholder" Type="BoundValuePlaceholder" SkipInVisitor="true"/>
+    <!-- Indexer assignment of Key and Value properties of Expression to containing dictionary. -->
+    <Field Name="IndexerAssignment" Type="BoundExpression" SkipInVisitor="true"/>
+  </Node>
+
+  <!-- Unconverted collection expression arguments. -->
+  <Node Name="BoundCollectionExpressionWithElement" Base="BoundNode">
+    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;(string Name, Location Location)?&gt;" Null="allow"/>
+    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
+    <Field Name="Binder" Type="Binder" Null="disallow"/>
   </Node>
 
   <!-- 

@@ -452,6 +452,21 @@
         <target state="translated">"{0}" no implementa el miembro de interfaz "{1}". "{2}" no puede implementar "{1}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsDynamicBinding">
+        <source>Collection arguments cannot be dynamic; compile-time binding is required.</source>
+        <target state="new">Collection arguments cannot be dynamic; compile-time binding is required.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsMustBeFirst">
+        <source>Collection argument element must be the first element.</source>
+        <target state="new">Collection argument element must be the first element.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsNotSupportedForType">
+        <source>Collection arguments are not supported for type '{0}'.</source>
+        <target state="new">Collection arguments are not supported for type '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeInvalidMethodName">
         <source>The CollectionBuilderAttribute method name is invalid.</source>
         <target state="translated">El nombre del método CollectionBuilderAttribute no es válido.</target>
@@ -480,6 +495,11 @@
       <trans-unit id="ERR_CollectionExpressionImmutableArray">
         <source>This version of '{0}' cannot be used with collection expressions.</source>
         <target state="translated">Esta versión de '{0}' no se puede usar con expresiones de colección.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionKeyValuePairNotSupported">
+        <source>Collection expression type '{0}' does not support key-value pair elements.</source>
+        <target state="new">Collection expression type '{0}' does not support key-value pair elements.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingAdd">
@@ -2527,6 +2547,11 @@
         <target state="translated">operadores definidos por el usuario comprobados</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureCollectionExpressionArguments">
+        <source>collection expression arguments</source>
+        <target state="new">collection expression arguments</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressions">
         <source>collection expressions</source>
         <target state="translated">expresiones de colección</target>
@@ -2535,6 +2560,11 @@
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
         <source>covariant returns</source>
         <target state="translated">valores devueltos de covariante</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureDictionaryExpressions">
+        <source>dictionary expressions</source>
+        <target state="new">dictionary expressions</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureDiscards">

@@ -3813,6 +3813,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 switch (element)
                 {
+                    case BoundCollectionExpressionWithElement withElement:
+                        // We only get here if the conversion of the collection expression to the
+                        // target type failed. In this case, simply visit each argument.
+                        VisitArgumentsEvaluate(withElement.Arguments, withElement.ArgumentRefKindsOpt, parameterAnnotationsOpt: default, defaultArguments: default);
+                        break;
                     case BoundCollectionElementInitializer initializer:
                         // We don't visit the Add methods
                         // But we should check conversion to the iteration type
@@ -3837,6 +3842,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             elementConversionCompletions.Add(completion);
                             RemovePlaceholderReplacement(elementPlaceholder);
                         }
+                        break;
+                    case BoundKeyValuePairElement keyValuePair:
+                        VisitRvalue(keyValuePair.Key);
+                        VisitRvalue(keyValuePair.Value);
+                        // https://github.com/dotnet/roslyn/issues/77875: Check nullability from conversions of key and value.
+                        break;
+                    case BoundKeyValuePairExpressionElement keyValuePairExpressionElement:
+                        VisitRvalue(keyValuePairExpressionElement.Expression);
+                        // https://github.com/dotnet/roslyn/issues/77875: Check nullability from conversions of key and value.
                         break;
                     default:
                         var elementExpr = (BoundExpression)element;
@@ -3910,7 +3924,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (collectionKind is CollectionExpressionTypeKind.CollectionBuilder)
                 {
-                    var createMethod = node.CollectionBuilderMethod;
+                    var createMethod = Binder.GetCollectionBuilderMethod(node);
                     if (createMethod is not null)
                     {
                         var annotations = createMethod.GetFlowAnalysisAnnotations();
@@ -3926,12 +3940,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var collectionKind = ConversionsBase.GetCollectionExpressionTypeKind(this.compilation, collectionType, out var targetElementType);
                 if (collectionKind is CollectionExpressionTypeKind.CollectionBuilder)
                 {
-                    var createMethod = node.CollectionBuilderMethod;
-                    if (createMethod is not null)
-                    {
-                        var foundIterationType = _binder.TryGetCollectionIterationType((ExpressionSyntax)node.Syntax, collectionType, out targetElementType);
-                        Debug.Assert(foundIterationType);
-                    }
+                    _binder.TryGetCollectionIterationType((ExpressionSyntax)node.Syntax, collectionType, out targetElementType);
                 }
 
                 return (collectionKind, targetElementType);

@@ -6,6 +6,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -14,7 +15,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSetSources;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class NamedParameterCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class NamedParameterCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType()
         => typeof(NamedParameterCompletionProvider);
@@ -524,5 +525,161 @@ public class NamedParameterCompletionProviderTests : AbstractCSharpCompletionPro
             }
             """;
         await VerifyProviderCommitAsync(markup, "args:", expected, ':');
+    }
+
+    [Theory]
+    [InlineData("IList<int>")]
+    [InlineData("ICollection<int>")]
+    public async Task TestMutableInterfaces(string type)
+    {
+        var markup = $$"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersionExtensions.CSharpNext}}">
+                    <Document><![CDATA[
+            using System.Collections.Generic;
+
+            class C
+            {
+                void Goo()
+                {
+                    {{type}} list = [with($$)];
+                }
+            }]]></Document>
+                </Project>
+            </Workspace>
+            """;
+
+        await VerifyItemExistsAsync(markup, "capacity", displayTextSuffix: ":");
+    }
+
+    [Theory]
+    [InlineData("IReadOnlyList<int>")]
+    [InlineData("IReadOnlyCollection<int>")]
+    [InlineData("IEnumerable<int>")]
+    [InlineData("IEnumerable")]
+    public async Task TestReadOnlyInterfaces(string type)
+    {
+        var markup = $$"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersionExtensions.CSharpNext}}">
+                    <Document><![CDATA[
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void Goo()
+                {
+                    {{type}} list = [with($$)];
+                }
+            }]]></Document>
+                </Project>
+            </Workspace>
+            """;
+
+        await VerifyItemIsAbsentAsync(markup, "capacity", displayTextSuffix: ":");
+    }
+
+    [Fact]
+    public async Task TestConstructibleType1()
+    {
+        var markup = $$"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersionExtensions.CSharpNext}}">
+                    <Document><![CDATA[
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void Goo()
+                {
+                    HashSet<int> set = [with($$)];
+                }
+            }]]></Document>
+                </Project>
+            </Workspace>
+            """;
+
+        await VerifyItemExistsAsync(markup, "comparer", displayTextSuffix: ":");
+        await VerifyItemExistsAsync(markup, "collection", displayTextSuffix: ":");
+    }
+
+    [Fact]
+    public async Task TestConstructibleType2()
+    {
+        var markup = $$"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersionExtensions.CSharpNext}}">
+                    <Document><![CDATA[
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void Goo()
+                {
+                    HashSet<int> set = [with(comparer: null, $$)];
+                }
+            }]]></Document>
+                </Project>
+            </Workspace>
+            """;
+
+        await VerifyItemIsAbsentAsync(markup, "comparer", displayTextSuffix: ":");
+        await VerifyItemExistsAsync(markup, "collection", displayTextSuffix: ":");
+    }
+
+    [Fact]
+    public async Task TestBuilder1()
+    {
+        var markup = $$"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersionExtensions.CSharpNext}}">
+                    <Document><![CDATA[
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            namespace System
+            {
+                public readonly ref struct ReadOnlySpan<T> { }
+            }
+
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface)]
+                internal sealed class CollectionBuilderAttribute : Attribute
+                {
+                    public CollectionBuilderAttribute(Type builderType, string methodName) { }
+                }
+            }
+
+            [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+            class MyCollection<T> : IEnumerable<T>
+            {
+                public IEnumerator<T> GetEnumerator() => new System.NotImplementedException();
+                IEnumerator IEnumerable.GetEnumerator() => new System.NotImplementedException();
+            }
+
+            static class MyCollectionBuilder
+            {
+                public static MyCollection<T> Create<T>(ReadOnlySpan<T> values, int capacity, int extra) => new System.NotImplementedException();
+                public static MyCollection<T> Create<T>(string capacity, string extra, ReadOnlySpan<T> values) => new System.NotImplementedException();
+            }
+
+            class C
+            {
+                public void Test()
+                {
+                    MyCollection<int> z = [with($$)];
+                }
+            }]]></Document>
+                </Project>
+            </Workspace>
+            """;
+        await VerifyItemExistsAsync(markup, "capacity", displayTextSuffix: ":");
+        await VerifyItemExistsAsync(markup, "extra", displayTextSuffix: ":");
     }
 }

@@ -12862,14 +12862,44 @@ done:
 
         private bool IsPossibleCollectionElement()
         {
-            return this.IsPossibleExpression();
+            // Note: this handles spread elements as well (`.. expr`) as `..` is the start of a range-expression, which
+            // IsPossibleExpression detects.
+            if (this.IsPossibleExpression())
+                return true;
+
+            // Checking for ':' is for error recovery when someone has a key-value-pair-element and is missing the key part.
+            if (this.CurrentToken.Kind == SyntaxKind.ColonToken)
+                return true;
+
+            // Checking for `keyword:` is for error recovery when typing a key-value-pair-element element, but the
+            // partial identifier happens to match a keyword.
+            if (SyntaxFacts.IsReservedKeyword(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.ColonToken)
+                return true;
+
+            return false;
         }
 
         private CollectionElementSyntax ParseCollectionElement()
         {
-            return IsAtDotDotToken()
-                ? _syntaxFactory.SpreadElement(this.EatDotDotToken(), this.ParseExpressionCore())
-                : _syntaxFactory.ExpressionElement(this.ParseExpressionCore());
+            if (this.CurrentToken.ContextualKind == SyntaxKind.WithKeyword &&
+                this.PeekToken(1).Kind == SyntaxKind.OpenParenToken &&
+                IsFeatureEnabled(MessageID.IDS_FeatureCollectionExpressionArguments))
+            {
+                return _syntaxFactory.WithElement(this.EatContextualToken(SyntaxKind.WithKeyword), this.ParseParenthesizedArgumentList());
+            }
+
+            if (this.IsAtDotDotToken())
+                return _syntaxFactory.SpreadElement(this.EatDotDotToken(), this.ParseExpressionCore());
+
+            // Be resilient to `keyword:val` if the user hits that while typing out a full identifier.
+            var expression = !this.IsPossibleExpression() && SyntaxFacts.IsReservedKeyword(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.ColonToken
+                ? _syntaxFactory.IdentifierName(ConvertToIdentifier(this.EatTokenWithPrejudice(SyntaxKind.IdentifierToken)))
+                : this.ParseExpressionCore();
+
+            var colonToken = this.TryEatToken(SyntaxKind.ColonToken);
+            return colonToken != null
+                ? _syntaxFactory.KeyValuePairElement(expression, colonToken, this.ParseExpressionCore())
+                : _syntaxFactory.ExpressionElement(expression);
         }
 
         private bool IsAnonymousType()

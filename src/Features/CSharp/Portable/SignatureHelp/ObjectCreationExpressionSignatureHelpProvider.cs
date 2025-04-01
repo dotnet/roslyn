@@ -34,19 +34,10 @@ internal sealed partial class ObjectCreationExpressionSignatureHelpProvider() : 
         SignatureHelpTriggerReason triggerReason,
         CancellationToken cancellationToken)
     {
-        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        var expression = await CommonSignatureHelpUtilities.TryGetSyntaxAsync<BaseObjectCreationExpressionSyntax>(
+            document, position, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken).ConfigureAwait(false);
 
-        if (!CommonSignatureHelpUtilities.TryGetSyntax(
-                root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out BaseObjectCreationExpressionSyntax? expression))
-        {
-            return null;
-        }
-
-        if (expression.ArgumentList is null)
-            return null;
-
-        return expression;
+        return expression?.ArgumentList is null ? null : expression;
     }
 
     private bool IsTriggerToken(SyntaxToken token)
@@ -98,7 +89,7 @@ internal sealed partial class ObjectCreationExpressionSignatureHelpProvider() : 
         var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
 
         var items = methods.SelectAsArray(c =>
-            ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService));
+            ConvertNormalTypeConstructor(c, objectCreationExpression.SpanStart, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService));
 
         var selectedItem = TryGetSelectedIndex(methods, currentSymbol);
 

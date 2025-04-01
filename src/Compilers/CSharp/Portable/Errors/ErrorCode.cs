@@ -2390,6 +2390,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PPIgnoredNeedsFileBasedProgram = 9298,
         ERR_PPIgnoredFollowsIf = 9299,
 
+        ERR_CollectionExpressionKeyValuePairNotSupported = 9300,
+        ERR_CollectionArgumentsMustBeFirst = 9301,
+        ERR_CollectionArgumentsNotSupportedForType = 9302,
+        ERR_CollectionArgumentsDynamicBinding = 9303,
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  2) Add message to CSharpResources.resx
