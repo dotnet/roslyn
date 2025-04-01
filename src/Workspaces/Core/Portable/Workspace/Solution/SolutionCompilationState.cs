@@ -117,17 +117,17 @@ internal sealed partial class SolutionCompilationState
         SolutionState newSolutionState,
         ImmutableSegmentedDictionary<ProjectId, ICompilationTracker>? projectIdToTrackerMap = null,
         SourceGeneratorExecutionVersionMap? sourceGeneratorExecutionVersionMap = null,
-        Optional<TextDocumentStates<SourceGeneratedDocumentState>> frozenSourceGeneratedDocumentStates = default,
+        TextDocumentStates<SourceGeneratedDocumentState>? frozenSourceGeneratedDocumentStates = null,
         AsyncLazy<SolutionCompilationState>? cachedFrozenSnapshot = null)
     {
         projectIdToTrackerMap ??= _projectIdToTrackerMap;
         sourceGeneratorExecutionVersionMap ??= SourceGeneratorExecutionVersionMap;
-        var newFrozenSourceGeneratedDocumentStates = frozenSourceGeneratedDocumentStates.HasValue ? frozenSourceGeneratedDocumentStates.Value : FrozenSourceGeneratedDocumentStates;
+        frozenSourceGeneratedDocumentStates ??= FrozenSourceGeneratedDocumentStates;
 
         if (newSolutionState == this.SolutionState &&
             projectIdToTrackerMap == _projectIdToTrackerMap &&
             sourceGeneratorExecutionVersionMap == SourceGeneratorExecutionVersionMap &&
-            Equals(newFrozenSourceGeneratedDocumentStates, FrozenSourceGeneratedDocumentStates))
+            frozenSourceGeneratedDocumentStates == FrozenSourceGeneratedDocumentStates)
         {
             return this;
         }
@@ -137,7 +137,7 @@ internal sealed partial class SolutionCompilationState
             PartialSemanticsEnabled,
             projectIdToTrackerMap.Value,
             sourceGeneratorExecutionVersionMap,
-            newFrozenSourceGeneratedDocumentStates,
+            frozenSourceGeneratedDocumentStates,
             cachedFrozenSnapshot);
     }
 
