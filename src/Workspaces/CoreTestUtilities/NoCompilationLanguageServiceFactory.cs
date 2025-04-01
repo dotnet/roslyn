@@ -7,19 +7,18 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.UnitTests
-{
-    [ExportLanguageService(typeof(INoCompilationLanguageService), NoCompilationConstants.LanguageName, ServiceLayer.Test), Shared, PartNotDiscoverable]
-    internal sealed class NoCompilationLanguageService : INoCompilationLanguageService
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public NoCompilationLanguageService()
-        {
-        }
-    }
+namespace Microsoft.CodeAnalysis.UnitTests;
 
-    internal interface INoCompilationLanguageService : ILanguageService
+[ExportLanguageService(typeof(INoCompilationLanguageService), NoCompilationConstants.LanguageName, ServiceLayer.Test), Shared, PartNotDiscoverable]
+internal sealed class NoCompilationLanguageService : INoCompilationLanguageService
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public NoCompilationLanguageService()
     {
     }
+}
+
+internal interface INoCompilationLanguageService : ILanguageService
+{
 }

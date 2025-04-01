@@ -25,7 +25,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.FindSymbols;
 
 [ExportLanguageService(typeof(IDeclaredSymbolInfoFactoryService), LanguageNames.CSharp), Shared]
-internal class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredSymbolInfoFactoryService<
+internal sealed class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredSymbolInfoFactoryService<
     CompilationUnitSyntax,
     UsingDirectiveSyntax,
     BaseNamespaceDeclarationSyntax,

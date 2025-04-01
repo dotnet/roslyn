@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 [MarginContainer(PredefinedMarginNames.LeftSelection)]
 [Order(After = DefaultOrderings.Lowest)]
 [TextViewRole(PredefinedTextViewRoles.Document)]
-internal class InheritanceMarginViewMarginProvider : IWpfTextViewMarginProvider
+internal sealed class InheritanceMarginViewMarginProvider : IWpfTextViewMarginProvider
 {
     private readonly Workspace _workspace;
     private readonly IViewTagAggregatorFactoryService _tagAggregatorFactoryService;

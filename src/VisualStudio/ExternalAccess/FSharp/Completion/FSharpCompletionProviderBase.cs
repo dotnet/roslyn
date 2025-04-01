@@ -6,16 +6,15 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion;
+
+internal abstract class FSharpCompletionProviderBase : CompletionProvider
 {
-    internal abstract class FSharpCompletionProviderBase : CompletionProvider
-    {
-        public sealed override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
-            => ShouldTriggerCompletionImpl(text, caretPosition, trigger);
+    public sealed override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
+        => ShouldTriggerCompletionImpl(text, caretPosition, trigger);
 
-        internal sealed override bool ShouldTriggerCompletion(Host.LanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, OptionSet passthroughOptions)
-            => ShouldTriggerCompletionImpl(text, caretPosition, trigger);
+    internal sealed override bool ShouldTriggerCompletion(Host.LanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, OptionSet passthroughOptions)
+        => ShouldTriggerCompletionImpl(text, caretPosition, trigger);
 
-        protected abstract bool ShouldTriggerCompletionImpl(SourceText text, int caretPosition, CompletionTrigger trigger);
-    }
+    protected abstract bool ShouldTriggerCompletionImpl(SourceText text, int caretPosition, CompletionTrigger trigger);
 }

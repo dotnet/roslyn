@@ -4,18 +4,17 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
+
+/// <summary>
+/// The LSP modifiers from <see cref="Roslyn.LanguageServer.Protocol.SemanticTokenModifiers"/>
+/// Roslyn currently supports. Enum is used to signify the modifier(s) that apply to a given token.
+/// </summary>
+[Flags]
+internal enum TokenModifiers
 {
-    /// <summary>
-    /// The LSP modifiers from <see cref="Roslyn.LanguageServer.Protocol.SemanticTokenModifiers"/>
-    /// Roslyn currently supports. Enum is used to signify the modifier(s) that apply to a given token.
-    /// </summary>
-    [Flags]
-    internal enum TokenModifiers
-    {
-        None = 0,
-        Static = 1,
-        ReassignedVariable = 2,
-        Deprecated = 4,
-    }
+    None = 0,
+    Static = 1,
+    ReassignedVariable = 2,
+    Deprecated = 4,
 }

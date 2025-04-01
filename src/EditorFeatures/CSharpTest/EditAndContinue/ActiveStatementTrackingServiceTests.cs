@@ -18,7 +18,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
 
 [UseExportProvider]
-public class ActiveStatementTrackingServiceTests
+public sealed class ActiveStatementTrackingServiceTests
 {
     [Theory, CombinatorialData]
     public async Task TrackingService_GetLatestSpansAsync(bool scheduleInitialTrackingBeforeOpenDoc)

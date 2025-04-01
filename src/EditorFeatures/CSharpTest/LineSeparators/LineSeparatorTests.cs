@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.LineSeparators;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.LineSeparators)]
-public class LineSeparatorTests
+public sealed class LineSeparatorTests
 {
     [Fact]
     public async Task TestEmptyFile()

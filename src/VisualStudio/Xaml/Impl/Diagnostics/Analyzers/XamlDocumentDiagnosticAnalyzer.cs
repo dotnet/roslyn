@@ -11,37 +11,36 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.VisualStudio.LanguageServices.Xaml;
 
-namespace Microsoft.CodeAnalysis.Xaml.Diagnostics.Analyzers
+namespace Microsoft.CodeAnalysis.Xaml.Diagnostics.Analyzers;
+
+[DiagnosticAnalyzer(StringConstants.XamlLanguageName)]
+internal sealed class XamlDocumentDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
 {
-    [DiagnosticAnalyzer(StringConstants.XamlLanguageName)]
-    internal class XamlDocumentDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        get
         {
-            get
-            {
-                return XamlProjectService.AnalyzerService?.SupportedDiagnostics ?? [];
-            }
+            return XamlProjectService.AnalyzerService?.SupportedDiagnostics ?? [];
+        }
+    }
+
+    public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+    {
+        if (XamlProjectService.AnalyzerService == null)
+        {
+            return [];
         }
 
-        public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
-        {
-            if (XamlProjectService.AnalyzerService == null)
-            {
-                return [];
-            }
+        return await XamlProjectService.AnalyzerService.AnalyzeSyntaxAsync(document, cancellationToken).ConfigureAwait(false);
+    }
 
-            return await XamlProjectService.AnalyzerService.AnalyzeSyntaxAsync(document, cancellationToken).ConfigureAwait(false);
+    public override async Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
+    {
+        if (XamlProjectService.AnalyzerService == null)
+        {
+            return [];
         }
 
-        public override async Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
-        {
-            if (XamlProjectService.AnalyzerService == null)
-            {
-                return [];
-            }
-
-            return await XamlProjectService.AnalyzerService.AnalyzeSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
-        }
+        return await XamlProjectService.AnalyzerService.AnalyzeSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
     }
 }

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation;
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.Formatting)]
 [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-public class SmartTokenFormatterFormatRangeTests
+public sealed class SmartTokenFormatterFormatRangeTests
 {
     [Fact]
     public async Task BeginningOfFile()

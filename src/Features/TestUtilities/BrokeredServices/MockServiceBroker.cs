@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.BrokeredServices.UnitTests;
 
-internal class MockServiceBroker : IServiceBroker
+internal sealed class MockServiceBroker : IServiceBroker
 {
     public Func<Type, object>? CreateService;
 

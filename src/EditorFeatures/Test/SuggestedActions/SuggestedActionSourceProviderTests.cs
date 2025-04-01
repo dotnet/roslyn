@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.SuggestedActions;
 
-public class SuggestedActionSourceProviderTests
+public sealed class SuggestedActionSourceProviderTests
 {
     [Fact]
     public void EnsureAttributesMatchData()

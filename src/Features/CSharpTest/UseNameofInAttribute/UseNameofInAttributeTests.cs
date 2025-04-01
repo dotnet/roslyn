@@ -16,7 +16,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseNameofInAttributeDiagnosticAnalyzer,
     CSharpUseNameofInAttributeCodeFixProvider>;
 
-public class UseNameofInAttributeTests
+public sealed class UseNameofInAttributeTests
 {
     [Fact]
     public async Task TestOnMethod()

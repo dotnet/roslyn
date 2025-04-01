@@ -2,29 +2,28 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Roslyn.LanguageServer.Protocol
+namespace Roslyn.LanguageServer.Protocol;
+
+using System.Text.Json.Serialization;
+
+/// <summary>
+/// Class which represents color information.
+/// <para>
+/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#colorInformation">Language Server Protocol specification</see> for additional information.
+/// </para>
+/// </summary>
+/// <remarks>Since LSP 3.6</remarks>
+internal sealed class ColorInformation
 {
-    using System.Text.Json.Serialization;
+    /// <summary>
+    /// Gets or sets the text range representing the color.
+    /// </summary>
+    [JsonPropertyName("range")]
+    public Range Range { get; set; }
 
     /// <summary>
-    /// Class which represents color information.
-    /// <para>
-    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#colorInformation">Language Server Protocol specification</see> for additional information.
-    /// </para>
+    /// Gets or sets the color.
     /// </summary>
-    /// <remarks>Since LSP 3.6</remarks>
-    internal class ColorInformation
-    {
-        /// <summary>
-        /// Gets or sets the text range representing the color.
-        /// </summary>
-        [JsonPropertyName("range")]
-        public Range Range { get; set; }
-
-        /// <summary>
-        /// Gets or sets the color.
-        /// </summary>
-        [JsonPropertyName("color")]
-        public Color Color { get; set; }
-    }
+    [JsonPropertyName("color")]
+    public Color Color { get; set; }
 }

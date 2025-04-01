@@ -7,28 +7,27 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
+namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer;
+
+internal sealed class XamlRequestExecutionQueue : RequestExecutionQueue<RequestContext>, ILspService
 {
-    internal class XamlRequestExecutionQueue : RequestExecutionQueue<RequestContext>, ILspService
+    private readonly XamlProjectService _projectService;
+
+    public XamlRequestExecutionQueue(
+        XamlProjectService projectService,
+        AbstractLanguageServer<RequestContext> languageServer,
+        ILspLogger logger,
+        AbstractHandlerProvider handlerProvider) : base(languageServer, logger, handlerProvider)
     {
-        private readonly XamlProjectService _projectService;
+        _projectService = projectService;
+    }
 
-        public XamlRequestExecutionQueue(
-            XamlProjectService projectService,
-            AbstractLanguageServer<RequestContext> languageServer,
-            ILspLogger logger,
-            AbstractHandlerProvider handlerProvider) : base(languageServer, logger, handlerProvider)
+    protected internal override void BeforeRequest<TRequest>(TRequest request)
+    {
+        if (request is ITextDocumentParams textDocumentParams &&
+            textDocumentParams.TextDocument is { Uri: { IsAbsoluteUri: true } documentUri })
         {
-            _projectService = projectService;
-        }
-
-        protected internal override void BeforeRequest<TRequest>(TRequest request)
-        {
-            if (request is ITextDocumentParams textDocumentParams &&
-                textDocumentParams.TextDocument is { Uri: { IsAbsoluteUri: true } documentUri })
-            {
-                _projectService.TrackOpenDocument(documentUri.LocalPath);
-            }
+            _projectService.TrackOpenDocument(documentUri.LocalPath);
         }
     }
 }

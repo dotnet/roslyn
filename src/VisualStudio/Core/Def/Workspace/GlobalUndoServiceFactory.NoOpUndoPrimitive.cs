@@ -8,12 +8,12 @@ using Microsoft.VisualStudio.Text.Operations;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 
-internal partial class GlobalUndoServiceFactory
+internal sealed partial class GlobalUndoServiceFactory
 {
     /// <summary>
     /// no op undo primitive
     /// </summary>
-    private class NoOpUndoPrimitive : ITextUndoPrimitive
+    private sealed class NoOpUndoPrimitive : ITextUndoPrimitive
     {
         public ITextUndoTransaction Parent { get; set; }
 
