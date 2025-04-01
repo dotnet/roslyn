@@ -232,7 +232,8 @@ internal static class UseCollectionExpressionHelpers
 
             // It's always safe to convert List<X> to ICollection<X> or IList<X> as the language guarantees that it will
             // continue emitting a List<X> for those target types.
-            var isWellKnownCollectionReadWriteInterface = CollectionExpressionUtilities.IsWellKnownCollectionReadWriteInterface(convertedType);
+            var isWellKnownCollectionReadWriteInterface = CollectionExpressionUtilities.IsWellKnownCollectionReadWriteInterface(
+                compilation, convertedType);
             if (isWellKnownCollectionReadWriteInterface &&
                 Equals(type.OriginalDefinition, compilation.ListOfTType()) &&
                 type.AllInterfaces.Contains(convertedType))
@@ -258,7 +259,8 @@ internal static class UseCollectionExpressionHelpers
             //
             // `IEnumerable<object> obj = Array.Empty<object>();` or
             // `IEnumerable<string> obj = new[] { "" };`
-            if (CollectionExpressionUtilities.IsWellKnownCollectionInterface(convertedType) && type.AllInterfaces.Contains(convertedType))
+            if (CollectionExpressionUtilities.IsWellKnownCollectionInterface(compilation, convertedType) &&
+                type.AllInterfaces.Contains(convertedType))
             {
                 // The observable collections are known to have significantly different behavior than List<T>.  So
                 // disallow converting those types to ensure semantics are preserved.  We do this even though
