@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedString;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
-public class ConvertRegularStringToInterpolatedStringTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class ConvertRegularStringToInterpolatedStringTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new ConvertRegularStringToInterpolatedStringRefactoringProvider();

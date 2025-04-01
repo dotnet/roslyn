@@ -332,8 +332,7 @@ public partial class Project
     /// </summary>
     /// <remarks>
     /// This is only safe to call if you already have seen the SyntaxTree or equivalent that indicates the document state has already been
-    /// generated. This method exists to implement <see cref="Solution.GetDocument(SyntaxTree?)"/> and is best avoided unless you're doing something
-    /// similarly tricky like that.
+    /// generated. This method is best avoided unless you manually ensure you realise the generated document before calling this method.
     /// </remarks>
     internal SourceGeneratedDocument? TryGetSourceGeneratedDocumentForAlreadyGeneratedId(DocumentId documentId)
     {

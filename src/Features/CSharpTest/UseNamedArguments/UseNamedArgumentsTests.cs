@@ -17,7 +17,7 @@ using VerifyCS = CSharpCodeRefactoringVerifier<CSharpUseNamedArgumentsCodeRefact
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
-public class UseNamedArgumentsTests
+public sealed class UseNamedArgumentsTests
 {
     private static Task TestMissingInRegularAndScriptAsync(string code)
     {

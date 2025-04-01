@@ -102,11 +102,6 @@
         <target state="translated">Pominięty</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rule_Set">
-        <source>Rule Set</source>
-        <target state="translated">Zestaw reguł</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Checking_out_0_for_editing">
         <source>Checking out {0} for editing...</source>
         <target state="translated">Trwa wyewidencjonowywanie elementu {0} do edycji...</target>

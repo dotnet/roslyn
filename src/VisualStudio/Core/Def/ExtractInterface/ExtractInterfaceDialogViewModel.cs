@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface;
 
-internal class ExtractInterfaceDialogViewModel : AbstractNotifyPropertyChanged
+internal sealed class ExtractInterfaceDialogViewModel : AbstractNotifyPropertyChanged
 {
     private readonly INotificationService _notificationService;
 

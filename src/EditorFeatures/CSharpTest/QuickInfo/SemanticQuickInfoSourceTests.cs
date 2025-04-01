@@ -10703,6 +10703,23 @@ AnonymousTypes(
     }
 
     [Fact]
+    public async Task NullConditionalAssignment()
+    {
+        await VerifyWithNet8Async("""
+            class C
+            {
+                string s;
+
+                void M(C c)
+                {
+                    c?.$$s = "";
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.field}) string C.s"));
+    }
+
+    [Fact]
     public async Task TestModernExtension1()
     {
         await TestWithOptionsAsync(

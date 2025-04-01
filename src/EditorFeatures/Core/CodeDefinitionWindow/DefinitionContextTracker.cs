@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeDefinitionWindow;
 [Export(typeof(DefinitionContextTracker))]
 [ContentType(ContentTypeNames.RoslynContentType)]
 [TextViewRole(PredefinedTextViewRoles.Interactive)]
-internal class DefinitionContextTracker : ITextViewConnectionListener
+internal sealed class DefinitionContextTracker : ITextViewConnectionListener
 {
     private readonly HashSet<ITextView> _subscribedViews = [];
     private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;

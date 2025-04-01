@@ -11,7 +11,9 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -503,5 +505,40 @@ internal static partial class Extensions
 
             return Checksum.Create(tempChecksumArray);
         }
+    }
+
+    public static IEnumerable<DiagnosticData> ConvertToLocalDiagnostics(IEnumerable<Diagnostic> diagnostics, TextDocument targetTextDocument, TextSpan? span = null)
+    {
+        foreach (var diagnostic in diagnostics)
+        {
+            if (!IsReportedInDocument(diagnostic, targetTextDocument))
+            {
+                continue;
+            }
+
+            if (span.HasValue && !span.Value.IntersectsWith(diagnostic.Location.SourceSpan))
+            {
+                continue;
+            }
+
+            yield return DiagnosticData.Create(diagnostic, targetTextDocument);
+        }
+    }
+
+    public static bool IsReportedInDocument(Diagnostic diagnostic, TextDocument targetTextDocument)
+    {
+        if (diagnostic.Location.SourceTree != null)
+        {
+            return targetTextDocument.Project.GetDocument(diagnostic.Location.SourceTree) == targetTextDocument;
+        }
+        else if (diagnostic.Location.Kind == LocationKind.ExternalFile)
+        {
+            var lineSpan = diagnostic.Location.GetLineSpan();
+
+            var documentIds = targetTextDocument.Project.Solution.GetDocumentIdsWithFilePath(lineSpan.Path);
+            return documentIds.Any(static (id, targetTextDocument) => id == targetTextDocument.Id, targetTextDocument);
+        }
+
+        return false;
     }
 }

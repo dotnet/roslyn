@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.SemanticModelReuse;
 namespace Microsoft.CodeAnalysis.CSharp.SemanticModelReuse;
 
 [ExportLanguageService(typeof(ISemanticModelReuseLanguageService), LanguageNames.CSharp), Shared]
-internal class CSharpSemanticModelReuseLanguageService : AbstractSemanticModelReuseLanguageService<
+internal sealed class CSharpSemanticModelReuseLanguageService : AbstractSemanticModelReuseLanguageService<
     MemberDeclarationSyntax,
     BasePropertyDeclarationSyntax,
     AccessorDeclarationSyntax>

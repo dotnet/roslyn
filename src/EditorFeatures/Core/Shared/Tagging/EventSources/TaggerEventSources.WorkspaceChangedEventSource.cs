@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 
 internal partial class TaggerEventSources
 {
-    private class WorkspaceChangedEventSource : AbstractWorkspaceTrackingTaggerEventSource
+    private sealed class WorkspaceChangedEventSource : AbstractWorkspaceTrackingTaggerEventSource
     {
         private readonly AsyncBatchingWorkQueue _asyncDelay;
 

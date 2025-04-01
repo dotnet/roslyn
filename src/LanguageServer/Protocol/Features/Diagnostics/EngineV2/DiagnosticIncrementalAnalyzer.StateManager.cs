@@ -12,14 +12,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal partial class DiagnosticAnalyzerService
+internal sealed partial class DiagnosticAnalyzerService
 {
-    private partial class DiagnosticIncrementalAnalyzer
+    private sealed partial class DiagnosticIncrementalAnalyzer
     {
         /// <summary>
         /// This is in charge of anything related to <see cref="DiagnosticAnalyzer"/>
         /// </summary>
-        private partial class StateManager(DiagnosticAnalyzerInfoCache analyzerInfoCache)
+        private sealed partial class StateManager(DiagnosticAnalyzerInfoCache analyzerInfoCache)
         {
             private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache = analyzerInfoCache;
 

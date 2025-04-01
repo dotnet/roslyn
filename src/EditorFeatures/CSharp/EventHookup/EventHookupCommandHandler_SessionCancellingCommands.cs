@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup;
 
-internal partial class EventHookupCommandHandler :
+internal sealed partial class EventHookupCommandHandler :
     ICommandHandler<EscapeKeyCommandArgs>
 {
     public string DisplayName => CSharpEditorResources.Generate_Event_Subscription;

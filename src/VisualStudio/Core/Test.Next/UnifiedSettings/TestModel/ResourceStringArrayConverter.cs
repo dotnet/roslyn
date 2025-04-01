@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel;
 
-internal class ResourceStringArrayConverter : JsonConverter<string[]>
+internal sealed class ResourceStringArrayConverter : JsonConverter<string[]>
 {
     public override string[] Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {

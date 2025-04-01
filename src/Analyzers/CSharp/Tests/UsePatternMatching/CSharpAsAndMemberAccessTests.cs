@@ -17,7 +17,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpAsAndMemberAccessCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternMatchingForAsAndMemberAccess)]
-public partial class CSharpAsAndMemberAccessTests
+public sealed partial class CSharpAsAndMemberAccessTests
 {
     [Fact]
     public async Task TestCoreCase()

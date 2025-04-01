@@ -10,18 +10,18 @@ using Xunit;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SignatureHelp
-{
-    public class SignatureHelpTests : AbstractLanguageServerProtocolTests
-    {
-        public SignatureHelpTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
-        {
-        }
+namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SignatureHelp;
 
-        [Theory, CombinatorialData]
-        public async Task TestGetSignatureHelpAsync(bool mutatingLspWorkspace)
-        {
-            var markup =
+public sealed class SignatureHelpTests : AbstractLanguageServerProtocolTests
+{
+    public SignatureHelpTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+    {
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGetSignatureHelpAsync(bool mutatingLspWorkspace)
+    {
+        var markup =
 @"class A
 {
     void M()
@@ -37,22 +37,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SignatureHelp
     }
 
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-            var expected = new LSP.SignatureHelp()
-            {
-                ActiveParameter = 0,
-                ActiveSignature = 0,
-                Signatures = [CreateSignatureInformation("int A.M2(string a)", "M2 is a method.", "a", "")]
-            };
-
-            var results = await RunGetSignatureHelpAsync(testLspServer, testLspServer.GetLocations("caret").Single());
-            AssertJsonEquals(expected, results);
-        }
-
-        [Theory, CombinatorialData]
-        public async Task TestGetNestedSignatureHelpAsync(bool mutatingLspWorkspace)
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        var expected = new LSP.SignatureHelp()
         {
-            var markup =
+            ActiveParameter = 0,
+            ActiveSignature = 0,
+            Signatures = [CreateSignatureInformation("int A.M2(string a)", "M2 is a method.", "a", "")]
+        };
+
+        var results = await RunGetSignatureHelpAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        AssertJsonEquals(expected, results);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGetNestedSignatureHelpAsync(bool mutatingLspWorkspace)
+    {
+        var markup =
 @"class Foo {
   public Foo(int showMe) {}
 
@@ -60,41 +60,40 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SignatureHelp
     Do(new Foo({|caret:|}
   }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-            var expected = new LSP.SignatureHelp()
-            {
-                ActiveParameter = 0,
-                ActiveSignature = 0,
-                Signatures = [CreateSignatureInformation("Foo(int showMe)", "", "showMe", "")]
-            };
-
-            var results = await RunGetSignatureHelpAsync(testLspServer, testLspServer.GetLocations("caret").Single());
-            AssertJsonEquals(expected, results);
-        }
-
-        private static async Task<LSP.SignatureHelp?> RunGetSignatureHelpAsync(TestLspServer testLspServer, LSP.Location caret)
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        var expected = new LSP.SignatureHelp()
         {
-            return await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.SignatureHelp?>(
-                LSP.Methods.TextDocumentSignatureHelpName,
-                CreateTextDocumentPositionParams(caret), CancellationToken.None);
-        }
+            ActiveParameter = 0,
+            ActiveSignature = 0,
+            Signatures = [CreateSignatureInformation("Foo(int showMe)", "", "showMe", "")]
+        };
 
-        private static LSP.SignatureInformation CreateSignatureInformation(string methodLabal, string methodDocumentation, string parameterLabel, string parameterDocumentation)
-            => new LSP.SignatureInformation()
-            {
-                Documentation = CreateMarkupContent(LSP.MarkupKind.PlainText, methodDocumentation),
-                Label = methodLabal,
-                Parameters =
-                [
-                    CreateParameterInformation(parameterLabel, parameterDocumentation)
-                ]
-            };
-
-        private static LSP.ParameterInformation CreateParameterInformation(string parameter, string documentation)
-            => new LSP.ParameterInformation()
-            {
-                Documentation = CreateMarkupContent(LSP.MarkupKind.PlainText, documentation),
-                Label = parameter
-            };
+        var results = await RunGetSignatureHelpAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        AssertJsonEquals(expected, results);
     }
+
+    private static async Task<LSP.SignatureHelp?> RunGetSignatureHelpAsync(TestLspServer testLspServer, LSP.Location caret)
+    {
+        return await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.SignatureHelp?>(
+            LSP.Methods.TextDocumentSignatureHelpName,
+            CreateTextDocumentPositionParams(caret), CancellationToken.None);
+    }
+
+    private static LSP.SignatureInformation CreateSignatureInformation(string methodLabal, string methodDocumentation, string parameterLabel, string parameterDocumentation)
+        => new LSP.SignatureInformation()
+        {
+            Documentation = CreateMarkupContent(LSP.MarkupKind.PlainText, methodDocumentation),
+            Label = methodLabal,
+            Parameters =
+            [
+                CreateParameterInformation(parameterLabel, parameterDocumentation)
+            ]
+        };
+
+    private static LSP.ParameterInformation CreateParameterInformation(string parameter, string documentation)
+        => new LSP.ParameterInformation()
+        {
+            Documentation = CreateMarkupContent(LSP.MarkupKind.PlainText, documentation),
+            Label = parameter
+        };
 }

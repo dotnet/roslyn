@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Serialization;
 
 [ExportLanguageService(typeof(IOptionsSerializationService), LanguageNames.CSharp), Shared]
-internal class CSharpOptionsSerializationService : AbstractOptionsSerializationService
+internal sealed class CSharpOptionsSerializationService : AbstractOptionsSerializationService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

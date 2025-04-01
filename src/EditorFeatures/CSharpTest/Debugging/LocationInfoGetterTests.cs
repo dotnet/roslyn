@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-public class LocationInfoGetterTests
+public sealed class LocationInfoGetterTests
 {
     private static async Task TestAsync(string markup, string expectedName, int expectedLineOffset, CSharpParseOptions parseOptions = null)
     {

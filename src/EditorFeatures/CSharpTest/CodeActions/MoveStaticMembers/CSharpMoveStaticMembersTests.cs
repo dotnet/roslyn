@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveStaticMembers;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-public class CSharpMoveStaticMembersTests
+public sealed class CSharpMoveStaticMembersTests
 {
     private static readonly TestComposition s_testServices = FeaturesTestCompositions.Features.AddParts(typeof(TestMoveStaticMembersService));
 
@@ -3436,7 +3436,7 @@ static int Do[||]Something()
     }
     #endregion
 
-    private class Test : VerifyCS.Test
+    private sealed class Test : VerifyCS.Test
     {
         public Test(
             string destinationType,

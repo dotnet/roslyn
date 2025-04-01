@@ -4,13 +4,12 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
+namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator;
+
+internal static class Utilities
 {
-    internal static class Utilities
+    public static string ToDisplayString(this TimeSpan timeSpan)
     {
-        public static string ToDisplayString(this TimeSpan timeSpan)
-        {
-            return timeSpan.TotalSeconds.ToString("N2") + " seconds";
-        }
+        return timeSpan.TotalSeconds.ToString("N2") + " seconds";
     }
 }

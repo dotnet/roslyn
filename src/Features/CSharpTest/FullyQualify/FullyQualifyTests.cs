@@ -18,7 +18,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-public class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
     public FullyQualifyTests(ITestOutputHelper logger)
       : base(logger)

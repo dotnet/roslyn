@@ -11,7 +11,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking;
 
 [UseExportProvider]
-public class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
+public sealed class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
 {
     protected override TestWorkspace CreateWorkspace(string code, TestComposition composition)
         => TestWorkspace.CreateCSharp(code, composition: composition);

@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting;
 
-public class CSharpNewDocumentFormattingServiceTests : AbstractNewDocumentFormattingServiceTests
+public sealed class CSharpNewDocumentFormattingServiceTests : AbstractNewDocumentFormattingServiceTests
 {
     public static IEnumerable<object[]> EndOfDocumentSequences
     {
