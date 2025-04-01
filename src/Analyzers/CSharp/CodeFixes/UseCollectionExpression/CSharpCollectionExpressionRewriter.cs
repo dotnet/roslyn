@@ -579,21 +579,21 @@ internal static class CSharpCollectionExpressionRewriter
 
         ExpressionSyntax IndentExpression(
             StatementSyntax? parentStatement,
-            ExpressionSyntax node,
+            ExpressionSyntax expression,
             string? preferredIndentation)
         {
             // This must be called from an expression from the original tree.  Not something we're already transforming.
             // Otherwise, we'll have no idea how to apply the preferredIndentation if present.
-            Contract.ThrowIfNull(node.Parent);
+            Contract.ThrowIfNull(expression.Parent);
             if (preferredIndentation is null)
-                return node.WithoutLeadingTrivia();
+                return expression.WithoutLeadingTrivia();
 
-            var startLine = document.Text.Lines.GetLineFromPosition(GetAnchorNode(node).SpanStart);
+            var startLine = document.Text.Lines.GetLineFromPosition(GetAnchorNode(expression).SpanStart);
             var firstTokenOnLineIndentationString = GetIndentationStringForToken(document.Root.FindToken(startLine.Start));
 
-            var expressionFirstToken = node.GetFirstToken();
-            var updatedExpression = node.ReplaceTokens(
-                node.DescendantTokens(),
+            var expressionFirstToken = expression.GetFirstToken();
+            var updatedExpression = expression.ReplaceTokens(
+                expression.DescendantTokens(),
                 (currentToken, _) =>
                 {
                     // Ensure the first token has the indentation we're moving the entire node to
