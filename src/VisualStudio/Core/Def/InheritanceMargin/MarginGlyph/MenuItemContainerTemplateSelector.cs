@@ -4,11 +4,11 @@
 
 using System.Windows;
 using System.Windows.Controls;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph;
 
-internal class MenuItemContainerTemplateSelector : ItemContainerTemplateSelector
+internal sealed class MenuItemContainerTemplateSelector : ItemContainerTemplateSelector
 {
     // By default, ContextMenu would create same MenuItem for each ViewModel from ItemSource,
     // this would override the default behavior, and let contextMenu create different MenuItem

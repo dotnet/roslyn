@@ -7,137 +7,168 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
+
+[Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+public sealed class OperatorKeywordRecommenderTests : KeywordRecommenderTests
 {
-    [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-    public class OperatorKeywordRecommenderTests : KeywordRecommenderTests
+    [Fact]
+    public async Task TestNotAtRoot_Interactive()
     {
-        [Fact]
-        public async Task TestNotAtRoot_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+        await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
-        }
+    }
 
-        [Fact]
-        public async Task TestNotAfterClass_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-                """
-                class C { }
-                $$
-                """);
-        }
+    [Fact]
+    public async Task TestNotAfterClass_Interactive()
+    {
+        await VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            class C { }
+            $$
+            """);
+    }
 
-        [Fact]
-        public async Task TestNotAfterGlobalStatement_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-                """
-                System.Console.WriteLine();
-                $$
-                """);
-        }
+    [Fact]
+    public async Task TestNotAfterGlobalStatement_Interactive()
+    {
+        await VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            System.Console.WriteLine();
+            $$
+            """);
+    }
 
-        [Fact]
-        public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-                """
-                int i = 0;
-                $$
-                """);
-        }
+    [Fact]
+    public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
+    {
+        await VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            int i = 0;
+            $$
+            """);
+    }
 
-        [Fact]
-        public async Task TestNotInUsingAlias()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public async Task TestNotInUsingAlias()
+    {
+        await VerifyAbsenceAsync(
 @"using Goo = $$");
-        }
+    }
 
-        [Fact]
-        public async Task TestNotInGlobalUsingAlias()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public async Task TestNotInGlobalUsingAlias()
+    {
+        await VerifyAbsenceAsync(
 @"global using Goo = $$");
-        }
+    }
 
-        [Fact]
-        public async Task TestNotInEmptyStatement()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public async Task TestNotInEmptyStatement()
+    {
+        await VerifyAbsenceAsync(AddInsideMethod(
 @"$$"));
-        }
+    }
 
-        [Fact]
-        public async Task TestAfterImplicit()
-        {
-            await VerifyKeywordAsync(
-                """
-                class Goo {
-                    public static implicit $$
-                """);
-        }
+    [Fact]
+    public async Task TestAfterImplicit()
+    {
+        await VerifyKeywordAsync(
+            """
+            class Goo {
+                public static implicit $$
+            """);
+    }
 
-        [Fact]
-        public async Task TestAfterExplicit()
-        {
-            await VerifyKeywordAsync(
-                """
-                class Goo {
+    [Fact]
+    public async Task TestAfterExplicit()
+    {
+        await VerifyKeywordAsync(
+            """
+            class Goo {
+                public static explicit $$
+            """);
+    }
+
+    [Fact]
+    public async Task TestNotAfterType()
+    {
+        await VerifyAbsenceAsync(
+            """
+            class Goo {
+                int $$
+            """);
+    }
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542271")]
+    public async Task TestAfterPublicStaticType()
+    {
+        await VerifyAbsenceAsync(
+            """
+            class Goo {
+                public static int $$
+            """);
+    }
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542271")]
+    public async Task TestAfterPublicStaticExternType()
+    {
+        await VerifyAbsenceAsync(
+            """
+            class Goo {
+                public static extern int $$
+            """);
+    }
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542271")]
+    public async Task TestAfterGenericType()
+    {
+        await VerifyAbsenceAsync(
+            """
+            class Goo {
+                public static IList<int> $$
+            """);
+    }
+
+    [Fact]
+    public async Task TestNotInInterface()
+    {
+        await VerifyAbsenceAsync(
+            """
+            interface Goo {
+                public static int $$
+            """);
+    }
+
+    [Fact]
+    public async Task TestWithinExtension1()
+    {
+        await VerifyAbsenceAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
+                    $$
+                }
+            }
+            """, CSharpNextParseOptions);
+    }
+
+    [Fact]
+    public async Task TestWithinExtension2()
+    {
+        await VerifyKeywordAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
                     public static explicit $$
-                """);
-        }
-
-        [Fact]
-        public async Task TestNotAfterType()
-        {
-            await VerifyAbsenceAsync(
-                """
-                class Goo {
-                    int $$
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542271")]
-        public async Task TestAfterPublicStaticType()
-        {
-            await VerifyAbsenceAsync(
-                """
-                class Goo {
-                    public static int $$
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542271")]
-        public async Task TestAfterPublicStaticExternType()
-        {
-            await VerifyAbsenceAsync(
-                """
-                class Goo {
-                    public static extern int $$
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542271")]
-        public async Task TestAfterGenericType()
-        {
-            await VerifyAbsenceAsync(
-                """
-                class Goo {
-                    public static IList<int> $$
-                """);
-        }
-
-        [Fact]
-        public async Task TestNotInInterface()
-        {
-            await VerifyAbsenceAsync(
-                """
-                interface Goo {
-                    public static int $$
-                """);
-        }
+                }
+            }
+            """,
+            CSharpNextParseOptions,
+            CSharpNextScriptParseOptions);
     }
 }

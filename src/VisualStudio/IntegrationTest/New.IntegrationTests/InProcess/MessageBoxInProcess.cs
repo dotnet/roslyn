@@ -8,17 +8,17 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
 using Xunit;
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
 [TestService]
-internal partial class MessageBoxInProcess
+internal sealed partial class MessageBoxInProcess
 {
     private static bool s_initializedMessageBoxService;
 #pragma warning disable IDE0052 // Remove unread private members

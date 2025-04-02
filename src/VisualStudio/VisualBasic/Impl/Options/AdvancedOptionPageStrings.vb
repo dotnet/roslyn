@@ -8,20 +8,14 @@ Imports Microsoft.CodeAnalysis.SolutionCrawler
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Friend Module AdvancedOptionPageStrings
-        Public ReadOnly Property Option_AutomaticInsertionOfInterfaceAndMustOverrideMembers As String
-            Get
-                Return BasicVSResources.Automatic_insertion_of_Interface_and_MustOverride_members
-            End Get
-        End Property
+        Public ReadOnly Property Option_AutomaticInsertionOfInterfaceAndMustOverrideMembers As String =
+            BasicVSResources.Automatic_insertion_of_Interface_and_MustOverride_members
 
         Public ReadOnly Property Option_Analysis As String =
             ServicesVSResources.Analysis
 
         Public ReadOnly Property Option_Run_background_code_analysis_for As String =
             ServicesVSResources.Run_background_code_analysis_for_colon
-
-        Public ReadOnly Property Option_analyze_source_generated_files As String =
-             ServicesVSResources.Analyze_source_generated_files
 
         Public ReadOnly Property Option_Background_Analysis_Scope_None As String =
             WorkspacesResources.None
@@ -73,9 +67,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Compiler_Diagnostics_Scope_Full_Solution_Tag As CompilerDiagnosticsScope =
             CompilerDiagnosticsScope.FullSolution
-
-        Public ReadOnly Property Option_run_code_analysis_in_separate_process As String =
-            ServicesVSResources.Run_code_analysis_in_separate_process_requires_restart
 
         Public ReadOnly Property Option_DisplayLineSeparators As String =
             ServicesVSResources.Show_procedure_line_separators
@@ -346,27 +337,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Go_To_Definition As String =
             ServicesVSResources.Go_To_Definition
 
-        Public ReadOnly Property Option_Rename As String =
-            EditorFeaturesResources.Rename
-
-        Public ReadOnly Property Option_Rename_asynchronously_experimental As String =
-            ServicesVSResources.Rename_asynchronously_experimental
-
-        Public ReadOnly Property Where_should_the_rename_UI_be_shown As String =
-            ServicesVSResources.Where_should_the_rename_UI_be_shown
-
-        Public ReadOnly Property Option_Show_UI_inline As String =
-            ServicesVSResources.Show_UI_inline
-
-        Public ReadOnly Property Option_Show_UI_as_dashboard_in_top_right As String =
-            ServicesVSResources.Show_UI_as_dashboard_in_top_right
-
-        Public ReadOnly Property Document_Outline As String =
-            ServicesVSResources.Document_Outline
-
-        Public ReadOnly Property Option_Enable_document_outline_experimental_requires_restart As String =
-            ServicesVSResources.Enable_document_outline_experimental_requires_restart
-
         Public ReadOnly Property Option_Source_Generators As String =
             ServicesVSResources.Source_Generators
 
@@ -378,8 +348,5 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Balanced_Run_generators_after_saving_or_building As String =
             ServicesVSResources.Balanced_Run_generators_after_saving_or_building
-
-        Public ReadOnly Property Option_Automatically_reload_updated_analyzers_and_generators As String =
-            ServicesVSResources.Automatically_reload_updated_analyzers_and_generators
     End Module
 End Namespace

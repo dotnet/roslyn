@@ -22,7 +22,6 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -31,7 +30,6 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
-using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Editor;
@@ -43,7 +41,6 @@ using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
@@ -98,8 +95,6 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     /// Only safe to use on the UI thread.
     /// </summary>
     private readonly Dictionary<string, UIContext?> _languageToProjectExistsUIContext = [];
-
-    private VirtualMemoryNotificationListener? _memoryListener;
 
     private OpenFileTracker? _openFileTracker;
     internal IFileChangeWatcher FileChangeWatcher { get; }
@@ -198,7 +193,6 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         solutionClosingContext.UIContextChanged += (_, e) => ProjectSystemProjectFactory.SolutionClosing = e.Activated;
 
         var openFileTracker = await OpenFileTracker.CreateAsync(this, ProjectSystemProjectFactory, asyncServiceProvider).ConfigureAwait(true);
-        var memoryListener = await VirtualMemoryNotificationListener.CreateAsync(this, _threadingContext, asyncServiceProvider, _globalOptions, _threadingContext.DisposalToken).ConfigureAwait(true);
 
         // Update our fields first, so any asynchronous work that needs to use these is able to see the service.
         // WARNING: if we do .ConfigureAwait(true) here, it means we're trying to transition to the UI thread while
@@ -206,7 +200,6 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
         {
             _openFileTracker = openFileTracker;
-            _memoryListener = memoryListener;
         }
 
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
@@ -305,7 +298,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         }
         else
         {
-            return _projectCodeModelFactory.Value.GetOrCreateFileCodeModel(documentId.ProjectId, document.FilePath);
+            return _projectCodeModelFactory.Value.GetOrCreateFileCodeModel(documentId.ProjectId, document.FilePath!);
         }
     }
 
@@ -493,7 +486,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
         var originalProject = CurrentSolution.GetRequiredProject(projectId);
         var compilationOptionsService = originalProject.Services.GetRequiredService<ICompilationOptionsChangingService>();
-        var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId), ServiceProvider.GlobalProvider);
+        var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId)!, ServiceProvider.GlobalProvider);
         compilationOptionsService.Apply(originalProject.CompilationOptions!, options, storage);
     }
 
@@ -510,7 +503,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         }
 
         var parseOptionsService = CurrentSolution.GetRequiredProject(projectId).Services.GetRequiredService<IParseOptionsChangingService>();
-        var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId), ServiceProvider.GlobalProvider);
+        var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId)!, ServiceProvider.GlobalProvider);
         parseOptionsService.Apply(options, storage);
     }
 
@@ -931,7 +924,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
             return false;
 
         // All checks pass, so let's treat this special.
-        var dte = _threadingContext.JoinableTaskFactory.Run(() => _asyncServiceProvider.GetServiceAsync<SDTE, EnvDTE.DTE>(_threadingContext.JoinableTaskFactory));
+        var dte = _threadingContext.JoinableTaskFactory.Run(() => _asyncServiceProvider.GetServiceAsync<SDTE, EnvDTE.DTE>(_threadingContext.DisposalToken));
 
         const string SolutionItemsFolderName = "Solution Items";
 

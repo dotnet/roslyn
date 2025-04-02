@@ -19,7 +19,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Options.UnitTests;
 
 [UseExportProvider]
-public class SolutionAnalyzerConfigOptionsUpdaterTests
+public sealed class SolutionAnalyzerConfigOptionsUpdaterTests
 {
     private static TestWorkspace CreateWorkspace()
     {

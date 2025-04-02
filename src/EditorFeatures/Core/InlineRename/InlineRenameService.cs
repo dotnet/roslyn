@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
@@ -192,7 +191,7 @@ internal sealed class InlineRenameService(
     /// </summary>
     internal event EventHandler<ActiveSessionChangedEventArgs>? ActiveSessionChanged;
 
-    internal class ActiveSessionChangedEventArgs(InlineRenameSession previousSession) : EventArgs
+    internal sealed class ActiveSessionChangedEventArgs(InlineRenameSession previousSession) : EventArgs
     {
         public InlineRenameSession PreviousSession { get; } = previousSession;
     }

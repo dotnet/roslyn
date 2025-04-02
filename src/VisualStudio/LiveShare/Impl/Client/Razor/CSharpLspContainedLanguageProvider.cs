@@ -13,41 +13,40 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Razor
+namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Razor;
+
+[Export(typeof(IContainedLanguageProvider))]
+internal sealed class CSharpLspContainedLanguageProvider : IContainedLanguageProvider
 {
-    [Export(typeof(IContainedLanguageProvider))]
-    internal class CSharpLspContainedLanguageProvider : IContainedLanguageProvider
+    private readonly IContentTypeRegistryService _contentTypeRegistry;
+    private readonly SVsServiceProvider _serviceProvider;
+    private readonly CSharpLspRazorProjectFactory _razorProjectFactory;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpLspContainedLanguageProvider(IContentTypeRegistryService contentTypeRegistry,
+        SVsServiceProvider serviceProvider,
+        CSharpLspRazorProjectFactory razorProjectFactory)
     {
-        private readonly IContentTypeRegistryService _contentTypeRegistry;
-        private readonly SVsServiceProvider _serviceProvider;
-        private readonly CSharpLspRazorProjectFactory _razorProjectFactory;
+        _contentTypeRegistry = contentTypeRegistry ?? throw new ArgumentNullException(nameof(contentTypeRegistry));
+        _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+        _razorProjectFactory = razorProjectFactory ?? throw new ArgumentNullException(nameof(razorProjectFactory));
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpLspContainedLanguageProvider(IContentTypeRegistryService contentTypeRegistry,
-            SVsServiceProvider serviceProvider,
-            CSharpLspRazorProjectFactory razorProjectFactory)
-        {
-            _contentTypeRegistry = contentTypeRegistry ?? throw new ArgumentNullException(nameof(contentTypeRegistry));
-            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-            _razorProjectFactory = razorProjectFactory ?? throw new ArgumentNullException(nameof(razorProjectFactory));
-        }
+    public IContentType GetContentType(string filePath)
+        => _contentTypeRegistry.GetContentType(ContentTypeNames.CSharpContentType);
 
-        public IContentType GetContentType(string filePath)
-            => _contentTypeRegistry.GetContentType(ContentTypeNames.CSharpContentType);
+    public IVsContainedLanguage GetLanguage(string filePath, IVsTextBufferCoordinator bufferCoordinator)
+    {
+        var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
+        var projectId = _razorProjectFactory.GetProject(filePath);
 
-        public IVsContainedLanguage GetLanguage(string filePath, IVsTextBufferCoordinator bufferCoordinator)
-        {
-            var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
-            var projectId = _razorProjectFactory.GetProject(filePath);
-
-            return new ContainedLanguage(
-                bufferCoordinator,
-                componentModel,
-                _razorProjectFactory.Workspace,
-                projectId,
-                project: null,
-                Guids.CSharpLanguageServiceId);
-        }
+        return new ContainedLanguage(
+            bufferCoordinator,
+            componentModel,
+            _razorProjectFactory.Workspace,
+            projectId,
+            project: null,
+            Guids.CSharpLanguageServiceId);
     }
 }

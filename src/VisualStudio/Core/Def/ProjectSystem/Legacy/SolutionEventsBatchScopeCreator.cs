@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -170,7 +169,7 @@ internal sealed class SolutionEventsBatchScopeCreator(IThreadingContext threadin
         _runningDocumentTableEventsCookie = null;
     }
 
-    private class SolutionEventsEventSink : IVsSolutionEvents, IVsSolutionLoadEvents
+    private sealed class SolutionEventsEventSink : IVsSolutionEvents, IVsSolutionLoadEvents
     {
         private readonly SolutionEventsBatchScopeCreator _scopeCreator;
 
@@ -248,7 +247,7 @@ internal sealed class SolutionEventsBatchScopeCreator(IThreadingContext threadin
         #endregion
     }
 
-    private class RunningDocumentTableEventSink : IVsRunningDocTableEvents
+    private sealed class RunningDocumentTableEventSink : IVsRunningDocTableEvents
     {
         private readonly SolutionEventsBatchScopeCreator _scopeCreator;
         private readonly IVsRunningDocumentTable4 _runningDocumentTable;

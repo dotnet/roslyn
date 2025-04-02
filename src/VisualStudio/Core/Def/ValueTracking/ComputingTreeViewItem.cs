@@ -4,7 +4,7 @@
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking;
 
-internal class ComputingTreeViewItem : TreeViewItemBase
+internal sealed class ComputingTreeViewItem : TreeViewItemBase
 {
     public string Text => ServicesVSResources.Calculating;
 

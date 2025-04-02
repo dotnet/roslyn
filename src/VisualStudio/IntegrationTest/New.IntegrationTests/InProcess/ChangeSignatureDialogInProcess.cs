@@ -8,18 +8,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls.Primitives;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using WindowsInput.Native;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
 [TestService]
-internal partial class ChangeSignatureDialogInProcess
+internal sealed partial class ChangeSignatureDialogInProcess
 {
     private async Task<ChangeSignatureDialog?> TryGetDialogAsync(CancellationToken cancellationToken)
     {

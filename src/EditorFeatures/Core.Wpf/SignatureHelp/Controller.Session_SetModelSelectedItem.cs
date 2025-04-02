@@ -6,37 +6,34 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
-using Microsoft.VisualStudio.Threading;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp;
+
+internal sealed partial class Controller
 {
-    internal partial class Controller
+    internal sealed partial class Session
     {
-        internal partial class Session
+        private void SetModelExplicitlySelectedItem(Func<Model, SignatureHelpItem> selector)
         {
-            private void SetModelExplicitlySelectedItem(Func<Model, SignatureHelpItem> selector)
-            {
-                this.Computation.ThreadingContext.ThrowIfNotOnUIThread();
+            this.Computation.ThreadingContext.ThrowIfNotOnUIThread();
 
-                Computation.ChainTaskAndNotifyControllerWhenFinished(
-                    (model, cancellationToken) => Task.FromResult(SetModelExplicitlySelectedItemInBackground(model, selector)),
-                    updateController: false);
-            }
+            Computation.ChainTaskAndNotifyControllerWhenFinished(
+                (model, cancellationToken) => Task.FromResult(SetModelExplicitlySelectedItemInBackground(model, selector)),
+                updateController: false);
+        }
 
-            private Model? SetModelExplicitlySelectedItemInBackground(
-                Model? model,
-                Func<Model, SignatureHelpItem> selector)
-            {
-                this.Computation.ThreadingContext.ThrowIfNotOnBackgroundThread();
-                if (model == null)
-                    return null;
+        private Model? SetModelExplicitlySelectedItemInBackground(
+            Model? model,
+            Func<Model, SignatureHelpItem> selector)
+        {
+            this.Computation.ThreadingContext.ThrowIfNotOnBackgroundThread();
+            if (model == null)
+                return null;
 
-                var selectedItem = selector(model);
-                Contract.ThrowIfFalse(model.Items.Contains(selectedItem));
+            var selectedItem = selector(model);
+            Contract.ThrowIfFalse(model.Items.Contains(selectedItem));
 
-                return model.WithSelectedItem(selectedItem, userSelected: true);
-            }
+            return model.WithSelectedItem(selectedItem, userSelected: true);
         }
     }
 }

@@ -2,13 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.SignatureHelp;
-using Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -16,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp;
 
 [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-public class TupleConstructionSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
+public sealed class TupleConstructionSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
 {
     internal override Type GetSignatureHelpProviderType()
         => typeof(TupleConstructionSignatureHelpProvider);
@@ -31,12 +27,7 @@ public class TupleConstructionSignatureHelpProviderTests : AbstractCSharpSignatu
             |]}
             """;
 
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("(int, int)", currentParameterIndex: 0, parameterDocumentation: "")
-        };
-
-        await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        await TestAsync(markup, [new("(int, int)", currentParameterIndex: 0, parameterDocumentation: "")], usePreviousCharAsTrigger: true);
     }
 
     [Fact]
@@ -49,12 +40,7 @@ public class TupleConstructionSignatureHelpProviderTests : AbstractCSharpSignatu
             |]}
             """;
 
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("(string?, string)", currentParameterIndex: 0)
-        };
-
-        await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        await TestAsync(markup, [new("(string?, string)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
     }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/655607")]
@@ -70,12 +56,7 @@ public class TupleConstructionSignatureHelpProviderTests : AbstractCSharpSignatu
             }
             """;
 
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("(object a, object)", currentParameterIndex: 0)
-        };
-
-        await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        await TestAsync(markup, [new("(object a, object)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
     }
 
     [Fact]
@@ -88,12 +69,7 @@ public class TupleConstructionSignatureHelpProviderTests : AbstractCSharpSignatu
             }
             """;
 
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("(int, int)", currentParameterIndex: 0)
-        };
-
-        await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        await TestAsync(markup, [new("(int, int)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
     }
 
     [Fact]
@@ -106,12 +82,7 @@ public class TupleConstructionSignatureHelpProviderTests : AbstractCSharpSignatu
             |]}
             """;
 
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("(int, int)", currentParameterIndex: 1, parameterDocumentation: "")
-        };
-
-        await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        await TestAsync(markup, [new("(int, int)", currentParameterIndex: 1, parameterDocumentation: "")], usePreviousCharAsTrigger: true);
     }
 
     [Fact]
@@ -124,12 +95,7 @@ public class TupleConstructionSignatureHelpProviderTests : AbstractCSharpSignatu
             }
             """;
 
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("(int, int)", currentParameterIndex: 1)
-        };
-
-        await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        await TestAsync(markup, [new("(int, int)", currentParameterIndex: 1)], usePreviousCharAsTrigger: true);
     }
 
     [Fact]
@@ -142,15 +108,11 @@ public class TupleConstructionSignatureHelpProviderTests : AbstractCSharpSignatu
             |]}
             """;
 
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
+        await TestAsync(markup, [
             // currentParameterIndex only considers the position in the argument list 
             // and not names, hence passing 0 even though the controller will highlight
             // "int b" in the actual display
-            new SignatureHelpTestItem("(int a, int b)", currentParameterIndex: 0)
-        };
-
-        await TestAsync(markup, expectedOrderedItems);
+            new("(int a, int b)", currentParameterIndex: 0)]);
     }
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14277")]
@@ -163,12 +125,7 @@ public class TupleConstructionSignatureHelpProviderTests : AbstractCSharpSignatu
             |]}
             """;
 
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("(int b, int c)", currentParameterIndex: 0)
-        };
-
-        await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        await TestAsync(markup, [new("(int b, int c)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
     }
 
     [Fact]
@@ -181,12 +138,7 @@ public class TupleConstructionSignatureHelpProviderTests : AbstractCSharpSignatu
             |]}
             """;
 
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("(int, object)", currentParameterIndex: 1)
-        };
-
-        await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        await TestAsync(markup, [new("(int, object)", currentParameterIndex: 1)], usePreviousCharAsTrigger: true);
     }
 
     [Fact]
@@ -199,12 +151,7 @@ public class TupleConstructionSignatureHelpProviderTests : AbstractCSharpSignatu
             |]}
             """;
 
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("(int, object)", currentParameterIndex: 1)
-        };
-
-        await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        await TestAsync(markup, [new("(int, object)", currentParameterIndex: 1)], usePreviousCharAsTrigger: true);
     }
 
     [Fact]
@@ -217,12 +164,7 @@ public class TupleConstructionSignatureHelpProviderTests : AbstractCSharpSignatu
             |]}
             """;
 
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("(int, object)", currentParameterIndex: 1)
-        };
-
-        await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        await TestAsync(markup, [new("(int, object)", currentParameterIndex: 1)], usePreviousCharAsTrigger: true);
     }
 
     [Fact]
@@ -235,12 +177,7 @@ public class TupleConstructionSignatureHelpProviderTests : AbstractCSharpSignatu
             |]}
             """;
 
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("(object, object)", currentParameterIndex: 0)
-        };
-
-        await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        await TestAsync(markup, [new("(object, object)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
     }
 
     [Fact]
@@ -259,13 +196,9 @@ public class TupleConstructionSignatureHelpProviderTests : AbstractCSharpSignatu
             }
             """;
 
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("(int, int)", currentParameterIndex: 0),
-            new SignatureHelpTestItem("(string, string)", currentParameterIndex: 0)
-        };
-
-        await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        await TestAsync(markup, [
+            new("(int, int)", currentParameterIndex: 0),
+            new("(string, string)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14793")]
@@ -295,7 +228,7 @@ public class TupleConstructionSignatureHelpProviderTests : AbstractCSharpSignatu
                 </Project>
             </Workspace>
             """;
-        var expectedDescription = new SignatureHelpTestItem($"(int, string)", currentParameterIndex: 0);
-        await VerifyItemWithReferenceWorkerAsync(markup, [expectedDescription], false);
+        await VerifyItemWithReferenceWorkerAsync(
+            markup, [new($"(int, string)", currentParameterIndex: 0)], hideAdvancedMembers: false);
     }
 }

@@ -19,7 +19,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-public class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new UseExpressionBodyCodeRefactoringProvider();
@@ -77,235 +77,336 @@ public class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSharpCode
     public async Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody()
     {
         await TestMissingAsync(
-@"class C
-{
-    int Goo
-    {
-        get 
-        {
-            [||]return Bar();
-        }
-    }
-}", parameters: new TestParameters(options: UseExpressionBodyForAccessors_ExpressionBodyForProperties));
+            """
+            class C
+            {
+                int Goo
+                {
+                    get 
+                    {
+                        [||]return Bar();
+                    }
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBodyForAccessors_ExpressionBodyForProperties));
     }
 
     [Fact]
     public async Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
     {
         await TestInRegularAndScript1Async(
-@"class C
-{
-    int Goo
-    {
-        get 
-        {
-            [||]return Bar();
-        }
-    }
-}",
-@"class C
-{
-    int Goo => Bar();
-}", parameters: new TestParameters(options: UseExpressionBodyForAccessors_ExpressionBodyForProperties_DisabledDiagnostic));
+            """
+            class C
+            {
+                int Goo
+                {
+                    get 
+                    {
+                        [||]return Bar();
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                int Goo => Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBodyForAccessors_ExpressionBodyForProperties_DisabledDiagnostic));
     }
 
     [Fact]
     public async Task TestUpdateAccessorIfAccessWantsBlockAndPropertyWantsExpression()
     {
         await TestInRegularAndScript1Async(
-@"class C
-{
-    int Goo
-    {
-        get 
-        {
-            [||]return Bar();
-        }
-    }
-}",
-@"class C
-{
-    int Goo
-    {
-        get => Bar();
-    }
-}", parameters: new TestParameters(options: UseBlockBodyForAccessors_ExpressionBodyForProperties));
+            """
+            class C
+            {
+                int Goo
+                {
+                    get 
+                    {
+                        [||]return Bar();
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                int Goo
+                {
+                    get => Bar();
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBodyForAccessors_ExpressionBodyForProperties));
     }
 
     [Fact]
     public async Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
     {
         await TestInRegularAndScript1Async(
-@"class C
-{
-    int Goo
-    {
-        get
-        {
-            [||]return Bar();
-        }
-    }
-}",
-@"class C
-{
-    int Goo => Bar();
-}", parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties));
+            """
+            class C
+            {
+                int Goo
+                {
+                    get
+                    {
+                        [||]return Bar();
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                int Goo => Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties));
     }
 
     [Fact]
     public async Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody2()
     {
         await TestInRegularAndScript1Async(
-@"class C
-{
-    int Goo
-    {
-        get
-        {
-            [||]return Bar();
-        }
-    }
-}",
-@"class C
-{
-    int Goo => Bar();
-}", parameters: new TestParameters(options: UseBlockBodyForAccessors_BlockBodyForProperties));
+            """
+            class C
+            {
+                int Goo
+                {
+                    get
+                    {
+                        [||]return Bar();
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                int Goo => Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBodyForAccessors_BlockBodyForProperties));
     }
 
     [Fact]
     public async Task TestNotOfferedInLambda()
     {
         await TestMissingAsync(
-@"class C
-{
-    Action Goo
-    {
-        get 
-        {
-            return () => { [||] };
-        }
-    }
-}", parameters: new TestParameters(options: UseBlockBodyForAccessors_BlockBodyForProperties));
+            """
+            class C
+            {
+                Action Goo
+                {
+                    get 
+                    {
+                        return () => { [||] };
+                    }
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBodyForAccessors_BlockBodyForProperties));
     }
 
     [Fact]
     public async Task TestNotOfferedIfUserPrefersBlockBodiesAndInExpressionBody()
     {
         await TestMissingAsync(
-@"class C
-{
-    int Goo => [||]Bar();
-}", parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties));
+            """
+            class C
+            {
+                int Goo => [||]Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties));
     }
 
     [Fact]
     public async Task TestNotOfferedIfUserPrefersBlockBodiesAndInExpressionBody2()
     {
         await TestMissingAsync(
-@"class C
-{
-    int Goo => [||]Bar();
-}", parameters: new TestParameters(options: UseBlockBodyForAccessors_BlockBodyForProperties));
+            """
+            class C
+            {
+                int Goo => [||]Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBodyForAccessors_BlockBodyForProperties));
     }
 
     [Fact]
     public async Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
     {
         await TestInRegularAndScript1Async(
-@"class C
-{
-    int Goo => [||]Bar();
-}",
-@"class C
-{
-    int Goo
-    {
-        get
-        {
-            return Bar();
-        }
-    }
-}", parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties_DisabledDiagnostic));
+            """
+            class C
+            {
+                int Goo => [||]Bar();
+            }
+            """,
+            """
+            class C
+            {
+                int Goo
+                {
+                    get
+                    {
+                        return Bar();
+                    }
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties_DisabledDiagnostic));
     }
 
     [Fact]
     public async Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody2()
     {
         await TestInRegularAndScript1Async(
-@"class C
-{
-    int Goo => [||]Bar();
-}",
-@"class C
-{
-    int Goo
-    {
-        get
-        {
-            return Bar();
-        }
-    }
-}", parameters: new TestParameters(options: UseBlockBodyForAccessors_BlockBodyForProperties_DisabledDiagnostic));
+            """
+            class C
+            {
+                int Goo => [||]Bar();
+            }
+            """,
+            """
+            class C
+            {
+                int Goo
+                {
+                    get
+                    {
+                        return Bar();
+                    }
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBodyForAccessors_BlockBodyForProperties_DisabledDiagnostic));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20363")]
     public async Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
     {
         await TestInRegularAndScript1Async(
-@"class C
-{
-    int Goo => [||]Bar();
-}",
-@"class C
-{
-    int Goo
-    {
-        get
-        {
-            return Bar();
-        }
-    }
-}", parameters: new TestParameters(options: UseExpressionBodyForAccessors_ExpressionBodyForProperties));
+            """
+            class C
+            {
+                int Goo => [||]Bar();
+            }
+            """,
+            """
+            class C
+            {
+                int Goo
+                {
+                    get
+                    {
+                        return Bar();
+                    }
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBodyForAccessors_ExpressionBodyForProperties));
     }
 
     [Fact]
     public async Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody2()
     {
         await TestInRegularAndScript1Async(
-@"class C
-{
-    int Goo => [||]Bar();
-}",
-@"class C
-{
-    int Goo
-    {
-        get
-        {
-            return Bar();
-        }
-    }
-}", parameters: new TestParameters(options: UseBlockBodyForAccessors_ExpressionBodyForProperties));
+            """
+            class C
+            {
+                int Goo => [||]Bar();
+            }
+            """,
+            """
+            class C
+            {
+                int Goo
+                {
+                    get
+                    {
+                        return Bar();
+                    }
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBodyForAccessors_ExpressionBodyForProperties));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20360")]
     public async Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody_CSharp6()
     {
         await TestAsync(
-@"class C
-{
-    int Goo => [||]Bar();
-}",
-@"class C
-{
-    int Goo
-    {
-        get
-        {
-            return Bar();
-        }
+            """
+            class C
+            {
+                int Goo => [||]Bar();
+            }
+            """,
+            """
+            class C
+            {
+                int Goo
+                {
+                    get
+                    {
+                        return Bar();
+                    }
+                }
+            }
+            """,
+            parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6),
+            options: UseExpressionBodyForAccessors_ExpressionBodyForProperties);
     }
-}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6),
-options: UseExpressionBodyForAccessors_ExpressionBodyForProperties);
+
+    [Fact]
+    public async Task TestOfferedWithSelectionInsideBlockBody()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                int Goo
+                {
+                    get
+                    {
+                        [|return Bar()|];
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                int Goo => Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties));
+    }
+
+    [Fact]
+    public async Task TestNotOfferedWithSelectionOutsideBlockBody()
+    {
+        await TestMissingAsync(
+            """
+            class C
+            {
+                int Goo
+                {
+                    get
+                    {
+                        [|return Bar();
+                    }
+                }
+            }|]
+            """,
+            parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties));
     }
 }

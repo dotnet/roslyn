@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.GraphModel;
 using Roslyn.Utilities;
 
@@ -18,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
 
 using Workspace = Microsoft.CodeAnalysis.Workspace;
 
-internal class GraphQueryManager
+internal sealed class GraphQueryManager
 {
     private readonly Workspace _workspace;
 

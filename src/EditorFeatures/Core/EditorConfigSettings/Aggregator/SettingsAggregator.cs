@@ -11,11 +11,12 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
 
-internal partial class SettingsAggregator : ISettingsAggregator
+internal sealed partial class SettingsAggregator : ISettingsAggregator
 {
     private readonly Workspace _workspace;
     private readonly ISettingsProviderFactory<AnalyzerSetting> _analyzerProvider;

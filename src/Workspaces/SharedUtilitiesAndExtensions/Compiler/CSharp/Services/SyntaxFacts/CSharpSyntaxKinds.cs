@@ -70,6 +70,7 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int FalseKeyword => (int)SyntaxKind.FalseKeyword;
     public int IfKeyword => (int)SyntaxKind.IfKeyword;
     public int NewKeyword => (int)SyntaxKind.NewKeyword;
+    public int PartialKeyword => (int)SyntaxKind.PartialKeyword;
     public int TrueKeyword => (int)SyntaxKind.TrueKeyword;
     public int UsingKeyword => (int)SyntaxKind.UsingKeyword;
 

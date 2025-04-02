@@ -10588,5 +10588,126 @@ class C(string p)
                 //         [A(p)] void F() { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(13, 21));
         }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76528")]
+        [InlineData("")]
+        [InlineData("static ")]
+        public void Repro76528(string modifiers)
+        {
+            var source = $$"""
+                #nullable enable
+
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                public class C
+                {
+                    public static string? _field;
+
+                    public Action Prop1 { get; } = () =>
+                    {
+                        init();
+                        Console.WriteLine(_field.Length);
+
+                        [MemberNotNull(nameof(_field))]
+                        {{modifiers}}void init() => _field ??= "";
+                    };
+                }
+                """;
+            var comp = CreateCompilation([source, MemberNotNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76528")]
+        [InlineData("")]
+        [InlineData("static ")]
+        public void Repro76528_FieldInitializer(string modifiers)
+        {
+            var source = $$"""
+                #nullable enable
+
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                public class C
+                {
+                    public static string? _field;
+
+                    public Action _field2 = () =>
+                    {
+                        init();
+                        Console.WriteLine(_field.Length);
+
+                        [MemberNotNull(nameof(_field))]
+                        {{modifiers}}void init() => _field ??= "";
+                    };
+                }
+                """;
+            var comp = CreateCompilation([source, MemberNotNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76528")]
+        [InlineData("")]
+        [InlineData("static ")]
+        public void Repro76528_StaticLambda(string modifiers)
+        {
+            var source = $$"""
+                #nullable enable
+
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                public class C
+                {
+                    public static string? _field;
+
+                    public Action Prop1 { get; } = static () =>
+                    {
+                        init();
+                        Console.WriteLine(_field.Length);
+
+                        [MemberNotNull(nameof(_field))]
+                        {{modifiers}}void init() => _field ??= "";
+                    };
+                }
+                """;
+            var comp = CreateCompilation([source, MemberNotNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76528")]
+        [CombinatorialData]
+        public void Repro76528_FieldInitializer_PrimaryConstructor(bool isStatic)
+        {
+            var source = $$"""
+                #nullable enable
+
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                public class C(string p)
+                {
+                    public static string? _field;
+
+                    public Action _field2 = () =>
+                    {
+                        init();
+                        Console.WriteLine(_field.Length);
+
+                        [MemberNotNull(nameof(_field))]
+                        {{(isStatic ? "static " : "")}}void init() => _field ??= p;
+                    };
+
+                    string M() => p;
+                }
+                """;
+            var comp = CreateCompilation([source, MemberNotNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics(isStatic ? [
+                // (16,42): error CS8421: A static local function cannot contain a reference to 'p'.
+                //         static void init() => _field ??= p;
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "p").WithArguments("p").WithLocation(16, 42)
+                ] : []);
+        }
     }
 }

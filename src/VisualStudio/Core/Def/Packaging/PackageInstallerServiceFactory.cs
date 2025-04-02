@@ -26,6 +26,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolSearch;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
@@ -51,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging;
 /// the data so it can be read from the background.
 /// </summary>
 [ExportWorkspaceService(typeof(IPackageInstallerService)), Shared]
-internal partial class PackageInstallerService : AbstractDelayStartedService, IPackageInstallerService, IVsSearchProviderCallback
+internal sealed partial class PackageInstallerService : AbstractDelayStartedService, IPackageInstallerService, IVsSearchProviderCallback
 {
     // Proper name, should not be localized.
     private const string NugetTitle = "NuGet";
@@ -735,7 +736,7 @@ internal partial class PackageInstallerService : AbstractDelayStartedService, IP
     {
     }
 
-    private class SearchQuery : IVsSearchQuery
+    private sealed class SearchQuery : IVsSearchQuery
     {
         public SearchQuery(string packageName)
             => this.SearchString = packageName;

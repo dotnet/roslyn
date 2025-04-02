@@ -11,11 +11,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 namespace Microsoft.CodeAnalysis.CSharp;
 
 [ExportLanguageService(typeof(IHeaderFactsService), LanguageNames.CSharp), Shared]
-internal class CSharpHeaderFactsServices : CSharpHeaderFacts, IHeaderFactsService
-{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpHeaderFactsServices()
-    {
-    }
-}
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpHeaderFactsServices() : CSharpHeaderFacts, IHeaderFactsService;

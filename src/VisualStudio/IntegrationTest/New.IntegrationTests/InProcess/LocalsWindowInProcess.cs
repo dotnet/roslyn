@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
@@ -15,7 +16,7 @@ using Roslyn.Utilities;
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
 [TestService]
-internal partial class LocalsWindowInProcess
+internal sealed partial class LocalsWindowInProcess
 {
     private async Task<EnvDTE100.Debugger5> GetDebuggerAsync(CancellationToken cancellationToken)
     {

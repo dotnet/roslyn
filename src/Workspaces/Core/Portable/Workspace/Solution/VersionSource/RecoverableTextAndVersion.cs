@@ -58,7 +58,7 @@ internal sealed partial class RecoverableTextAndVersion(ITextAndVersionSource in
 
         if (recoverableText.LoadTextOptions == options && recoverableText.TryGetValue(out var text))
         {
-            value = TextAndVersion.Create(text, recoverableText.Version, recoverableText.LoadDiagnostic);
+            value = TextAndVersion.Create(text, recoverableText.Version, filePath: null, recoverableText.ExceptionMessage);
             return true;
         }
 
@@ -139,7 +139,7 @@ internal sealed partial class RecoverableTextAndVersion(ITextAndVersionSource in
     {
         private readonly ITemporaryStorageServiceInternal _storageService;
         public readonly VersionStamp Version;
-        public readonly Diagnostic? LoadDiagnostic;
+        public readonly string? ExceptionMessage;
         public readonly ITextAndVersionSource? InitialSource;
         public readonly LoadTextOptions LoadTextOptions;
 
@@ -151,7 +151,7 @@ internal sealed partial class RecoverableTextAndVersion(ITextAndVersionSource in
             _storageService = services.GetRequiredService<ITemporaryStorageServiceInternal>();
 
             Version = textAndVersion.Version;
-            LoadDiagnostic = textAndVersion.LoadDiagnostic;
+            ExceptionMessage = textAndVersion.ExceptionMessage;
             LoadTextOptions = options;
 
             if (source.CanReloadText)
@@ -164,7 +164,7 @@ internal sealed partial class RecoverableTextAndVersion(ITextAndVersionSource in
         }
 
         public TextAndVersion ToTextAndVersion(SourceText text)
-            => TextAndVersion.Create(text, Version, LoadDiagnostic);
+            => TextAndVersion.Create(text, Version, filePath: null, ExceptionMessage);
 
         public ITemporaryStorageTextHandle? StorageHandle => _storageHandle;
 

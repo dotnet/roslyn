@@ -7,14 +7,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Miscellaneous;
 
-public class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServerProtocolTests
+public sealed class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServerProtocolTests
 {
     public LspMiscellaneousFilesWorkspaceTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
@@ -286,6 +285,7 @@ public class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServerProtoco
         Assert.Equal(LanguageNames.CSharp, miscDoc.Project.Language);
 
         // Verify GTD request succeeded.
+        AssertEx.NotNull(result);
         Assert.Equal(0, result.Single().Range.Start.Line);
         Assert.Equal(6, result.Single().Range.Start.Character);
         Assert.Equal(0, result.Single().Range.End.Line);

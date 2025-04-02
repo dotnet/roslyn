@@ -5,12 +5,11 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwitch;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-public partial class PopulateSwitchExpressionTests
+public sealed partial class PopulateSwitchExpressionTests
 {
     [Fact]
     public async Task TestFixAllInDocument()

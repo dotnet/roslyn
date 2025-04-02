@@ -31,7 +31,7 @@ using DebuggerContracts = Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue;
 
 [UseExportProvider]
-public class EditAndContinueLanguageServiceTests : EditAndContinueWorkspaceTestBase
+public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspaceTestBase
 {
     private static string Inspect(DiagnosticData d)
         => $"{d.Severity} {d.Id}:" +
@@ -73,7 +73,7 @@ public class EditAndContinueLanguageServiceTests : EditAndContinueWorkspaceTestB
         return workspace;
     }
 
-    private class TestSourceTextContainer : SourceTextContainer
+    private sealed class TestSourceTextContainer : SourceTextContainer
     {
         public SourceText Text { get; set; }
 

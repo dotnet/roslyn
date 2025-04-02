@@ -17,7 +17,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType()
         => typeof(PartialMethodCompletionProvider);
@@ -417,7 +417,7 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
 
                 partial void goo()
                 {
-                    throw new System.NotImplementedException();$$
+                    [|throw new System.NotImplementedException();|]
                 }
             }
             """;
@@ -444,7 +444,7 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
 
                 public partial void goo()
                 {
-                    throw new System.NotImplementedException();$$
+                    [|throw new System.NotImplementedException();|]
                 }
             }
             """;
@@ -471,7 +471,7 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
 
                 partial void goo(T bar)
                 {
-                    throw new System.NotImplementedException();$$
+                    [|throw new System.NotImplementedException();|]
                 }
             }
             """;
@@ -498,7 +498,7 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
 
                 public partial void goo(T bar)
                 {
-                    throw new System.NotImplementedException();$$
+                    [|throw new System.NotImplementedException();|]
                 }
             }
             """;
@@ -525,7 +525,7 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
 
                 partial void goo()
                 {
-                    throw new System.NotImplementedException();$$
+                    [|throw new System.NotImplementedException();|]
                 }
             }
             """;
@@ -552,7 +552,7 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
 
                 private partial void goo()
                 {
-                    throw new System.NotImplementedException();$$
+                    [|throw new System.NotImplementedException();|]
                 }
             }
             """;
@@ -585,7 +585,7 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
             {
                 partial void goo()
                 {
-                    throw new System.NotImplementedException();$$
+                    [|throw new System.NotImplementedException();|]
                 }
             }
             """;
@@ -618,7 +618,7 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
             {
                 public partial void goo()
                 {
-                    throw new System.NotImplementedException();$$
+                    [|throw new System.NotImplementedException();|]
                 }
             }
             """;
@@ -645,7 +645,7 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
 
                 partial void goo()
                 {
-                    throw new System.NotImplementedException();$$
+                    [|throw new System.NotImplementedException();|]
                 }
             }
             """;
@@ -744,7 +744,7 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
 
                 async partial void Goo()
                 {
-                    throw new NotImplementedException();$$
+                    [|throw new NotImplementedException();|]
                 }
             }
             """;
@@ -775,7 +775,7 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
 
                 public async partial void Goo()
                 {
-                    throw new NotImplementedException();$$
+                    [|throw new NotImplementedException();|]
                 }
             }
             """;
@@ -806,7 +806,7 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
 
                 partial void Goo()
                 {
-                    throw new NotImplementedException();$$
+                    [|throw new NotImplementedException();|]
                 }
             }
             """;
@@ -838,7 +838,7 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
 
                     partial void PMethod(int i)
                     {
-                        throw new System.NotImplementedException();$$
+                        [|throw new System.NotImplementedException();|]
                     }
                 }
             }
@@ -870,7 +870,7 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
 
                     public partial void PMethod(int i)
                     {
-                        throw new System.NotImplementedException();$$
+                        [|throw new System.NotImplementedException();|]
                     }
                 }
             }
@@ -903,7 +903,7 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
             partial class Bar
             {
                 partial void Foo();
-                partial void Foo() => throw new NotImplementedException();$$
+                partial void Foo() => [|throw new NotImplementedException()|];
             }
             """;
 
@@ -936,7 +936,7 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
             partial class Bar
             {
                 public partial void Foo();
-                public partial void Foo() => throw new NotImplementedException();$$
+                public partial void Foo() => [|throw new NotImplementedException()|];
             }
             """
 ;

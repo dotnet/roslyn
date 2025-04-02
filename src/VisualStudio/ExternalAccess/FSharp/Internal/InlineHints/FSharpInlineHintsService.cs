@@ -12,29 +12,28 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.InlineHints
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.InlineHints;
+
+[ExportLanguageService(typeof(IInlineHintsService), LanguageNames.FSharp), Shared]
+internal class FSharpInlineHintsService : IInlineHintsService
 {
-    [ExportLanguageService(typeof(IInlineHintsService), LanguageNames.FSharp), Shared]
-    internal class FSharpInlineHintsService : IInlineHintsService
+    private readonly IFSharpInlineHintsService? _service;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public FSharpInlineHintsService(
+        [Import(AllowDefault = true)] IFSharpInlineHintsService? service)
     {
-        private readonly IFSharpInlineHintsService? _service;
+        _service = service;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FSharpInlineHintsService(
-            [Import(AllowDefault = true)] IFSharpInlineHintsService? service)
-        {
-            _service = service;
-        }
+    public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(
+        Document document, TextSpan textSpan, InlineHintsOptions options, bool displayAllOverride, CancellationToken cancellationToken)
+    {
+        if (_service == null)
+            return [];
 
-        public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(
-            Document document, TextSpan textSpan, InlineHintsOptions options, bool displayAllOverride, CancellationToken cancellationToken)
-        {
-            if (_service == null)
-                return [];
-
-            var hints = await _service.GetInlineHintsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-            return hints.SelectAsArray(h => new InlineHint(h.Span, h.DisplayParts, (d, c) => h.GetDescriptionAsync(d, c)));
-        }
+        var hints = await _service.GetInlineHintsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+        return hints.SelectAsArray(h => new InlineHint(h.Span, h.DisplayParts, (d, c) => h.GetDescriptionAsync(d, c)));
     }
 }

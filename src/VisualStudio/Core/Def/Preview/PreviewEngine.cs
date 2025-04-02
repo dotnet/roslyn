@@ -291,7 +291,7 @@ internal sealed class PreviewEngine : IVsPreviewChangesEngine
         }
     }
 
-    private class NoChange : AbstractChange
+    private sealed class NoChange : AbstractChange
     {
         public NoChange(PreviewEngine engine) : base(engine)
         {

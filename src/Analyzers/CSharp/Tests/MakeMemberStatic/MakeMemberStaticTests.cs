@@ -17,7 +17,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpMakeMemberStaticCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
-public class MakeMemberStaticTests
+public sealed class MakeMemberStaticTests
 {
     [Fact]
     public async Task TestField()

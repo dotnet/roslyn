@@ -57,10 +57,14 @@ try {
 # Rebuilds with other issues
   " --exclude net472\Microsoft.CodeAnalysis.EditorFeatures2.UnitTests.dll" +
   " --exclude net9.0\Microsoft.CodeAnalysis.Collections.Package.dll" +
+  " --exclude netstandard2.0\Microsoft.CodeAnalysis.Contracts.Package.dll" +
+  " --exclude net8.0\Microsoft.CodeAnalysis.Contracts.Package.dll" +
+  " --exclude net9.0\Microsoft.CodeAnalysis.Contracts.Package.dll" +
   " --exclude netcoreapp3.1\Microsoft.CodeAnalysis.Collections.Package.dll" +
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.Collections.Package.dll" +
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.Debugging.Package.dll" +
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.PooledObjects.Package.dll" +
+  " --exclude netstandard2.0\Microsoft.CodeAnalysis.Threading.Package.dll" +
   " --exclude netcoreapp3.1\Microsoft.CodeAnalysis.Workspaces.UnitTests.dll" +
   " --exclude net472\Zip\tools\vsixexpinstaller\System.ValueTuple.dll" +
   " --exclude net472\Zip\tools\vsixexpinstaller\VSIXExpInstaller.exe" +
@@ -69,6 +73,7 @@ try {
   # The assemblies are not marked with ReferenceAssemblyAttribute attribute.
   " --exclude net8.0\GeneratedRefAssemblies\Microsoft.CodeAnalysis.dll" +
   " --exclude net8.0\GeneratedRefAssemblies\Microsoft.CodeAnalysis.CSharp.dll" +
+  " --exclude net8.0\GeneratedRefAssemblies\System.Collections.Immutable.dll" +
 
   " --debugPath `"$ArtifactsDir/BuildValidator`"" +
   " --sourcePath `"$RepoRoot/`"" +

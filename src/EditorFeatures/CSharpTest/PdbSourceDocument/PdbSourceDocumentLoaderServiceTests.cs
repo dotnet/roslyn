@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -17,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument;
 
-public class PdbSourceDocumentLoaderServiceTests : AbstractPdbSourceDocumentTests
+public sealed class PdbSourceDocumentLoaderServiceTests : AbstractPdbSourceDocumentTests
 {
     [Fact]
     public async Task ReturnsSourceFileFromSourceLink()

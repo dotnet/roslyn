@@ -16,7 +16,7 @@ using VerifyCS = CSharpCodeRefactoringVerifier<AddConstructorParametersFromMembe
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
-public class AddConstructorParametersFromMembersTests
+public sealed class AddConstructorParametersFromMembersTests
 {
     private const string FieldNamesCamelCaseWithFieldUnderscorePrefixEditorConfig = """
         [*.cs]

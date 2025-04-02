@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -18,7 +16,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod;
 
@@ -42,24 +39,24 @@ internal abstract class CSharpGenerateParameterizedMemberService<TService> : Abs
         {
             // Defer to the type inferrer to figure out what the return type of this new method
             // should be.
-            var typeInference = Document.Document.GetLanguageService<ITypeInferenceService>();
+            var typeInference = Document.GetRequiredLanguageService<ITypeInferenceService>();
             var inferredType = typeInference.InferType(
                 Document.SemanticModel, _invocationExpression, objectAsDefault: true,
                 name: State.IdentifierToken.ValueText, cancellationToken);
-            return inferredType;
+            return inferredType!;
         }
 
         protected override ImmutableArray<ITypeParameterSymbol> GetCapturedTypeParameters(CancellationToken cancellationToken)
         {
-            var result = new List<ITypeParameterSymbol>();
+            using var _ = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var result);
             var semanticModel = Document.SemanticModel;
             foreach (var argument in _invocationExpression.ArgumentList.Arguments)
             {
                 var type = argument.DetermineParameterType(semanticModel, cancellationToken);
-                type.GetReferencedTypeParameters(result);
+                type.AddReferencedTypeParameters(result);
             }
 
-            return [.. result];
+            return result.ToImmutableAndClear();
         }
 
         protected override ImmutableArray<ITypeParameterSymbol> GenerateTypeParameters(CancellationToken cancellationToken)
@@ -113,7 +110,7 @@ internal abstract class CSharpGenerateParameterizedMemberService<TService> : Abs
             return methodTypeParameter ?? CodeGenerationSymbolFactory.CreateTypeParameterSymbol(NameGenerator.GenerateUniqueName("T", isUnique));
         }
 
-        private ITypeParameterSymbol GetMethodTypeParameter(TypeSyntax type, CancellationToken cancellationToken)
+        private ITypeParameterSymbol? GetMethodTypeParameter(TypeSyntax type, CancellationToken cancellationToken)
         {
             if (type is IdentifierNameSyntax)
             {
@@ -148,7 +145,6 @@ internal abstract class CSharpGenerateParameterizedMemberService<TService> : Abs
 
         protected override ImmutableArray<ITypeSymbol> DetermineTypeArguments(CancellationToken cancellationToken)
         {
-
             if (State.SimpleNameOpt is not GenericNameSyntax genericName)
                 return [];
 
@@ -156,7 +152,7 @@ internal abstract class CSharpGenerateParameterizedMemberService<TService> : Abs
             foreach (var typeArgument in genericName.TypeArgumentList.Arguments)
             {
                 var typeInfo = Document.SemanticModel.GetTypeInfo(typeArgument, cancellationToken);
-                result.Add(typeInfo.Type);
+                result.Add(typeInfo.Type ?? Document.SemanticModel.Compilation.ObjectType);
             }
 
             return result.MoveToImmutable();

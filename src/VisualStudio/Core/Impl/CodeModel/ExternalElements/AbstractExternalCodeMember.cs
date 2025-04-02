@@ -8,59 +8,58 @@ using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.ExternalElements
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.ExternalElements;
+
+public abstract class AbstractExternalCodeMember : AbstractExternalCodeElement
 {
-    public abstract class AbstractExternalCodeMember : AbstractExternalCodeElement
+    internal AbstractExternalCodeMember(CodeModelState state, ProjectId projectId, ISymbol symbol)
+        : base(state, projectId, symbol)
     {
-        internal AbstractExternalCodeMember(CodeModelState state, ProjectId projectId, ISymbol symbol)
-            : base(state, projectId, symbol)
+    }
+
+    protected virtual bool GetCanOverride()
+    {
+        var symbol = LookupSymbol();
+        return symbol.IsVirtual;
+    }
+
+    protected virtual bool GetMustImplement()
+    {
+        var symbol = LookupSymbol();
+        return symbol.IsAbstract;
+    }
+
+    protected virtual EnvDTE.CodeElements GetParameters()
+        => ExternalParameterCollection.Create(this.State, this, this.ProjectId);
+
+    public bool CanOverride
+    {
+        get
         {
+            return GetCanOverride();
         }
 
-        protected virtual bool GetCanOverride()
+        set
         {
-            var symbol = LookupSymbol();
-            return symbol.IsVirtual;
+            throw Exceptions.ThrowEFail();
+        }
+    }
+
+    public bool MustImplement
+    {
+        get
+        {
+            return GetMustImplement();
         }
 
-        protected virtual bool GetMustImplement()
+        set
         {
-            var symbol = LookupSymbol();
-            return symbol.IsAbstract;
+            throw Exceptions.ThrowEFail();
         }
+    }
 
-        protected virtual EnvDTE.CodeElements GetParameters()
-            => ExternalParameterCollection.Create(this.State, this, this.ProjectId);
-
-        public bool CanOverride
-        {
-            get
-            {
-                return GetCanOverride();
-            }
-
-            set
-            {
-                throw Exceptions.ThrowEFail();
-            }
-        }
-
-        public bool MustImplement
-        {
-            get
-            {
-                return GetMustImplement();
-            }
-
-            set
-            {
-                throw Exceptions.ThrowEFail();
-            }
-        }
-
-        public EnvDTE.CodeElements Parameters
-        {
-            get { return GetParameters(); }
-        }
+    public EnvDTE.CodeElements Parameters
+    {
+        get { return GetParameters(); }
     }
 }

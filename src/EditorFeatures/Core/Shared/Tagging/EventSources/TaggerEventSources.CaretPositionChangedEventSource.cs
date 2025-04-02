@@ -4,13 +4,12 @@
 
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 
 internal partial class TaggerEventSources
 {
-    private class CaretPositionChangedEventSource : AbstractTaggerEventSource
+    private sealed class CaretPositionChangedEventSource : AbstractTaggerEventSource
     {
         private readonly ITextView _textView;
 

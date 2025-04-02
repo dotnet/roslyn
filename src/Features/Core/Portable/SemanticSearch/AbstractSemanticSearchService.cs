@@ -12,6 +12,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -26,9 +27,11 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -48,12 +51,17 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
             => IntPtr.Zero;
     }
 
-    private static readonly FindReferencesSearchOptions s_findReferencesSearchOptions = new()
-    {
-        DisplayAllDefinitions = true,
-    };
-
-    private const int StackDisplayDepthLimit = 32;
+    /// <summary>
+    /// Mapping from the parameter type of the <c>Find</c> method to the <see cref="QueryKind"/> value.
+    /// </summary>
+    private static readonly ImmutableDictionary<Type, QueryKind> s_queryKindByParameterType = ImmutableDictionary<Type, QueryKind>.Empty
+        .Add(typeof(Compilation), QueryKind.Compilation)
+        .Add(typeof(INamespaceSymbol), QueryKind.Namespace)
+        .Add(typeof(INamedTypeSymbol), QueryKind.NamedType)
+        .Add(typeof(IMethodSymbol), QueryKind.Method)
+        .Add(typeof(IFieldSymbol), QueryKind.Field)
+        .Add(typeof(IPropertySymbol), QueryKind.Property)
+        .Add(typeof(IEventSymbol), QueryKind.Event);
 
     protected abstract Compilation CreateCompilation(SourceText query, IEnumerable<MetadataReference> references, SolutionServices services, out SyntaxTree queryTree, CancellationToken cancellationToken);
 
@@ -112,13 +120,11 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
                     }
                 }
 
-                await observer.OnCompilationFailureAsync(
-                    emitResult.Diagnostics.SelectAsArray(
+                var errors = emitResult.Diagnostics.SelectAsArray(
                         d => d.Severity == DiagnosticSeverity.Error,
-                        d => new QueryCompilationError(d.Id, d.GetMessage(), (d.Location.SourceTree == queryTree) ? d.Location.SourceSpan : default)),
-                    cancellationToken).ConfigureAwait(false);
+                        d => new QueryCompilationError(d.Id, d.GetMessage(), (d.Location.SourceTree == queryTree) ? d.Location.SourceSpan : default));
 
-                return CreateResult(FeaturesResources.Semantic_search_query_failed_to_compile);
+                return CreateResult(errors, FeaturesResources.Semantic_search_query_failed_to_compile);
             }
 
             peStream.Position = 0;
@@ -134,87 +140,26 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
                 Contract.ThrowIfNull(moduleCancellationTokenField);
                 moduleCancellationTokenField.SetValue(null, cancellationToken);
 
-                if (!TryGetFindMethod(queryAssembly, out var findMethod, out var errorMessage, out var errorMessageArgs))
+                if (!TryGetFindMethod(queryAssembly, out var findMethod, out var queryKind, out var errorMessage, out var errorMessageArgs))
                 {
                     traceSource.TraceInformation($"Semantic search failed: {errorMessage}");
-                    return CreateResult(errorMessage, errorMessageArgs);
+                    return CreateResult(compilationErrors: [], errorMessage, errorMessageArgs);
                 }
 
-                var executionTimeStopWatch = new Stopwatch();
-
-                foreach (var project in solution.Projects)
+                var invocationContext = new QueryExecutionContext(queryText, findMethod, observer, classificationOptions, traceSource);
+                try
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    await invocationContext.InvokeAsync(solution, queryKind, cancellationToken).ConfigureAwait(false);
 
-                    var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    try
+                    if (invocationContext.TerminatedWithException)
                     {
-                        executionTimeStopWatch.Start();
-
-                        try
-                        {
-                            var symbols = (IEnumerable<ISymbol?>?)findMethod.Invoke(null, [compilation]) ?? [];
-
-                            foreach (var symbol in symbols)
-                            {
-                                cancellationToken.ThrowIfCancellationRequested();
-
-                                if (symbol != null)
-                                {
-                                    executionTimeStopWatch.Stop();
-
-                                    try
-                                    {
-                                        var definitionItem = await symbol.ToClassifiedDefinitionItemAsync(
-                                            classificationOptions, solution, s_findReferencesSearchOptions, isPrimary: true, includeHiddenLocations: false, cancellationToken).ConfigureAwait(false);
-
-                                        await observer.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
-                                    }
-                                    catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-                                    {
-                                        // skip symbol
-                                    }
-
-                                    executionTimeStopWatch.Start();
-                                }
-                            }
-                        }
-                        finally
-                        {
-                            executionTimeStopWatch.Stop();
-                            executionTime = executionTimeStopWatch.Elapsed;
-                        }
+                        return CreateResult(compilationErrors: [], FeaturesResources.Semantic_search_query_terminated_with_exception);
                     }
-                    catch (Exception e) when (e is not OperationCanceledException)
-                    {
-                        // exception from user code
-
-                        if (e is TargetInvocationException { InnerException: { } innerException })
-                        {
-                            e = innerException;
-                        }
-
-                        var (projectName, projectFlavor) = project.State.NameAndFlavor;
-                        projectName ??= project.Name;
-                        var projectDisplay = string.IsNullOrEmpty(projectFlavor) ? projectName : $"{projectName} ({projectFlavor})";
-
-                        FormatStackTrace(e, queryAssembly, out var position, out var stackTraceTaggedText);
-                        var span = queryText.Lines.GetTextSpan(new LinePositionSpan(position, position));
-
-                        var exceptionNameTaggedText = GetExceptionTypeTaggedText(e, compilation);
-
-                        await observer.OnUserCodeExceptionAsync(new UserCodeExceptionInfo(projectDisplay, e.Message, exceptionNameTaggedText, stackTraceTaggedText, span), cancellationToken).ConfigureAwait(false);
-
-                        traceSource.TraceInformation($"Semantic query execution failed due to user code exception: {e}");
-                        return CreateResult(FeaturesResources.Semantic_search_query_terminated_with_exception);
-                    }
-
-                    // complete project progress item:
-                    remainingProgressItemCount--;
-                    await observer.ItemsCompletedAsync(1, cancellationToken).ConfigureAwait(false);
+                }
+                finally
+                {
+                    executionTime = new TimeSpan(invocationContext.ExecutionTime);
+                    remainingProgressItemCount -= invocationContext.ProcessedProjectCount;
                 }
             }
             finally
@@ -228,10 +173,10 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
                 }
             }
 
-            return CreateResult(errorMessage: null);
+            return CreateResult(compilationErrors: [], errorMessage: null);
 
-            ExecuteQueryResult CreateResult(string? errorMessage, params string[]? args)
-                => new(errorMessage, args, emitTime, executionTime);
+            ExecuteQueryResult CreateResult(ImmutableArray<QueryCompilationError> compilationErrors, string? errorMessage, params string[]? args)
+                => new(compilationErrors, errorMessage, args, emitTime, executionTime);
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
         {
@@ -239,96 +184,12 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
         }
     }
 
-    private static ImmutableArray<TaggedText> GetExceptionTypeTaggedText(Exception e, Compilation compilation)
-        => e.GetType().FullName is { } exceptionTypeName
-           ? compilation.GetTypeByMetadataName(exceptionTypeName) is { } exceptionTypeSymbol
-                ? exceptionTypeSymbol.ToDisplayParts(SymbolDisplayFormat.MinimallyQualifiedFormat).ToTaggedText()
-                : [new TaggedText(WellKnownTags.Class, exceptionTypeName)]
-           : [new TaggedText(WellKnownTags.Class, nameof(Exception))];
-
-    private static void FormatStackTrace(Exception e, Assembly queryAssembly, out LinePosition position, out ImmutableArray<TaggedText> formattedTrace)
+    private static bool TryGetFindMethod(Assembly queryAssembly, [NotNullWhen(true)] out MethodInfo? method, out QueryKind queryKind, out string? error, out string[]? errorMessageArgs)
     {
-        position = default;
-
-        try
-        {
-            var trace = new StackTrace(e, fNeedFileInfo: true);
-            var frames = trace.GetFrames();
-            var displayFrames = frames;
-            var skippedFrameCount = 0;
-
-            try
-            {
-                var hostAssembly = typeof(AbstractSemanticSearchService).Assembly;
-                var displayFramesEnd = frames.Length;
-                var foundPosition = false;
-                for (var i = 0; i < frames.Length; i++)
-                {
-                    var frame = frames[i];
-
-                    if (frame.GetMethod() is { } method)
-                    {
-                        var frameAssembly = method.DeclaringType?.Assembly;
-                        if (frameAssembly == hostAssembly)
-                        {
-                            displayFramesEnd = i;
-                            break;
-                        }
-
-                        if (!foundPosition &&
-                            frameAssembly == queryAssembly &&
-                            frame.GetFileName() is { } fileName &&
-                            frame.GetFileLineNumber() is > 0 and var line &&
-                            frame.GetFileColumnNumber() is > 0 and var column)
-                        {
-                            position = new LinePosition(line - 1, column - 1);
-                            foundPosition = true;
-                        }
-                    }
-                }
-
-                // display last StackDisplayDepthLimit frames preceding the host frame:
-                skippedFrameCount = Math.Max(0, displayFramesEnd - StackDisplayDepthLimit);
-                displayFrames = frames[skippedFrameCount..displayFramesEnd];
-            }
-            catch
-            {
-                // nop
-            }
-
-            formattedTrace =
-            [
-                new TaggedText(tag: TextTags.Text, (skippedFrameCount > 0 ? "   ..." + Environment.NewLine : "") + GetStackTraceText(displayFrames))
-            ];
-        }
-        catch
-        {
-            formattedTrace = [];
-        }
-    }
-
-    private static string GetStackTraceText(IEnumerable<StackFrame> frames)
-    {
-#if NET8_0_OR_GREATER
-        return new StackTrace(frames).ToString();
-#else
-        var builder = new StringBuilder();
-        foreach (var frame in frames)
-        {
-            builder.Append(new StackTrace(frame).ToString());
-        }
-
-        return builder.ToString();
-#endif
-    }
-
-    private static bool TryGetFindMethod(Assembly queryAssembly, [NotNullWhen(true)] out MethodInfo? method, out string? error, out string[]? errorMessageArgs)
-    {
-        // TODO: Use Compilation APIs to find the method
-
         method = null;
         error = null;
         errorMessageArgs = null;
+        queryKind = default;
 
         Type? program;
         try
@@ -346,45 +207,23 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
         {
             try
             {
-                method = GetFindMethod(program, allowLocalFunction: true, ref error);
+                (method, queryKind) = GetFindMethod(program, ref error);
             }
             catch
             {
             }
-
-            if (method != null)
-            {
-                return true;
-            }
         }
 
-        Type[] types;
-        try
+        if (method != null)
         {
-            types = queryAssembly.GetTypes();
-        }
-        catch (TypeLoadException e)
-        {
-            error = FeaturesResources.Unable_to_load_type_0_1;
-            errorMessageArgs = [e.TypeName, e.Message];
-            method = null;
-            return false;
+            return true;
         }
 
-        foreach (var type in types)
-        {
-            method = GetFindMethod(type, allowLocalFunction: false, ref error);
-            if (method != null)
-            {
-                return true;
-            }
-        }
-
-        error ??= string.Format(FeaturesResources.The_query_does_not_specify_0_method_or_top_level_function, SemanticSearchUtilities.FindMethodName);
+        error ??= string.Format(FeaturesResources.The_query_does_not_specify_0_top_level_function, SemanticSearchUtilities.FindMethodName);
         return false;
     }
 
-    private static MethodInfo? GetFindMethod(Type type, bool allowLocalFunction, ref string? error)
+    private static (MethodInfo? method, QueryKind queryKind) GetFindMethod(Type type, ref string? error)
     {
         try
         {
@@ -392,8 +231,7 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
 
             foreach (var candidate in type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance))
             {
-                if (candidate.Name == SemanticSearchUtilities.FindMethodName ||
-                    allowLocalFunction && candidate.Name.StartsWith($"<{WellKnownMemberNames.TopLevelStatementsEntryPointMethodName}>g__{SemanticSearchUtilities.FindMethodName}|"))
+                if (candidate.Name.StartsWith($"<{WellKnownMemberNames.TopLevelStatementsEntryPointMethodName}>g__{SemanticSearchUtilities.FindMethodName}|"))
                 {
                     candidates.Add(candidate);
                 }
@@ -401,35 +239,45 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
 
             if (candidates is [])
             {
-                error = string.Format(FeaturesResources.The_query_does_not_specify_0_method_or_top_level_function, SemanticSearchUtilities.FindMethodName);
-                return null;
+                error = string.Format(FeaturesResources.The_query_does_not_specify_0_top_level_function, SemanticSearchUtilities.FindMethodName);
+                return default;
             }
 
             candidates.RemoveAll(candidate => candidate.IsGenericMethod || !candidate.IsStatic);
             if (candidates is [])
             {
                 error = string.Format(FeaturesResources.Method_0_must_be_static_and_non_generic, SemanticSearchUtilities.FindMethodName);
-                return null;
+                return default;
             }
 
-            candidates.RemoveAll(candidate => !(
-                typeof(IEnumerable<ISymbol>).IsAssignableFrom(candidate.ReturnType) &&
-                candidate.GetParameters() is [{ ParameterType: var paramType }] &&
-                typeof(Compilation).IsAssignableFrom(paramType)));
-
-            if (candidates is [])
+            if (candidates is not [var method])
             {
-                error = string.Format(FeaturesResources.Method_0_must_have_a_single_parameter_of_type_1_and_return_2, SemanticSearchUtilities.FindMethodName, nameof(Compilation));
-                return null;
+                error = string.Format(FeaturesResources.The_query_specifies_multiple_top_level_functions_1, SemanticSearchUtilities.FindMethodName);
+                return default;
             }
 
-            Debug.Assert(candidates.Count == 1);
-            return candidates[0];
+            if (method.GetParameters() is not [var parameter])
+            {
+                error = string.Format(FeaturesResources.The_query_specifies_multiple_top_level_functions_1, SemanticSearchUtilities.FindMethodName);
+                return default;
+            }
+
+            if (!s_queryKindByParameterType.TryGetValue(parameter.ParameterType, out var entity))
+            {
+                error = string.Format(
+                    FeaturesResources.Type_0_is_not_among_supported_types_1,
+                    SemanticSearchUtilities.FindMethodName,
+                    string.Join(", ", s_queryKindByParameterType.Keys.Select(t => $"'{t.Name}'")));
+
+                return default;
+            }
+
+            return (method, entity);
         }
         catch (Exception e)
         {
             error = e.Message;
-            return null;
+            return default;
         }
     }
 }

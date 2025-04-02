@@ -20,10 +20,10 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeMapping;
 
-public class MapCodeTests : AbstractLanguageServerProtocolTests
+public sealed class MapCodeTests : AbstractLanguageServerProtocolTests
 {
     [ExportLanguageService(typeof(IMapCodeService), language: LanguageNames.CSharp, layer: ServiceLayer.Test), Shared, PartNotDiscoverable]
-    private class TestMapCodeService : IMapCodeService
+    private sealed class TestMapCodeService : IMapCodeService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -112,7 +112,7 @@ public class MapCodeTests : AbstractLanguageServerProtocolTests
         var results = await testLspServer.ExecuteRequestAsync<LSP.VSInternalMapCodeParams, LSP.WorkspaceEdit>(VSInternalMethods.WorkspaceMapCodeName, mapCodeParams, CancellationToken.None);
         AssertEx.NotNull(results);
 
-        TextEdit[] edits;
+        TextEdit[]? edits;
         if (supportDocumentChanges)
         {
             Assert.Null(results.Changes);
@@ -130,6 +130,8 @@ public class MapCodeTests : AbstractLanguageServerProtocolTests
 
             Assert.True(results.Changes!.TryGetValue(ProtocolConversions.GetDocumentFilePathFromUri(documentUri), out edits));
         }
+
+        AssertEx.NotNull(edits);
 
         var documentText = await document.GetTextAsync();
         var actualText = ApplyTextEdits(edits, documentText);

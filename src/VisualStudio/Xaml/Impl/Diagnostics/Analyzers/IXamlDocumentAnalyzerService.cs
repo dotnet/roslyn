@@ -8,14 +8,13 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.Xaml.Diagnostics.Analyzers
+namespace Microsoft.CodeAnalysis.Xaml.Diagnostics.Analyzers;
+
+internal interface IXamlDocumentAnalyzerService
 {
-    internal interface IXamlDocumentAnalyzerService
-    {
-        ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
+    ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
-        Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken);
+    Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken);
 
-        Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken);
-    }
+    Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken);
 }

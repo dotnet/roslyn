@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.OrderModifiers;
 
 namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers;
 
-internal class CSharpOrderModifiersHelper : AbstractOrderModifiersHelpers
+internal sealed class CSharpOrderModifiersHelper : AbstractOrderModifiersHelpers
 {
     public static readonly CSharpOrderModifiersHelper Instance = new();
 

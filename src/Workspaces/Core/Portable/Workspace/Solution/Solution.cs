@@ -1616,7 +1616,8 @@ public partial class Solution
     internal Document WithFrozenSourceGeneratedDocument(
         SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText text)
     {
-        var newCompilationState = CompilationState.WithFrozenSourceGeneratedDocuments([(documentIdentity, generationDateTime, text)]);
+        // SyntaxNode is null here because it will be computed on demand. Other APIs, like Document.WithSyntaxRoot, specify it.
+        var newCompilationState = CompilationState.WithFrozenSourceGeneratedDocuments([(documentIdentity, generationDateTime, text, syntaxNode: null)]);
         var newSolution = WithCompilationState(newCompilationState);
 
         var newDocumentState = newCompilationState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentIdentity.DocumentId);
@@ -1627,7 +1628,7 @@ public partial class Solution
     }
 
     internal Solution WithFrozenSourceGeneratedDocuments(ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText text)> documents)
-        => WithCompilationState(CompilationState.WithFrozenSourceGeneratedDocuments(documents));
+        => WithCompilationState(CompilationState.WithFrozenSourceGeneratedDocuments(documents.SelectAsArray(d => (d.documentIdentity, d.generationDateTime, d.text, (SyntaxNode?)null))));
 
     /// <inheritdoc cref="SolutionCompilationState.UpdateSpecificSourceGeneratorExecutionVersions"/>
     internal Solution UpdateSpecificSourceGeneratorExecutionVersions(SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersionMap)
@@ -1740,9 +1741,26 @@ public partial class Solution
             throw new ArgumentNullException(nameof(documentId));
         }
 
-        if (!ContainsDocument(documentId))
+        // For source generated documents we expect them to be already generated to use any of the APIs that call this
+        if (documentId.IsSourceGenerated && ContainsSourceGeneratedDocument(documentId))
         {
-            throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+            return;
+        }
+
+        if (ContainsDocument(documentId))
+        {
+            return;
+        }
+
+        throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+
+        bool ContainsSourceGeneratedDocument(DocumentId documentId)
+        {
+            var project = this.GetProject(documentId.ProjectId);
+            if (project is null)
+                return false;
+
+            return project.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId) is not null;
         }
     }
 

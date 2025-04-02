@@ -4,6 +4,7 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
@@ -11,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 
 internal partial class TaggerEventSources
 {
-    private class WorkspaceChangedEventSource : AbstractWorkspaceTrackingTaggerEventSource
+    private sealed class WorkspaceChangedEventSource : AbstractWorkspaceTrackingTaggerEventSource
     {
         private readonly AsyncBatchingWorkQueue _asyncDelay;
 

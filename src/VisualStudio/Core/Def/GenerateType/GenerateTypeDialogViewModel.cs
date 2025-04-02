@@ -21,7 +21,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType;
 
-internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
+internal sealed class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
 {
     private readonly Document _document;
     private readonly INotificationService _notificationService;
@@ -782,7 +782,7 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
         }
     }
 
-    public class ProjectSelectItem
+    public sealed class ProjectSelectItem
     {
         public string Name
         {
@@ -798,7 +798,7 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
             => Project = project;
     }
 
-    public class DocumentSelectItem
+    public sealed class DocumentSelectItem
     {
         public Document Document { get; }
 

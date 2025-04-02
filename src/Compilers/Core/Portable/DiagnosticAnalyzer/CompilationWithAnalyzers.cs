@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             compilation = compilation
                 .WithOptions(compilation.Options.WithReportSuppressedDiagnostics(analysisOptions.ReportSuppressedDiagnostics))
-                .WithSemanticModelProvider(new CachingSemanticModelProvider())
+                .WithSemanticModelProvider(CachingSemanticModelProvider.Instance)
                 .WithEventQueue(new AsyncQueue<CompilationEvent>());
             _compilation = compilation;
             _analyzers = analyzers;
@@ -723,7 +723,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // subsequently discard this compilation.
                 var compilation = analysisScope.IsSingleFileAnalysisForCompilerAnalyzer
                     ? _compilation
-                    : _compilation.WithSemanticModelProvider(new CachingSemanticModelProvider()).WithEventQueue(new AsyncQueue<CompilationEvent>());
+                    : _compilation.WithSemanticModelProvider(CachingSemanticModelProvider.Instance).WithEventQueue(new AsyncQueue<CompilationEvent>());
 
                 // Get the analyzer driver to execute analysis.
                 using var driver = await CreateAndInitializeDriverAsync(compilation, _analysisOptions, analysisScope, _suppressors, categorizeDiagnostics: true, cancellationToken).ConfigureAwait(false);
@@ -1188,7 +1188,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (compilation.SemanticModelProvider == null)
             {
-                compilation = compilation.WithSemanticModelProvider(new CachingSemanticModelProvider());
+                compilation = compilation.WithSemanticModelProvider(CachingSemanticModelProvider.Instance);
             }
 
             var suppressMessageState = new SuppressMessageAttributeState(compilation);

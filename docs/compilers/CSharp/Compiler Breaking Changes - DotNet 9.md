@@ -157,3 +157,30 @@ class C
 ```
 
 A workaround is to use explicit delegate types instead of relying on `var` inference in those cases.
+
+## `dotnet_style_require_accessibility_modifiers` now consistently applies to interface members
+
+PR: https://github.com/dotnet/roslyn/pull/76324
+
+Prior to this change, the analyzer for dotnet_style_require_accessibility_modifiers would simply ignore interface
+members.  This was because C# initially disallowed modifiers for interface members entirely, having them always
+be public.
+
+Later versions of the language relaxed this restriction, allowing users to provide accessibility modifiers on
+interface members, including a redundant `public` modifier.
+
+The analyzer was updated to now enforce the value for this option on interface members as well.  The meaning
+of the value is as follows:
+
+1. `never`.  The analyzer does no analysis.  Redundant modifiers are allowed on all members.
+2. `always`.  Redundant modifiers are always required on all members (including interface members).  For example:
+   a `private` modifier on a class member, and a `public` modifier on an interface member.  This is the option to
+   use if you feel that all members no matter what should state their accessibility explicitly.
+4. `for_non_interface_members`.  Redundant modifiers are required on all members *that are not* part of an interface,
+   but disallowed for interface members. For example: `private` will be required on private class members.  However,
+   a public interface member will not be allowed to have redundant `public` modifiers.  This matches the standard
+   modifier approach present prior to the language allowing modifiers on interface members.
+5. `omit_if_default`.  Redundant modifiers are disallowed.  For example a private class member will be disallowed from
+   using `private`, and a public interface member will be disallowed from using `public`.  This is the option to use
+   if you feel that restating the accessibility when it matches what the language chooses by default is redundant and
+   should be disallowed.

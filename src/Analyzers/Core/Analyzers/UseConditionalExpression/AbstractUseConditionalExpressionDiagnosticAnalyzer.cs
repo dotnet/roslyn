@@ -11,25 +11,20 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression;
 
-internal abstract class AbstractUseConditionalExpressionDiagnosticAnalyzer<TIfStatementSyntax>
-    : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal abstract class AbstractUseConditionalExpressionDiagnosticAnalyzer<TIfStatementSyntax>(
+    string descriptorId,
+    EnforceOnBuild enforceOnBuild,
+    LocalizableResourceString message,
+    PerLanguageOption2<CodeStyleOption2<bool>> option)
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(descriptorId,
+        enforceOnBuild,
+        option,
+        new LocalizableResourceString(nameof(AnalyzersResources.Convert_to_conditional_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+        message)
     where TIfStatementSyntax : SyntaxNode
 {
     public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
-    protected AbstractUseConditionalExpressionDiagnosticAnalyzer(
-        string descriptorId,
-        EnforceOnBuild enforceOnBuild,
-        LocalizableResourceString message,
-        PerLanguageOption2<CodeStyleOption2<bool>> option)
-        : base(descriptorId,
-               enforceOnBuild,
-               option,
-               new LocalizableResourceString(nameof(AnalyzersResources.Convert_to_conditional_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-               message)
-    {
-    }
 
     protected abstract ISyntaxFacts GetSyntaxFacts();
     protected abstract (bool matched, bool canSimplify) TryMatchPattern(
