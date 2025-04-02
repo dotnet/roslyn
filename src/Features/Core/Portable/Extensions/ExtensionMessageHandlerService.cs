@@ -262,7 +262,7 @@ internal sealed class ExtensionMessageHandlerService : IExtensionMessageHandlerS
         }
     }
 
-    private class Extension(ExtensionMessageHandlerService extensionMessageHandlerService, IAnalyzerAssemblyLoaderInternal analyzerAssemblyLoader, string assemblyFolderPath)
+    private sealed class Extension(ExtensionMessageHandlerService extensionMessageHandlerService, IAnalyzerAssemblyLoaderInternal analyzerAssemblyLoader, string assemblyFolderPath)
     {
         /// <summary>
         /// Gets the object that is used to lock in order to avoid multiple calls from the same extensions to load the same assembly concurrently
@@ -367,7 +367,7 @@ internal sealed class ExtensionMessageHandlerService : IExtensionMessageHandlerS
         }
     }
 
-    private class AssemblyHandlers
+    private sealed class AssemblyHandlers
     {
         /// <summary>
         /// Gets the document-specific handlers that can be passed to <see cref="HandleExtensionDocumentMessageAsync"/>, indexed by their name.
