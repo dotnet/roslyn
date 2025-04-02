@@ -183,10 +183,12 @@ internal sealed class ExtensionMessageHandlerService : IExtensionMessageHandlerS
                         }
                     }
 
-                    if (extension.AssemblyHandlersCount == 0)
+                    if (extension.AssemblyHandlersCount > 0)
                     {
-                        _extensions.Remove(assemblyFolderPath);
+                        return ValueTask.CompletedTask;
                     }
+
+                    _extensions.Remove(assemblyFolderPath);
                 }
             }
 
