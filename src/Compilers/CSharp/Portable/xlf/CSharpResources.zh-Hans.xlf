@@ -11327,8 +11327,8 @@ You should consider suppressing the warning only if you're sure that you don't w
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueUsedWithAttributes">
-        <source>Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute</source>
-        <target state="translated">不能同时指定默认参数值与 DefaultParameterAttribute 或 OptionalAttribute</target>
+        <source>Cannot specify default parameter value in conjunction with DefaultParameterValueAttribute or OptionalAttribute</source>
+        <target state="needs-review-translation">不能同时指定默认参数值与 DefaultParameterAttribute 或 OptionalAttribute</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueMustBeConstant">

@@ -11327,8 +11327,8 @@ Considere la posibilidad de suprimir la advertencia solo si tiene la seguridad d
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueUsedWithAttributes">
-        <source>Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute</source>
-        <target state="translated">No se puede especificar un valor de parámetro predeterminado junto con DefaultParameterAttribute u OptionalAttribute</target>
+        <source>Cannot specify default parameter value in conjunction with DefaultParameterValueAttribute or OptionalAttribute</source>
+        <target state="needs-review-translation">No se puede especificar un valor de parámetro predeterminado junto con DefaultParameterAttribute u OptionalAttribute</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueMustBeConstant">

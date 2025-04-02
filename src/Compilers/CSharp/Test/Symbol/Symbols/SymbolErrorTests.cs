@@ -16148,7 +16148,7 @@ class A
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (5,22): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
+                // (5,22): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterValueAttribute or OptionalAttribute
                 //     public void goo([OptionalAttribute]int p = 1)
                 Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "OptionalAttribute")
                 );

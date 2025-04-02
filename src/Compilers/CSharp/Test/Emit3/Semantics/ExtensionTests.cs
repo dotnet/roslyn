@@ -2497,7 +2497,7 @@ public static class Extensions
             // (3,15): error CS9284: The receiver parameter of an extension cannot have a default value
             //     extension([System.Runtime.InteropServices.DefaultParameterValue(1)] int o = 2) { }
             Diagnostic(ErrorCode.ERR_ExtensionParameterDisallowsDefaultValue, "[System.Runtime.InteropServices.DefaultParameterValue(1)] int o = 2").WithLocation(3, 15),
-            // (3,16): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
+            // (3,16): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterValueAttribute or OptionalAttribute
             //     extension([System.Runtime.InteropServices.DefaultParameterValue(1)] int o = 2) { }
             Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "System.Runtime.InteropServices.DefaultParameterValue").WithLocation(3, 16));
     }

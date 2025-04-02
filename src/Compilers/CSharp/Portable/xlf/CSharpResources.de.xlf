@@ -11327,8 +11327,8 @@ Sie sollten das Unterdrücken der Warnung nur in Betracht ziehen, wenn Sie siche
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueUsedWithAttributes">
-        <source>Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute</source>
-        <target state="translated">Es kann kein Standardparameterwert in Verbindung mit "DefaultParameterAttribute" oder "OptionalAttribute" angegeben werden.</target>
+        <source>Cannot specify default parameter value in conjunction with DefaultParameterValueAttribute or OptionalAttribute</source>
+        <target state="needs-review-translation">Es kann kein Standardparameterwert in Verbindung mit "DefaultParameterAttribute" oder "OptionalAttribute" angegeben werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueMustBeConstant">

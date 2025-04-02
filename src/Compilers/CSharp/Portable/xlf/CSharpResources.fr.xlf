@@ -11327,8 +11327,8 @@ Supprimez l'avertissement seulement si vous êtes sûr de ne pas vouloir attendr
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueUsedWithAttributes">
-        <source>Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute</source>
-        <target state="translated">Impossible de spécifier une valeur de paramètre par défaut conjointement à DefaultParameterAttribute ou OptionalAttribute</target>
+        <source>Cannot specify default parameter value in conjunction with DefaultParameterValueAttribute or OptionalAttribute</source>
+        <target state="needs-review-translation">Impossible de spécifier une valeur de paramètre par défaut conjointement à DefaultParameterAttribute ou OptionalAttribute</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueMustBeConstant">
