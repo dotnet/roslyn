@@ -16,13 +16,14 @@ internal abstract class ExtensionHandlerWrapper<TArgument>
     private readonly MethodInfo _executeAsyncMethod;
     private readonly PropertyInfo _responseTaskResultProperty;
 
-    protected ExtensionHandlerWrapper(object handler, Type customMessageHandlerInterface)
+    protected ExtensionHandlerWrapper(object handler, Type customMessageHandlerInterface, string extensionIdentifier)
     {
         this._handler = handler;
 
         Name = handler.GetType().FullName;
         MessageType = customMessageHandlerInterface.GenericTypeArguments[0];
         ResponseType = customMessageHandlerInterface.GenericTypeArguments[1];
+        ExtensionIdentifier = extensionIdentifier;
 
         _executeAsyncMethod = customMessageHandlerInterface.GetMethod("ExecuteAsync");
         _responseTaskResultProperty = typeof(Task<>).MakeGenericType(ResponseType).GetProperty(nameof(Task<>.Result));
@@ -33,6 +34,8 @@ internal abstract class ExtensionHandlerWrapper<TArgument>
     public Type ResponseType { get; }
 
     public string Name { get; }
+
+    public string ExtensionIdentifier { get; }
 
     public async Task<object?> ExecuteAsync(object? message, TArgument argument, CancellationToken cancellationToken)
     {

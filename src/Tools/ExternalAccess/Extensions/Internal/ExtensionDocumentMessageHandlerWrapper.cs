@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Extensions;
 
-internal sealed class ExtensionDocumentMessageHandlerWrapper(object handler, Type customMessageHandlerInterface)
-    : ExtensionHandlerWrapper<Document>(handler, customMessageHandlerInterface)
+internal sealed class ExtensionDocumentMessageHandlerWrapper(object handler, Type customMessageHandlerInterface, string extensionIdentifier)
+    : ExtensionHandlerWrapper<Document>(handler, customMessageHandlerInterface, extensionIdentifier)
 {
     protected override Task ExecuteAsync(MethodInfo executeAsyncMethod, object handler, object? message, Document argument, CancellationToken cancellationToken)
         => (Task)executeAsyncMethod.Invoke(handler, [message, new ExtensionMessageContext(argument.Project.Solution), argument, cancellationToken]);

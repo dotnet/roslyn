@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Reflection;
@@ -16,17 +15,17 @@ namespace Microsoft.CodeAnalysis.Extensions;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class ExtensionMessageHandlerFactory() : IExtensionMessageHandlerFactory
 {
-    public ImmutableArray<IExtensionMessageHandlerWrapper<Document>> CreateDocumentMessageHandlers(Assembly assembly)
+    public ImmutableArray<IExtensionMessageHandlerWrapper<Document>> CreateDocumentMessageHandlers(Assembly assembly, string extensionIdentifier)
         => CreateWorkspaceHandlers(
             assembly,
             typeof(IExtensionDocumentMessageHandler<,>),
-            (handler, handlerInterface) => new ExtensionDocumentMessageHandlerWrapper(handler, handlerInterface));
+            (handler, handlerInterface) => new ExtensionDocumentMessageHandlerWrapper(handler, handlerInterface, extensionIdentifier));
 
-    public ImmutableArray<IExtensionMessageHandlerWrapper<Solution>> CreateWorkspaceMessageHandlers(Assembly assembly)
+    public ImmutableArray<IExtensionMessageHandlerWrapper<Solution>> CreateWorkspaceMessageHandlers(Assembly assembly, string extensionIdentifier)
         => CreateWorkspaceHandlers(
             assembly,
             typeof(IExtensionWorkspaceMessageHandler<,>),
-            (handler, handlerInterface) => new ExtensionWorkspaceMessageHandlerWrapper(handler, handlerInterface));
+            (handler, handlerInterface) => new ExtensionWorkspaceMessageHandlerWrapper(handler, handlerInterface, extensionIdentifier));
 
     private static ImmutableArray<IExtensionMessageHandlerWrapper<TArgument>> CreateWorkspaceHandlers<TArgument>(
         Assembly assembly,

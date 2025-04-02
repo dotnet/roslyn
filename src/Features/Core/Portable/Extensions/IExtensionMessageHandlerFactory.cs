@@ -17,14 +17,16 @@ internal interface IExtensionMessageHandlerFactory
     /// <c>IExtensionWorkspaceMessageHandler</c> type in <paramref name="assembly"/>.
     /// </summary>
     /// <param name="assembly">The assembly to scan for handlers.</param>
+    /// <param name="extensionIdentifier">Unique identifier of the extension owning this handler.</param>
     /// <returns>The handlers.</returns>
-    ImmutableArray<IExtensionMessageHandlerWrapper<Solution>> CreateWorkspaceMessageHandlers(Assembly assembly);
+    ImmutableArray<IExtensionMessageHandlerWrapper<Solution>> CreateWorkspaceMessageHandlers(Assembly assembly, string extensionIdentifier);
 
     /// <summary>
     /// Creates <see cref="IExtensionMessageHandlerWrapper{Document}"/> instances for each
     /// <c>IExtensionDocumentMessageHandler</c> type in <paramref name="assembly"/>.
     /// </summary>
     /// <param name="assembly">The assembly to scan for handlers.</param>
+    /// <param name="extensionIdentifier">Unique identifier of the extension owning this handler.</param>
     /// <returns>The handlers.</returns>
-    ImmutableArray<IExtensionMessageHandlerWrapper<Document>> CreateDocumentMessageHandlers(Assembly assembly);
+    ImmutableArray<IExtensionMessageHandlerWrapper<Document>> CreateDocumentMessageHandlers(Assembly assembly, string extensionIdentifier);
 }

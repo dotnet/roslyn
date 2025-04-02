@@ -32,6 +32,11 @@ internal interface IExtensionMessageHandlerWrapper<TArgument>
     string Name { get; }
 
     /// <summary>
+    /// The identifier of the extension that this message handler belongs to.
+    /// </summary>
+    string ExtensionIdentifier { get; }
+
+    /// <summary>
     /// Executes the extension message handler with the given message and document.
     /// </summary>
     /// <param name="message">An object of type <see cref="MessageType"/> to be passed to the handler.</param>

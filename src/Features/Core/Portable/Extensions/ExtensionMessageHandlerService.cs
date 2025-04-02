@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Extensions;
 [ExportWorkspaceService(typeof(IExtensionMessageHandlerService)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class ExtensionMessageHandlerService(IExtensionMessageHandlerFactory customMessageHandlerFactory) : IExtensionMessageHandlerService, IDisposable
+internal sealed class ExtensionMessageHandlerService(IExtensionMessageHandlerFactory customMessageHandlerFactory) : IExtensionMessageHandlerService
 {
     private readonly IExtensionMessageHandlerFactory _customMessageHandlerFactory = customMessageHandlerFactory;
 
@@ -167,9 +167,6 @@ internal sealed class ExtensionMessageHandlerService(IExtensionMessageHandlerFac
         }
     }
 
-    public void Dispose()
-        => Reset();
-
     private async ValueTask<string> HandleExtensionMessageAsync<TArgument>(
         TArgument argument,
         string messageName,
@@ -188,12 +185,22 @@ internal sealed class ExtensionMessageHandlerService(IExtensionMessageHandlerFac
             }
         }
 
-        // Any exception thrown in this method is left to bubble up to the extension.
-        var message = JsonSerializer.Deserialize(jsonMessage, handler.MessageType);
-        var result = await handler.ExecuteAsync(message, argument, cancellationToken)
-            .ConfigureAwait(false);
-        var responseJson = JsonSerializer.Serialize(result, handler.ResponseType);
-        return responseJson;
+        try
+        {
+            var message = JsonSerializer.Deserialize(jsonMessage, handler.MessageType);
+            var result = await handler.ExecuteAsync(message, argument, cancellationToken)
+                .ConfigureAwait(false);
+            var responseJson = JsonSerializer.Serialize(result, handler.ResponseType);
+            return responseJson;
+        }
+        catch
+        {
+            // Any exception thrown in this method is left to bubble up to the extension.
+            // But we unregister all handlers from that assembly to minimize the impact of a bad extension.
+            await UnregisterExtensionAsync(assemblyFilePath: handler.ExtensionIdentifier, cancellationToken)
+                .ConfigureAwait(false);
+            throw;
+        }
     }
 
     private void RegisterAssembly(Extension extension, string assemblyFileName, AssemblyHandlers? assemblyHandlers)
@@ -303,9 +310,10 @@ internal sealed class ExtensionMessageHandlerService(IExtensionMessageHandlerFac
                 try
                 {
                     var assembly = AnalyzerAssemblyLoader.LoadFromPath(assemblyFilePath);
-                    var messageWorkspaceHandlers = _extensionMessageHandlerService._customMessageHandlerFactory.CreateWorkspaceMessageHandlers(assembly)
+                    var factory = _extensionMessageHandlerService._customMessageHandlerFactory;
+                    var messageWorkspaceHandlers = factory.CreateWorkspaceMessageHandlers(assembly, extensionIdentifier: assemblyFilePath)
                         .ToImmutableDictionary(h => h.Name, h => h);
-                    var messageDocumentHandlers = _extensionMessageHandlerService._customMessageHandlerFactory.CreateDocumentMessageHandlers(assembly)
+                    var messageDocumentHandlers = factory.CreateDocumentMessageHandlers(assembly, extensionIdentifier: assemblyFilePath)
                         .ToImmutableDictionary(h => h.Name, h => h);
 
                     assemblyHandlers = new AssemblyHandlers()
