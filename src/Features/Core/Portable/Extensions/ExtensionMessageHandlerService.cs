@@ -308,7 +308,7 @@ internal sealed class ExtensionMessageHandlerService(IExtensionMessageHandlerFac
             // All other concurrent operations, including modifying extension.Assemblies are protected by _lockObject.
             lock (_assemblyLoadLockObject)
             {
-                AssemblyHandlers assemblyHandlers;
+                AssemblyHandlers? assemblyHandlers = null;
                 Exception? exception = null;
                 try
                 {
