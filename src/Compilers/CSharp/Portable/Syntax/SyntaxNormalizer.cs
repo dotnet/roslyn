@@ -709,7 +709,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             if (token.IsKind(SyntaxKind.ColonToken))
             {
                 return !token.Parent.IsKind(SyntaxKind.InterpolationFormatClause) &&
-                    !token.Parent.IsKind(SyntaxKind.XmlPrefix);
+                    !token.Parent.IsKind(SyntaxKind.XmlPrefix) &&
+                    !token.Parent.IsKind(SyntaxKind.IgnoredDirectiveTrivia);
             }
 
             if (next.IsKind(SyntaxKind.ColonToken))
