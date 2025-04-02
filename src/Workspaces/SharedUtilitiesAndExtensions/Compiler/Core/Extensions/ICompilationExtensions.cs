@@ -83,6 +83,9 @@ internal static class ICompilationExtensions
     public static INamedTypeSymbol? AttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(Attribute).FullName!);
 
+    public static INamedTypeSymbol? DictionaryOfKVType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(Dictionary<,>).FullName!);
+
     public static INamedTypeSymbol? BlockingCollectionOfTType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(BlockingCollection<>).FullName!);
 
@@ -98,8 +101,14 @@ internal static class ICompilationExtensions
     public static INamedTypeSymbol? StructLayoutAttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(StructLayoutAttribute).FullName!);
 
+    public static INamedTypeSymbol? IDictionaryOfKVType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(IDictionary<,>).FullName!);
+
     public static INamedTypeSymbol? InlineArrayAttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.InlineArrayAttribute");
+
+    public static INamedTypeSymbol? IReadOnlyDictionaryOfKVType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(IReadOnlyDictionary<,>).FullName!);
 
     public static INamedTypeSymbol? DesignerCategoryAttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName("System.ComponentModel.DesignerCategoryAttribute");
