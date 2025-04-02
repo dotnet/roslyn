@@ -94,8 +94,9 @@ public partial class Workspace
             // update their execution version as well.
             if (projectIds.Any(t => t.projectId is null))
             {
-                foreach (var projectId in solution.ProjectIds)
+                foreach (var project in solution.ProjectStates)
                 {
+                    var projectId = project.Id;
                     if (!result.ContainsKey(projectId))
                     {
                         result.Add(

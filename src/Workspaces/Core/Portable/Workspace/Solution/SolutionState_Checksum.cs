@@ -5,10 +5,7 @@
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -22,8 +19,6 @@ namespace Microsoft.CodeAnalysis;
 
 internal sealed partial class SolutionState
 {
-    private static readonly ConditionalWeakTable<IReadOnlyList<ProjectId>, IReadOnlyList<ProjectId>> s_projectIdToSortedProjectsMap = new();
-
     /// <summary>
     /// Checksum representing the full checksum tree for this solution compilation state.  Includes the checksum for
     /// <see cref="SolutionState"/>.
@@ -35,9 +30,6 @@ internal sealed partial class SolutionState
     /// to an OOP host.  Lock this specific field before reading/writing to it.
     /// </summary>
     private readonly Dictionary<ProjectId, AsyncLazy<SolutionStateChecksums>> _lazyProjectChecksums = [];
-
-    public static IReadOnlyList<ProjectId> GetOrCreateSortedProjectIds(IReadOnlyList<ProjectId> unorderedList)
-        => s_projectIdToSortedProjectsMap.GetValue(unorderedList, projectIds => projectIds.OrderBy(id => id.Id).ToImmutableArray());
 
     public bool TryGetStateChecksums([NotNullWhen(true)] out SolutionStateChecksums? stateChecksums)
         => _lazyChecksums.TryGetValue(out stateChecksums);
@@ -112,23 +104,24 @@ internal sealed partial class SolutionState
             {
                 // get states by id order to have deterministic checksum.  Limit expensive computation to the
                 // requested set of projects if applicable.
-                var orderedProjectIds = GetOrCreateSortedProjectIds(this.ProjectIds);
-
                 using var _ = ArrayBuilder<Task<ProjectStateChecksums>>.GetInstance(out var projectChecksumTasks);
 
-                foreach (var orderedProjectId in orderedProjectIds)
+                foreach (var projectState in this.ProjectStates)
                 {
-                    var projectState = this.ProjectStates[orderedProjectId];
                     if (!RemoteSupportedLanguages.IsSupported(projectState.Language))
                         continue;
 
-                    if (projectConeId != null && !projectCone.Object.Contains(orderedProjectId))
+                    if (projectConeId != null && !projectCone.Object.Contains(projectState.Id))
                         continue;
 
                     projectChecksumTasks.Add(projectState.GetStateChecksumsAsync(cancellationToken));
                 }
 
                 var allResults = await Task.WhenAll(projectChecksumTasks).ConfigureAwait(false);
+
+                // get states by id order to have deterministic checksum.  Limit expensive computation to the
+                // requested set of projects if applicable.
+                Array.Sort(allResults, static (projectChecksum1, projectChecksum2) => projectChecksum1.ProjectId.Id.CompareTo(projectChecksum2.ProjectId.Id));
 
                 var projectChecksums = allResults.SelectAsArray(r => r.Checksum);
                 var projectIds = allResults.SelectAsArray(r => r.ProjectId);
@@ -182,7 +175,7 @@ internal sealed partial class SolutionState
                 // host to remove the reference.  We do not expose this through the full Solution/Project which
                 // filters out this case already (in Project.ProjectReferences). However, becausde we're at the
                 // ProjectState level it cannot do that filtering unless examined through us (the SolutionState).
-                if (this.ProjectStates.ContainsKey(refProject.ProjectId))
+                if (this.ProjectIdToStatesLookup.ContainsKey(refProject.ProjectId))
                     AddProjectCone(refProject.ProjectId);
             }
         }

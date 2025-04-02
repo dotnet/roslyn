@@ -24,8 +24,9 @@ public readonly struct SolutionChanges
 
     public IEnumerable<Project> GetAddedProjects()
     {
-        foreach (var id in _newSolution.ProjectIds)
+        foreach (var project in _newSolution.ProjectStates)
         {
+            var id = project.Id;
             if (!_oldSolution.ContainsProject(id))
             {
                 yield return _newSolution.GetRequiredProject(id);
@@ -38,11 +39,11 @@ public readonly struct SolutionChanges
         var old = _oldSolution;
 
         // if the project states are different then there is a change.
-        foreach (var id in _newSolution.ProjectIds)
+        foreach (var newState in _newSolution.ProjectStates)
         {
-            var newState = _newSolution.GetProjectState(id);
+            var id = newState.Id;
             var oldState = old.GetProjectState(id);
-            if (oldState != null && newState != null && newState != oldState)
+            if (oldState != null && newState != oldState)
             {
                 yield return _newSolution.GetRequiredProject(id).GetChanges(_oldSolution.GetRequiredProject(id));
             }
@@ -51,8 +52,9 @@ public readonly struct SolutionChanges
 
     public IEnumerable<Project> GetRemovedProjects()
     {
-        foreach (var id in _oldSolution.ProjectIds)
+        foreach (var project in _oldSolution.ProjectStates)
         {
+            var id = project.Id;
             if (!_newSolution.ContainsProject(id))
             {
                 yield return _oldSolution.GetRequiredProject(id);

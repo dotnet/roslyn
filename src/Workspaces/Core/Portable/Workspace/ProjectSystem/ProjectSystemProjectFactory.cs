@@ -144,7 +144,7 @@ internal sealed partial class ProjectSystemProjectFactory
                 {
                     // If we don't have any projects and this is our first project being added, then we'll create a
                     // new SolutionId and count this as the solution being added so that event is raised.
-                    if (oldSolution.ProjectIds.Count == 0)
+                    if (oldSolution.ProjectStates.Length == 0)
                     {
                         var solutionInfo = SolutionInfo.Create(
                             SolutionId.CreateNewId(SolutionPath),
@@ -167,7 +167,7 @@ internal sealed partial class ProjectSystemProjectFactory
                 },
                 (oldSolution, newSolution) =>
                 {
-                    return oldSolution.ProjectIds.Count == 0
+                    return oldSolution.ProjectStates.Length == 0
                         ? (WorkspaceChangeKind.SolutionAdded, projectId: null, documentId: null)
                         : (WorkspaceChangeKind.ProjectAdded, projectId, documentId: null);
                 },
@@ -548,8 +548,9 @@ internal sealed partial class ProjectSystemProjectFactory
         string outputPath,
         ProjectUpdateState projectUpdateState)
     {
-        foreach (var projectIdToRetarget in solutionChanges.Solution.ProjectIds)
+        foreach (var projectStateToRetarget in solutionChanges.Solution.ProjectStates)
         {
+            var projectIdToRetarget = projectStateToRetarget.Id;
             if (CanConvertMetadataReferenceToProjectReference(solutionChanges.Solution, projectIdToRetarget, referencedProjectId: projectIdToReference))
             {
                 // PERF: call GetRequiredProjectState instead of GetRequiredProject, otherwise creating a new project
@@ -648,8 +649,9 @@ internal sealed partial class ProjectSystemProjectFactory
         ProjectUpdateState projectUpdateState,
         SolutionServices solutionServices)
     {
-        foreach (var projectIdToRetarget in solutionChanges.Solution.ProjectIds)
+        foreach (var projectStateToRetarget in solutionChanges.Solution.ProjectStates)
         {
+            var projectIdToRetarget = projectStateToRetarget.Id;
             projectUpdateState = GetReferenceInformation(projectIdToRetarget, projectUpdateState, out var referenceInfo);
 
             // Update ConvertedProjectReferences in place to avoid duplicate list allocations

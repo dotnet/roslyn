@@ -42,6 +42,11 @@ public partial class Solution
     /// </summary>
     private readonly Dictionary<DocumentId, AsyncLazy<Solution>> _documentIdToFrozenSolution = [];
 
+    /// <summary>
+    /// A list of ids for all projects contained by the solution. Exposed publicly via <see cref="ProjectIds"/>.
+    /// </summary>
+    private IReadOnlyList<ProjectId>? _projectIds;
+
     private Solution(
         SolutionCompilationState compilationState,
         AsyncLazy<Solution>? cachedFrozenSolution = null)
@@ -117,12 +122,25 @@ public partial class Solution
     /// <summary>
     /// A list of all the ids for all the projects contained by the solution.
     /// </summary>
-    public IReadOnlyList<ProjectId> ProjectIds => this.SolutionState.ProjectIds;
+    public IReadOnlyList<ProjectId> ProjectIds
+    {
+        get
+        {
+            _projectIds ??= this.ProjectStates.SelectAsArray(static project => project.Id);
+
+            return _projectIds;
+        }
+    }
+
+    /// <summary>
+    /// A list of all the project states contained by the solution.
+    /// </summary>
+    internal ImmutableArray<ProjectState> ProjectStates => this.SolutionState.ProjectStates;
 
     /// <summary>
     /// A list of all the projects contained by the solution.
     /// </summary>
-    public IEnumerable<Project> Projects => ProjectIds.Select(id => GetProject(id)!);
+    public IEnumerable<Project> Projects => ProjectStates.Select(state => this.GetProject(state.Id)!);
 
     /// <summary>
     /// The version of the most recently modified project.

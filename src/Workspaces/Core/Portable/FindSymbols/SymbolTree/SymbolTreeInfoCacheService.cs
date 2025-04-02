@@ -136,7 +136,7 @@ internal sealed partial class SymbolTreeInfoCacheServiceFactory
 
             // Now that we've produced all the indices for the projects asked for, also remove any indices for projects
             // no longer in the solution.
-            var removedProjectIds = _projectIdToInfo.Keys.Except(solution.ProjectIds).ToArray();
+            var removedProjectIds = _projectIdToInfo.Keys.Except(solution.ProjectStates.Select(project => project.Id)).ToArray();
             foreach (var projectId in removedProjectIds)
                 this.RemoveProject(projectId);
         }
@@ -241,8 +241,8 @@ internal sealed partial class SymbolTreeInfoCacheServiceFactory
         {
             public readonly Task AnalyzeSolutionAsync()
             {
-                foreach (var projectId in service._workspace.CurrentSolution.ProjectIds)
-                    service._workQueue.AddWork(projectId);
+                foreach (var project in service._workspace.CurrentSolution.ProjectStates)
+                    service._workQueue.AddWork(project.Id);
 
                 return service._workQueue.WaitUntilCurrentBatchCompletesAsync();
             }

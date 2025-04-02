@@ -461,7 +461,7 @@ internal static partial class DependentTypeFinder
     private static ImmutableArray<Project> OrderTopologically(
         Solution solution, IEnumerable<Project> projectsToExamine)
     {
-        var order = new Dictionary<ProjectId, int>(capacity: solution.ProjectIds.Count);
+        var order = new Dictionary<ProjectId, int>(capacity: solution.ProjectStates.Length);
 
         var index = 0;
 

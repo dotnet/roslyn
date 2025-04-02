@@ -21,11 +21,11 @@ internal static partial class ISolutionExtensions
     {
         var results = ArrayBuilder<INamespaceSymbol>.GetInstance();
 
-        foreach (var projectId in solution.ProjectIds)
+        foreach (var projectState in solution.ProjectStates)
         {
-            var project = solution.GetProject(projectId)!;
-            if (project.SupportsCompilation)
+            if (projectState.SupportsCompilation)
             {
+                var project = solution.GetProject(projectState.Id)!;
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 #nullable disable // Can 'compilation' be null here?
                 results.Add(compilation.Assembly.GlobalNamespace);
