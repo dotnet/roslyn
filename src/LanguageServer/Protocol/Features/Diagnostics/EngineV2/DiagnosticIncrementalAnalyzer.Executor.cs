@@ -122,7 +122,7 @@ internal sealed partial class DiagnosticAnalyzerService
                 {
                     var compilation = compilationWithAnalyzers?.HostCompilation;
 
-                    foreach (var analyzer in ideAnalyzers)
+                    foreach (var documentAnalyzer in ideAnalyzers)
                     {
                         var builder = new DiagnosticAnalysisResultBuilder(project);
 
@@ -131,8 +131,9 @@ internal sealed partial class DiagnosticAnalyzerService
                             var tree = textDocument is Document document
                                 ? await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false)
                                 : null;
-                            var syntaxDiagnostics = await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(analyzer, textDocument, AnalysisKind.Syntax, compilation, tree, cancellationToken).ConfigureAwait(false);
-                            var semanticDiagnostics = await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(analyzer, textDocument, AnalysisKind.Semantic, compilation, tree, cancellationToken).ConfigureAwait(false);
+
+                            var syntaxDiagnostics = await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(documentAnalyzer, textDocument, AnalysisKind.Syntax, compilation, tree, cancellationToken).ConfigureAwait(false);
+                            var semanticDiagnostics = await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(documentAnalyzer, textDocument, AnalysisKind.Semantic, compilation, tree, cancellationToken).ConfigureAwait(false);
 
                             if (tree != null)
                             {
@@ -149,7 +150,7 @@ internal sealed partial class DiagnosticAnalyzerService
                         // merge the result to existing one.
                         // there can be existing one from compiler driver with empty set. overwrite it with
                         // ide one.
-                        result = result.SetItem(analyzer, DiagnosticAnalysisResult.CreateFromBuilder(builder));
+                        result = result.SetItem(documentAnalyzer, DiagnosticAnalysisResult.CreateFromBuilder(builder));
                     }
 
                     return result;
