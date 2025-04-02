@@ -160,55 +160,39 @@ internal sealed class ExtensionMessageHandlerService : IExtensionMessageHandlerS
         var assemblyFolderPath = Path.GetDirectoryName(assemblyFilePath)
             ?? throw new InvalidOperationException($"Unable to get the directory name for {assemblyFilePath}.");
 
-        try
+        Extension? extension = null;
+        lock (_lockObject)
         {
-            Extension? extension = null;
-            lock (_lockObject)
+            if (_extensions.TryGetValue(assemblyFolderPath, out extension))
             {
-                if (_extensions.TryGetValue(assemblyFolderPath, out extension))
+                if (extension.RemoveAssemblyHandlers(assemblyFileName, out var assemblyHandlers))
                 {
-                    if (extension.RemoveAssemblyHandlers(assemblyFileName, out var assemblyHandlers))
+                    if (assemblyHandlers is not null)
                     {
-                        if (assemblyHandlers is not null)
+                        foreach (var workspaceHandler in assemblyHandlers.WorkspaceMessageHandlers.Keys)
                         {
-                            foreach (var workspaceHandler in assemblyHandlers.WorkspaceMessageHandlers.Keys)
-                            {
-                                _workspaceHandlers.Remove(workspaceHandler);
-                            }
+                            _workspaceHandlers.Remove(workspaceHandler);
+                        }
 
-                            foreach (var documentHandler in assemblyHandlers.DocumentMessageHandlers.Keys)
-                            {
-                                _documentHandlers.Remove(documentHandler);
-                            }
+                        foreach (var documentHandler in assemblyHandlers.DocumentMessageHandlers.Keys)
+                        {
+                            _documentHandlers.Remove(documentHandler);
                         }
                     }
-
-                    if (extension.AssemblyHandlersCount > 0)
-                    {
-                        return ValueTask.CompletedTask;
-                    }
-
-                    _extensions.Remove(assemblyFolderPath);
                 }
-            }
 
-            extension?.AnalyzerAssemblyLoader.Dispose();
+                if (extension.AssemblyHandlersCount > 0)
+                {
+                    return ValueTask.CompletedTask;
+                }
+
+                _extensions.Remove(assemblyFolderPath);
+            }
         }
-        catch (Exception e) when (LogAndPropagate(e))
-        {
-            // unreachable
-        }
+
+        extension?.AnalyzerAssemblyLoader.Dispose();
 
         return ValueTask.CompletedTask;
-
-        bool LogAndPropagate(Exception e)
-        {
-            Logger.Log(
-                FunctionId.CustomMessageHandlerService_UnloadCustomMessageHandlerAsync,
-                $"Error unregistering {assemblyFilePath}: {e}",
-                LogLevel.Error);
-            return false;
-        }
     }
 
     public ValueTask ResetAsync(CancellationToken cancellationToken)
