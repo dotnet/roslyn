@@ -83,9 +83,6 @@ internal static class ICompilationExtensions
     public static INamedTypeSymbol? AttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(Attribute).FullName!);
 
-    public static INamedTypeSymbol? BindingListOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(BindingList<>).FullName!);
-
     public static INamedTypeSymbol? BlockingCollectionOfTType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(BlockingCollection<>).FullName!);
 

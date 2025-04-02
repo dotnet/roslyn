@@ -220,11 +220,9 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
             // elements to itself.
 
             var collectionType = compilation.CollectionOfTType();
-            var bindingList = compilation.BindingListOfTType();
             var blockingCollectionType = compilation.BlockingCollectionOfTType();
             if (constructedType.GetBaseTypesAndThis().Any(
                     t => Equals(collectionType, t.OriginalDefinition) ||
-                         Equals(collectionType, t.OriginalDefinition) ||
                          Equals(blockingCollectionType, t.OriginalDefinition)))
             {
                 return false;
