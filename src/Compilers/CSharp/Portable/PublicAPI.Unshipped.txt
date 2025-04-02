@@ -47,6 +47,9 @@ Microsoft.CodeAnalysis.CSharp.Syntax.IgnoredDirectiveTriviaSyntax.WithColonToken
 Microsoft.CodeAnalysis.CSharp.Syntax.IgnoredDirectiveTriviaSyntax.WithEndOfDirectiveToken(Microsoft.CodeAnalysis.SyntaxToken endOfDirectiveToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.IgnoredDirectiveTriviaSyntax!
 Microsoft.CodeAnalysis.CSharp.Syntax.IgnoredDirectiveTriviaSyntax.WithHashToken(Microsoft.CodeAnalysis.SyntaxToken hashToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.IgnoredDirectiveTriviaSyntax!
 Microsoft.CodeAnalysis.CSharp.Syntax.IgnoredDirectiveTriviaSyntax.WithIsActive(bool isActive) -> Microsoft.CodeAnalysis.CSharp.Syntax.IgnoredDirectiveTriviaSyntax!
+Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax.Content.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken hashToken, Microsoft.CodeAnalysis.SyntaxToken exclamationToken, Microsoft.CodeAnalysis.SyntaxToken content, Microsoft.CodeAnalysis.SyntaxToken endOfDirectiveToken, bool isActive) -> Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax!
+Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax.WithContent(Microsoft.CodeAnalysis.SyntaxToken content) -> Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax!
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.IgnoredDirectiveTrivia = 9080 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitIgnoredDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.IgnoredDirectiveTriviaSyntax! node) -> Microsoft.CodeAnalysis.SyntaxNode?
 override Microsoft.CodeAnalysis.CSharp.Syntax.IgnoredDirectiveTriviaSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor! visitor) -> void
@@ -56,5 +59,6 @@ override Microsoft.CodeAnalysis.CSharp.Syntax.IgnoredDirectiveTriviaSyntax.HashT
 override Microsoft.CodeAnalysis.CSharp.Syntax.IgnoredDirectiveTriviaSyntax.IsActive.get -> bool
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.IgnoredDirectiveTrivia(bool isActive) -> Microsoft.CodeAnalysis.CSharp.Syntax.IgnoredDirectiveTriviaSyntax!
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.IgnoredDirectiveTrivia(Microsoft.CodeAnalysis.SyntaxToken hashToken, Microsoft.CodeAnalysis.SyntaxToken colonToken, Microsoft.CodeAnalysis.SyntaxToken endOfDirectiveToken, bool isActive) -> Microsoft.CodeAnalysis.CSharp.Syntax.IgnoredDirectiveTriviaSyntax!
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ShebangDirectiveTrivia(Microsoft.CodeAnalysis.SyntaxToken hashToken, Microsoft.CodeAnalysis.SyntaxToken exclamationToken, Microsoft.CodeAnalysis.SyntaxToken content, Microsoft.CodeAnalysis.SyntaxToken endOfDirectiveToken, bool isActive) -> Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax!
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitIgnoredDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.IgnoredDirectiveTriviaSyntax! node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitIgnoredDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.IgnoredDirectiveTriviaSyntax! node) -> TResult?

@@ -5,6 +5,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -139,6 +140,20 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
             // (3,2): error CS9283: '#:' directives cannot be after '#if' directive
             // #:abc
             Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(3, 2));
+    }
+
+    [Fact]
+    public void Api_Shebang()
+    {
+        var root = SyntaxFactory.ParseCompilationUnit("#!abc", options: TestOptions.Regular.WithFeature(FeatureName));
+        var trivia = root.EndOfFileToken.GetLeadingTrivia().Last();
+        Assert.Equal(SyntaxKind.ShebangDirectiveTrivia, trivia.Kind());
+        var structure = (ShebangDirectiveTriviaSyntax)trivia.GetStructure()!;
+        var xyz = SyntaxFactory.Token(default, SyntaxKind.StringLiteralToken, "xyz", "xyz", default);
+        var ijk = SyntaxFactory.Token(default, SyntaxKind.StringLiteralToken, "ijk", "ijk", default);
+        AssertEx.Equal("#!xyz", structure.WithContent(xyz).ToFullString());
+        AssertEx.Equal("#!ijk", structure.WithContent(xyz).WithContent(ijk).ToFullString());
+        AssertEx.Equal("#!xyzabc", structure.Update(structure.HashToken, structure.ExclamationToken, xyz, structure.EndOfDirectiveToken, structure.IsActive).ToFullString());
     }
 
     [Theory, CombinatorialData]
