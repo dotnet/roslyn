@@ -98,7 +98,8 @@ internal sealed class ExtensionMessageHandlerService(IExtensionMessageHandlerFac
             }
         }
 
-        return extension.LoadAssemblyAsync(assemblyFileName);
+        return ValueTask.FromResult(
+            extension.LoadAssembly(assemblyFileName));
     }
 
     public ValueTask<string> HandleExtensionWorkspaceMessageAsync(Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken)
@@ -292,7 +293,7 @@ internal sealed class ExtensionMessageHandlerService(IExtensionMessageHandlerFac
             }
         }
 
-        public ValueTask<RegisterExtensionResponse> LoadAssemblyAsync(string assemblyFileName)
+        public RegisterExtensionResponse LoadAssembly(string assemblyFileName)
         {
             var assemblyFilePath = Path.Combine(AssemblyFolderPath, assemblyFileName);
 
@@ -341,9 +342,9 @@ internal sealed class ExtensionMessageHandlerService(IExtensionMessageHandlerFac
 
                 // The return is here, after RegisterAssembly, since RegisterAssembly can also throw an exception: the registration is not
                 // completed until RegisterAssembly returns.
-                return ValueTask.FromResult<RegisterExtensionResponse>(new(
+                return new(
                     assemblyHandlers.WorkspaceMessageHandlers.Keys.ToImmutableArray(),
-                    assemblyHandlers.DocumentMessageHandlers.Keys.ToImmutableArray()));
+                    assemblyHandlers.DocumentMessageHandlers.Keys.ToImmutableArray());
             }
         }
 
