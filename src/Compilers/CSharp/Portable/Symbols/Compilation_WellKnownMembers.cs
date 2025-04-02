@@ -273,6 +273,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     targetMethodKind = MethodKind.PropertyGet;
                     break;
 
+                case MemberFlags.PropertySet:
+                    targetSymbolKind = SymbolKind.Method;
+                    targetMethodKind = MethodKind.PropertySet;
+                    break;
+
                 case MemberFlags.Field:
                     targetSymbolKind = SymbolKind.Field;
                     break;

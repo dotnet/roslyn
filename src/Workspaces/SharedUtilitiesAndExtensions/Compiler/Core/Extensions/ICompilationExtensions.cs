@@ -149,6 +149,9 @@ internal static class ICompilationExtensions
     public static INamedTypeSymbol? ValueTaskOfTType(this Compilation compilation)
         => compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask`1");
 
+    public static INamedTypeSymbol? ICollectionOfTType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(ICollection<>).FullName!);
+
     public static INamedTypeSymbol? IEnumerableType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(System.Collections.IEnumerable).FullName!);
 

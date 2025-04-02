@@ -19,13 +19,14 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
         Field = 0x02,
         Constructor = 0x04,
         PropertyGet = 0x08,
-        Property = 0x10,
+        PropertySet = 0x10,
+        Property = 0x20,
         // END Mutually exclusive Member kinds
 
-        KindMask = 0x1F,
+        KindMask = 0x3F,
 
-        Static = 0x20,
-        Virtual = 0x40, // Virtual in CLR terms, i.e. sealed should be accepted.
+        Static = 0x40,
+        Virtual = 0x80, // Virtual in CLR terms, i.e. sealed should be accepted.
     }
 
     /// <summary>

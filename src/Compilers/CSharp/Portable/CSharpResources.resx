@@ -6841,6 +6841,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureCollectionExpressions" xml:space="preserve">
     <value>collection expressions</value>
   </data>
+  <data name="IDS_FeatureCollectionExpressionArguments" xml:space="preserve">
+    <value>collection expression arguments</value>
+  </data>
+  <data name="IDS_FeatureDictionaryExpressions" xml:space="preserve">
+    <value>dictionary expressions</value>
+  </data>
   <data name="ERR_CollectionExpressionTargetTypeNotConstructible" xml:space="preserve">
     <value>Cannot initialize type '{0}' with a collection expression because the type is not constructible.</value>
   </data>
@@ -6873,6 +6879,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_CollectionExpressionEscape" xml:space="preserve">
     <value>A collection expression of type '{0}' cannot be used in this context because it may be exposed outside of the current scope.</value>
+  </data>
+  <data name="ERR_CollectionExpressionKeyValuePairNotSupported" xml:space="preserve">
+    <value>Collection expression type '{0}' does not support key-value pair elements.</value>
+  </data>
+  <data name="ERR_CollectionArgumentsMustBeFirst" xml:space="preserve">
+    <value>Collection argument element must be the first element.</value>
+  </data>
+  <data name="ERR_CollectionArgumentsNotSupportedForType" xml:space="preserve">
+    <value>Collection arguments are not supported for type '{0}'.</value>
+  </data>
+  <data name="ERR_CollectionArgumentsDynamicBinding" xml:space="preserve">
+    <value>Collection arguments cannot be dynamic; compile-time binding is required.</value>
   </data>
   <data name="INF_TooManyBoundLambdas" xml:space="preserve">
     <value>Compiling requires binding the lambda expression at least {0} times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</value>

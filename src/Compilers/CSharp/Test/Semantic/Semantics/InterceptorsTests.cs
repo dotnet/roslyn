@@ -8038,6 +8038,37 @@ public static class S1Ext
         Assert.Equal($"void Interceptors.M1(this {refKind}S s)", method.ToTestDisplayString());
     }
 
+    [Theory]
+    [CombinatorialData]
+    public void CollectionExpressionArguments(bool referenceWithElement)
+    {
+        string sourceA = """
+            using System.Collections.Generic;
+            List<int> l = [with(capacity:0), 1, 2, 3];
+            """;
+        var comp = CreateCompilation(sourceA);
+        var tree = comp.SyntaxTrees.Single();
+        var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+        var syntax = tree.GetRoot().DescendantNodes().Single(n => n.Kind() == (referenceWithElement ? SyntaxKind.WithElement : SyntaxKind.CollectionExpression));
+        var location = model.GetInterceptableLocationInternal(syntax, cancellationToken: default);
+
+        string sourceB = $$"""
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            static class E
+            {
+                [InterceptsLocation({{GetAttributeArgs(location)}})]
+                public static List<int> CreateList(int capacity) => new();
+            }
+            """;
+        comp = CreateCompilation(
+            [sourceA, sourceB, s_attributesSource],
+            parseOptions: RegularWithInterceptors.WithLanguageVersion(LanguageVersion.Preview));
+        comp.VerifyEmitDiagnostics(
+            // (5,6): error CS9141: The provided line and character number does not refer to an interceptable method name, but rather to token '['.
+            Diagnostic(ErrorCode.ERR_InterceptorPositionBadToken, "InterceptsLocation").WithArguments(referenceWithElement ? "with" : "[").WithLocation(5, 6));
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71657")]
     public void ReceiverCapturedToTemp_StructRvalueReceiver()
     {

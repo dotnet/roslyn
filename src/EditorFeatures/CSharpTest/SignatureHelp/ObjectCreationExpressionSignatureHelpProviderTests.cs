@@ -45,7 +45,7 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
         var markup = """
             <Workspace>
                 <Project Language="C#" LanguageVersion="Preview" CommonReferences="true">
-                    <Document FilePath="SourceDocument"><![CDATA[
+                    <Document FilePath="SourceDocument">
             class C
             {
                 void M()

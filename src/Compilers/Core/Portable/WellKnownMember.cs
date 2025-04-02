@@ -718,6 +718,11 @@ namespace Microsoft.CodeAnalysis
         System_Text_Encoding__get_UTF8,
         System_Text_Encoding__GetString,
 
+        System_Collections_Generic_Dictionary_KV__ctor,
+        System_Collections_Generic_Dictionary_KV__set_Item,
+        System_Collections_Generic_KeyValuePair_KV__get_Key,
+        System_Collections_Generic_KeyValuePair_KV__get_Value,
+
         Count,
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here

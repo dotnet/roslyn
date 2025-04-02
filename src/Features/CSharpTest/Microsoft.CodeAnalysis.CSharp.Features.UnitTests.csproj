@@ -27,6 +27,8 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Basic.Reference.Assemblies.Net60" />
+    <PackageReference Include="Basic.Reference.Assemblies.Net80" />
+    <PackageReference Include="Basic.Reference.Assemblies.Net90" />
   </ItemGroup>
   <Import Project="..\..\Analyzers\CSharp\Tests\CSharpAnalyzers.UnitTests.projitems" Label="Shared" />
 

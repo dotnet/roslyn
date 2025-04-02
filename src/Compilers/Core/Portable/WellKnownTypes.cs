@@ -357,6 +357,9 @@ namespace Microsoft.CodeAnalysis
 
         System_Text_Encoding,
 
+        System_Collections_Generic_Dictionary_KV,
+        System_Collections_Generic_KeyValuePair_KV,
+
         NextAvailable,
         // Remember to update the AllWellKnownTypes tests when making changes here
     }
@@ -699,6 +702,9 @@ namespace Microsoft.CodeAnalysis
             "System.Linq.Expressions.DefaultExpression",
 
             "System.Text.Encoding",
+
+            "System.Collections.Generic.Dictionary`2",
+            "System.Collections.Generic.KeyValuePair`2",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

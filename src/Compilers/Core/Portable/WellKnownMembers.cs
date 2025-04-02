@@ -5197,6 +5197,36 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,                                    // Return Type
                     (byte)SignatureTypeCode.Pointer, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Byte,     // Argument: byte*
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,                                     // Argument: int
+
+                // System_Collections_Generic_Dictionary_KV__ctor
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Collections_Generic_Dictionary_KV - WellKnownType.ExtSentinel),  // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    0,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+
+                // System_Collections_Generic_Dictionary_KV__set_Item
+                (byte)MemberFlags.PropertySet,                                                                              // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Collections_Generic_Dictionary_KV - WellKnownType.ExtSentinel),  // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                    (byte)SignatureTypeCode.GenericTypeParameter, 0,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 1,
+
+                // System_Collections_Generic_KeyValuePair_KV__get_Key
+                (byte)MemberFlags.PropertyGet,                                                                              // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Collections_Generic_KeyValuePair_KV - WellKnownType.ExtSentinel),  // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    0,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.GenericTypeParameter, 0, // Return Type
+
+                // System_Collections_Generic_KeyValuePair_KV__get_Value
+                (byte)MemberFlags.PropertyGet,                                                                              // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Collections_Generic_KeyValuePair_KV - WellKnownType.ExtSentinel),  // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    0,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.GenericTypeParameter, 1, // Return Type
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -5823,6 +5853,10 @@ namespace Microsoft.CodeAnalysis
                 "Power",                                    // System_Linq_Expressions_Expression__Power_MethodInfo,
                 "get_UTF8",                                 // System_Text_Encoding__get_UTF8
                 "GetString",                                // System_Text_Encoding__GetString
+                ".ctor",                                    // System_Collections_Generic_Dictionary_KV__ctor,
+                "set_Item",                                 // System_Collections_Generic_Dictionary_KV__set_Item
+                "get_Key",                                  // System_Collections_Generic_KeyValuePair_KV__get_Key
+                "get_Value",                                // System_Collections_Generic_KeyValuePair_KV__get_Value
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);
