@@ -34,9 +34,9 @@ internal sealed class ExtensionMessageHandlerFactory() : IExtensionMessageHandle
         return resultBuilder.ToImmutable();
     }
 
-    public ImmutableArray<IExtensionWorspaceMessageHandlerWrapper> CreateWorkspaceMessageHandlers(Assembly assembly)
+    public ImmutableArray<IExtensionWorkspaceMessageHandlerWrapper> CreateWorkspaceMessageHandlers(Assembly assembly)
     {
-        var resultBuilder = ImmutableArray.CreateBuilder<IExtensionWorspaceMessageHandlerWrapper>();
+        var resultBuilder = ImmutableArray.CreateBuilder<IExtensionWorkspaceMessageHandlerWrapper>();
 
         foreach (var t in assembly.GetTypes())
         {
@@ -46,7 +46,7 @@ internal sealed class ExtensionMessageHandlerFactory() : IExtensionMessageHandle
                 continue;
             }
 
-            resultBuilder.Add(new ExtensionWorspaceMessageHandlerWrapper(handler, handlerInterface));
+            resultBuilder.Add(new ExtensionWorkspaceMessageHandlerWrapper(handler, handlerInterface));
         }
 
         return resultBuilder.ToImmutable();

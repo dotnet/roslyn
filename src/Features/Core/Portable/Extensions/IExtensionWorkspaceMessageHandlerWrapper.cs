@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Extensions;
 /// <summary>
 /// Wrapper for an <c>IExtensionWorkspaceMessageHandler</c> as returned by <see cref="IExtensionMessageHandlerFactory"/>. 
 /// </summary>
-internal interface IExtensionWorspaceMessageHandlerWrapper
+internal interface IExtensionWorkspaceMessageHandlerWrapper
 {
     /// <summary>
     /// The type of object received as parameter by the extension message handler.

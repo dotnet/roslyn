@@ -26,7 +26,7 @@ internal sealed class ExtensionMessageHandlerService : IExtensionMessageHandlerS
     /// <summary>
     /// Extensions assembly load contexts and loaded handlers, indexed by handler file path. The handlers are indexed by type name.
     /// </summary>
-    private readonly Dictionary<string, CustomMessageHandlerExtension> _extensions = new();
+    private readonly Dictionary<string, Extension> _extensions = new();
 
     /// <summary>
     /// Handlers of document-related messages, indexed by handler message name.
@@ -36,11 +36,11 @@ internal sealed class ExtensionMessageHandlerService : IExtensionMessageHandlerS
     /// <summary>
     /// Handlers of non-document-related messages, indexed by handler message name.
     /// </summary>
-    private readonly Dictionary<string, IExtensionWorspaceMessageHandlerWrapper> _handlers = new();
+    private readonly Dictionary<string, IExtensionWorkspaceMessageHandlerWrapper> _workspaceHandlers = new();
 
     private readonly IExtensionMessageHandlerFactory _customMessageHandlerFactory;
 
-    // Used to protect access to _extensions, _handlers and _documentHandlers.
+    // Used to protect access to _extensions, _handlers, _documentHandlers and CustomMessageHandlerExtension.Assemblies.
     private readonly object _lockObject = new();
 
     [ImportingConstructor]
@@ -61,7 +61,7 @@ internal sealed class ExtensionMessageHandlerService : IExtensionMessageHandlerS
 
         var analyzerAssemblyLoaderProvider = solution.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
 
-        CustomMessageHandlerExtension? extension;
+        Extension? extension;
         lock (_lockObject)
         {
             // Check if the assembly is already loaded.
@@ -86,100 +86,24 @@ internal sealed class ExtensionMessageHandlerService : IExtensionMessageHandlerS
                     analyzerAssemblyLoader.AddDependencyLocation(dll);
                 }
 
-                extension = new CustomMessageHandlerExtension(analyzerAssemblyLoader);
+                extension = new Extension(this, analyzerAssemblyLoader, assemblyFolderPath);
                 _extensions[assemblyFolderPath] = extension;
             }
-        }
 
-        // AssemblyLoadLockObject is only used to avoid multiple calls from the same extensions to load the same assembly concurrently
-        // resulting in the constructors of the same handlers being called more than once.
-        // All other concurrent operations, including modifying extension.Assemblies are protected by _lockObject.
-        lock (extension.AssemblyLoadLockObject)
-        {
-            if (extension.Assemblies.TryGetValue(assemblyFileName, out var extensionAssembly))
+            if (extension.TryGetAssemblyHandlers(assemblyFileName, out var assemblyHandlers))
             {
-                if (extensionAssembly.HasValue)
-                {
-                    return ValueTask.FromResult<RegisterExtensionResponse>(
-                        new(extensionAssembly.Value.WorkspaceMessageHandlers.ToImmutableArray(), extensionAssembly.Value.DocumentMessageHandlers.ToImmutableArray()));
-                }
-                else
+                if (assemblyHandlers is null)
                 {
                     throw new InvalidOperationException($"A previous attempt to load {assemblyFilePath} failed.");
                 }
-            }
-            else
-            {
-                var mustCleanupExtension = false;
-                try
-                {
-                    var assembly = extension.AnalyzerAssemblyLoader.LoadFromPath(assemblyFilePath);
-                    var messageHandlers = _customMessageHandlerFactory.CreateWorkspaceMessageHandlers(assembly)
-                        .ToDictionary(h => h.Name, h => h);
-                    var messageDocumentHandlers = _customMessageHandlerFactory.CreateDocumentMessageHandlers(assembly)
-                        .ToDictionary(h => h.Name, h => h);
 
-                    // Important, you can lock _lockObject when holding a lock on AssemblyLoadLockObject, not vice-versa
-                    lock (_lockObject)
-                    {
-                        // Make sure a call to UnloadCustomMessageHandlersAsync hasn't happened while we relinquished the lock on _lockObject
-                        if (!_extensions.TryGetValue(assemblyFolderPath, out var currentExtension) || !currentExtension.Equals(extension))
-                        {
-                            // extension is not in the _extensions dictionary anymore, so it's AnalyzerAssemblyLoader must be unloaded
-                            mustCleanupExtension = true;
-                            throw new InvalidOperationException($"{assemblyFilePath} was unloaded while loading handlers.");
-                        }
-
-                        var duplicateHandler = _handlers.Keys.Intersect(messageHandlers.Keys).Concat(
-                            _documentHandlers.Keys.Intersect(messageHandlers.Keys)).Concat(
-                            _handlers.Keys.Intersect(messageDocumentHandlers.Keys)).Concat(
-                            _documentHandlers.Keys.Intersect(messageDocumentHandlers.Keys)).FirstOrDefault();
-
-                        if (duplicateHandler is not null)
-                        {
-                            throw new InvalidOperationException($"Handler name {duplicateHandler} is already registered.");
-                        }
-
-                        foreach (var handler in messageHandlers)
-                        {
-                            _handlers.Add(handler.Key, handler.Value);
-                        }
-
-                        foreach (var handler in messageDocumentHandlers)
-                        {
-                            _documentHandlers.Add(handler.Key, handler.Value);
-                        }
-
-                        extension.Assemblies[assemblyFileName] = new()
-                        {
-                            WorkspaceMessageHandlers = messageHandlers.Keys.ToImmutableHashSet(),
-                            DocumentMessageHandlers = messageDocumentHandlers.Keys.ToImmutableHashSet(),
-                        };
-
-                        return ValueTask.FromResult<RegisterExtensionResponse>(
-                            new(messageHandlers.Keys.ToImmutableArray(), messageDocumentHandlers.Keys.ToImmutableArray()));
-                    }
-                }
-                catch (Exception e)
-                {
-                    Logger.Log(
-                        FunctionId.CustomMessageHandlerService_HandleCustomMessageAsync,
-                        $"Error loading handlers from {assemblyFilePath}: {e}",
-                        LogLevel.Error);
-
-                    if (mustCleanupExtension)
-                    {
-                        extension.AnalyzerAssemblyLoader.Dispose();
-                    }
-                    else
-                    {
-                        // Cache null so that we don't try to load the same assembly again.
-                        extension.Assemblies[assemblyFileName] = null;
-                    }
-                    throw;
-                }
+                return ValueTask.FromResult<RegisterExtensionResponse>(new(
+                    assemblyHandlers.WorkspaceMessageHandlers.Keys.ToImmutableArray(),
+                    assemblyHandlers.DocumentMessageHandlers.Keys.ToImmutableArray()));
             }
         }
+
+        return extension.LoadAssemblyAsync(assemblyFileName);
     }
 
     public async ValueTask<string> HandleExtensionWorkspaceMessageAsync(
@@ -188,10 +112,10 @@ internal sealed class ExtensionMessageHandlerService : IExtensionMessageHandlerS
         string jsonMessage,
         CancellationToken cancellationToken)
     {
-        IExtensionWorspaceMessageHandlerWrapper handler;
+        IExtensionWorkspaceMessageHandlerWrapper handler;
         lock (_lockObject)
         {
-            if (!_handlers.TryGetValue(messageName, out handler!))
+            if (!_workspaceHandlers.TryGetValue(messageName, out handler!))
             {
                 throw new InvalidOperationException($"No handler found for message {messageName}.");
             }
@@ -238,24 +162,30 @@ internal sealed class ExtensionMessageHandlerService : IExtensionMessageHandlerS
 
         try
         {
-            CustomMessageHandlerExtension? extension = null;
+            Extension? extension = null;
             lock (_lockObject)
             {
                 if (_extensions.TryGetValue(assemblyFolderPath, out extension))
                 {
-                    if (extension.Assemblies.TryGetValue(assemblyFileName, out var extensionAssembly))
+                    if (extension.RemoveAssemblyHandlers(assemblyFileName, out var assemblyHandlers))
                     {
-                        extension.Assemblies.Remove(assemblyFileName);
-                        UnregisterHandlersForAssembly(extensionAssembly);
+                        if (assemblyHandlers is not null)
+                        {
+                            foreach (var workspaceHandler in assemblyHandlers.WorkspaceMessageHandlers.Keys)
+                            {
+                                _workspaceHandlers.Remove(workspaceHandler);
+                            }
+
+                            foreach (var documentHandler in assemblyHandlers.DocumentMessageHandlers.Keys)
+                            {
+                                _documentHandlers.Remove(documentHandler);
+                            }
+                        }
                     }
 
-                    if (extension.Assemblies.Count == 0)
+                    if (extension.AssemblyHandlersCount == 0)
                     {
                         _extensions.Remove(assemblyFolderPath);
-                        foreach (var assembly in extension.Assemblies.Values)
-                        {
-                            UnregisterHandlersForAssembly(assembly);
-                        }
                     }
                 }
             }
@@ -277,22 +207,6 @@ internal sealed class ExtensionMessageHandlerService : IExtensionMessageHandlerS
                 LogLevel.Error);
             return false;
         }
-
-        void UnregisterHandlersForAssembly(CustomMessageHandlerAssembly? assembly)
-        {
-            if (assembly.HasValue)
-            {
-                foreach (var handler in assembly.Value.WorkspaceMessageHandlers)
-                {
-                    _handlers.Remove(handler);
-                }
-
-                foreach (var documentHandler in assembly.Value.DocumentMessageHandlers)
-                {
-                    _documentHandlers.Remove(documentHandler);
-                }
-            }
-        }
     }
 
     public ValueTask ResetAsync(CancellationToken cancellationToken)
@@ -306,12 +220,12 @@ internal sealed class ExtensionMessageHandlerService : IExtensionMessageHandlerS
 
     private void Clear()
     {
-        List<CustomMessageHandlerExtension> extensions;
+        List<Extension> extensions;
         lock (_lockObject)
         {
             extensions = _extensions.Values.ToList();
             _extensions.Clear();
-            _handlers.Clear();
+            _workspaceHandlers.Clear();
             _documentHandlers.Clear();
         }
 
@@ -321,31 +235,172 @@ internal sealed class ExtensionMessageHandlerService : IExtensionMessageHandlerS
         }
     }
 
-    private class CustomMessageHandlerExtension(IAnalyzerAssemblyLoaderInternal analyzerAssemblyLoader)
+    private void RegisterAssembly(Extension extension, string assemblyFileName, AssemblyHandlers? assemblyHandlers)
     {
-        public IAnalyzerAssemblyLoaderInternal AnalyzerAssemblyLoader { get; } = analyzerAssemblyLoader;
+        lock (_lockObject)
+        {
+            // Make sure a call to UnloadCustomMessageHandlersAsync hasn't happened while we relinquished the lock on _lockObject
+            if (!_extensions.TryGetValue(extension.AssemblyFolderPath, out var currentExtension) || !currentExtension.Equals(extension))
+            {
+                throw new InvalidOperationException($"Handlers in {extension.AssemblyFolderPath} were unregistered while loading handlers.");
+            }
 
-        public Dictionary<string, CustomMessageHandlerAssembly?> Assemblies { get; } = new();
+            try
+            {
+                if (assemblyHandlers is not null)
+                {
+                    var duplicateHandler = _workspaceHandlers.Keys.Intersect(assemblyHandlers.WorkspaceMessageHandlers.Keys).Concat(
+                    _documentHandlers.Keys.Intersect(assemblyHandlers.DocumentMessageHandlers.Keys)).FirstOrDefault();
 
+                    if (duplicateHandler is not null)
+                    {
+                        assemblyHandlers = null;
+                        throw new InvalidOperationException($"Handler name {duplicateHandler} is already registered.");
+                    }
+
+                    foreach (var handler in assemblyHandlers.WorkspaceMessageHandlers)
+                    {
+                        _workspaceHandlers.Add(handler.Key, handler.Value);
+                    }
+
+                    foreach (var handler in assemblyHandlers.DocumentMessageHandlers)
+                    {
+                        _documentHandlers.Add(handler.Key, handler.Value);
+                    }
+                }
+            }
+            finally
+            {
+                extension.SetAssemblyHandlers(assemblyFileName, assemblyHandlers);
+            }
+        }
+    }
+
+    private class Extension(ExtensionMessageHandlerService extensionMessageHandlerService, IAnalyzerAssemblyLoaderInternal analyzerAssemblyLoader, string assemblyFolderPath)
+    {
         /// <summary>
         /// Gets the object that is used to lock in order to avoid multiple calls from the same extensions to load the same assembly concurrently
         /// resulting in the constructors of the same handlers being called more than once.
-        /// All other concurrent operations, including modifying <see cref="Assemblies"/> are protected by <see cref="_lockObject"/>.
+        /// All other concurrent operations, including modifying <see cref="_assemblies"/> are protected by
+        /// <see cref="ExtensionMessageHandlerService._lockObject"/>.
         /// </summary>
-        public object AssemblyLoadLockObject { get; } = new();
+        private readonly object _assemblyLoadLockObject = new();
+
+        private readonly Dictionary<string, AssemblyHandlers?> _assemblies = new();
+
+        private readonly ExtensionMessageHandlerService _extensionMessageHandlerService = extensionMessageHandlerService;
+
+        public IAnalyzerAssemblyLoaderInternal AnalyzerAssemblyLoader { get; } = analyzerAssemblyLoader;
+
+        public string AssemblyFolderPath { get; } = assemblyFolderPath;
+
+        public void SetAssemblyHandlers(string assemblyFileName, AssemblyHandlers? value)
+        {
+            EnsureGlobalLockIsOwned();
+            _assemblies[assemblyFileName] = value;
+        }
+
+        public bool TryGetAssemblyHandlers(string assemblyFileName, out AssemblyHandlers? value)
+        {
+            EnsureGlobalLockIsOwned();
+            return _assemblies.TryGetValue(assemblyFileName, out value);
+        }
+
+        public bool RemoveAssemblyHandlers(string assemblyFileName, out AssemblyHandlers? value)
+        {
+            EnsureGlobalLockIsOwned();
+            return _assemblies.Remove(assemblyFileName, out value);
+        }
+
+        public int AssemblyHandlersCount
+        {
+            get
+            {
+                EnsureGlobalLockIsOwned();
+                return _assemblies.Count;
+            }
+        }
+
+        public ValueTask<RegisterExtensionResponse> LoadAssemblyAsync(string assemblyFileName)
+        {
+            var assemblyFilePath = Path.Combine(AssemblyFolderPath, assemblyFileName);
+
+            // _extensionMessageHandlerService.RegisterAssembly locks _lockObject.
+            // You can lock _lockObject when holding a lock on AssemblyLoadLockObject, not vice-versa
+            if (Monitor.IsEntered(_extensionMessageHandlerService._lockObject))
+            {
+                throw new InvalidOperationException("Global lock should not be owned");
+            }
+
+            // AssemblyLoadLockObject is only used to avoid multiple calls from the same extensions to load the same assembly concurrently
+            // resulting in the constructors of the same handlers being called more than once.
+            // All other concurrent operations, including modifying extension.Assemblies are protected by _lockObject.
+            lock (_assemblyLoadLockObject)
+            {
+                AssemblyHandlers? assemblyHandlers = null;
+
+                try
+                {
+                    var assembly = AnalyzerAssemblyLoader.LoadFromPath(assemblyFilePath);
+                    var messageWorkspaceHandlers = _extensionMessageHandlerService._customMessageHandlerFactory.CreateWorkspaceMessageHandlers(assembly)
+                        .ToImmutableDictionary(h => h.Name, h => h);
+                    var messageDocumentHandlers = _extensionMessageHandlerService._customMessageHandlerFactory.CreateDocumentMessageHandlers(assembly)
+                        .ToImmutableDictionary(h => h.Name, h => h);
+
+                    assemblyHandlers = new AssemblyHandlers()
+                    {
+                        WorkspaceMessageHandlers = messageWorkspaceHandlers,
+                        DocumentMessageHandlers = messageDocumentHandlers,
+                    };
+
+                    // We don't add assemblyHandlers to _assemblies here and instead let _extensionMessageHandlerService.RegisterAssembly do it
+                    // since RegisterAssembly can still fail if there are duplicated handler names.
+                }
+                catch (Exception e) when (LogAndPropagate(e))
+                {
+                    // unreachable
+                }
+                finally
+                {
+                    // In case of exception, we cache null so that we don't try to load the same assembly again.
+                    _extensionMessageHandlerService.RegisterAssembly(this, assemblyFileName, assemblyHandlers);
+                }
+
+                bool LogAndPropagate(Exception e)
+                {
+                    Logger.Log(
+                        FunctionId.CustomMessageHandlerService_HandleCustomMessageAsync,
+                        $"Error loading handlers from {assemblyFilePath}: {e}",
+                        LogLevel.Error);
+                    return false;
+                }
+
+                return ValueTask.FromResult<RegisterExtensionResponse>(new(
+                    assemblyHandlers!.WorkspaceMessageHandlers.Keys.ToImmutableArray(),
+                    assemblyHandlers.DocumentMessageHandlers.Keys.ToImmutableArray()));
+            }
+        }
+
+        private void EnsureGlobalLockIsOwned()
+        {
+            if (!Monitor.IsEntered(_extensionMessageHandlerService._lockObject))
+            {
+                throw new InvalidOperationException("Global lock should be owned");
+            }
+        }
     }
 
-    private readonly struct CustomMessageHandlerAssembly
+    private class AssemblyHandlers
     {
         /// <summary>
-        /// Gets the names of the document-specific handlers that can be passed to <see cref="HandleExtensionDocumentMessageAsync"/>.
+        /// Gets the document-specific handlers that can be passed to <see cref="HandleExtensionDocumentMessageAsync"/>, indexed by their name.
         /// </summary>
-        public required ImmutableHashSet<string> DocumentMessageHandlers { get; init; }
+        public required ImmutableDictionary<string, IExtensionDocumentMessageHandlerWrapper> DocumentMessageHandlers { get; init; }
 
         /// <summary>
-        /// Gets the names of the non-document-specific handlers that can be passed to <see cref="HandleExtensionWorkspaceMessageAsync"/>.
+        /// Gets the non-document-specific handlers that can be passed to <see cref="HandleExtensionWorkspaceMessageAsync"/>, indexed by their name.
         /// </summary>
-        public required ImmutableHashSet<string> WorkspaceMessageHandlers { get; init; }
+        public required ImmutableDictionary<string, IExtensionWorkspaceMessageHandlerWrapper> WorkspaceMessageHandlers { get; init; }
     }
 }
 #endif

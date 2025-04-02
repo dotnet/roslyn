@@ -13,11 +13,11 @@ namespace Microsoft.CodeAnalysis.Extensions;
 internal interface IExtensionMessageHandlerFactory
 {
     /// <summary>
-    /// Creates <see cref="IExtensionWorspaceMessageHandlerWrapper"/> instances for each <c>IExtensionWorkspaceMessageHandler</c> type in <paramref name="assembly"/>.
+    /// Creates <see cref="IExtensionWorkspaceMessageHandlerWrapper"/> instances for each <c>IExtensionWorkspaceMessageHandler</c> type in <paramref name="assembly"/>.
     /// </summary>
     /// <param name="assembly">The assembly to scan for handlers.</param>
     /// <returns>The handlers.</returns>
-    ImmutableArray<IExtensionWorspaceMessageHandlerWrapper> CreateWorkspaceMessageHandlers(Assembly assembly);
+    ImmutableArray<IExtensionWorkspaceMessageHandlerWrapper> CreateWorkspaceMessageHandlers(Assembly assembly);
 
     /// <summary>
     /// Creates <see cref="IExtensionDocumentMessageHandlerWrapper"/> instances for each <c>IExtensionDocumentMessageHandler</c> type in <paramref name="assembly"/>.

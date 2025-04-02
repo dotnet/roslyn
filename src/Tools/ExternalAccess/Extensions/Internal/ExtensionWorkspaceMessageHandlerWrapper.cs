@@ -9,13 +9,13 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Extensions;
 
-internal sealed class ExtensionWorspaceMessageHandlerWrapper : IExtensionWorspaceMessageHandlerWrapper
+internal sealed class ExtensionWorkspaceMessageHandlerWrapper : IExtensionWorkspaceMessageHandlerWrapper
 {
     private readonly object handler;
     private readonly MethodInfo executeAsyncMethod;
     private readonly PropertyInfo responseTaskResultProperty;
 
-    public ExtensionWorspaceMessageHandlerWrapper(object handler, Type iCustomMessageHandlerInterface)
+    public ExtensionWorkspaceMessageHandlerWrapper(object handler, Type iCustomMessageHandlerInterface)
     {
         this.handler = handler;
 
