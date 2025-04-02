@@ -14,18 +14,6 @@ namespace Microsoft.CodeAnalysis.Extensions;
 internal interface IExtensionMessageHandlerService : IWorkspaceService
 {
     /// <summary>
-    /// Registers extension message handlers from the specified assembly.
-    /// </summary>
-    /// <param name="solution">The solution object.</param>
-    /// <param name="assemblyFilePath">The assembly to register and create message handlers from.</param>
-    /// <param name="cancellationToken">Cancellation token to cancel the async operation.</param>
-    /// <returns>The names of the registered handlers.</returns>
-    ValueTask<RegisterExtensionResponse> RegisterExtensionAsync(
-        Solution solution,
-        string assemblyFilePath,
-        CancellationToken cancellationToken);
-
-    /// <summary>
     /// Executes a non-document-specific extension message handler with the given message and solution.
     /// </summary>
     /// <param name="solution">The solution the message refers to.</param>
@@ -51,6 +39,18 @@ internal interface IExtensionMessageHandlerService : IWorkspaceService
         Document documentId,
         string messageName,
         string jsonMessage,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Registers extension message handlers from the specified assembly.
+    /// </summary>
+    /// <param name="solution">The solution object.</param>
+    /// <param name="assemblyFilePath">The assembly to register and create message handlers from.</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the async operation.</param>
+    /// <returns>The names of the registered handlers.</returns>
+    ValueTask<RegisterExtensionResponse> RegisterExtensionAsync(
+        Solution solution,
+        string assemblyFilePath,
         CancellationToken cancellationToken);
 
     /// <summary>

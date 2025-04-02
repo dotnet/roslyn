@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Extensions;
 [Method(MethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class ExtensionUnregisterHandler()
+internal sealed class ExtensionUnregisterHandler()
     : ILspServiceNotificationHandler<ExtensionUnregisterParams>
 {
     private const string MethodName = "roslyn/extensionUnregister";

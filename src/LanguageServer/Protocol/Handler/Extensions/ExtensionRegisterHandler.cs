@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Extensions;
 [Method(MethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class ExtensionRegisterHandler()
+internal sealed class ExtensionRegisterHandler()
     : ILspServiceRequestHandler<ExtensionRegisterParams, ExtensionRegisterResponse>
 {
     private const string MethodName = "roslyn/extensionRegister";
@@ -48,7 +48,7 @@ internal class ExtensionRegisterHandler()
                 throw new InvalidOperationException("The remote message handler didn't return any value.");
             }
 
-            return new(response.Value.WorkspaceMessageHandlers.ToArray(), response.Value.DocumentMessageHandlers.ToArray());
+            return new(response.Value.WorkspaceMessageHandlers, response.Value.DocumentMessageHandlers);
         }
         else
         {
@@ -58,7 +58,7 @@ internal class ExtensionRegisterHandler()
                 request.AssemblyFilePath,
                 cancellationToken).ConfigureAwait(false);
 
-            return new(response.WorkspaceMessageHandlers.ToArray(), response.DocumentMessageHandlers.ToArray());
+            return new(response.WorkspaceMessageHandlers, response.DocumentMessageHandlers);
         }
     }
 }

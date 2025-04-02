@@ -38,9 +38,9 @@ internal sealed class ExtensionMessageHandlerFactory() : IExtensionMessageHandle
     {
         var resultBuilder = ImmutableArray.CreateBuilder<IExtensionWorkspaceMessageHandlerWrapper>();
 
-        foreach (var t in assembly.GetTypes())
+        foreach (var type in assembly.GetTypes())
         {
-            var (handler, handlerInterface) = CreateHandlerIfInterfaceIsImplemented(t, typeof(IExtensionWorkspaceMessageHandler<,>));
+            var (handler, handlerInterface) = CreateHandlerIfInterfaceIsImplemented(type, typeof(IExtensionWorkspaceMessageHandler<,>));
             if (handler is null || handlerInterface is null)
             {
                 continue;
@@ -61,18 +61,18 @@ internal sealed class ExtensionMessageHandlerFactory() : IExtensionMessageHandle
         }
 
         Type? boundInterfaceType = null;
-        foreach (var i in candidateType.GetInterfaces())
+        foreach (var interfaceType in candidateType.GetInterfaces())
         {
-            if (i.IsGenericType &&
-                !i.IsGenericTypeDefinition &&
-                i.GetGenericTypeDefinition() == unboundInterfaceType)
+            if (interfaceType.IsGenericType &&
+                !interfaceType.IsGenericTypeDefinition &&
+                interfaceType.GetGenericTypeDefinition() == unboundInterfaceType)
             {
                 if (boundInterfaceType is not null)
                 {
                     throw new InvalidOperationException($"Type {candidateType.FullName} implements interface {unboundInterfaceType.Name} more than once.");
                 }
 
-                boundInterfaceType = i;
+                boundInterfaceType = interfaceType;
             }
         }
 

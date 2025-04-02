@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.Extensions;
 /// <summary>
 /// Immutable representation of a line number and position within a document.
 /// </summary>
+/// <remarks>This type meant to be used exclusively by VisualStudio.Extensibility extensions.</remarks>
 public readonly struct DocumentLinePosition
 {
     /// <summary>

@@ -82,11 +82,11 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         AddService<ILspLogger>(logger);
         AddService<AbstractLspLogger>(logger);
         AddService<ICapabilitiesProvider>(capabilitiesProvider);
-        AddLazyService<ILifeCycleManager>((lspServices) => lspServices.GetRequiredService<LspServiceLifeCycleManager>());
+        AddLazyService<ILifeCycleManager>(lspServices => lspServices.GetRequiredService<LspServiceLifeCycleManager>());
         AddService(new ServerInfoProvider(serverKind, supportedLanguages));
-        AddLazyService<AbstractRequestContextFactory<RequestContext>>((lspServices) => new RequestContextFactory(lspServices));
-        AddLazyService<AbstractTelemetryService>((lspServices) => new TelemetryService(lspServices));
-        AddLazyService<AbstractHandlerProvider>((_) => HandlerProvider);
+        AddLazyService<AbstractRequestContextFactory<RequestContext>>(lspServices => new RequestContextFactory(lspServices));
+        AddLazyService<AbstractTelemetryService>(lspServices => new TelemetryService(lspServices));
+        AddLazyService<AbstractHandlerProvider>(_ => HandlerProvider);
         AddService<IInitializeManager>(new InitializeManager());
         AddService<IMethodHandler>(new InitializeHandler());
         AddService<IMethodHandler>(new InitializedHandler());
