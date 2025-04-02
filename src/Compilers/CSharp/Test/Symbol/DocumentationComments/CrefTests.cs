@@ -5819,12 +5819,9 @@ class C { }
 
             // Just don't blow up.
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
-                // (2,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator }}='
+                // (2,16): warning CS1574: XML comment has cref attribute 'operator }}=' that could not be resolved
                 // /// <see cref="operator }}="/>
-                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator").WithArguments("operator }}="),
-                // (2,24): warning CS1658: Overloadable operator expected. See also error CS1037.
-                // /// <see cref="operator }}="/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, " }}").WithArguments("Overloadable operator expected", "1037"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "operator }}=").WithArguments("operator }}=").WithLocation(2, 16));
         }
 
         [WorkItem(554077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554077")]
