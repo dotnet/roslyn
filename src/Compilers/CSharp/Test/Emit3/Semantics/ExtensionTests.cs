@@ -32572,4 +32572,71 @@ class C<@extension> { }
             // using @extension = int;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using @extension = int;").WithLocation(1, 1));
     }
+
+    [Fact]
+    public void CallerAttribute_01()
+    {
+        var src = """
+"".M();
+
+static class E
+{
+    extension([System.Runtime.CompilerServices.CallerMemberName] string name = "")
+    {
+        public void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,15): error CS9284: The receiver parameter of an extension cannot have a default value
+            //     extension([System.Runtime.CompilerServices.CallerMemberName] string name = "")
+            Diagnostic(ErrorCode.ERR_ExtensionParameterDisallowsDefaultValue, @"[System.Runtime.CompilerServices.CallerMemberName] string name = """"").WithLocation(5, 15));
+    }
+
+    [Fact]
+    public void ConditionalAttribute_01()
+    {
+        var src = """
+42.M();
+42.M2();
+
+static class E
+{
+    extension(int i)
+    {
+        [System.Diagnostics.Conditional("DEBUG")]
+        public void M() { System.Console.Write("ran "); }
+    }
+
+    [System.Diagnostics.Conditional("DEBUG")]
+    public static void M2(this int i) { System.Console.Write("ran"); }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "");
+
+        src = """
+#define DEBUG
+
+42.M();
+42.M2();
+
+static class E
+{
+    extension(int i)
+    {
+        [System.Diagnostics.Conditional("DEBUG")]
+        public void M() { System.Console.Write("ran "); }
+    }
+
+    [System.Diagnostics.Conditional("DEBUG")]
+    public static void M2(this int i) { System.Console.Write("ran"); }
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran ran");
+    }
 }
