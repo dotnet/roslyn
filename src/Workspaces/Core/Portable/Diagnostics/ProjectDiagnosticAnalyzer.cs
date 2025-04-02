@@ -5,39 +5,20 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
 /// <summary>
-/// IDE-only document based diagnostic analyzer.
+/// IDE-only project based diagnostic analyzer.
 /// </summary>
-internal abstract class DocumentDiagnosticAnalyzer : DiagnosticAnalyzer
+internal abstract class ProjectDiagnosticAnalyzer : DiagnosticAnalyzer
 {
     public const int DefaultPriority = 50;
 
-    public virtual Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(TextDocument textDocument, SyntaxTree? tree, CancellationToken cancellationToken)
-    {
-        return textDocument is Document document
-            ? AnalyzeSyntaxAsync(document, cancellationToken)
-            : SpecializedTasks.EmptyImmutableArray<Diagnostic>();
-    }
-
-    public virtual Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(TextDocument textDocument, SyntaxTree? tree, CancellationToken cancellationToken)
-    {
-        return textDocument is Document document
-            ? AnalyzeSemanticsAsync(document, cancellationToken)
-            : SpecializedTasks.EmptyImmutableArray<Diagnostic>();
-    }
-
-    public virtual Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
-        => SpecializedTasks.EmptyImmutableArray<Diagnostic>();
-
-    public virtual Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
-        => SpecializedTasks.EmptyImmutableArray<Diagnostic>();
+    public abstract Task<ImmutableArray<Diagnostic>> AnalyzeProjectAsync(Project project, CancellationToken cancellationToken);
 
     /// <summary>
-    /// it is not allowed one to implement both DocumentDiagnosticAnalzyer and DiagnosticAnalyzer
+    /// it is not allowed one to implement both ProjectDiagnosticAnalzyer and DiagnosticAnalyzer
     /// </summary>
 #pragma warning disable RS1026 // Enable concurrent execution
 #pragma warning disable RS1025 // Configure generated code analysis
