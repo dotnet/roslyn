@@ -308,8 +308,8 @@ internal sealed class ExtensionMessageHandlerService(IExtensionMessageHandlerFac
             // All other concurrent operations, including modifying extension.Assemblies are protected by _lockObject.
             lock (_assemblyLoadLockObject)
             {
-                AssemblyHandlers? assemblyHandlers = null;
-
+                AssemblyHandlers assemblyHandlers;
+                Exception? exception = null;
                 try
                 {
                     var assembly = AnalyzerAssemblyLoader.LoadFromPath(assemblyFilePath);
@@ -328,18 +328,21 @@ internal sealed class ExtensionMessageHandlerService(IExtensionMessageHandlerFac
                     // We don't add assemblyHandlers to _assemblies here and instead let _extensionMessageHandlerService.RegisterAssembly do it
                     // since RegisterAssembly can still fail if there are duplicated handler names.
                 }
-                catch (Exception e) when (FatalError.ReportAndPropagate(e, ErrorSeverity.General))
+                catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.General))
                 {
-                    // unreachable
+                    exception = e;
+                    throw;
                 }
                 finally
                 {
                     // In case of exception, we cache null so that we don't try to load the same assembly again.
-                    _extensionMessageHandlerService.RegisterAssembly(this, assemblyFileName, assemblyHandlers);
+                    _extensionMessageHandlerService.RegisterAssembly(this, assemblyFileName, exception is null ? assemblyHandlers : null);
                 }
 
+                // The return is here, after RegisterAssembly, since RegisterAssembly can also throw an exception: the registration is not
+                // completed until RegisterAssembly returns.
                 return ValueTask.FromResult<RegisterExtensionResponse>(new(
-                    assemblyHandlers!.WorkspaceMessageHandlers.Keys.ToImmutableArray(),
+                    assemblyHandlers.WorkspaceMessageHandlers.Keys.ToImmutableArray(),
                     assemblyHandlers.DocumentMessageHandlers.Keys.ToImmutableArray()));
             }
         }
