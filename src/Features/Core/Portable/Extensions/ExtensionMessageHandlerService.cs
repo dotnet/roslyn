@@ -195,16 +195,7 @@ internal sealed class ExtensionMessageHandlerService : IExtensionMessageHandlerS
         return ValueTask.CompletedTask;
     }
 
-    public ValueTask ResetAsync(CancellationToken cancellationToken)
-    {
-        Clear();
-        return ValueTask.CompletedTask;
-    }
-
-    public void Dispose()
-        => Clear();
-
-    private void Clear()
+    public void Reset()
     {
         List<Extension> extensions;
         lock (_lockObject)
@@ -220,6 +211,9 @@ internal sealed class ExtensionMessageHandlerService : IExtensionMessageHandlerS
             extension.AnalyzerAssemblyLoader.Dispose();
         }
     }
+
+    public void Dispose()
+        => Reset();
 
     private void RegisterAssembly(Extension extension, string assemblyFileName, AssemblyHandlers? assemblyHandlers)
     {

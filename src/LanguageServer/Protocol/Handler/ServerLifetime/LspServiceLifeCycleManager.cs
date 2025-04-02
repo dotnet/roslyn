@@ -54,7 +54,7 @@ internal sealed class LspServiceLifeCycleManager : ILifeCycleManager, ILspServic
             else
             {
                 var service = hostWorkspace.Services.GetRequiredService<IExtensionMessageHandlerService>();
-                await service.ResetAsync(CancellationToken.None).ConfigureAwait(false);
+                service.Reset();
             }
         }
 

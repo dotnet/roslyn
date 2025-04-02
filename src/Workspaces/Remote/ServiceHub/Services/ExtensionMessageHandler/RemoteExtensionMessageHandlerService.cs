@@ -100,8 +100,11 @@ internal sealed partial class RemoteExtensionMessageHandlerService : BrokeredSer
     {
         var service = this.GetWorkspace().Services.GetRequiredService<IExtensionMessageHandlerService>();
         return RunServiceAsync(
-            (_) => service.ResetAsync(
-                cancellationToken),
+            (_) =>
+            {
+                service.Reset();
+                return default;
+            },
             cancellationToken);
     }
 }

@@ -66,8 +66,5 @@ internal interface IExtensionMessageHandlerService : IWorkspaceService
     /// <summary>
     /// Unregisters all extension message handlers.
     /// </summary>
-    /// <param name="cancellationToken">Cancellation token to cancel the async operation.</param>
-    /// <returns>A task representing the async operation.</returns>
-    ValueTask ResetAsync(
-        CancellationToken cancellationToken);
+    void Reset();
 }
