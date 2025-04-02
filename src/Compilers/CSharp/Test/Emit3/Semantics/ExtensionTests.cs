@@ -31551,6 +31551,104 @@ static class C
     }
 
     [Fact]
+    public void ReceiverParameterValidation_CancellationTokenParameter_Static_FirstParameter()
+    {
+        string source = """
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
+
+static class C
+{
+    extension(int)
+    {
+        static async System.Collections.Generic.IAsyncEnumerable<int> Iter([EnumeratorCancellation] CancellationToken token)
+        {
+            _ = token.IsCancellationRequested;
+            yield return 0;
+            await Task.Yield();
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+        comp.VerifyDiagnostics();
+
+        var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify);
+        verifier.VerifyIL("C.<Iter>d__1.System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)", """
+{
+  // Code size      176 (0xb0)
+  .maxstack  3
+  .locals init (C.<Iter>d__1 V_0,
+                System.Threading.CancellationToken V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<Iter>d__1.<>1__state"
+  IL_0006:  ldc.i4.s   -2
+  IL_0008:  bne.un.s   IL_0035
+  IL_000a:  ldarg.0
+  IL_000b:  ldfld      "int C.<Iter>d__1.<>l__initialThreadId"
+  IL_0010:  call       "int System.Environment.CurrentManagedThreadId.get"
+  IL_0015:  bne.un.s   IL_0035
+  IL_0017:  ldarg.0
+  IL_0018:  ldc.i4.s   -3
+  IL_001a:  stfld      "int C.<Iter>d__1.<>1__state"
+  IL_001f:  ldarg.0
+  IL_0020:  call       "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create()"
+  IL_0025:  stfld      "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<Iter>d__1.<>t__builder"
+  IL_002a:  ldarg.0
+  IL_002b:  ldc.i4.0
+  IL_002c:  stfld      "bool C.<Iter>d__1.<>w__disposeMode"
+  IL_0031:  ldarg.0
+  IL_0032:  stloc.0
+  IL_0033:  br.s       IL_003d
+  IL_0035:  ldc.i4.s   -3
+  IL_0037:  newobj     "C.<Iter>d__1..ctor(int)"
+  IL_003c:  stloc.0
+  IL_003d:  ldarg.0
+  IL_003e:  ldflda     "System.Threading.CancellationToken C.<Iter>d__1.<>3__token"
+  IL_0043:  ldloca.s   V_1
+  IL_0045:  initobj    "System.Threading.CancellationToken"
+  IL_004b:  ldloc.1
+  IL_004c:  call       "bool System.Threading.CancellationToken.Equals(System.Threading.CancellationToken)"
+  IL_0051:  brfalse.s  IL_005c
+  IL_0053:  ldloc.0
+  IL_0054:  ldarg.1
+  IL_0055:  stfld      "System.Threading.CancellationToken C.<Iter>d__1.token"
+  IL_005a:  br.s       IL_00ae
+  IL_005c:  ldarga.s   V_1
+  IL_005e:  ldarg.0
+  IL_005f:  ldfld      "System.Threading.CancellationToken C.<Iter>d__1.<>3__token"
+  IL_0064:  call       "bool System.Threading.CancellationToken.Equals(System.Threading.CancellationToken)"
+  IL_0069:  brtrue.s   IL_007d
+  IL_006b:  ldarga.s   V_1
+  IL_006d:  ldloca.s   V_1
+  IL_006f:  initobj    "System.Threading.CancellationToken"
+  IL_0075:  ldloc.1
+  IL_0076:  call       "bool System.Threading.CancellationToken.Equals(System.Threading.CancellationToken)"
+  IL_007b:  brfalse.s  IL_008b
+  IL_007d:  ldloc.0
+  IL_007e:  ldarg.0
+  IL_007f:  ldfld      "System.Threading.CancellationToken C.<Iter>d__1.<>3__token"
+  IL_0084:  stfld      "System.Threading.CancellationToken C.<Iter>d__1.token"
+  IL_0089:  br.s       IL_00ae
+  IL_008b:  ldarg.0
+  IL_008c:  ldarg.0
+  IL_008d:  ldfld      "System.Threading.CancellationToken C.<Iter>d__1.<>3__token"
+  IL_0092:  ldarg.1
+  IL_0093:  call       "System.Threading.CancellationTokenSource System.Threading.CancellationTokenSource.CreateLinkedTokenSource(System.Threading.CancellationToken, System.Threading.CancellationToken)"
+  IL_0098:  stfld      "System.Threading.CancellationTokenSource C.<Iter>d__1.<>x__combinedTokens"
+  IL_009d:  ldloc.0
+  IL_009e:  ldarg.0
+  IL_009f:  ldfld      "System.Threading.CancellationTokenSource C.<Iter>d__1.<>x__combinedTokens"
+  IL_00a4:  callvirt   "System.Threading.CancellationToken System.Threading.CancellationTokenSource.Token.get"
+  IL_00a9:  stfld      "System.Threading.CancellationToken C.<Iter>d__1.token"
+  IL_00ae:  ldloc.0
+  IL_00af:  ret
+}
+""");
+    }
+
+    [Fact]
     public void ReceiverParameterValidation_CancellationTokenParameter_Instance()
     {
         string source = """
@@ -32402,6 +32500,8 @@ static class E
     }
 }
 """;
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130
+        // FindEntryPoint should not attempt to find types with an empty name
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("E."));
         comp.VerifyEmitDiagnostics(
             // (3,5): error CS1556: 'E.extension(int)' specified for Main method must be a non-generic class, record, struct, or interface

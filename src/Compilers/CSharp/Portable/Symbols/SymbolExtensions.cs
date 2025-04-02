@@ -827,7 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsExtensionParameterImplementation(this ParameterSymbol parameter)
         {
-            Debug.Assert(parameter.ContainingSymbol.IsDefinition);
+            Debug.Assert(parameter.IsDefinition);
             return parameter.ContainingSymbol is SourceExtensionImplementationMethodSymbol implementationMethod
                 && !implementationMethod.UnderlyingMethod.IsStatic
                 && parameter.Ordinal == 0;
