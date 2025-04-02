@@ -23,17 +23,16 @@ internal sealed partial class RemoteExtensionMessageHandlerService : BrokeredSer
     }
 
     public ValueTask<RegisterExtensionResponse> RegisterExtensionAsync(
-        Checksum solutionChecksum,
         string assemblyFilePath,
         CancellationToken cancellationToken)
     {
+        var workspace = this.GetWorkspace();
+        var service = workspace.Services.GetRequiredService<IExtensionMessageHandlerService>();
         return RunServiceAsync(
-            solutionChecksum,
-            solution =>
+            (_) =>
             {
-                var service = solution.Services.GetRequiredService<IExtensionMessageHandlerService>();
                 return service.RegisterExtensionAsync(
-                    solution,
+                    workspace,
                     assemblyFilePath,
                     cancellationToken);
             },

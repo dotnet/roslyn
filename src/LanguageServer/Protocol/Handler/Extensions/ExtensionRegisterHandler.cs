@@ -4,7 +4,6 @@
 
 using System;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Extensions;
@@ -36,9 +35,7 @@ internal sealed class ExtensionRegisterHandler()
         if (client is not null)
         {
             var response = await client.TryInvokeAsync<IRemoteExtensionMessageHandlerService, RegisterExtensionResponse>(
-                solution,
-                (service, solutionInfo, cancellationToken) => service.RegisterExtensionAsync(
-                    solutionInfo,
+                (service, cancellationToken) => service.RegisterExtensionAsync(
                     request.AssemblyFilePath,
                     cancellationToken),
                 cancellationToken).ConfigureAwait(false);
@@ -54,7 +51,7 @@ internal sealed class ExtensionRegisterHandler()
         {
             var service = solution.Services.GetRequiredService<IExtensionMessageHandlerService>();
             var response = await service.RegisterExtensionAsync(
-                solution,
+                solution.Workspace,
                 request.AssemblyFilePath,
                 cancellationToken).ConfigureAwait(false);
 

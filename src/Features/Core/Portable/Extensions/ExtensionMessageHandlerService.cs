@@ -46,7 +46,7 @@ internal sealed class ExtensionMessageHandlerService(IExtensionMessageHandlerFac
     private readonly object _lockObject = new();
 
     public ValueTask<RegisterExtensionResponse> RegisterExtensionAsync(
-        Solution solution,
+        Workspace workspace,
         string assemblyFilePath,
         CancellationToken cancellationToken)
     {
@@ -54,7 +54,7 @@ internal sealed class ExtensionMessageHandlerService(IExtensionMessageHandlerFac
         var assemblyFolderPath = Path.GetDirectoryName(assemblyFilePath)
             ?? throw new InvalidOperationException($"Unable to get the directory name for {assemblyFilePath}.");
 
-        var analyzerAssemblyLoaderProvider = solution.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+        var analyzerAssemblyLoaderProvider = workspace.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
 
         Extension? extension;
         lock (_lockObject)
@@ -244,8 +244,17 @@ internal sealed class ExtensionMessageHandlerService(IExtensionMessageHandlerFac
         }
     }
 
-    private sealed class Extension(ExtensionMessageHandlerService extensionMessageHandlerService, IAnalyzerAssemblyLoaderInternal analyzerAssemblyLoader, string assemblyFolderPath)
+    private sealed class Extension(
+        ExtensionMessageHandlerService extensionMessageHandlerService,
+        IAnalyzerAssemblyLoaderInternal analyzerAssemblyLoader,
+        string assemblyFolderPath)
     {
+        private readonly ExtensionMessageHandlerService _extensionMessageHandlerService = extensionMessageHandlerService;
+
+        public readonly IAnalyzerAssemblyLoaderInternal AnalyzerAssemblyLoader = analyzerAssemblyLoader;
+
+        public readonly string AssemblyFolderPath = assemblyFolderPath;
+
         /// <summary>
         /// Gets the object that is used to lock in order to avoid multiple calls from the same extensions to load the same assembly concurrently
         /// resulting in the constructors of the same handlers being called more than once.
@@ -255,12 +264,6 @@ internal sealed class ExtensionMessageHandlerService(IExtensionMessageHandlerFac
         private readonly object _assemblyLoadLockObject = new();
 
         private readonly Dictionary<string, AssemblyHandlers?> _assemblies = new();
-
-        private readonly ExtensionMessageHandlerService _extensionMessageHandlerService = extensionMessageHandlerService;
-
-        public IAnalyzerAssemblyLoaderInternal AnalyzerAssemblyLoader { get; } = analyzerAssemblyLoader;
-
-        public string AssemblyFolderPath { get; } = assemblyFolderPath;
 
         public void SetAssemblyHandlers(string assemblyFileName, AssemblyHandlers? value)
         {

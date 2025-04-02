@@ -44,12 +44,11 @@ internal interface IExtensionMessageHandlerService : IWorkspaceService
     /// <summary>
     /// Registers extension message handlers from the specified assembly.
     /// </summary>
-    /// <param name="solution">The solution object.</param>
     /// <param name="assemblyFilePath">The assembly to register and create message handlers from.</param>
     /// <param name="cancellationToken">Cancellation token to cancel the async operation.</param>
     /// <returns>The names of the registered handlers.</returns>
     ValueTask<RegisterExtensionResponse> RegisterExtensionAsync(
-        Solution solution,
+        Workspace workspace,
         string assemblyFilePath,
         CancellationToken cancellationToken);
 
