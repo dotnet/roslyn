@@ -1763,58 +1763,22 @@ public static class Extensions
     [Fact]
     public void Member_InstanceIndexer_Metadata()
     {
-        //extension(int i)
-        //{
-        //    public int this[int j] { get => i + j; set { } }
-        //}
-        string ilSrc = """
-.class private auto ansi abstract sealed beforefieldinit E
-    extends [mscorlib]System.Object
+        string libSrc = """
+public static class E
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
-        extends [mscorlib]System.Object
+    extension(int i)
     {
-        .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = ( 01 00 04 49 74 65 6d 00 00 )
-        .method private hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
-        {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-            IL_0000: ret
-        }
-        .method public hidebysig specialname instance int32 get_Item ( int32 j ) cil managed 
-        {
-            IL_0000: ldnull
-            IL_0001: throw
-        }
-        .method public hidebysig specialname instance void set_Item ( int32 j, int32 'value' ) cil managed 
-        {
-            IL_0000: ldnull
-            IL_0001: throw
-        }
-        .property instance int32 Item( int32 j )
-        {
-            .get instance int32 E/'<>E__0'::get_Item(int32)
-            .set instance void E/'<>E__0'::set_Item(int32, int32)
-        }
-    }
-    .method public hidebysig specialname static int32 get_Item ( int32 i, int32 j ) cil managed 
-    {
-        IL_0000: ldarg.0
-        IL_0001: ldarg.1
-        IL_0002: add
-        IL_0003: ret
-    }
-    .method public hidebysig specialname static void set_Item ( int32 i, int32 j, int32 'value' ) cil managed 
-    {
-        IL_0000: ret
+        public int this[int j] { get => i + j; set { } }
     }
 }
 """;
+        var libComp = CreateCompilation(libSrc);
+
         string source = """
 System.Console.Write(42[1]);
 """;
         // Tracked by https://github.com/dotnet/roslyn/issues/76130 : add full support for indexers or disallow them
-        var comp = CreateCompilationWithIL(source, ilSrc);
+        var comp = CreateCompilation(source, references: [libComp.EmitToImageReference()]);
         comp.VerifyEmitDiagnostics(
             // (1,22): error CS0021: Cannot apply indexing with [] to an expression of type 'int'
             // System.Console.Write(42[1]);
@@ -15034,7 +14998,7 @@ static class E
 {
     extension(ref MyCollection c)
     {
-        public void Add(int i) { System.Console.Write("ran "); c = new MyCollection() { field = 42 }; }
+        public void Add(int i) { System.Console.Write("ran "); c = new MyCollection() { field = i }; }
     }
 }
 
@@ -31785,6 +31749,7 @@ static class E
         public static void M4() { }
         public int P3 => 0; // 2
         public static int P4 => 0;
+        public int this[int j] => 0; // 3
     }
 }
 """;
@@ -31795,7 +31760,10 @@ static class E
             Diagnostic(ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter, "M3").WithArguments("M3").WithLocation(12, 21),
             // (14,20): error CS9303: 'P3': cannot declare instance members in an extension block with an unnamed receiver parameter
             //         public int P3 => 0; // 2
-            Diagnostic(ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter, "P3").WithArguments("P3").WithLocation(14, 20));
+            Diagnostic(ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter, "P3").WithArguments("P3").WithLocation(14, 20),
+            // (16,20): error CS9303: 'this[]': cannot declare instance members in an extension block with an unnamed receiver parameter
+            //         public int this[int j] => 0; // 3
+            Diagnostic(ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter, "this").WithArguments("this[]").WithLocation(16, 20));
     }
 
     [Fact]
@@ -32009,6 +31977,7 @@ static class E
         public abstract void M();
         public abstract int P { get; }
         public abstract int P2 { set; }
+        public abstract int this[int j] { get; }
     }
 }
 """;
@@ -32034,7 +32003,13 @@ static class E
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "P2").WithLocation(7, 29),
             // (7,34): error CS8051: Auto-implemented properties must have get accessors.
             //         public abstract int P2 { set; }
-            Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithLocation(7, 34));
+            Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithLocation(7, 34),
+            // (8,29): error CS0106: The modifier 'abstract' is not valid for this item
+            //         public abstract int this[int j] { get; }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("abstract").WithLocation(8, 29),
+            // (8,43): error CS0501: 'E.extension(int).this[int].get' must declare a body because it is not marked abstract, extern, or partial
+            //         public abstract int this[int j] { get; }
+            Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("E.extension(int).this[int].get").WithLocation(8, 43));
     }
 
     [Fact]
@@ -32047,6 +32022,7 @@ static class E
     {
         public new string ToString() => "";
         public new int P { get => 0; }
+        public new int this[int j] { get => 0; }
     }
 }
 """;
@@ -32057,7 +32033,10 @@ static class E
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "ToString").WithArguments("new").WithLocation(5, 27),
             // (6,24): error CS0106: The modifier 'new' is not valid for this item
             //         public new int P { get => 0; }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("new").WithLocation(6, 24));
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("new").WithLocation(6, 24),
+            // (7,24): error CS0106: The modifier 'new' is not valid for this item
+            //         public new int this[int j] { get => 0; }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("new").WithLocation(7, 24));
     }
 
     [Fact]
@@ -32070,6 +32049,7 @@ static class E
     {
         public override string ToString() => "";
         public override int P { get => 0; }
+        public override int this[int j] { get => 0; }
     }
 }
 """;
@@ -32080,7 +32060,10 @@ static class E
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "ToString").WithArguments("override").WithLocation(5, 32),
             // (6,29): error CS0106: The modifier 'override' is not valid for this item
             //         public override int P { get => 0; }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("override").WithLocation(6, 29));
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("override").WithLocation(6, 29),
+            // (7,29): error CS0106: The modifier 'override' is not valid for this item
+            //         public override int this[int j] { get => 0; }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("override").WithLocation(7, 29));
     }
 
     [Fact]
@@ -32095,6 +32078,8 @@ static class E
         partial void M() { }
         partial int P { get; set; }
         partial int P { get => 0; set { } }
+        partial int this[int j] { get; }
+        partial int this[int j] { get => 0; }
     }
 }
 """;
@@ -32106,18 +32091,12 @@ static class E
             // (6,22): error CS0751: A partial member must be declared within a partial type
             //         partial void M() { }
             Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "M").WithLocation(6, 22),
-            // (7,9): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            // (7,21): error CS0751: A partial member must be declared within a partial type
             //         partial int P { get; set; }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(7, 9),
-            // (7,21): error CS9282: Extension declarations can include only methods or properties
-            //         partial int P { get; set; }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "P").WithLocation(7, 21),
-            // (8,9): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-            //         partial int P { get => 0; set { } }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(8, 9),
-            // (8,21): error CS0102: The type 'E' already contains a definition for 'P'
-            //         partial int P { get => 0; set { } }
-            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("E", "P").WithLocation(8, 21));
+            Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "P").WithLocation(7, 21),
+            // (9,21): error CS0751: A partial member must be declared within a partial type
+            //         partial int this[int j] { get; }
+            Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "this").WithLocation(9, 21));
     }
 
     [Fact]
@@ -32130,6 +32109,7 @@ static class E
     {
         sealed void M() { }
         sealed int P { get => 0; set { } }
+        sealed int this[int j] { get => 0; }
     }
 }
 """;
@@ -32140,7 +32120,10 @@ static class E
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("sealed").WithLocation(5, 21),
             // (6,20): error CS0106: The modifier 'sealed' is not valid for this item
             //         sealed int P { get => 0; set { } }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("sealed").WithLocation(6, 20));
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("sealed").WithLocation(6, 20),
+            // (7,20): error CS0106: The modifier 'sealed' is not valid for this item
+            //         sealed int this[int j] { get => 0; }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("sealed").WithLocation(7, 20));
     }
 
     [Fact]
@@ -32154,6 +32137,7 @@ static class E
         readonly void M() { }
         readonly int P { get => 0; set { } }
         int P2 { readonly get => 0; readonly set { } }
+        readonly int this[int j] { get => 0; }
     }
 }
 """;
@@ -32170,7 +32154,10 @@ static class E
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("readonly").WithLocation(7, 27),
             // (7,46): error CS0106: The modifier 'readonly' is not valid for this item
             //         int P2 { readonly get => 0; readonly set { } }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("readonly").WithLocation(7, 46));
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("readonly").WithLocation(7, 46),
+            // (8,22): error CS0106: The modifier 'readonly' is not valid for this item
+            //         readonly int this[int j] { get => 0; }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("readonly").WithLocation(8, 22));
     }
 
     [Fact]
@@ -32183,6 +32170,7 @@ static class E
     {
         required void M() { }
         required int P { get => 0; set { } }
+        required int this[int j] { get => 0; }
     }
 }
 """;
@@ -32193,7 +32181,10 @@ static class E
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("required").WithLocation(5, 23),
             // (6,22): error CS0106: The modifier 'required' is not valid for this item
             //         required int P { get => 0; set { } }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("required").WithLocation(6, 22));
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("required").WithLocation(6, 22),
+            // (7,22): error CS0106: The modifier 'required' is not valid for this item
+            //         required int this[int j] { get => 0; }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("required").WithLocation(7, 22));
     }
 
     [Fact]
@@ -32206,6 +32197,7 @@ static class E
     {
         extern void M() { }
         extern int P { get => 0; set { } }
+        extern int this[int j] { get => 0; }
     }
 }
 """;
@@ -32216,7 +32208,10 @@ static class E
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("extern").WithLocation(5, 21),
             // (6,20): error CS0106: The modifier 'extern' is not valid for this item
             //         extern int P { get => 0; set { } }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("extern").WithLocation(6, 20));
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("extern").WithLocation(6, 20),
+            // (7,20): error CS0106: The modifier 'extern' is not valid for this item
+            //         extern int this[int j] { get => 0; }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("extern").WithLocation(7, 20));
     }
 
     [Fact]
@@ -32229,6 +32224,7 @@ static class E
     {
         unsafe int* M() => throw null;
         unsafe int* P { get => throw null; set { } }
+        unsafe int* this[int j] { get => throw null; }
     }
 }
 """;
@@ -32248,6 +32244,8 @@ static class E
         protected int P { get => 0; set { } }
         public int P2 { protected get => 0; set { } }
         public int P3 { get => 0; protected set { } }
+        protected int this[int j] { get => throw null; }
+        public int this[int j, int k] { protected get => throw null; set { } }
     }
 }
 """;
@@ -32264,7 +32262,13 @@ static class E
             Diagnostic(ErrorCode.ERR_ProtectedInExtension, "get").WithArguments("E.extension(int).P2.get").WithLocation(7, 35),
             // (8,45): error CS9302: 'E.extension(int).P3.set': new protected member declared in an extension block
             //         public int P3 { get => 0; protected set { } }
-            Diagnostic(ErrorCode.ERR_ProtectedInExtension, "set").WithArguments("E.extension(int).P3.set").WithLocation(8, 45));
+            Diagnostic(ErrorCode.ERR_ProtectedInExtension, "set").WithArguments("E.extension(int).P3.set").WithLocation(8, 45),
+            // (9,23): error CS9302: 'E.extension(int).this[int]': new protected member declared in an extension block
+            //         protected int this[int j] { get => throw null; }
+            Diagnostic(ErrorCode.ERR_ProtectedInExtension, "this").WithArguments("E.extension(int).this[int]").WithLocation(9, 23),
+            // (10,51): error CS9302: 'E.extension(int).this[int, int].get': new protected member declared in an extension block
+            //         public int this[int j, int k] { protected get => throw null; set { } }
+            Diagnostic(ErrorCode.ERR_ProtectedInExtension, "get").WithArguments("E.extension(int).this[int, int].get").WithLocation(10, 51));
     }
 
     [Fact]
@@ -32279,6 +32283,8 @@ static class E
         protected internal int P { get => 0; set { } }
         public int P2 { protected internal get => 0; set { } }
         public int P3 { get => 0; protected internal set { } }
+        protected internal int this[int j] { get => throw null; }
+        public int this[int j, int k] { protected internal get => throw null; set { } }
     }
 }
 """;
@@ -32295,7 +32301,52 @@ static class E
             Diagnostic(ErrorCode.ERR_ProtectedInExtension, "get").WithArguments("E.extension(int).P2.get").WithLocation(7, 44),
             // (8,54): error CS9302: 'E.extension(int).P3.set': new protected member declared in an extension block
             //         public int P3 { get => 0; protected internal set { } }
-            Diagnostic(ErrorCode.ERR_ProtectedInExtension, "set").WithArguments("E.extension(int).P3.set").WithLocation(8, 54));
+            Diagnostic(ErrorCode.ERR_ProtectedInExtension, "set").WithArguments("E.extension(int).P3.set").WithLocation(8, 54),
+            // (9,32): error CS9302: 'E.extension(int).this[int]': new protected member declared in an extension block
+            //         protected internal int this[int j] { get => throw null; }
+            Diagnostic(ErrorCode.ERR_ProtectedInExtension, "this").WithArguments("E.extension(int).this[int]").WithLocation(9, 32),
+            // (10,60): error CS9302: 'E.extension(int).this[int, int].get': new protected member declared in an extension block
+            //         public int this[int j, int k] { protected internal get => throw null; set { } }
+            Diagnostic(ErrorCode.ERR_ProtectedInExtension, "get").WithArguments("E.extension(int).this[int, int].get").WithLocation(10, 60));
+    }
+
+    [Fact]
+    public void Validation_Modifiers_PrivateProtected()
+    {
+        string source = """
+static class E
+{
+    extension(int i)
+    {
+        private protected void M() { }
+        private protected int P { get => 0; set { } }
+        public int P2 { private protected get => 0; set { } }
+        public int P3 { get => 0; private protected set { } }
+        private protected int this[int j] { get => throw null; }
+        public int this[int j, int k] { private protected get => throw null; set { } }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (5,32): error CS9302: 'E.extension(int).M()': new protected member declared in an extension block
+            //         private protected void M() { }
+            Diagnostic(ErrorCode.ERR_ProtectedInExtension, "M").WithArguments("E.extension(int).M()").WithLocation(5, 32),
+            // (6,31): error CS9302: 'E.extension(int).P': new protected member declared in an extension block
+            //         private protected int P { get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_ProtectedInExtension, "P").WithArguments("E.extension(int).P").WithLocation(6, 31),
+            // (7,43): error CS9302: 'E.extension(int).P2.get': new protected member declared in an extension block
+            //         public int P2 { private protected get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_ProtectedInExtension, "get").WithArguments("E.extension(int).P2.get").WithLocation(7, 43),
+            // (8,53): error CS9302: 'E.extension(int).P3.set': new protected member declared in an extension block
+            //         public int P3 { get => 0; private protected set { } }
+            Diagnostic(ErrorCode.ERR_ProtectedInExtension, "set").WithArguments("E.extension(int).P3.set").WithLocation(8, 53),
+            // (9,31): error CS9302: 'E.extension(int).this[int]': new protected member declared in an extension block
+            //         private protected int this[int j] { get => throw null; }
+            Diagnostic(ErrorCode.ERR_ProtectedInExtension, "this").WithArguments("E.extension(int).this[int]").WithLocation(9, 31),
+            // (10,59): error CS9302: 'E.extension(int).this[int, int].get': new protected member declared in an extension block
+            //         public int this[int j, int k] { private protected get => throw null; set { } }
+            Diagnostic(ErrorCode.ERR_ProtectedInExtension, "get").WithArguments("E.extension(int).this[int, int].get").WithLocation(10, 59));
     }
 
     [Fact]
@@ -32315,21 +32366,8 @@ static class E
         // Tracked by https://github.com/dotnet/roslyn/issues/76130
         // FindEntryPoint/NameSymbolSearcher skip "E" since it has not declaration named "Main"
         // CompileAndVerify(comp, expectedOutput: "ran");
-    }
 
-    [Fact]
-    public void Validation_EntryPoint_02()
-    {
-        string source = """
-static class E
-{
-    extension(int i)
-    {
-        public static void Main() { System.Console.Write("ran"); }
-    }
-}
-""";
-        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("E"));
+        comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("E"));
         comp.VerifyEmitDiagnostics();
         CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
     }

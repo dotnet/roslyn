@@ -116,10 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool isReceiverParameter = parameter.IsExtensionParameter();
                 if (parameter.RefKind != RefKind.None)
                 {
-                    var location = isReceiverParameter
-                        ? ((MethodDeclarationSyntax)iterator.GetNonNullSyntaxNode()).Identifier.GetLocation()
-                        : parameter.GetFirstLocation();
-
+                    var location = isReceiverParameter ? iterator.GetFirstLocation() : parameter.GetFirstLocation();
                     diagnostics.Add(ErrorCode.ERR_BadIteratorArgType, location);
                 }
                 else if (parameter.Type.IsPointerOrFunctionPointer() && !isReceiverParameter)

@@ -3878,7 +3878,6 @@ outerDefault:
 
             hasAnyRefOmittedArgument = false;
 
-            bool isNewExtensionMember = member.GetIsNewExtensionMember();
             ImmutableArray<ParameterSymbol> parameters = member.GetParametersIncludingExtensionParameter();
 
             // We simulate an extra parameter for vararg methods 
@@ -3887,7 +3886,8 @@ outerDefault:
             if (argumentCount == parameterCount && argToParamMap.IsDefaultOrEmpty)
             {
                 bool hasSomeRefKinds = !member.GetParameterRefKinds().IsDefaultOrEmpty;
-                if (member.GetIsNewExtensionMember())
+                bool isNewExtensionMember = member.GetIsNewExtensionMember();
+                if (isNewExtensionMember)
                 {
                     Debug.Assert(member.ContainingType.ExtensionParameter is not null);
                     hasSomeRefKinds |= member.ContainingType.ExtensionParameter.RefKind != RefKind.None;

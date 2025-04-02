@@ -71,7 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)symbol != null);
             Debug.Assert(arguments != null);
 
-            bool isNewExtensionMember = symbol.GetIsNewExtensionMember();
             ImmutableArray<ParameterSymbol> parameters = symbol.GetParametersIncludingExtensionParameter();
             bool isVararg = symbol.GetIsVararg();
 
