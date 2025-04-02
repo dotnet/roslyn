@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -58,7 +59,8 @@ internal sealed partial class SolutionState
     // holds on data calculated based on the AnalyzerReferences list
     private readonly Lazy<HostDiagnosticAnalyzers> _lazyAnalyzers;
 
-    private ImmutableDictionary<string, ImmutableArray<DocumentId>> _lazyFilePathToRelatedDocumentIds = ImmutableDictionary<string, ImmutableArray<DocumentId>>.Empty.WithComparers(FilePathComparer);
+    // Mapping from file path to the set of documents that are related to it.
+    private readonly ConcurrentDictionary<string, ImmutableArray<DocumentId>> _lazyFilePathToRelatedDocumentIds = new ConcurrentDictionary<string, ImmutableArray<DocumentId>>(FilePathComparer);
 
     private SolutionState(
         string? workspaceKind,
@@ -1169,16 +1171,12 @@ internal sealed partial class SolutionState
         if (string.IsNullOrEmpty(filePath))
             return [];
 
-        return ImmutableInterlocked.GetOrAdd(
-            ref _lazyFilePathToRelatedDocumentIds,
-            filePath,
-            static (filePath, @this) => ComputeDocumentIdsWithFilePath(@this, filePath),
-            this);
+        return _lazyFilePathToRelatedDocumentIds.GetOrAdd(filePath, ComputeDocumentIdsWithFilePath, this);
 
-        static ImmutableArray<DocumentId> ComputeDocumentIdsWithFilePath(SolutionState @this, string filePath)
+        static ImmutableArray<DocumentId> ComputeDocumentIdsWithFilePath(string filePath, SolutionState @this)
         {
             using var result = TemporaryArray<DocumentId>.Empty;
-            foreach (var (projectId, projectState) in @this.ProjectStates)
+            foreach (var (_, projectState) in @this.ProjectStates)
                 projectState.AddDocumentIdsWithFilePath(ref result.AsRef(), filePath);
 
             return result.ToImmutableAndClear();
