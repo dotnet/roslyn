@@ -14,9 +14,9 @@ using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.Extensions;
 
@@ -342,7 +342,7 @@ internal sealed class ExtensionMessageHandlerService : IExtensionMessageHandlerS
                     // We don't add assemblyHandlers to _assemblies here and instead let _extensionMessageHandlerService.RegisterAssembly do it
                     // since RegisterAssembly can still fail if there are duplicated handler names.
                 }
-                catch (Exception e) when (LogAndPropagate(e))
+                catch (Exception e) when (FatalError.ReportAndPropagate(e, ErrorSeverity.General))
                 {
                     // unreachable
                 }
@@ -350,15 +350,6 @@ internal sealed class ExtensionMessageHandlerService : IExtensionMessageHandlerS
                 {
                     // In case of exception, we cache null so that we don't try to load the same assembly again.
                     _extensionMessageHandlerService.RegisterAssembly(this, assemblyFileName, assemblyHandlers);
-                }
-
-                bool LogAndPropagate(Exception e)
-                {
-                    Logger.Log(
-                        FunctionId.CustomMessageHandlerService_HandleCustomMessageAsync,
-                        $"Error loading handlers from {assemblyFilePath}: {e}",
-                        LogLevel.Error);
-                    return false;
                 }
 
                 return ValueTask.FromResult<RegisterExtensionResponse>(new(

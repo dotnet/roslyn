@@ -655,7 +655,4 @@ internal enum FunctionId
     Workspace_EventsImmediate = 900,
     ChecksumUpdater_SynchronizeTextChangesStatus = 901,
     RemoteHostService_SynchronizeTextAsyncStatus = 902,
-
-    CustomMessageHandlerService_HandleCustomMessageAsync = 1000,
-    CustomMessageHandlerService_UnloadCustomMessageHandlerAsync = 1001,
 }
