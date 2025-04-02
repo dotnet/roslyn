@@ -5964,4 +5964,25 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77962")]
+    public async Task TestNotOnBindingList()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.ComponentModel;
+                
+                class C
+                {
+                    BindingList<T> GetNumbers<T>(T[] values)
+                    {
+                        return new BindingList<T>(values);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
 }
