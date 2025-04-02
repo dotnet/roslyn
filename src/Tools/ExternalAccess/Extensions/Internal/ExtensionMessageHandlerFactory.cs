@@ -16,74 +16,59 @@ namespace Microsoft.CodeAnalysis.Extensions;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class ExtensionMessageHandlerFactory() : IExtensionMessageHandlerFactory
 {
-    public ImmutableArray<IExtensionDocumentMessageHandlerWrapper> CreateDocumentMessageHandlers(Assembly assembly)
-    {
-        var resultBuilder = ImmutableArray.CreateBuilder<IExtensionDocumentMessageHandlerWrapper>();
+    public ImmutableArray<IExtensionMessageHandlerWrapper<Document>> CreateDocumentMessageHandlers(Assembly assembly)
+        => CreateWorkspaceHandlers(
+            assembly,
+            typeof(IExtensionDocumentMessageHandler<,>),
+            (handler, handlerInterface) => new ExtensionDocumentMessageHandlerWrapper(handler, handlerInterface));
 
-        foreach (var t in assembly.GetTypes())
+    public ImmutableArray<IExtensionMessageHandlerWrapper<Solution>> CreateWorkspaceMessageHandlers(Assembly assembly)
+        => CreateWorkspaceHandlers(
+            assembly,
+            typeof(IExtensionWorkspaceMessageHandler<,>),
+            (handler, handlerInterface) => new ExtensionWorkspaceMessageHandlerWrapper(handler, handlerInterface));
+
+    private static ImmutableArray<IExtensionMessageHandlerWrapper<TArgument>> CreateWorkspaceHandlers<TArgument>(
+        Assembly assembly,
+        Type unboundInterfaceType,
+        Func<object, Type, IExtensionMessageHandlerWrapper<TArgument>> wrapperCreator)
+    {
+        var resultBuilder = ImmutableArray.CreateBuilder<IExtensionMessageHandlerWrapper<TArgument>>();
+
+        foreach (var candidateType in assembly.GetTypes())
         {
-            var (handler, handlerInterface) = CreateHandlerIfInterfaceIsImplemented(t, typeof(IExtensionDocumentMessageHandler<,>));
-            if (handler is null || handlerInterface is null)
+            if (candidateType.IsAbstract || candidateType.IsGenericType)
             {
                 continue;
             }
 
-            resultBuilder.Add(new ExtensionDocumentMessageHandlerWrapper(handler, handlerInterface));
-        }
-
-        return resultBuilder.ToImmutable();
-    }
-
-    public ImmutableArray<IExtensionWorkspaceMessageHandlerWrapper> CreateWorkspaceMessageHandlers(Assembly assembly)
-    {
-        var resultBuilder = ImmutableArray.CreateBuilder<IExtensionWorkspaceMessageHandlerWrapper>();
-
-        foreach (var type in assembly.GetTypes())
-        {
-            var (handler, handlerInterface) = CreateHandlerIfInterfaceIsImplemented(type, typeof(IExtensionWorkspaceMessageHandler<,>));
-            if (handler is null || handlerInterface is null)
+            Type? boundInterfaceType = null;
+            foreach (var interfaceType in candidateType.GetInterfaces())
             {
-                continue;
-            }
-
-            resultBuilder.Add(new ExtensionWorkspaceMessageHandlerWrapper(handler, handlerInterface));
-        }
-
-        return resultBuilder.ToImmutable();
-    }
-
-    // unboundInterfaceType is either IExtensionWorkspaceMessageHandler<,> or IExtensionDocumentMessageHandler<,>
-    private static (object? Handler, Type? Interface) CreateHandlerIfInterfaceIsImplemented(Type candidateType, Type unboundInterfaceType)
-    {
-        if (candidateType.IsAbstract || candidateType.IsGenericType)
-        {
-            return default;
-        }
-
-        Type? boundInterfaceType = null;
-        foreach (var interfaceType in candidateType.GetInterfaces())
-        {
-            if (interfaceType.IsGenericType &&
-                !interfaceType.IsGenericTypeDefinition &&
-                interfaceType.GetGenericTypeDefinition() == unboundInterfaceType)
-            {
-                if (boundInterfaceType is not null)
+                if (interfaceType.IsGenericType &&
+                    !interfaceType.IsGenericTypeDefinition &&
+                    interfaceType.GetGenericTypeDefinition() == unboundInterfaceType)
                 {
-                    throw new InvalidOperationException($"Type {candidateType.FullName} implements interface {unboundInterfaceType.Name} more than once.");
+                    if (boundInterfaceType is not null)
+                    {
+                        throw new InvalidOperationException($"Type {candidateType.FullName} implements interface {unboundInterfaceType.Name} more than once.");
+                    }
+
+                    boundInterfaceType = interfaceType;
                 }
-
-                boundInterfaceType = interfaceType;
             }
+
+            if (boundInterfaceType == null)
+            {
+                continue;
+            }
+
+            var handler = Activator.CreateInstance(candidateType)
+                ?? throw new InvalidOperationException($"Cannot create {candidateType.FullName}.");
+
+            resultBuilder.Add(wrapperCreator(handler, boundInterfaceType));
         }
 
-        if (boundInterfaceType == null)
-        {
-            return default;
-        }
-
-        var handler = Activator.CreateInstance(candidateType)
-            ?? throw new InvalidOperationException($"Cannot create {candidateType.FullName}.");
-
-        return (handler, boundInterfaceType);
+        return resultBuilder.ToImmutable();
     }
 }

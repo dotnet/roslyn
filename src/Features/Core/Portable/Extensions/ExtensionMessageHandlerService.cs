@@ -21,7 +21,9 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.Extensions;
 
 [ExportWorkspaceService(typeof(IExtensionMessageHandlerService)), Shared]
-internal sealed class ExtensionMessageHandlerService : IExtensionMessageHandlerService, IDisposable
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class ExtensionMessageHandlerService(IExtensionMessageHandlerFactory customMessageHandlerFactory) : IExtensionMessageHandlerService, IDisposable
 {
     /// <summary>
     /// Extensions assembly load contexts and loaded handlers, indexed by handler file path. The handlers are indexed by type name.
@@ -31,24 +33,17 @@ internal sealed class ExtensionMessageHandlerService : IExtensionMessageHandlerS
     /// <summary>
     /// Handlers of document-related messages, indexed by handler message name.
     /// </summary>
-    private readonly Dictionary<string, IExtensionDocumentMessageHandlerWrapper> _documentHandlers = new();
+    private readonly Dictionary<string, IExtensionMessageHandlerWrapper<Document>> _documentHandlers = new();
 
     /// <summary>
     /// Handlers of non-document-related messages, indexed by handler message name.
     /// </summary>
-    private readonly Dictionary<string, IExtensionWorkspaceMessageHandlerWrapper> _workspaceHandlers = new();
+    private readonly Dictionary<string, IExtensionMessageHandlerWrapper<Solution>> _workspaceHandlers = new();
 
-    private readonly IExtensionMessageHandlerFactory _customMessageHandlerFactory;
+    private readonly IExtensionMessageHandlerFactory _customMessageHandlerFactory = customMessageHandlerFactory;
 
     // Used to protect access to _extensions, _handlers, _documentHandlers and CustomMessageHandlerExtension.Assemblies.
     private readonly object _lockObject = new();
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ExtensionMessageHandlerService(IExtensionMessageHandlerFactory customMessageHandlerFactory)
-    {
-        _customMessageHandlerFactory = customMessageHandlerFactory;
-    }
 
     public ValueTask<RegisterExtensionResponse> RegisterExtensionAsync(
         Solution solution,
@@ -106,51 +101,11 @@ internal sealed class ExtensionMessageHandlerService : IExtensionMessageHandlerS
         return extension.LoadAssemblyAsync(assemblyFileName);
     }
 
-    public async ValueTask<string> HandleExtensionWorkspaceMessageAsync(
-        Solution solution,
-        string messageName,
-        string jsonMessage,
-        CancellationToken cancellationToken)
-    {
-        IExtensionWorkspaceMessageHandlerWrapper handler;
-        lock (_lockObject)
-        {
-            if (!_workspaceHandlers.TryGetValue(messageName, out handler!))
-            {
-                throw new InvalidOperationException($"No handler found for message {messageName}.");
-            }
-        }
+    public ValueTask<string> HandleExtensionWorkspaceMessageAsync(Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken)
+        => HandleExtensionMessageAsync(solution, messageName, jsonMessage, _workspaceHandlers, cancellationToken);
 
-        // Any exception thrown in this method is left to bubble up to the extension.
-        var message = JsonSerializer.Deserialize(jsonMessage, handler.MessageType);
-        var result = await handler.ExecuteAsync(message, solution, cancellationToken)
-            .ConfigureAwait(false);
-        var responseJson = JsonSerializer.Serialize(result, handler.ResponseType);
-        return responseJson;
-    }
-
-    public async ValueTask<string> HandleExtensionDocumentMessageAsync(
-        Document document,
-        string messageName,
-        string jsonMessage,
-        CancellationToken cancellationToken)
-    {
-        IExtensionDocumentMessageHandlerWrapper handler;
-        lock (_lockObject)
-        {
-            if (!_documentHandlers.TryGetValue(messageName, out handler!))
-            {
-                throw new InvalidOperationException($"No document handler found for message {messageName}.");
-            }
-        }
-
-        // Any exception thrown in this method is left to bubble up to the extension.
-        var message = JsonSerializer.Deserialize(jsonMessage, handler.MessageType);
-        var result = await handler.ExecuteAsync(message, document, cancellationToken)
-            .ConfigureAwait(false);
-        var responseJson = JsonSerializer.Serialize(result, handler.ResponseType);
-        return responseJson;
-    }
+    public ValueTask<string> HandleExtensionDocumentMessageAsync(Document document, string messageName, string jsonMessage, CancellationToken cancellationToken)
+        => HandleExtensionMessageAsync(document, messageName, jsonMessage, _documentHandlers, cancellationToken);
 
     public ValueTask UnregisterExtensionAsync(
         string assemblyFilePath,
@@ -214,6 +169,32 @@ internal sealed class ExtensionMessageHandlerService : IExtensionMessageHandlerS
 
     public void Dispose()
         => Reset();
+
+    private async ValueTask<string> HandleExtensionMessageAsync<TArgument>(
+        TArgument argument,
+        string messageName,
+        string jsonMessage,
+        Dictionary<string, IExtensionMessageHandlerWrapper<TArgument>> handlers,
+        CancellationToken cancellationToken)
+    {
+        IExtensionMessageHandlerWrapper<TArgument> handler;
+        lock (_lockObject)
+        {
+            // handlers here is either _workspaceHandlers or _documentHandlers, so it must be protected
+            // by _lockObject.
+            if (!handlers.TryGetValue(messageName, out handler!))
+            {
+                throw new InvalidOperationException($"No handler found for message {messageName}.");
+            }
+        }
+
+        // Any exception thrown in this method is left to bubble up to the extension.
+        var message = JsonSerializer.Deserialize(jsonMessage, handler.MessageType);
+        var result = await handler.ExecuteAsync(message, argument, cancellationToken)
+            .ConfigureAwait(false);
+        var responseJson = JsonSerializer.Serialize(result, handler.ResponseType);
+        return responseJson;
+    }
 
     private void RegisterAssembly(Extension extension, string assemblyFileName, AssemblyHandlers? assemblyHandlers)
     {
@@ -366,12 +347,12 @@ internal sealed class ExtensionMessageHandlerService : IExtensionMessageHandlerS
         /// <summary>
         /// Gets the document-specific handlers that can be passed to <see cref="HandleExtensionDocumentMessageAsync"/>, indexed by their name.
         /// </summary>
-        public required ImmutableDictionary<string, IExtensionDocumentMessageHandlerWrapper> DocumentMessageHandlers { get; init; }
+        public required ImmutableDictionary<string, IExtensionMessageHandlerWrapper<Document>> DocumentMessageHandlers { get; init; }
 
         /// <summary>
         /// Gets the non-document-specific handlers that can be passed to <see cref="HandleExtensionWorkspaceMessageAsync"/>, indexed by their name.
         /// </summary>
-        public required ImmutableDictionary<string, IExtensionWorkspaceMessageHandlerWrapper> WorkspaceMessageHandlers { get; init; }
+        public required ImmutableDictionary<string, IExtensionMessageHandlerWrapper<Solution>> WorkspaceMessageHandlers { get; init; }
     }
 }
 #endif

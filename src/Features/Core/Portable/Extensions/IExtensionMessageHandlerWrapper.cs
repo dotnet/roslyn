@@ -9,9 +9,12 @@ using System.Threading.Tasks;
 namespace Microsoft.CodeAnalysis.Extensions;
 
 /// <summary>
-/// Wrapper for an <c>IExtensionWorkspaceMessageHandler</c> as returned by <see cref="IExtensionMessageHandlerFactory"/>. 
+/// Wrapper for an <c>IExtensionWorkspaceMessageHandler</c> or <c>IExtensionDocumentMessageHandler</c>
+/// as returned by <see cref="IExtensionMessageHandlerFactory"/>. 
 /// </summary>
-internal interface IExtensionWorkspaceMessageHandlerWrapper
+/// <typeparam name="TArgument">The type of object received as parameter by the extension message
+/// handler.</typeparam>
+internal interface IExtensionMessageHandlerWrapper<TArgument>
 {
     /// <summary>
     /// The type of object received as parameter by the extension message handler.
@@ -32,8 +35,8 @@ internal interface IExtensionWorkspaceMessageHandlerWrapper
     /// Executes the extension message handler with the given message and document.
     /// </summary>
     /// <param name="message">An object of type <see cref="MessageType"/> to be passed to the handler.</param>
-    /// <param name="solution">The solution the handler operates on.</param>
+    /// <param name="argument">The argument the handler operates on.</param>
     /// <param name="cancellationToken">Cancellation token to cancel the async operation</param>
     /// <returns>An object of type <see cref="ResponseType"/> returned by the message handler.</returns>
-    Task<object?> ExecuteAsync(object? message, Solution solution, CancellationToken cancellationToken);
+    Task<object?> ExecuteAsync(object? message, TArgument argument, CancellationToken cancellationToken);
 }
