@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -456,9 +456,6 @@
   </data>
   <data name="Updating_a_0_around_an_active_statement_requires_restarting_the_application" xml:space="preserve">
     <value>Updating a {0} around an active statement requires restarting the application.</value>
-  </data>
-  <data name="Updating_the_type_of_0_around_an_active_statement_requires_restarting_the_application" xml:space="preserve">
-    <value>Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</value>
   </data>
   <data name="Updating_async_or_iterator_modifier_around_an_active_statement_requires_restarting_the_application" xml:space="preserve">
     <value>Updating async or iterator modifier around an active statement requires restarting the application.</value>
@@ -1778,7 +1775,7 @@ If the "H" format specifier is used without other custom format specifiers, it's
     <value>Invalid group name: Group names must begin with a word character</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</comment>
   </data>
-  <data name="Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group number_0" xml:space="preserve">
+  <data name="Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group_number_0" xml:space="preserve">
     <value>Conditional alternation is missing a closing parenthesis after the group number {0}</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0</comment>
   </data>
@@ -2983,9 +2980,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Fixing_0" xml:space="preserve">
     <value>Fixing '{0}'</value>
   </data>
-  <data name="Pull_selected_members_up_to_0" xml:space="preserve">
-    <value>Pull selected members up to {0}</value>
-  </data>
   <data name="Pull_selected_members_up" xml:space="preserve">
     <value>Pull selected members up</value>
   </data>
@@ -3129,9 +3123,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Fix_All_0" xml:space="preserve">
     <value>Fix All: {0}</value>
   </data>
-  <data name="Built_in_Copilot_analysis" xml:space="preserve">
-    <value>Built-in Copilot analysis</value>
-  </data>
   <data name="Dismiss" xml:space="preserve">
     <value>Dismiss</value>
   </data>
@@ -3161,9 +3152,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="The_query_specifies_multiple_top_level_functions_1" xml:space="preserve">
     <value>The query specifies multiple top-level functions '{1}'</value>
-  </data>
-  <data name="Top_level_function_0_must_have_a_single_parameter" xml:space="preserve">
-    <value>Top-level function '{0}' must have a single parameter</value>
   </data>
   <data name="Type_0_is_not_among_supported_types_1" xml:space="preserve">
     <value>Type '{0}' is not among supported types: {1}</value>

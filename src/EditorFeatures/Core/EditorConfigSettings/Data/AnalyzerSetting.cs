@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.EditorConfig;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 
-internal class AnalyzerSetting
+internal sealed class AnalyzerSetting
 {
     private readonly DiagnosticDescriptor _descriptor;
     private readonly AnalyzerSettingsUpdater _settingsUpdater;

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
 internal abstract partial class AbstractEditorInlineRenameService
 {
-    private class InlineRenameLocationSet : IInlineRenameLocationSet
+    private sealed class InlineRenameLocationSet : IInlineRenameLocationSet
     {
         private readonly LightweightRenameLocations _renameLocationSet;
         private readonly SymbolInlineRenameInfo _renameInfo;

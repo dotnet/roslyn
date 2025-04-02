@@ -22,7 +22,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.QuickInfo;
 
 [ExportQuickInfoProvider(QuickInfoProviderNames.Semantic, LanguageNames.CSharp), Shared]
-internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
+internal sealed class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

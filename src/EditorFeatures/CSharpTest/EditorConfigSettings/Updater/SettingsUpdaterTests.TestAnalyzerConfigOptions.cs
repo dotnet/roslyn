@@ -8,9 +8,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests;
 
-public partial class SettingsUpdaterTests
+public sealed partial class SettingsUpdaterTests
 {
-    private class TestAnalyzerConfigOptions : AnalyzerConfigOptions
+    private sealed class TestAnalyzerConfigOptions : AnalyzerConfigOptions
     {
         public static TestAnalyzerConfigOptions Instance = new();
         private readonly Func<string, string?>? _lookup = null;

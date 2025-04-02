@@ -22,7 +22,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature;
 
-public partial class ChangeSignatureTests : AbstractChangeSignatureTests
+public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
 {
     [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
     public async Task RemoveParameters1()

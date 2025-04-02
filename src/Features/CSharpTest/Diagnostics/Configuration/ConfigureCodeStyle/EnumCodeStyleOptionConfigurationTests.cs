@@ -44,7 +44,7 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
     }
 
     [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-    public class UnusedLocalVariableConfigurationTests : EnumCodeStyleOptionConfigurationTests
+    public sealed class UnusedLocalVariableConfigurationTests : EnumCodeStyleOptionConfigurationTests
     {
         protected override int CodeActionIndex => 0;
 
@@ -413,7 +413,7 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
     }
 
     [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-    public class DiscardVariableConfigurationTests : EnumCodeStyleOptionConfigurationTests
+    public sealed class DiscardVariableConfigurationTests : EnumCodeStyleOptionConfigurationTests
     {
         protected override int CodeActionIndex => 1;
 

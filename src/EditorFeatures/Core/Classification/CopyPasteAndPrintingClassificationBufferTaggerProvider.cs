@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Classification;
 [ContentType(ContentTypeNames.VisualBasicContentType)]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider(
+internal sealed partial class CopyPasteAndPrintingClassificationBufferTaggerProvider(
     IThreadingContext threadingContext,
     ClassificationTypeMap typeMap,
     IAsynchronousOperationListenerProvider listenerProvider,

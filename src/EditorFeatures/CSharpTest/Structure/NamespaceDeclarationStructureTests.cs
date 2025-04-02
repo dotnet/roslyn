@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
 [Trait(Traits.Feature, Traits.Features.Outlining)]
-public class NamespaceDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<NamespaceDeclarationSyntax>
+public sealed class NamespaceDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<NamespaceDeclarationSyntax>
 {
     internal override AbstractSyntaxStructureProvider CreateProvider() => new NamespaceDeclarationStructureProvider();
 

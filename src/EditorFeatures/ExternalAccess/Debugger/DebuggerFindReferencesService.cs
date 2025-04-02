@@ -12,41 +12,40 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
+namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger;
+
+[Export]
+[Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class DebuggerFindReferencesService(
+    IGlobalOptionService globalOptions,
+    Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
 {
-    [Export]
-    [Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class DebuggerFindReferencesService(
-        IGlobalOptionService globalOptions,
-        Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
+    private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter = streamingPresenter;
+
+    public async Task FindSymbolReferencesAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)
     {
-        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter = streamingPresenter;
+        var streamingPresenter = _streamingPresenter.Value;
 
-        public async Task FindSymbolReferencesAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)
+        // Let the presenter know we're starting a search.  It will give us back
+        // the context object that the FAR service will push results into.
+        //
+        // We're awaiting the work to find the symbols (as opposed to kicking it off in a
+        // fire-and-forget streaming fashion).  As such, we do not want to use the cancellation
+        // token provided by the presenter.  Instead, we'll let our caller own if this work
+        // is cancelable.
+        var (context, _) = streamingPresenter.StartSearch(EditorFeaturesResources.Find_References, new StreamingFindUsagesPresenterOptions { SupportsReferences = true });
+
+        var classificationOptions = globalOptions.GetClassificationOptionsProvider();
+
+        try
         {
-            var streamingPresenter = _streamingPresenter.Value;
-
-            // Let the presenter know we're starting a search.  It will give us back
-            // the context object that the FAR service will push results into.
-            //
-            // We're awaiting the work to find the symbols (as opposed to kicking it off in a
-            // fire-and-forget streaming fashion).  As such, we do not want to use the cancellation
-            // token provided by the presenter.  Instead, we'll let our caller own if this work
-            // is cancelable.
-            var (context, _) = streamingPresenter.StartSearch(EditorFeaturesResources.Find_References, new StreamingFindUsagesPresenterOptions { SupportsReferences = true });
-
-            var classificationOptions = globalOptions.GetClassificationOptionsProvider();
-
-            try
-            {
-                await AbstractFindUsagesService.FindSymbolReferencesAsync(context, symbol, project, classificationOptions, cancellationToken).ConfigureAwait(false);
-            }
-            finally
-            {
-                await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
-            }
+            await AbstractFindUsagesService.FindSymbolReferencesAsync(context, symbol, project, classificationOptions, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

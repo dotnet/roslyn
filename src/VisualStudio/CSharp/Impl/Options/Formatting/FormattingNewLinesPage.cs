@@ -8,16 +8,15 @@ using System;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
-{
-    [Guid(Guids.CSharpOptionPageFormattingNewLinesIdString)]
-    internal class FormattingNewLinesPage : AbstractOptionPage
-    {
-        public FormattingNewLinesPage()
-        {
-        }
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting;
 
-        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
-            => new OptionPreviewControl(serviceProvider, optionStore, (o, s) => new NewLinesViewModel(o, s));
+[Guid(Guids.CSharpOptionPageFormattingNewLinesIdString)]
+internal sealed class FormattingNewLinesPage : AbstractOptionPage
+{
+    public FormattingNewLinesPage()
+    {
     }
+
+    protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
+        => new OptionPreviewControl(serviceProvider, optionStore, (o, s) => new NewLinesViewModel(o, s));
 }

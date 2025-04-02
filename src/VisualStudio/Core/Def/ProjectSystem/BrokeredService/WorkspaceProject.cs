@@ -188,7 +188,7 @@ internal sealed class WorkspaceProject : IWorkspaceProject
         return new WorkspaceProjectBatch(disposableBatchScope);
     }
 
-    private class WorkspaceProjectBatch : IWorkspaceProjectBatch
+    private sealed class WorkspaceProjectBatch : IWorkspaceProjectBatch
     {
         private IAsyncDisposable? _batch;
 

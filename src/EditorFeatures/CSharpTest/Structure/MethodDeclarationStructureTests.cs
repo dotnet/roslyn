@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
 [Trait(Traits.Feature, Traits.Features.Outlining)]
-public class MethodDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<MethodDeclarationSyntax>
+public sealed class MethodDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<MethodDeclarationSyntax>
 {
     internal override AbstractSyntaxStructureProvider CreateProvider() => new MethodDeclarationStructureProvider();
 

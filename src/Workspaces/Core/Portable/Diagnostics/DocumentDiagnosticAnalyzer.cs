@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
@@ -15,12 +16,28 @@ internal abstract class DocumentDiagnosticAnalyzer : DiagnosticAnalyzer
 {
     public const int DefaultPriority = 50;
 
-    public abstract Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken);
+    public virtual Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(TextDocument textDocument, SyntaxTree? tree, CancellationToken cancellationToken)
+    {
+        return textDocument is Document document
+            ? AnalyzeSyntaxAsync(document, cancellationToken)
+            : SpecializedTasks.EmptyImmutableArray<Diagnostic>();
+    }
 
-    public abstract Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken);
+    public virtual Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(TextDocument textDocument, SyntaxTree? tree, CancellationToken cancellationToken)
+    {
+        return textDocument is Document document
+            ? AnalyzeSemanticsAsync(document, cancellationToken)
+            : SpecializedTasks.EmptyImmutableArray<Diagnostic>();
+    }
+
+    public virtual Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+        => SpecializedTasks.EmptyImmutableArray<Diagnostic>();
+
+    public virtual Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
+        => SpecializedTasks.EmptyImmutableArray<Diagnostic>();
 
     /// <summary>
-    /// it is not allowed one to implement both DocumentDiagnosticAnalzyer and DiagnosticAnalyzer
+    /// it is not allowed one to implement both DocumentDiagnosticAnalyzer and DiagnosticAnalyzer
     /// </summary>
 #pragma warning disable RS1026 // Enable concurrent execution
 #pragma warning disable RS1025 // Configure generated code analysis
@@ -31,10 +48,10 @@ internal abstract class DocumentDiagnosticAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// This lets vsix installed <see cref="DocumentDiagnosticAnalyzer"/> or <see cref="ProjectDiagnosticAnalyzer"/> to
-    /// specify priority of the analyzer. Regular <see cref="DiagnosticAnalyzer"/> always comes before those 2 different types.
-    /// Priority is ascending order and this only works on HostDiagnosticAnalyzer meaning Vsix installed analyzers in VS.
-    /// This is to support partner teams (such as typescript and F#) who want to order their analyzer's execution order.
+    /// This lets vsix installed <see cref="DocumentDiagnosticAnalyzer"/> to specify priority of the analyzer. Regular
+    /// <see cref="DiagnosticAnalyzer"/> always comes before those 2 different types. Priority is ascending order and
+    /// this only works on HostDiagnosticAnalyzer meaning Vsix installed analyzers in VS. This is to support partner
+    /// teams (such as typescript and F#) who want to order their analyzer's execution order.
     /// </summary>
     public virtual int Priority => DefaultPriority;
 }

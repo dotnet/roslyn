@@ -11,9 +11,9 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification;
 
-internal partial class CSharpCastReducer
+internal sealed partial class CSharpCastReducer
 {
-    private class Rewriter : AbstractReductionRewriter
+    private sealed class Rewriter : AbstractReductionRewriter
     {
         public Rewriter(ObjectPool<IReductionRewriter> pool)
             : base(pool)

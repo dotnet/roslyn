@@ -30,7 +30,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.RemoteHost)]
-public class SolutionServiceTests
+public sealed class SolutionServiceTests
 {
     private static readonly TestComposition s_composition = FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess);
     private static readonly TestComposition s_compositionWithFirstDocumentIsActiveAndVisible =
