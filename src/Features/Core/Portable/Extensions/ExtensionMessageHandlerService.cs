@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if !NETSTANDARD2_0
+#if NET
 
 using System;
 using System.Collections.Generic;
@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.Extensions;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class ExtensionMessageHandlerService(IExtensionMessageHandlerFactory customMessageHandlerFactory) : IExtensionMessageHandlerService, IDisposable
 {
+    private readonly IExtensionMessageHandlerFactory _customMessageHandlerFactory = customMessageHandlerFactory;
+
     /// <summary>
     /// Extensions assembly load contexts and loaded handlers, indexed by handler file path. The handlers are indexed by type name.
     /// </summary>
@@ -40,9 +42,7 @@ internal sealed class ExtensionMessageHandlerService(IExtensionMessageHandlerFac
     /// </summary>
     private readonly Dictionary<string, IExtensionMessageHandlerWrapper<Solution>> _workspaceHandlers = new();
 
-    private readonly IExtensionMessageHandlerFactory _customMessageHandlerFactory = customMessageHandlerFactory;
-
-    // Used to protect access to _extensions, _handlers, _documentHandlers and CustomMessageHandlerExtension.Assemblies.
+    // Used to protect access to _extensions, _handlers, _documentHandlers and Extension._assemblies.
     private readonly object _lockObject = new();
 
     public ValueTask<RegisterExtensionResponse> RegisterExtensionAsync(
