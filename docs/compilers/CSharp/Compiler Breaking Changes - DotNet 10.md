@@ -334,8 +334,7 @@ class partial { }
 
 ## `extension` treated as a contextual keyword
 
-PROTOTYPE record which version this break is introduced in
-
+***Introduced in Visual Studio 2022 version 17.4.*** 
 Starting with C# 14, the `extension` keyword serves a special purpose in denoting extension containers. 
 This changes how the compiler interprets certain code constructs.
 
