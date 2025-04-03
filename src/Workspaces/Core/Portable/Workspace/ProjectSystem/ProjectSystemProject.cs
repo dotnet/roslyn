@@ -1418,7 +1418,7 @@ internal sealed partial class ProjectSystemProject
             _projectSystemProjectFactory.RemoveProjectFromTrackingMaps_NoLock(Id);
 
             // If this is our last project, clear the entire solution.
-            if (w.CurrentSolution.ProjectStates.Length == 1)
+            if (w.CurrentSolution.ProjectIds.Count == 1)
             {
                 _projectSystemProjectFactory.RemoveSolution_NoLock();
             }

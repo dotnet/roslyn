@@ -1449,7 +1449,7 @@ public abstract partial class Workspace : IDisposable
             // Build map from output assembly path to ProjectId
             // Use explicit loop instead of ToDictionary so we don't throw if multiple projects have same output assembly path.
             var outputAssemblyToProjectIdMap = new Dictionary<string, ProjectId>();
-            foreach (var p in solution.ProjectStates)
+            foreach (var p in solution.Projects)
             {
                 if (!string.IsNullOrEmpty(p.OutputFilePath))
                 {
@@ -1463,12 +1463,12 @@ public abstract partial class Workspace : IDisposable
             }
 
             // now fix each project if necessary
-            foreach (var projectState in solution.ProjectStates)
+            foreach (var pid in solution.ProjectIds)
             {
-                var project = solution.GetProject(projectState.Id)!;
+                var project = solution.GetProject(pid)!;
 
                 // convert metadata references to project references if the metadata reference matches some project's output assembly.
-                foreach (var meta in projectState.MetadataReferences)
+                foreach (var meta in project.MetadataReferences)
                 {
                     if (meta is PortableExecutableReference pemeta)
                     {
@@ -2322,7 +2322,7 @@ public abstract partial class Workspace : IDisposable
 
     private static void CheckSolutionIsEmpty(Solution solution)
     {
-        if (solution.ProjectStates.Any())
+        if (solution.ProjectIds.Any())
         {
             throw new ArgumentException(WorkspacesResources.Workspace_is_not_empty);
         }

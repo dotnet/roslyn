@@ -56,9 +56,9 @@ public static partial class SymbolFinder
         using (Logger.LogBlock(FunctionId.SymbolFinder_Solution_Predicate_FindSourceDeclarationsAsync, cancellationToken))
         {
             using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
-            foreach (var projectState in solution.ProjectStates)
+            foreach (var projectId in solution.ProjectIds)
             {
-                var project = solution.GetRequiredProject(projectState.Id);
+                var project = solution.GetRequiredProject(projectId);
                 var symbols = await FindSourceDeclarationsWithCustomQueryAsync(project, query, filter, cancellationToken).ConfigureAwait(false);
                 result.AddRange(symbols);
             }

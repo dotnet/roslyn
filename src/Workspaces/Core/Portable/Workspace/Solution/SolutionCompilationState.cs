@@ -1548,7 +1548,7 @@ internal sealed partial class SolutionCompilationState
     {
         var (sortedNewProjectStates, newIdToTrackerMap) = ComputeFrozenSnapshotMaps(cancellationToken);
 
-        var dependencyGraph = SolutionState.CreateDependencyGraph(this.SolutionState.ProjectStates, sortedNewProjectStates);
+        var dependencyGraph = SolutionState.CreateDependencyGraph(this.SolutionState.ProjectIds, sortedNewProjectStates);
 
         var newState = this.SolutionState.Branch(
             projectStates: sortedNewProjectStates,

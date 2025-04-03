@@ -67,11 +67,12 @@ internal sealed partial class SolutionState
         int workspaceVersion,
         SolutionServices services,
         SolutionInfo.SolutionAttributes solutionAttributes,
-        ImmutableArray<ProjectState> projectStates,
+        IReadOnlyList<ProjectId> projectIds,
         SolutionOptionSet options,
         IReadOnlyList<AnalyzerReference> analyzerReferences,
         ImmutableDictionary<string, StructuredAnalyzerConfigOptions> fallbackAnalyzerOptions,
         ImmutableDictionary<string, int> projectCountByLanguage,
+        ImmutableArray<ProjectState> projectStates,
         ProjectDependencyGraph dependencyGraph,
         Lazy<HostDiagnosticAnalyzers>? lazyAnalyzers)
     {
@@ -79,11 +80,12 @@ internal sealed partial class SolutionState
         WorkspaceVersion = workspaceVersion;
         SolutionAttributes = solutionAttributes;
         Services = services;
-        ProjectStates = projectStates;
+        ProjectIds = projectIds;
         Options = options;
         AnalyzerReferences = analyzerReferences;
         FallbackAnalyzerOptions = fallbackAnalyzerOptions;
         ProjectCountByLanguage = projectCountByLanguage;
+        ProjectStates = projectStates;
         _dependencyGraph = dependencyGraph;
         _lazyAnalyzers = lazyAnalyzers ?? CreateLazyHostDiagnosticAnalyzers(analyzerReferences);
 
@@ -111,11 +113,12 @@ internal sealed partial class SolutionState
             workspaceVersion: 0,
             services,
             solutionAttributes,
-            projectStates: ImmutableArray<ProjectState>.Empty,
+            projectIds: SpecializedCollections.EmptyBoxedImmutableArray<ProjectId>(),
             options,
             analyzerReferences,
             fallbackAnalyzerOptions,
             projectCountByLanguage: ImmutableDictionary<string, int>.Empty,
+            projectStates: ImmutableArray<ProjectState>.Empty,
             dependencyGraph: ProjectDependencyGraph.Empty,
             lazyAnalyzers: null)
     {
@@ -124,6 +127,11 @@ internal sealed partial class SolutionState
     public HostDiagnosticAnalyzers Analyzers => _lazyAnalyzers.Value;
 
     public SolutionInfo.SolutionAttributes SolutionAttributes { get; }
+
+    /// <summary>
+    /// Provides project states contained by the solution.
+    /// </summary>
+    public ImmutableArray<ProjectState> ProjectStates { get; }
 
     /// <summary>
     /// The Id of the solution. Multiple solution instances may share the same Id.
@@ -141,18 +149,20 @@ internal sealed partial class SolutionState
     public VersionStamp Version => SolutionAttributes.Version;
 
     /// <summary>
-    /// Provides project states contained by the solution.
+    /// A list of all the ids for all the projects contained by the solution.
     /// </summary>
-    public ImmutableArray<ProjectState> ProjectStates { get; }
+    public IReadOnlyList<ProjectId> ProjectIds { get; }
 
     private void CheckInvariants()
     {
         // Run these quick checks all the time.  We need to know immediately if we violate these.
+        Contract.ThrowIfFalse(ProjectStates.Length == ProjectIds.Count);
         Contract.ThrowIfFalse(ProjectStates.Length == _dependencyGraph.ProjectIds.Count);
 
         // Only run this in debug builds; even the .SetEquals() call across all projects can be expensive when there's a lot of them.
 #if DEBUG
         // project ids must be the same:
+        Debug.Assert(ProjectStates.Select(static state => state.Id).SetEquals(ProjectIds));
         Debug.Assert(ProjectStates.Select(static state => state.Id).SetEquals(_dependencyGraph.ProjectIds));
 #endif
     }
@@ -160,13 +170,15 @@ internal sealed partial class SolutionState
     internal SolutionState Branch(
         ImmutableDictionary<string, int>? projectCountByLanguage = null,
         SolutionInfo.SolutionAttributes? solutionAttributes = null,
-        ImmutableArray<ProjectState>? projectStates = null,
+        IReadOnlyList<ProjectId>? projectIds = null,
         SolutionOptionSet? options = null,
         IReadOnlyList<AnalyzerReference>? analyzerReferences = null,
         ImmutableDictionary<string, StructuredAnalyzerConfigOptions>? fallbackAnalyzerOptions = null,
+        ImmutableArray<ProjectState>? projectStates = null,
         ProjectDependencyGraph? dependencyGraph = null)
     {
         solutionAttributes ??= SolutionAttributes;
+        projectIds ??= ProjectIds;
         projectStates = projectStates == null ? ProjectStates : projectStates.Value.Sort(CompareProjectStates);
         options ??= Options;
         analyzerReferences ??= AnalyzerReferences;
@@ -177,11 +189,12 @@ internal sealed partial class SolutionState
         var analyzerReferencesEqual = AnalyzerReferences.SequenceEqual(analyzerReferences);
 
         if (solutionAttributes == SolutionAttributes &&
-            projectStates == ProjectStates &&
+            projectIds == ProjectIds &&
             options == Options &&
             analyzerReferencesEqual &&
             fallbackAnalyzerOptions == FallbackAnalyzerOptions &&
             projectCountByLanguage == ProjectCountByLanguage &&
+            projectStates == ProjectStates &&
             dependencyGraph == _dependencyGraph)
         {
             return this;
@@ -192,11 +205,12 @@ internal sealed partial class SolutionState
             WorkspaceVersion,
             Services,
             solutionAttributes,
-            projectStates.Value,
+            projectIds,
             options,
             analyzerReferences,
             fallbackAnalyzerOptions,
             projectCountByLanguage,
+            projectStates.Value,
             dependencyGraph,
             analyzerReferencesEqual ? _lazyAnalyzers : null);
     }
@@ -225,11 +239,12 @@ internal sealed partial class SolutionState
             workspaceVersion,
             services,
             SolutionAttributes,
-            ProjectStates,
+            ProjectIds,
             Options,
             AnalyzerReferences,
             FallbackAnalyzerOptions,
             ProjectCountByLanguage,
+            ProjectStates,
             _dependencyGraph,
             _lazyAnalyzers);
     }
@@ -379,17 +394,21 @@ internal sealed partial class SolutionState
             // changed project list so, increment version.
             var newSolutionAttributes = SolutionAttributes.With(version: Version.GetNewerVersion());
 
-            using var _1 = ArrayBuilder<ProjectState>.GetInstance(ProjectStates.Length + projectStates.Count, out var newProjectStatesBuilder);
+            using var _1 = ArrayBuilder<ProjectId>.GetInstance(ProjectIds.Count + projectStates.Count, out var newProjectIdsBuilder);
             using var _2 = PooledHashSet<ProjectId>.GetInstance(out var addedProjectIds);
+            using var _3 = ArrayBuilder<ProjectState>.GetInstance(ProjectStates.Length + projectStates.Count, out var newProjectStatesBuilder);
 
+            newProjectIdsBuilder.AddRange(ProjectIds);
             newProjectStatesBuilder.AddRange(ProjectStates);
 
             foreach (var projectState in projectStates)
             {
                 addedProjectIds.Add(projectState.Id);
+                newProjectIdsBuilder.Add(projectState.Id);
                 newProjectStatesBuilder.Add(projectState);
             }
 
+            var newProjectIds = newProjectIdsBuilder.ToBoxedImmutableArray();
             var newProjectStates = newProjectStatesBuilder.ToImmutableAndClear();
 
             // TODO: it would be nice to update these graphs without so much forking.
@@ -415,6 +434,7 @@ internal sealed partial class SolutionState
 
             return Branch(
                 solutionAttributes: newSolutionAttributes,
+                projectIds: newProjectIds,
                 projectStates: newProjectStates,
                 projectCountByLanguage: AddLanguageCounts(ProjectCountByLanguage, langaugeCountDeltas),
                 dependencyGraph: newDependencyGraph);
@@ -440,6 +460,7 @@ internal sealed partial class SolutionState
         using var _ = PooledHashSet<ProjectId>.GetInstance(out var projectIdsSet);
         projectIdsSet.AddRange(projectIds);
 
+        var newProjectIds = ProjectIds.Where(p => !projectIdsSet.Contains(p)).ToBoxedImmutableArray();
         var newProjectStates = ProjectStates.WhereAsArray(p => !projectIdsSet.Contains(p.Id));
 
         // Note: it would be nice to not cause N forks of the dependency graph here.
@@ -453,6 +474,7 @@ internal sealed partial class SolutionState
 
         return this.Branch(
             solutionAttributes: newSolutionAttributes,
+            projectIds: newProjectIds,
             projectStates: newProjectStates,
             projectCountByLanguage: AddLanguageCounts(ProjectCountByLanguage, languageCountDeltas),
             dependencyGraph: newDependencyGraph);
@@ -1183,7 +1205,7 @@ internal sealed partial class SolutionState
     }
 
     public static ProjectDependencyGraph CreateDependencyGraph(
-        ImmutableArray<ProjectState> projectStates,
+        IReadOnlyList<ProjectId> projectIds,
         ImmutableArray<ProjectState> sortedNewProjectStates)
     {
         var map = sortedNewProjectStates.Select(state => KeyValuePairUtil.Create(
@@ -1191,7 +1213,6 @@ internal sealed partial class SolutionState
                 state.ProjectReferences.Where(pr => GetProjectState(sortedNewProjectStates, pr.ProjectId) != null).Select(pr => pr.ProjectId).ToImmutableHashSet()))
                 .ToImmutableDictionary();
 
-        var projectIds = projectStates.Select(state => state.Id);
         return new ProjectDependencyGraph([.. projectIds], map);
     }
 
