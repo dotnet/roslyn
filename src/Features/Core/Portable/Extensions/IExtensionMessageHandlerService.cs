@@ -18,16 +18,12 @@ internal interface IExtensionMessageHandlerService : IWorkspaceService
     /// </summary>
     /// <param name="assemblyFilePath">The assembly to register and create message handlers from.</param>
     /// <returns>The names of the registered handlers.</returns>
-    /// <remarks>Should be called serially with other <see cref="RegisterExtensionAsync"/>, <see
-    /// cref="UnregisterExtensionAsync"/>, or <see cref="ResetAsync"/> calls.</remarks>
     ValueTask<RegisterExtensionResponse> RegisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken);
 
     /// <summary>
     /// Unregisters extension message handlers previously registered from <paramref name="assemblyFilePath"/>.
     /// </summary>
     /// <param name="assemblyFilePath">The assembly for which handlers should be unregistered.</param>
-    /// <remarks>Should be called serially with other <see cref="RegisterExtensionAsync"/>, <see
-    /// cref="UnregisterExtensionAsync"/>, or <see cref="ResetAsync"/> calls.</remarks>
     ValueTask UnregisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken);
 
     /// <summary>
@@ -44,7 +40,6 @@ internal interface IExtensionMessageHandlerService : IWorkspaceService
     /// <param name="messageName">The name of the handler to execute. This is generally the full name of the type implementing the handler.</param>
     /// <param name="jsonMessage">The json message to be passed to the handler.</param>
     /// <returns>The json message returned by the handler.</returns>
-    /// <remarks>Can be called concurrently with other message requests.</remarks>
     ValueTask<string> HandleExtensionWorkspaceMessageAsync(
         Solution solution,
         string messageName,
@@ -58,7 +53,6 @@ internal interface IExtensionMessageHandlerService : IWorkspaceService
     /// <param name="messageName">The name of the handler to execute. This is generally the full name of the type implementing the handler.</param>
     /// <param name="jsonMessage">The json message to be passed to the handler.</param>
     /// <returns>The json message returned by the handler.</returns>
-    /// <remarks>Can be called concurrently with other message requests.</remarks>
     ValueTask<string> HandleExtensionDocumentMessageAsync(
         Document documentId,
         string messageName,
