@@ -20,83 +20,54 @@ internal sealed partial class RemoteExtensionMessageHandlerService(
             => new RemoteExtensionMessageHandlerService(arguments);
     }
 
-    public ValueTask<VoidResult> RegisterExtensionAsync(
-        string assemblyFilePath, CancellationToken cancellationToken)
-    {
-        var service = this.GetWorkspaceServices().GetRequiredService<IExtensionMessageHandlerService>();
-        return RunServiceAsync(
+    private IExtensionMessageHandlerService GetExtensionService()
+        => this.GetWorkspaceServices().GetRequiredService<IExtensionMessageHandlerService>();
+
+    public ValueTask<VoidResult> RegisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken)
+        => RunServiceAsync(
             async cancellationToken =>
             {
-                await service.RegisterExtensionAsync(assemblyFilePath, cancellationToken).ConfigureAwait(false);
+                await GetExtensionService().RegisterExtensionAsync(assemblyFilePath, cancellationToken).ConfigureAwait(false);
                 return default(VoidResult);
             }, cancellationToken);
-    }
 
-    public ValueTask<VoidResult> UnregisterExtensionAsync(
-        string assemblyFilePath, CancellationToken cancellationToken)
-    {
-        var service = this.GetWorkspaceServices().GetRequiredService<IExtensionMessageHandlerService>();
-        return RunServiceAsync(
+    public ValueTask<VoidResult> UnregisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken)
+        => RunServiceAsync(
             async cancellationToken =>
             {
-                await service.UnregisterExtensionAsync(assemblyFilePath, cancellationToken).ConfigureAwait(false);
+                await GetExtensionService().UnregisterExtensionAsync(assemblyFilePath, cancellationToken).ConfigureAwait(false);
                 return default(VoidResult);
             }, cancellationToken);
-    }
 
-    public ValueTask<GetExtensionMessageNamesResponse> GetExtensionMessageNamesAsync(
-        string assemblyFilePath, CancellationToken cancellationToken)
-    {
-        var service = this.GetWorkspaceServices().GetRequiredService<IExtensionMessageHandlerService>();
-        return RunServiceAsync(
-            cancellationToken => service.GetExtensionMessageNamesAsync(assemblyFilePath, cancellationToken),
+    public ValueTask<GetExtensionMessageNamesResponse> GetExtensionMessageNamesAsync(string assemblyFilePath, CancellationToken cancellationToken)
+        => RunServiceAsync(
+            cancellationToken => GetExtensionService().GetExtensionMessageNamesAsync(assemblyFilePath, cancellationToken),
             cancellationToken);
-    }
 
     public ValueTask<string> HandleExtensionDocumentMessageAsync(
-        Checksum solutionChecksum,
-        string messageName,
-        string jsonMessage,
-        DocumentId documentId,
-        CancellationToken cancellationToken)
-    {
-        var service = this.GetWorkspaceServices().GetRequiredService<IExtensionMessageHandlerService>();
-        return RunServiceAsync(
+        Checksum solutionChecksum, string messageName, string jsonMessage, DocumentId documentId, CancellationToken cancellationToken)
+        => RunServiceAsync(
             solutionChecksum,
             async solution =>
             {
                 var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-
-                return await service.HandleExtensionDocumentMessageAsync(
-                    document, messageName, jsonMessage, cancellationToken).ConfigureAwait(false);
+                return await GetExtensionService().HandleExtensionDocumentMessageAsync(document, messageName, jsonMessage, cancellationToken).ConfigureAwait(false);
             },
             cancellationToken);
-    }
 
     public ValueTask<string> HandleExtensionWorkspaceMessageAsync(
-        Checksum solutionChecksum,
-        string messageName,
-        string jsonMessage,
-        CancellationToken cancellationToken)
-    {
-        var service = this.GetWorkspaceServices().GetRequiredService<IExtensionMessageHandlerService>();
-        return RunServiceAsync(
+        Checksum solutionChecksum, string messageName, string jsonMessage, CancellationToken cancellationToken)
+        => RunServiceAsync(
             solutionChecksum,
-            solution => service.HandleExtensionWorkspaceMessageAsync(
-                solution, messageName, jsonMessage, cancellationToken),
+            solution => GetExtensionService().HandleExtensionWorkspaceMessageAsync(solution, messageName, jsonMessage, cancellationToken),
             cancellationToken);
-    }
 
-    public ValueTask<VoidResult> ResetAsync(
-        CancellationToken cancellationToken)
-    {
-        var service = this.GetWorkspace().Services.GetRequiredService<IExtensionMessageHandlerService>();
-        return RunServiceAsync(
+    public ValueTask<VoidResult> ResetAsync(CancellationToken cancellationToken)
+        => RunServiceAsync(
             async cancellationToken =>
             {
-                await service.ResetAsync(cancellationToken).ConfigureAwait(false);
+                await GetExtensionService().ResetAsync(cancellationToken).ConfigureAwait(false);
                 return default(VoidResult);
             },
             cancellationToken);
-    }
 }
