@@ -84,6 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     SyntaxNode? parameterTypeSyntax = parameterList.Parameters[0].Type;
                     Debug.Assert(parameterTypeSyntax is not null);
 
+                    // Note: SourceOrdinaryMethodSymbol.ExtensionMethodChecks has similar checks, which should be kept in sync.
                     if (!parameterType.IsValidExtensionParameterType())
                     {
                         diagnostics.Add(ErrorCode.ERR_BadTypeforThis, parameterTypeSyntax, parameterType);
