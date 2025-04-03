@@ -2872,7 +2872,7 @@ public static class Extensions
     [Fact]
     public void ReceiverParameter_In_03()
     {
-        var src = $$"""
+        var src = """
 public static class Extensions
 {
     extension(in int i) { }
@@ -12172,6 +12172,7 @@ static class E
     [Fact]
     public void InstanceMethodInvocation_Simple_ExpressionTree()
     {
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Verify shape of the tree if we decide to allow
         var source = """
 using System.Linq.Expressions;
 Expression<System.Action> x = () => new C().M(42);
