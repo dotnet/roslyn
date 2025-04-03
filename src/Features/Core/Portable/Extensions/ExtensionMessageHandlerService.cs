@@ -16,7 +16,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.ForEachCast;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -106,7 +105,7 @@ internal sealed class ExtensionMessageHandlerService(
     {
         await ExecuteInRemoteOrCurrentProcessAsync(
             solution: null,
-            cancellationToken => RegisterExtensionInCurrentProcessAsync(assemblyFilePath, cancellationToken),
+            _ => RegisterExtensionInCurrentProcessAsync(assemblyFilePath),
             (remoteService, _, cancellationToken) => remoteService.RegisterExtensionAsync(assemblyFilePath, cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }
@@ -117,9 +116,7 @@ internal sealed class ExtensionMessageHandlerService(
             ?? throw new InvalidOperationException($"Unable to get the directory name for {assemblyFilePath}.");
     }
 
-    public ValueTask<VoidResult> RegisterExtensionInCurrentProcessAsync(
-        string assemblyFilePath,
-        CancellationToken cancellationToken)
+    public ValueTask<VoidResult> RegisterExtensionInCurrentProcessAsync(string assemblyFilePath)
     {
         var assemblyFolderPath = GetAssemblyFolderPath(assemblyFilePath);
 
@@ -144,14 +141,12 @@ internal sealed class ExtensionMessageHandlerService(
     {
         await ExecuteInRemoteOrCurrentProcessAsync(
             solution: null,
-            cancellationToken => UnregisterExtensionInCurrentProcessAsync(assemblyFilePath, cancellationToken),
+            _ => UnregisterExtensionInCurrentProcessAsync(assemblyFilePath),
             (remoteService, _, cancellationToken) => remoteService.UnregisterExtensionAsync(assemblyFilePath, cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }
 
-    private ValueTask<VoidResult> UnregisterExtensionInCurrentProcessAsync(
-        string assemblyFilePath,
-        CancellationToken cancellationToken)
+    private ValueTask<VoidResult> UnregisterExtensionInCurrentProcessAsync(string assemblyFilePath)
     {
         var assemblyFolderPath = GetAssemblyFolderPath(assemblyFilePath);
 
