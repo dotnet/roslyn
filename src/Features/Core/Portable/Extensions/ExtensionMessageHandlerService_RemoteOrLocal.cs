@@ -48,27 +48,19 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             }
         }
 
-        public async ValueTask RegisterExtensionAsync(
-            string assemblyFilePath,
-            CancellationToken cancellationToken)
-        {
-            await ExecuteInRemoteOrCurrentProcessAsync(
+        public async ValueTask RegisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken)
+            => await ExecuteInRemoteOrCurrentProcessAsync(
                 solution: null,
                 _ => RegisterExtensionInCurrentProcessAsync(assemblyFilePath),
                 (remoteService, _, cancellationToken) => remoteService.RegisterExtensionAsync(assemblyFilePath, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
-        }
 
-        public async ValueTask UnregisterExtensionAsync(
-            string assemblyFilePath,
-            CancellationToken cancellationToken)
-        {
-            await ExecuteInRemoteOrCurrentProcessAsync(
+        public async ValueTask UnregisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken)
+            => await ExecuteInRemoteOrCurrentProcessAsync(
                 solution: null,
                 _ => UnregisterExtensionInCurrentProcessAsync(assemblyFilePath),
                 (remoteService, _, cancellationToken) => remoteService.UnregisterExtensionAsync(assemblyFilePath, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
-        }
 
         public ValueTask<GetExtensionMessageNamesResponse> GetExtensionMessageNamesAsync(string assemblyFilePath, CancellationToken cancellationToken)
             => ExecuteInRemoteOrCurrentProcessAsync(
