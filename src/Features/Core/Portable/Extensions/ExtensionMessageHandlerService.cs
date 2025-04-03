@@ -203,7 +203,7 @@ internal sealed class ExtensionMessageHandlerService(
         return await ExecuteInRemoteOrCurrentProcessAsync(
             solution,
             cancellationToken => HandleExtensionMessageInCurrentProcessAsync(
-                executeArgument: solution, solution: true, messageName, jsonMessage, _cachedWorkspaceHandlers, cancellationToken),
+                executeArgument: solution, isSolution: true, messageName, jsonMessage, _cachedWorkspaceHandlers, cancellationToken),
             (service, checksum, cancellationToken) => service.HandleExtensionWorkspaceMessageAsync(checksum!.Value, messageName, jsonMessage, cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }
@@ -213,13 +213,13 @@ internal sealed class ExtensionMessageHandlerService(
         return await ExecuteInRemoteOrCurrentProcessAsync(
             document.Project.Solution,
             cancellationToken => HandleExtensionMessageInCurrentProcessAsync(
-                executeArgument: document, solution: false, messageName, jsonMessage, _cachedDocumentHandlers, cancellationToken),
+                executeArgument: document, isSolution: false, messageName, jsonMessage, _cachedDocumentHandlers, cancellationToken),
             (service, checksum, cancellationToken) => service.HandleExtensionDocumentMessageAsync(checksum!.Value, messageName, jsonMessage, document.Id, cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }
 
     private async ValueTask<string> HandleExtensionMessageInCurrentProcessAsync<TArgument>(
-        TArgument executeArgument, bool solution, string messageName, string jsonMessage,
+        TArgument executeArgument, bool isSolution, string messageName, string jsonMessage,
         ImmutableDictionary<string, AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper<TArgument>>>> cachedHandlers,
         CancellationToken cancellationToken)
     {
@@ -227,9 +227,9 @@ internal sealed class ExtensionMessageHandlerService(
             ref cachedHandlers,
             messageName,
             static (messageName, arg) => AsyncLazy.Create(
-                static (arg, cancellationToken) => ComputeHandlersAsync<TArgument>(arg.@this, arg.messageName, arg.solution, cancellationToken),
-                (messageName, arg.@this, arg.solution)),
-            (@this: this, executeArgument, solution));
+                static (arg, cancellationToken) => ComputeHandlersAsync<TArgument>(arg.@this, arg.messageName, arg.isSolution, cancellationToken),
+                (messageName, arg.@this, arg.isSolution)),
+            (@this: this, executeArgument, isSolution));
 
         var handlers = await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
         if (handlers.Length == 0)
@@ -258,7 +258,7 @@ internal sealed class ExtensionMessageHandlerService(
     }
 
     private static async Task<ImmutableArray<IExtensionMessageHandlerWrapper<TResult>>> ComputeHandlersAsync<TResult>(
-        ExtensionMessageHandlerService @this, string messageName, bool solution, CancellationToken cancellationToken)
+        ExtensionMessageHandlerService @this, string messageName, bool isSolution, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<IExtensionMessageHandlerWrapper<TResult>>.GetInstance(out var result);
         foreach (var (_, lazyExtension) in @this._folderPathToExtensionFolder)
@@ -268,7 +268,7 @@ internal sealed class ExtensionMessageHandlerService(
             if (extension is null)
                 continue;
 
-            await extension.AddHandlersAsync(messageName, solution, result, cancellationToken).ConfigureAwait(false);
+            await extension.AddHandlersAsync(messageName, isSolution, result, cancellationToken).ConfigureAwait(false);
         }
 
         return result.ToImmutable();
