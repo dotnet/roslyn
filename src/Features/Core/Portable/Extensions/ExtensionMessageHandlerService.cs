@@ -524,11 +524,13 @@ internal sealed class ExtensionMessageHandlerService(
         public async ValueTask<AssemblyHandlers?> GetAssemblyHandlersAsync(
             string assemblyFilePath, CancellationToken cancellationToken)
         {
-            var lazy = _assemblyFilePathToHandlers.GetOrAdd(
+            var lazy = ImmutableInterlocked.GetOrAdd(
+                ref _assemblyFilePathToHandlers,
                 assemblyFilePath,
-                static (@this, assemblyFilePath) => AsyncLazy.Create(
+                static (assemblyFilePath, @this) => AsyncLazy.Create(
                     static (args, cancellationToken) => CreateAssemblyHandlersAsync(args.@this, args.assemblyFilePath, cancellationToken),
-                    (@this, assemblyFilePath)));
+                    (assemblyFilePath, @this)),
+                this);
 
             return await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
         }
