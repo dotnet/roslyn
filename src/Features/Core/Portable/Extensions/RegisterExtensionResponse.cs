@@ -8,6 +8,6 @@ using System.Runtime.Serialization;
 namespace Microsoft.CodeAnalysis.Extensions;
 
 [DataContract]
-internal readonly record struct RegisterExtensionResponse(
+internal readonly record struct GetExtensionMessageNamesResponse(
     [property: DataMember(Order = 0)] ImmutableArray<string> WorkspaceMessageHandlers,
     [property: DataMember(Order = 1)] ImmutableArray<string> DocumentMessageHandlers);

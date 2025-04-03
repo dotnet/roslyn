@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -17,8 +18,7 @@ internal interface IExtensionMessageHandlerService : IWorkspaceService
     /// Registers extension message handlers from the specified assembly.
     /// </summary>
     /// <param name="assemblyFilePath">The assembly to register and create message handlers from.</param>
-    /// <returns>The names of the registered handlers.</returns>
-    ValueTask<RegisterExtensionResponse> RegisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken);
+    ValueTask RegisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken);
 
     /// <summary>
     /// Unregisters extension message handlers previously registered from <paramref name="assemblyFilePath"/>.
@@ -27,10 +27,13 @@ internal interface IExtensionMessageHandlerService : IWorkspaceService
     ValueTask UnregisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Gets the message names supported by the extension specified by <paramref name="assemblyFilePath"/>.
+    /// </summary>
+    ValueTask<GetExtensionMessageNamesResponse> GetExtensionMessageNamesAsync(string assemblyFilePath, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Unregisters all extension message handlers.
     /// </summary>
-    /// <remarks>Should be called serially with other <see cref="RegisterExtensionAsync"/>, <see
-    /// cref="UnregisterExtensionAsync"/>, or <see cref="ResetAsync"/> calls.</remarks>
     ValueTask ResetAsync(CancellationToken cancellationToken);
 
     /// <summary>

@@ -99,29 +99,32 @@ internal sealed class ExtensionMessageHandlerService(
         }
     }
 
-    public async ValueTask<RegisterExtensionResponse> RegisterExtensionAsync(
+    public async ValueTask RegisterExtensionAsync(
         string assemblyFilePath,
         CancellationToken cancellationToken)
     {
-        return await ExecuteInRemoteOrCurrentProcessAsync(
+        await ExecuteInRemoteOrCurrentProcessAsync(
             solution: null,
             cancellationToken => RegisterExtensionInCurrentProcessAsync(assemblyFilePath, cancellationToken),
             (remoteService, _, cancellationToken) => remoteService.RegisterExtensionAsync(assemblyFilePath, cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }
 
-    public async ValueTask<RegisterExtensionResponse> RegisterExtensionInCurrentProcessAsync(
+    private static string GetAssemblyFolderPath(string assemblyFilePath)
+    {
+        return Path.GetDirectoryName(assemblyFilePath)
+            ?? throw new InvalidOperationException($"Unable to get the directory name for {assemblyFilePath}.");
+    }
+
+    public async ValueTask<VoidResult> RegisterExtensionInCurrentProcessAsync(
         string assemblyFilePath,
         CancellationToken cancellationToken)
     {
-        // var assemblyFileName = Path.GetFileName(assemblyFilePath);
-        var assemblyFolderPath = Path.GetDirectoryName(assemblyFilePath)
-            ?? throw new InvalidOperationException($"Unable to get the directory name for {assemblyFilePath}.");
+        var assemblyFolderPath = GetAssemblyFolderPath(assemblyFilePath);
 
-        AsyncLazy<ExtensionFolder> lazyExtensionFolder;
         using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
-            lazyExtensionFolder = _folderPathToExtensionFolder.GetOrAdd(
+            _folderPathToExtensionFolder.GetOrAdd(
                 assemblyFolderPath,
                 static (assemblyFolderPath, @this) => AsyncLazy.Create(
                     cancellationToken => ExtensionFolder.Create(@this, assemblyFolderPath, cancellationToken)),
@@ -129,6 +132,32 @@ internal sealed class ExtensionMessageHandlerService(
 
             // After registering, clear out the cached handler names.  They will be recomputed the next time we need them.
             ClearCachedHandlers();
+            return default;
+        }
+    }
+
+    public async ValueTask<GetExtensionMessageNamesResponse> GetExtensionMessageNamesAsync(
+        string assemblyFilePath,
+        CancellationToken cancellationToken)
+    {
+        return await ExecuteInRemoteOrCurrentProcessAsync(
+            solution: null,
+            cancellationToken => GetExtensionMessageNamesInCurrentProcessAsync(assemblyFilePath, cancellationToken),
+            (remoteService, _, cancellationToken) => remoteService.GetExtensionMessageNamesAsync(assemblyFilePath, cancellationToken),
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    public async ValueTask<GetExtensionMessageNamesResponse> GetExtensionMessageNamesInCurrentProcessAsync(
+        string assemblyFilePath,
+        CancellationToken cancellationToken)
+    {
+        var assemblyFolderPath = GetAssemblyFolderPath(assemblyFilePath);
+
+        AsyncLazy<ExtensionFolder>? lazyExtensionFolder;
+        using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+        {
+            if (!_folderPathToExtensionFolder.TryGetValue(assemblyFolderPath, out lazyExtensionFolder))
+                throw new InvalidOperationException($"No extensions registered at '{assemblyFolderPath}'");
         }
 
         var extensionFolder = await lazyExtensionFolder.GetValueAsync(cancellationToken).ConfigureAwait(false);

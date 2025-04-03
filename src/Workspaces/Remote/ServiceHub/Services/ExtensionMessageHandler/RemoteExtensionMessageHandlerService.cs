@@ -20,19 +20,20 @@ internal sealed partial class RemoteExtensionMessageHandlerService(
             => new RemoteExtensionMessageHandlerService(arguments);
     }
 
-    public ValueTask<RegisterExtensionResponse> RegisterExtensionAsync(
-        string assemblyFilePath,
-        CancellationToken cancellationToken)
+    public ValueTask<VoidResult> RegisterExtensionAsync(
+        string assemblyFilePath, CancellationToken cancellationToken)
     {
         var service = this.GetWorkspaceServices().GetRequiredService<IExtensionMessageHandlerService>();
         return RunServiceAsync(
-            cancellationToken => service.RegisterExtensionAsync(assemblyFilePath, cancellationToken),
-            cancellationToken);
+            async cancellationToken =>
+            {
+                await service.RegisterExtensionAsync(assemblyFilePath, cancellationToken).ConfigureAwait(false);
+                return default(VoidResult);
+            }, cancellationToken);
     }
 
     public ValueTask<VoidResult> UnregisterExtensionAsync(
-        string assemblyFilePath,
-        CancellationToken cancellationToken)
+        string assemblyFilePath, CancellationToken cancellationToken)
     {
         var service = this.GetWorkspaceServices().GetRequiredService<IExtensionMessageHandlerService>();
         return RunServiceAsync(
@@ -40,7 +41,15 @@ internal sealed partial class RemoteExtensionMessageHandlerService(
             {
                 await service.UnregisterExtensionAsync(assemblyFilePath, cancellationToken).ConfigureAwait(false);
                 return default(VoidResult);
-            },
+            }, cancellationToken);
+    }
+
+    public ValueTask<GetExtensionMessageNamesResponse> GetExtensionMessageNamesAsync(
+        string assemblyFilePath, CancellationToken cancellationToken)
+    {
+        var service = this.GetWorkspaceServices().GetRequiredService<IExtensionMessageHandlerService>();
+        return RunServiceAsync(
+            cancellationToken => service.GetExtensionMessageNamesAsync(assemblyFilePath, cancellationToken),
             cancellationToken);
     }
 
