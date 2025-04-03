@@ -5,7 +5,6 @@
 #if NET
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -19,8 +18,6 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory(IExtensionMe
     : IWorkspaceServiceFactory
 {
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        => new ExtensionMessageHandlerService(
-            workspaceServices.SolutionServices,
-            customMessageHandlerFactory);
+        => new ExtensionMessageHandlerService(workspaceServices.SolutionServices, customMessageHandlerFactory);
 }
 #endif
