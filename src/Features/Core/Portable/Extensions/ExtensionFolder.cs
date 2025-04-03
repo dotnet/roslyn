@@ -125,7 +125,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             lock (_assemblyFilePathToHandlers_useOnlyUnderLock)
             {
                 if (!_assemblyFilePathToHandlers_useOnlyUnderLock.TryGetValue(assemblyFilePath, out lazyHandlers))
-                    throw new InvalidOperationException($"No extension registered as '{assemblyFilePath}'");
+                    throw new InvalidOperationException($"Extension '{assemblyFilePath}' was not registered.");
             }
 
             // If loading the assembly and getting the handlers failed, then we will throw that exception outwards
