@@ -215,14 +215,18 @@ internal sealed class ExtensionMessageHandlerService(
             cancellationToken).ConfigureAwait(false);
     }
 
-    private async ValueTask<string> HandleExtensionWorkspaceMessageInCurrentProcessAsync(Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken)
+    private async ValueTask<string> HandleExtensionMessageInCurrentProcessAsync<TArgument>(
+        TArgument executeArgument, bool solution, string messageName, string jsonMessage,
+        ImmutableDictionary<string, AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper<TArgument>>>> cachedHandlers,
+        CancellationToken cancellationToken)
     {
-        var lazy = _cachedWorkspaceHandlers.GetOrAdd(
+        var lazy = ImmutableInterlocked.GetOrAdd(
+            ref cachedHandlers,
             messageName,
-            static (messageName, @this) => AsyncLazy.Create(
-                static (arg, cancellationToken) => ComputeHandlersAsync<Solution>(arg.@this, arg.messageName, true, cancellationToken),
-                (messageName, @this)),
-            this);
+            static (messageName, arg) => AsyncLazy.Create(
+                static (arg, cancellationToken) => ComputeHandlersAsync<TArgument>(arg.@this, arg.messageName, arg.solution, cancellationToken),
+                (messageName, arg.@this, arg.solution)),
+            (@this: this, executeArgument, solution));
 
         var handlers = await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
         if (handlers.Length == 0)
@@ -236,7 +240,7 @@ internal sealed class ExtensionMessageHandlerService(
         try
         {
             var message = JsonSerializer.Deserialize(jsonMessage, handler.MessageType);
-            var result = await handler.ExecuteAsync(message, solution, cancellationToken)
+            var result = await handler.ExecuteAsync(message, executeArgument, cancellationToken)
                 .ConfigureAwait(false);
             var responseJson = JsonSerializer.Serialize(result, handler.ResponseType);
             return responseJson;
