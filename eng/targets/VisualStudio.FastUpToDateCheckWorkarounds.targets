@@ -11,4 +11,16 @@
 
   <Target Name="CollectVsixUpToDateCheckBuilt">
   </Target>
+
+  <PropertyGroup>
+    <CollectUpToDateCheckInputDesignTimeDependsOn>$(CollectUpToDateCheckInputDesignTimeDependsOn);RemoveBuildOutputSourceItems</CollectUpToDateCheckInputDesignTimeDependsOn>
+  </PropertyGroup>
+
+  <!-- Add a workaround for https://github.com/dotnet/project-system/issues/9651 until we decide what we want to do there long term. -->
+  <Target Name="RemoveBuildOutputSourceItems" DependsOnTargets="AddUpToDateCheckVSIXSourceItems" Condition="'$(CreateVsixContainer)' == 'true'">
+    <ItemGroup>
+      <_ItemsInObjDirectory Include="$(IntermediateOutputPath)\**\*" Set="VsixItems" />
+      <UpToDateCheckInput Remove="@(_ItemsInObjDirectory)" MatchOnMetadata="Set" />
+    </ItemGroup>
+  </Target>
 </Project>
