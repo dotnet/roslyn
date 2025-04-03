@@ -220,7 +220,7 @@ internal sealed class ExtensionMessageHandlerService(
         var lazy = _cachedWorkspaceHandlers.GetOrAdd(
             messageName,
             static (messageName, @this) => AsyncLazy.Create(
-                static (arg, cancellationToken) => ComputeHandlersAsync(arg.@this, arg.messageName, cancellationToken),
+                static (arg, cancellationToken) => ComputeHandlersAsync<Solution>(arg.@this, arg.messageName, true, cancellationToken),
                 (messageName, @this)),
             this);
 
