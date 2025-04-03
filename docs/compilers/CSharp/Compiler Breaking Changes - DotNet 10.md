@@ -356,7 +356,7 @@ class @extension
 }
 ```
 
-***Introduced in Visual Studio 2022 version 17.5.***
+***Introduced in Visual Studio 2022 version 17.15.***
 The "extension" identifier may not be used as a type name, so the following will not compile:
 ```csharp
 using extension = ...; // alias may not be named "extension"
