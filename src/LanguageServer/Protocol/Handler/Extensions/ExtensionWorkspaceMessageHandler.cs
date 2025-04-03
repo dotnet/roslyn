@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Extensions;
 
@@ -30,33 +29,14 @@ internal sealed class ExtensionWorkspaceMessageHandler()
         Contract.ThrowIfNull(context.Solution);
 
         var solution = context.Solution;
-        var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
 
-        if (client is not null)
-        {
-            var response = await client.TryInvokeAsync<IRemoteExtensionMessageHandlerService, string>(
+        var service = solution.Services.GetRequiredService<IExtensionMessageHandlerService>();
+        var response = await service.HandleExtensionWorkspaceMessageAsync(
                 solution,
-                (service, solutionInfo, cancellationToken) => service.HandleExtensionWorkspaceMessageAsync(
-                    solutionInfo, request.MessageName, request.Message, cancellationToken),
+                request.MessageName,
+                request.Message,
                 cancellationToken).ConfigureAwait(false);
 
-            if (!response.HasValue)
-            {
-                throw new InvalidOperationException("The remote message handler didn't return any value.");
-            }
-
-            return new ExtensionMessageResponse(response.Value);
-        }
-        else
-        {
-            var service = solution.Services.GetRequiredService<IExtensionMessageHandlerService>();
-            var response = await service.HandleExtensionWorkspaceMessageAsync(
-                    solution,
-                    request.MessageName,
-                    request.Message,
-                    cancellationToken).ConfigureAwait(false);
-
-            return new ExtensionMessageResponse(response);
-        }
+        return new ExtensionMessageResponse(response);
     }
 }

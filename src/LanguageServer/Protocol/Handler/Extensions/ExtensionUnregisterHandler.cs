@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Extensions;
 
@@ -29,21 +28,7 @@ internal sealed class ExtensionUnregisterHandler()
     {
         Contract.ThrowIfNull(context.Solution);
 
-        var solution = context.Solution;
-        var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
-
-        if (client is not null)
-        {
-            await client.TryInvokeAsync<IRemoteExtensionMessageHandlerService>(
-                (service, cancellationToken) => service.UnregisterExtensionAsync(request.AssemblyFilePath, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
-        }
-        else
-        {
-            var service = solution.Services.GetRequiredService<IExtensionMessageHandlerService>();
-            await service.UnregisterExtensionAsync(
-                    request.AssemblyFilePath,
-                    cancellationToken).ConfigureAwait(false);
-        }
+        var service = context.Solution.Services.GetRequiredService<IExtensionMessageHandlerService>();
+        await service.UnregisterExtensionAsync(request.AssemblyFilePath, cancellationToken).ConfigureAwait(false);
     }
 }
