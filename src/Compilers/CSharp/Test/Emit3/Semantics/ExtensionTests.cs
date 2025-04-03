@@ -32837,6 +32837,7 @@ class Program
 
         rOuter.MayAssign(ref rInner); // 1
         rInner.MayAssign(ref rOuter); // 2
+        rInner.MayAssign(arg2: ref rOuter); // 3
     }
 
     static S1 MayWrap(ref System.Span<int> arg) => default;
@@ -32865,7 +32866,51 @@ static class E
             Diagnostic(ErrorCode.ERR_EscapeVariable, "rInner").WithArguments("rInner").WithLocation(14, 9),
             // (14,9): error CS8350: This combination of arguments to 'E.extension(ref S1).MayAssign(ref S1)' is disallowed because it may expose variables referenced by parameter 'arg1' outside of their declaration scope
             //         rInner.MayAssign(ref rOuter); // 2
-            Diagnostic(ErrorCode.ERR_CallArgMixing, "rInner.MayAssign(ref rOuter)").WithArguments("E.extension(ref S1).MayAssign(ref S1)", "arg1").WithLocation(14, 9));
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "rInner.MayAssign(ref rOuter)").WithArguments("E.extension(ref S1).MayAssign(ref S1)", "arg1").WithLocation(14, 9),
+            // (15,9): error CS8352: Cannot use variable 'rInner' in this context because it may expose referenced variables outside of their declaration scope
+            //         rInner.MayAssign(arg2: ref rOuter); // 3
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "rInner").WithArguments("rInner").WithLocation(15, 9),
+            // (15,9): error CS8350: This combination of arguments to 'E.extension(ref S1).MayAssign(ref S1)' is disallowed because it may expose variables referenced by parameter 'arg1' outside of their declaration scope
+            //         rInner.MayAssign(arg2: ref rOuter); // 3
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "rInner.MayAssign(arg2: ref rOuter)").WithArguments("E.extension(ref S1).MayAssign(ref S1)", "arg1").WithLocation(15, 9));
+    }
+
+    [Fact]
+    public void RefAnalysis_Invocation_06()
+    {
+        string source = """
+class C
+{
+    void M2(ref int j)
+    {
+        int i = 0;
+        j = ref i.M();
+    }
+
+    void M3(ref int j)
+    {
+        int i = 0;
+        j = ref E.M(ref i);
+    }
+}
+
+static class E
+{
+    extension(ref int i)
+    {
+        public ref int M() => ref i;
+    }
+}
+""";
+
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (6,9): error CS8374: Cannot ref-assign 'i.M()' to 'j' because 'i.M()' has a narrower escape scope than 'j'.
+            //         j = ref i.M();
+            Diagnostic(ErrorCode.ERR_RefAssignNarrower, "j = ref i.M()").WithArguments("j", "i.M()").WithLocation(6, 9),
+            // (12,9): error CS8374: Cannot ref-assign 'E.M(ref i)' to 'j' because 'E.M(ref i)' has a narrower escape scope than 'j'.
+            //         j = ref E.M(ref i);
+            Diagnostic(ErrorCode.ERR_RefAssignNarrower, "j = ref E.M(ref i)").WithArguments("j", "E.M(ref i)").WithLocation(12, 9));
     }
 
     [Fact]
