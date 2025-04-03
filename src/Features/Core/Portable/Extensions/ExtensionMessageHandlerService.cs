@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
@@ -56,7 +57,7 @@ internal sealed class ExtensionMessageHandlerService(
     /// <summary>
     /// Handlers of non-document-related messages, indexed by handler message name.
     /// </summary>
-    private ImmutableDictionary<string, AsyncLazy<IExtensionMessageHandlerWrapper<Solution>?>> _cachedWorkspaceHandlers = ImmutableDictionary<string, AsyncLazy<IExtensionMessageHandlerWrapper<Solution>?>>.Empty;
+    private ImmutableDictionary<string, AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper<Solution>>>> _cachedWorkspaceHandlers = ImmutableDictionary<string, AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper<Solution>>>>.Empty;
 
     private async ValueTask<TResult> ExecuteInRemoteOrCurrentProcessAsync<TResult>(
         Solution? solution,
@@ -203,8 +204,8 @@ internal sealed class ExtensionMessageHandlerService(
         if (_extensions.TryGetValue(assemblyFolderPath, out var extension) &&
             extension != null)
         {
-            // Unregister this particular assembly file from teh assembly folder.  If it was the last extension within this folder,
-            // we can remove the registeration for the extension entirely.
+            // Unregister this particular assembly file from teh assembly folder.  If it was the last extension within
+            // this folder, we can remove the registration for the extension entirely.
             if (extension.Unregister(assemblyFileName))
                 _extensions = _extensions.Remove(assemblyFolderPath);
         }
@@ -287,44 +288,28 @@ internal sealed class ExtensionMessageHandlerService(
             cancellationToken).ConfigureAwait(false);
     }
 
-    private ValueTask<string> HandleExtensionWorkspaceMessageInCurrentProcess1Async(Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken)
+    private async ValueTask<string> HandleExtensionWorkspaceMessageInCurrentProcessAsync(Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken)
     {
         var lazy = _cachedWorkspaceHandlers.GetOrAdd(
             messageName,
-            (messageName, arg) => AsyncLazy.Create(cancellationToken => ComputeHandler(arg.@this),
-            (@this: this, solution, jsonMessage))
-    }
+            static (messageName, @this) => AsyncLazy.Create(
+                static (arg, cancellationToken) => ComputeHandlersAsync(arg.@this, arg.messageName, cancellationToken),
+                (messageName, @this)),
+            this);
 
-    private ValueTask<string> HandleExtensionWorkspaceMessageInCurrentProcessAsync(Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken)
-        => HandleExtensionMessageAsync(solution, messageName, jsonMessage, _workspaceHandlers, cancellationToken);
+        var handlers = await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
+        if (handlers.Length == 0)
+            throw new InvalidOperationException($"No handler found for message {messageName}.");
 
-    public ValueTask<string> HandleExtensionDocumentMessageInCurrentProcessAsync(Document document, string messageName, string jsonMessage, CancellationToken cancellationToken)
-        => HandleExtensionMessageAsync(document, messageName, jsonMessage, _documentHandlers, cancellationToken);
+        if (handlers.Length > 1)
+            throw new InvalidOperationException($"Multiple handlers found for message {messageName}.");
 
-    private async ValueTask<string> HandleExtensionMessageAsync<TArgument>(
-        TArgument argument,
-        string messageName,
-        string jsonMessage,
-        ImmutableDictionary<string, IExtensionMessageHandlerWrapper<TArgument>> handlers,
-        CancellationToken cancellationToken)
-    {
-
-        var lazy = _cachedDocumentHandlers.
-        IExtensionMessageHandlerWrapper<TArgument>? handler;
-        using (await _lock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-        {
-            // handlers here is either _workspaceHandlers or _documentHandlers, so it must be protected
-            // by _lockObject.
-            if (!handlers.TryGetValue(messageName, out handler))
-            {
-                throw new InvalidOperationException($"No handler found for message {messageName}.");
-            }
-        }
+        var handler = handlers[0];
 
         try
         {
             var message = JsonSerializer.Deserialize(jsonMessage, handler.MessageType);
-            var result = await handler.ExecuteAsync(message, argument, cancellationToken)
+            var result = await handler.ExecuteAsync(message, solution, cancellationToken)
                 .ConfigureAwait(false);
             var responseJson = JsonSerializer.Serialize(result, handler.ResponseType);
             return responseJson;
@@ -338,50 +323,119 @@ internal sealed class ExtensionMessageHandlerService(
         }
     }
 
-    private async Task RegisterAssemblyAsync(
-        Extension extension,
-        string assemblyFileName,
-        AssemblyHandlers? assemblyHandlers,
-        CancellationToken cancellationToken)
+    private static async Task<ImmutableArray<IExtensionMessageHandlerWrapper<TResult>>> ComputeHandlersAsync<TResult>(
+        ExtensionMessageHandlerService @this, string messageName, bool solution, CancellationToken cancellationToken)
     {
-        using (await _lock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+        using var _ = ArrayBuilder<IExtensionMessageHandlerWrapper<TResult>>.GetInstance(out var result);
+        foreach (var (_, lazyExtension) in @this._extensions)
         {
-            // Make sure a call to UnloadCustomMessageHandlersAsync hasn't happened while we relinquished the lock on _lockObject
-            if (!_extensions.TryGetValue(extension.AssemblyFolderPath, out var currentExtension) || !extension.Equals(currentExtension))
+            cancellationToken.ThrowIfCancellationRequested();
+            var extension = await lazyExtension.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            if (extension is null)
+                continue;
+
+            if (solution)
             {
-                throw new InvalidOperationException($"Handlers in {extension.AssemblyFolderPath} were unregistered while loading handlers.");
+                if (extension.WorkspaceMessageHandlers.TryGetValue(messageName, out var handler))
+                    result.Add((IExtensionMessageHandlerWrapper<TResult>)handler);
             }
-
-            try
+            else
             {
-                if (assemblyHandlers is not null)
-                {
-                    var duplicateHandler = _workspaceHandlers.Keys.Intersect(assemblyHandlers.WorkspaceMessageHandlers.Keys).Concat(
-                    _documentHandlers.Keys.Intersect(assemblyHandlers.DocumentMessageHandlers.Keys)).FirstOrDefault();
-
-                    if (duplicateHandler is not null)
-                    {
-                        assemblyHandlers = null;
-                        throw new InvalidOperationException($"Handler name {duplicateHandler} is already registered.");
-                    }
-
-                    foreach (var handler in assemblyHandlers.WorkspaceMessageHandlers)
-                    {
-                        _workspaceHandlers.Add(handler.Key, handler.Value);
-                    }
-
-                    foreach (var handler in assemblyHandlers.DocumentMessageHandlers)
-                    {
-                        _documentHandlers.Add(handler.Key, handler.Value);
-                    }
-                }
-            }
-            finally
-            {
-                extension.SetAssemblyHandlers(assemblyFileName, assemblyHandlers);
+                if (extension.DocumentMessageHandlers.TryGetValue(messageName, out var handler))
+                    result.Add((IExtensionMessageHandlerWrapper<TResult>)handler);
             }
         }
+
+        return result.ToImmutable();
     }
+
+    //private ValueTask<string> HandleExtensionWorkspaceMessageInCurrentProcessAsync(Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken)
+    //    => HandleExtensionMessageAsync(solution, messageName, jsonMessage, _workspaceHandlers, cancellationToken);
+
+    //public ValueTask<string> HandleExtensionDocumentMessageInCurrentProcessAsync(Document document, string messageName, string jsonMessage, CancellationToken cancellationToken)
+    //    => HandleExtensionMessageAsync(document, messageName, jsonMessage, _documentHandlers, cancellationToken);
+
+    //private async ValueTask<string> HandleExtensionMessageAsync<TArgument>(
+    //    TArgument argument,
+    //    string messageName,
+    //    string jsonMessage,
+    //    ImmutableDictionary<string, IExtensionMessageHandlerWrapper<TArgument>> handlers,
+    //    CancellationToken cancellationToken)
+    //{
+
+    //    var lazy = _cachedDocumentHandlers.
+    //    IExtensionMessageHandlerWrapper<TArgument>? handler;
+    //    using (await _lock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+    //    {
+    //        // handlers here is either _workspaceHandlers or _documentHandlers, so it must be protected
+    //        // by _lockObject.
+    //        if (!handlers.TryGetValue(messageName, out handler))
+    //        {
+    //            throw new InvalidOperationException($"No handler found for message {messageName}.");
+    //        }
+    //    }
+
+    //    try
+    //    {
+    //        var message = JsonSerializer.Deserialize(jsonMessage, handler.MessageType);
+    //        var result = await handler.ExecuteAsync(message, argument, cancellationToken)
+    //            .ConfigureAwait(false);
+    //        var responseJson = JsonSerializer.Serialize(result, handler.ResponseType);
+    //        return responseJson;
+    //    }
+    //    catch
+    //    {
+    //        // Any exception thrown in this method is left to bubble up to the extension.
+    //        // But we unregister all handlers from that assembly to minimize the impact of a bad extension.
+    //        await UnregisterExtensionAsync(assemblyFilePath: handler.ExtensionIdentifier, cancellationToken).ConfigureAwait(false);
+    //        throw;
+    //    }
+    //}
+
+    //private async Task RegisterAssemblyAsync(
+    //    Extension extension,
+    //    string assemblyFileName,
+    //    AssemblyHandlers? assemblyHandlers,
+    //    CancellationToken cancellationToken)
+    //{
+    //    using (await _lock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+    //    {
+    //        // Make sure a call to UnloadCustomMessageHandlersAsync hasn't happened while we relinquished the lock on _lockObject
+    //        if (!_extensions.TryGetValue(extension.AssemblyFolderPath, out var currentExtension) || !extension.Equals(currentExtension))
+    //        {
+    //            throw new InvalidOperationException($"Handlers in {extension.AssemblyFolderPath} were unregistered while loading handlers.");
+    //        }
+
+    //        try
+    //        {
+    //            if (assemblyHandlers is not null)
+    //            {
+    //                var duplicateHandler = _workspaceHandlers.Keys.Intersect(assemblyHandlers.WorkspaceMessageHandlers.Keys).Concat(
+    //                _documentHandlers.Keys.Intersect(assemblyHandlers.DocumentMessageHandlers.Keys)).FirstOrDefault();
+
+    //                if (duplicateHandler is not null)
+    //                {
+    //                    assemblyHandlers = null;
+    //                    throw new InvalidOperationException($"Handler name {duplicateHandler} is already registered.");
+    //                }
+
+    //                foreach (var handler in assemblyHandlers.WorkspaceMessageHandlers)
+    //                {
+    //                    _workspaceHandlers.Add(handler.Key, handler.Value);
+    //                }
+
+    //                foreach (var handler in assemblyHandlers.DocumentMessageHandlers)
+    //                {
+    //                    _documentHandlers.Add(handler.Key, handler.Value);
+    //                }
+    //            }
+    //        }
+    //        finally
+    //        {
+    //            extension.SetAssemblyHandlers(assemblyFileName, assemblyHandlers);
+    //        }
+    //    }
+    //}
 
     private sealed class Extension(
         ExtensionMessageHandlerService extensionMessageHandlerService,
