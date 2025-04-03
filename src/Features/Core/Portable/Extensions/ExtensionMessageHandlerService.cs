@@ -76,7 +76,7 @@ internal sealed class ExtensionMessageHandlerService(
         if (solution is null)
         {
             var result = await client.TryInvokeAsync<IRemoteExtensionMessageHandlerService, TResult>(
-                (service, cancellationToken) => executeOutOfProcessAsync(service, null, cancellationToken),
+                (remoteService, cancellationToken) => executeOutOfProcessAsync(remoteService, null, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
             // If the remote call succeeded, this will have a valid valid in it and can be returned.  If it did not
@@ -88,7 +88,7 @@ internal sealed class ExtensionMessageHandlerService(
         {
             var result = await client.TryInvokeAsync<IRemoteExtensionMessageHandlerService, TResult>(
                 solution,
-                (service, checksum, cancellationToken) => executeOutOfProcessAsync(service, checksum, cancellationToken),
+                (remoteService, checksum, cancellationToken) => executeOutOfProcessAsync(remoteService, checksum, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
             return result.Value;
         }
@@ -101,7 +101,7 @@ internal sealed class ExtensionMessageHandlerService(
         return await ExecuteInRemoteOrCurrentProcessAsync(
             solution: null,
             cancellationToken => RegisterExtensionInCurrentProcessAsync(assemblyFilePath, cancellationToken),
-            (service, _, cancellationToken) => service.RegisterExtensionAsync(assemblyFilePath, cancellationToken),
+            (remoteService, _, cancellationToken) => remoteService.RegisterExtensionAsync(assemblyFilePath, cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }
 
@@ -143,7 +143,7 @@ internal sealed class ExtensionMessageHandlerService(
         await ExecuteInRemoteOrCurrentProcessAsync(
             solution: null,
             cancellationToken => UnregisterExtensionInCurrentProcessAsync(assemblyFilePath, cancellationToken),
-            (service, _, cancellationToken) => service.UnregisterExtensionAsync(assemblyFilePath, cancellationToken),
+            (remoteService, _, cancellationToken) => remoteService.UnregisterExtensionAsync(assemblyFilePath, cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }
 
@@ -181,7 +181,7 @@ internal sealed class ExtensionMessageHandlerService(
         await ExecuteInRemoteOrCurrentProcessAsync(
             solution: null,
             _ => ResetInCurrentProcessAsync(),
-            (service, _, cancellationToken) => service.ResetAsync(cancellationToken),
+            (remoteService, _, cancellationToken) => remoteService.ResetAsync(cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }
 
@@ -204,7 +204,7 @@ internal sealed class ExtensionMessageHandlerService(
             solution,
             cancellationToken => HandleExtensionMessageInCurrentProcessAsync(
                 executeArgument: solution, isSolution: true, messageName, jsonMessage, _cachedWorkspaceHandlers, cancellationToken),
-            (service, checksum, cancellationToken) => service.HandleExtensionWorkspaceMessageAsync(checksum!.Value, messageName, jsonMessage, cancellationToken),
+            (remoteService, checksum, cancellationToken) => remoteService.HandleExtensionWorkspaceMessageAsync(checksum!.Value, messageName, jsonMessage, cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }
 
@@ -214,7 +214,7 @@ internal sealed class ExtensionMessageHandlerService(
             document.Project.Solution,
             cancellationToken => HandleExtensionMessageInCurrentProcessAsync(
                 executeArgument: document, isSolution: false, messageName, jsonMessage, _cachedDocumentHandlers, cancellationToken),
-            (service, checksum, cancellationToken) => service.HandleExtensionDocumentMessageAsync(checksum!.Value, messageName, jsonMessage, document.Id, cancellationToken),
+            (remoteService, checksum, cancellationToken) => remoteService.HandleExtensionDocumentMessageAsync(checksum!.Value, messageName, jsonMessage, document.Id, cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }
 
@@ -243,10 +243,8 @@ internal sealed class ExtensionMessageHandlerService(
         try
         {
             var message = JsonSerializer.Deserialize(jsonMessage, handler.MessageType);
-            var result = await handler.ExecuteAsync(message, executeArgument, cancellationToken)
-                .ConfigureAwait(false);
-            var responseJson = JsonSerializer.Serialize(result, handler.ResponseType);
-            return responseJson;
+            var result = await handler.ExecuteAsync(message, executeArgument, cancellationToken).ConfigureAwait(false);
+            return JsonSerializer.Serialize(result, handler.ResponseType);
         }
         catch
         {
@@ -280,8 +278,6 @@ internal sealed class ExtensionMessageHandlerService(
     {
         private readonly ExtensionMessageHandlerService _extensionMessageHandlerService = extensionMessageHandlerService;
         private readonly IAnalyzerAssemblyLoaderInternal _analyzerAssemblyLoader = analyzerAssemblyLoader;
-
-        // private readonly string _assemblyFolderPath = assemblyFolderPath;
 
         private ImmutableDictionary<string, AsyncLazy<AssemblyHandlers?>> _assemblyFilePathToHandlers = ImmutableDictionary<string, AsyncLazy<AssemblyHandlers?>>.Empty;
 
