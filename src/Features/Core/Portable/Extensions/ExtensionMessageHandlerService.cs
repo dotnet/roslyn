@@ -195,12 +195,12 @@ internal sealed class ExtensionMessageHandlerService(IExtensionMessageHandlerFac
         Dictionary<string, IExtensionMessageHandlerWrapper<TArgument>> handlers,
         CancellationToken cancellationToken)
     {
-        IExtensionMessageHandlerWrapper<TArgument> handler;
+        IExtensionMessageHandlerWrapper<TArgument>? handler;
         lock (_lockObject)
         {
             // handlers here is either _workspaceHandlers or _documentHandlers, so it must be protected
             // by _lockObject.
-            if (!handlers.TryGetValue(messageName, out handler!))
+            if (!handlers.TryGetValue(messageName, out handler))
             {
                 throw new InvalidOperationException($"No handler found for message {messageName}.");
             }
