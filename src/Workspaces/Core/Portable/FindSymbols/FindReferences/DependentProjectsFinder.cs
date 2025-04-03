@@ -198,15 +198,15 @@ internal static partial class DependentProjectsFinder
         using var _1 = PooledDictionary<ProjectId, List<ProjectId>>.GetInstance(out var projectIdsToReferencingSubmissionIds);
 
         // search only submission project
-        foreach (var projectState in solution.ProjectStates)
+        foreach (var projectId in solution.ProjectIds)
         {
-            if (projectState.IsSubmission && projectState.SupportsCompilation)
+            var project = solution.GetRequiredProject(projectId);
+            if (project.IsSubmission && project.SupportsCompilation)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // If we are referencing another project, store the link in the other direction
                 // so we walk across it later
-                var project = solution.GetRequiredProject(projectState.Id);
                 var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var previous = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
 

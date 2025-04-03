@@ -127,7 +127,7 @@ public partial class Solution
     /// <summary>
     /// A list of all the projects contained by the solution.
     /// </summary>
-    public IEnumerable<Project> Projects => ProjectStates.Select(state => this.GetProject(state.Id)!);
+    public IEnumerable<Project> Projects => ProjectIds.Select(id => GetProject(id)!);
 
     /// <summary>
     /// The version of the most recently modified project.
