@@ -70,16 +70,12 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                 cancellationToken).ConfigureAwait(false);
         }
 
-        public async ValueTask<GetExtensionMessageNamesResponse> GetExtensionMessageNamesAsync(
-            string assemblyFilePath,
-            CancellationToken cancellationToken)
-        {
-            return await ExecuteInRemoteOrCurrentProcessAsync(
+        public ValueTask<GetExtensionMessageNamesResponse> GetExtensionMessageNamesAsync(string assemblyFilePath, CancellationToken cancellationToken)
+            => ExecuteInRemoteOrCurrentProcessAsync(
                 solution: null,
                 cancellationToken => GetExtensionMessageNamesInCurrentProcessAsync(assemblyFilePath, cancellationToken),
                 (remoteService, _, cancellationToken) => remoteService.GetExtensionMessageNamesAsync(assemblyFilePath, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
-        }
+                cancellationToken);
 
         public async ValueTask ResetAsync(CancellationToken cancellationToken)
         {
@@ -90,25 +86,21 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                 cancellationToken).ConfigureAwait(false);
         }
 
-        public async ValueTask<string> HandleExtensionWorkspaceMessageAsync(Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken)
-        {
-            return await ExecuteInRemoteOrCurrentProcessAsync(
+        public ValueTask<string> HandleExtensionWorkspaceMessageAsync(Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken)
+            => ExecuteInRemoteOrCurrentProcessAsync(
                 solution,
                 cancellationToken => HandleExtensionMessageInCurrentProcessAsync(
                     executeArgument: solution, isSolution: true, messageName, jsonMessage, _cachedWorkspaceHandlers_useOnlyUnderLock, cancellationToken),
                 (remoteService, checksum, cancellationToken) => remoteService.HandleExtensionWorkspaceMessageAsync(checksum!.Value, messageName, jsonMessage, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
-        }
+                cancellationToken);
 
-        public async ValueTask<string> HandleExtensionDocumentMessageAsync(Document document, string messageName, string jsonMessage, CancellationToken cancellationToken)
-        {
-            return await ExecuteInRemoteOrCurrentProcessAsync(
+        public ValueTask<string> HandleExtensionDocumentMessageAsync(Document document, string messageName, string jsonMessage, CancellationToken cancellationToken)
+            => ExecuteInRemoteOrCurrentProcessAsync(
                 document.Project.Solution,
                 cancellationToken => HandleExtensionMessageInCurrentProcessAsync(
                     executeArgument: document, isSolution: false, messageName, jsonMessage, _cachedDocumentHandlers_useOnlyUnderLock, cancellationToken),
                 (remoteService, checksum, cancellationToken) => remoteService.HandleExtensionDocumentMessageAsync(checksum!.Value, messageName, jsonMessage, document.Id, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
-        }
+                cancellationToken);
     }
 }
 #endif
