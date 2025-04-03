@@ -46,17 +46,17 @@ internal sealed class ExtensionMessageHandlerService(
     /// <summary>
     /// Extensions assembly load contexts and loaded handlers, indexed by handler file path. The handlers are indexed by type name.
     /// </summary>
-    private ImmutableDictionary<string, AsyncLazy<Extension?>> _extensions = ImmutableDictionary<string, AsyncLazy<Extension>>.Empty;
+    private ImmutableDictionary<string, AsyncLazy<Extension?>> _extensions = ImmutableDictionary<string, AsyncLazy<Extension?>>.Empty;
 
     /// <summary>
     /// Handlers of document-related messages, indexed by handler message name.
     /// </summary>
-    private ImmutableDictionary<string, AsyncLazy<IExtensionMessageHandlerWrapper<Document>?>> _documentHandlers = ImmutableDictionary<string, AsyncLazy<IExtensionMessageHandlerWrapper<Document>?>>.Empty;
+    private ImmutableDictionary<string, AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper<Document>>>> _cachedDocumentHandlers = ImmutableDictionary<string, AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper<Document>>>>.Empty;
 
     /// <summary>
     /// Handlers of non-document-related messages, indexed by handler message name.
     /// </summary>
-    private ImmutableDictionary<string, AsyncLazy<IExtensionMessageHandlerWrapper<Solution>?>> _workspaceHandlers = ImmutableDictionary<string, AsyncLazy<IExtensionMessageHandlerWrapper<Solution>?>>.Empty;
+    private ImmutableDictionary<string, AsyncLazy<IExtensionMessageHandlerWrapper<Solution>?>> _cachedWorkspaceHandlers = ImmutableDictionary<string, AsyncLazy<IExtensionMessageHandlerWrapper<Solution>?>>.Empty;
 
     private async ValueTask<TResult> ExecuteInRemoteOrCurrentProcessAsync<TResult>(
         Solution? solution,
@@ -200,6 +200,18 @@ internal sealed class ExtensionMessageHandlerService(
         var assemblyFolderPath = Path.GetDirectoryName(assemblyFilePath)
             ?? throw new InvalidOperationException($"Unable to get the directory name for {assemblyFilePath}.");
 
+        if (_extensions.TryGetValue(assemblyFolderPath, out var extension) &&
+            extension != null)
+        {
+            // Unregister this particular assembly file from teh assembly folder.  If it was the last extension within this folder,
+            // we can remove the registeration for the extension entirely.
+            if (extension.Unregister(assemblyFileName))
+                _extensions = _extensions.Remove(assemblyFolderPath);
+        }
+
+        // After unregistering, clear out the cached handler names.  They will be recomputed the next time we need them.
+        ClearCachedHandlers();
+
         Extension? extension = null;
         using (await _lock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
@@ -248,9 +260,13 @@ internal sealed class ExtensionMessageHandlerService(
     private ValueTask<VoidResult> ResetInCurrentProcessAsync(CancellationToken cancellationToken)
     {
         _extensions = ImmutableDictionary<string, AsyncLazy<Extension?>>.Empty;
+        return default;
+    }
+
+    private void ClearCachedHandlers()
+    {
         _workspaceHandlers = ImmutableDictionary<string, AsyncLazy<IExtensionMessageHandlerWrapper<Solution>?>>.Empty;
         _documentHandlers = ImmutableDictionary<string, AsyncLazy<IExtensionMessageHandlerWrapper<Document>?>>.Empty;
-        return default;
     }
 
     public async ValueTask<string> HandleExtensionWorkspaceMessageAsync(Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken)
@@ -271,6 +287,14 @@ internal sealed class ExtensionMessageHandlerService(
             cancellationToken).ConfigureAwait(false);
     }
 
+    private ValueTask<string> HandleExtensionWorkspaceMessageInCurrentProcess1Async(Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken)
+    {
+        var lazy = _cachedWorkspaceHandlers.GetOrAdd(
+            messageName,
+            (messageName, arg) => AsyncLazy.Create(cancellationToken => ComputeHandler(arg.@this),
+            (@this: this, solution, jsonMessage))
+    }
+
     private ValueTask<string> HandleExtensionWorkspaceMessageInCurrentProcessAsync(Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken)
         => HandleExtensionMessageAsync(solution, messageName, jsonMessage, _workspaceHandlers, cancellationToken);
 
@@ -281,9 +305,11 @@ internal sealed class ExtensionMessageHandlerService(
         TArgument argument,
         string messageName,
         string jsonMessage,
-        Dictionary<string, IExtensionMessageHandlerWrapper<TArgument>> handlers,
+        ImmutableDictionary<string, IExtensionMessageHandlerWrapper<TArgument>> handlers,
         CancellationToken cancellationToken)
     {
+
+        var lazy = _cachedDocumentHandlers.
         IExtensionMessageHandlerWrapper<TArgument>? handler;
         using (await _lock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
@@ -447,7 +473,7 @@ internal sealed class ExtensionMessageHandlerService(
                 Exception? exception = null;
                 try
                 {
-                    var assembly = AnalyzerAssemblyLoader.LoadFromPath(assemblyFilePath);
+                    var assembly = _analyzerAssemblyLoader.LoadFromPath(assemblyFilePath);
                     var factory = _extensionMessageHandlerService._customMessageHandlerFactory;
                     var messageWorkspaceHandlers = factory.CreateWorkspaceMessageHandlers(assembly, extensionIdentifier: assemblyFilePath)
                         .ToImmutableDictionary(h => h.Name, h => h);
