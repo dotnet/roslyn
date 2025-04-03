@@ -152,18 +152,10 @@ internal sealed class ExtensionMessageHandlerService(
         if (_folderPathToExtensionFolder.TryGetValue(assemblyFolderPath, out var lazy))
         {
             var extensionFolder = await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            if (extensionFolder is null)
-            {
-                // was an extension that failed to load.  Remove the entry marking that so wee can try loading it again in the future.
+            // Unregister this particular assembly file from teh assembly folder.  If it was the last extension within
+            // this folder, we can remove the registration for the extension entirely.
+            if (await extensionFolder.UnregisterAssemblyAsync(assemblyFilePath, cancellationToken).ConfigureAwait(false))
                 _folderPathToExtensionFolder = _folderPathToExtensionFolder.Remove(assemblyFolderPath);
-            }
-            else
-            {
-                // Unregister this particular assembly file from teh assembly folder.  If it was the last extension within
-                // this folder, we can remove the registration for the extension entirely.
-                if (await extensionFolder.UnregisterAssemblyAsync(assemblyFilePath, cancellationToken).ConfigureAwait(false))
-                    _folderPathToExtensionFolder = _folderPathToExtensionFolder.Remove(assemblyFolderPath);
-            }
         }
 
         // After unregistering, clear out the cached handler names.  They will be recomputed the next time we need them.
@@ -257,10 +249,8 @@ internal sealed class ExtensionMessageHandlerService(
         foreach (var (_, lazyExtension) in @this._folderPathToExtensionFolder)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var extension = await lazyExtension.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            if (extension is null)
-                continue;
 
+            var extension = await lazyExtension.GetValueAsync(cancellationToken).ConfigureAwait(false);
             await extension.AddHandlersAsync(messageName, isSolution, result, cancellationToken).ConfigureAwait(false);
         }
 
@@ -280,10 +270,17 @@ internal sealed class ExtensionMessageHandlerService(
         ValueTask AddHandlersAsync<TResult>(string messageName, bool isSolution, ArrayBuilder<IExtensionMessageHandlerWrapper<TResult>> result, CancellationToken cancellationToken);
     }
 
+    /// <summary>
+    /// Trivial placeholder impl of <see cref="IExtensionFolder"/> when we fail for some reason to even process the
+    /// folder we are told contains extensions.
+    /// </summary>
     private sealed class TrivialExtensionFolder : IExtensionFolder
     {
         public static readonly TrivialExtensionFolder Instance = new();
 
+        /// <summary>
+        /// No lock needed as registratin/unregistration must happen serially.
+        /// </summary>
         private readonly List<string> _registeredFilePaths = [];
 
         public ValueTask<AssemblyHandlers> RegisterAssemblyAsync(string assemblyFilePath, CancellationToken cancellationToken)
@@ -372,10 +369,10 @@ internal sealed class ExtensionMessageHandlerService(
 
                 var messageWorkspaceHandlers = factory
                     .CreateWorkspaceMessageHandlers(assembly, extensionIdentifier: assemblyFilePath, cancellationToken)
-                    .ToImmutableDictionary(h => h.Name, h => h);
+                    .ToImmutableDictionary(h => h.Name);
                 var messageDocumentHandlers = factory
                     .CreateDocumentMessageHandlers(assembly, extensionIdentifier: assemblyFilePath, cancellationToken)
-                    .ToImmutableDictionary(h => h.Name, h => h);
+                    .ToImmutableDictionary(h => h.Name);
 
                 return new AssemblyHandlers()
                 {
