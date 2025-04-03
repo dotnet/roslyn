@@ -323,12 +323,12 @@ internal sealed class ExtensionMessageHandlerService(
         private readonly ExtensionMessageHandlerService _extensionMessageHandlerService;
 
         private readonly string _assemblyFolderPath;
-        private readonly AsyncLazy<IAnalyzerAssemblyLoader?> _lazyAssemblyLoader;
+        private readonly AsyncLazy<(IAnalyzerAssemblyLoader? assemblyLoader, Exception? exception)> _lazyAssemblyLoader;
 
         /// <summary>
         /// Mapping from assembly file path to the handlers it contains.  Used as its own lock when mutating.
         /// </summary>
-        private readonly Dictionary<string, AsyncLazy<AssemblyHandlers>> _assemblyFilePathToHandlers = new();
+        private readonly Dictionary<string, AsyncLazy<(AssemblyHandlers assemblyHandlers, Exception? exception)>> _assemblyFilePathToHandlers = new();
 
         public ExtensionFolder(
             ExtensionMessageHandlerService extensionMessageHandlerService,
@@ -339,7 +339,7 @@ internal sealed class ExtensionMessageHandlerService(
             _lazyAssemblyLoader = AsyncLazy.Create(CreateAssemblyLoader);
         }
 
-        private IAnalyzerAssemblyLoader? CreateAssemblyLoader(CancellationToken cancellationToken)
+        private (IAnalyzerAssemblyLoader? loader, Exception? exception) CreateAssemblyLoader(CancellationToken cancellationToken)
         {
             var analyzerAssemblyLoaderProvider = _extensionMessageHandlerService._solutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
             var analyzerAssemblyLoader = analyzerAssemblyLoaderProvider.CreateNewShadowCopyLoader();
@@ -364,22 +364,22 @@ internal sealed class ExtensionMessageHandlerService(
                     analyzerAssemblyLoader.AddDependencyLocation(dll);
                 }
 
-                return analyzerAssemblyLoader;
+                return (analyzerAssemblyLoader, null);
             }
             catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
             {
-                // TODO: Log this exception so the client knows something went wrong.
-                return null;
+                return (null, ex);
             }
         }
 
-        private async Task<AssemblyHandlers> CreateAssemblyHandlersAsync(
+        private async Task<(AssemblyHandlers assemblyHandlers, Exception? exception)> CreateAssemblyHandlersAsync(
             string assemblyFilePath, CancellationToken cancellationToken)
         {
-            var analyzerAssemblyLoader = await _lazyAssemblyLoader.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            if (analyzerAssemblyLoader is null)
-                return AssemblyHandlers.Empty;
+            var (analyzerAssemblyLoader, exception) = await _lazyAssemblyLoader.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            if (exception != null)
+                throw exception;
 
+            Contract.ThrowIfNull(analyzerAssemblyLoader);
             try
             {
                 var assembly = analyzerAssemblyLoader.LoadFromPath(assemblyFilePath);
@@ -392,19 +392,15 @@ internal sealed class ExtensionMessageHandlerService(
                     .CreateDocumentMessageHandlers(assembly, extensionIdentifier: assemblyFilePath, cancellationToken)
                     .ToImmutableDictionary(h => h.Name);
 
-                return new AssemblyHandlers()
+                return (new AssemblyHandlers()
                 {
                     WorkspaceMessageHandlers = messageWorkspaceHandlers,
                     DocumentMessageHandlers = messageDocumentHandlers,
-                };
-
-                // We don't add assemblyHandlers to _assemblies here and instead let _extensionMessageHandlerService.RegisterAssembly do it
-                // since RegisterAssembly can still fail if there are duplicated handler names.
+                }, null);
             }
             catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
             {
-                // TODO: Log this exception so the client knows something went wrong.
-                return AssemblyHandlers.Empty;
+                return (AssemblyHandlers.Empty, exception);
             }
         }
 
@@ -437,19 +433,23 @@ internal sealed class ExtensionMessageHandlerService(
 
         public async ValueTask<AssemblyHandlers> GetAssemblyHandlersAsync(string assemblyFilePath, CancellationToken cancellationToken)
         {
-            AsyncLazy<AssemblyHandlers>? lazyHandlers;
+            AsyncLazy<(AssemblyHandlers assemblyHandlers, Exception? exception)>? lazyHandlers;
             lock (_assemblyFilePathToHandlers)
             {
                 if (!_assemblyFilePathToHandlers.TryGetValue(assemblyFilePath, out lazyHandlers))
                     throw new InvalidOperationException($"No extension registered as '{assemblyFilePath}'");
             }
 
-            return await lazyHandlers.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            var (assemblyHandlers, exception) = await lazyHandlers.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            if (exception != null)
+                throw exception;
+
+            return assemblyHandlers;
         }
 
         public async ValueTask AddHandlersAsync<TResult>(string messageName, bool isSolution, ArrayBuilder<IExtensionMessageHandlerWrapper<TResult>> result, CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<AsyncLazy<AssemblyHandlers>>.GetInstance(out var lazyHandlers);
+            using var _ = ArrayBuilder<AsyncLazy<(AssemblyHandlers assemblyHandlers, Exception? exception)>>.GetInstance(out var lazyHandlers);
 
             lock (_assemblyFilePathToHandlers)
             {
@@ -464,7 +464,7 @@ internal sealed class ExtensionMessageHandlerService(
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var handlers = await lazyHandler.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                var (handlers, _) = await lazyHandler.GetValueAsync(cancellationToken).ConfigureAwait(false);
                 if (isSolution)
                 {
                     if (handlers.WorkspaceMessageHandlers.TryGetValue(messageName, out var handler))
