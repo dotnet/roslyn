@@ -155,7 +155,7 @@ internal sealed class ExtensionMessageHandlerService(
         }
 
         // Intentionally call this outside of the lock.
-        return await extension.LoadAssemblyAsync(assemblyFileName).ConfigureAwait(false);
+        return await extension.LoadAssemblyAsync(assemblyFileName, cancellationToken).ConfigureAwait(false);
     }
 
     public async ValueTask UnregisterExtensionAsync(
