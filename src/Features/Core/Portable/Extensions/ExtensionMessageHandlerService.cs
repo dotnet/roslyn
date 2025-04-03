@@ -342,16 +342,7 @@ internal sealed class ExtensionMessageHandlerService(
             if (extension is null)
                 continue;
 
-            if (solution)
-            {
-                if (extension.WorkspaceMessageHandlers.TryGetValue(messageName, out var handler))
-                    result.Add((IExtensionMessageHandlerWrapper<TResult>)handler);
-            }
-            else
-            {
-                if (extension.DocumentMessageHandlers.TryGetValue(messageName, out var handler))
-                    result.Add((IExtensionMessageHandlerWrapper<TResult>)handler);
-            }
+            await extension.AddHandlersAsync(messageName, solution, result, cancellationToken).ConfigureAwait(false);
         }
 
         return result.ToImmutable();
@@ -560,6 +551,29 @@ internal sealed class ExtensionMessageHandlerService(
             {
                 // TODO: Log error so it is visible to user.
                 return null;
+            }
+        }
+
+        public async Task AddHandlersAsync<TResult>(string messageName, bool solution, ArrayBuilder<IExtensionMessageHandlerWrapper<TResult>> result, CancellationToken cancellationToken)
+        {
+            foreach (var (_, lazy) in _assemblyFilePathToHandlers)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var handlers = await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                if (handlers is null)
+                    continue;
+
+                if (solution)
+                {
+                    if (handlers.WorkspaceMessageHandlers.TryGetValue(messageName, out var handler))
+                        result.Add((IExtensionMessageHandlerWrapper<TResult>)handler);
+                }
+                else
+                {
+                    if (handlers.DocumentMessageHandlers.TryGetValue(messageName, out var handler))
+                        result.Add((IExtensionMessageHandlerWrapper<TResult>)handler);
+                }
             }
         }
     }
