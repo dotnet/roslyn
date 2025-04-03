@@ -46,7 +46,7 @@ internal sealed class ExtensionMessageHandlerService(
 
     // Core design: To make things lightweight, and to avoid locking, all work is computed and cached in simple
     // immutable dictionaries.  These dictionaries are populated on demand, but contain data that can be recomputed
-    // safely if missing.  This allows for a safe approach to 
+    // safely if missing.
 
     /// <summary>
     /// Extensions assembly load contexts and loaded handlers, indexed by extension folder path.
@@ -164,41 +164,6 @@ internal sealed class ExtensionMessageHandlerService(
 
         // After unregistering, clear out the cached handler names.  They will be recomputed the next time we need them.
         ClearCachedHandlers();
-
-        //Extension? extension = null;
-        //using (await _lock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-        //{
-        //    if (_folderPathToExtension.TryGetValue(assemblyFolderPath, out extension))
-        //    {
-        //        // If loading assemblies from this folder failed earlier, don't do anything.
-        //        if (extension is null)
-        //            return default;
-
-        //        if (extension.RemoveAssemblyHandlers(assemblyFileName, out var assemblyHandlers))
-        //        {
-        //            if (assemblyHandlers is not null)
-        //            {
-        //                foreach (var workspaceHandler in assemblyHandlers.WorkspaceMessageHandlers.Keys)
-        //                {
-        //                    _workspaceHandlers.Remove(workspaceHandler);
-        //                }
-
-        //                foreach (var documentHandler in assemblyHandlers.DocumentMessageHandlers.Keys)
-        //                {
-        //                    _documentHandlers.Remove(documentHandler);
-        //                }
-        //            }
-        //        }
-
-        //        if (extension.AssemblyHandlersCount > 0)
-        //            return default;
-
-        //        _folderPathToExtension.Remove(assemblyFolderPath);
-        //    }
-        //}
-
-        //extension?.AnalyzerAssemblyLoader.Dispose();
-        //return default;
     }
 
     public async ValueTask ResetAsync(CancellationToken cancellationToken)
@@ -292,94 +257,6 @@ internal sealed class ExtensionMessageHandlerService(
 
         return result.ToImmutable();
     }
-
-    //private ValueTask<string> HandleExtensionWorkspaceMessageInCurrentProcessAsync(Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken)
-    //    => HandleExtensionMessageAsync(solution, messageName, jsonMessage, _workspaceHandlers, cancellationToken);
-
-    //public ValueTask<string> HandleExtensionDocumentMessageInCurrentProcessAsync(Document document, string messageName, string jsonMessage, CancellationToken cancellationToken)
-    //    => HandleExtensionMessageAsync(document, messageName, jsonMessage, _documentHandlers, cancellationToken);
-
-    //private async ValueTask<string> HandleExtensionMessageAsync<TArgument>(
-    //    TArgument argument,
-    //    string messageName,
-    //    string jsonMessage,
-    //    ImmutableDictionary<string, IExtensionMessageHandlerWrapper<TArgument>> handlers,
-    //    CancellationToken cancellationToken)
-    //{
-
-    //    var lazy = _cachedDocumentHandlers.
-    //    IExtensionMessageHandlerWrapper<TArgument>? handler;
-    //    using (await _lock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-    //    {
-    //        // handlers here is either _workspaceHandlers or _documentHandlers, so it must be protected
-    //        // by _lockObject.
-    //        if (!handlers.TryGetValue(messageName, out handler))
-    //        {
-    //            throw new InvalidOperationException($"No handler found for message {messageName}.");
-    //        }
-    //    }
-
-    //    try
-    //    {
-    //        var message = JsonSerializer.Deserialize(jsonMessage, handler.MessageType);
-    //        var result = await handler.ExecuteAsync(message, argument, cancellationToken)
-    //            .ConfigureAwait(false);
-    //        var responseJson = JsonSerializer.Serialize(result, handler.ResponseType);
-    //        return responseJson;
-    //    }
-    //    catch
-    //    {
-    //        // Any exception thrown in this method is left to bubble up to the extension.
-    //        // But we unregister all handlers from that assembly to minimize the impact of a bad extension.
-    //        await UnregisterExtensionAsync(assemblyFilePath: handler.ExtensionIdentifier, cancellationToken).ConfigureAwait(false);
-    //        throw;
-    //    }
-    //}
-
-    //private async Task RegisterAssemblyAsync(
-    //    Extension extension,
-    //    string assemblyFileName,
-    //    AssemblyHandlers? assemblyHandlers,
-    //    CancellationToken cancellationToken)
-    //{
-    //    using (await _lock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-    //    {
-    //        // Make sure a call to UnloadCustomMessageHandlersAsync hasn't happened while we relinquished the lock on _lockObject
-    //        if (!_extensions.TryGetValue(extension.AssemblyFolderPath, out var currentExtension) || !extension.Equals(currentExtension))
-    //        {
-    //            throw new InvalidOperationException($"Handlers in {extension.AssemblyFolderPath} were unregistered while loading handlers.");
-    //        }
-
-    //        try
-    //        {
-    //            if (assemblyHandlers is not null)
-    //            {
-    //                var duplicateHandler = _workspaceHandlers.Keys.Intersect(assemblyHandlers.WorkspaceMessageHandlers.Keys).Concat(
-    //                _documentHandlers.Keys.Intersect(assemblyHandlers.DocumentMessageHandlers.Keys)).FirstOrDefault();
-
-    //                if (duplicateHandler is not null)
-    //                {
-    //                    assemblyHandlers = null;
-    //                    throw new InvalidOperationException($"Handler name {duplicateHandler} is already registered.");
-    //                }
-
-    //                foreach (var handler in assemblyHandlers.WorkspaceMessageHandlers)
-    //                {
-    //                    _workspaceHandlers.Add(handler.Key, handler.Value);
-    //                }
-
-    //                foreach (var handler in assemblyHandlers.DocumentMessageHandlers)
-    //                {
-    //                    _documentHandlers.Add(handler.Key, handler.Value);
-    //                }
-    //            }
-    //        }
-    //        finally
-    //        {
-    //            extension.SetAssemblyHandlers(assemblyFileName, assemblyHandlers);
-    //        }
-    //    }
-    //}
 
     private sealed class ExtensionFolder(
         ExtensionMessageHandlerService extensionMessageHandlerService,

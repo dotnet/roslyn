@@ -14,13 +14,37 @@ namespace Microsoft.CodeAnalysis.Extensions;
 internal interface IExtensionMessageHandlerService : IWorkspaceService
 {
     /// <summary>
+    /// Registers extension message handlers from the specified assembly.
+    /// </summary>
+    /// <param name="assemblyFilePath">The assembly to register and create message handlers from.</param>
+    /// <returns>The names of the registered handlers.</returns>
+    /// <remarks>Should be called serially with other <see cref="RegisterExtensionAsync"/>, <see
+    /// cref="UnregisterExtensionAsync"/>, or <see cref="ResetAsync"/> calls.</remarks>
+    ValueTask<RegisterExtensionResponse> RegisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Unregisters extension message handlers previously registered from <paramref name="assemblyFilePath"/>.
+    /// </summary>
+    /// <param name="assemblyFilePath">The assembly for which handlers should be unregistered.</param>
+    /// <remarks>Should be called serially with other <see cref="RegisterExtensionAsync"/>, <see
+    /// cref="UnregisterExtensionAsync"/>, or <see cref="ResetAsync"/> calls.</remarks>
+    ValueTask UnregisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Unregisters all extension message handlers.
+    /// </summary>
+    /// <remarks>Should be called serially with other <see cref="RegisterExtensionAsync"/>, <see
+    /// cref="UnregisterExtensionAsync"/>, or <see cref="ResetAsync"/> calls.</remarks>
+    ValueTask ResetAsync(CancellationToken cancellationToken);
+
+    /// <summary>
     /// Executes a non-document-specific extension message handler with the given message and solution.
     /// </summary>
     /// <param name="solution">The solution the message refers to.</param>
     /// <param name="messageName">The name of the handler to execute. This is generally the full name of the type implementing the handler.</param>
     /// <param name="jsonMessage">The json message to be passed to the handler.</param>
-    /// <param name="cancellationToken">Cancellation token to cancel the async operation.</param>
     /// <returns>The json message returned by the handler.</returns>
+    /// <remarks>Can be called concurrently with other message requests.</remarks>
     ValueTask<string> HandleExtensionWorkspaceMessageAsync(
         Solution solution,
         string messageName,
@@ -33,30 +57,11 @@ internal interface IExtensionMessageHandlerService : IWorkspaceService
     /// <param name="documentId">The document the message refers to.</param>
     /// <param name="messageName">The name of the handler to execute. This is generally the full name of the type implementing the handler.</param>
     /// <param name="jsonMessage">The json message to be passed to the handler.</param>
-    /// <param name="cancellationToken">Cancellation token to cancel the async operation.</param>
     /// <returns>The json message returned by the handler.</returns>
+    /// <remarks>Can be called concurrently with other message requests.</remarks>
     ValueTask<string> HandleExtensionDocumentMessageAsync(
         Document documentId,
         string messageName,
         string jsonMessage,
         CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Registers extension message handlers from the specified assembly.
-    /// </summary>
-    /// <param name="assemblyFilePath">The assembly to register and create message handlers from.</param>
-    /// <returns>The names of the registered handlers.</returns>
-    ValueTask<RegisterExtensionResponse> RegisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Unregisters extension message handlers previously registered from <paramref name="assemblyFilePath"/>.
-    /// </summary>
-    /// <param name="assemblyFilePath">The assembly for which handlers should be unregistered.</param>
-    /// <returns>A task representing the async operation.</returns>
-    ValueTask UnregisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Unregisters all extension message handlers.
-    /// </summary>
-    ValueTask ResetAsync(CancellationToken cancellationToken);
 }
