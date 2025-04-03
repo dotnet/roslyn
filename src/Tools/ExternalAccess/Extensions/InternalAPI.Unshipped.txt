@@ -27,8 +27,8 @@ Microsoft.CodeAnalysis.Extensions.ExtensionHandlerWrapper<TArgument>.Name.get ->
 Microsoft.CodeAnalysis.Extensions.ExtensionHandlerWrapper<TArgument>.ResponseType.get -> System.Type!
 Microsoft.CodeAnalysis.Extensions.ExtensionMessageContext.ExtensionMessageContext(Microsoft.CodeAnalysis.Solution! solution) -> void
 Microsoft.CodeAnalysis.Extensions.ExtensionMessageHandlerFactory
-Microsoft.CodeAnalysis.Extensions.ExtensionMessageHandlerFactory.CreateDocumentMessageHandlers(System.Reflection.Assembly! assembly, string! extensionIdentifier) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Extensions.IExtensionMessageHandlerWrapper<Microsoft.CodeAnalysis.Document!>!>
-Microsoft.CodeAnalysis.Extensions.ExtensionMessageHandlerFactory.CreateWorkspaceMessageHandlers(System.Reflection.Assembly! assembly, string! extensionIdentifier) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Extensions.IExtensionMessageHandlerWrapper<Microsoft.CodeAnalysis.Solution!>!>
+Microsoft.CodeAnalysis.Extensions.ExtensionMessageHandlerFactory.CreateDocumentMessageHandlers(System.Reflection.Assembly! assembly, string! extensionIdentifier, System.Threading.CancellationToken cancellationToken) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Extensions.IExtensionMessageHandlerWrapper<Microsoft.CodeAnalysis.Document!>!>
+Microsoft.CodeAnalysis.Extensions.ExtensionMessageHandlerFactory.CreateWorkspaceMessageHandlers(System.Reflection.Assembly! assembly, string! extensionIdentifier, System.Threading.CancellationToken cancellationToken) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Extensions.IExtensionMessageHandlerWrapper<Microsoft.CodeAnalysis.Solution!>!>
 Microsoft.CodeAnalysis.Extensions.ExtensionMessageHandlerFactory.ExtensionMessageHandlerFactory() -> void
 Microsoft.CodeAnalysis.Extensions.ExtensionWorkspaceMessageHandlerWrapper
 Microsoft.CodeAnalysis.Extensions.ExtensionWorkspaceMessageHandlerWrapper.ExtensionWorkspaceMessageHandlerWrapper(object! handler, System.Type! customMessageHandlerInterface, string! extensionIdentifier) -> void
