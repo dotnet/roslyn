@@ -17,13 +17,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Extensions;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class ExtensionDocumentMessageHandler()
-    : ILspServiceDocumentRequestHandler<ExtensionDocumentMessageParams, ExtensionMessageResponse>
+    : AbstractExtensionHandler, ILspServiceDocumentRequestHandler<ExtensionDocumentMessageParams, ExtensionMessageResponse>
 {
     private const string MethodName = "roslyn/extensionDocumentMessage";
-
-    public bool MutatesSolutionState => false;
-
-    public bool RequiresLSPSolution => true;
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(ExtensionDocumentMessageParams request)
         => request.TextDocument;

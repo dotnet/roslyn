@@ -16,13 +16,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Extensions;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class ExtensionRegisterHandler()
-    : ILspServiceRequestHandler<ExtensionRegisterParams, ExtensionRegisterResponse>
+    : AbstractExtensionHandler, ILspServiceRequestHandler<ExtensionRegisterParams, ExtensionRegisterResponse>
 {
     private const string MethodName = "roslyn/extensionRegister";
-
-    public bool MutatesSolutionState => false;
-
-    public bool RequiresLSPSolution => true;
 
     public async Task<ExtensionRegisterResponse> HandleRequestAsync(ExtensionRegisterParams request, RequestContext context, CancellationToken cancellationToken)
     {
