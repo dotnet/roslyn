@@ -16,6 +16,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.ForEachCast;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -51,7 +52,7 @@ internal sealed class ExtensionMessageHandlerService(
     /// Lock for <see cref="_folderPathToExtensionFolder"/>, <see cref="_cachedDocumentHandlers"/>, and <see
     /// cref="_cachedWorkspaceHandlers"/>.
     /// </summary>
-    private readonly SemaphoreSlim _gate = new(initialCount: 1);
+    private readonly object _gate = new();
 
     /// <summary>
     /// Extensions assembly load contexts and loaded handlers, indexed by extension folder path.
@@ -116,13 +117,13 @@ internal sealed class ExtensionMessageHandlerService(
             ?? throw new InvalidOperationException($"Unable to get the directory name for {assemblyFilePath}.");
     }
 
-    public async ValueTask<VoidResult> RegisterExtensionInCurrentProcessAsync(
+    public ValueTask<VoidResult> RegisterExtensionInCurrentProcessAsync(
         string assemblyFilePath,
         CancellationToken cancellationToken)
     {
         var assemblyFolderPath = GetAssemblyFolderPath(assemblyFilePath);
 
-        using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+        lock (_gate)
         {
             var extensionFolder = _folderPathToExtensionFolder.GetOrAdd(
                 assemblyFolderPath,
@@ -148,7 +149,7 @@ internal sealed class ExtensionMessageHandlerService(
             cancellationToken).ConfigureAwait(false);
     }
 
-    private async ValueTask<VoidResult> UnregisterExtensionInCurrentProcessAsync(
+    private ValueTask<VoidResult> UnregisterExtensionInCurrentProcessAsync(
         string assemblyFilePath,
         CancellationToken cancellationToken)
     {
@@ -156,7 +157,7 @@ internal sealed class ExtensionMessageHandlerService(
 
         // Note: unregistering is slightly expensive as we do everything under a lock, to ensure that we have a
         // consistent view of the world.  This is fine as we don't expect this to be called very often.
-        using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+        lock (_gate)
         {
             if (!_folderPathToExtensionFolder.TryGetValue(assemblyFolderPath, out var extensionFolder))
                 throw new InvalidOperationException($"No extension registered as '{assemblyFolderPath}'");
@@ -168,9 +169,8 @@ internal sealed class ExtensionMessageHandlerService(
 
             // After unregistering, clear out the cached handler names.  They will be recomputed the next time we need them.
             ClearCachedHandlers();
+            return default;
         }
-
-        return default;
     }
 
     public async ValueTask<GetExtensionMessageNamesResponse> GetExtensionMessageNamesAsync(
@@ -191,7 +191,7 @@ internal sealed class ExtensionMessageHandlerService(
         var assemblyFolderPath = GetAssemblyFolderPath(assemblyFilePath);
 
         ExtensionFolder? extensionFolder;
-        using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+        lock (_gate)
         {
             if (!_folderPathToExtensionFolder.TryGetValue(assemblyFolderPath, out extensionFolder))
                 throw new InvalidOperationException($"No extensions registered at '{assemblyFolderPath}'");
@@ -256,12 +256,13 @@ internal sealed class ExtensionMessageHandlerService(
         CancellationToken cancellationToken)
     {
         AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper<TArgument>>> lazyHandlers;
-        using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+        lock (_gate)
         {
+            // May be called a lot.  So we use the non-allocating form of this lookup pattern.
             lazyHandlers = cachedHandlers.GetOrAdd(
                 messageName,
                 static (messageName, arg) => AsyncLazy.Create(
-                    static (arg, cancellationToken) => ComputeHandlersAsync<TArgument>(arg.@this, arg.messageName, arg.isSolution, cancellationToken),
+                    static (arg, cancellationToken) => arg.@this.ComputeHandlersAsync<TArgument>(arg.messageName, arg.isSolution, cancellationToken),
                     (messageName, arg.@this, arg.isSolution)),
                 (messageName, @this: this, isSolution));
         }
@@ -302,18 +303,24 @@ internal sealed class ExtensionMessageHandlerService(
     private async Task<ImmutableArray<IExtensionMessageHandlerWrapper<TResult>>> ComputeHandlersAsync<TResult>(
         string messageName, bool isSolution, CancellationToken cancellationToken)
     {
-        using var _1 = ArrayBuilder<ExtensionFolder>.GetInstance(out var extensionFolders)
-        using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+        using var _1 = ArrayBuilder<ExtensionFolder>.GetInstance(out var extensionFolders);
+        lock (_gate)
         {
-            using var _ = ArrayBuilder<IExtensionMessageHandlerWrapper<TResult>>.GetInstance(out var result);
-            foreach (var (_, extensionFolder) in @this._folderPathToExtensionFolder)
+            foreach (var (_, extensionFolder) in _folderPathToExtensionFolder)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                await extensionFolder.AddHandlersAsync(messageName, isSolution, result, cancellationToken).ConfigureAwait(false);
+                extensionFolders.Add(extensionFolder);
             }
-
-            return result.ToImmutable();
         }
+
+        using var _ = ArrayBuilder<IExtensionMessageHandlerWrapper<TResult>>.GetInstance(out var result);
+        foreach (var extensionFolder in extensionFolders)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await extensionFolder.AddHandlersAsync(messageName, isSolution, result, cancellationToken).ConfigureAwait(false);
+        }
+
+        return result.ToImmutable();
     }
 
     private sealed class ExtensionFolder
