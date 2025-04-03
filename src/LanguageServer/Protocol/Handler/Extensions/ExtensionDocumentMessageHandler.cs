@@ -31,9 +31,8 @@ internal sealed class ExtensionDocumentMessageHandler()
     public async Task<ExtensionMessageResponse> HandleRequestAsync(ExtensionDocumentMessageParams request, RequestContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(context.Document);
-        Contract.ThrowIfNull(context.Solution);
 
-        var solution = context.Solution;
+        var solution = context.Document.Project.Solution;
 
         var service = solution.Services.GetRequiredService<IExtensionMessageHandlerService>();
         var response = await service.HandleExtensionDocumentMessageAsync(
