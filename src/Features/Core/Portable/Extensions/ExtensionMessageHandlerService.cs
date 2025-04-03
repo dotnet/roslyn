@@ -196,11 +196,9 @@ internal sealed class ExtensionMessageHandlerService(
         {
             if (_extensions.TryGetValue(assemblyFolderPath, out extension))
             {
+                // If loading assemblies from this folder failed earlier, don't do anything.
                 if (extension is null)
-                {
-                    // Loading assemblies from this folder failed earlier, so we don't need to do anything.
-                    return ValueTask.CompletedTask;
-                }
+                    return default;
 
                 if (extension.RemoveAssemblyHandlers(assemblyFileName, out var assemblyHandlers))
                 {
@@ -437,14 +435,15 @@ internal sealed class ExtensionMessageHandlerService(
                     // We don't add assemblyHandlers to _assemblies here and instead let _extensionMessageHandlerService.RegisterAssembly do it
                     // since RegisterAssembly can still fail if there are duplicated handler names.
                 }
-                catch (Exception e) when (FatalError.ReportAndCatch(exception = e, ErrorSeverity.General))
+                catch (Exception e) when (FatalError.ReportAndPropagate(exception = e, ErrorSeverity.General))
                 {
                     throw ExceptionUtilities.Unreachable();
                 }
                 finally
                 {
                     // In case of exception, we cache null so that we don't try to load the same assembly again.
-                    _extensionMessageHandlerService.RegisterAssembly(this, assemblyFileName, exception is null ? assemblyHandlers : null);
+                    await _extensionMessageHandlerService.RegisterAssemblyAsync(
+                        this, assemblyFileName, exception is null ? assemblyHandlers : null, cancellationToken).ConfigureAwait(false);
                 }
 
                 // The return is here, after RegisterAssembly, since RegisterAssembly can also throw an exception: the registration is not

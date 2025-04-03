@@ -46,10 +46,7 @@ internal interface IExtensionMessageHandlerService : IWorkspaceService
     /// </summary>
     /// <param name="assemblyFilePath">The assembly to register and create message handlers from.</param>
     /// <returns>The names of the registered handlers.</returns>
-    ValueTask<RegisterExtensionResponse> RegisterExtensionAsync(
-        Workspace workspace,
-        string assemblyFilePath,
-        CancellationToken cancellationToken);
+    ValueTask<RegisterExtensionResponse> RegisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken);
 
     /// <summary>
     /// Unregisters extension message handlers previously registered from <paramref name="assemblyFilePath"/>.
