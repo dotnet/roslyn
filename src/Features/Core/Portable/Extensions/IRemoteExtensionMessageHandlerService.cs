@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Threading;
 
 namespace Microsoft.CodeAnalysis.Extensions;
 
@@ -12,7 +13,7 @@ internal interface IRemoteExtensionMessageHandlerService
     ValueTask<RegisterExtensionResponse> RegisterExtensionAsync(
         string assemblyFilePath, CancellationToken cancellationToken);
 
-    ValueTask UnregisterExtensionAsync(
+    ValueTask<VoidResult> UnregisterExtensionAsync(
         string assemblyFilePath, CancellationToken cancellationToken);
 
     ValueTask<string> HandleExtensionDocumentMessageAsync(
@@ -28,6 +29,6 @@ internal interface IRemoteExtensionMessageHandlerService
         string jsonMessage,
         CancellationToken cancellationToken);
 
-    ValueTask ResetAsync(
+    ValueTask<VoidResult> ResetAsync(
         CancellationToken cancellationToken);
 }

@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Threading;
 
 namespace Microsoft.CodeAnalysis.Extensions;
 
@@ -139,7 +140,17 @@ internal sealed class ExtensionMessageHandlerService(
         return extension.LoadAssemblyAsync(assemblyFileName);
     }
 
-    public ValueTask UnregisterExtensionAsync(
+    public async ValueTask UnregisterExtensionAsync(
+        string assemblyFilePath,
+        CancellationToken cancellationToken)
+    {
+        await ExecuteInRemoteOrCurrentProcessAsync(
+            cancellationToken,
+            cancellationToken => UnregisterExtensionInCurrentProcessAsync(assemblyFilePath, cancellationToken),
+            (service, cancellationToken) => service.UnregisterExtensionAsync(assemblyFilePath, cancellationToken)).ConfigureAwait(false);
+    }
+
+    private async ValueTask<VoidResult> UnregisterExtensionInCurrentProcessAsync(
         string assemblyFilePath,
         CancellationToken cancellationToken)
     {
@@ -169,17 +180,14 @@ internal sealed class ExtensionMessageHandlerService(
                 }
 
                 if (extension.AssemblyHandlersCount > 0)
-                {
-                    return ValueTask.CompletedTask;
-                }
+                    return default;
 
                 _extensions.Remove(assemblyFolderPath);
             }
         }
 
         extension?.AnalyzerAssemblyLoader.Dispose();
-
-        return ValueTask.CompletedTask;
+        return default;
     }
 
     public void Reset()
