@@ -51,8 +51,8 @@ internal sealed class ExtensionMessageHandlerServiceFactory(IExtensionMessageHan
         private readonly IExtensionMessageHandlerFactory _customMessageHandlerFactory = customMessageHandlerFactory;
 
         /// <summary>
-        /// Lock for <see cref="_folderPathToExtensionFolder"/>, <see cref="_cachedDocumentHandlers"/>, and <see
-        /// cref="_cachedWorkspaceHandlers"/>.  Note: this type is designed such that all time while this lock is held
+        /// Lock for <see cref="_folderPathToExtensionFolder_useOnlyUnderLock"/>, <see cref="_cachedDocumentHandlers_useOnlyUnderLock"/>, and <see
+        /// cref="_cachedWorkspaceHandlers_useOnlyUnderLock"/>.  Note: this type is designed such that all time while this lock is held
         /// should be minimal.  Importantly, no async work or IO should be done while holding this lock.  Instead,
         /// all of that work should be pushed into AsyncLazy values that compute when asked, outside of this lock.
         /// </summary>
@@ -61,17 +61,17 @@ internal sealed class ExtensionMessageHandlerServiceFactory(IExtensionMessageHan
         /// <summary>
         /// Extensions assembly load contexts and loaded handlers, indexed by extension folder path.
         /// </summary>
-        private readonly Dictionary<string, ExtensionFolder> _folderPathToExtensionFolder = new();
+        private readonly Dictionary<string, ExtensionFolder> _folderPathToExtensionFolder_useOnlyUnderLock = new();
 
         /// <summary>
         /// Cached handlers of document-related messages, indexed by handler message name.
         /// </summary>
-        private readonly Dictionary<string, AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper<Document>>>> _cachedDocumentHandlers = new();
+        private readonly Dictionary<string, AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper<Document>>>> _cachedDocumentHandlers_useOnlyUnderLock = new();
 
         /// <summary>
         /// Cached handlers of non-document-related messages, indexed by handler message name.
         /// </summary>
-        private readonly Dictionary<string, AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper<Solution>>>> _cachedWorkspaceHandlers = new();
+        private readonly Dictionary<string, AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper<Solution>>>> _cachedWorkspaceHandlers_useOnlyUnderLock = new();
 
         private static string GetAssemblyFolderPath(string assemblyFilePath)
         {
@@ -113,8 +113,8 @@ internal sealed class ExtensionMessageHandlerServiceFactory(IExtensionMessageHan
         private void ClearCachedHandlers_WhileUnderLock()
         {
             Contract.ThrowIfTrue(!Monitor.IsEntered(_gate));
-            _cachedWorkspaceHandlers.Clear();
-            _cachedDocumentHandlers.Clear();
+            _cachedWorkspaceHandlers_useOnlyUnderLock.Clear();
+            _cachedDocumentHandlers_useOnlyUnderLock.Clear();
         }
 
         #region RegisterExtension
@@ -136,7 +136,7 @@ internal sealed class ExtensionMessageHandlerServiceFactory(IExtensionMessageHan
 
             lock (_gate)
             {
-                var extensionFolder = _folderPathToExtensionFolder.GetOrAdd(
+                var extensionFolder = _folderPathToExtensionFolder_useOnlyUnderLock.GetOrAdd(
                     assemblyFolderPath,
                     assemblyFolderPath => new ExtensionFolder(this, assemblyFolderPath));
 
@@ -171,13 +171,13 @@ internal sealed class ExtensionMessageHandlerServiceFactory(IExtensionMessageHan
             // consistent view of the world.  This is fine as we don't expect this to be called very often.
             lock (_gate)
             {
-                if (!_folderPathToExtensionFolder.TryGetValue(assemblyFolderPath, out var extensionFolder))
+                if (!_folderPathToExtensionFolder_useOnlyUnderLock.TryGetValue(assemblyFolderPath, out var extensionFolder))
                     throw new InvalidOperationException($"No extension registered as '{assemblyFolderPath}'");
 
                 // Unregister this particular assembly file from teh assembly folder.  If it was the last extension within
                 // this folder, we can remove the registration for the extension entirely.
                 if (extensionFolder.UnregisterAssembly(assemblyFilePath))
-                    _folderPathToExtensionFolder.Remove(assemblyFolderPath);
+                    _folderPathToExtensionFolder_useOnlyUnderLock.Remove(assemblyFolderPath);
 
                 // After unregistering, clear out the cached handler names.  They will be recomputed the next time we need them.
                 ClearCachedHandlers_WhileUnderLock();
@@ -209,7 +209,7 @@ internal sealed class ExtensionMessageHandlerServiceFactory(IExtensionMessageHan
             ExtensionFolder? extensionFolder;
             lock (_gate)
             {
-                if (!_folderPathToExtensionFolder.TryGetValue(assemblyFolderPath, out extensionFolder))
+                if (!_folderPathToExtensionFolder_useOnlyUnderLock.TryGetValue(assemblyFolderPath, out extensionFolder))
                     throw new InvalidOperationException($"No extensions registered at '{assemblyFolderPath}'");
             }
 
@@ -237,7 +237,7 @@ internal sealed class ExtensionMessageHandlerServiceFactory(IExtensionMessageHan
         {
             lock (_gate)
             {
-                _folderPathToExtensionFolder.Clear();
+                _folderPathToExtensionFolder_useOnlyUnderLock.Clear();
                 ClearCachedHandlers_WhileUnderLock();
                 return default;
             }
@@ -252,7 +252,7 @@ internal sealed class ExtensionMessageHandlerServiceFactory(IExtensionMessageHan
             return await ExecuteInRemoteOrCurrentProcessAsync(
                 solution,
                 cancellationToken => HandleExtensionMessageInCurrentProcessAsync(
-                    executeArgument: solution, isSolution: true, messageName, jsonMessage, _cachedWorkspaceHandlers, cancellationToken),
+                    executeArgument: solution, isSolution: true, messageName, jsonMessage, _cachedWorkspaceHandlers_useOnlyUnderLock, cancellationToken),
                 (remoteService, checksum, cancellationToken) => remoteService.HandleExtensionWorkspaceMessageAsync(checksum!.Value, messageName, jsonMessage, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
@@ -262,7 +262,7 @@ internal sealed class ExtensionMessageHandlerServiceFactory(IExtensionMessageHan
             return await ExecuteInRemoteOrCurrentProcessAsync(
                 document.Project.Solution,
                 cancellationToken => HandleExtensionMessageInCurrentProcessAsync(
-                    executeArgument: document, isSolution: false, messageName, jsonMessage, _cachedDocumentHandlers, cancellationToken),
+                    executeArgument: document, isSolution: false, messageName, jsonMessage, _cachedDocumentHandlers_useOnlyUnderLock, cancellationToken),
                 (remoteService, checksum, cancellationToken) => remoteService.HandleExtensionDocumentMessageAsync(checksum!.Value, messageName, jsonMessage, document.Id, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
@@ -323,7 +323,7 @@ internal sealed class ExtensionMessageHandlerServiceFactory(IExtensionMessageHan
             using var _1 = ArrayBuilder<ExtensionFolder>.GetInstance(out var extensionFolders);
             lock (_gate)
             {
-                foreach (var (_, extensionFolder) in _folderPathToExtensionFolder)
+                foreach (var (_, extensionFolder) in _folderPathToExtensionFolder_useOnlyUnderLock)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     extensionFolders.Add(extensionFolder);
@@ -349,12 +349,16 @@ internal sealed class ExtensionMessageHandlerServiceFactory(IExtensionMessageHan
         {
             private readonly ExtensionMessageHandlerService _extensionMessageHandlerService;
 
+            /// <summary>
+            /// Lazily computed assembly loader for this particular folder, as well as any exception that occurred while
+            /// we were trying to enumerate files in it, or add assemblies in it as dependency locations.
+            /// </summary>
             private readonly AsyncLazy<(IAnalyzerAssemblyLoader assemblyLoader, Exception? exception)> _lazyAssemblyLoader;
 
             /// <summary>
             /// Mapping from assembly file path to the handlers it contains.  Used as its own lock when mutating.
             /// </summary>
-            private readonly Dictionary<string, AsyncLazy<(AssemblyMessageHandlers assemblyHandlers, Exception? exception)>> _assemblyFilePathToHandlers = new();
+            private readonly Dictionary<string, AsyncLazy<(AssemblyMessageHandlers assemblyHandlers, Exception? exception)>> _assemblyFilePathToHandlers_useOnlyUnderLock = new();
 
             public ExtensionFolder(
                 ExtensionMessageHandlerService extensionMessageHandlerService,
@@ -431,12 +435,12 @@ internal sealed class ExtensionMessageHandlerServiceFactory(IExtensionMessageHan
 
             public void RegisterAssembly(string assemblyFilePath)
             {
-                lock (_assemblyFilePathToHandlers)
+                lock (_assemblyFilePathToHandlers_useOnlyUnderLock)
                 {
-                    if (_assemblyFilePathToHandlers.ContainsKey(assemblyFilePath))
+                    if (_assemblyFilePathToHandlers_useOnlyUnderLock.ContainsKey(assemblyFilePath))
                         throw new InvalidOperationException($"Extension '{assemblyFilePath}' is already registered.");
 
-                    _assemblyFilePathToHandlers.Add(
+                    _assemblyFilePathToHandlers_useOnlyUnderLock.Add(
                         assemblyFilePath,
                         AsyncLazy.Create(
                             cancellationToken => this.CreateAssemblyHandlersAsync(assemblyFilePath, cancellationToken)));
@@ -449,19 +453,19 @@ internal sealed class ExtensionMessageHandlerServiceFactory(IExtensionMessageHan
             /// </summary>
             public bool UnregisterAssembly(string assemblyFilePath)
             {
-                lock (_assemblyFilePathToHandlers)
+                lock (_assemblyFilePathToHandlers_useOnlyUnderLock)
                 {
-                    _assemblyFilePathToHandlers.Remove(assemblyFilePath);
-                    return _assemblyFilePathToHandlers.Count == 0;
+                    _assemblyFilePathToHandlers_useOnlyUnderLock.Remove(assemblyFilePath);
+                    return _assemblyFilePathToHandlers_useOnlyUnderLock.Count == 0;
                 }
             }
 
             public async ValueTask<AssemblyMessageHandlers> GetAssemblyHandlersAsync(string assemblyFilePath, CancellationToken cancellationToken)
             {
                 AsyncLazy<(AssemblyMessageHandlers assemblyHandlers, Exception? exception)>? lazyHandlers;
-                lock (_assemblyFilePathToHandlers)
+                lock (_assemblyFilePathToHandlers_useOnlyUnderLock)
                 {
-                    if (!_assemblyFilePathToHandlers.TryGetValue(assemblyFilePath, out lazyHandlers))
+                    if (!_assemblyFilePathToHandlers_useOnlyUnderLock.TryGetValue(assemblyFilePath, out lazyHandlers))
                         throw new InvalidOperationException($"No extension registered as '{assemblyFilePath}'");
                 }
 
@@ -478,9 +482,9 @@ internal sealed class ExtensionMessageHandlerServiceFactory(IExtensionMessageHan
             {
                 using var _ = ArrayBuilder<AsyncLazy<(AssemblyMessageHandlers assemblyHandlers, Exception? exception)>>.GetInstance(out var lazyHandlers);
 
-                lock (_assemblyFilePathToHandlers)
+                lock (_assemblyFilePathToHandlers_useOnlyUnderLock)
                 {
-                    foreach (var (_, lazyHandler) in _assemblyFilePathToHandlers)
+                    foreach (var (_, lazyHandler) in _assemblyFilePathToHandlers_useOnlyUnderLock)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         lazyHandlers.Add(lazyHandler);
