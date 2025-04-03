@@ -1582,12 +1582,15 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
             {
                 _languageToProjectExistsUIContextState[language] = projectExistsWithLanguage;
 
+                // Create a task to update the UI context, and add it to the task collection that all callers to 
+                // this method will wait on before returning.
                 var joinableTask = _threadingContext.JoinableTaskFactory.RunAsync(() => UpdateUIContextAsync(language, cancellationToken));
 
                 _updateUIContextJoinableTasks.Add(joinableTask);
             }
         }
 
+        // Ensure any pending ui context updates have occurred before returning
         await _updateUIContextJoinableTasks.JoinTillEmptyAsync(cancellationToken).ConfigureAwait(false);
     }
 
