@@ -8,17 +8,11 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Extensions;
 
-internal interface IExtensionMessageHandlerWrapper
-{
-}
-
 /// <summary>
 /// Wrapper for an <c>IExtensionWorkspaceMessageHandler</c> or <c>IExtensionDocumentMessageHandler</c>
 /// as returned by <see cref="IExtensionMessageHandlerFactory"/>. 
 /// </summary>
-/// <typeparam name="TArgument">The type of object received as parameter by the extension message
-/// handler.</typeparam>
-internal interface IExtensionMessageHandlerWrapper<TArgument> : IExtensionMessageHandlerWrapper
+internal interface IExtensionMessageHandlerWrapper
 {
     /// <summary>
     /// The type of object received as parameter by the extension message handler.
@@ -39,13 +33,19 @@ internal interface IExtensionMessageHandlerWrapper<TArgument> : IExtensionMessag
     /// The identifier of the extension that this message handler belongs to.
     /// </summary>
     string ExtensionIdentifier { get; }
+}
 
+/// <typeparam name="TArgument">The type of object received as parameter by the extension message
+/// handler.</typeparam>
+internal interface IExtensionMessageHandlerWrapper<TArgument> : IExtensionMessageHandlerWrapper
+{
     /// <summary>
     /// Executes the extension message handler with the given message and document.
     /// </summary>
-    /// <param name="message">An object of type <see cref="MessageType"/> to be passed to the handler.</param>
+    /// <param name="message">An object of type <see cref="IExtensionMessageHandlerWrapper.MessageType"/> to be passed
+    /// to the handler.</param>
     /// <param name="argument">The argument the handler operates on.</param>
-    /// <param name="cancellationToken">Cancellation token to cancel the async operation</param>
-    /// <returns>An object of type <see cref="ResponseType"/> returned by the message handler.</returns>
+    /// <returns>An object of type <see cref="IExtensionMessageHandlerWrapper.ResponseType"/> returned by the message
+    /// handler.</returns>
     Task<object?> ExecuteAsync(object? message, TArgument argument, CancellationToken cancellationToken);
 }
