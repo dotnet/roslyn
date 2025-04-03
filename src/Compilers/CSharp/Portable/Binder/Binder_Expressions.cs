@@ -2121,7 +2121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             Error(diagnostics, ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, node, parameter);
                         }
-                        else if (parameter.ContainingSymbol is NamedTypeSymbol { IsExtension: true } &&
+                        else if (parameter.IsExtensionParameter() &&
                                 (InParameterDefaultValue || InAttributeArgument ||
                                  this.ContainingMember() is not { Kind: not SymbolKind.NamedType, IsStatic: false } || // We are not in an instance member
                                  (object)this.ContainingMember().ContainingSymbol != parameter.ContainingSymbol) &&
@@ -11326,6 +11326,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var conditionalAccessBinder = new BinderWithConditionalReceiver(this, receiver);
             var access = conditionalAccessBinder.BindValue(node.WhenNotNull, diagnostics, BindValueKind.RValue);
+            if (access.Syntax is AssignmentExpressionSyntax assignment)
+            {
+                MessageID.IDS_FeatureNullConditionalAssignment.CheckFeatureAvailability(diagnostics, assignment.OperatorToken);
+            }
 
             if (receiver.HasAnyErrors || access.HasAnyErrors)
             {

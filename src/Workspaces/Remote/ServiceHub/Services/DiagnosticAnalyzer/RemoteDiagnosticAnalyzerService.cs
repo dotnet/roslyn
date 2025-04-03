@@ -92,7 +92,7 @@ internal sealed class RemoteDiagnosticAnalyzerService : BrokeredServiceBase, IRe
                     var document = solution.GetDocument(diagnostic.Location.SourceTree);
                     var data = document != null
                         ? DiagnosticData.Create(diagnostic, document)
-                        : DiagnosticData.Create(solution, diagnostic, project);
+                        : DiagnosticData.Create(diagnostic, project);
                     builder.Add(data);
                 }
 

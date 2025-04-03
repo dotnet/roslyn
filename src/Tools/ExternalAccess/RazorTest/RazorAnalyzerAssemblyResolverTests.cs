@@ -40,6 +40,7 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
 
     private void CreateRazorAssemblies(string directory, string versionNumber = "1.0.0.0")
     {
+        _ = Directory.CreateDirectory(directory);
         foreach (var simpleName in RazorAnalyzerAssemblyResolver.RazorAssemblyNames)
         {
             BuildOne(simpleName);
@@ -148,6 +149,41 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
                 dir2);
             Assert.Same(assembly1, assembly2);
         });
+    }
+
+    [Fact]
+    public void ChooseServiceHubFolder()
+    {
+        var dir = TempRoot.CreateDirectory().Path;
+        CreateRazorAssemblies(dir);
+        var serviceHubFolder = Path.Combine(dir, RazorAnalyzerAssemblyResolver.ServiceHubCoreFolderName);
+        CreateRazorAssemblies(serviceHubFolder);
+
+        coreTest(dir, serviceHubFolder);
+        coreTest(dir + Path.DirectorySeparatorChar, serviceHubFolder);
+        coreTest(serviceHubFolder, serviceHubFolder);
+        coreTest(serviceHubFolder + Path.DirectorySeparatorChar, serviceHubFolder);
+
+        void coreTest(string loadDir, string serviceHubDir)
+        {
+            var name = Path.GetFileName(loadDir.AsSpan());
+            RunWithLoader((resolver, loader, currentLoadContext) =>
+            {
+                var assembly1 = resolver.Resolve(
+                    loader,
+                    new AssemblyName(RazorAnalyzerAssemblyResolver.RazorCompilerAssemblyName),
+                    currentLoadContext,
+                    loadDir);
+                var assembly2 = resolver.Resolve(
+                    loader,
+                    new AssemblyName(RazorAnalyzerAssemblyResolver.RazorCompilerAssemblyName),
+                    currentLoadContext,
+                    serviceHubFolder);
+                Assert.NotNull(assembly1);
+                Assert.Same(assembly1, assembly2);
+                Assert.Equal(serviceHubFolder, Path.GetDirectoryName(assembly1.Location));
+            });
+        }
     }
 }
 #endif

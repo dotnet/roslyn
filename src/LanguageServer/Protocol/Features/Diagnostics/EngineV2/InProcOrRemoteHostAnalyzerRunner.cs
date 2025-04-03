@@ -83,29 +83,6 @@ internal sealed class InProcOrRemoteHostAnalyzerRunner
         }
     }
 
-    public async Task<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(Project project, CancellationToken cancellationToken)
-    {
-        if (!_enabled)
-            return [];
-
-        var options = project.Solution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
-        var remoteHostClient = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
-        if (remoteHostClient != null)
-        {
-            var result = await remoteHostClient.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableArray<DiagnosticData>>(
-                project.Solution,
-                invocation: (service, solutionInfo, cancellationToken) => service.GetSourceGeneratorDiagnosticsAsync(solutionInfo, project.Id, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
-
-            if (!result.HasValue)
-                return [];
-
-            return await result.Value.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
-        }
-
-        return await project.GetSourceGeneratorDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
-    }
-
     private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeInProcAsync(
         DocumentAnalysisScope? documentAnalysisScope,
         Project project,

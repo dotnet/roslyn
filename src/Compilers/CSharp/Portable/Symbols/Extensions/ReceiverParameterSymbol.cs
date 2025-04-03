@@ -18,5 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return _containingType; }
         }
+
+        internal override bool HasEnumeratorCancellationAttribute
+        {
+            get { return _underlyingParameter.HasEnumeratorCancellationAttribute; }
+        }
     }
 }

@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
   <ProductDependencies>
+    <!-- RoslynAnalyzers reference older builds of Roslyn and this is necessary for SourceBuild. -->
+    <Dependency Name="Microsoft.CodeAnalysis" Version="3.11.0">
+      <Uri>https://github.com/dotnet/roslyn</Uri>
+      <Sha>ae1fff344d46976624e68ae17164e0607ab68b10</Sha>
+    </Dependency>
     <!-- Intermediate is necessary for source build. -->
     <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build-externals" Version="9.0.0-alpha.1.24575.1">
       <Uri>https://github.com/dotnet/source-build-externals</Uri>
@@ -8,9 +13,9 @@
       <SourceBuild RepoName="source-build-externals" ManagedOnly="true" />
     </Dependency>
     <!-- Intermediate is necessary for source build. -->
-    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build-reference-packages" Version="10.0.617601">
+    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build-reference-packages" Version="10.0.618101">
       <Uri>https://github.com/dotnet/source-build-reference-packages</Uri>
-      <Sha>1556b6c639edcaee959013681afcf2e66b118537</Sha>
+      <Sha>f216638d3d6324b6ec140f826b92a7f853dbdfb7</Sha>
       <SourceBuild RepoName="source-build-reference-packages" ManagedOnly="true" />
     </Dependency>
     <Dependency Name="System.CommandLine" Version="2.0.0-beta4.24528.1">
