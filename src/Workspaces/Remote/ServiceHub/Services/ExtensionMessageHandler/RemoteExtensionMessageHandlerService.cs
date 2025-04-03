@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Threading;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
@@ -29,13 +30,17 @@ internal sealed partial class RemoteExtensionMessageHandlerService(
             cancellationToken);
     }
 
-    public ValueTask UnregisterExtensionAsync(
+    public ValueTask<VoidResult> UnregisterExtensionAsync(
         string assemblyFilePath,
         CancellationToken cancellationToken)
     {
         var service = this.GetWorkspaceServices().GetRequiredService<IExtensionMessageHandlerService>();
         return RunServiceAsync(
-            cancellationToken => service.UnregisterExtensionAsync(assemblyFilePath, cancellationToken),
+            async cancellationToken =>
+            {
+                await service.UnregisterExtensionAsync(assemblyFilePath, cancellationToken).ConfigureAwait(false);
+                return default(VoidResult);
+            },
             cancellationToken);
     }
 
@@ -73,15 +78,15 @@ internal sealed partial class RemoteExtensionMessageHandlerService(
             cancellationToken);
     }
 
-    public ValueTask ResetAsync(
+    public ValueTask<VoidResult> ResetAsync(
         CancellationToken cancellationToken)
     {
         var service = this.GetWorkspace().Services.GetRequiredService<IExtensionMessageHandlerService>();
         return RunServiceAsync(
-            cancellationToken =>
+            async cancellationToken =>
             {
-                service.Reset();
-                return default;
+                await service.ResetAsync(cancellationToken).ConfigureAwait(false);
+                return default(VoidResult);
             },
             cancellationToken);
     }
