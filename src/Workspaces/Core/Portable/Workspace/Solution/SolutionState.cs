@@ -130,6 +130,7 @@ internal sealed partial class SolutionState
 
     /// <summary>
     /// Provides project states contained by the solution.
+    /// Ordered by <see cref="ProjectState.Id"/>'s <see cref="ProjectId.Id"/> value.
     /// </summary>
     public ImmutableArray<ProjectState> ProjectStates { get; }
 
@@ -150,6 +151,7 @@ internal sealed partial class SolutionState
 
     /// <summary>
     /// A list of all the ids for all the projects contained by the solution.
+    /// Ordering determined by the order the projects were added to the solution.
     /// </summary>
     public IReadOnlyList<ProjectId> ProjectIds { get; }
 
