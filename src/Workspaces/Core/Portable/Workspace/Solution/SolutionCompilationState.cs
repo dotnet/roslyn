@@ -1546,13 +1546,12 @@ internal sealed partial class SolutionCompilationState
 
     private SolutionCompilationState ComputeFrozenSnapshot(CancellationToken cancellationToken)
     {
-        var (newIdToProjectStateMap, newProjectStates, newIdToTrackerMap) = ComputeFrozenSnapshotMaps(cancellationToken);
+        var (sortedNewProjectStates, newIdToTrackerMap) = ComputeFrozenSnapshotMaps(cancellationToken);
 
-        var dependencyGraph = SolutionState.CreateDependencyGraph(this.SolutionState.ProjectStates, newIdToProjectStateMap);
+        var dependencyGraph = SolutionState.CreateDependencyGraph(this.SolutionState.ProjectStates, sortedNewProjectStates);
 
         var newState = this.SolutionState.Branch(
-            projectStates: newProjectStates,
-            idToProjectStateMap: newIdToProjectStateMap,
+            projectStates: sortedNewProjectStates,
             dependencyGraph: dependencyGraph);
 
         var newCompilationState = this.Branch(
@@ -1564,7 +1563,7 @@ internal sealed partial class SolutionCompilationState
         return newCompilationState;
     }
 
-    private (ImmutableDictionary<ProjectId, ProjectState>, ImmutableArray<ProjectState>, ImmutableSegmentedDictionary<ProjectId, ICompilationTracker>) ComputeFrozenSnapshotMaps(CancellationToken cancellationToken)
+    private (ImmutableArray<ProjectState>, ImmutableSegmentedDictionary<ProjectId, ICompilationTracker>) ComputeFrozenSnapshotMaps(CancellationToken cancellationToken)
     {
         // Loop until we have calculated the maps against a set of compilation trackers that hasn't changed during our calculation.
         while (true)
@@ -1616,14 +1615,14 @@ internal sealed partial class SolutionCompilationState
             var updatedIdToTrackerMap = updatedIdToTrackerMapBuilder.ToImmutable();
             if (originalProjectIdToTrackerMap == RoslynImmutableInterlocked.InterlockedCompareExchange(ref _projectIdToTrackerMap, updatedIdToTrackerMap, originalProjectIdToTrackerMap))
             {
-                var newIdToProjectStateMapBuilder = projectStateChanged
-                    ? newProjectStatesBuilder.ToImmutableDictionary(static state => state.Id, static state => state)
-                    : this.SolutionState.ProjectIdToStatesLookup;
-                var newProjectStates = projectStateChanged
-                    ? newProjectStatesBuilder.ToImmutableAndClear()
-                    : this.SolutionState.ProjectStates;
+                var newProjectStates = this.SolutionState.ProjectStates;
+                if (projectStateChanged)
+                {
+                    newProjectStatesBuilder.Sort(SolutionState.CompareProjectStates);
+                    newProjectStates = newProjectStatesBuilder.ToImmutableAndClear();
+                }
 
-                return (newIdToProjectStateMapBuilder, newProjectStates, newIdToTrackerMapBuilder.ToImmutable());
+                return (newProjectStates, newIdToTrackerMapBuilder.ToImmutable());
             }
         }
     }

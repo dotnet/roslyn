@@ -119,10 +119,6 @@ internal sealed partial class SolutionState
 
                 var allResults = await Task.WhenAll(projectChecksumTasks).ConfigureAwait(false);
 
-                // get states by id order to have deterministic checksum.  Limit expensive computation to the
-                // requested set of projects if applicable.
-                Array.Sort(allResults, static (projectChecksum1, projectChecksum2) => projectChecksum1.ProjectId.Id.CompareTo(projectChecksum2.ProjectId.Id));
-
                 var projectChecksums = allResults.SelectAsArray(r => r.Checksum);
                 var projectIds = allResults.SelectAsArray(r => r.ProjectId);
 
@@ -173,9 +169,9 @@ internal sealed partial class SolutionState
                 // state.  While not desirable, we allow project's to have refs to projects that no longer exist
                 // anymore.  This state is expected to be temporary until the project is explicitly told by the
                 // host to remove the reference.  We do not expose this through the full Solution/Project which
-                // filters out this case already (in Project.ProjectReferences). However, becausde we're at the
+                // filters out this case already (in Project.ProjectReferences). However, because we're at the
                 // ProjectState level it cannot do that filtering unless examined through us (the SolutionState).
-                if (this.ProjectIdToStatesLookup.ContainsKey(refProject.ProjectId))
+                if (this.ContainsProject(refProject.ProjectId))
                     AddProjectCone(refProject.ProjectId);
             }
         }
