@@ -20,12 +20,7 @@ internal sealed class ExtensionRegisterHandler()
 {
     private const string MethodName = "roslyn/extensionRegister";
 
-    /// <summary>
-    /// Report that we mutate solution state so that we only attempt to register or unregister one extension at a time.
-    /// This ensures we don't have to handle any threading concerns while this is happening.  As this should be a rare
-    /// operation, this simplifies things while ideally being low cost.
-    /// </summary>
-    public bool MutatesSolutionState => true;
+    public bool MutatesSolutionState => false;
 
     public bool RequiresLSPSolution => true;
 
