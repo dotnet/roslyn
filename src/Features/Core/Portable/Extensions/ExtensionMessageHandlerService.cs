@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.Extensions;
 
@@ -28,16 +29,16 @@ internal sealed class ExtensionMessageHandlerServiceFactory(IExtensionMessageHan
 {
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         => new ExtensionMessageHandlerService(
-            workspaceServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>(),
+            workspaceServices.SolutionServices,
             customMessageHandlerFactory);
 }
 
 internal sealed class ExtensionMessageHandlerService(
-    IAnalyzerAssemblyLoaderProvider analyzerAssemblyLoaderProvider,
+    SolutionServices solutionServices,
     IExtensionMessageHandlerFactory customMessageHandlerFactory)
     : IExtensionMessageHandlerService
 {
-    private readonly IAnalyzerAssemblyLoaderProvider _analyzerAssemblyLoaderProvider = analyzerAssemblyLoaderProvider;
+    private readonly SolutionServices _solutionServices = solutionServices;
     private readonly IExtensionMessageHandlerFactory _customMessageHandlerFactory = customMessageHandlerFactory;
 
     /// <summary>
@@ -58,7 +59,33 @@ internal sealed class ExtensionMessageHandlerService(
     // Used to protect access to _extensions, _handlers, _documentHandlers and Extension._assemblies.
     private readonly object _lockObject = new();
 
-    public ValueTask<RegisterExtensionResponse> RegisterExtensionAsync(
+    private async ValueTask<Optional<TResult>> ExecuteInRemoteOrCurrentProcessAsync<TResult>(
+        CancellationToken cancellationToken,
+        Func<CancellationToken, ValueTask<TResult>> executeInProcessAsync,
+        Func<IRemoteExtensionMessageHandlerService, CancellationToken, ValueTask<TResult>> executeOutOfProcessAsync)
+    {
+        var client = await RemoteHostClient.TryGetClientAsync(_solutionServices, cancellationToken).ConfigureAwait(false);
+        if (client is null)
+            return await executeInProcessAsync(cancellationToken).ConfigureAwait(false);
+
+        var response = await client.TryInvokeAsync<IRemoteExtensionMessageHandlerService, TResult>(
+            (service, cancellationToken) => executeOutOfProcessAsync(service, cancellationToken),
+            cancellationToken).ConfigureAwait(false);
+        return response;
+    }
+
+    public async ValueTask<RegisterExtensionResponse> RegisterExtensionAsync(
+        string assemblyFilePath,
+        CancellationToken cancellationToken)
+    {
+        var result = await ExecuteInRemoteOrCurrentProcessAsync(
+            cancellationToken,
+            cancellationToken => RegisterExtensionInCurrentProcessAsync(assemblyFilePath, cancellationToken),
+            (service, cancellationToken) => service.RegisterExtensionAsync(assemblyFilePath, cancellationToken)).ConfigureAwait(false);
+        return result.HasValue ? result.Value : new RegisterExtensionResponse([], []);
+    }
+
+    public ValueTask<RegisterExtensionResponse> RegisterExtensionInCurrentProcessAsync(
         string assemblyFilePath,
         CancellationToken cancellationToken)
     {
@@ -66,13 +93,14 @@ internal sealed class ExtensionMessageHandlerService(
         var assemblyFolderPath = Path.GetDirectoryName(assemblyFilePath)
             ?? throw new InvalidOperationException($"Unable to get the directory name for {assemblyFilePath}.");
 
+        var analyzerAssemblyLoaderProvider = _solutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
         Extension? extension;
         lock (_lockObject)
         {
             // Check if the assembly is already loaded.
             if (!_extensions.TryGetValue(assemblyFolderPath, out extension))
             {
-                var analyzerAssemblyLoader = _analyzerAssemblyLoaderProvider.CreateNewShadowCopyLoader();
+                var analyzerAssemblyLoader = analyzerAssemblyLoaderProvider.CreateNewShadowCopyLoader();
 
                 // Allow this assembly loader to load any dll in assemblyFolderPath.
                 foreach (var dll in Directory.EnumerateFiles(assemblyFolderPath, "*.dll"))
