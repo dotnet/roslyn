@@ -36,11 +36,8 @@ internal sealed class ExtensionWorkspaceMessageHandler()
         {
             var response = await client.TryInvokeAsync<IRemoteExtensionMessageHandlerService, string>(
                 solution,
-                (service, solutionInfo, cancellationToken) => service.HandleExensionWorkspaceMessageAsync(
-                    solutionInfo,
-                    request.MessageName,
-                    request.Message,
-                    cancellationToken),
+                (service, solutionInfo, cancellationToken) => service.HandleExtensionWorkspaceMessageAsync(
+                    solutionInfo, request.MessageName, request.Message, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
             if (!response.HasValue)

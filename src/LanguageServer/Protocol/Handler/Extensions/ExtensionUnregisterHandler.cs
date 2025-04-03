@@ -35,10 +35,7 @@ internal sealed class ExtensionUnregisterHandler()
         if (client is not null)
         {
             await client.TryInvokeAsync<IRemoteExtensionMessageHandlerService>(
-                solution,
-                (service, solutionInfo, cancellationToken) => service.UnregisterExtensionAsync(
-                    request.AssemblyFilePath,
-                    cancellationToken),
+                (service, cancellationToken) => service.UnregisterExtensionAsync(request.AssemblyFilePath, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
         else

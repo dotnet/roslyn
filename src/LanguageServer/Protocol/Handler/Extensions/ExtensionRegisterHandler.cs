@@ -36,11 +36,7 @@ internal sealed class ExtensionRegisterHandler()
         if (client is not null)
         {
             var response = await client.TryInvokeAsync<IRemoteExtensionMessageHandlerService, RegisterExtensionResponse>(
-                solution,
-                (service, solutionInfo, cancellationToken) => service.RegisterExtensionAsync(
-                    solutionInfo,
-                    request.AssemblyFilePath,
-                    cancellationToken),
+                (service, cancellationToken) => service.RegisterExtensionAsync(request.AssemblyFilePath, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
             if (!response.HasValue)
