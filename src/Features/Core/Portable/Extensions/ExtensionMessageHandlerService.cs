@@ -179,12 +179,12 @@ internal sealed class ExtensionMessageHandlerService(
     {
         await ExecuteInRemoteOrCurrentProcessAsync(
             solution: null,
-            cancellationToken => ResetInCurrentProcessAsync(cancellationToken),
+            _ => ResetInCurrentProcessAsync(),
             (service, _, cancellationToken) => service.ResetAsync(cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }
 
-    private ValueTask<VoidResult> ResetInCurrentProcessAsync(CancellationToken cancellationToken)
+    private ValueTask<VoidResult> ResetInCurrentProcessAsync()
     {
         _folderPathToExtensionFolder = ImmutableDictionary<string, AsyncLazy<ExtensionFolder?>>.Empty;
         ClearCachedHandlers();
@@ -315,33 +315,6 @@ internal sealed class ExtensionMessageHandlerService(
             }
         }
 
-        //public void SetAssemblyHandlers(string assemblyFileName, AssemblyHandlers? value)
-        //{
-        //    EnsureGlobalLockIsOwned();
-        //    _assemblies[assemblyFileName] = value;
-        //}
-
-        //public bool TryGetAssemblyHandlers(string assemblyFileName, out AssemblyHandlers? value)
-        //{
-        //    EnsureGlobalLockIsOwned();
-        //    return _assemblies.TryGetValue(assemblyFileName, out value);
-        //}
-
-        //public bool RemoveAssemblyHandlers(string assemblyFileName, out AssemblyHandlers? value)
-        //{
-        //    EnsureGlobalLockIsOwned();
-        //    return _assemblies.Remove(assemblyFileName, out value);
-        //}
-
-        //public int AssemblyHandlersCount
-        //{
-        //    get
-        //    {
-        //        EnsureGlobalLockIsOwned();
-        //        return _assemblies.Count;
-        //    }
-        //}
-
         public async ValueTask<AssemblyHandlers?> GetAssemblyHandlersAsync(
             string assemblyFilePath, CancellationToken cancellationToken)
         {
@@ -349,23 +322,26 @@ internal sealed class ExtensionMessageHandlerService(
                 ref _assemblyFilePathToHandlers,
                 assemblyFilePath,
                 static (assemblyFilePath, @this) => AsyncLazy.Create(
-                    static (args, cancellationToken) => CreateAssemblyHandlersAsync(args.@this, args.assemblyFilePath, cancellationToken),
+                    static (args, cancellationToken) => CreateAssemblyHandlers(args.@this, args.assemblyFilePath, cancellationToken),
                     (assemblyFilePath, @this)),
                 this);
 
             return await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<AssemblyHandlers?> CreateAssemblyHandlersAsync(
+        private static AssemblyHandlers? CreateAssemblyHandlers(
             ExtensionFolder @this, string assemblyFilePath, CancellationToken cancellationToken)
         {
             try
             {
                 var assembly = @this._analyzerAssemblyLoader.LoadFromPath(assemblyFilePath);
                 var factory = @this._extensionMessageHandlerService._customMessageHandlerFactory;
-                var messageWorkspaceHandlers = factory.CreateWorkspaceMessageHandlers(assembly, extensionIdentifier: assemblyFilePath)
+
+                var messageWorkspaceHandlers = factory
+                    .CreateWorkspaceMessageHandlers(assembly, extensionIdentifier: assemblyFilePath, cancellationToken)
                     .ToImmutableDictionary(h => h.Name, h => h);
-                var messageDocumentHandlers = factory.CreateDocumentMessageHandlers(assembly, extensionIdentifier: assemblyFilePath)
+                var messageDocumentHandlers = factory
+                    .CreateDocumentMessageHandlers(assembly, extensionIdentifier: assemblyFilePath, cancellationToken)
                     .ToImmutableDictionary(h => h.Name, h => h);
 
                 return new AssemblyHandlers()

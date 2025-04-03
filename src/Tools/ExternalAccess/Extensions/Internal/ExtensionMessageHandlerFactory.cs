@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Reflection;
+using System.Threading;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Extensions;
@@ -15,27 +16,34 @@ namespace Microsoft.CodeAnalysis.Extensions;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class ExtensionMessageHandlerFactory() : IExtensionMessageHandlerFactory
 {
-    public ImmutableArray<IExtensionMessageHandlerWrapper<Document>> CreateDocumentMessageHandlers(Assembly assembly, string extensionIdentifier)
+    public ImmutableArray<IExtensionMessageHandlerWrapper<Document>> CreateDocumentMessageHandlers(
+        Assembly assembly, string extensionIdentifier, CancellationToken cancellationToken)
         => CreateWorkspaceHandlers(
             assembly,
             typeof(IExtensionDocumentMessageHandler<,>),
-            (handler, handlerInterface) => new ExtensionDocumentMessageHandlerWrapper(handler, handlerInterface, extensionIdentifier));
+            (handler, handlerInterface) => new ExtensionDocumentMessageHandlerWrapper(handler, handlerInterface, extensionIdentifier),
+            cancellationToken);
 
-    public ImmutableArray<IExtensionMessageHandlerWrapper<Solution>> CreateWorkspaceMessageHandlers(Assembly assembly, string extensionIdentifier)
+    public ImmutableArray<IExtensionMessageHandlerWrapper<Solution>> CreateWorkspaceMessageHandlers(
+        Assembly assembly, string extensionIdentifier, CancellationToken cancellationToken)
         => CreateWorkspaceHandlers(
             assembly,
             typeof(IExtensionWorkspaceMessageHandler<,>),
-            (handler, handlerInterface) => new ExtensionWorkspaceMessageHandlerWrapper(handler, handlerInterface, extensionIdentifier));
+            (handler, handlerInterface) => new ExtensionWorkspaceMessageHandlerWrapper(handler, handlerInterface, extensionIdentifier),
+            cancellationToken);
 
     private static ImmutableArray<IExtensionMessageHandlerWrapper<TArgument>> CreateWorkspaceHandlers<TArgument>(
         Assembly assembly,
         Type unboundInterfaceType,
-        Func<object, Type, IExtensionMessageHandlerWrapper<TArgument>> wrapperCreator)
+        Func<object, Type, IExtensionMessageHandlerWrapper<TArgument>> wrapperCreator,
+        CancellationToken cancellationToken)
     {
         var resultBuilder = ImmutableArray.CreateBuilder<IExtensionMessageHandlerWrapper<TArgument>>();
 
         foreach (var candidateType in assembly.GetTypes())
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (candidateType.IsAbstract || candidateType.IsGenericType)
             {
                 continue;

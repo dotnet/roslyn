@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Reflection;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Extensions;
 
@@ -19,7 +20,8 @@ internal interface IExtensionMessageHandlerFactory
     /// <param name="assembly">The assembly to scan for handlers.</param>
     /// <param name="extensionIdentifier">Unique identifier of the extension owning this handler.</param>
     /// <returns>The handlers.</returns>
-    ImmutableArray<IExtensionMessageHandlerWrapper<Solution>> CreateWorkspaceMessageHandlers(Assembly assembly, string extensionIdentifier);
+    ImmutableArray<IExtensionMessageHandlerWrapper<Solution>> CreateWorkspaceMessageHandlers(
+        Assembly assembly, string extensionIdentifier, CancellationToken cancellationToken);
 
     /// <summary>
     /// Creates <see cref="IExtensionMessageHandlerWrapper{Document}"/> instances for each
@@ -28,5 +30,6 @@ internal interface IExtensionMessageHandlerFactory
     /// <param name="assembly">The assembly to scan for handlers.</param>
     /// <param name="extensionIdentifier">Unique identifier of the extension owning this handler.</param>
     /// <returns>The handlers.</returns>
-    ImmutableArray<IExtensionMessageHandlerWrapper<Document>> CreateDocumentMessageHandlers(Assembly assembly, string extensionIdentifier);
+    ImmutableArray<IExtensionMessageHandlerWrapper<Document>> CreateDocumentMessageHandlers(
+        Assembly assembly, string extensionIdentifier, CancellationToken cancellationToken);
 }
