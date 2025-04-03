@@ -63,24 +63,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal void ReportAsyncParameterErrors(BindingDiagnosticBag diagnostics, Location location)
         {
-            foreach (var parameter in Parameters)
+            var parameters = !this.IsStatic ? this.GetParametersIncludingExtensionParameter() : Parameters;
+
+            foreach (var parameter in parameters)
             {
+                bool isExtensionParameter = parameter.IsExtensionParameter();
                 if (parameter.RefKind != RefKind.None)
                 {
-                    diagnostics.Add(ErrorCode.ERR_BadAsyncArgType, getLocation(parameter, location));
+                    diagnostics.Add(ErrorCode.ERR_BadAsyncArgType, getLocation(parameter, location, isExtensionParameter));
                 }
-                else if (parameter.Type.IsPointerOrFunctionPointer())
+                else if (parameter.Type.IsPointerOrFunctionPointer() && !isExtensionParameter)
                 {
-                    diagnostics.Add(ErrorCode.ERR_UnsafeAsyncArgType, getLocation(parameter, location));
+                    // We already reported an error elsewhere if the receiver parameter of an extension is a pointer type.
+                    diagnostics.Add(ErrorCode.ERR_UnsafeAsyncArgType, getLocation(parameter, location, isExtensionParameter));
                 }
                 else if (parameter.Type.IsRestrictedType())
                 {
-                    diagnostics.Add(ErrorCode.ERR_BadSpecialByRefParameter, getLocation(parameter, location), parameter.Type);
+                    diagnostics.Add(ErrorCode.ERR_BadSpecialByRefParameter, getLocation(parameter, location, isExtensionParameter), parameter.Type);
                 }
             }
 
-            static Location getLocation(ParameterSymbol parameter, Location location)
-                => parameter.TryGetFirstLocation() ?? location;
+            static Location getLocation(ParameterSymbol parameter, Location location, bool isReceiverParameter)
+            {
+                return isReceiverParameter
+                    ? location
+                    : parameter.TryGetFirstLocation() ?? location;
+            }
         }
 
         protected override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();

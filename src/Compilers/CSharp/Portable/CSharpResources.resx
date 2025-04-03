@@ -2525,7 +2525,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value> The parameter modifier '{0}' cannot be used with '{1}'</value>
   </data>
   <data name="ERR_BadTypeforThis" xml:space="preserve">
-    <value>The first parameter of an extension method cannot be of type '{0}'</value>
+    <value>The receiver parameter of an extension cannot be of type '{0}'</value>
   </data>
   <data name="ERR_BadParamModThis" xml:space="preserve">
     <value>A parameter array cannot be used with 'this' modifier on an extension method</value>
@@ -5914,6 +5914,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InExtensionMustBeValueType" xml:space="preserve">
     <value>The first 'in' or 'ref readonly' parameter of the extension method '{0}' must be a concrete (non-generic) value type.</value>
   </data>
+  <data name="ERR_InExtensionParameterMustBeValueType" xml:space="preserve">
+    <value>The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</value>
+  </data>
   <data name="ERR_FieldsInRoStruct" xml:space="preserve">
     <value>Instance fields of readonly structs must be readonly.</value>
   </data>
@@ -5931,6 +5934,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_RefExtensionMustBeValueTypeOrConstrainedToOne" xml:space="preserve">
     <value>The first parameter of a 'ref' extension method '{0}' must be a value type or a generic type constrained to struct.</value>
+  </data>
+  <data name="ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne" xml:space="preserve">
+    <value>The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.</value>
   </data>
   <data name="ERR_OutAttrOnInParam" xml:space="preserve">
     <value>An in parameter cannot have the Out attribute.</value>
@@ -8133,5 +8139,20 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_PPIgnoredFollowsIf" xml:space="preserve">
     <value>'#:' directives cannot be after '#if' directive</value>
+  </data>
+  <data name="ERR_ProtectedInExtension" xml:space="preserve">
+    <value>'{0}': new protected member declared in an extension block</value>
+  </data>
+  <data name="ERR_InstanceMemberWithUnnamedExtensionsParameter" xml:space="preserve">
+    <value>'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</value>
+  </data>
+  <data name="ERR_InitInExtension" xml:space="preserve">
+    <value>'{0}': cannot declare init-only accessors in an extension block</value>
+  </data>
+  <data name="ERR_ModifierOnUnnamedReceiverParameter" xml:space="preserve">
+    <value>Cannot use modifiers on the unnamed receiver parameter of extension block</value>
+  </data>
+  <data name="ERR_ExtensionTypeNameDisallowed" xml:space="preserve">
+    <value>Types and aliases cannot be named 'extension'.</value>
   </data>
 </root>
