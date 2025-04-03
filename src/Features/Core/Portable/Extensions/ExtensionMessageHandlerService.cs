@@ -124,8 +124,7 @@ internal sealed class ExtensionMessageHandlerService(
         {
             var extensionFolder = _folderPathToExtensionFolder.GetOrAdd(
                 assemblyFolderPath,
-                static (assemblyFolderPath, @this) => new ExtensionFolder(@this, assemblyFolderPath),
-                this);
+                assemblyFolderPath => new ExtensionFolder(this, assemblyFolderPath));
 
             extensionFolder.RegisterAssembly(assemblyFilePath);
 
