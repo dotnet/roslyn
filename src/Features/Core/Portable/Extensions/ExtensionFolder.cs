@@ -30,15 +30,14 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             private readonly ExtensionMessageHandlerService _extensionMessageHandlerService;
 
             /// <summary>
-            /// Lazily computed assembly loader for this particular folder, as well as any exception that occurred while
-            /// we were trying to enumerate files in it, or add assemblies in it as dependency locations.
+            /// Lazily computed assembly loader for this particular folder.
             /// </summary>
-            private readonly AsyncLazy<(IAnalyzerAssemblyLoader assemblyLoader, Exception? exception)> _lazyAssemblyLoader;
+            private readonly AsyncLazy<IAnalyzerAssemblyLoaderInternal> _lazyAssemblyLoader;
 
             /// <summary>
             /// Mapping from assembly file path to the handlers it contains.  Used as its own lock when mutating.
             /// </summary>
-            private readonly Dictionary<string, AsyncLazy<(AssemblyMessageHandlers assemblyHandlers, Exception? exception)>> _assemblyFilePathToHandlers_useOnlyUnderLock = new();
+            private readonly Dictionary<string, AsyncLazy<AssemblyMessageHandlers>> _assemblyFilePathToHandlers_useOnlyUnderLock = new();
 
             public ExtensionFolder(
                 ExtensionMessageHandlerService extensionMessageHandlerService,
@@ -49,68 +48,47 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                 {
                     var analyzerAssemblyLoaderProvider = _extensionMessageHandlerService._solutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
                     var analyzerAssemblyLoader = analyzerAssemblyLoaderProvider.CreateNewShadowCopyLoader();
-                    Exception? exception = null;
-                    try
+
+                    // Allow this assembly loader to load any dll in assemblyFolderPath.
+                    foreach (var dll in Directory.EnumerateFiles(assemblyFolderPath, "*.dll"))
                     {
-                        // Allow this assembly loader to load any dll in assemblyFolderPath.
-                        foreach (var dll in Directory.EnumerateFiles(assemblyFolderPath, "*.dll"))
+                        cancellationToken.ThrowIfCancellationRequested();
+                        try
                         {
-                            cancellationToken.ThrowIfCancellationRequested();
-                            try
-                            {
-                                // Check if the file is a valid .NET assembly.
-                                AssemblyName.GetAssemblyName(dll);
-                            }
-                            catch
-                            {
-                                // The file is not a valid .NET assembly, skip it.
-                                continue;
-                            }
-
-                            analyzerAssemblyLoader.AddDependencyLocation(dll);
+                            // Check if the file is a valid .NET assembly.
+                            AssemblyName.GetAssemblyName(dll);
                         }
-                    }
-                    catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
-                    {
-                        exception = ex;
+                        catch
+                        {
+                            // The file is not a valid .NET assembly, skip it.
+                            continue;
+                        }
+
+                        analyzerAssemblyLoader.AddDependencyLocation(dll);
                     }
 
-                    return ((IAnalyzerAssemblyLoader)analyzerAssemblyLoader, exception);
+                    return analyzerAssemblyLoader;
                 });
             }
 
-            private async Task<(AssemblyMessageHandlers assemblyHandlers, Exception? exception)> CreateAssemblyHandlersAsync(
+            private async Task<AssemblyMessageHandlers> CreateAssemblyHandlersAsync(
                 string assemblyFilePath, CancellationToken cancellationToken)
             {
                 // If creating the underlying assembly loader failed, then we will throw that exception outwards for the
                 // client to hear about.
-                var (analyzerAssemblyLoader, exception) = await _lazyAssemblyLoader.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                if (exception != null)
-                    throw exception;
+                var analyzerAssemblyLoader = await _lazyAssemblyLoader.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
-                ImmutableDictionary<string, IExtensionMessageHandlerWrapper<Document>> documentMessageHandlers;
-                ImmutableDictionary<string, IExtensionMessageHandlerWrapper<Solution>> workspaceMessageHandlers;
+                var assembly = analyzerAssemblyLoader.LoadFromPath(assemblyFilePath);
+                var factory = _extensionMessageHandlerService._customMessageHandlerFactory;
 
-                try
-                {
-                    var assembly = analyzerAssemblyLoader.LoadFromPath(assemblyFilePath);
-                    var factory = _extensionMessageHandlerService._customMessageHandlerFactory;
+                var documentMessageHandlers = factory
+                    .CreateDocumentMessageHandlers(assembly, extensionIdentifier: assemblyFilePath, cancellationToken)
+                    .ToImmutableDictionary(h => h.Name);
+                var workspaceMessageHandlers = factory
+                    .CreateWorkspaceMessageHandlers(assembly, extensionIdentifier: assemblyFilePath, cancellationToken)
+                    .ToImmutableDictionary(h => h.Name);
 
-                    documentMessageHandlers = factory
-                        .CreateDocumentMessageHandlers(assembly, extensionIdentifier: assemblyFilePath, cancellationToken)
-                        .ToImmutableDictionary(h => h.Name);
-                    workspaceMessageHandlers = factory
-                        .CreateWorkspaceMessageHandlers(assembly, extensionIdentifier: assemblyFilePath, cancellationToken)
-                        .ToImmutableDictionary(h => h.Name);
-                }
-                catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
-                {
-                    documentMessageHandlers = ImmutableDictionary<string, IExtensionMessageHandlerWrapper<Document>>.Empty;
-                    workspaceMessageHandlers = ImmutableDictionary<string, IExtensionMessageHandlerWrapper<Solution>>.Empty;
-                    exception = ex;
-                }
-
-                return (new(documentMessageHandlers, workspaceMessageHandlers), exception);
+                return new(documentMessageHandlers, workspaceMessageHandlers);
             }
 
             public void RegisterAssembly(string assemblyFilePath)
@@ -142,7 +120,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
 
             public async ValueTask<AssemblyMessageHandlers> GetAssemblyHandlersAsync(string assemblyFilePath, CancellationToken cancellationToken)
             {
-                AsyncLazy<(AssemblyMessageHandlers assemblyHandlers, Exception? exception)>? lazyHandlers;
+                AsyncLazy<AssemblyMessageHandlers>? lazyHandlers;
                 lock (_assemblyFilePathToHandlers_useOnlyUnderLock)
                 {
                     if (!_assemblyFilePathToHandlers_useOnlyUnderLock.TryGetValue(assemblyFilePath, out lazyHandlers))
@@ -151,16 +129,12 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
 
                 // If loading the assembly and getting the handlers failed, then we will throw that exception outwards
                 // for the client to hear about.
-                var (assemblyHandlers, exception) = await lazyHandlers.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                if (exception != null)
-                    throw exception;
-
-                return assemblyHandlers;
+                return await lazyHandlers.GetValueAsync(cancellationToken).ConfigureAwait(false);
             }
 
             public async ValueTask AddHandlersAsync<TResult>(string messageName, bool isSolution, ArrayBuilder<IExtensionMessageHandlerWrapper<TResult>> result, CancellationToken cancellationToken)
             {
-                using var _ = ArrayBuilder<AsyncLazy<(AssemblyMessageHandlers assemblyHandlers, Exception? exception)>>.GetInstance(out var lazyHandlers);
+                using var _ = ArrayBuilder<AsyncLazy<AssemblyMessageHandlers>>.GetInstance(out var lazyHandlers);
 
                 lock (_assemblyFilePathToHandlers_useOnlyUnderLock)
                 {
@@ -175,7 +149,18 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var (handlers, _) = await lazyHandler.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                    AssemblyMessageHandlers handlers;
+                    try
+                    {
+                        handlers = await lazyHandler.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex))
+                    {
+                        // If loading the assembly and getting the handlers failed, then we will ignore this assembly
+                        // and continue on to the next one.
+                        continue;
+                    }
+
                     if (isSolution)
                     {
                         if (handlers.WorkspaceMessageHandlers.TryGetValue(messageName, out var handler))
