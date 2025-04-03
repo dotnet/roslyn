@@ -1011,7 +1011,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     TMethodOrPropertySymbol member = result.Member;
                     if (!MemberGroupFinalValidationAccessibilityChecks(receiverOpt, member, syntax, candidateDiagnostics, invokedAsExtensionMethod: isExtensionMethodGroup && !member.GetIsNewExtensionMember()) &&
-                        (typeArgumentsOpt.IsDefault || ((MethodSymbol)(object)result.Member).CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, syntax.Location, candidateDiagnostics))))
+                        (typeArgumentsOpt.IsDefault || ((MethodSymbol)(object)result.Member).CheckConstraintsIncludingExtension(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, syntax.Location, candidateDiagnostics))))
                     {
                         finalCandidates.Add(result);
                         continue;
@@ -1982,7 +1982,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var constructedMethods = ArrayBuilder<MethodSymbol>.GetInstance();
                 foreach (var m in methods)
                 {
-                    constructedMethods.Add(m.ConstructedFrom == m && m.Arity == typeArgumentsWithAnnotations.Length ? m.Construct(typeArgumentsWithAnnotations) : m);
+                    MethodSymbol constructedMethod;
+                    if (m.GetIsNewExtensionMember())
+                    {
+                        constructedMethod = m.IsDefinition && m.GetMemberArityIncludingExtension() == typeArgumentsWithAnnotations.Length
+                            ? m.ConstructIncludingExtension(typeArgumentsWithAnnotations)
+                            : m;
+                    }
+                    else
+                    {
+                        constructedMethod = m.ConstructedFrom == m && m.Arity == typeArgumentsWithAnnotations.Length
+                            ? m.Construct(typeArgumentsWithAnnotations)
+                            : m;
+                    }
+
+                    constructedMethods.Add(constructedMethod);
                 }
 
                 methods = constructedMethods.ToImmutableAndFree();
@@ -2010,7 +2024,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsUnboundGeneric(MethodSymbol method)
         {
-            return method.IsGenericMethod && method.ConstructedFrom == method;
+            if (method.GetMemberArityIncludingExtension() == 0)
+            {
+                return false;
+            }
+
+            if (!method.GetIsNewExtensionMember())
+            {
+                return method.ConstructedFrom == method;
+            }
+
+            return method.IsDefinition;
         }
 
         // Arbitrary limit on the number of parameter lists from overload
@@ -2023,7 +2047,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameterListList = ArrayBuilder<ImmutableArray<ParameterSymbol>>.GetInstance();
             foreach (var m in methods)
             {
-                if (!IsUnboundGeneric(m) && m.ParameterCount > 0)
+                if (!IsUnboundGeneric(m) && m.GetParametersIncludingExtensionParameter().Length > 0)
                 {
                     parameterListList.Add(m.Parameters);
                     if (parameterListList.Count == MaxParameterListsForErrorRecovery)
@@ -2043,6 +2067,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameterListList = ArrayBuilder<ImmutableArray<ParameterSymbol>>.GetInstance();
             foreach (var p in properties)
             {
+                // Tracked by https://github.com/dotnet/roslyn/issues/76130: Revisit this with new extensions
                 if (p.ParameterCount > 0)
                 {
                     parameterListList.Add(p.Parameters);

@@ -11637,16 +11637,15 @@ static class E
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (4,1): warning CS8602: Dereference of a possibly null reference.
+            // (4,1): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'E.extension<T>(T)'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
             // o.Method();
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(4, 1));
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "o.Method").WithArguments("E.extension<T>(T)", "T", "object?").WithLocation(4, 1));
         CompileAndVerify(comp, expectedOutput: "True");
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "o.Method");
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Nullability is undone
-        Assert.Equal("void E.extension<System.Object>(System.Object!).Method()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString(includeNonNullable: true));
+        Assert.Equal("void E.extension<System.Object?>(System.Object?).Method()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString(includeNonNullable: true));
     }
 
     [Fact]
@@ -12023,11 +12022,10 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : nullability is undone
         comp.VerifyEmitDiagnostics(
-            // (4,1): warning CS8602: Dereference of a possibly null reference.
+            // (4,1): warning CS8604: Possible null reference argument for parameter 'o' in 'extension(object)'.
             // o.Method();
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(4, 1));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o").WithArguments("o", "extension(object)").WithLocation(4, 1));
 
         CompileAndVerify(comp, expectedOutput: "Method");
     }
@@ -26847,7 +26845,6 @@ static class E
     [Fact]
     public void Nullability_Method_01()
     {
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Nullability is undone
         string source = """
 #nullable enable
 
@@ -26863,16 +26860,13 @@ static class E
 }
 """;
         var comp = CreateCompilation(source);
-        comp.VerifyEmitDiagnostics(
-            // (4,1): warning CS8602: Dereference of a possibly null reference.
-            // s.M();
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(4, 1));
+        comp.VerifyEmitDiagnostics();
         CompileAndVerify(comp, expectedOutput: "True");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.M");
-        Assert.Equal("void E.<>E__0<System.String>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal("void E.<>E__0<System.String?>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -26899,8 +26893,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.M");
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Nullability is undone
-        Assert.Equal("void E.<>E__0<System.String>.M(System.String t2)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal("void E.<>E__0<System.String?>.M(System.String? t2)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -28085,6 +28078,7 @@ static class E
         var src = """
 42.M<object>(42);
 42.M2<object>(42);
+42.M3<object>(42);
 
 static class E
 {
@@ -28093,7 +28087,12 @@ static class E
         public void M<T>(T t) where T : struct { }
     }
 
-    public static void M2<T>(this int i, T t) where T : struct { }
+    extension<T>(T t) where T : struct
+    {
+        public void M2(int i) { }
+    }
+
+    public static void M3<T>(this int i, T t) where T : struct { }
 }
 """;
         var comp = CreateCompilation(src);
@@ -28101,20 +28100,25 @@ static class E
             // (1,4): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'E.extension(int).M<T>(T)'
             // 42.M<object>(42);
             Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M<object>").WithArguments("E.extension(int).M<T>(T)", "T", "object").WithLocation(1, 4),
-            // (2,4): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'E.M2<T>(int, T)'
+            // (2,4): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'E.extension<T>(T)'
             // 42.M2<object>(42);
-            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M2<object>").WithArguments("E.M2<T>(int, T)", "T", "object").WithLocation(2, 4));
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M2<object>").WithArguments("E.extension<T>(T)", "T", "object").WithLocation(2, 4),
+            // (3,4): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'E.M3<T>(int, T)'
+            // 42.M3<object>(42);
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M3<object>").WithArguments("E.M3<T>(int, T)", "T", "object").WithLocation(3, 4));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M<object>");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
         Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
-        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
 
         memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M2<object>");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
         Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+
+        memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M3<object>");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
         Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
@@ -33202,5 +33206,1229 @@ static class E
             // (14,32): error CS8157: Cannot return 'ri' by reference because it was initialized to a value that cannot be returned by reference
             //         return ref E.get_P(ref ri);
             Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "ri").WithArguments("ri").WithLocation(14, 32));
+    }
+
+    [Fact]
+    public void Nullability_Invocation_01()
+    {
+        var src = """
+#nullable enable
+
+object? oNull = null;
+oNull.M();
+
+object? oNotNull = new object();
+oNotNull.M();
+
+static class E
+{
+    extension(object? o)
+    {
+        public void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_Invocation_02()
+    {
+        var src = """
+#nullable enable
+
+object? oNull = null;
+oNull.M(); // 1
+
+object? oNotNull = new object();
+oNotNull.M();
+
+static class E
+{
+    extension(object o)
+    {
+        public void M() { }
+    }
+}
+""";
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider reporting a better containing symbol
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,1): warning CS8604: Possible null reference argument for parameter 'o' in 'extension(object)'.
+            // oNull.M(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "extension(object)").WithLocation(4, 1));
+    }
+
+    [Fact]
+    public void Nullability_Invocation_03()
+    {
+        var src = """
+#nullable enable
+
+object? oNull = null;
+oNull.M().ToString();
+
+object? oNotNull = new object();
+oNotNull.M().ToString();
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public T M() => t;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,1): warning CS8602: Dereference of a possibly null reference.
+            // oNull.M().ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNull.M()").WithLocation(4, 1));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var invocation1 = GetSyntax<InvocationExpressionSyntax>(tree, "oNull.M()");
+        Assert.Equal("System.Object? E.extension<System.Object?>(System.Object?).M()", model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+        var invocation2 = GetSyntax<InvocationExpressionSyntax>(tree, "oNotNull.M()");
+        Assert.Equal("System.Object! E.extension<System.Object!>(System.Object!).M()", model.GetSymbolInfo(invocation2).Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_Invocation_04()
+    {
+        var src = """
+#nullable enable
+
+object? oNull = null;
+oNull.M().ToString();
+
+object? oNotNull = new object();
+oNotNull.M().ToString();
+
+static class E
+{
+    extension<T>(T t) where T : notnull
+    {
+        public T M() => t;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,1): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'E.extension<T>(T)'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
+            // oNull.M().ToString();
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "oNull.M").WithArguments("E.extension<T>(T)", "T", "object?").WithLocation(4, 1),
+            // (4,1): warning CS8602: Dereference of a possibly null reference.
+            // oNull.M().ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNull.M()").WithLocation(4, 1));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var invocation1 = GetSyntax<InvocationExpressionSyntax>(tree, "oNull.M()");
+        Assert.Equal("System.Object? E.extension<System.Object?>(System.Object?).M()", model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+        var invocation2 = GetSyntax<InvocationExpressionSyntax>(tree, "oNotNull.M()");
+        Assert.Equal("System.Object! E.extension<System.Object!>(System.Object!).M()", model.GetSymbolInfo(invocation2).Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_Invocation_05()
+    {
+        var src = """
+#nullable enable
+
+object? oNull = null;
+oNull.M(oNull).ToString();
+
+object? oNotNull = new object();
+oNotNull.M(oNotNull).ToString();
+
+static class E
+{
+    extension<T>(T t) where T : notnull
+    {
+        public U M<U>(U u) where U : notnull => u;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,1): warning CS8714: The type 'object?' cannot be used as type parameter 'U' in the generic type or method 'E.extension<object?>(object?).M<U>(U)'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
+            // oNull.M(oNull).ToString();
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "oNull.M").WithArguments("E.extension<object?>(object?).M<U>(U)", "U", "object?").WithLocation(4, 1),
+            // (4,1): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'E.extension<T>(T)'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
+            // oNull.M(oNull).ToString();
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "oNull.M").WithArguments("E.extension<T>(T)", "T", "object?").WithLocation(4, 1),
+            // (4,1): warning CS8602: Dereference of a possibly null reference.
+            // oNull.M(oNull).ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNull.M(oNull)").WithLocation(4, 1));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var invocation1 = GetSyntax<InvocationExpressionSyntax>(tree, "oNull.M(oNull)");
+        Assert.Equal("System.Object? E.extension<System.Object?>(System.Object?).M<System.Object?>(System.Object? u)", model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+        var invocation2 = GetSyntax<InvocationExpressionSyntax>(tree, "oNotNull.M(oNotNull)");
+        Assert.Equal("System.Object! E.extension<System.Object!>(System.Object!).M<System.Object!>(System.Object! u)", model.GetSymbolInfo(invocation2).Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_Invocation_06()
+    {
+        var src = """
+#nullable enable
+
+Derived1.M().ToString();
+Derived2.M().ToString();
+
+static class E
+{
+    extension<T>(C<T> t) where T : notnull
+    {
+        public static T M() => throw null!;
+    }
+}
+
+class Derived1 : C<object?> { }
+class Derived2 : C<object> { }
+class C<T> { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,1): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'E.extension<T>(C<T>)'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
+            // Derived1.M().ToString();
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "Derived1.M").WithArguments("E.extension<T>(C<T>)", "T", "object?").WithLocation(3, 1),
+            // (3,1): warning CS8602: Dereference of a possibly null reference.
+            // Derived1.M().ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Derived1.M()").WithLocation(3, 1));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var invocation1 = GetSyntax<InvocationExpressionSyntax>(tree, "Derived1.M()");
+        Assert.Equal("System.Object? E.extension<System.Object?>(C<System.Object?>!).M()", model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+        var invocation2 = GetSyntax<InvocationExpressionSyntax>(tree, "Derived2.M()");
+        Assert.Equal("System.Object! E.extension<System.Object!>(C<System.Object!>!).M()", model.GetSymbolInfo(invocation2).Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_Invocation_07()
+    {
+        var src = """
+#nullable enable
+
+object.M<object>(42);
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public static void M() => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,8): error CS1501: No overload for method 'M' takes 1 arguments
+            // object.M<object>(42);
+            Diagnostic(ErrorCode.ERR_BadArgCount, "M<object>").WithArguments("M", "1").WithLocation(3, 8));
+    }
+
+    [Fact]
+    public void Nullability_MethodGroup_01()
+    {
+        var src = """
+#nullable enable
+
+object? oNull = null;
+var x = oNull.M;
+
+object? oNotNull = new object();
+var y = oNotNull.M;
+
+static class E
+{
+    extension(object? o)
+    {
+        public void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "oNull.M");
+        Assert.Equal("void E.extension(System.Object?).M()", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+        var localDeclaration1 = GetSyntax<VariableDeclarationSyntax>(tree, "var x = oNull.M");
+        Assert.Equal("System.Action?", model.GetTypeInfo(localDeclaration1.Type).Type.ToTestDisplayString());
+
+        var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "oNotNull.M");
+        Assert.Equal("void E.extension(System.Object?).M()", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+        var localDeclaration2 = GetSyntax<VariableDeclarationSyntax>(tree, "var y = oNotNull.M");
+        Assert.Equal("System.Action?", model.GetTypeInfo(localDeclaration2.Type).Type.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void Nullability_MethodGroup_02()
+    {
+        var src = """
+#nullable enable
+
+object? oNull = null;
+var x = oNull.M;
+
+object? oNotNull = new object();
+var y = oNotNull.M;
+
+static class E
+{
+    extension(object o)
+    {
+        public void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,9): warning CS8604: Possible null reference argument for parameter 'o' in 'extension(object)'.
+            // var x = oNull.M;
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "extension(object)").WithLocation(4, 9));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "oNull.M");
+        Assert.Equal("void E.extension(System.Object!).M()", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+        var localDeclaration1 = GetSyntax<VariableDeclarationSyntax>(tree, "var x = oNull.M");
+        Assert.Equal("System.Action?", model.GetTypeInfo(localDeclaration1.Type).Type.ToTestDisplayString());
+
+        var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "oNotNull.M");
+        Assert.Equal("void E.extension(System.Object!).M()", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+        var localDeclaration2 = GetSyntax<VariableDeclarationSyntax>(tree, "var y = oNotNull.M");
+        Assert.Equal("System.Action?", model.GetTypeInfo(localDeclaration2.Type).Type.ToTestDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78022")]
+    public void Nullability_MethodGroup_03()
+    {
+        var src = """
+#nullable enable
+
+object? oNull = null;
+var x = oNull.M;
+var x2 = oNull.M2;
+
+object? oNull2 = null;
+System.Func<object> x3 = oNull2.M; // 1
+System.Func<object> x4 = oNull2.M2; // 2
+
+object? oNull3 = null;
+_ = new System.Func<object>(oNull3.M); // 3
+_ = new System.Func<object>(oNull3.M2); // 4
+
+object? oNotNull = new object();
+var y = oNotNull.M;
+
+object? oNotNull2 = new object();
+System.Func<object> y2 = oNotNull2.M;
+_ = new System.Func<object>(oNotNull2.M);
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public T M() { return t; }
+    }
+
+    public static T M2<T>(this T t) => t;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (8,26): warning CS8621: Nullability of reference types in return type of 'object? extension<object?>(object?).M()' doesn't match the target delegate 'Func<object>' (possibly because of nullability attributes).
+            // System.Func<object> x3 = oNull2.M; // 1
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "oNull2.M").WithArguments("object? extension<object?>(object?).M()", "System.Func<object>").WithLocation(8, 26),
+            // (9,26): warning CS8621: Nullability of reference types in return type of 'object? E.M2<object?>(object? t)' doesn't match the target delegate 'Func<object>' (possibly because of nullability attributes).
+            // System.Func<object> x4 = oNull2.M2; // 2
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "oNull2.M2").WithArguments("object? E.M2<object?>(object? t)", "System.Func<object>").WithLocation(9, 26),
+            // (12,29): warning CS8621: Nullability of reference types in return type of 'object? extension<object?>(object?).M()' doesn't match the target delegate 'Func<object>' (possibly because of nullability attributes).
+            // _ = new System.Func<object>(oNull3.M); // 3
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "oNull3.M").WithArguments("object? extension<object?>(object?).M()", "System.Func<object>").WithLocation(12, 29),
+            // (13,29): warning CS8621: Nullability of reference types in return type of 'object? E.M2<object?>(object? t)' doesn't match the target delegate 'Func<object>' (possibly because of nullability attributes).
+            // _ = new System.Func<object>(oNull3.M2); // 4
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "oNull3.M2").WithArguments("object? E.M2<object?>(object? t)", "System.Func<object>").WithLocation(13, 29));
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/78022 : the semantic model is incorrect for re-inferred method group
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // Should be "System.Object? E.extension<System.Object?>(System.Object?).M()"
+        var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "oNull.M");
+        Assert.Equal("System.Object E.extension<System.Object>(System.Object).M()", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+        // Should be "System.Func<System.Object?>?"
+        var varDeclaration1 = GetSyntax<VariableDeclarationSyntax>(tree, "var x = oNull.M");
+        Assert.Equal("System.Func<System.Object>?", model.GetTypeInfo(varDeclaration1.Type).Type.ToTestDisplayString(includeNonNullable: true));
+
+        // Should be "System.Object? System.Object?.M2<System.Object?>()"
+        var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "oNull.M2");
+        Assert.Equal("System.Object System.Object!.M2<System.Object>()", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+        // Should be "System.Func<System.Object?>?"
+        var varDeclaration2 = GetSyntax<VariableDeclarationSyntax>(tree, "var x2 = oNull.M2");
+        Assert.Equal("System.Func<System.Object>?", model.GetTypeInfo(varDeclaration2.Type).Type.ToTestDisplayString(includeNonNullable: true));
+
+        // Should be "System.Object? E.extension<System.Object?>(System.Object?).M()"
+        var memberAccess3 = GetSyntax<MemberAccessExpressionSyntax>(tree, "oNull2.M");
+        Assert.Equal("System.Object E.extension<System.Object>(System.Object).M()", model.GetSymbolInfo(memberAccess3).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+        // Should be "System.Object? System.Object?.M2<System.Object?>()"
+        var memberAccess4 = GetSyntax<MemberAccessExpressionSyntax>(tree, "oNull2.M2");
+        Assert.Equal("System.Object System.Object!.M2<System.Object>()", model.GetSymbolInfo(memberAccess4).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+        // Should be "System.Object! E.extension<System.Object!>(System.Object!).M()"
+        var memberAccess5 = GetSyntax<MemberAccessExpressionSyntax>(tree, "oNotNull.M");
+        Assert.Equal("System.Object E.extension<System.Object>(System.Object).M()", model.GetSymbolInfo(memberAccess5).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+        // Should be "System.Func<System.Object!>?"
+        var varDeclaration3 = GetSyntax<VariableDeclarationSyntax>(tree, "var y = oNotNull.M");
+        Assert.Equal("System.Func<System.Object>?", model.GetTypeInfo(varDeclaration3.Type).Type.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_MethodGroup_04()
+    {
+        var src = """
+#nullable enable
+
+object? oNull = null;
+System.Func<object, object> x = oNull.M; // 1
+System.Func<object, object> x2 = oNull.M2; // 2
+
+object? oNotNull = new object();
+System.Func<object?, object?> y = oNotNull.M;
+System.Func<object?, object?> y2 = oNotNull.M2;
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public T M(T t2) { return t; }
+    }
+
+    public static T M2<T>(this T t, T t2) => t;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,33): warning CS8621: Nullability of reference types in return type of 'object? extension<object?>(object?).M(object? t2)' doesn't match the target delegate 'Func<object, object>' (possibly because of nullability attributes).
+            // System.Func<object, object> x = oNull.M; // 1
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "oNull.M").WithArguments("object? extension<object?>(object?).M(object? t2)", "System.Func<object, object>").WithLocation(4, 33),
+            // (5,34): warning CS8621: Nullability of reference types in return type of 'object? E.M2<object?>(object? t, object? t2)' doesn't match the target delegate 'Func<object, object>' (possibly because of nullability attributes).
+            // System.Func<object, object> xx = oNull.M2; // 2
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "oNull.M2").WithArguments("object? E.M2<object?>(object? t, object? t2)", "System.Func<object, object>").WithLocation(5, 34));
+    }
+
+    [Fact]
+    public void Nullability_MethodGroup_05()
+    {
+        var src = """
+#nullable enable
+
+System.Action<object?> x = Derived1.M;
+System.Action<object?> y = Derived2.M;
+
+System.Action<object?> z = Derived1.M2;
+System.Action<object?> t = Derived2.M2;
+_ = new System.Action<object?>(Derived2.M2);
+
+static class E
+{
+    extension<T>(C<T> t)
+    {
+        public static void M(T t2) => throw null!;
+        public static void M2(object t2) => throw null!;
+    }
+}
+
+class Derived1 : C<object?> { }
+class Derived2 : C<object> { }
+class C<T> { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (6,28): warning CS8622: Nullability of reference types in type of parameter 't2' of 'void extension<object?>(C<object?>).M2(object t2)' doesn't match the target delegate 'Action<object?>' (possibly because of nullability attributes).
+            // System.Action<object?> z = Derived1.M2;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "Derived1.M2").WithArguments("t2", "void extension<object?>(C<object?>).M2(object t2)", "System.Action<object?>").WithLocation(6, 28),
+            // (7,28): warning CS8622: Nullability of reference types in type of parameter 't2' of 'void extension<object>(C<object>).M2(object t2)' doesn't match the target delegate 'Action<object?>' (possibly because of nullability attributes).
+            // System.Action<object?> t = Derived2.M2;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "Derived2.M2").WithArguments("t2", "void extension<object>(C<object>).M2(object t2)", "System.Action<object?>").WithLocation(7, 28),
+            // (8,32): warning CS8622: Nullability of reference types in type of parameter 't2' of 'void extension<object>(C<object>).M2(object t2)' doesn't match the target delegate 'Action<object?>' (possibly because of nullability attributes).
+            // _ = new System.Action<object?>(Derived2.M2);
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "Derived2.M2").WithArguments("t2", "void extension<object>(C<object>).M2(object t2)", "System.Action<object?>").WithLocation(8, 32));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78022")]
+    public void Nullability_MethodGroup_06()
+    {
+        var src = """
+#nullable enable
+
+var x = Derived1.M;
+x().ToString();
+
+var y = Derived2.M;
+y().ToString();
+
+static class E
+{
+    extension<T>(C<T> t)
+    {
+        public static T M() => throw null!;
+    }
+}
+
+class Derived1 : C<object?> { }
+class Derived2 : C<object> { }
+class C<T> { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/78022 : the semantic model is incorrect for re-inferred method group
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var invocation1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "Derived1.M");
+        // Should be "System.Object? E.extension<System.Object?>(C<System.Object?>!).M()"
+        Assert.Equal("System.Object E.extension<System.Object>(C<System.Object>!).M()", model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+        // Should be "System.Func<System.Object?>?"
+        var localDeclaration1 = GetSyntax<VariableDeclarationSyntax>(tree, "var x = Derived1.M");
+        Assert.Equal("System.Func<System.Object>?", model.GetTypeInfo(localDeclaration1.Type).Type.ToTestDisplayString(includeNonNullable: true));
+
+        // Should be "System.Object! E.extension<System.Object!>(C<System.Object!>!).M()"
+        var invocation2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "Derived2.M");
+        Assert.Equal("System.Object E.extension<System.Object>(C<System.Object>!).M()", model.GetSymbolInfo(invocation2).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+        // Should be "System.Func<System.Object!>?"
+        var localDeclaration2 = GetSyntax<VariableDeclarationSyntax>(tree, "var x = Derived1.M");
+        Assert.Equal("System.Func<System.Object>?", model.GetTypeInfo(localDeclaration2.Type).Type.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78022")]
+    public void Nullability_MethodGroup_07()
+    {
+        var src = """
+#nullable enable
+
+System.Func<object> x = Derived1.M; // 1
+System.Func<object> y = Derived2.M;
+
+static class E
+{
+    extension<T>(C<T> t)
+    {
+        public static T M() => throw null!;
+    }
+}
+
+class Derived1 : C<object?> { }
+class Derived2 : C<object> { }
+class C<T> { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,25): warning CS8621: Nullability of reference types in return type of 'object? extension<object?>(C<object?>).M()' doesn't match the target delegate 'Func<object>' (possibly because of nullability attributes).
+            // System.Func<object> x = Derived1.M; // 1
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "Derived1.M").WithArguments("object? extension<object?>(C<object?>).M()", "System.Func<object>").WithLocation(3, 25));
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/78022 : the semantic model is incorrect for re-inferred method group
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "Derived1.M");
+        // Should be "System.Object? E.extension<System.Object?>(C<System.Object?>!).M()"
+        Assert.Equal("System.Object E.extension<System.Object>(C<System.Object>!).M()", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+        var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "Derived2.M");
+        // Should be "System.Object! E.extension<System.Object!>(C<System.Object!>!).M()"
+        Assert.Equal("System.Object E.extension<System.Object>(C<System.Object>!).M()", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_MethodGroup_08()
+    {
+        var src = """
+#nullable enable
+
+var x = Derived1.M;
+var y = Derived2.M;
+
+var z = new Derived1().M2;
+
+static class E
+{
+    extension<T>(C<T> t) where T : notnull
+    {
+        public static T M() => throw null!;
+    }
+
+    public static T M2<T>(this C<T> t) where T : notnull => throw null!;
+}
+
+class Derived1 : C<object?> { }
+class Derived2 : C<object> { }
+class C<T> { }
+""";
+        // Tracked by https://github.com/dotnet/roslyn/issues/78022 : the analysis is incorrect for re-inferred method group
+        // The warnings about return types are wrong
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,9): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'E.extension<T>(C<T>)'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
+            // var x = Derived1.M;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "Derived1.M").WithArguments("E.extension<T>(C<T>)", "T", "object?").WithLocation(3, 9),
+            // (3,9): warning CS8621: Nullability of reference types in return type of 'object? extension<object?>(C<object?>).M()' doesn't match the target delegate 'Func<object>' (possibly because of nullability attributes).
+            // var x = Derived1.M;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "Derived1.M").WithArguments("object? extension<object?>(C<object?>).M()", "System.Func<object>").WithLocation(3, 9),
+            // (6,9): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'E.M2<T>(C<T>)'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
+            // var z = new Derived1().M2;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "new Derived1().M2").WithArguments("E.M2<T>(C<T>)", "T", "object?").WithLocation(6, 9),
+            // (6,9): warning CS8621: Nullability of reference types in return type of 'object? E.M2<object?>(C<object?> t)' doesn't match the target delegate 'Func<object>' (possibly because of nullability attributes).
+            // var z = new Derived1().M2;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "new Derived1().M2").WithArguments("object? E.M2<object?>(C<object?> t)", "System.Func<object>").WithLocation(6, 9));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // Should be "System.Object? E.extension<System.Object?>(C<System.Object?>!).M()"
+        var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "Derived1.M");
+        Assert.Equal("System.Object! E.extension<System.Object>(C<System.Object!>!).M()", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+        // Should be "System.Func<System.Object?>?"
+        var varDeclaration1 = GetSyntax<VariableDeclarationSyntax>(tree, "var x = Derived1.M");
+        Assert.Equal("System.Func<System.Object!>?", model.GetTypeInfo(varDeclaration1.Type).Type.ToTestDisplayString(includeNonNullable: true));
+
+        // Should be "System.Object! E.extension<System.Object!>(C<System.Object!>!).M()"
+        var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "Derived2.M");
+        Assert.Equal("System.Object! E.extension<System.Object>(C<System.Object!>!).M()", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+        var varDeclaration2 = GetSyntax<VariableDeclarationSyntax>(tree, "var x = Derived1.M");
+        Assert.Equal("System.Func<System.Object!>?", model.GetTypeInfo(varDeclaration2.Type).Type.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78022")]
+    public void Nullability_Deconstruct_01()
+    {
+        var src = """
+#nullable enable
+
+object? oNull = null;
+var (x1, x2) = oNull;
+x1.ToString(); // 1
+
+object oNotNull = new object();
+var (y1, y2) = oNotNull;
+y1.ToString();
+
+var (z1, z2, z3) = oNull;
+z1.ToString(); // 2
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public void Deconstruct(out T t1, out T t2) => throw null!;
+    }
+
+    public static void Deconstruct<T>(this T t, out T t1, out T t2, out T t3) => throw null!;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,1): warning CS8602: Dereference of a possibly null reference.
+            // x1.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(5, 1),
+            // (12,1): warning CS8602: Dereference of a possibly null reference.
+            // z1.ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z1").WithLocation(12, 1));
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/78022 : the semantic model is incorrect for re-inferred deconstruction
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var assignment1 = GetSyntax<AssignmentExpressionSyntax>(tree, "var (x1, x2) = oNull");
+        // Should be "void E.extension<System.Object?>(System.Object?).Deconstruct(out System.Object? t1, out System.Object? t2)"
+        Assert.Equal("void E.extension<System.Object>(System.Object).Deconstruct(out System.Object t1, out System.Object t2)",
+            model.GetDeconstructionInfo(assignment1).Method.ToTestDisplayString(includeNonNullable: true));
+
+        // Should be "void E.extension<System.Object!>(System.Object!).Deconstruct(out System.Object! t1, out System.Object! t2)"
+        var assignment2 = GetSyntax<AssignmentExpressionSyntax>(tree, "var (y1, y2) = oNotNull");
+        Assert.Equal("void E.extension<System.Object>(System.Object).Deconstruct(out System.Object t1, out System.Object t2)",
+            model.GetDeconstructionInfo(assignment2).Method.ToTestDisplayString(includeNonNullable: true));
+
+        // Should be "void E.Deconstruct<System.Object?>(this System.Object? t, out System.Object? t1, out System.Object? t2, out System.Object? t3)"
+        var assignment3 = GetSyntax<AssignmentExpressionSyntax>(tree, "var (z1, z2, z3) = oNull");
+        Assert.Equal("void E.Deconstruct<System.Object>(this System.Object t, out System.Object t1, out System.Object t2, out System.Object t3)",
+            model.GetDeconstructionInfo(assignment3).Method.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_Deconstruct_02()
+    {
+        var src = """
+#nullable enable
+
+object? oNull = null;
+var (x1, x2) = oNull; // 1
+
+object oNotNull = new object();
+var (y1, y2) = oNotNull;
+
+static class E
+{
+    extension(object o)
+    {
+        public void Deconstruct(out int i1, out int i2) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,16): warning CS8604: Possible null reference argument for parameter 'o' in 'extension(object)'.
+            // var (x1, x2) = oNull; // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "extension(object)").WithLocation(4, 16));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var assignment1 = GetSyntax<AssignmentExpressionSyntax>(tree, "var (x1, x2) = oNull");
+        Assert.Equal("void E.extension(System.Object!).Deconstruct(out System.Int32 i1, out System.Int32 i2)",
+            model.GetDeconstructionInfo(assignment1).Method.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_Deconstruct_03()
+    {
+        var src = """
+#nullable enable
+
+(object?, object?) oNull = default;
+var ((x1, x2), _) = oNull; // 1
+
+(object, object) oNotNull = (new object(), new object());
+var ((y1, y2), _) = oNotNull;
+
+static class E
+{
+    extension(object o)
+    {
+        public void Deconstruct(out int i1, out int i2) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,21): warning CS8604: Possible null reference argument for parameter 'o' in 'extension(object)'.
+            // var ((x1, x2), _) = oNull; // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "extension(object)").WithLocation(4, 21));
+    }
+
+    [Fact]
+    public void Nullability_Deconstruct_04()
+    {
+        var src = """
+#nullable enable
+
+object? oNull = default;
+var (x1, x2) = oNull; // 1
+
+object oNotNull = new object();
+var (y1, y2) = oNotNull;
+
+static class E
+{
+    extension<T>(T t) where T : notnull
+    {
+        public void Deconstruct(out int i1, out int i2) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,16): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'E.extension<T>(T)'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
+            // var (x1, x2) = oNull; // 1
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "oNull").WithArguments("E.extension<T>(T)", "T", "object?").WithLocation(4, 16));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78022")]
+    public void Nullability_ForeachDeconstruct_01()
+    {
+        var src = """
+#nullable enable
+
+object?[] oNull = new object?[] { };
+foreach (var (x1, x2) in oNull)
+{
+    x1.ToString(); // 1
+}
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public void Deconstruct(out T t1, out T t2) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (6,5): warning CS8602: Dereference of a possibly null reference.
+            //     x1.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(6, 5));
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/78022 : the semantic model is incorrect for re-inferred deconstruction
+        var assignment = tree.GetRoot().DescendantNodes().OfType<ForEachVariableStatementSyntax>().Single();
+        // Should be "void E.extension<System.Object?>(System.Object).Deconstruct(out System.Object? t1, out System.Object? t2)"
+        Assert.Equal("void E.extension<System.Object>(System.Object).Deconstruct(out System.Object t1, out System.Object t2)",
+            model.GetDeconstructionInfo(assignment).Method.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_ForeachDeconstruct_02()
+    {
+        var src = """
+#nullable enable
+
+object?[] oNull = new object?[] { };
+foreach (var (x1, x2) in oNull)
+{
+    x1.ToString(); // 1
+}
+
+object[] oNotNull = new object[] { };
+foreach (var (y1, y2) in oNotNull)
+{
+    y1.ToString(); // 1
+}
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public void Deconstruct(out T t1, out T t2) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (6,5): warning CS8602: Dereference of a possibly null reference.
+            //     x1.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(6, 5));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var assignments = tree.GetRoot().DescendantNodes().OfType<ForEachVariableStatementSyntax>().ToArray();
+        Assert.Equal("void E.extension<System.Object>(System.Object).Deconstruct(out System.Object t1, out System.Object t2)",
+            model.GetDeconstructionInfo(assignments[0]).Method.ToTestDisplayString(includeNonNullable: true));
+
+        Assert.Equal("void E.extension<System.Object>(System.Object).Deconstruct(out System.Object t1, out System.Object t2)",
+            model.GetDeconstructionInfo(assignments[1]).Method.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_ForeachDeconstruct_03()
+    {
+        var src = """
+#nullable enable
+
+object?[] oNull = new object?[] { };
+foreach (var (x1, x2) in oNull)
+{
+    x1.ToString();
+}
+
+static class E
+{
+    extension<T>(T t) where T : notnull
+    {
+        public void Deconstruct(out T t1, out T t2) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,26): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'E.extension<T>(T)'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
+            // foreach (var (x1, x2) in oNull)
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "oNull").WithArguments("E.extension<T>(T)", "T", "object?").WithLocation(4, 26),
+            // (6,5): warning CS8602: Dereference of a possibly null reference.
+            //     x1.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(6, 5));
+    }
+
+    [Fact]
+    public void Nullability_ForeachDeconstruct_04()
+    {
+        var src = """
+#nullable enable
+
+object?[] oNull = new object?[] { };
+foreach ((_, _) in oNull) { }
+foreach ((_, _, _) in oNull) { } // 1
+
+object[] oNotNull = new object[] { };
+foreach ((_, _) in oNotNull) { }
+foreach ((_, _, _) in oNotNull) { }
+
+static class E
+{
+    extension(object? o)
+    {
+        public void Deconstruct(out int i1, out int i2) => throw null!;
+    }
+    extension(object o)
+    {
+        public void Deconstruct(out int i1, out int i2, out int i3) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,23): warning CS8604: Possible null reference argument for parameter 'o' in 'extension(object)'.
+            // foreach ((_, _, _) in oNull) { } // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "extension(object)").WithLocation(5, 23));
+    }
+
+    [Fact]
+    public void Nullability_Parameter_01()
+    {
+        var src = """
+#nullable enable
+
+static class E
+{
+    extension(object? o)
+    {
+        public void M() { o.ToString(); }
+    }
+    extension(object o)
+    {
+        public void M2() { o.ToString(); }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (7,27): warning CS8602: Dereference of a possibly null reference.
+            //         public void M() { o.ToString(); }
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(7, 27));
+    }
+
+    [Fact]
+    public void Nullability_Parameter_02()
+    {
+        var src = """
+#nullable enable
+
+static class E
+{
+    extension((object?, object?) o)
+    {
+        public void M()
+        {
+            (object, object) o2 = o;
+            o2.Item1.ToString();
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (9,35): warning CS8619: Nullability of reference types in value of type '(object?, object?)' doesn't match target type '(object, object)'.
+            //             (object, object) o2 = o;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "o").WithArguments("(object?, object?)", "(object, object)").WithLocation(9, 35),
+            // (10,13): warning CS8602: Dereference of a possibly null reference.
+            //             o2.Item1.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o2.Item1").WithLocation(10, 13));
+    }
+
+    [Fact]
+    public void Nullability_Attribute_01()
+    {
+        var src = """
+#nullable enable
+object? o = null;
+if (o.Try())
+{
+    o.ToString(); // 1
+}
+
+static class E
+{
+    extension([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] object? o)
+    {
+        public bool Try() => throw null!;
+        public static bool Try2() => throw null!;
+    }
+
+    public static void M([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] object? o) { }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (5,5): warning CS8602: Dereference of a possibly null reference.
+            //     o.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(5, 5));
+    }
+
+    [Fact]
+    public void Nullability_Attribute_02()
+    {
+        var src = """
+#nullable enable
+
+object? oNull = null;
+oNull.M();
+
+static class E
+{
+    extension([System.Diagnostics.CodeAnalysis.DisallowNull] object? o)
+    {
+        public void M() 
+        {
+            o.ToString();
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (4,1): warning CS8604: Possible null reference argument for parameter 'o' in 'extension(object?)'.
+            // oNull.M();
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "extension(object?)").WithLocation(4, 1));
+    }
+
+    [Fact]
+    public void Nullability_Attribute_03()
+    {
+        var src = """
+#nullable enable
+
+object? oNull = null;
+oNull.M();
+oNull.ToString();
+
+static class E
+{
+    extension([System.Diagnostics.CodeAnalysis.NotNull] object? o)
+    {
+        public void M() 
+        {
+            o.ToString();
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (13,13): warning CS8602: Dereference of a possibly null reference.
+            //             o.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(13, 13));
+    }
+
+    [Fact]
+    public void Nullability_Attribute_04()
+    {
+        var src = """
+#nullable enable
+
+object? oNotNull = new object();
+oNotNull.M(out var x);
+x.ToString();
+
+object? oNull = null;
+oNull.M(out var y);
+y.ToString();
+
+static class E
+{
+    extension(object? o)
+    {
+        public void M([System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(o))] out object? o2)  => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (9,1): warning CS8602: Dereference of a possibly null reference.
+            // y.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(9, 1));
+    }
+
+    [Fact]
+    public void Nullability_Attribute_05()
+    {
+        var src = """
+#nullable enable
+
+object? oNull = null;
+oNull.M().ToString();
+
+object? oNotNull = new object();
+oNotNull.M().ToString();
+
+static class E
+{
+    extension(object? o)
+    {
+        [return: System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(o))]
+        public object? M() => o;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (4,1): warning CS8602: Dereference of a possibly null reference.
+            // oNull.M().ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNull.M()").WithLocation(4, 1));
+    }
+
+    [Fact]
+    public void Nullability_Attribute_06()
+    {
+        var src = """
+#nullable enable
+
+static class E
+{
+    static void Method(object? oNull, object oNotNull)
+    {
+        oNull.M(oNotNull);
+        oNull.ToString(); // 1
+    }
+
+    static void Method2(object? oNull, object oNotNull)
+    {
+        oNull.M2(oNotNull);
+        oNull.ToString(); // 2
+    }
+
+    extension([System.Diagnostics.CodeAnalysis.NotNullIfNotNull("o2")] object? o)
+    {
+        public void M(object? o2)  => throw null!;
+    }
+
+    public static void M2([System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(o2))] this object? o, object? o2)  => throw null!;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (8,9): warning CS8602: Dereference of a possibly null reference.
+            //         oNull.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNull").WithLocation(8, 9),
+            // (14,9): warning CS8602: Dereference of a possibly null reference.
+            //         oNull.ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNull").WithLocation(14, 9));
+    }
+
+    [Fact]
+    public void Nullability_Attribute_07()
+    {
+        var src = """
+#nullable enable
+
+object o = new object();
+if (o.M())
+    o.P.ToString(); // 1
+else
+    o.P.ToString(); // 2
+
+static class E
+{
+    extension(object o)
+    {
+        [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, "P")]
+        public bool M() => throw null!;
+
+        public object? P => null;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (5,5): warning CS8602: Dereference of a possibly null reference.
+            //     o.P.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(5, 5),
+            // (7,5): warning CS8602: Dereference of a possibly null reference.
+            //     o.P.ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(7, 5));
+    }
+
+    [Fact]
+    public void Nullability_Attribute_08()
+    {
+        var src = """
+#nullable enable
+
+object o = new object();
+if (o.M())
+    o.P.ToString(); // 1
+else
+    o.P.ToString(); // 2
+
+static class E
+{
+    extension(object o)
+    {
+        [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, nameof(P))]
+        public bool M() => throw null!;
+
+        public object? P => null;
+    }
+}
+""";
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : there should be no error on nameof
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (5,5): warning CS8602: Dereference of a possibly null reference.
+            //     o.P.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(5, 5),
+            // (7,5): warning CS8602: Dereference of a possibly null reference.
+            //     o.P.ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(7, 5),
+            // (13,73): error CS0103: The name 'P' does not exist in the current context
+            //         [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, nameof(P))]
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "P").WithArguments("P").WithLocation(13, 73));
+    }
+
+    [Fact]
+    public void Nullability_Attribute_09()
+    {
+        var src = """
+#nullable enable
+
+object o = new object();
+o.M();
+o.P.ToString(); // 1
+
+static class E
+{
+    extension(object o)
+    {
+        [System.Diagnostics.CodeAnalysis.MemberNotNull("P")]
+        public void M() => throw null!;
+
+        public object? P => null;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (5,1): warning CS8602: Dereference of a possibly null reference.
+            // o.P.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(5, 1));
     }
 }
