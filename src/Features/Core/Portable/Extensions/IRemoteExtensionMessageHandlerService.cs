@@ -8,6 +8,9 @@ using Microsoft.CodeAnalysis.Threading;
 
 namespace Microsoft.CodeAnalysis.Extensions;
 
+/// <summary>
+/// Remote API for <see cref="IExtensionMessageHandlerService"/>.
+/// </summary>
 internal interface IRemoteExtensionMessageHandlerService
 {
     ValueTask<VoidResult> RegisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken);
