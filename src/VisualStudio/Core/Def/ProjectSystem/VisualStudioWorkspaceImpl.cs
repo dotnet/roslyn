@@ -93,9 +93,14 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
     /// <summary>
     /// Mapping from language name to an existing UIContext's active state.
-    /// Only access when holding _gate
+    /// Only access when holding <see cref="_gate"/>
     /// </summary>
-    private readonly Dictionary<string, bool> _languageToProjectExistsUIContext = [];
+    private readonly Dictionary<string, bool> _languageToProjectExistsUIContextState = [];
+
+    /// <summary>
+    /// Joinable task collection to await to ensure language ui contexts are updated.
+    /// </summary>
+    private readonly JoinableTaskCollection _updateUIContextJoinableTasks;
 
     private OpenFileTracker? _openFileTracker;
     internal IFileChangeWatcher FileChangeWatcher { get; }
@@ -131,6 +136,8 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         _lazyExternalErrorDiagnosticUpdateSource = new Lazy<ExternalErrorDiagnosticUpdateSource>(() =>
             exportProvider.GetExportedValue<ExternalErrorDiagnosticUpdateSource>(),
             isThreadSafe: true);
+
+        _updateUIContextJoinableTasks = new JoinableTaskCollection(_threadingContext.JoinableTaskContext);
 
         _workspaceListener = Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>().GetListener();
     }
@@ -1564,19 +1571,28 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
     internal async Task RefreshProjectExistsUIContextForLanguageAsync(string language, CancellationToken cancellationToken)
     {
-        using (_gate.DisposableWait(cancellationToken))
+        using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
-            var isContextActive = _languageToProjectExistsUIContext.GetOrAdd(language, false);
+            var isContextActive = _languageToProjectExistsUIContextState.GetOrAdd(language, false);
 
             // Determine if there is a project with a matching language. Uses _projectSystemNameToProjectsMap as 
             // that data structure is updated before calling into this method, whereas CurrentSolution may not be.
             var projectExistsWithLanguage = _projectSystemNameToProjectsMap.Any(projects => projects.Value.Any(project => project.Language == language));
-            if (projectExistsWithLanguage == isContextActive)
-                return;
+            if (projectExistsWithLanguage != isContextActive)
+            {
+                _languageToProjectExistsUIContextState[language] = projectExistsWithLanguage;
 
-            _languageToProjectExistsUIContext[language] = projectExistsWithLanguage;
+                var joinableTask = _threadingContext.JoinableTaskFactory.RunAsync(() => UpdateUIContextAsync(language, cancellationToken));
+
+                _updateUIContextJoinableTasks.Add(joinableTask);
+            }
         }
 
+        await _updateUIContextJoinableTasks.JoinTillEmptyAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task UpdateUIContextAsync(string language, CancellationToken cancellationToken)
+    {
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
 
         var uiContext = Services.GetLanguageServices(language).GetService<IProjectExistsUIContextProviderLanguageService>()?.GetUIContext();
