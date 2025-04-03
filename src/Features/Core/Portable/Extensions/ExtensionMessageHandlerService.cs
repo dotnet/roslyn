@@ -46,7 +46,7 @@ internal sealed class ExtensionMessageHandlerService(
     /// <summary>
     /// Extensions assembly load contexts and loaded handlers, indexed by handler file path. The handlers are indexed by type name.
     /// </summary>
-    private readonly Dictionary<string, Extension> _extensions = new();
+    private readonly Dictionary<string, Extension?> _extensions = new();
 
     /// <summary>
     /// Handlers of document-related messages, indexed by handler message name.
@@ -118,27 +118,41 @@ internal sealed class ExtensionMessageHandlerService(
             // Check if the assembly is already loaded.
             if (!_extensions.TryGetValue(assemblyFolderPath, out extension))
             {
-                var analyzerAssemblyLoader = analyzerAssemblyLoaderProvider.CreateNewShadowCopyLoader();
-
-                // Allow this assembly loader to load any dll in assemblyFolderPath.
-                foreach (var dll in Directory.EnumerateFiles(assemblyFolderPath, "*.dll"))
+                try
                 {
-                    try
+                    var analyzerAssemblyLoader = analyzerAssemblyLoaderProvider.CreateNewShadowCopyLoader();
+
+                    // Allow this assembly loader to load any dll in assemblyFolderPath.
+                    foreach (var dll in Directory.EnumerateFiles(assemblyFolderPath, "*.dll"))
                     {
-                        // Check if the file is a valid .NET assembly.
-                        AssemblyName.GetAssemblyName(dll);
-                    }
-                    catch
-                    {
-                        // The file is not a valid .NET assembly, skip it.
-                        continue;
+                        try
+                        {
+                            // Check if the file is a valid .NET assembly.
+                            AssemblyName.GetAssemblyName(dll);
+                        }
+                        catch
+                        {
+                            // The file is not a valid .NET assembly, skip it.
+                            continue;
+                        }
+
+                        analyzerAssemblyLoader.AddDependencyLocation(dll);
                     }
 
-                    analyzerAssemblyLoader.AddDependencyLocation(dll);
+                    extension = new Extension(this, analyzerAssemblyLoader, assemblyFolderPath);
+                }
+                catch
+                {
+                    _extensions[assemblyFolderPath] = null;
+                    throw;
                 }
 
-                extension = new Extension(this, analyzerAssemblyLoader, assemblyFolderPath);
                 _extensions[assemblyFolderPath] = extension;
+            }
+
+            if (extension is null)
+            {
+                throw new InvalidOperationException($"A previous attempt to load assemblies from {assemblyFolderPath} failed.");
             }
 
             if (extension.TryGetAssemblyHandlers(assemblyFileName, out var assemblyHandlers))
@@ -182,6 +196,12 @@ internal sealed class ExtensionMessageHandlerService(
         {
             if (_extensions.TryGetValue(assemblyFolderPath, out extension))
             {
+                if (extension is null)
+                {
+                    // Loading assemblies from this folder failed earlier, so we don't need to do anything.
+                    return ValueTask.CompletedTask;
+                }
+
                 if (extension.RemoveAssemblyHandlers(assemblyFileName, out var assemblyHandlers))
                 {
                     if (assemblyHandlers is not null)
@@ -266,12 +286,12 @@ internal sealed class ExtensionMessageHandlerService(
         Dictionary<string, IExtensionMessageHandlerWrapper<TArgument>> handlers,
         CancellationToken cancellationToken)
     {
-        IExtensionMessageHandlerWrapper<TArgument> handler;
+        IExtensionMessageHandlerWrapper<TArgument>? handler;
         using (await _lock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
             // handlers here is either _workspaceHandlers or _documentHandlers, so it must be protected
             // by _lockObject.
-            if (!handlers.TryGetValue(messageName, out handler!))
+            if (!handlers.TryGetValue(messageName, out handler))
             {
                 throw new InvalidOperationException($"No handler found for message {messageName}.");
             }
@@ -303,7 +323,7 @@ internal sealed class ExtensionMessageHandlerService(
         using (await _lock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
             // Make sure a call to UnloadCustomMessageHandlersAsync hasn't happened while we relinquished the lock on _lockObject
-            if (!_extensions.TryGetValue(extension.AssemblyFolderPath, out var currentExtension) || !currentExtension.Equals(extension))
+            if (!_extensions.TryGetValue(extension.AssemblyFolderPath, out var currentExtension) || !extension.Equals(currentExtension))
             {
                 throw new InvalidOperationException($"Handlers in {extension.AssemblyFolderPath} were unregistered while loading handlers.");
             }
@@ -339,8 +359,17 @@ internal sealed class ExtensionMessageHandlerService(
         }
     }
 
-    private sealed class Extension(ExtensionMessageHandlerService extensionMessageHandlerService, IAnalyzerAssemblyLoaderInternal analyzerAssemblyLoader, string assemblyFolderPath)
+    private sealed class Extension(
+        ExtensionMessageHandlerService extensionMessageHandlerService,
+        IAnalyzerAssemblyLoaderInternal analyzerAssemblyLoader,
+        string assemblyFolderPath)
     {
+        private readonly ExtensionMessageHandlerService _extensionMessageHandlerService = extensionMessageHandlerService;
+
+        public readonly IAnalyzerAssemblyLoaderInternal AnalyzerAssemblyLoader = analyzerAssemblyLoader;
+
+        public readonly string AssemblyFolderPath = assemblyFolderPath;
+
         /// <summary>
         /// Gets the object that is used to lock in order to avoid multiple calls from the same extensions to load the
         /// same assembly concurrently resulting in the constructors of the same handlers being called more than once.
@@ -350,12 +379,6 @@ internal sealed class ExtensionMessageHandlerService(
         private readonly SemaphoreSlim _assemblyLoadLock = new(initialCount: 1);
 
         private readonly Dictionary<string, AssemblyHandlers?> _assemblies = new();
-
-        private readonly ExtensionMessageHandlerService _extensionMessageHandlerService = extensionMessageHandlerService;
-
-        public IAnalyzerAssemblyLoaderInternal AnalyzerAssemblyLoader { get; } = analyzerAssemblyLoader;
-
-        public string AssemblyFolderPath { get; } = assemblyFolderPath;
 
         public void SetAssemblyHandlers(string assemblyFileName, AssemblyHandlers? value)
         {
@@ -395,7 +418,7 @@ internal sealed class ExtensionMessageHandlerService(
             using (await _assemblyLoadLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 AssemblyHandlers? assemblyHandlers = null;
-
+                Exception? exception = null;
                 try
                 {
                     var assembly = AnalyzerAssemblyLoader.LoadFromPath(assemblyFilePath);
@@ -414,19 +437,20 @@ internal sealed class ExtensionMessageHandlerService(
                     // We don't add assemblyHandlers to _assemblies here and instead let _extensionMessageHandlerService.RegisterAssembly do it
                     // since RegisterAssembly can still fail if there are duplicated handler names.
                 }
-                catch (Exception e) when (FatalError.ReportAndPropagate(e, ErrorSeverity.General))
+                catch (Exception e) when (FatalError.ReportAndCatch(exception = e, ErrorSeverity.General))
                 {
-                    // unreachable
+                    throw ExceptionUtilities.Unreachable();
                 }
                 finally
                 {
                     // In case of exception, we cache null so that we don't try to load the same assembly again.
-                    await _extensionMessageHandlerService.RegisterAssemblyAsync(
-                        this, assemblyFileName, assemblyHandlers, cancellationToken).ConfigureAwait(false);
+                    _extensionMessageHandlerService.RegisterAssembly(this, assemblyFileName, exception is null ? assemblyHandlers : null);
                 }
 
+                // The return is here, after RegisterAssembly, since RegisterAssembly can also throw an exception: the registration is not
+                // completed until RegisterAssembly returns.
                 return new(
-                    [.. assemblyHandlers!.WorkspaceMessageHandlers.Keys],
+                    [.. assemblyHandlers.WorkspaceMessageHandlers.Keys],
                     [.. assemblyHandlers.DocumentMessageHandlers.Keys]);
             }
         }
