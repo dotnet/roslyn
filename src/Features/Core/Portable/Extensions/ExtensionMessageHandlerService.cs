@@ -20,11 +20,24 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Extensions;
 
-[ExportWorkspaceService(typeof(IExtensionMessageHandlerService)), Shared]
+[ExportWorkspaceServiceFactory(typeof(IExtensionMessageHandlerService)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class ExtensionMessageHandlerService(IExtensionMessageHandlerFactory customMessageHandlerFactory) : IExtensionMessageHandlerService
+internal sealed class ExtensionMessageHandlerServiceFactory(IExtensionMessageHandlerFactory customMessageHandlerFactory)
+    : IWorkspaceServiceFactory
 {
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        => new ExtensionMessageHandlerService(
+            workspaceServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>(),
+            customMessageHandlerFactory);
+}
+
+internal sealed class ExtensionMessageHandlerService(
+    IAnalyzerAssemblyLoaderProvider analyzerAssemblyLoaderProvider,
+    IExtensionMessageHandlerFactory customMessageHandlerFactory)
+    : IExtensionMessageHandlerService
+{
+    private readonly IAnalyzerAssemblyLoaderProvider _analyzerAssemblyLoaderProvider = analyzerAssemblyLoaderProvider;
     private readonly IExtensionMessageHandlerFactory _customMessageHandlerFactory = customMessageHandlerFactory;
 
     /// <summary>
@@ -46,7 +59,6 @@ internal sealed class ExtensionMessageHandlerService(IExtensionMessageHandlerFac
     private readonly object _lockObject = new();
 
     public ValueTask<RegisterExtensionResponse> RegisterExtensionAsync(
-        Solution solution,
         string assemblyFilePath,
         CancellationToken cancellationToken)
     {
@@ -54,15 +66,13 @@ internal sealed class ExtensionMessageHandlerService(IExtensionMessageHandlerFac
         var assemblyFolderPath = Path.GetDirectoryName(assemblyFilePath)
             ?? throw new InvalidOperationException($"Unable to get the directory name for {assemblyFilePath}.");
 
-        var analyzerAssemblyLoaderProvider = solution.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-
         Extension? extension;
         lock (_lockObject)
         {
             // Check if the assembly is already loaded.
             if (!_extensions.TryGetValue(assemblyFolderPath, out extension))
             {
-                var analyzerAssemblyLoader = analyzerAssemblyLoaderProvider.CreateNewShadowCopyLoader();
+                var analyzerAssemblyLoader = _analyzerAssemblyLoaderProvider.CreateNewShadowCopyLoader();
 
                 // Allow this assembly loader to load any dll in assemblyFolderPath.
                 foreach (var dll in Directory.EnumerateFiles(assemblyFolderPath, "*.dll"))

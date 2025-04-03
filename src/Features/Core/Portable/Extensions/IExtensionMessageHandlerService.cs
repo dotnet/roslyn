@@ -44,24 +44,16 @@ internal interface IExtensionMessageHandlerService : IWorkspaceService
     /// <summary>
     /// Registers extension message handlers from the specified assembly.
     /// </summary>
-    /// <param name="solution">The solution object.</param>
     /// <param name="assemblyFilePath">The assembly to register and create message handlers from.</param>
-    /// <param name="cancellationToken">Cancellation token to cancel the async operation.</param>
     /// <returns>The names of the registered handlers.</returns>
-    ValueTask<RegisterExtensionResponse> RegisterExtensionAsync(
-        Solution solution,
-        string assemblyFilePath,
-        CancellationToken cancellationToken);
+    ValueTask<RegisterExtensionResponse> RegisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken);
 
     /// <summary>
     /// Unregisters extension message handlers previously registered from <paramref name="assemblyFilePath"/>.
     /// </summary>
     /// <param name="assemblyFilePath">The assembly for which handlers should be unregistered.</param>
-    /// <param name="cancellationToken">Cancellation token to cancel the async operation.</param>
     /// <returns>A task representing the async operation.</returns>
-    ValueTask UnregisterExtensionAsync(
-        string assemblyFilePath,
-        CancellationToken cancellationToken);
+    ValueTask UnregisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken);
 
     /// <summary>
     /// Unregisters all extension message handlers.
