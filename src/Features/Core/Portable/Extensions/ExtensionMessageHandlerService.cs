@@ -61,18 +61,28 @@ internal sealed class ExtensionMessageHandlerService(
     private readonly object _lockObject = new();
 
     private async ValueTask<Optional<TResult>> ExecuteInRemoteOrCurrentProcessAsync<TResult>(
+        Solution? solution,
         CancellationToken cancellationToken,
         Func<CancellationToken, ValueTask<TResult>> executeInProcessAsync,
-        Func<IRemoteExtensionMessageHandlerService, CancellationToken, ValueTask<TResult>> executeOutOfProcessAsync)
+        Func<IRemoteExtensionMessageHandlerService, Checksum?, CancellationToken, ValueTask<TResult>> executeOutOfProcessAsync)
     {
         var client = await RemoteHostClient.TryGetClientAsync(_solutionServices, cancellationToken).ConfigureAwait(false);
         if (client is null)
             return await executeInProcessAsync(cancellationToken).ConfigureAwait(false);
 
-        var response = await client.TryInvokeAsync<IRemoteExtensionMessageHandlerService, TResult>(
-            (service, cancellationToken) => executeOutOfProcessAsync(service, cancellationToken),
-            cancellationToken).ConfigureAwait(false);
-        return response;
+        if (solution is null)
+        {
+            return await client.TryInvokeAsync<IRemoteExtensionMessageHandlerService, TResult>(
+                (service, cancellationToken) => executeOutOfProcessAsync(service, null, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+        }
+        else
+        {
+            return await client.TryInvokeAsync<IRemoteExtensionMessageHandlerService, TResult>(
+                solution,
+                (service, checksum, cancellationToken) => executeOutOfProcessAsync(service, checksum, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+        }
     }
 
     public async ValueTask<RegisterExtensionResponse> RegisterExtensionAsync(
@@ -80,9 +90,10 @@ internal sealed class ExtensionMessageHandlerService(
         CancellationToken cancellationToken)
     {
         var result = await ExecuteInRemoteOrCurrentProcessAsync(
+            solution: null,
             cancellationToken,
             cancellationToken => RegisterExtensionInCurrentProcessAsync(assemblyFilePath, cancellationToken),
-            (service, cancellationToken) => service.RegisterExtensionAsync(assemblyFilePath, cancellationToken)).ConfigureAwait(false);
+            (service, _, cancellationToken) => service.RegisterExtensionAsync(assemblyFilePath, cancellationToken)).ConfigureAwait(false);
         return result.HasValue ? result.Value : new RegisterExtensionResponse([], []);
     }
 
@@ -145,9 +156,10 @@ internal sealed class ExtensionMessageHandlerService(
         CancellationToken cancellationToken)
     {
         await ExecuteInRemoteOrCurrentProcessAsync(
+            solution: null,
             cancellationToken,
             cancellationToken => UnregisterExtensionInCurrentProcessAsync(assemblyFilePath, cancellationToken),
-            (service, cancellationToken) => service.UnregisterExtensionAsync(assemblyFilePath, cancellationToken)).ConfigureAwait(false);
+            (service, _, cancellationToken) => service.UnregisterExtensionAsync(assemblyFilePath, cancellationToken)).ConfigureAwait(false);
     }
 
     private async ValueTask<VoidResult> UnregisterExtensionInCurrentProcessAsync(
@@ -193,9 +205,10 @@ internal sealed class ExtensionMessageHandlerService(
     public async ValueTask ResetAsync(CancellationToken cancellationToken)
     {
         await ExecuteInRemoteOrCurrentProcessAsync(
+            solution: null,
             cancellationToken,
             cancellationToken => ResetInCurrentProcessAsync(cancellationToken),
-            (service, cancellationToken) => service.ResetAsync(cancellationToken)).ConfigureAwait(false);
+            (service, _, cancellationToken) => service.ResetAsync(cancellationToken)).ConfigureAwait(false);
     }
 
     private ValueTask<VoidResult> ResetInCurrentProcessAsync(CancellationToken cancellationToken)
@@ -217,10 +230,28 @@ internal sealed class ExtensionMessageHandlerService(
         return default; ;
     }
 
-    public ValueTask<string> HandleExtensionWorkspaceMessageAsync(Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken)
+    public async ValueTask<string> HandleExtensionWorkspaceMessageAsync(Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken)
+    {
+        return await ExecuteInRemoteOrCurrentProcessAsync(
+            solution,
+            cancellationToken,
+            cancellationToken => HandleExtensionWorkspaceMessageInCurrentProcessAsync(solution, messageName, jsonMessage, cancellationToken),
+            (service, checksum, cancellationToken) => service.HandleExtensionWorkspaceMessageAsync(checksum.Value, messageName, jsonMessage, cancellationToken)).ConfigureAwait(false);
+    }
+
+    public async ValueTask<string> HandleExtensionDocumentMessageAsync(Document document, string messageName, string jsonMessage, CancellationToken cancellationToken)
+    {
+        return await ExecuteInRemoteOrCurrentProcessAsync(
+            document.Project.Solution,
+            cancellationToken,
+            cancellationToken => HandleExtensionDocumentMessageInCurrentProcessAsync(document, messageName, jsonMessage, cancellationToken),
+            (service, checksum, cancellationToken) => service.HandleExtensionDocumentMessageAsync(checksum.Value, messageName, jsonMessage, document.Id, cancellationToken)).ConfigureAwait(false);
+    }
+
+    private ValueTask<string> HandleExtensionWorkspaceMessageInCurrentProcessAsync(Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken)
         => HandleExtensionMessageAsync(solution, messageName, jsonMessage, _workspaceHandlers, cancellationToken);
 
-    public ValueTask<string> HandleExtensionDocumentMessageAsync(Document document, string messageName, string jsonMessage, CancellationToken cancellationToken)
+    public ValueTask<string> HandleExtensionDocumentMessageInCurrentProcessAsync(Document document, string messageName, string jsonMessage, CancellationToken cancellationToken)
         => HandleExtensionMessageAsync(document, messageName, jsonMessage, _documentHandlers, cancellationToken);
 
     private async ValueTask<string> HandleExtensionMessageAsync<TArgument>(
