@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Extensions;
 
@@ -58,7 +59,7 @@ internal sealed class ExtensionMessageHandlerService(
     private readonly Dictionary<string, IExtensionMessageHandlerWrapper<Solution>> _workspaceHandlers = new();
 
     // Used to protect access to _extensions, _handlers, _documentHandlers and Extension._assemblies.
-    private readonly object _lockObject = new();
+    private readonly SemaphoreSlim _lock = new(initialCount: 1);
 
     private async ValueTask<Optional<TResult>> ExecuteInRemoteOrCurrentProcessAsync<TResult>(
         Solution? solution,
@@ -97,7 +98,7 @@ internal sealed class ExtensionMessageHandlerService(
         return result.HasValue ? result.Value : new RegisterExtensionResponse([], []);
     }
 
-    public ValueTask<RegisterExtensionResponse> RegisterExtensionInCurrentProcessAsync(
+    public async ValueTask<RegisterExtensionResponse> RegisterExtensionInCurrentProcessAsync(
         string assemblyFilePath,
         CancellationToken cancellationToken)
     {
@@ -107,7 +108,7 @@ internal sealed class ExtensionMessageHandlerService(
 
         var analyzerAssemblyLoaderProvider = _solutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
         Extension? extension;
-        lock (_lockObject)
+        using (await _lock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
             // Check if the assembly is already loaded.
             if (!_extensions.TryGetValue(assemblyFolderPath, out extension))
@@ -142,13 +143,13 @@ internal sealed class ExtensionMessageHandlerService(
                     throw new InvalidOperationException($"A previous attempt to load {assemblyFilePath} failed.");
                 }
 
-                return ValueTask.FromResult<RegisterExtensionResponse>(new(
-                    assemblyHandlers.WorkspaceMessageHandlers.Keys.ToImmutableArray(),
-                    assemblyHandlers.DocumentMessageHandlers.Keys.ToImmutableArray()));
+                return new(
+                    [.. assemblyHandlers.WorkspaceMessageHandlers.Keys],
+                    [.. assemblyHandlers.DocumentMessageHandlers.Keys]);
             }
         }
 
-        return extension.LoadAssemblyAsync(assemblyFileName);
+        return await extension.LoadAssemblyAsync(assemblyFileName).ConfigureAwait(false);
     }
 
     public async ValueTask UnregisterExtensionAsync(
