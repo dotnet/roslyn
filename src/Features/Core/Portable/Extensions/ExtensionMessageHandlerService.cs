@@ -126,7 +126,7 @@ internal sealed class ExtensionMessageHandlerService(
         {
             var extensionFolder = _folderPathToExtensionFolder.GetOrAdd(
                 assemblyFolderPath,
-                static (assemblyFolderPath, @this) => ExtensionFolder.Create(@this, assemblyFolderPath),
+                static (assemblyFolderPath, @this) => new ExtensionFolder(@this, assemblyFolderPath),
                 this);
 
             extensionFolder.RegisterAssembly(assemblyFilePath);
@@ -135,37 +135,6 @@ internal sealed class ExtensionMessageHandlerService(
             ClearCachedHandlers();
             return default;
         }
-    }
-
-    public async ValueTask<GetExtensionMessageNamesResponse> GetExtensionMessageNamesAsync(
-        string assemblyFilePath,
-        CancellationToken cancellationToken)
-    {
-        return await ExecuteInRemoteOrCurrentProcessAsync(
-            solution: null,
-            cancellationToken => GetExtensionMessageNamesInCurrentProcessAsync(assemblyFilePath, cancellationToken),
-            (remoteService, _, cancellationToken) => remoteService.GetExtensionMessageNamesAsync(assemblyFilePath, cancellationToken),
-            cancellationToken).ConfigureAwait(false);
-    }
-
-    public async ValueTask<GetExtensionMessageNamesResponse> GetExtensionMessageNamesInCurrentProcessAsync(
-        string assemblyFilePath,
-        CancellationToken cancellationToken)
-    {
-        var assemblyFolderPath = GetAssemblyFolderPath(assemblyFilePath);
-
-        ExtensionFolder? extensionFolder;
-        using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-        {
-            if (!_folderPathToExtensionFolder.TryGetValue(assemblyFolderPath, out extensionFolder))
-                throw new InvalidOperationException($"No extensions registered at '{assemblyFolderPath}'");
-        }
-
-        var assemblyHandlers = await extensionFolder.GetAssemblyHandlersAsync(assemblyFilePath, cancellationToken).ConfigureAwait(false);
-
-        return new(
-            [.. assemblyHandlers.WorkspaceMessageHandlers.Keys],
-            [.. assemblyHandlers.DocumentMessageHandlers.Keys]);
     }
 
     public async ValueTask UnregisterExtensionAsync(
@@ -202,6 +171,37 @@ internal sealed class ExtensionMessageHandlerService(
         }
 
         return default;
+    }
+
+    public async ValueTask<GetExtensionMessageNamesResponse> GetExtensionMessageNamesAsync(
+        string assemblyFilePath,
+        CancellationToken cancellationToken)
+    {
+        return await ExecuteInRemoteOrCurrentProcessAsync(
+            solution: null,
+            cancellationToken => GetExtensionMessageNamesInCurrentProcessAsync(assemblyFilePath, cancellationToken),
+            (remoteService, _, cancellationToken) => remoteService.GetExtensionMessageNamesAsync(assemblyFilePath, cancellationToken),
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    public async ValueTask<GetExtensionMessageNamesResponse> GetExtensionMessageNamesInCurrentProcessAsync(
+        string assemblyFilePath,
+        CancellationToken cancellationToken)
+    {
+        var assemblyFolderPath = GetAssemblyFolderPath(assemblyFilePath);
+
+        ExtensionFolder? extensionFolder;
+        using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+        {
+            if (!_folderPathToExtensionFolder.TryGetValue(assemblyFolderPath, out extensionFolder))
+                throw new InvalidOperationException($"No extensions registered at '{assemblyFolderPath}'");
+        }
+
+        var assemblyHandlers = await extensionFolder.GetAssemblyHandlersAsync(assemblyFilePath, cancellationToken).ConfigureAwait(false);
+
+        return new(
+            [.. assemblyHandlers.WorkspaceMessageHandlers.Keys],
+            [.. assemblyHandlers.DocumentMessageHandlers.Keys]);
     }
 
     public async ValueTask ResetAsync(CancellationToken cancellationToken)
@@ -299,86 +299,53 @@ internal sealed class ExtensionMessageHandlerService(
         }
     }
 
-    private static async Task<ImmutableArray<IExtensionMessageHandlerWrapper<TResult>>> ComputeHandlersAsync<TResult>(
-        ExtensionMessageHandlerService @this, string messageName, bool isSolution, CancellationToken cancellationToken)
+    private async Task<ImmutableArray<IExtensionMessageHandlerWrapper<TResult>>> ComputeHandlersAsync<TResult>(
+        string messageName, bool isSolution, CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilder<IExtensionMessageHandlerWrapper<TResult>>.GetInstance(out var result);
-        foreach (var (_, extensionFolder) in @this._folderPathToExtensionFolder)
+        using var _1 = ArrayBuilder<ExtensionFolder>.GetInstance(out var extensionFolders)
+        using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            await extensionFolder.AddHandlersAsync(messageName, isSolution, result, cancellationToken).ConfigureAwait(false);
-        }
+            using var _ = ArrayBuilder<IExtensionMessageHandlerWrapper<TResult>>.GetInstance(out var result);
+            foreach (var (_, extensionFolder) in @this._folderPathToExtensionFolder)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await extensionFolder.AddHandlersAsync(messageName, isSolution, result, cancellationToken).ConfigureAwait(false);
+            }
 
-        return result.ToImmutable();
+            return result.ToImmutable();
+        }
     }
 
-    private abstract class ExtensionFolder
+    private sealed class ExtensionFolder
     {
+        private readonly ExtensionMessageHandlerService _extensionMessageHandlerService;
+
+        private readonly string _assemblyFolderPath;
+        private readonly AsyncLazy<IAnalyzerAssemblyLoader?> _lazyAssemblyLoader;
+
         /// <summary>
         /// Mapping from assembly file path to the handlers it contains.  Used as its own lock when mutating.
         /// </summary>
         private readonly Dictionary<string, AsyncLazy<AssemblyHandlers>> _assemblyFilePathToHandlers = new();
 
-        protected abstract AssemblyHandlers CreateAssemblyHandlers(string assemblyFilePath, CancellationToken cancellationToken);
-
-        public AsyncLazy<AssemblyHandlers> RegisterAssembly(string assemblyFilePath)
-        {
-            lock (_assemblyFilePathToHandlers)
-            {
-                return _assemblyFilePathToHandlers.GetOrAdd(
-                    assemblyFilePath,
-                    static (assemblyFilePath, @this) => AsyncLazy.Create(
-                        static (args, cancellationToken) => args.@this.CreateAssemblyHandlers(args.assemblyFilePath, cancellationToken),
-                        (assemblyFilePath, @this)),
-                    this);
-            }
-        }
-
-        /// <summary>
-        /// Unregisters this assembly path from this extension folder.  If this was the last registered path, then this
-        /// will return true so that this folder can be unloaded.
-        /// </summary>
-        public bool UnregisterAssembly(string assemblyFilePath)
-        {
-            lock (_assemblyFilePathToHandlers)
-            {
-                _assemblyFilePathToHandlers.Remove(assemblyFilePath);
-                return _assemblyFilePathToHandlers.Count == 0;
-            }
-        }
-
-        public async ValueTask AddHandlersAsync<TResult>(string messageName, bool isSolution, ArrayBuilder<IExtensionMessageHandlerWrapper<TResult>> result, CancellationToken cancellationToken)
-        {
-            foreach (var (_, lazyHandlers) in _assemblyFilePathToHandlers)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var handlers = await lazyHandlers.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                if (isSolution)
-                {
-                    if (handlers.WorkspaceMessageHandlers.TryGetValue(messageName, out var handler))
-                        result.Add((IExtensionMessageHandlerWrapper<TResult>)handler);
-                }
-                else
-                {
-                    if (handlers.DocumentMessageHandlers.TryGetValue(messageName, out var handler))
-                        result.Add((IExtensionMessageHandlerWrapper<TResult>)handler);
-                }
-            }
-        }
-
-        public static ExtensionFolder Create(
+        public ExtensionFolder(
             ExtensionMessageHandlerService extensionMessageHandlerService,
-            string assemblyFolderPath,
-            CancellationToken cancellationToken)
+            string assemblyFolderPath)
         {
-            var analyzerAssemblyLoaderProvider = extensionMessageHandlerService._solutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+            _extensionMessageHandlerService = extensionMessageHandlerService;
+            _assemblyFolderPath = assemblyFolderPath;
+            _lazyAssemblyLoader = AsyncLazy.Create(CreateAssemblyLoader);
+        }
+
+        private IAnalyzerAssemblyLoader? CreateAssemblyLoader(CancellationToken cancellationToken)
+        {
+            var analyzerAssemblyLoaderProvider = _extensionMessageHandlerService._solutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
             var analyzerAssemblyLoader = analyzerAssemblyLoaderProvider.CreateNewShadowCopyLoader();
 
             try
             {
                 // Allow this assembly loader to load any dll in assemblyFolderPath.
-                foreach (var dll in Directory.EnumerateFiles(assemblyFolderPath, "*.dll"))
+                foreach (var dll in Directory.EnumerateFiles(_assemblyFolderPath, "*.dll"))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     try
@@ -395,41 +362,25 @@ internal sealed class ExtensionMessageHandlerService(
                     analyzerAssemblyLoader.AddDependencyLocation(dll);
                 }
 
-                return new ShadowCopyExtensionFolder(extensionMessageHandlerService, analyzerAssemblyLoader);
+                return analyzerAssemblyLoader;
             }
             catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
             {
                 // TODO: Log this exception so the client knows something went wrong.
-                return new TrivialExtensionFolder();
+                return null;
             }
         }
-    }
 
-    /// <summary>
-    /// Trivial placeholder impl of <see cref="ExtensionFolder"/> when we fail for some reason to even process the
-    /// folder we are told contains extensions.
-    /// </summary>
-    private sealed class TrivialExtensionFolder : ExtensionFolder
-    {
-        protected override AssemblyHandlers CreateAssemblyHandlers(string assemblyFilePath, CancellationToken cancellationToken)
-            => AssemblyHandlers.Empty;
-    }
-
-    /// <summary>
-    /// Standard impl of <see cref="ExtensionFolder"/> that uses a shadow copy loader to load extensions.
-    /// </summary>
-    private sealed class ShadowCopyExtensionFolder(
-        ExtensionMessageHandlerService extensionMessageHandlerService,
-        IAnalyzerAssemblyLoaderInternal analyzerAssemblyLoader) : ExtensionFolder
-    {
-        private readonly ExtensionMessageHandlerService _extensionMessageHandlerService = extensionMessageHandlerService;
-        private readonly IAnalyzerAssemblyLoaderInternal _analyzerAssemblyLoader = analyzerAssemblyLoader;
-
-        protected override AssemblyHandlers CreateAssemblyHandlers(string assemblyFilePath, CancellationToken cancellationToken)
+        private async Task<AssemblyHandlers> CreateAssemblyHandlersAsync(
+            string assemblyFilePath, CancellationToken cancellationToken)
         {
+            var analyzerAssemblyLoader = await _lazyAssemblyLoader.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            if (analyzerAssemblyLoader is null)
+                return AssemblyHandlers.Empty;
+
             try
             {
-                var assembly = _analyzerAssemblyLoader.LoadFromPath(assemblyFilePath);
+                var assembly = analyzerAssemblyLoader.LoadFromPath(assemblyFilePath);
                 var factory = _extensionMessageHandlerService._customMessageHandlerFactory;
 
                 var messageWorkspaceHandlers = factory
@@ -452,6 +403,76 @@ internal sealed class ExtensionMessageHandlerService(
             {
                 // TODO: Log this exception so the client knows something went wrong.
                 return AssemblyHandlers.Empty;
+            }
+        }
+
+        public void RegisterAssembly(string assemblyFilePath)
+        {
+            lock (_assemblyFilePathToHandlers)
+            {
+                if (_assemblyFilePathToHandlers.ContainsKey(assemblyFilePath))
+                    throw new InvalidOperationException($"Extension '{assemblyFilePath}' is already registered.");
+
+                _assemblyFilePathToHandlers.Add(
+                    assemblyFilePath,
+                    AsyncLazy.Create(
+                        cancellationToken => this.CreateAssemblyHandlersAsync(assemblyFilePath, cancellationToken)));
+            }
+        }
+
+        /// <summary>
+        /// Unregisters this assembly path from this extension folder.  If this was the last registered path, then this
+        /// will return true so that this folder can be unloaded.
+        /// </summary>
+        public bool UnregisterAssembly(string assemblyFilePath)
+        {
+            lock (_assemblyFilePathToHandlers)
+            {
+                _assemblyFilePathToHandlers.Remove(assemblyFilePath);
+                return _assemblyFilePathToHandlers.Count == 0;
+            }
+        }
+
+        public async ValueTask<AssemblyHandlers> GetAssemblyHandlersAsync(string assemblyFilePath, CancellationToken cancellationToken)
+        {
+            AsyncLazy<AssemblyHandlers>? lazyHandlers;
+            lock (_assemblyFilePathToHandlers)
+            {
+                if (!_assemblyFilePathToHandlers.TryGetValue(assemblyFilePath, out lazyHandlers))
+                    throw new InvalidOperationException($"No extension registered as '{assemblyFilePath}'");
+            }
+
+            return await lazyHandlers.GetValueAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        public async ValueTask AddHandlersAsync<TResult>(string messageName, bool isSolution, ArrayBuilder<IExtensionMessageHandlerWrapper<TResult>> result, CancellationToken cancellationToken)
+        {
+            using var _ = ArrayBuilder<AsyncLazy<AssemblyHandlers>>.GetInstance(out var lazyHandlers);
+
+            lock (_assemblyFilePathToHandlers)
+            {
+                foreach (var (_, lazyHandler) in _assemblyFilePathToHandlers)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    lazyHandlers.Add(lazyHandler);
+                }
+            }
+
+            foreach (var lazyHandler in lazyHandlers)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var handlers = await lazyHandler.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                if (isSolution)
+                {
+                    if (handlers.WorkspaceMessageHandlers.TryGetValue(messageName, out var handler))
+                        result.Add((IExtensionMessageHandlerWrapper<TResult>)handler);
+                }
+                else
+                {
+                    if (handlers.DocumentMessageHandlers.TryGetValue(messageName, out var handler))
+                        result.Add((IExtensionMessageHandlerWrapper<TResult>)handler);
+                }
             }
         }
     }
