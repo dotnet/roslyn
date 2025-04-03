@@ -125,6 +125,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalParam.RefCustomModifiers; }
         }
 
+        internal sealed override bool HasEnumeratorCancellationAttribute
+        {
+            get { return _originalParam.HasEnumeratorCancellationAttribute; }
+        }
+
         internal override MarshalPseudoCustomAttributeData MarshallingInformation
         {
             get { return _originalParam.MarshallingInformation; }
