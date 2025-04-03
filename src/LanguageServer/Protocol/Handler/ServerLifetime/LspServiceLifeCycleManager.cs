@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
@@ -41,21 +40,14 @@ internal sealed class LspServiceLifeCycleManager : ILifeCycleManager, ILspServic
 
     public async Task ShutdownAsync(string message = "Shutting down")
     {
+        // Shutting down is not cancellable.
+        var cancellationToken = CancellationToken.None;
+
         var hostWorkspace = _lspWorkspaceRegistrationService.GetAllRegistrations().SingleOrDefault(w => w.Kind == WorkspaceKind.Host);
         if (hostWorkspace is not null)
         {
-            var client = await RemoteHostClient.TryGetClientAsync(hostWorkspace, CancellationToken.None).ConfigureAwait(false);
-            if (client is not null)
-            {
-                await client.TryInvokeAsync<IRemoteExtensionMessageHandlerService>(
-                    (service, cancellationToken) => service.ResetAsync(cancellationToken),
-                    CancellationToken.None).ConfigureAwait(false);
-            }
-            else
-            {
-                var service = hostWorkspace.Services.GetRequiredService<IExtensionMessageHandlerService>();
-                service.Reset();
-            }
+            var service = hostWorkspace.Services.GetRequiredService<IExtensionMessageHandlerService>();
+            await service.ResetAsync(cancellationToken).ConfigureAwait(false);
         }
 
         try
@@ -65,7 +57,7 @@ internal sealed class LspServiceLifeCycleManager : ILifeCycleManager, ILspServic
                 MessageType = MessageType.Info,
                 Message = message
             };
-            await _clientLanguageServerManager.SendNotificationAsync("window/logMessage", messageParams, CancellationToken.None).ConfigureAwait(false);
+            await _clientLanguageServerManager.SendNotificationAsync("window/logMessage", messageParams, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex) when (ex is ObjectDisposedException or ConnectionLostException)
         {

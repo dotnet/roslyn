@@ -201,7 +201,8 @@ internal sealed class ExtensionMessageHandlerService(
     {
         return await ExecuteInRemoteOrCurrentProcessAsync(
             solution,
-            cancellationToken => HandleExtensionWorkspaceMessageInCurrentProcessAsync(solution, messageName, jsonMessage, cancellationToken),
+            cancellationToken => HandleExtensionMessageInCurrentProcessAsync(
+                executeArgument: solution, solution: true, messageName, jsonMessage, _cachedWorkspaceHandlers, cancellationToken),
             (service, checksum, cancellationToken) => service.HandleExtensionWorkspaceMessageAsync(checksum!.Value, messageName, jsonMessage, cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }
@@ -210,7 +211,8 @@ internal sealed class ExtensionMessageHandlerService(
     {
         return await ExecuteInRemoteOrCurrentProcessAsync(
             document.Project.Solution,
-            cancellationToken => HandleExtensionDocumentMessageInCurrentProcessAsync(document, messageName, jsonMessage, cancellationToken),
+            cancellationToken => HandleExtensionMessageInCurrentProcessAsync(
+                executeArgument: document, solution: false, messageName, jsonMessage, _cachedDocumentHandlers, cancellationToken),
             (service, checksum, cancellationToken) => service.HandleExtensionDocumentMessageAsync(checksum!.Value, messageName, jsonMessage, document.Id, cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }
