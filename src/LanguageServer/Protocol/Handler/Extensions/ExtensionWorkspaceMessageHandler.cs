@@ -28,10 +28,7 @@ internal sealed class ExtensionWorkspaceMessageHandler()
 
         var service = solution.Services.GetRequiredService<IExtensionMessageHandlerService>();
         var response = await service.HandleExtensionWorkspaceMessageAsync(
-                solution,
-                request.MessageName,
-                request.Message,
-                cancellationToken).ConfigureAwait(false);
+            solution, request.MessageName, request.Message, cancellationToken).ConfigureAwait(false);
 
         return new ExtensionMessageResponse(response);
     }
