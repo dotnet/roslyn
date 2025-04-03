@@ -27,7 +27,7 @@ public abstract partial class Workspace
     private const string TextDocumentOpenedEventName = "TextDocumentOpened";
     private const string TextDocumentClosedEventName = "TextDocumentClosed";
 
-    private IWorkspaceEventListenerService? _workspaceEventListenerService;
+    private IWorkspaceEventListenerService _workspaceEventListenerService;
 
     /// <summary>
     /// An event raised whenever the current solution is changed.
