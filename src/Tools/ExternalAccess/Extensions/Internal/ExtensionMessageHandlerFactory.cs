@@ -45,9 +45,7 @@ internal sealed class ExtensionMessageHandlerFactory() : IExtensionMessageHandle
             cancellationToken.ThrowIfCancellationRequested();
 
             if (candidateType.IsAbstract || candidateType.IsGenericType)
-            {
                 continue;
-            }
 
             Type? boundInterfaceType = null;
             foreach (var interfaceType in candidateType.GetInterfaces())
@@ -57,18 +55,14 @@ internal sealed class ExtensionMessageHandlerFactory() : IExtensionMessageHandle
                     interfaceType.GetGenericTypeDefinition() == unboundInterfaceType)
                 {
                     if (boundInterfaceType is not null)
-                    {
                         throw new InvalidOperationException($"Type {candidateType.FullName} implements interface {unboundInterfaceType.Name} more than once.");
-                    }
 
                     boundInterfaceType = interfaceType;
                 }
             }
 
             if (boundInterfaceType == null)
-            {
                 continue;
-            }
 
             var handler = Activator.CreateInstance(candidateType)
                 ?? throw new InvalidOperationException($"Cannot create {candidateType.FullName}.");
