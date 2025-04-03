@@ -46,20 +46,17 @@ internal sealed class ExtensionMessageHandlerService(
     /// <summary>
     /// Extensions assembly load contexts and loaded handlers, indexed by handler file path. The handlers are indexed by type name.
     /// </summary>
-    private readonly Dictionary<string, Extension?> _extensions = new();
+    private ImmutableDictionary<string, AsyncLazy<Extension?>> _extensions = ImmutableDictionary<string, AsyncLazy<Extension>>.Empty;
 
     /// <summary>
     /// Handlers of document-related messages, indexed by handler message name.
     /// </summary>
-    private readonly Dictionary<string, IExtensionMessageHandlerWrapper<Document>> _documentHandlers = new();
+    private ImmutableDictionary<string, AsyncLazy<IExtensionMessageHandlerWrapper<Document>?>> _documentHandlers = ImmutableDictionary<string, AsyncLazy<IExtensionMessageHandlerWrapper<Document>?>>.Empty;
 
     /// <summary>
     /// Handlers of non-document-related messages, indexed by handler message name.
     /// </summary>
-    private readonly Dictionary<string, IExtensionMessageHandlerWrapper<Solution>> _workspaceHandlers = new();
-
-    // Used to protect access to _extensions, _handlers, _documentHandlers and Extension._assemblies.
-    private readonly SemaphoreSlim _lock = new(initialCount: 1);
+    private ImmutableDictionary<string, AsyncLazy<IExtensionMessageHandlerWrapper<Solution>?>> _workspaceHandlers = ImmutableDictionary<string, AsyncLazy<IExtensionMessageHandlerWrapper<Solution>?>>.Empty;
 
     private async ValueTask<TResult> ExecuteInRemoteOrCurrentProcessAsync<TResult>(
         Solution? solution,
@@ -111,7 +108,18 @@ internal sealed class ExtensionMessageHandlerService(
         var assemblyFolderPath = Path.GetDirectoryName(assemblyFilePath)
             ?? throw new InvalidOperationException($"Unable to get the directory name for {assemblyFilePath}.");
 
-        var analyzerAssemblyLoaderProvider = _solutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+        // var analyzerAssemblyLoaderProvider = _solutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+
+        var lazy = ImmutableInterlocked.GetOrAdd(
+            ref _extensions,
+            assemblyFolderPath,
+            static (assemblyFolderPath, @this) => Extension.Create(@this, assemblyFolderPath),
+            this);
+
+        var extension = await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
+        if (extension is null)
+            throw new InvalidOperationException($"A loading assemblies from {assemblyFolderPath} failed.");
+
         Extension? extension;
         using (await _lock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
@@ -236,20 +244,11 @@ internal sealed class ExtensionMessageHandlerService(
             cancellationToken).ConfigureAwait(false);
     }
 
-    private async ValueTask<VoidResult> ResetInCurrentProcessAsync(CancellationToken cancellationToken)
+    private ValueTask<VoidResult> ResetInCurrentProcessAsync(CancellationToken cancellationToken)
     {
-        List<Extension> extensions;
-        using (await _lock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-        {
-            extensions = [.. _extensions.Values];
-            _extensions.Clear();
-            _workspaceHandlers.Clear();
-            _documentHandlers.Clear();
-        }
-
-        foreach (var extension in extensions)
-            extension.AnalyzerAssemblyLoader.Dispose();
-
+        _extensions = ImmutableDictionary<string, AsyncLazy<Extension?>>.Empty;
+        _workspaceHandlers = ImmutableDictionary<string, AsyncLazy<IExtensionMessageHandlerWrapper<Solution>?>>.Empty;
+        _documentHandlers = ImmutableDictionary<string, AsyncLazy<IExtensionMessageHandlerWrapper<Document>?>>.Empty;
         return default;
     }
 
