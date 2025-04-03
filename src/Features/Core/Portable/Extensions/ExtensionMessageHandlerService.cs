@@ -56,7 +56,7 @@ internal sealed class ExtensionMessageHandlerService(
     /// <summary>
     /// Extensions assembly load contexts and loaded handlers, indexed by extension folder path.
     /// </summary>
-    private readonly Dictionary<string, AsyncLazy<ExtensionFolder>> _folderPathToExtensionFolder = new();
+    private readonly Dictionary<string, ExtensionFolder> _folderPathToExtensionFolder = new();
 
     /// <summary>
     /// Cached handlers of document-related messages, indexed by handler message name.
@@ -124,11 +124,12 @@ internal sealed class ExtensionMessageHandlerService(
 
         using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
-            _folderPathToExtensionFolder.GetOrAdd(
+            var extensionFolder = _folderPathToExtensionFolder.GetOrAdd(
                 assemblyFolderPath,
-                static (assemblyFolderPath, @this) => AsyncLazy.Create(
-                    cancellationToken => ExtensionFolder.Create(@this, assemblyFolderPath, cancellationToken)),
+                static (assemblyFolderPath, @this) => ExtensionFolder.Create(@this, assemblyFolderPath),
                 this);
+
+            extensionFolder.RegisterAssembly(assemblyFilePath);
 
             // After registering, clear out the cached handler names.  They will be recomputed the next time we need them.
             ClearCachedHandlers();
@@ -153,16 +154,14 @@ internal sealed class ExtensionMessageHandlerService(
     {
         var assemblyFolderPath = GetAssemblyFolderPath(assemblyFilePath);
 
-        AsyncLazy<ExtensionFolder>? lazyExtensionFolder;
+        ExtensionFolder? extensionFolder;
         using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
-            if (!_folderPathToExtensionFolder.TryGetValue(assemblyFolderPath, out lazyExtensionFolder))
+            if (!_folderPathToExtensionFolder.TryGetValue(assemblyFolderPath, out extensionFolder))
                 throw new InvalidOperationException($"No extensions registered at '{assemblyFolderPath}'");
         }
 
-        var extensionFolder = await lazyExtensionFolder.GetValueAsync(cancellationToken).ConfigureAwait(false);
-        var lazyAssemblyHandlers = extensionFolder.RegisterAssembly(assemblyFilePath);
-        var assemblyHandlers = await lazyAssemblyHandlers.GetValueAsync(cancellationToken).ConfigureAwait(false);
+        var assemblyHandlers = await extensionFolder.GetAssemblyHandlersAsync(assemblyFilePath, cancellationToken).ConfigureAwait(false);
 
         return new(
             [.. assemblyHandlers.WorkspaceMessageHandlers.Keys],
@@ -184,21 +183,19 @@ internal sealed class ExtensionMessageHandlerService(
         string assemblyFilePath,
         CancellationToken cancellationToken)
     {
-        var assemblyFolderPath = Path.GetDirectoryName(assemblyFilePath)
-            ?? throw new InvalidOperationException($"Unable to get the directory name for {assemblyFilePath}.");
+        var assemblyFolderPath = GetAssemblyFolderPath(assemblyFilePath);
 
         // Note: unregistering is slightly expensive as we do everything under a lock, to ensure that we have a
         // consistent view of the world.  This is fine as we don't expect this to be called very often.
         using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
-            if (_folderPathToExtensionFolder.TryGetValue(assemblyFolderPath, out var lazyExtensionFolder))
-            {
-                var extensionFolder = await lazyExtensionFolder.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                // Unregister this particular assembly file from teh assembly folder.  If it was the last extension within
-                // this folder, we can remove the registration for the extension entirely.
-                if (extensionFolder.UnregisterAssembly(assemblyFilePath))
-                    _folderPathToExtensionFolder.Remove(assemblyFolderPath);
-            }
+            if (!_folderPathToExtensionFolder.TryGetValue(assemblyFolderPath, out var extensionFolder))
+                throw new InvalidOperationException($"No extension registered as '{assemblyFolderPath}'");
+
+            // Unregister this particular assembly file from teh assembly folder.  If it was the last extension within
+            // this folder, we can remove the registration for the extension entirely.
+            if (extensionFolder.UnregisterAssembly(assemblyFilePath))
+                _folderPathToExtensionFolder.Remove(assemblyFolderPath);
 
             // After unregistering, clear out the cached handler names.  They will be recomputed the next time we need them.
             ClearCachedHandlers();
@@ -306,12 +303,10 @@ internal sealed class ExtensionMessageHandlerService(
         ExtensionMessageHandlerService @this, string messageName, bool isSolution, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<IExtensionMessageHandlerWrapper<TResult>>.GetInstance(out var result);
-        foreach (var (_, lazyExtension) in @this._folderPathToExtensionFolder)
+        foreach (var (_, extensionFolder) in @this._folderPathToExtensionFolder)
         {
             cancellationToken.ThrowIfCancellationRequested();
-
-            var extension = await lazyExtension.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            await extension.AddHandlersAsync(messageName, isSolution, result, cancellationToken).ConfigureAwait(false);
+            await extensionFolder.AddHandlersAsync(messageName, isSolution, result, cancellationToken).ConfigureAwait(false);
         }
 
         return result.ToImmutable();
