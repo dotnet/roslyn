@@ -8,13 +8,17 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Extensions;
 
+internal interface IExtensionMessageHandlerWrapper
+{
+}
+
 /// <summary>
 /// Wrapper for an <c>IExtensionWorkspaceMessageHandler</c> or <c>IExtensionDocumentMessageHandler</c>
 /// as returned by <see cref="IExtensionMessageHandlerFactory"/>. 
 /// </summary>
 /// <typeparam name="TArgument">The type of object received as parameter by the extension message
 /// handler.</typeparam>
-internal interface IExtensionMessageHandlerWrapper<TArgument>
+internal interface IExtensionMessageHandlerWrapper<TArgument> : IExtensionMessageHandlerWrapper
 {
     /// <summary>
     /// The type of object received as parameter by the extension message handler.

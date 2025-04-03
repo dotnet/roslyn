@@ -11,6 +11,7 @@ using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -41,6 +42,8 @@ internal sealed class ExtensionMessageHandlerService(
     IExtensionMessageHandlerFactory customMessageHandlerFactory)
     : IExtensionMessageHandlerService
 {
+    private static readonly ConditionalWeakTable<IExtensionMessageHandlerWrapper, IExtensionMessageHandlerWrapper> s_disabledExtensionHandlers = new();
+
     private readonly SolutionServices _solutionServices = solutionServices;
     private readonly IExtensionMessageHandlerFactory _customMessageHandlerFactory = customMessageHandlerFactory;
 
@@ -226,6 +229,8 @@ internal sealed class ExtensionMessageHandlerService(
             throw new InvalidOperationException($"Multiple handlers found for message {messageName}.");
 
         var handler = handlers[0];
+        if (s_disabledExtensionHandlers.TryGetValue(handler, out _))
+            throw new InvalidOperationException($"Handler was disabled due to previous exception.");
 
         try
         {
@@ -233,12 +238,19 @@ internal sealed class ExtensionMessageHandlerService(
             var result = await handler.ExecuteAsync(message, executeArgument, cancellationToken).ConfigureAwait(false);
             return JsonSerializer.Serialize(result, handler.ResponseType);
         }
-        catch
+        catch (Exception ex) when (DisableHandlerAndPropagate(ex))
         {
-            // Any exception thrown in this method is left to bubble up to the extension.
-            // But we unregister all handlers from that assembly to minimize the impact of a bad extension.
-            await UnregisterExtensionAsync(assemblyFilePath: handler.ExtensionIdentifier, cancellationToken).ConfigureAwait(false);
-            throw;
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        bool DisableHandlerAndPropagate(Exception ex)
+        {
+            FatalError.ReportNonFatalError(ex, ErrorSeverity.Critical);
+
+            // Any exception thrown in this method is left to bubble up to the extension. But we unregister this handler
+            // from that assembly to minimize the impact.
+            s_disabledExtensionHandlers.TryAdd(handler, handler);
+            return false;
         }
     }
 
