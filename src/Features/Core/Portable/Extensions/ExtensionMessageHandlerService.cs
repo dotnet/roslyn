@@ -70,6 +70,12 @@ internal sealed class ExtensionMessageHandlerService(
     /// </summary>
     private readonly Dictionary<string, AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper<Solution>>>> _cachedWorkspaceHandlers = new();
 
+    private static string GetAssemblyFolderPath(string assemblyFilePath)
+    {
+        return Path.GetDirectoryName(assemblyFilePath)
+            ?? throw new InvalidOperationException($"Unable to get the directory name for {assemblyFilePath}.");
+    }
+
     private async ValueTask<TResult> ExecuteInRemoteOrCurrentProcessAsync<TResult>(
         Solution? solution,
         Func<CancellationToken, ValueTask<TResult>> executeInProcessAsync,
@@ -110,12 +116,6 @@ internal sealed class ExtensionMessageHandlerService(
             _ => RegisterExtensionInCurrentProcessAsync(assemblyFilePath),
             (remoteService, _, cancellationToken) => remoteService.RegisterExtensionAsync(assemblyFilePath, cancellationToken),
             cancellationToken).ConfigureAwait(false);
-    }
-
-    private static string GetAssemblyFolderPath(string assemblyFilePath)
-    {
-        return Path.GetDirectoryName(assemblyFilePath)
-            ?? throw new InvalidOperationException($"Unable to get the directory name for {assemblyFilePath}.");
     }
 
     public ValueTask<VoidResult> RegisterExtensionInCurrentProcessAsync(string assemblyFilePath)
