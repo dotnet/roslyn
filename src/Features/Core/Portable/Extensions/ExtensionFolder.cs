@@ -111,6 +111,9 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
         {
             lock (_assemblyFilePathToHandlers_useOnlyUnderLock)
             {
+                if (!_assemblyFilePathToHandlers_useOnlyUnderLock.ContainsKey(assemblyFilePath))
+                    throw new InvalidOperationException($"Extension '{assemblyFilePath}' was not registered.");
+
                 _assemblyFilePathToHandlers_useOnlyUnderLock.Remove(assemblyFilePath);
                 return _assemblyFilePathToHandlers_useOnlyUnderLock.Count == 0;
             }
