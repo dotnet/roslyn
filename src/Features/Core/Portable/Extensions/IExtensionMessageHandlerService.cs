@@ -58,5 +58,5 @@ internal interface IExtensionMessageHandlerService : IWorkspaceService
     /// <summary>
     /// Unregisters all extension message handlers.
     /// </summary>
-    void Reset();
+    ValueTask ResetAsync(CancellationToken cancellationToken);
 }
