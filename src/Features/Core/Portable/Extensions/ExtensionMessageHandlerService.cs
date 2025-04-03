@@ -172,7 +172,7 @@ internal sealed class ExtensionMessageHandlerService(
             ?? throw new InvalidOperationException($"Unable to get the directory name for {assemblyFilePath}.");
 
         Extension? extension = null;
-        lock (_lockObject)
+        using (await _lock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
             if (_extensions.TryGetValue(assemblyFolderPath, out extension))
             {
