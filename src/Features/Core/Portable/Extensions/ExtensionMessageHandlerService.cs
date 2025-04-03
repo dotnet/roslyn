@@ -113,71 +113,72 @@ internal sealed class ExtensionMessageHandlerService(
         var lazy = ImmutableInterlocked.GetOrAdd(
             ref _extensions,
             assemblyFolderPath,
-            static (assemblyFolderPath, @this) => Extension.Create(@this, assemblyFolderPath),
+            static (assemblyFolderPath, @this) => AsyncLazy.Create(
+                cancellationToken => Extension.CreateAsync(@this, assemblyFolderPath, cancellationToken)),
             this);
 
         var extension = await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
         if (extension is null)
             throw new InvalidOperationException($"A loading assemblies from {assemblyFolderPath} failed.");
 
-        Extension? extension;
-        using (await _lock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-        {
-            // Check if the assembly is already loaded.
-            if (!_extensions.TryGetValue(assemblyFolderPath, out extension))
-            {
-                try
-                {
-                    var analyzerAssemblyLoader = analyzerAssemblyLoaderProvider.CreateNewShadowCopyLoader();
+        //Extension? extension;
+        //using (await _lock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+        //{
+        //    // Check if the assembly is already loaded.
+        //    if (!_extensions.TryGetValue(assemblyFolderPath, out extension))
+        //    {
+        //        try
+        //        {
+        //            var analyzerAssemblyLoader = analyzerAssemblyLoaderProvider.CreateNewShadowCopyLoader();
 
-                    // Allow this assembly loader to load any dll in assemblyFolderPath.
-                    foreach (var dll in Directory.EnumerateFiles(assemblyFolderPath, "*.dll"))
-                    {
-                        try
-                        {
-                            // Check if the file is a valid .NET assembly.
-                            AssemblyName.GetAssemblyName(dll);
-                        }
-                        catch
-                        {
-                            // The file is not a valid .NET assembly, skip it.
-                            continue;
-                        }
+        //            // Allow this assembly loader to load any dll in assemblyFolderPath.
+        //            foreach (var dll in Directory.EnumerateFiles(assemblyFolderPath, "*.dll"))
+        //            {
+        //                try
+        //                {
+        //                    // Check if the file is a valid .NET assembly.
+        //                    AssemblyName.GetAssemblyName(dll);
+        //                }
+        //                catch
+        //                {
+        //                    // The file is not a valid .NET assembly, skip it.
+        //                    continue;
+        //                }
 
-                        analyzerAssemblyLoader.AddDependencyLocation(dll);
-                    }
+        //                analyzerAssemblyLoader.AddDependencyLocation(dll);
+        //            }
 
-                    extension = new Extension(this, analyzerAssemblyLoader, assemblyFolderPath);
-                }
-                catch
-                {
-                    _extensions[assemblyFolderPath] = null;
-                    throw;
-                }
+        //            extension = new Extension(this, analyzerAssemblyLoader, assemblyFolderPath);
+        //        }
+        //        catch
+        //        {
+        //            _extensions[assemblyFolderPath] = null;
+        //            throw;
+        //        }
 
-                _extensions[assemblyFolderPath] = extension;
-            }
+        //        _extensions[assemblyFolderPath] = extension;
+        //    }
 
-            if (extension is null)
-            {
-                throw new InvalidOperationException($"A previous attempt to load assemblies from {assemblyFolderPath} failed.");
-            }
+        //    if (extension is null)
+        //    {
+        //        throw new InvalidOperationException($"A previous attempt to load assemblies from {assemblyFolderPath} failed.");
+        //    }
 
-            if (extension.TryGetAssemblyHandlers(assemblyFileName, out var assemblyHandlers))
-            {
-                if (assemblyHandlers is null)
-                {
-                    throw new InvalidOperationException($"A previous attempt to load {assemblyFilePath} failed.");
-                }
+        //    if (extension.TryGetAssemblyHandlers(assemblyFileName, out var assemblyHandlers))
+        //    {
+        //        if (assemblyHandlers is null)
+        //        {
+        //            throw new InvalidOperationException($"A previous attempt to load {assemblyFilePath} failed.");
+        //        }
 
-                return new(
-                    [.. assemblyHandlers.WorkspaceMessageHandlers.Keys],
-                    [.. assemblyHandlers.DocumentMessageHandlers.Keys]);
-            }
-        }
+        //        return new(
+        //            [.. assemblyHandlers.WorkspaceMessageHandlers.Keys],
+        //            [.. assemblyHandlers.DocumentMessageHandlers.Keys]);
+        //    }
+        //}
 
-        // Intentionally call this outside of the lock.
-        return await extension.LoadAssemblyAsync(assemblyFileName, cancellationToken).ConfigureAwait(false);
+        //// Intentionally call this outside of the lock.
+        //return await extension.LoadAssemblyAsync(assemblyFileName, cancellationToken).ConfigureAwait(false);
     }
 
     public async ValueTask UnregisterExtensionAsync(
@@ -362,20 +363,48 @@ internal sealed class ExtensionMessageHandlerService(
         string assemblyFolderPath)
     {
         private readonly ExtensionMessageHandlerService _extensionMessageHandlerService = extensionMessageHandlerService;
+        private readonly IAnalyzerAssemblyLoaderInternal _analyzerAssemblyLoader = analyzerAssemblyLoader;
 
-        public readonly IAnalyzerAssemblyLoaderInternal AnalyzerAssemblyLoader = analyzerAssemblyLoader;
-
-        public readonly string AssemblyFolderPath = assemblyFolderPath;
-
-        /// <summary>
-        /// Gets the object that is used to lock in order to avoid multiple calls from the same extensions to load the
-        /// same assembly concurrently resulting in the constructors of the same handlers being called more than once.
-        /// All other concurrent operations, including modifying <see cref="_assemblies"/> are protected by <see
-        /// cref="_lock"/>.
-        /// </summary>
-        private readonly SemaphoreSlim _assemblyLoadLock = new(initialCount: 1);
+        private readonly string _assemblyFolderPath = assemblyFolderPath;
 
         private readonly Dictionary<string, AssemblyHandlers?> _assemblies = new();
+
+        public static async Task<Extension?> CreateAsync(
+            ExtensionMessageHandlerService extensionMessageHandlerService,
+            string assemblyFolderPath,
+            CancellationToken cancellationToken)
+        {
+            var analyzerAssemblyLoaderProvider = extensionMessageHandlerService._solutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+            var analyzerAssemblyLoader = analyzerAssemblyLoaderProvider.CreateNewShadowCopyLoader();
+
+            try
+            {
+                // Allow this assembly loader to load any dll in assemblyFolderPath.
+                foreach (var dll in Directory.EnumerateFiles(assemblyFolderPath, "*.dll"))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    try
+                    {
+                        // Check if the file is a valid .NET assembly.
+                        AssemblyName.GetAssemblyName(dll);
+                    }
+                    catch
+                    {
+                        // The file is not a valid .NET assembly, skip it.
+                        continue;
+                    }
+
+                    analyzerAssemblyLoader.AddDependencyLocation(dll);
+                }
+
+                return new Extension(extensionMessageHandlerService, analyzerAssemblyLoader, assemblyFolderPath);
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
+            {
+                // If loading the assembly fails, we don't want to cache it.
+                return null;
+            }
+        }
 
         public void SetAssemblyHandlers(string assemblyFileName, AssemblyHandlers? value)
         {
