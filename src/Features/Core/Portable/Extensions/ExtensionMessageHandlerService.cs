@@ -107,6 +107,15 @@ internal sealed class ExtensionMessageHandlerService(
         }
     }
 
+    private void ClearCachedHandlers_WhileUnderLock()
+    {
+        Contract.ThrowIfTrue(!Monitor.IsEntered(_gate));
+        _cachedWorkspaceHandlers.Clear();
+        _cachedDocumentHandlers.Clear();
+    }
+
+    #region RegisterExtension
+
     public async ValueTask RegisterExtensionAsync(
         string assemblyFilePath,
         CancellationToken cancellationToken)
@@ -131,10 +140,14 @@ internal sealed class ExtensionMessageHandlerService(
             extensionFolder.RegisterAssembly(assemblyFilePath);
 
             // After registering, clear out the cached handler names.  They will be recomputed the next time we need them.
-            ClearCachedHandlers();
+            ClearCachedHandlers_WhileUnderLock();
             return default;
         }
     }
+
+    #endregion
+
+    #region UnregisterExtension
 
     public async ValueTask UnregisterExtensionAsync(
         string assemblyFilePath,
@@ -164,10 +177,14 @@ internal sealed class ExtensionMessageHandlerService(
                 _folderPathToExtensionFolder.Remove(assemblyFolderPath);
 
             // After unregistering, clear out the cached handler names.  They will be recomputed the next time we need them.
-            ClearCachedHandlers();
+            ClearCachedHandlers_WhileUnderLock();
             return default;
         }
     }
+
+    #endregion
+
+    #region GetExtensionMessageNames
 
     public async ValueTask<GetExtensionMessageNamesResponse> GetExtensionMessageNamesAsync(
         string assemblyFilePath,
@@ -200,6 +217,10 @@ internal sealed class ExtensionMessageHandlerService(
             [.. assemblyHandlers.DocumentMessageHandlers.Keys]);
     }
 
+    #endregion
+
+    #region Reset
+
     public async ValueTask ResetAsync(CancellationToken cancellationToken)
     {
         await ExecuteInRemoteOrCurrentProcessAsync(
@@ -214,17 +235,14 @@ internal sealed class ExtensionMessageHandlerService(
         lock (_gate)
         {
             _folderPathToExtensionFolder.Clear();
-            ClearCachedHandlers();
+            ClearCachedHandlers_WhileUnderLock();
             return default;
         }
     }
 
-    private void ClearCachedHandlers()
-    {
-        Contract.ThrowIfTrue(!Monitor.IsEntered(_gate));
-        _cachedWorkspaceHandlers.Clear();
-        _cachedDocumentHandlers.Clear();
-    }
+    #endregion
+
+    #region HandleExtensionMessage
 
     public async ValueTask<string> HandleExtensionWorkspaceMessageAsync(Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken)
     {
@@ -319,12 +337,16 @@ internal sealed class ExtensionMessageHandlerService(
         return result.ToImmutable();
     }
 
+    #endregion
+
+    /// <summary>
+    /// Represents a folder that many individual extension assemblies can be loaded from.
+    /// </summary>
     private sealed class ExtensionFolder
     {
         private readonly ExtensionMessageHandlerService _extensionMessageHandlerService;
 
-        private readonly string _assemblyFolderPath;
-        private readonly AsyncLazy<(IAnalyzerAssemblyLoader? assemblyLoader, Exception? exception)> _lazyAssemblyLoader;
+        private readonly AsyncLazy<(IAnalyzerAssemblyLoader assemblyLoader, Exception? exception)> _lazyAssemblyLoader;
 
         /// <summary>
         /// Mapping from assembly file path to the handlers it contains.  Used as its own lock when mutating.
@@ -336,41 +358,38 @@ internal sealed class ExtensionMessageHandlerService(
             string assemblyFolderPath)
         {
             _extensionMessageHandlerService = extensionMessageHandlerService;
-            _assemblyFolderPath = assemblyFolderPath;
-            _lazyAssemblyLoader = AsyncLazy.Create(CreateAssemblyLoader);
-        }
-
-        private (IAnalyzerAssemblyLoader? loader, Exception? exception) CreateAssemblyLoader(CancellationToken cancellationToken)
-        {
-            var analyzerAssemblyLoaderProvider = _extensionMessageHandlerService._solutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-            var analyzerAssemblyLoader = analyzerAssemblyLoaderProvider.CreateNewShadowCopyLoader();
-
-            try
+            _lazyAssemblyLoader = AsyncLazy.Create(cancellationToken =>
             {
-                // Allow this assembly loader to load any dll in assemblyFolderPath.
-                foreach (var dll in Directory.EnumerateFiles(_assemblyFolderPath, "*.dll"))
+                var analyzerAssemblyLoaderProvider = _extensionMessageHandlerService._solutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+                var analyzerAssemblyLoader = analyzerAssemblyLoaderProvider.CreateNewShadowCopyLoader();
+                Exception? exception = null;
+                try
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    try
+                    // Allow this assembly loader to load any dll in assemblyFolderPath.
+                    foreach (var dll in Directory.EnumerateFiles(assemblyFolderPath, "*.dll"))
                     {
-                        // Check if the file is a valid .NET assembly.
-                        AssemblyName.GetAssemblyName(dll);
-                    }
-                    catch
-                    {
-                        // The file is not a valid .NET assembly, skip it.
-                        continue;
-                    }
+                        cancellationToken.ThrowIfCancellationRequested();
+                        try
+                        {
+                            // Check if the file is a valid .NET assembly.
+                            AssemblyName.GetAssemblyName(dll);
+                        }
+                        catch
+                        {
+                            // The file is not a valid .NET assembly, skip it.
+                            continue;
+                        }
 
-                    analyzerAssemblyLoader.AddDependencyLocation(dll);
+                        analyzerAssemblyLoader.AddDependencyLocation(dll);
+                    }
+                }
+                catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
+                {
+                    exception = ex;
                 }
 
-                return (analyzerAssemblyLoader, null);
-            }
-            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
-            {
-                return (null, ex);
-            }
+                return ((IAnalyzerAssemblyLoader)analyzerAssemblyLoader, exception);
+            });
         }
 
         private async Task<(AssemblyHandlers assemblyHandlers, Exception? exception)> CreateAssemblyHandlersAsync(
@@ -380,7 +399,6 @@ internal sealed class ExtensionMessageHandlerService(
             if (exception != null)
                 throw exception;
 
-            Contract.ThrowIfNull(analyzerAssemblyLoader);
             try
             {
                 var assembly = analyzerAssemblyLoader.LoadFromPath(assemblyFilePath);
