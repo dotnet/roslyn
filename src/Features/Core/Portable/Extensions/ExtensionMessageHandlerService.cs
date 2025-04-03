@@ -363,7 +363,7 @@ internal sealed class ExtensionMessageHandlerService(
             }
         }
 
-        public async Task AddHandlersAsync<TResult>(string messageName, bool solution, ArrayBuilder<IExtensionMessageHandlerWrapper<TResult>> result, CancellationToken cancellationToken)
+        public async Task AddHandlersAsync<TResult>(string messageName, bool isSolution, ArrayBuilder<IExtensionMessageHandlerWrapper<TResult>> result, CancellationToken cancellationToken)
         {
             foreach (var (_, lazy) in _assemblyFilePathToHandlers)
             {
@@ -373,7 +373,7 @@ internal sealed class ExtensionMessageHandlerService(
                 if (handlers is null)
                     continue;
 
-                if (solution)
+                if (isSolution)
                 {
                     if (handlers.WorkspaceMessageHandlers.TryGetValue(messageName, out var handler))
                         result.Add((IExtensionMessageHandlerWrapper<TResult>)handler);
