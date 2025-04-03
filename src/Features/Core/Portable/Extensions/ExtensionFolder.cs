@@ -81,10 +81,10 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
 
             var documentMessageHandlers = factory
                 .CreateDocumentMessageHandlers(assembly, extensionIdentifier: assemblyFilePath, cancellationToken)
-                .ToImmutableDictionary(h => h.Name);
+                .ToImmutableDictionary(h => h.Name, h => (IExtensionMessageHandlerWrapper)h);
             var workspaceMessageHandlers = factory
                 .CreateWorkspaceMessageHandlers(assembly, extensionIdentifier: assemblyFilePath, cancellationToken)
-                .ToImmutableDictionary(h => h.Name);
+                .ToImmutableDictionary(h => h.Name, h => (IExtensionMessageHandlerWrapper)h);
 
             return new(documentMessageHandlers, workspaceMessageHandlers);
         }
@@ -133,7 +133,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             return await lazyHandlers.GetValueAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        public async ValueTask AddHandlersAsync<TResult>(string messageName, bool isSolution, ArrayBuilder<IExtensionMessageHandlerWrapper<TResult>> result, CancellationToken cancellationToken)
+        public async ValueTask AddHandlersAsync(string messageName, bool isSolution, ArrayBuilder<IExtensionMessageHandlerWrapper> result, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<AsyncLazy<AssemblyMessageHandlers>>.GetInstance(out var lazyHandlers);
 
@@ -162,16 +162,9 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                     continue;
                 }
 
-                if (isSolution)
-                {
-                    if (handlers.WorkspaceMessageHandlers.TryGetValue(messageName, out var handler))
-                        result.Add((IExtensionMessageHandlerWrapper<TResult>)handler);
-                }
-                else
-                {
-                    if (handlers.DocumentMessageHandlers.TryGetValue(messageName, out var handler))
-                        result.Add((IExtensionMessageHandlerWrapper<TResult>)handler);
-                }
+                var specificHandlers = isSolution ? handlers.WorkspaceMessageHandlers : handlers.DocumentMessageHandlers;
+                if (specificHandlers.TryGetValue(messageName, out var handler))
+                    result.Add(handler);
             }
         }
     }

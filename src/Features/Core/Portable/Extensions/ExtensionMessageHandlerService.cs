@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.Extensions;
 internal sealed partial class ExtensionMessageHandlerServiceFactory
 {
     private readonly record struct AssemblyMessageHandlers(
-        ImmutableDictionary<string, IExtensionMessageHandlerWrapper<Document>> DocumentMessageHandlers,
-        ImmutableDictionary<string, IExtensionMessageHandlerWrapper<Solution>> WorkspaceMessageHandlers);
+        ImmutableDictionary<string, IExtensionMessageHandlerWrapper> DocumentMessageHandlers,
+        ImmutableDictionary<string, IExtensionMessageHandlerWrapper> WorkspaceMessageHandlers);
 
     private sealed partial class ExtensionMessageHandlerService(
         SolutionServices solutionServices,
@@ -52,12 +52,12 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
         /// <summary>
         /// Cached handlers of document-related messages, indexed by handler message name.
         /// </summary>
-        private readonly Dictionary<string, AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper<Document>>>> _cachedDocumentHandlers_useOnlyUnderLock = new();
+        private readonly Dictionary<string, AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper>>> _cachedDocumentHandlers_useOnlyUnderLock = new();
 
         /// <summary>
         /// Cached handlers of non-document-related messages, indexed by handler message name.
         /// </summary>
-        private readonly Dictionary<string, AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper<Solution>>>> _cachedWorkspaceHandlers_useOnlyUnderLock = new();
+        private readonly Dictionary<string, AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper>>> _cachedWorkspaceHandlers_useOnlyUnderLock = new();
 
         private static string GetAssemblyFolderPath(string assemblyFilePath)
         {
@@ -144,17 +144,17 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
 
         private async ValueTask<string> HandleExtensionMessageInCurrentProcessAsync<TArgument>(
             TArgument executeArgument, bool isSolution, string messageName, string jsonMessage,
-            Dictionary<string, AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper<TArgument>>>> cachedHandlers,
+            Dictionary<string, AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper>>> cachedHandlers,
             CancellationToken cancellationToken)
         {
-            AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper<TArgument>>> lazyHandlers;
+            AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper>> lazyHandlers;
             lock (_gate)
             {
                 // May be called a lot.  So we use the non-allocating form of this lookup pattern.
                 lazyHandlers = cachedHandlers.GetOrAdd(
                     messageName,
                     static (messageName, arg) => AsyncLazy.Create(
-                        static (arg, cancellationToken) => arg.@this.ComputeHandlersAsync<TArgument>(arg.messageName, arg.isSolution, cancellationToken),
+                        static (arg, cancellationToken) => arg.@this.ComputeHandlersAsync(arg.messageName, arg.isSolution, cancellationToken),
                         (messageName, arg.@this, arg.isSolution)),
                     (messageName, @this: this, isSolution));
             }
@@ -173,7 +173,8 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             try
             {
                 var message = JsonSerializer.Deserialize(jsonMessage, handler.MessageType);
-                var result = await handler.ExecuteAsync(message, executeArgument, cancellationToken).ConfigureAwait(false);
+                var result = await ((IExtensionMessageHandlerWrapper<TArgument>)handler).ExecuteAsync(
+                    message, executeArgument, cancellationToken).ConfigureAwait(false);
                 return JsonSerializer.Serialize(result, handler.ResponseType);
             }
             catch (Exception ex) when (DisableHandlerAndPropagate(ex))
@@ -192,7 +193,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             }
         }
 
-        private async Task<ImmutableArray<IExtensionMessageHandlerWrapper<TResult>>> ComputeHandlersAsync<TResult>(
+        private async Task<ImmutableArray<IExtensionMessageHandlerWrapper>> ComputeHandlersAsync(
             string messageName, bool isSolution, CancellationToken cancellationToken)
         {
             using var _1 = ArrayBuilder<ExtensionFolder>.GetInstance(out var extensionFolders);
@@ -205,7 +206,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                 }
             }
 
-            using var _ = ArrayBuilder<IExtensionMessageHandlerWrapper<TResult>>.GetInstance(out var result);
+            using var _ = ArrayBuilder<IExtensionMessageHandlerWrapper>.GetInstance(out var result);
             foreach (var extensionFolder in extensionFolders)
             {
                 cancellationToken.ThrowIfCancellationRequested();
