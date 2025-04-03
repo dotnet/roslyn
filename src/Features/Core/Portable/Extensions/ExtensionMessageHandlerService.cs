@@ -30,7 +30,7 @@ internal sealed class ExtensionMessageHandlerService(IExtensionMessageHandlerFac
     /// <summary>
     /// Extensions assembly load contexts and loaded handlers, indexed by handler file path. The handlers are indexed by type name.
     /// </summary>
-    private readonly Dictionary<string, Extension> _extensions = new();
+    private readonly Dictionary<string, Extension?> _extensions = new();
 
     /// <summary>
     /// Handlers of document-related messages, indexed by handler message name.
@@ -62,27 +62,41 @@ internal sealed class ExtensionMessageHandlerService(IExtensionMessageHandlerFac
             // Check if the assembly is already loaded.
             if (!_extensions.TryGetValue(assemblyFolderPath, out extension))
             {
-                var analyzerAssemblyLoader = analyzerAssemblyLoaderProvider.CreateNewShadowCopyLoader();
-
-                // Allow this assembly loader to load any dll in assemblyFolderPath.
-                foreach (var dll in Directory.EnumerateFiles(assemblyFolderPath, "*.dll"))
+                try
                 {
-                    try
+                    var analyzerAssemblyLoader = analyzerAssemblyLoaderProvider.CreateNewShadowCopyLoader();
+
+                    // Allow this assembly loader to load any dll in assemblyFolderPath.
+                    foreach (var dll in Directory.EnumerateFiles(assemblyFolderPath, "*.dll"))
                     {
-                        // Check if the file is a valid .NET assembly.
-                        AssemblyName.GetAssemblyName(dll);
-                    }
-                    catch
-                    {
-                        // The file is not a valid .NET assembly, skip it.
-                        continue;
+                        try
+                        {
+                            // Check if the file is a valid .NET assembly.
+                            AssemblyName.GetAssemblyName(dll);
+                        }
+                        catch
+                        {
+                            // The file is not a valid .NET assembly, skip it.
+                            continue;
+                        }
+
+                        analyzerAssemblyLoader.AddDependencyLocation(dll);
                     }
 
-                    analyzerAssemblyLoader.AddDependencyLocation(dll);
+                    extension = new Extension(this, analyzerAssemblyLoader, assemblyFolderPath);
+                }
+                catch
+                {
+                    _extensions[assemblyFolderPath] = null;
+                    throw;
                 }
 
-                extension = new Extension(this, analyzerAssemblyLoader, assemblyFolderPath);
                 _extensions[assemblyFolderPath] = extension;
+            }
+
+            if (extension is null)
+            {
+                throw new InvalidOperationException($"A previous attempt to load assemblies from {assemblyFolderPath} failed.");
             }
 
             if (extension.TryGetAssemblyHandlers(assemblyFileName, out var assemblyHandlers))
@@ -93,8 +107,8 @@ internal sealed class ExtensionMessageHandlerService(IExtensionMessageHandlerFac
                 }
 
                 return ValueTask.FromResult<RegisterExtensionResponse>(new(
-                    assemblyHandlers.WorkspaceMessageHandlers.Keys.ToImmutableArray(),
-                    assemblyHandlers.DocumentMessageHandlers.Keys.ToImmutableArray()));
+                    [.. assemblyHandlers.WorkspaceMessageHandlers.Keys],
+                    [.. assemblyHandlers.DocumentMessageHandlers.Keys]));
             }
         }
 
@@ -115,6 +129,12 @@ internal sealed class ExtensionMessageHandlerService(IExtensionMessageHandlerFac
         {
             if (_extensions.TryGetValue(assemblyFolderPath, out extension))
             {
+                if (extension is null)
+                {
+                    // Loading assemblies from this folder failed earlier, so we don't need to do anything.
+                    return ValueTask.CompletedTask;
+                }
+
                 if (extension.RemoveAssemblyHandlers(assemblyFileName, out var assemblyHandlers))
                 {
                     if (assemblyHandlers is not null)
@@ -150,7 +170,7 @@ internal sealed class ExtensionMessageHandlerService(IExtensionMessageHandlerFac
         List<Extension> extensions;
         lock (_lockObject)
         {
-            extensions = _extensions.Values.ToList();
+            extensions = [.. _extensions.Values];
             _extensions.Clear();
             _workspaceHandlers.Clear();
             _documentHandlers.Clear();
@@ -209,7 +229,7 @@ internal sealed class ExtensionMessageHandlerService(IExtensionMessageHandlerFac
         lock (_lockObject)
         {
             // Make sure a call to UnloadCustomMessageHandlersAsync hasn't happened while we relinquished the lock on _lockObject
-            if (!_extensions.TryGetValue(extension.AssemblyFolderPath, out var currentExtension) || !currentExtension.Equals(extension))
+            if (!_extensions.TryGetValue(extension.AssemblyFolderPath, out var currentExtension) || !extension.Equals(currentExtension))
             {
                 throw new InvalidOperationException($"Handlers in {extension.AssemblyFolderPath} were unregistered while loading handlers.");
             }
@@ -343,8 +363,8 @@ internal sealed class ExtensionMessageHandlerService(IExtensionMessageHandlerFac
                 // The return is here, after RegisterAssembly, since RegisterAssembly can also throw an exception: the registration is not
                 // completed until RegisterAssembly returns.
                 return new(
-                    assemblyHandlers.WorkspaceMessageHandlers.Keys.ToImmutableArray(),
-                    assemblyHandlers.DocumentMessageHandlers.Keys.ToImmutableArray());
+                    [.. assemblyHandlers.WorkspaceMessageHandlers.Keys],
+                    [.. assemblyHandlers.DocumentMessageHandlers.Keys]);
             }
         }
 
