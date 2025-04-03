@@ -23,6 +23,10 @@ namespace Microsoft.CodeAnalysis.Extensions;
 
 internal sealed partial class ExtensionMessageHandlerServiceFactory
 {
+    private readonly record struct AssemblyMessageHandlers(
+        ImmutableDictionary<string, IExtensionMessageHandlerWrapper<Document>> DocumentMessageHandlers,
+        ImmutableDictionary<string, IExtensionMessageHandlerWrapper<Solution>> WorkspaceMessageHandlers);
+
     private sealed partial class ExtensionMessageHandlerService(
         SolutionServices solutionServices,
         IExtensionMessageHandlerFactory customMessageHandlerFactory)
@@ -30,8 +34,8 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
     {
         private static readonly ConditionalWeakTable<IExtensionMessageHandlerWrapper, IExtensionMessageHandlerWrapper> s_disabledExtensionHandlers = new();
 
-        private readonly SolutionServices _solutionServices = solutionServices;
-        private readonly IExtensionMessageHandlerFactory _customMessageHandlerFactory = customMessageHandlerFactory;
+        public readonly SolutionServices SolutionServices = solutionServices;
+        public readonly IExtensionMessageHandlerFactory CustomMessageHandlerFactory = customMessageHandlerFactory;
 
         /// <summary>
         /// Lock for <see cref="_folderPathToExtensionFolder_useOnlyUnderLock"/>, <see cref="_cachedDocumentHandlers_useOnlyUnderLock"/>, and <see
@@ -68,7 +72,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             Func<IRemoteExtensionMessageHandlerService, Checksum?, CancellationToken, ValueTask<TResult>> executeOutOfProcessAsync,
             CancellationToken cancellationToken)
         {
-            var client = await RemoteHostClient.TryGetClientAsync(_solutionServices, cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(this.SolutionServices, cancellationToken).ConfigureAwait(false);
             if (client is null)
                 return await executeInProcessAsync(cancellationToken).ConfigureAwait(false);
 

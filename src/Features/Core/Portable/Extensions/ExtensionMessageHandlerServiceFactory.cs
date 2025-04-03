@@ -18,10 +18,6 @@ namespace Microsoft.CodeAnalysis.Extensions;
 internal sealed partial class ExtensionMessageHandlerServiceFactory(IExtensionMessageHandlerFactory customMessageHandlerFactory)
     : IWorkspaceServiceFactory
 {
-    private readonly record struct AssemblyMessageHandlers(
-        ImmutableDictionary<string, IExtensionMessageHandlerWrapper<Document>> DocumentMessageHandlers,
-        ImmutableDictionary<string, IExtensionMessageHandlerWrapper<Solution>> WorkspaceMessageHandlers);
-
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         => new ExtensionMessageHandlerService(
             workspaceServices.SolutionServices,
