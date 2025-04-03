@@ -54,9 +54,7 @@ internal sealed class ExtensionRegisterHandler()
         {
             var service = solution.Services.GetRequiredService<IExtensionMessageHandlerService>();
             var response = await service.RegisterExtensionAsync(
-                solution,
-                request.AssemblyFilePath,
-                cancellationToken).ConfigureAwait(false);
+                request.AssemblyFilePath, cancellationToken).ConfigureAwait(false);
 
             return new(response.WorkspaceMessageHandlers, response.DocumentMessageHandlers);
         }

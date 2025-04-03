@@ -10,9 +10,10 @@ namespace Microsoft.CodeAnalysis.Extensions;
 internal interface IRemoteExtensionMessageHandlerService
 {
     ValueTask<RegisterExtensionResponse> RegisterExtensionAsync(
-        Checksum solutionChecksum,
-        string assemblyFilePath,
-        CancellationToken cancellationToken);
+        string assemblyFilePath, CancellationToken cancellationToken);
+
+    ValueTask UnregisterExtensionAsync(
+        string assemblyFilePath, CancellationToken cancellationToken);
 
     ValueTask<string> HandleExtensionDocumentMessageAsync(
         Checksum solutionChecksum,
@@ -21,14 +22,10 @@ internal interface IRemoteExtensionMessageHandlerService
         DocumentId documentId,
         CancellationToken cancellationToken);
 
-    ValueTask<string> HandleExensionWorkspaceMessageAsync(
+    ValueTask<string> HandleExtensionWorkspaceMessageAsync(
         Checksum solutionChecksum,
         string messageName,
         string jsonMessage,
-        CancellationToken cancellationToken);
-
-    ValueTask UnregisterExtensionAsync(
-        string assemblyFilePath,
         CancellationToken cancellationToken);
 
     ValueTask ResetAsync(

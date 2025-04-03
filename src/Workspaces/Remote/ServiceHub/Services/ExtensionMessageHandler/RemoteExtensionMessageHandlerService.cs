@@ -9,7 +9,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
-internal sealed partial class RemoteExtensionMessageHandlerService : BrokeredServiceBase, IRemoteExtensionMessageHandlerService
+internal sealed partial class RemoteExtensionMessageHandlerService(
+    in BrokeredServiceBase.ServiceConstructionArguments arguments)
+    : BrokeredServiceBase(arguments), IRemoteExtensionMessageHandlerService
 {
     internal sealed class Factory : FactoryBase<IRemoteExtensionMessageHandlerService>
     {
@@ -17,26 +19,23 @@ internal sealed partial class RemoteExtensionMessageHandlerService : BrokeredSer
             => new RemoteExtensionMessageHandlerService(arguments);
     }
 
-    public RemoteExtensionMessageHandlerService(in ServiceConstructionArguments arguments)
-        : base(arguments)
-    {
-    }
-
     public ValueTask<RegisterExtensionResponse> RegisterExtensionAsync(
-        Checksum solutionChecksum,
         string assemblyFilePath,
         CancellationToken cancellationToken)
     {
+        var service = this.GetWorkspaceServices().GetRequiredService<IExtensionMessageHandlerService>();
         return RunServiceAsync(
-            solutionChecksum,
-            solution =>
-            {
-                var service = solution.Services.GetRequiredService<IExtensionMessageHandlerService>();
-                return service.RegisterExtensionAsync(
-                    solution,
-                    assemblyFilePath,
-                    cancellationToken);
-            },
+            cancellationToken => service.RegisterExtensionAsync(assemblyFilePath, cancellationToken),
+            cancellationToken);
+    }
+
+    public ValueTask UnregisterExtensionAsync(
+        string assemblyFilePath,
+        CancellationToken cancellationToken)
+    {
+        var service = this.GetWorkspaceServices().GetRequiredService<IExtensionMessageHandlerService>();
+        return RunServiceAsync(
+            cancellationToken => service.UnregisterExtensionAsync(assemblyFilePath, cancellationToken),
             cancellationToken);
     }
 
@@ -47,51 +46,30 @@ internal sealed partial class RemoteExtensionMessageHandlerService : BrokeredSer
         DocumentId documentId,
         CancellationToken cancellationToken)
     {
+        var service = this.GetWorkspaceServices().GetRequiredService<IExtensionMessageHandlerService>();
         return RunServiceAsync(
             solutionChecksum,
             async solution =>
             {
                 var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
 
-                var service = solution.Services.GetRequiredService<IExtensionMessageHandlerService>();
                 return await service.HandleExtensionDocumentMessageAsync(
-                    document,
-                    messageName,
-                    jsonMessage,
-                    cancellationToken).ConfigureAwait(false);
+                    document, messageName, jsonMessage, cancellationToken).ConfigureAwait(false);
             },
             cancellationToken);
     }
 
-    public ValueTask<string> HandleExensionWorkspaceMessageAsync(
+    public ValueTask<string> HandleExtensionWorkspaceMessageAsync(
         Checksum solutionChecksum,
         string messageName,
         string jsonMessage,
         CancellationToken cancellationToken)
     {
+        var service = this.GetWorkspaceServices().GetRequiredService<IExtensionMessageHandlerService>();
         return RunServiceAsync(
             solutionChecksum,
-            solution =>
-            {
-                var service = solution.Services.GetRequiredService<IExtensionMessageHandlerService>();
-                return service.HandleExtensionWorkspaceMessageAsync(
-                    solution,
-                    messageName,
-                    jsonMessage,
-                    cancellationToken);
-            },
-            cancellationToken);
-    }
-
-    public ValueTask UnregisterExtensionAsync(
-        string assemblyFilePath,
-        CancellationToken cancellationToken)
-    {
-        var service = this.GetWorkspace().Services.GetRequiredService<IExtensionMessageHandlerService>();
-        return RunServiceAsync(
-            (_) => service.UnregisterExtensionAsync(
-                assemblyFilePath,
-                cancellationToken),
+            solution => service.HandleExtensionWorkspaceMessageAsync(
+                solution, messageName, jsonMessage, cancellationToken),
             cancellationToken);
     }
 
@@ -100,7 +78,7 @@ internal sealed partial class RemoteExtensionMessageHandlerService : BrokeredSer
     {
         var service = this.GetWorkspace().Services.GetRequiredService<IExtensionMessageHandlerService>();
         return RunServiceAsync(
-            (_) =>
+            cancellationToken =>
             {
                 service.Reset();
                 return default;

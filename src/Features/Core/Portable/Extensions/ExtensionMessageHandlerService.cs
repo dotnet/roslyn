@@ -111,12 +111,6 @@ internal sealed class ExtensionMessageHandlerService(
         return extension.LoadAssemblyAsync(assemblyFileName);
     }
 
-    public ValueTask<string> HandleExtensionWorkspaceMessageAsync(Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken)
-        => HandleExtensionMessageAsync(solution, messageName, jsonMessage, _workspaceHandlers, cancellationToken);
-
-    public ValueTask<string> HandleExtensionDocumentMessageAsync(Document document, string messageName, string jsonMessage, CancellationToken cancellationToken)
-        => HandleExtensionMessageAsync(document, messageName, jsonMessage, _documentHandlers, cancellationToken);
-
     public ValueTask UnregisterExtensionAsync(
         string assemblyFilePath,
         CancellationToken cancellationToken)
@@ -176,6 +170,12 @@ internal sealed class ExtensionMessageHandlerService(
             extension.AnalyzerAssemblyLoader.Dispose();
         }
     }
+
+    public ValueTask<string> HandleExtensionWorkspaceMessageAsync(Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken)
+        => HandleExtensionMessageAsync(solution, messageName, jsonMessage, _workspaceHandlers, cancellationToken);
+
+    public ValueTask<string> HandleExtensionDocumentMessageAsync(Document document, string messageName, string jsonMessage, CancellationToken cancellationToken)
+        => HandleExtensionMessageAsync(document, messageName, jsonMessage, _documentHandlers, cancellationToken);
 
     private async ValueTask<string> HandleExtensionMessageAsync<TArgument>(
         TArgument argument,
