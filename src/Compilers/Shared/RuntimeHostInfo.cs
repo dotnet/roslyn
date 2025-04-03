@@ -68,17 +68,12 @@ namespace Microsoft.CodeAnalysis
             }
 
             var (fileName, sep) = PlatformInformation.IsWindows
-                ? ("dotnet.exe", ';')
-                : ("dotnet", ':');
+                ? ("dotnet.exe", new char[] { ';' })
+                : ("dotnet", new char[] { ':' });
 
             var path = Environment.GetEnvironmentVariable("PATH") ?? "";
-            foreach (var item in path.Split(sep))
+            foreach (var item in path.Split(sep, StringSplitOptions.RemoveEmptyEntries))
             {
-                if (string.IsNullOrWhiteSpace(item))
-                {
-                    continue;
-                }
-
                 try
                 {
                     var filePath = Path.Combine(item, fileName);
