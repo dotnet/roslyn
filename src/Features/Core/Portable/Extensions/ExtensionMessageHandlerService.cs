@@ -49,7 +49,9 @@ internal sealed class ExtensionMessageHandlerService(
 
     /// <summary>
     /// Lock for <see cref="_folderPathToExtensionFolder"/>, <see cref="_cachedDocumentHandlers"/>, and <see
-    /// cref="_cachedWorkspaceHandlers"/>.
+    /// cref="_cachedWorkspaceHandlers"/>.  Note: this type is designed such that all time while this lock is held
+    /// should be minimal.  Importantly, no async work or IO should be done while holding this lock.  Instead,
+    /// all of that work should be pushed into AsyncLazy values that compute when asked, outside of this lock.
     /// </summary>
     private readonly object _gate = new();
 
