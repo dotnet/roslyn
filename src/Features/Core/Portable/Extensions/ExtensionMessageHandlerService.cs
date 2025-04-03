@@ -47,7 +47,7 @@ internal sealed class ExtensionMessageHandlerService(
     /// <summary>
     /// Extensions assembly load contexts and loaded handlers, indexed by extension folder path.
     /// </summary>
-    private ImmutableDictionary<string, AsyncLazy<ExtensionFolder?>> _folderPathToExtension = ImmutableDictionary<string, AsyncLazy<Extension?>>.Empty;
+    private ImmutableDictionary<string, AsyncLazy<ExtensionFolder?>> _folderPathToExtensionFolder = ImmutableDictionary<string, AsyncLazy<Extension?>>.Empty;
 
     /// <summary>
     /// Handlers of document-related messages, indexed by handler message name.
@@ -112,7 +112,7 @@ internal sealed class ExtensionMessageHandlerService(
         // var analyzerAssemblyLoaderProvider = _solutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
 
         var lazy = ImmutableInterlocked.GetOrAdd(
-            ref _folderPathToExtension,
+            ref _folderPathToExtensionFolder,
             assemblyFolderPath,
             static (assemblyFolderPath, @this) => AsyncLazy.Create(
                 cancellationToken => ExtensionFolder.CreateAsync(@this, assemblyFolderPath, cancellationToken)),
@@ -209,13 +209,13 @@ internal sealed class ExtensionMessageHandlerService(
         var assemblyFolderPath = Path.GetDirectoryName(assemblyFilePath)
             ?? throw new InvalidOperationException($"Unable to get the directory name for {assemblyFilePath}.");
 
-        if (_folderPathToExtension.TryGetValue(assemblyFolderPath, out var extension) &&
+        if (_folderPathToExtensionFolder.TryGetValue(assemblyFolderPath, out var extension) &&
             extension != null)
         {
             // Unregister this particular assembly file from teh assembly folder.  If it was the last extension within
             // this folder, we can remove the registration for the extension entirely.
             if (extension.Unregister(assemblyFileName))
-                _folderPathToExtension = _folderPathToExtension.RemoveEtension(assemblyFilePath);
+                _folderPathToExtensionFolder = _folderPathToExtensionFolder.Remove(assemblyFolderPath);
         }
 
         // After unregistering, clear out the cached handler names.  They will be recomputed the next time we need them.
@@ -268,14 +268,15 @@ internal sealed class ExtensionMessageHandlerService(
 
     private ValueTask<VoidResult> ResetInCurrentProcessAsync(CancellationToken cancellationToken)
     {
-        _folderPathToExtension = ImmutableDictionary<string, AsyncLazy<Extension?>>.Empty;
+        _folderPathToExtensionFolder = ImmutableDictionary<string, AsyncLazy<ExtensionFolder?>>.Empty;
+        ClearCachedHandlers();
         return default;
     }
 
     private void ClearCachedHandlers()
     {
-        _workspaceHandlers = ImmutableDictionary<string, AsyncLazy<IExtensionMessageHandlerWrapper<Solution>?>>.Empty;
-        _documentHandlers = ImmutableDictionary<string, AsyncLazy<IExtensionMessageHandlerWrapper<Document>?>>.Empty;
+        _cachedWorkspaceHandlers = ImmutableDictionary<string, AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper<Solution>>>>.Empty;
+        _cachedDocumentHandlers = ImmutableDictionary<string, AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper<Document>>>>.Empty;
     }
 
     public async ValueTask<string> HandleExtensionWorkspaceMessageAsync(Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken)
@@ -335,7 +336,7 @@ internal sealed class ExtensionMessageHandlerService(
         ExtensionMessageHandlerService @this, string messageName, bool solution, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<IExtensionMessageHandlerWrapper<TResult>>.GetInstance(out var result);
-        foreach (var (_, lazyExtension) in @this._folderPathToExtension)
+        foreach (var (_, lazyExtension) in @this._folderPathToExtensionFolder)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var extension = await lazyExtension.GetValueAsync(cancellationToken).ConfigureAwait(false);
