@@ -44,10 +44,7 @@ internal interface IExtensionMessageHandlerService : IWorkspaceService
     /// <param name="jsonMessage">The json message to be passed to the handler.</param>
     /// <returns>The json message returned by the handler.</returns>
     ValueTask<string> HandleExtensionWorkspaceMessageAsync(
-        Solution solution,
-        string messageName,
-        string jsonMessage,
-        CancellationToken cancellationToken);
+        Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken);
 
     /// <summary>
     /// Executes a document-specific extension message handler with the given message and solution.
@@ -57,8 +54,5 @@ internal interface IExtensionMessageHandlerService : IWorkspaceService
     /// <param name="jsonMessage">The json message to be passed to the handler.</param>
     /// <returns>The json message returned by the handler.</returns>
     ValueTask<string> HandleExtensionDocumentMessageAsync(
-        Document documentId,
-        string messageName,
-        string jsonMessage,
-        CancellationToken cancellationToken);
+        Document documentId, string messageName, string jsonMessage, CancellationToken cancellationToken);
 }
