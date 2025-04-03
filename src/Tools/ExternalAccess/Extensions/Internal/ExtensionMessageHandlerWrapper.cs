@@ -18,14 +18,14 @@ internal abstract class ExtensionHandlerWrapper<TArgument>
 
     protected ExtensionHandlerWrapper(object handler, Type customMessageHandlerInterface, string extensionIdentifier)
     {
-        this._handler = handler;
+        _handler = handler;
 
         Name = handler.GetType().FullName;
         MessageType = customMessageHandlerInterface.GenericTypeArguments[0];
         ResponseType = customMessageHandlerInterface.GenericTypeArguments[1];
         ExtensionIdentifier = extensionIdentifier;
 
-        _executeAsyncMethod = customMessageHandlerInterface.GetMethod("ExecuteAsync");
+        _executeAsyncMethod = customMessageHandlerInterface.GetMethod(nameof(ExecuteAsync));
         _responseTaskResultProperty = typeof(Task<>).MakeGenericType(ResponseType).GetProperty(nameof(Task<>.Result));
     }
 
