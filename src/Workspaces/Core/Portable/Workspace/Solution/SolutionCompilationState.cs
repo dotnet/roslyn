@@ -109,7 +109,7 @@ internal sealed partial class SolutionCompilationState
 
         // Solution and SG version maps must correspond to the same set of projects.
         Contract.ThrowIfFalse(this.SolutionState.ProjectStates
-            .Select(static s => s.Id)
+            .Select(static projectState => projectState.Id)
             .SetEquals(SourceGeneratorExecutionVersionMap.Map.Keys));
     }
 
