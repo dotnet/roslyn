@@ -408,6 +408,9 @@ internal sealed partial class SolutionState
                 newProjectStatesBuilder.Add(projectState);
             }
 
+            // Sort this before realizing the ImmutableArray to avoid an extra array allocation for sorting during the branch.
+            newProjectStatesBuilder.Sort(CompareProjectStates);
+
             var newProjectIds = newProjectIdsBuilder.ToBoxedImmutableArray();
             var newProjectStates = newProjectStatesBuilder.ToImmutableAndClear();
 
@@ -936,6 +939,9 @@ internal sealed partial class SolutionState
             statesBuilder.Add(projectState.WithFallbackAnalyzerOptions(languageOptions));
         }
 
+        // Sort this before realizing the ImmutableArray to avoid an extra array allocation for sorting during the branch.
+        statesBuilder.Sort(CompareProjectStates);
+
         return Branch(
             fallbackAnalyzerOptions: options,
             projectStates: statesBuilder.ToImmutableAndClear());
@@ -1174,7 +1180,7 @@ internal sealed partial class SolutionState
         foreach (var state in ProjectStates)
             newProjectStates.Add(state == oldProjectState ? newProjectState : state);
 
-        // Sort this up front to avoid an extra array allocation for sorting during the branch.
+        // Sort this before realizing the ImmutableArray to avoid an extra array allocation for sorting during the branch.
         newProjectStates.Sort(CompareProjectStates);
 
         newDependencyGraph ??= _dependencyGraph;
