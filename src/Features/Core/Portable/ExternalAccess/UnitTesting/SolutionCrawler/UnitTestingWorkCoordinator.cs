@@ -553,7 +553,7 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
             using var pool = SharedPools.Default<HashSet<string>>().GetPooledObject();
             if (_solutionId != null)
             {
-                pool.Object.UnionWith(solution.ProjectStates.Select(kv => kv.Language));
+                pool.Object.UnionWith(solution.ProjectStates.Select(project => project.Language));
                 return string.Join(",", pool.Object);
             }
 
