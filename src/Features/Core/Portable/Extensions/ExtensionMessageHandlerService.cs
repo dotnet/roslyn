@@ -44,18 +44,22 @@ internal sealed class ExtensionMessageHandlerService(
     private readonly SolutionServices _solutionServices = solutionServices;
     private readonly IExtensionMessageHandlerFactory _customMessageHandlerFactory = customMessageHandlerFactory;
 
+    // Core design: To make things lightweight, and to avoid locking, all work is computed and cached in simple
+    // immutable dictionaries.  These dictionaries are populated on demand, but contain data that can be recomputed
+    // safely if missing.  This allows for a safe approach to 
+
     /// <summary>
     /// Extensions assembly load contexts and loaded handlers, indexed by extension folder path.
     /// </summary>
-    private ImmutableDictionary<string, AsyncLazy<ExtensionFolder?>> _folderPathToExtensionFolder = ImmutableDictionary<string, AsyncLazy<Extension?>>.Empty;
+    private ImmutableDictionary<string, AsyncLazy<ExtensionFolder?>> _folderPathToExtensionFolder = ImmutableDictionary<string, AsyncLazy<ExtensionFolder?>>.Empty;
 
     /// <summary>
-    /// Handlers of document-related messages, indexed by handler message name.
+    /// Cached handlers of document-related messages, indexed by handler message name.
     /// </summary>
     private ImmutableDictionary<string, AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper<Document>>>> _cachedDocumentHandlers = ImmutableDictionary<string, AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper<Document>>>>.Empty;
 
     /// <summary>
-    /// Handlers of non-document-related messages, indexed by handler message name.
+    /// Cached handlers of non-document-related messages, indexed by handler message name.
     /// </summary>
     private ImmutableDictionary<string, AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper<Solution>>>> _cachedWorkspaceHandlers = ImmutableDictionary<string, AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper<Solution>>>>.Empty;
 
@@ -129,65 +133,6 @@ internal sealed class ExtensionMessageHandlerService(
         return new(
             [.. assemblyHandlers.WorkspaceMessageHandlers.Keys],
             [.. assemblyHandlers.DocumentMessageHandlers.Keys]);
-
-        //Extension? extension;
-        //using (await _lock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-        //{
-        //    // Check if the assembly is already loaded.
-        //    if (!_extensions.TryGetValue(assemblyFolderPath, out extension))
-        //    {
-        //        try
-        //        {
-        //            var analyzerAssemblyLoader = analyzerAssemblyLoaderProvider.CreateNewShadowCopyLoader();
-
-        //            // Allow this assembly loader to load any dll in assemblyFolderPath.
-        //            foreach (var dll in Directory.EnumerateFiles(assemblyFolderPath, "*.dll"))
-        //            {
-        //                try
-        //                {
-        //                    // Check if the file is a valid .NET assembly.
-        //                    AssemblyName.GetAssemblyName(dll);
-        //                }
-        //                catch
-        //                {
-        //                    // The file is not a valid .NET assembly, skip it.
-        //                    continue;
-        //                }
-
-        //                analyzerAssemblyLoader.AddDependencyLocation(dll);
-        //            }
-
-        //            extension = new Extension(this, analyzerAssemblyLoader, assemblyFolderPath);
-        //        }
-        //        catch
-        //        {
-        //            _extensions[assemblyFolderPath] = null;
-        //            throw;
-        //        }
-
-        //        _extensions[assemblyFolderPath] = extension;
-        //    }
-
-        //    if (extension is null)
-        //    {
-        //        throw new InvalidOperationException($"A previous attempt to load assemblies from {assemblyFolderPath} failed.");
-        //    }
-
-        //    if (extension.TryGetAssemblyHandlers(assemblyFileName, out var assemblyHandlers))
-        //    {
-        //        if (assemblyHandlers is null)
-        //        {
-        //            throw new InvalidOperationException($"A previous attempt to load {assemblyFilePath} failed.");
-        //        }
-
-        //        return new(
-        //            [.. assemblyHandlers.WorkspaceMessageHandlers.Keys],
-        //            [.. assemblyHandlers.DocumentMessageHandlers.Keys]);
-        //    }
-        //}
-
-        //// Intentionally call this outside of the lock.
-        //return await extension.LoadAssemblyAsync(assemblyFileName, cancellationToken).ConfigureAwait(false);
     }
 
     public async ValueTask UnregisterExtensionAsync(
@@ -205,7 +150,6 @@ internal sealed class ExtensionMessageHandlerService(
         string assemblyFilePath,
         CancellationToken cancellationToken)
     {
-        // var assemblyFileName = Path.GetFileName(assemblyFilePath);
         var assemblyFolderPath = Path.GetDirectoryName(assemblyFilePath)
             ?? throw new InvalidOperationException($"Unable to get the directory name for {assemblyFilePath}.");
 
@@ -214,7 +158,7 @@ internal sealed class ExtensionMessageHandlerService(
         {
             // Unregister this particular assembly file from teh assembly folder.  If it was the last extension within
             // this folder, we can remove the registration for the extension entirely.
-            if (extension.Unregister(assemblyFileName))
+            if (extension.UnregisterHandlers(assemblyFilePath))
                 _folderPathToExtensionFolder = _folderPathToExtensionFolder.Remove(assemblyFolderPath);
         }
 
