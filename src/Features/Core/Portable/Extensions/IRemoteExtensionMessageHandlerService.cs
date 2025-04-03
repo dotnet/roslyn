@@ -4,11 +4,16 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Threading;
 
 namespace Microsoft.CodeAnalysis.Extensions;
 
 internal interface IRemoteExtensionMessageHandlerService
 {
+    ValueTask<RegisterExtensionResponse> RegisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken);
+
+    ValueTask<VoidResult> UnregisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken);
+
     ValueTask<string> HandleExtensionDocumentMessageAsync(
         Checksum solutionChecksum,
         string messageName,
@@ -16,20 +21,11 @@ internal interface IRemoteExtensionMessageHandlerService
         DocumentId documentId,
         CancellationToken cancellationToken);
 
-    ValueTask<string> HandleExensionWorkspaceMessageAsync(
+    ValueTask<string> HandleExtensionWorkspaceMessageAsync(
         Checksum solutionChecksum,
         string messageName,
         string jsonMessage,
         CancellationToken cancellationToken);
 
-    ValueTask<RegisterExtensionResponse> RegisterExtensionAsync(
-        string assemblyFilePath,
-        CancellationToken cancellationToken);
-
-    ValueTask UnregisterExtensionAsync(
-        string assemblyFilePath,
-        CancellationToken cancellationToken);
-
-    ValueTask ResetAsync(
-        CancellationToken cancellationToken);
+    ValueTask<VoidResult> ResetAsync(CancellationToken cancellationToken);
 }

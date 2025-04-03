@@ -6,10 +6,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Threading;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
-internal sealed partial class RemoteExtensionMessageHandlerService : BrokeredServiceBase, IRemoteExtensionMessageHandlerService
+internal sealed partial class RemoteExtensionMessageHandlerService(
+    in BrokeredServiceBase.ServiceConstructionArguments arguments)
+    : BrokeredServiceBase(arguments), IRemoteExtensionMessageHandlerService
 {
     internal sealed class Factory : FactoryBase<IRemoteExtensionMessageHandlerService>
     {
@@ -17,24 +20,26 @@ internal sealed partial class RemoteExtensionMessageHandlerService : BrokeredSer
             => new RemoteExtensionMessageHandlerService(arguments);
     }
 
-    public RemoteExtensionMessageHandlerService(in ServiceConstructionArguments arguments)
-        : base(arguments)
-    {
-    }
-
     public ValueTask<RegisterExtensionResponse> RegisterExtensionAsync(
         string assemblyFilePath,
         CancellationToken cancellationToken)
     {
-        var workspace = this.GetWorkspace();
-        var service = workspace.Services.GetRequiredService<IExtensionMessageHandlerService>();
+        var service = this.GetWorkspaceServices().GetRequiredService<IExtensionMessageHandlerService>();
         return RunServiceAsync(
-            (_) =>
+            cancellationToken => service.RegisterExtensionAsync(assemblyFilePath, cancellationToken),
+            cancellationToken);
+    }
+
+    public ValueTask<VoidResult> UnregisterExtensionAsync(
+        string assemblyFilePath,
+        CancellationToken cancellationToken)
+    {
+        var service = this.GetWorkspaceServices().GetRequiredService<IExtensionMessageHandlerService>();
+        return RunServiceAsync(
+            async cancellationToken =>
             {
-                return service.RegisterExtensionAsync(
-                    workspace,
-                    assemblyFilePath,
-                    cancellationToken);
+                await service.UnregisterExtensionAsync(assemblyFilePath, cancellationToken).ConfigureAwait(false);
+                return default(VoidResult);
             },
             cancellationToken);
     }
@@ -46,63 +51,42 @@ internal sealed partial class RemoteExtensionMessageHandlerService : BrokeredSer
         DocumentId documentId,
         CancellationToken cancellationToken)
     {
+        var service = this.GetWorkspaceServices().GetRequiredService<IExtensionMessageHandlerService>();
         return RunServiceAsync(
             solutionChecksum,
             async solution =>
             {
                 var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
 
-                var service = solution.Services.GetRequiredService<IExtensionMessageHandlerService>();
                 return await service.HandleExtensionDocumentMessageAsync(
-                    document,
-                    messageName,
-                    jsonMessage,
-                    cancellationToken).ConfigureAwait(false);
+                    document, messageName, jsonMessage, cancellationToken).ConfigureAwait(false);
             },
             cancellationToken);
     }
 
-    public ValueTask<string> HandleExensionWorkspaceMessageAsync(
+    public ValueTask<string> HandleExtensionWorkspaceMessageAsync(
         Checksum solutionChecksum,
         string messageName,
         string jsonMessage,
         CancellationToken cancellationToken)
     {
+        var service = this.GetWorkspaceServices().GetRequiredService<IExtensionMessageHandlerService>();
         return RunServiceAsync(
             solutionChecksum,
-            solution =>
-            {
-                var service = solution.Services.GetRequiredService<IExtensionMessageHandlerService>();
-                return service.HandleExtensionWorkspaceMessageAsync(
-                    solution,
-                    messageName,
-                    jsonMessage,
-                    cancellationToken);
-            },
+            solution => service.HandleExtensionWorkspaceMessageAsync(
+                solution, messageName, jsonMessage, cancellationToken),
             cancellationToken);
     }
 
-    public ValueTask UnregisterExtensionAsync(
-        string assemblyFilePath,
+    public ValueTask<VoidResult> ResetAsync(
         CancellationToken cancellationToken)
     {
         var service = this.GetWorkspace().Services.GetRequiredService<IExtensionMessageHandlerService>();
         return RunServiceAsync(
-            (_) => service.UnregisterExtensionAsync(
-                assemblyFilePath,
-                cancellationToken),
-            cancellationToken);
-    }
-
-    public ValueTask ResetAsync(
-        CancellationToken cancellationToken)
-    {
-        var service = this.GetWorkspace().Services.GetRequiredService<IExtensionMessageHandlerService>();
-        return RunServiceAsync(
-            (_) =>
+            async cancellationToken =>
             {
-                service.Reset();
-                return default;
+                await service.ResetAsync(cancellationToken).ConfigureAwait(false);
+                return default(VoidResult);
             },
             cancellationToken);
     }

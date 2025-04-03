@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Remote;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Extensions;
@@ -27,9 +26,7 @@ internal sealed class ExtensionDocumentMessageHandler()
     public bool RequiresLSPSolution => true;
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(ExtensionDocumentMessageParams request)
-    {
-        return request.TextDocument;
-    }
+        => request.TextDocument;
 
     public async Task<ExtensionMessageResponse> HandleRequestAsync(ExtensionDocumentMessageParams request, RequestContext context, CancellationToken cancellationToken)
     {
@@ -37,39 +34,11 @@ internal sealed class ExtensionDocumentMessageHandler()
         Contract.ThrowIfNull(context.Solution);
 
         var solution = context.Solution;
-        var project = context.Document.Project;
-        var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
 
-        if (client is not null)
-        {
-            var response = await client.TryInvokeAsync<IRemoteExtensionMessageHandlerService, string>(
-                project,
-                (service, solutionInfo, cancellationToken) => service.HandleExtensionDocumentMessageAsync(
-                    solutionInfo,
-                    request.MessageName,
-                    request.Message,
-                    context.Document.Id,
-                    cancellationToken),
-                cancellationToken).ConfigureAwait(false);
+        var service = solution.Services.GetRequiredService<IExtensionMessageHandlerService>();
+        var response = await service.HandleExtensionDocumentMessageAsync(
+            context.Document, request.MessageName, request.Message, cancellationToken).ConfigureAwait(false);
 
-            if (!response.HasValue)
-            {
-                throw new InvalidOperationException("The remote message handler didn't return any value.");
-            }
-
-            return new ExtensionMessageResponse(response.Value);
-        }
-        else
-        {
-            Contract.ThrowIfNull(context.Workspace);
-            var service = solution.Services.GetRequiredService<IExtensionMessageHandlerService>();
-            var response = await service.HandleExtensionDocumentMessageAsync(
-                    context.Document,
-                    request.MessageName,
-                    request.Message,
-                    cancellationToken).ConfigureAwait(false);
-
-            return new ExtensionMessageResponse(response);
-        }
+        return new ExtensionMessageResponse(response);
     }
 }
