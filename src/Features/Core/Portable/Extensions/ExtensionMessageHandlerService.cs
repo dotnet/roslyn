@@ -158,6 +158,8 @@ internal sealed class ExtensionMessageHandlerService(
         var assemblyFolderPath = Path.GetDirectoryName(assemblyFilePath)
             ?? throw new InvalidOperationException($"Unable to get the directory name for {assemblyFilePath}.");
 
+        // Note: unregistering is slightly expensive as we do everything under a lock, to ensure that we have a
+        // consistent view of the world.  This is fine as we don't expect this to be called very often.
         using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
             if (_folderPathToExtensionFolder.TryGetValue(assemblyFolderPath, out var lazyExtensionFolder))
@@ -288,6 +290,9 @@ internal sealed class ExtensionMessageHandlerService(
 
     private abstract class ExtensionFolder
     {
+        /// <summary>
+        /// Mapping from assembly file path to the handlers it contains.  Used as its own lock when mutating.
+        /// </summary>
         private readonly Dictionary<string, AsyncLazy<AssemblyHandlers>> _assemblyFilePathToHandlers = new();
 
         protected abstract AssemblyHandlers CreateAssemblyHandlers(string assemblyFilePath, CancellationToken cancellationToken);
