@@ -212,23 +212,21 @@ internal sealed class ExtensionMessageHandlerService(
             (service, _, cancellationToken) => service.ResetAsync(cancellationToken)).ConfigureAwait(false);
     }
 
-    private ValueTask<VoidResult> ResetInCurrentProcessAsync(CancellationToken cancellationToken)
+    private async ValueTask<VoidResult> ResetInCurrentProcessAsync(CancellationToken cancellationToken)
     {
         List<Extension> extensions;
-        lock (_lockObject)
+        using (await _lock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
-            extensions = _extensions.Values.ToList();
+            extensions = [.. _extensions.Values];
             _extensions.Clear();
             _workspaceHandlers.Clear();
             _documentHandlers.Clear();
         }
 
         foreach (var extension in extensions)
-        {
             extension.AnalyzerAssemblyLoader.Dispose();
-        }
 
-        return default; ;
+        return default;
     }
 
     public async ValueTask<string> HandleExtensionWorkspaceMessageAsync(Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken)
