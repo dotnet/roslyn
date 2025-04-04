@@ -1580,8 +1580,7 @@ internal sealed partial class SolutionCompilationState
             newProjectStatesBuilder.AddRange(this.SolutionState.ProjectStates);
             for (var i = 0; i < newProjectStatesBuilder.Count; i++)
             {
-                var projectState = newProjectStatesBuilder[i];
-                var projectId = projectState.Id;
+                var projectId = newProjectStatesBuilder[i].Id;
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // Definitely do nothing for non-C#/VB projects.  We have nothing to freeze in that case.
@@ -1603,9 +1602,7 @@ internal sealed partial class SolutionCompilationState
                 if (oldTracker == newTracker)
                     continue;
 
-                var newProjectState = newTracker.ProjectState;
-
-                newProjectStatesBuilder[i] = newProjectState;
+                newProjectStatesBuilder[i] = newTracker.ProjectState;
                 newIdToTrackerMapBuilder[projectId] = newTracker;
                 projectStateChanged = true;
             }
@@ -1615,12 +1612,7 @@ internal sealed partial class SolutionCompilationState
             var updatedIdToTrackerMap = updatedIdToTrackerMapBuilder.ToImmutable();
             if (originalProjectIdToTrackerMap == RoslynImmutableInterlocked.InterlockedCompareExchange(ref _projectIdToTrackerMap, updatedIdToTrackerMap, originalProjectIdToTrackerMap))
             {
-                var newProjectStates = this.SolutionState.ProjectStates;
-                if (projectStateChanged)
-                {
-                    newProjectStatesBuilder.Sort(SolutionState.CompareProjectStates);
-                    newProjectStates = newProjectStatesBuilder.ToImmutableAndClear();
-                }
+                var newProjectStates = projectStateChanged ? newProjectStatesBuilder.ToImmutableAndClear() : this.SolutionState.ProjectStates;
 
                 return (newProjectStates, newIdToTrackerMapBuilder.ToImmutable());
             }

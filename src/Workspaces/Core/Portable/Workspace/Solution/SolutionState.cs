@@ -166,6 +166,9 @@ internal sealed partial class SolutionState
         // project ids must be the same:
         Debug.Assert(ProjectStates.Select(static state => state.Id).SetEquals(ProjectIds));
         Debug.Assert(ProjectStates.Select(static state => state.Id).SetEquals(_dependencyGraph.ProjectIds));
+
+        // project states must be sorted by Id:
+        Debug.Assert(ProjectStates.IsSorted(Comparer<ProjectState>.Create(CompareProjectStates)));
 #endif
     }
 
@@ -181,7 +184,7 @@ internal sealed partial class SolutionState
     {
         solutionAttributes ??= SolutionAttributes;
         projectIds ??= ProjectIds;
-        projectStates = projectStates == null ? ProjectStates : projectStates.Value.Sort(CompareProjectStates);
+        projectStates ??= ProjectStates;
         options ??= Options;
         analyzerReferences ??= AnalyzerReferences;
         fallbackAnalyzerOptions ??= FallbackAnalyzerOptions;
@@ -941,9 +944,6 @@ internal sealed partial class SolutionState
             statesBuilder.Add(projectState.WithFallbackAnalyzerOptions(languageOptions));
         }
 
-        // Sort this before realizing the ImmutableArray to avoid an extra array allocation for sorting during the branch.
-        statesBuilder.Sort(CompareProjectStates);
-
         return Branch(
             fallbackAnalyzerOptions: options,
             projectStates: statesBuilder.ToImmutableAndClear());
@@ -1177,18 +1177,12 @@ internal sealed partial class SolutionState
         var projectId = newProjectState.Id;
 
         Contract.ThrowIfFalse(ContainsProject(projectId));
-
-        using var _ = ArrayBuilder<ProjectState>.GetInstance(ProjectStates.Length, out var newProjectStates);
-        foreach (var state in ProjectStates)
-            newProjectStates.Add(state == oldProjectState ? newProjectState : state);
-
-        // Sort this before realizing the ImmutableArray to avoid an extra array allocation for sorting during the branch.
-        newProjectStates.Sort(CompareProjectStates);
+        var newProjectStates = ProjectStates.Replace(oldProjectState, newProjectState);
 
         newDependencyGraph ??= _dependencyGraph;
 
         var newSolutionState = this.Branch(
-            projectStates: newProjectStates.ToImmutableAndClear(),
+            projectStates: newProjectStates,
             dependencyGraph: newDependencyGraph);
 
         return new(newSolutionState, oldProjectState, newProjectState);
