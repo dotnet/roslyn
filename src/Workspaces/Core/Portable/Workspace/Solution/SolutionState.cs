@@ -168,7 +168,7 @@ internal sealed partial class SolutionState
         Debug.Assert(ProjectStates.Select(static state => state.Id).SetEquals(_dependencyGraph.ProjectIds));
 
         // project states must be sorted by Id:
-        Debug.Assert(ProjectStates.IsSorted(Comparer<ProjectState>.Create(CompareProjectStates)));
+        Debug.Assert(ProjectStates.IsSorted());
 #endif
     }
 
@@ -326,16 +326,10 @@ internal sealed partial class SolutionState
     /// <remarks>Requires the input array to be sorted by Id</remarks>
     private static ProjectState? GetProjectState(ImmutableArray<ProjectState> sortedPojectStates, ProjectId projectId)
     {
-        var index = sortedPojectStates.BinarySearch(projectId, static (projectState, projectId) => CompareProjectIds(projectState.Id, projectId));
+        var index = sortedPojectStates.BinarySearch(projectId, static (projectState, projectId) => ((IComparable<ProjectId>)projectState.Id).CompareTo(projectId));
 
         return index >= 0 ? sortedPojectStates[index] : null;
     }
-
-    internal static int CompareProjectStates(ProjectState projectState1, ProjectState projectState2)
-        => CompareProjectIds(projectState1.Id, projectState2.Id);
-
-    private static int CompareProjectIds(ProjectId projectId1, ProjectId projectId2)
-        => projectId1.Id.CompareTo(projectId2.Id);
 
     public ProjectState GetRequiredProjectState(ProjectId projectId)
     {
@@ -413,8 +407,8 @@ internal sealed partial class SolutionState
                 newProjectStatesBuilder.Add(projectState);
             }
 
-            // Sort this before realizing the ImmutableArray to avoid an extra array allocation for sorting during the branch.
-            newProjectStatesBuilder.Sort(CompareProjectStates);
+            // Sort so project states are sorted by ProjectId
+            newProjectStatesBuilder.Sort();
 
             var newProjectIds = newProjectIdsBuilder.ToBoxedImmutableArray();
             var newProjectStates = newProjectStatesBuilder.ToImmutableAndClear();
