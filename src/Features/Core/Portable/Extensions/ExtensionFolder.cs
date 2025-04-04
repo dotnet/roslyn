@@ -96,7 +96,9 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             {
                 // On NetFramework analyzerAssemblyLoader. As we have no way to load extensions safely, just return an
                 // empty set of handlers.  Similarly, if we ran into an exception enumerating the exception folder, then
-                // pass that upwards.
+                // pass that upwards as well.  This exception will be reported back to the client.  By passing back
+                // empty handler arrays, our higher layers can operate properly and treat this as an assembly with
+                // nothing to offer.
                 var (analyzerAssemblyLoader, extensionException) = await _lazyAssemblyLoader.GetValueAsync(cancellationToken).ConfigureAwait(false);
                 if (analyzerAssemblyLoader is null || extensionException is not null)
                 {
@@ -129,6 +131,8 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
+                    // In the case of an exception, act as if the extension has no handlers to proffer.  Also capture
+                    // the exception so it can be reported back to the client.
                     return new(
                         DocumentMessageHandlers: ImmutableDictionary<string, IExtensionMessageHandlerWrapper>.Empty,
                         WorkspaceMessageHandlers: ImmutableDictionary<string, IExtensionMessageHandlerWrapper>.Empty,
