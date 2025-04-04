@@ -30,7 +30,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             /// <summary>
             /// Lazily computed assembly loader for this particular folder.
             /// </summary>
-            private readonly AsyncLazy<IAnalyzerAssemblyLoaderInternal>? _lazyAssemblyLoader;
+            private readonly AsyncLazy<IAnalyzerAssemblyLoaderInternal?> _lazyAssemblyLoader;
 
             /// <summary>
             /// Mapping from assembly file path to the handlers it contains.  Should only be mutated while the <see
@@ -43,9 +43,9 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                 string assemblyFolderPath)
             {
                 _extensionMessageHandlerService = extensionMessageHandlerService;
-#if NET
                 _lazyAssemblyLoader = AsyncLazy.Create(cancellationToken =>
                 {
+#if NET
                     var analyzerAssemblyLoaderProvider = _extensionMessageHandlerService._solutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
                     var analyzerAssemblyLoader = analyzerAssemblyLoaderProvider.CreateNewShadowCopyLoader();
 
@@ -67,30 +67,32 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                         analyzerAssemblyLoader.AddDependencyLocation(dll);
                     }
 
-                    return analyzerAssemblyLoader;
-                });
+                    return (IAnalyzerAssemblyLoaderInternal?)analyzerAssemblyLoader;
+#else
+                    return (IAnalyzerAssemblyLoaderInternal?)null;
 #endif
+                });
             }
 
             public void Unload()
             {
                 // Only if we've created the assembly loader do we need to do anything.
-                if (_lazyAssemblyLoader != null && _lazyAssemblyLoader.TryGetValue(out var loader))
-                    loader?.Dispose();
+                _lazyAssemblyLoader.TryGetValue(out var loader);
+                loader?.Dispose();
             }
 
             private async Task<AssemblyMessageHandlers> CreateAssemblyHandlersAsync(
                 string assemblyFilePath, CancellationToken cancellationToken)
             {
                 // On NetFramework do nothing. We have no way to load extensions safely.
-                if (_lazyAssemblyLoader is null)
+                var analyzerAssemblyLoader = await _lazyAssemblyLoader.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                if (analyzerAssemblyLoader is null)
                 {
                     return new(
                         DocumentMessageHandlers: ImmutableDictionary<string, IExtensionMessageHandlerWrapper>.Empty,
                         WorkspaceMessageHandlers: ImmutableDictionary<string, IExtensionMessageHandlerWrapper>.Empty);
                 }
 
-                var analyzerAssemblyLoader = await _lazyAssemblyLoader.GetValueAsync(cancellationToken).ConfigureAwait(false);
                 var assembly = analyzerAssemblyLoader.LoadFromPath(assemblyFilePath);
                 var factory = _extensionMessageHandlerService._customMessageHandlerFactory;
 
