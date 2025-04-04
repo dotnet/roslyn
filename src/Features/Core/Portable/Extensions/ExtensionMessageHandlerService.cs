@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if NET
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading;
@@ -96,6 +95,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
 
             // Note: unregistering is slightly expensive as we do everything under a lock, to ensure that we have a
             // consistent view of the world.  This is fine as we don't expect this to be called very often.
+            ExtensionFolder? folderToUnload = null;
             lock (_gate)
             {
                 if (!_folderPathToExtensionFolder_useOnlyUnderLock.TryGetValue(assemblyFolderPath, out var extensionFolder))
@@ -104,12 +104,20 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                 // Unregister this particular assembly file from teh assembly folder.  If it was the last extension within
                 // this folder, we can remove the registration for the extension entirely.
                 if (extensionFolder.UnregisterAssembly(assemblyFilePath))
+                {
+                    folderToUnload = extensionFolder;
                     _folderPathToExtensionFolder_useOnlyUnderLock.Remove(assemblyFolderPath);
+                }
 
                 // After unregistering, clear out the cached handler names.  They will be recomputed the next time we need them.
                 ClearCachedHandlers_WhileUnderLock();
-                return default;
             }
+
+            // Now that we're done with the folder, ask it to unload any resources it is holding onto. This will ask it
+            // to unload all ALCs needed to load it and the extensions within.  Unloading will happen once the
+            // runtime/gc determine the ALC is finally collectible.
+            folderToUnload?.Unload();
+            return default;
         }
 
         public async ValueTask<GetExtensionMessageNamesResponse> GetExtensionMessageNamesInCurrentProcessAsync(
@@ -134,12 +142,19 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
 
         private ValueTask<VoidResult> ResetInCurrentProcessAsync()
         {
+            using var _ = ArrayBuilder<ExtensionFolder>.GetInstance(out var foldersToUnload);
+
             lock (_gate)
             {
+                foldersToUnload.AddRange(_folderPathToExtensionFolder_useOnlyUnderLock.Values);
                 _folderPathToExtensionFolder_useOnlyUnderLock.Clear();
                 ClearCachedHandlers_WhileUnderLock();
-                return default;
             }
+
+            foreach (var folderToUnload in foldersToUnload)
+                folderToUnload.Unload();
+
+            return default;
         }
 
         private async ValueTask<string> HandleExtensionMessageInCurrentProcessAsync<TArgument>(
@@ -188,7 +203,11 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
 
                 // Any exception thrown in this method is left to bubble up to the extension. But we unregister this handler
                 // from that assembly to minimize the impact.
+#if NET
                 s_disabledExtensionHandlers.TryAdd(handler, handler);
+#else
+                s_disabledExtensionHandlers.GetValue(handler, _ => handler);
+#endif
                 return false;
             }
         }
@@ -217,4 +236,3 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
         }
     }
 }
-#endif

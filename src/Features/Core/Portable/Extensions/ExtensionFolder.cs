@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if NET
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -23,14 +21,14 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
     /// <summary>
     /// Represents a folder that many individual extension assemblies can be loaded from.
     /// </summary>
-    private sealed class ExtensionFolder
+    private sealed class ExtensionFolder 
     {
         private readonly ExtensionMessageHandlerService _extensionMessageHandlerService;
 
         /// <summary>
         /// Lazily computed assembly loader for this particular folder.
         /// </summary>
-        private readonly AsyncLazy<IAnalyzerAssemblyLoaderInternal> _lazyAssemblyLoader;
+        private readonly AsyncLazy<IAnalyzerAssemblyLoaderInternal?> _lazyAssemblyLoader;
 
         /// <summary>
         /// Mapping from assembly file path to the handlers it contains.  Used as its own lock when mutating.
@@ -44,6 +42,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             _extensionMessageHandlerService = extensionMessageHandlerService;
             _lazyAssemblyLoader = AsyncLazy.Create(cancellationToken =>
             {
+#if NET
                 var analyzerAssemblyLoaderProvider = _extensionMessageHandlerService.SolutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
                 var analyzerAssemblyLoader = analyzerAssemblyLoaderProvider.CreateNewShadowCopyLoader();
 
@@ -65,16 +64,31 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                     analyzerAssemblyLoader.AddDependencyLocation(dll);
                 }
 
-                return analyzerAssemblyLoader;
+                return (IAnalyzerAssemblyLoaderInternal?)analyzerAssemblyLoader;
+#else
+                // We only support loading extensions in a .Net Core host.
+                return (IAnalyzerAssemblyLoaderInternal?)null;
+#endif
             });
+        }
+
+        public void Unload()
+        {
+            // Only if we've created the assembly loader do we need to do anything.
+            if (_lazyAssemblyLoader.TryGetValue(out var loader))
+                loader?.Dispose();
         }
 
         private async Task<AssemblyMessageHandlers> CreateAssemblyHandlersAsync(
             string assemblyFilePath, CancellationToken cancellationToken)
         {
-            // If creating the underlying assembly loader failed, then we will throw that exception outwards for the
-            // client to hear about.
             var analyzerAssemblyLoader = await _lazyAssemblyLoader.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            if (analyzerAssemblyLoader is null)
+            {
+                return new(
+                    DocumentMessageHandlers: ImmutableDictionary<string, IExtensionMessageHandlerWrapper>.Empty,
+                    WorkspaceMessageHandlers: ImmutableDictionary<string, IExtensionMessageHandlerWrapper>.Empty);
+            }
 
             var assembly = analyzerAssemblyLoader.LoadFromPath(assemblyFilePath);
             var factory = _extensionMessageHandlerService.CustomMessageHandlerFactory;
@@ -169,4 +183,3 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
         }
     }
 }
-#endif
