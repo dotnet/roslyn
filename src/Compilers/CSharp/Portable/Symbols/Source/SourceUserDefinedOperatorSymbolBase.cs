@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.CheckUnsafeModifier(declarationModifiers, diagnostics);
 
-            bool isIncrementDecrement = IsIncrementDecrementDeclaration(syntax);
+            (bool isIncrementDecrement, bool isCompoundAssignment) = IsAssignmentOperatorDeclaration(syntax);
 
             if (isIncrementDecrement)
             {
@@ -66,6 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
+                    // PROTOTYPE: Cover explicit implementation scenarios
+
                     Binder.CheckFeatureAvailability(syntax, MessageID.IDS_FeatureUserDefinedCompoundAssignmentOperators, diagnostics, ((OperatorDeclarationSyntax)syntax).OperatorToken.GetLocation());
 
                     if (parameterCount is not (0 or 2))
@@ -73,6 +75,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_BadIncrementOpArgs, this.GetFirstLocation(), SyntaxFacts.GetText(((OperatorDeclarationSyntax)syntax).OperatorToken.Kind()));
                     }
                 }
+            }
+            else if (isCompoundAssignment)
+            {
+                // PROTOTYPE: Cover explicit implementation scenarios
+                Binder.CheckFeatureAvailability(syntax, MessageID.IDS_FeatureUserDefinedCompoundAssignmentOperators, diagnostics, ((OperatorDeclarationSyntax)syntax).OperatorToken.GetLocation());
             }
 
             if (this.ContainingType.IsInterface &&
@@ -97,12 +104,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // SPEC: static modifier
             if (this.IsExplicitInterfaceImplementation)
             {
-                if (!this.IsStatic && !isIncrementDecrement)
+                if (!this.IsStatic && !isIncrementDecrement && !isCompoundAssignment)
                 {
                     diagnostics.Add(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, this.GetFirstLocation(), this);
                 }
             }
-            else if (isIncrementDecrement && !this.IsStatic)
+            else if ((isIncrementDecrement || isCompoundAssignment) && !this.IsStatic)
             {
                 if (this.DeclaredAccessibility != Accessibility.Public)
                 {
@@ -176,9 +183,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation: false, diagnostics, location);
         }
 
-        private static bool IsIncrementDecrementDeclaration(CSharpSyntaxNode syntax)
+        private static (bool isIncrementDecrement, bool isCompoundAssignment) IsAssignmentOperatorDeclaration(CSharpSyntaxNode syntax)
         {
-            return syntax is OperatorDeclarationSyntax { OperatorToken.RawKind: (int)SyntaxKind.PlusPlusToken or (int)SyntaxKind.MinusMinusToken };
+            if (syntax is OperatorDeclarationSyntax operatorDeclaration)
+            {
+                if (operatorDeclaration.OperatorToken.Kind() is SyntaxKind.PlusPlusToken or SyntaxKind.MinusMinusToken)
+                {
+                    return (true, false);
+                }
+                else if (SyntaxFacts.IsOverloadableCompoundAssignmentOperator(operatorDeclaration.OperatorToken.Kind()))
+                {
+                    return (false, true);
+                }
+            }
+
+            return (false, false);
         }
 
         protected static DeclarationModifiers MakeDeclarationModifiers(MethodKind methodKind, SourceMemberContainerTypeSymbol containingType, BaseMethodDeclarationSyntax syntax, Location location, BindingDiagnosticBag diagnostics)
@@ -190,6 +209,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers.Static |
                 DeclarationModifiers.Extern |
                 DeclarationModifiers.Unsafe;
+
+            (bool isIncrementDecrement, bool isCompoundAssignment) = IsAssignmentOperatorDeclaration(syntax);
 
             if (!isExplicitInterfaceImplementation)
             {
@@ -205,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                if (IsIncrementDecrementDeclaration(syntax))
+                if (isIncrementDecrement || isCompoundAssignment)
                 {
                     if (inInterface)
                     {
@@ -226,6 +247,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(isExplicitInterfaceImplementation);
                 allowedModifiers |= DeclarationModifiers.Abstract;
+            }
+
+            if (isCompoundAssignment)
+            {
+                allowedModifiers &= ~DeclarationModifiers.Static;
             }
 
             var result = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(
@@ -272,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Binder.CheckFeatureAvailability(location.SourceTree, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, location);
                     }
                 }
-                else if (!isExplicitInterfaceImplementation && IsIncrementDecrementDeclaration(syntax))
+                else if (!isExplicitInterfaceImplementation && (isIncrementDecrement || isCompoundAssignment))
                 {
                     if (syntax.HasAnyBody())
                     {
@@ -504,6 +530,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     break;
 
+                case WellKnownMemberNames.CheckedAdditionAssignmentOperatorName:
+                case WellKnownMemberNames.AdditionAssignmentOperatorName:
+                case WellKnownMemberNames.CheckedDivisionAssignmentOperatorName:
+                case WellKnownMemberNames.DivisionAssignmentOperatorName:
+                case WellKnownMemberNames.CheckedMultiplicationAssignmentOperatorName:
+                case WellKnownMemberNames.MultiplicationAssignmentOperatorName:
+                case WellKnownMemberNames.CheckedSubtractionAssignmentOperatorName:
+                case WellKnownMemberNames.SubtractionAssignmentOperatorName:
+                case WellKnownMemberNames.ModulusAssignmentOperatorName:
+                case WellKnownMemberNames.BitwiseAndAssignmentOperatorName:
+                case WellKnownMemberNames.BitwiseOrAssignmentOperatorName:
+                case WellKnownMemberNames.ExclusiveOrAssignmentOperatorName:
+                case WellKnownMemberNames.LeftShiftAssignmentOperatorName:
+                case WellKnownMemberNames.RightShiftAssignmentOperatorName:
+                case WellKnownMemberNames.UnsignedRightShiftAssignmentOperatorName:
+                    if (!this.ReturnsVoid)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_OperatorMustReturnVoid, this.GetFirstLocation());
+                    }
+
+                    // PROTOTYPE: Test/handle scenarios with ref modifiers on the parameter
+                    break;
+
                 default:
                     CheckBinarySignature(diagnostics);
                     break;
@@ -530,6 +579,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case WellKnownMemberNames.ImplicitConversionName:
                 case WellKnownMemberNames.ExplicitConversionName:
                 case WellKnownMemberNames.CheckedExplicitConversionName:
+                case WellKnownMemberNames.CheckedAdditionAssignmentOperatorName:
+                case WellKnownMemberNames.AdditionAssignmentOperatorName:
+                case WellKnownMemberNames.CheckedDivisionAssignmentOperatorName:
+                case WellKnownMemberNames.DivisionAssignmentOperatorName:
+                case WellKnownMemberNames.CheckedMultiplicationAssignmentOperatorName:
+                case WellKnownMemberNames.MultiplicationAssignmentOperatorName:
+                case WellKnownMemberNames.CheckedSubtractionAssignmentOperatorName:
+                case WellKnownMemberNames.SubtractionAssignmentOperatorName:
+                case WellKnownMemberNames.ModulusAssignmentOperatorName:
+                case WellKnownMemberNames.BitwiseAndAssignmentOperatorName:
+                case WellKnownMemberNames.BitwiseOrAssignmentOperatorName:
+                case WellKnownMemberNames.ExclusiveOrAssignmentOperatorName:
+                case WellKnownMemberNames.LeftShiftAssignmentOperatorName:
+                case WellKnownMemberNames.RightShiftAssignmentOperatorName:
+                case WellKnownMemberNames.UnsignedRightShiftAssignmentOperatorName:
                     return parameterCount == 1;
                 default:
                     return parameterCount == 2;
