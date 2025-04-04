@@ -25,25 +25,19 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             if (client is null)
                 return await executeInProcessAsync(cancellationToken).ConfigureAwait(false);
 
-            if (solution is null)
-            {
-                var result = await client.TryInvokeAsync<IRemoteExtensionMessageHandlerService, TResult>(
+            var result = solution is null
+                ? await client.TryInvokeAsync<IRemoteExtensionMessageHandlerService, TResult>(
                     (remoteService, cancellationToken) => executeOutOfProcessAsync(remoteService, null, cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
-
-                // If the remote call succeeded, this will have a valid valid in it and can be returned.  If it did not
-                // succeed then we will have already shown the user an error message stating there was an issue making the call,
-                // and it's fine for this to throw again, unwinding the stack up to the caller.
-                return result.Value;
-            }
-            else
-            {
-                var result = await client.TryInvokeAsync<IRemoteExtensionMessageHandlerService, TResult>(
+                    cancellationToken).ConfigureAwait(false)
+                : await client.TryInvokeAsync<IRemoteExtensionMessageHandlerService, TResult>(
                     solution,
                     (remoteService, checksum, cancellationToken) => executeOutOfProcessAsync(remoteService, checksum, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
-                return result.Value;
-            }
+
+            // If the remote call succeeded, this will have a valid value in it and can be returned.  If it did not
+            // succeed then we will have already shown the user an error message stating there was an issue making
+            // the call, and it's fine for this to throw again, unwinding the stack up to the caller.
+            return result.Value;
         }
 
         public async ValueTask RegisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken)
