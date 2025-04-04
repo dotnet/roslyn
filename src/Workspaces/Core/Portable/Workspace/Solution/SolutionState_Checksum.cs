@@ -102,8 +102,8 @@ internal sealed partial class SolutionState
         {
             using (Logger.LogBlock(FunctionId.SolutionState_ComputeChecksumsAsync, this.FilePath, cancellationToken))
             {
-                // get states by id order to have deterministic checksum.  Limit expensive computation to the
-                // requested set of projects if applicable.
+                // ProjectStates is sorted by ProjectId.Id, and thus we can use it to calculate a deterministic checksum.
+                // Limit expensive computation to the requested set of projects if applicable.
                 using var _ = ArrayBuilder<Task<ProjectStateChecksums>>.GetInstance(out var projectChecksumTasks);
 
                 foreach (var projectState in this.ProjectStates)
