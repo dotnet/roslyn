@@ -20,7 +20,8 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
 {
     private readonly record struct AssemblyMessageHandlers(
         ImmutableDictionary<string, IExtensionMessageHandlerWrapper> DocumentMessageHandlers,
-        ImmutableDictionary<string, IExtensionMessageHandlerWrapper> WorkspaceMessageHandlers);
+        ImmutableDictionary<string, IExtensionMessageHandlerWrapper> WorkspaceMessageHandlers,
+        Exception? ExtensionException);
 
     private sealed partial class ExtensionMessageHandlerService(
         SolutionServices solutionServices,
