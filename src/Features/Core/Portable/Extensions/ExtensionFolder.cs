@@ -21,7 +21,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
     /// <summary>
     /// Represents a folder that many individual extension assemblies can be loaded from.
     /// </summary>
-    private sealed class ExtensionFolder 
+    private sealed class ExtensionFolder
     {
         private readonly ExtensionMessageHandlerService _extensionMessageHandlerService;
 
