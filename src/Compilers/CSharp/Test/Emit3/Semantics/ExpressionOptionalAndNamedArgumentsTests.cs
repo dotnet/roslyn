@@ -93,9 +93,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void OptionalParameter_02(bool useIn, bool preferInterpretation, bool useCompilationReference)
+        public void OptionalParameter_02(bool useIn, bool useCompilationReference)
         {
-            string value = preferInterpretation ? "true" : "false";
             string refKind = useIn ? "in" : "";
             string sourceA = $$"""
                 public static class A
@@ -128,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                     static T Run<T>(Expression<Func<T>> e)
                     {
-                        var f = e.Compile(preferInterpretation: {{value}});
+                        var f = e.Compile();
                         return f();
                     }
                 }
@@ -149,9 +148,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void OptionalParameter_AndParams(bool useIn, bool preferInterpretation, bool useCompilationReference)
+        public void OptionalParameter_AndParams(bool useIn, bool useCompilationReference)
         {
-            string value = preferInterpretation ? "true" : "false";
             string refKind = useIn ? "in" : "";
             string sourceA = $$"""
                 public static class A
@@ -183,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                     static T Run<T>(Expression<Func<T>> e)
                     {
-                        var f = e.Compile(preferInterpretation: {{value}});
+                        var f = e.Compile();
                         return f();
                     }
                 }
@@ -530,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                     static T Run<T>(Expression<Func<T>> e)
                     {
-                        var f = e.Compile(preferInterpretation: {{value}});
+                        var f = e.Compile();
                         return f();
                     }
                 }
@@ -576,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                     static T Run<T>(Expression<Func<T>> e)
                     {
-                        var f = e.Compile(preferInterpretation: {{value}});
+                        var f = e.Compile();
                         return f();
                     }
                 }

@@ -2595,8 +2595,10 @@ public class Test
             CompileAndVerifyUtil(text, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [Fact]
-        public void MethodCallWithParams3()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp13)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
+        public void MethodCallWithParams3(LanguageVersion languageVersion)
         {
             var text =
 @"using System;
@@ -2612,12 +2614,19 @@ public class Test
         Console.WriteLine(testExpr);
     }
 }";
-            CreateCompilationWithMscorlib40AndSystemCore(text)
-                .VerifyDiagnostics(
-                // (10,48): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
-                //         Expression<Func<int>> testExpr = () => ModAdd2();
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "ModAdd2()")
-                );
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyDiagnostics(
+                    // (10,48): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
+                    //         Expression<Func<int>> testExpr = () => ModAdd2();
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "ModAdd2()")
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics();
+            }
         }
 
         [WorkItem(544419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544419")]
