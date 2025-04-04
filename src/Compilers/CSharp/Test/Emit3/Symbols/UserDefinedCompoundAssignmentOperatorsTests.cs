@@ -7616,7 +7616,7 @@ class C2 : C1
             {
                 validateOp(
                     m.GlobalNamespace.GetMember<MethodSymbol>("C2." + CompoundAssignmentOperatorName(op, isChecked: true)),
-                    m.GlobalNamespace.GetMember<MethodSymbol>("C1." +CompoundAssignmentOperatorName(op, isChecked: true)));
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: true)));
             }
 
             static void validateOp(MethodSymbol m, MethodSymbol overridden)
