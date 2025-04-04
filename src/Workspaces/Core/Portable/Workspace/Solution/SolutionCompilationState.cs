@@ -108,7 +108,7 @@ internal sealed partial class SolutionCompilationState
         Contract.ThrowIfTrue(_projectIdToTrackerMap.Any(kvp => kvp.Key != kvp.Value.ProjectState.Id));
 
         // Solution and SG version maps must correspond to the same set of projects.
-        Contract.ThrowIfFalse(this.SolutionState.ProjectStates
+        Contract.ThrowIfFalse(this.SolutionState.SortedProjectStates
             .Select(static projectState => projectState.Id)
             .SetEquals(SourceGeneratorExecutionVersionMap.Map.Keys));
     }
@@ -1563,13 +1563,13 @@ internal sealed partial class SolutionCompilationState
         return newCompilationState;
     }
 
-    private (ImmutableArray<ProjectState>, ImmutableSegmentedDictionary<ProjectId, ICompilationTracker>) ComputeFrozenSnapshotMaps(CancellationToken cancellationToken)
+    private (ImmutableArray<ProjectState> sortedProjectStates, ImmutableSegmentedDictionary<ProjectId, ICompilationTracker>) ComputeFrozenSnapshotMaps(CancellationToken cancellationToken)
     {
         // Loop until we have calculated the maps against a set of compilation trackers that hasn't changed during our calculation.
         while (true)
         {
             var originalProjectIdToTrackerMap = _projectIdToTrackerMap;
-            using var _ = ArrayBuilder<ProjectState>.GetInstance(out var newProjectStatesBuilder);
+            using var _ = ArrayBuilder<ProjectState>.GetInstance(out var newSortedProjectStatesBuilder);
             var newIdToTrackerMapBuilder = originalProjectIdToTrackerMap.ToBuilder();
             var projectStateChanged = false;
 
@@ -1577,10 +1577,10 @@ internal sealed partial class SolutionCompilationState
             // from individually adding to the _projectIdToTrackerMap ImmutableSegmentedDictionary .
             var updatedIdToTrackerMapBuilder = originalProjectIdToTrackerMap.ToBuilder();
 
-            newProjectStatesBuilder.AddRange(this.SolutionState.ProjectStates);
-            for (var i = 0; i < newProjectStatesBuilder.Count; i++)
+            newSortedProjectStatesBuilder.AddRange(this.SolutionState.SortedProjectStates);
+            for (var i = 0; i < newSortedProjectStatesBuilder.Count; i++)
             {
-                var projectId = newProjectStatesBuilder[i].Id;
+                var projectId = newSortedProjectStatesBuilder[i].Id;
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // Definitely do nothing for non-C#/VB projects.  We have nothing to freeze in that case.
@@ -1602,7 +1602,10 @@ internal sealed partial class SolutionCompilationState
                 if (oldTracker == newTracker)
                     continue;
 
-                newProjectStatesBuilder[i] = newTracker.ProjectState;
+                // Place the new project state in the same location as the old one. As these have the same ProjectId,
+                // the ordering requirements will still be maintained.
+                newSortedProjectStatesBuilder[i] = newTracker.ProjectState;
+
                 newIdToTrackerMapBuilder[projectId] = newTracker;
                 projectStateChanged = true;
             }
@@ -1612,7 +1615,7 @@ internal sealed partial class SolutionCompilationState
             var updatedIdToTrackerMap = updatedIdToTrackerMapBuilder.ToImmutable();
             if (originalProjectIdToTrackerMap == RoslynImmutableInterlocked.InterlockedCompareExchange(ref _projectIdToTrackerMap, updatedIdToTrackerMap, originalProjectIdToTrackerMap))
             {
-                var newProjectStates = projectStateChanged ? newProjectStatesBuilder.ToImmutableAndClear() : this.SolutionState.ProjectStates;
+                var newProjectStates = projectStateChanged ? newSortedProjectStatesBuilder.ToImmutableAndClear() : this.SolutionState.SortedProjectStates;
 
                 return (newProjectStates, newIdToTrackerMapBuilder.ToImmutable());
             }

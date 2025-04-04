@@ -124,7 +124,7 @@ public partial class Solution
     /// A list of all the project states contained by the solution.
     /// Ordered by <see cref="ProjectState.Id"/>'s <see cref="ProjectId.Id"/> value.
     /// </summary>
-    internal ImmutableArray<ProjectState> ProjectStates => this.SolutionState.ProjectStates;
+    internal ImmutableArray<ProjectState> SortedProjectStates => this.SolutionState.SortedProjectStates;
 
     /// <summary>
     /// A list of all the projects contained by the solution.

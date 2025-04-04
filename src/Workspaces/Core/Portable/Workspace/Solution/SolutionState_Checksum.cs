@@ -106,7 +106,7 @@ internal sealed partial class SolutionState
                 // Limit expensive computation to the requested set of projects if applicable.
                 using var _ = ArrayBuilder<Task<ProjectStateChecksums>>.GetInstance(out var projectChecksumTasks);
 
-                foreach (var projectState in this.ProjectStates)
+                foreach (var projectState in this.SortedProjectStates)
                 {
                     if (!RemoteSupportedLanguages.IsSupported(projectState.Language))
                         continue;

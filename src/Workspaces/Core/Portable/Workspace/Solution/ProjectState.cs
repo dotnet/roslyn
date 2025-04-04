@@ -1147,6 +1147,6 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
         if (other is null)
             return 1;
 
-        return ((IComparable<ProjectId>)this.Id).CompareTo(other.Id);
+        return this.Id.CompareTo(other.Id);
     }
 }

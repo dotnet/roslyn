@@ -304,7 +304,7 @@ internal sealed class SolutionStateChecksums(
             {
                 // Check all projects for the remaining checksums.
 
-                foreach (var projectState in solution.ProjectStates)
+                foreach (var projectState in solution.SortedProjectStates)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
