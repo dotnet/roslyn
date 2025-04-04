@@ -379,6 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             out bool modifierErrors)
         {
             bool isInterface = containingType.IsInterface;
+            bool isExtension = containingType.IsExtension;
             var defaultAccess = isInterface && !isExplicitInterfaceImplementation ? DeclarationModifiers.Public : DeclarationModifiers.Private;
 
             // Check that the set of modifiers is allowed
@@ -387,38 +388,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!isExplicitInterfaceImplementation)
             {
-                allowedModifiers |= DeclarationModifiers.New |
-                                    DeclarationModifiers.Sealed |
-                                    DeclarationModifiers.Abstract |
-                                    DeclarationModifiers.Virtual |
-                                    DeclarationModifiers.AccessibilityMask;
+                allowedModifiers |= DeclarationModifiers.AccessibilityMask;
+
+                if (!isExtension)
+                {
+                    allowedModifiers |= DeclarationModifiers.New |
+                                        DeclarationModifiers.Sealed |
+                                        DeclarationModifiers.Abstract |
+                                        DeclarationModifiers.Virtual;
+                }
 
                 if (!isIndexer)
                 {
                     allowedModifiers |= DeclarationModifiers.Static;
                 }
 
-                if (!isInterface)
+                if (!isExtension)
                 {
-                    allowedModifiers |= DeclarationModifiers.Override;
-
-                    if (!isIndexer)
+                    if (!isInterface)
                     {
-                        allowedModifiers |= DeclarationModifiers.Required;
-                    }
-                }
-                else
-                {
-                    // This is needed to make sure we can detect 'public' modifier specified explicitly and
-                    // check it against language version below.
-                    defaultAccess = DeclarationModifiers.None;
+                        allowedModifiers |= DeclarationModifiers.Override;
 
-                    defaultInterfaceImplementationModifiers |= DeclarationModifiers.Sealed |
-                                                               DeclarationModifiers.Abstract |
-                                                               (isIndexer ? 0 : DeclarationModifiers.Static) |
-                                                               DeclarationModifiers.Virtual |
-                                                               DeclarationModifiers.Extern |
-                                                               DeclarationModifiers.AccessibilityMask;
+                        if (!isIndexer)
+                        {
+                            allowedModifiers |= DeclarationModifiers.Required;
+                        }
+                    }
+                    else
+                    {
+                        // This is needed to make sure we can detect 'public' modifier specified explicitly and
+                        // check it against language version below.
+                        defaultAccess = DeclarationModifiers.None;
+
+                        defaultInterfaceImplementationModifiers |= DeclarationModifiers.Sealed |
+                                                                   DeclarationModifiers.Abstract |
+                                                                   (isIndexer ? 0 : DeclarationModifiers.Static) |
+                                                                   DeclarationModifiers.Virtual |
+                                                                   DeclarationModifiers.Extern |
+                                                                   DeclarationModifiers.AccessibilityMask;
+                    }
                 }
             }
             else
@@ -441,7 +449,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowedModifiers |= DeclarationModifiers.ReadOnly;
             }
 
-            allowedModifiers |= DeclarationModifiers.Extern;
+            if (!isExtension)
+            {
+                allowedModifiers |= DeclarationModifiers.Extern;
+            }
 
             bool hasExplicitAccessMod;
             var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface,
