@@ -33,9 +33,10 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             private readonly AsyncLazy<IAnalyzerAssemblyLoaderInternal?> _lazyAssemblyLoader;
 
             /// <summary>
-            /// Mapping from assembly file path to the handlers it contains.  Used as its own lock when mutating.
+            /// Mapping from assembly file path to the handlers it contains.  Should only be mutated while the <see
+            /// cref="_gate"/> lock is held by our parent <see cref="_extensionMessageHandlerService"/>.
             /// </summary>
-            private readonly Dictionary<string, AsyncLazy<AssemblyMessageHandlers>> _assemblyFilePathToHandlers_useOnlyUnderLock = new();
+            private ImmutableDictionary<string, AsyncLazy<AssemblyMessageHandlers>> _assemblyFilePathToHandlers = ImmutableDictionary<string, AsyncLazy<AssemblyMessageHandlers>>.Empty;
 
             public ExtensionFolder(
                 ExtensionMessageHandlerService extensionMessageHandlerService,
@@ -45,7 +46,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                 _lazyAssemblyLoader = AsyncLazy.Create(cancellationToken =>
                 {
 #if NET
-                    var analyzerAssemblyLoaderProvider = _extensionMessageHandlerService.SolutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+                    var analyzerAssemblyLoaderProvider = _extensionMessageHandlerService._solutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
                     var analyzerAssemblyLoader = analyzerAssemblyLoaderProvider.CreateNewShadowCopyLoader();
 
                     // Allow this assembly loader to load any dll in assemblyFolderPath.
@@ -68,8 +69,8 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
 
                     return (IAnalyzerAssemblyLoaderInternal?)analyzerAssemblyLoader;
 #else
-                // We only support loading extensions in a .Net Core host.
-                return (IAnalyzerAssemblyLoaderInternal?)null;
+                    // We only support loading extensions in a .Net Core host.
+                    return (IAnalyzerAssemblyLoaderInternal?)null;
 #endif
                 });
             }
@@ -93,7 +94,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                 }
 
                 var assembly = analyzerAssemblyLoader.LoadFromPath(assemblyFilePath);
-                var factory = _extensionMessageHandlerService.CustomMessageHandlerFactory;
+                var factory = _extensionMessageHandlerService._customMessageHandlerFactory;
 
                 var documentMessageHandlers = factory
                     .CreateDocumentMessageHandlers(assembly, extensionIdentifier: assemblyFilePath, cancellationToken)
@@ -107,16 +108,17 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
 
             public void RegisterAssembly(string assemblyFilePath)
             {
-                lock (_assemblyFilePathToHandlers_useOnlyUnderLock)
-                {
-                    if (_assemblyFilePathToHandlers_useOnlyUnderLock.ContainsKey(assemblyFilePath))
-                        throw new InvalidOperationException($"Extension '{assemblyFilePath}' is already registered.");
+                // Must be called under our parent's lock to ensure we see a consistent state of things.
+                // This allows us to safely examine our current state, and then add the new item.
+                Contract.ThrowIfTrue(!Monitor.IsEntered(_extensionMessageHandlerService._gate));
 
-                    _assemblyFilePathToHandlers_useOnlyUnderLock.Add(
-                        assemblyFilePath,
-                        AsyncLazy.Create(
-                            cancellationToken => this.CreateAssemblyHandlersAsync(assemblyFilePath, cancellationToken)));
-                }
+                if (_assemblyFilePathToHandlers.ContainsKey(assemblyFilePath))
+                    throw new InvalidOperationException($"Extension '{assemblyFilePath}' is already registered.");
+
+                _assemblyFilePathToHandlers = _assemblyFilePathToHandlers.Add(
+                   assemblyFilePath,
+                   AsyncLazy.Create(
+                       cancellationToken => this.CreateAssemblyHandlersAsync(assemblyFilePath, cancellationToken)));
             }
 
             /// <summary>
@@ -125,24 +127,24 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             /// </summary>
             public bool UnregisterAssembly(string assemblyFilePath)
             {
-                lock (_assemblyFilePathToHandlers_useOnlyUnderLock)
-                {
-                    if (!_assemblyFilePathToHandlers_useOnlyUnderLock.ContainsKey(assemblyFilePath))
-                        throw new InvalidOperationException($"Extension '{assemblyFilePath}' was not registered.");
+                // Must be called under our parent's lock to ensure we see a consistent state of things. This allows us
+                // to safely examine our current state, remove the existing item, and then return if we are now empty.
+                Contract.ThrowIfTrue(!Monitor.IsEntered(_extensionMessageHandlerService._gate));
 
-                    _assemblyFilePathToHandlers_useOnlyUnderLock.Remove(assemblyFilePath);
-                    return _assemblyFilePathToHandlers_useOnlyUnderLock.Count == 0;
-                }
+                if (!_assemblyFilePathToHandlers.ContainsKey(assemblyFilePath))
+                    throw new InvalidOperationException($"Extension '{assemblyFilePath}' was not registered.");
+
+                _assemblyFilePathToHandlers = _assemblyFilePathToHandlers.Remove(assemblyFilePath);
+                return _assemblyFilePathToHandlers.Count == 0;
             }
 
             public async ValueTask<AssemblyMessageHandlers> GetAssemblyHandlersAsync(string assemblyFilePath, CancellationToken cancellationToken)
             {
-                AsyncLazy<AssemblyMessageHandlers>? lazyHandlers;
-                lock (_assemblyFilePathToHandlers_useOnlyUnderLock)
-                {
-                    if (!_assemblyFilePathToHandlers_useOnlyUnderLock.TryGetValue(assemblyFilePath, out lazyHandlers))
-                        throw new InvalidOperationException($"Extension '{assemblyFilePath}' was not registered.");
-                }
+                // This is safe to do as our general contract is that all handler operations should be called explicitly
+                // between calls to Register/Unregister the extension.  So this cannot race with an extension being
+                // removed.
+                if (!_assemblyFilePathToHandlers.TryGetValue(assemblyFilePath, out var lazyHandlers))
+                    throw new InvalidOperationException($"Extension '{assemblyFilePath}' was not registered.");
 
                 // If loading the assembly and getting the handlers failed, then we will throw that exception outwards
                 // for the client to hear about.
@@ -151,18 +153,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
 
             public async ValueTask AddHandlersAsync(string messageName, bool isSolution, ArrayBuilder<IExtensionMessageHandlerWrapper> result, CancellationToken cancellationToken)
             {
-                using var _ = ArrayBuilder<AsyncLazy<AssemblyMessageHandlers>>.GetInstance(out var lazyHandlers);
-
-                lock (_assemblyFilePathToHandlers_useOnlyUnderLock)
-                {
-                    foreach (var (_, lazyHandler) in _assemblyFilePathToHandlers_useOnlyUnderLock)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        lazyHandlers.Add(lazyHandler);
-                    }
-                }
-
-                foreach (var lazyHandler in lazyHandlers)
+                foreach (var (_, lazyHandler) in _assemblyFilePathToHandlers)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 

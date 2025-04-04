@@ -27,8 +27,8 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
         IExtensionMessageHandlerFactory customMessageHandlerFactory)
         : IExtensionMessageHandlerService
     {
-        public readonly SolutionServices SolutionServices = solutionServices;
-        public readonly IExtensionMessageHandlerFactory CustomMessageHandlerFactory = customMessageHandlerFactory;
+        private readonly SolutionServices _solutionServices = solutionServices;
+        private readonly IExtensionMessageHandlerFactory _customMessageHandlerFactory = customMessageHandlerFactory;
 
         /// <summary>
         /// Lock for <see cref="_folderPathToExtensionFolder_useOnlyUnderLock"/>, <see cref="_cachedDocumentHandlers_useOnlyUnderLock"/>, and <see
