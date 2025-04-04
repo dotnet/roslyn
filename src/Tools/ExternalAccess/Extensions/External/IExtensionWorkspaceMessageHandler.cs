@@ -25,6 +25,10 @@ namespace Microsoft.CodeAnalysis.Extensions;
 /// new instance of the handler is created. Handlers that are defined in assemblies sharing the same folder are loaded
 /// in the same assembly context and can share static state.
 /// </para>
+/// <para>
+/// Multiple instances of a message handler may be created during the loading process.  However, only one will actually
+/// be used as the handler that receives messages for a particular solution.
+/// </para>
 /// </remarks>
 public interface IExtensionWorkspaceMessageHandler<TMessage, TResponse>
 {
