@@ -12408,7 +12408,7 @@ class C<T>
             comp.VerifyEmitDiagnostics();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77909")]
         public void Nullable_Cycle_02()
         {
             var source = """
@@ -12461,28 +12461,28 @@ class C<T>
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (5,5): error CS0200: Property or indexer 'S.Resilient' cannot be assigned to -- it is read only
-                //     Resilient = "a",
+                //     Resilient = "a", // 1
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Resilient").WithArguments("S.Resilient").WithLocation(5, 5),
                 // (6,5): error CS0200: Property or indexer 'S.NonResilient' cannot be assigned to -- it is read only
-                //     NonResilient = "b"
+                //     NonResilient = "b" // 2
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "NonResilient").WithArguments("S.NonResilient").WithLocation(6, 5),
                 // (13,9): warning CS8602: Dereference of a possibly null reference.
-                //         Resilient.ToString();
+                //         Resilient.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Resilient").WithLocation(13, 9),
                 // (14,9): warning CS8602: Dereference of a possibly null reference.
-                //         NonResilient.ToString();
+                //         NonResilient.ToString(); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "NonResilient").WithLocation(14, 9),
                 // (19,9): warning CS8602: Dereference of a possibly null reference.
-                //         Resilient.ToString();
+                //         Resilient.ToString(); // 5
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Resilient").WithLocation(19, 9),
                 // (26,9): warning CS8602: Dereference of a possibly null reference.
-                //         Resilient.ToString();
+                //         Resilient.ToString(); // 6
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Resilient").WithLocation(26, 9),
                 // (33,9): warning CS8602: Dereference of a possibly null reference.
-                //         Resilient.ToString();
+                //         Resilient.ToString(); // 7
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Resilient").WithLocation(33, 9),
                 // (34,9): warning CS8602: Dereference of a possibly null reference.
-                //         NonResilient.ToString();
+                //         NonResilient.ToString(); // 8
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "NonResilient").WithLocation(34, 9));
         }
 
@@ -12525,10 +12525,10 @@ class C<T>
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (5,5): error CS0200: Property or indexer 'S.Resilient' cannot be assigned to -- it is read only
-                //     Resilient = "a",
+                //     Resilient = "a", // 1
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Resilient").WithArguments("S.Resilient").WithLocation(5, 5),
                 // (6,5): error CS0200: Property or indexer 'S.NonResilient' cannot be assigned to -- it is read only
-                //     NonResilient = "b"
+                //     NonResilient = "b" // 2
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "NonResilient").WithArguments("S.NonResilient").WithLocation(6, 5));
         }
 
