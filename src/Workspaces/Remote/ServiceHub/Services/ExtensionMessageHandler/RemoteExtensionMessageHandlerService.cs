@@ -37,7 +37,7 @@ internal sealed partial class RemoteExtensionMessageHandlerService(
             cancellationToken => GetExtensionService().ResetAsync(cancellationToken),
             cancellationToken);
 
-    public ValueTask<GetExtensionMessageNamesResult> GetExtensionMessageNamesAsync(string assemblyFilePath, CancellationToken cancellationToken)
+    public ValueTask<ExtensionMessageNames> GetExtensionMessageNamesAsync(string assemblyFilePath, CancellationToken cancellationToken)
         => RunServiceAsync(
             cancellationToken => GetExtensionService().GetExtensionMessageNamesAsync(assemblyFilePath, cancellationToken),
             cancellationToken);

@@ -83,7 +83,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                 assemblyFilePath,
                 cancellationToken);
 
-        public ValueTask<GetExtensionMessageNamesResult> GetExtensionMessageNamesAsync(string assemblyFilePath, CancellationToken cancellationToken)
+        public ValueTask<ExtensionMessageNames> GetExtensionMessageNamesAsync(string assemblyFilePath, CancellationToken cancellationToken)
             => ExecuteFuncInRemoteOrCurrentProcessAsync(
                 solution: null,
                 static (localService, assemblyFilePath, cancellationToken) => localService.GetExtensionMessageNamesInCurrentProcessAsync(assemblyFilePath, cancellationToken),

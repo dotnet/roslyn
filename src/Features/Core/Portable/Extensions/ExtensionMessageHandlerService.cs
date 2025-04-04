@@ -146,7 +146,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             return default;
         }
 
-        private async ValueTask<GetExtensionMessageNamesResult> GetExtensionMessageNamesInCurrentProcessAsync(
+        private async ValueTask<ExtensionMessageNames> GetExtensionMessageNamesInCurrentProcessAsync(
             string assemblyFilePath,
             CancellationToken cancellationToken)
         {

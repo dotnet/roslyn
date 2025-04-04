@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Host;
 namespace Microsoft.CodeAnalysis.Extensions;
 
 [DataContract]
-internal readonly record struct GetExtensionMessageNamesResult(
+internal readonly record struct ExtensionMessageNames(
     [property: DataMember(Order = 0)] ImmutableArray<string> WorkspaceMessageHandlers,
     [property: DataMember(Order = 1)] ImmutableArray<string> DocumentMessageHandlers,
     // Note: ServiceHub supports translating *all* exceptions over the wire.  Even exceptions whose types are not
@@ -51,7 +51,7 @@ internal interface IExtensionMessageHandlerService : IWorkspaceService
     /// <summary>
     /// Gets the message names supported by the extension specified by <paramref name="assemblyFilePath"/>.
     /// </summary>
-    ValueTask<GetExtensionMessageNamesResult> GetExtensionMessageNamesAsync(string assemblyFilePath, CancellationToken cancellationToken);
+    ValueTask<ExtensionMessageNames> GetExtensionMessageNamesAsync(string assemblyFilePath, CancellationToken cancellationToken);
 
     /// <summary>
     /// Executes a non-document-specific extension message handler with the given message and solution.

@@ -18,7 +18,7 @@ internal interface IRemoteExtensionMessageHandlerService
 
     ValueTask ResetAsync(CancellationToken cancellationToken);
 
-    ValueTask<GetExtensionMessageNamesResult> GetExtensionMessageNamesAsync(string assemblyFilePath, CancellationToken cancellationToken);
+    ValueTask<ExtensionMessageNames> GetExtensionMessageNamesAsync(string assemblyFilePath, CancellationToken cancellationToken);
 
     ValueTask<HandleExtensionMessageResult> HandleExtensionDocumentMessageAsync(
         Checksum solutionChecksum, string messageName, string jsonMessage, DocumentId documentId, CancellationToken cancellationToken);
