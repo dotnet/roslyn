@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Extensions;
@@ -158,6 +157,8 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             if (!_folderPathToExtensionFolder.TryGetValue(assemblyFolderPath, out var extensionFolder))
                 throw new InvalidOperationException($"No extensions registered at '{assemblyFolderPath}'");
 
+            // Note if loading the extension assembly failed (due to issues in the extension itself), then the exception
+            // produced by it will be passed outwards as data in the ExtensionMessageNames result.
             return await extensionFolder.GetExtensionMessageNamesAsync(assemblyFilePath, cancellationToken).ConfigureAwait(false);
         }
 
