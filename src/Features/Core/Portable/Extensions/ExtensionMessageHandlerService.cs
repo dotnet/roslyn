@@ -162,7 +162,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             return await extensionFolder.GetExtensionMessageNamesAsync(assemblyFilePath, cancellationToken).ConfigureAwait(false);
         }
 
-        private async ValueTask<HandleExtensionMessageResult> HandleExtensionMessageInCurrentProcessAsync<TArgument>(
+        private async ValueTask<ExtensionMessageResult> HandleExtensionMessageInCurrentProcessAsync<TArgument>(
             TArgument executeArgument, bool isSolution, string messageName, string jsonMessage,
             Dictionary<string, AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper>>> cachedHandlers,
             CancellationToken cancellationToken)

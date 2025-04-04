@@ -42,7 +42,7 @@ internal sealed partial class RemoteExtensionMessageHandlerService(
             cancellationToken => GetExtensionService().GetExtensionMessageNamesAsync(assemblyFilePath, cancellationToken),
             cancellationToken);
 
-    public ValueTask<HandleExtensionMessageResult> HandleExtensionDocumentMessageAsync(
+    public ValueTask<ExtensionMessageResult> HandleExtensionDocumentMessageAsync(
         Checksum solutionChecksum, string messageName, string jsonMessage, DocumentId documentId, CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionChecksum,
@@ -53,7 +53,7 @@ internal sealed partial class RemoteExtensionMessageHandlerService(
             },
             cancellationToken);
 
-    public ValueTask<HandleExtensionMessageResult> HandleExtensionWorkspaceMessageAsync(
+    public ValueTask<ExtensionMessageResult> HandleExtensionWorkspaceMessageAsync(
         Checksum solutionChecksum, string messageName, string jsonMessage, CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionChecksum,

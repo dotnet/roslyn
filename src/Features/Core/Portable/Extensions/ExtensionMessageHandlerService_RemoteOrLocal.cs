@@ -99,7 +99,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                 default(VoidResult),
                 cancellationToken);
 
-        public ValueTask<HandleExtensionMessageResult> HandleExtensionWorkspaceMessageAsync(Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken)
+        public ValueTask<ExtensionMessageResult> HandleExtensionWorkspaceMessageAsync(Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken)
             => ExecuteFuncInRemoteOrCurrentProcessAsync(
                 solution,
                 static (localService, arg, cancellationToken) =>
@@ -117,7 +117,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                 (solution, messageName, jsonMessage, _cachedWorkspaceHandlers_useOnlyUnderLock),
                 cancellationToken);
 
-        public ValueTask<HandleExtensionMessageResult> HandleExtensionDocumentMessageAsync(Document document, string messageName, string jsonMessage, CancellationToken cancellationToken)
+        public ValueTask<ExtensionMessageResult> HandleExtensionDocumentMessageAsync(Document document, string messageName, string jsonMessage, CancellationToken cancellationToken)
             => ExecuteFuncInRemoteOrCurrentProcessAsync(
                 document.Project.Solution,
                 static (localService, arg, cancellationToken) =>
