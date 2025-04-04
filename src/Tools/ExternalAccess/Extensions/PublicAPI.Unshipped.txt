@@ -1,18 +1,3 @@
-Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageContext
-Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageContext.Document.get -> Microsoft.CodeAnalysis.Document
-Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageContext.Solution.get -> Microsoft.CodeAnalysis.Solution
-Microsoft.CodeAnalysis.CustomMessageHandler.DocumentLinePosition
-Microsoft.CodeAnalysis.CustomMessageHandler.DocumentLinePosition.Character.get -> int
-Microsoft.CodeAnalysis.CustomMessageHandler.DocumentLinePosition.DocumentLinePosition() -> void
-Microsoft.CodeAnalysis.CustomMessageHandler.DocumentLinePosition.DocumentLinePosition(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.LinePosition linePosition) -> void
-Microsoft.CodeAnalysis.CustomMessageHandler.DocumentLinePosition.DocumentLinePosition(string filePath, int line, int character) -> void
-Microsoft.CodeAnalysis.CustomMessageHandler.DocumentLinePosition.FilePath.get -> string
-Microsoft.CodeAnalysis.CustomMessageHandler.DocumentLinePosition.Line.get -> int
-Microsoft.CodeAnalysis.CustomMessageHandler.DocumentLinePosition.ToLinePosition() -> Microsoft.CodeAnalysis.Text.LinePosition
-Microsoft.CodeAnalysis.CustomMessageHandler.ICustomDocumentMessageHandler<TMessage, TResponse>
-Microsoft.CodeAnalysis.CustomMessageHandler.ICustomDocumentMessageHandler<TMessage, TResponse>.ExecuteAsync(TMessage message, Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageContext context, Microsoft.CodeAnalysis.Document document, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResponse>
-Microsoft.CodeAnalysis.CustomMessageHandler.ICustomWorkspaceMessageHandler<TMessage, TResponse>
-Microsoft.CodeAnalysis.CustomMessageHandler.ICustomWorkspaceMessageHandler<TMessage, TResponse>.ExecuteAsync(TMessage message, Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageContext context, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResponse>
 Microsoft.CodeAnalysis.Extensions.DocumentLinePosition
 Microsoft.CodeAnalysis.Extensions.DocumentLinePosition.Character.get -> int
 Microsoft.CodeAnalysis.Extensions.DocumentLinePosition.DocumentLinePosition() -> void
@@ -27,5 +12,4 @@ Microsoft.CodeAnalysis.Extensions.IExtensionDocumentMessageHandler<TMessage, TRe
 Microsoft.CodeAnalysis.Extensions.IExtensionDocumentMessageHandler<TMessage, TResponse>.ExecuteAsync(TMessage message, Microsoft.CodeAnalysis.Extensions.ExtensionMessageContext context, Microsoft.CodeAnalysis.Document document, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResponse>
 Microsoft.CodeAnalysis.Extensions.IExtensionWorkspaceMessageHandler<TMessage, TResponse>
 Microsoft.CodeAnalysis.Extensions.IExtensionWorkspaceMessageHandler<TMessage, TResponse>.ExecuteAsync(TMessage message, Microsoft.CodeAnalysis.Extensions.ExtensionMessageContext context, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResponse>
-static Microsoft.CodeAnalysis.CustomMessageHandler.DocumentLinePosition.implicit operator Microsoft.CodeAnalysis.Text.LinePosition(Microsoft.CodeAnalysis.CustomMessageHandler.DocumentLinePosition documentLinePosition) -> Microsoft.CodeAnalysis.Text.LinePosition
 static Microsoft.CodeAnalysis.Extensions.DocumentLinePosition.implicit operator Microsoft.CodeAnalysis.Text.LinePosition(Microsoft.CodeAnalysis.Extensions.DocumentLinePosition documentLinePosition) -> Microsoft.CodeAnalysis.Text.LinePosition
