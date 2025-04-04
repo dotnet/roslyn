@@ -1569,15 +1569,16 @@ internal sealed partial class SolutionCompilationState
         while (true)
         {
             var originalProjectIdToTrackerMap = _projectIdToTrackerMap;
-            using var _ = ArrayBuilder<ProjectState>.GetInstance(out var newSortedProjectStatesBuilder);
             var newIdToTrackerMapBuilder = originalProjectIdToTrackerMap.ToBuilder();
             var projectStateChanged = false;
+
+            using var _ = ArrayBuilder<ProjectState>.GetInstance(this.SolutionState.SortedProjectStates.Length, out var newSortedProjectStatesBuilder);
+            newSortedProjectStatesBuilder.AddRange(this.SolutionState.SortedProjectStates);
 
             // Used to track any new compilation trackers created in the loop. This is done to avoid allocations
             // from individually adding to the _projectIdToTrackerMap ImmutableSegmentedDictionary .
             var updatedIdToTrackerMapBuilder = originalProjectIdToTrackerMap.ToBuilder();
 
-            newSortedProjectStatesBuilder.AddRange(this.SolutionState.SortedProjectStates);
             for (var i = 0; i < newSortedProjectStatesBuilder.Count; i++)
             {
                 var projectId = newSortedProjectStatesBuilder[i].Id;
