@@ -6,12 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Threading;
@@ -30,8 +27,6 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
         IExtensionMessageHandlerFactory customMessageHandlerFactory)
         : IExtensionMessageHandlerService
     {
-        private static readonly ConditionalWeakTable<IExtensionMessageHandlerWrapper, IExtensionMessageHandlerWrapper> s_disabledExtensionHandlers = new();
-
         public readonly SolutionServices SolutionServices = solutionServices;
         public readonly IExtensionMessageHandlerFactory CustomMessageHandlerFactory = customMessageHandlerFactory;
 
@@ -181,39 +176,11 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             if (handlers.Length > 1)
                 throw new InvalidOperationException($"Multiple handlers found for message {messageName}.");
 
-            var handler = handlers[0];
-            if (s_disabledExtensionHandlers.TryGetValue(handler, out _))
-                throw new InvalidOperationException($"Handler was disabled due to previous exception.");
+            var handler = (IExtensionMessageHandlerWrapper<TArgument>)handlers[0];
 
-            try
-            {
-                var message = JsonSerializer.Deserialize(jsonMessage, handler.MessageType);
-                var result = await ((IExtensionMessageHandlerWrapper<TArgument>)handler).ExecuteAsync(
-                    message, executeArgument, cancellationToken).ConfigureAwait(false);
-                return JsonSerializer.Serialize(result, handler.ResponseType);
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex) when (DisableHandlerAndPropagate(ex))
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
-
-            bool DisableHandlerAndPropagate(Exception ex)
-            {
-                FatalError.ReportNonFatalError(ex, ErrorSeverity.Critical);
-
-                // Any exception thrown in this method is left to bubble up to the extension. But we unregister this handler
-                // from that assembly to minimize the impact.
-#if NET
-                s_disabledExtensionHandlers.TryAdd(handler, handler);
-#else
-                s_disabledExtensionHandlers.GetValue(handler, _ => handler);
-#endif
-                return false;
-            }
+            var message = JsonSerializer.Deserialize(jsonMessage, handler.MessageType);
+            var result = await handler.ExecuteAsync(message, executeArgument, cancellationToken).ConfigureAwait(false);
+            return JsonSerializer.Serialize(result, handler.ResponseType);
         }
 
         private async Task<ImmutableArray<IExtensionMessageHandlerWrapper>> ComputeHandlersAsync(
