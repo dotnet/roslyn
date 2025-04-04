@@ -192,6 +192,10 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                     message, executeArgument, cancellationToken).ConfigureAwait(false);
                 return JsonSerializer.Serialize(result, handler.ResponseType);
             }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
             catch (Exception ex) when (DisableHandlerAndPropagate(ex))
             {
                 throw ExceptionUtilities.Unreachable();
