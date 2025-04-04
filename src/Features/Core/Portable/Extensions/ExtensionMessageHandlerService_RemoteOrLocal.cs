@@ -16,44 +16,49 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
     {
         // Code for bifurcating calls to either the local or remote process.
 
-        private async ValueTask ExecuteActionInRemoteOrCurrentProcessAsync(
+        private async ValueTask ExecuteActionInRemoteOrCurrentProcessAsync<TArg>(
             Solution? solution,
-            Func<CancellationToken, ValueTask> executeInProcessAsync,
-            Func<IRemoteExtensionMessageHandlerService, Checksum?, CancellationToken, ValueTask> executeOutOfProcessAsync,
+            Func<ExtensionMessageHandlerService, TArg, CancellationToken, ValueTask> executeInProcessAsync,
+            Func<IRemoteExtensionMessageHandlerService, TArg, Checksum?, CancellationToken, ValueTask> executeOutOfProcessAsync,
+            TArg arg,
             CancellationToken cancellationToken)
         {
             await ExecuteFuncInRemoteOrCurrentProcessAsync(
                 solution,
-                async cancellationToken =>
+                static async (localService, tuple, cancellationToken) =>
                 {
-                    await executeInProcessAsync(cancellationToken).ConfigureAwait(false);
+                    var (executeInProcessAsync, _, arg) = tuple;
+                    await executeInProcessAsync(localService, arg, cancellationToken).ConfigureAwait(false);
                     return default(VoidResult);
                 },
-                async (service, checksum, cancellationToken) =>
+                static async (service, tuple, checksum, cancellationToken) =>
                 {
-                    await executeOutOfProcessAsync(service, checksum, cancellationToken).ConfigureAwait(false);
+                    var (_, executeOutOfProcessAsync, arg) = tuple;
+                    await executeOutOfProcessAsync(service, arg, checksum, cancellationToken).ConfigureAwait(false);
                     return default(VoidResult);
                 },
+                (executeInProcessAsync, executeOutOfProcessAsync, arg),
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private async ValueTask<TResult> ExecuteFuncInRemoteOrCurrentProcessAsync<TResult>(
+        private async ValueTask<TResult> ExecuteFuncInRemoteOrCurrentProcessAsync<TArg, TResult>(
             Solution? solution,
-            Func<CancellationToken, ValueTask<TResult>> executeInProcessAsync,
-            Func<IRemoteExtensionMessageHandlerService, Checksum?, CancellationToken, ValueTask<TResult>> executeOutOfProcessAsync,
+            Func<ExtensionMessageHandlerService, TArg, CancellationToken, ValueTask<TResult>> executeInProcessAsync,
+            Func<IRemoteExtensionMessageHandlerService, TArg, Checksum?, CancellationToken, ValueTask<TResult>> executeOutOfProcessAsync,
+            TArg arg,
             CancellationToken cancellationToken)
         {
             var client = await RemoteHostClient.TryGetClientAsync(_solutionServices, cancellationToken).ConfigureAwait(false);
             if (client is null)
-                return await executeInProcessAsync(cancellationToken).ConfigureAwait(false);
+                return await executeInProcessAsync(this, arg, cancellationToken).ConfigureAwait(false);
 
             var result = solution is null
                 ? await client.TryInvokeAsync<IRemoteExtensionMessageHandlerService, TResult>(
-                    (remoteService, cancellationToken) => executeOutOfProcessAsync(remoteService, null, cancellationToken),
+                    (remoteService, cancellationToken) => executeOutOfProcessAsync(remoteService, arg, null, cancellationToken),
                     cancellationToken).ConfigureAwait(false)
                 : await client.TryInvokeAsync<IRemoteExtensionMessageHandlerService, TResult>(
                     solution,
-                    (remoteService, checksum, cancellationToken) => executeOutOfProcessAsync(remoteService, checksum, cancellationToken),
+                    (remoteService, checksum, cancellationToken) => executeOutOfProcessAsync(remoteService, arg, checksum, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
             // If the remote call succeeded, this will have a valid value in it and can be returned.  If it did not
@@ -65,45 +70,69 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
         public ValueTask RegisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken)
             => ExecuteActionInRemoteOrCurrentProcessAsync(
                 solution: null,
-                _ => RegisterExtensionInCurrentProcessAsync(assemblyFilePath),
-                (remoteService, _, cancellationToken) => remoteService.RegisterExtensionAsync(assemblyFilePath, cancellationToken),
+                static (localService, assemblyFilePath, _) => localService.RegisterExtensionInCurrentProcessAsync(assemblyFilePath),
+                static (remoteService, assemblyFilePath, _, cancellationToken) => remoteService.RegisterExtensionAsync(assemblyFilePath, cancellationToken),
+                assemblyFilePath,
                 cancellationToken);
 
         public ValueTask UnregisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken)
             => ExecuteActionInRemoteOrCurrentProcessAsync(
                 solution: null,
-                _ => UnregisterExtensionInCurrentProcessAsync(assemblyFilePath),
-                (remoteService, _, cancellationToken) => remoteService.UnregisterExtensionAsync(assemblyFilePath, cancellationToken),
+                static (localService, assemblyFilePath, _) => localService.UnregisterExtensionInCurrentProcessAsync(assemblyFilePath),
+                static (remoteService, assemblyFilePath, _, cancellationToken) => remoteService.UnregisterExtensionAsync(assemblyFilePath, cancellationToken),
+                assemblyFilePath,
                 cancellationToken);
 
         public ValueTask<GetExtensionMessageNamesResponse> GetExtensionMessageNamesAsync(string assemblyFilePath, CancellationToken cancellationToken)
             => ExecuteFuncInRemoteOrCurrentProcessAsync(
                 solution: null,
-                cancellationToken => GetExtensionMessageNamesInCurrentProcessAsync(assemblyFilePath, cancellationToken),
-                (remoteService, _, cancellationToken) => remoteService.GetExtensionMessageNamesAsync(assemblyFilePath, cancellationToken),
+                static (localService, assemblyFilePath, cancellationToken) => localService.GetExtensionMessageNamesInCurrentProcessAsync(assemblyFilePath, cancellationToken),
+                static (remoteService, assemblyFilePath, _, cancellationToken) => remoteService.GetExtensionMessageNamesAsync(assemblyFilePath, cancellationToken),
+                assemblyFilePath,
                 cancellationToken);
 
         public ValueTask ResetAsync(CancellationToken cancellationToken)
             => ExecuteActionInRemoteOrCurrentProcessAsync(
                 solution: null,
-                _ => ResetInCurrentProcessAsync(),
-                (remoteService, _, cancellationToken) => remoteService.ResetAsync(cancellationToken),
+                static (localService, _, _) => localService.ResetInCurrentProcessAsync(),
+                static (remoteService, _, _, cancellationToken) => remoteService.ResetAsync(cancellationToken),
+                default(VoidResult),
                 cancellationToken);
 
         public ValueTask<string> HandleExtensionWorkspaceMessageAsync(Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken)
             => ExecuteFuncInRemoteOrCurrentProcessAsync(
                 solution,
-                cancellationToken => HandleExtensionMessageInCurrentProcessAsync(
-                    executeArgument: solution, isSolution: true, messageName, jsonMessage, _cachedWorkspaceHandlers_useOnlyUnderLock, cancellationToken),
-                (remoteService, checksum, cancellationToken) => remoteService.HandleExtensionWorkspaceMessageAsync(checksum!.Value, messageName, jsonMessage, cancellationToken),
+                static (localService, arg, cancellationToken) =>
+                {
+                    var (solution, messageName, jsonMessage, handlers) = arg;
+                    return localService.HandleExtensionMessageInCurrentProcessAsync(
+                        executeArgument: solution, isSolution: true, messageName, jsonMessage, handlers, cancellationToken);
+                },
+                static (remoteService, arg, checksum, cancellationToken) =>
+                {
+                    var (_, messageName, jsonMessage, _) = arg;
+                    return remoteService.HandleExtensionWorkspaceMessageAsync(
+                        checksum!.Value, messageName, jsonMessage, cancellationToken);
+                },
+                (solution, messageName, jsonMessage, _cachedWorkspaceHandlers_useOnlyUnderLock),
                 cancellationToken);
 
         public ValueTask<string> HandleExtensionDocumentMessageAsync(Document document, string messageName, string jsonMessage, CancellationToken cancellationToken)
             => ExecuteFuncInRemoteOrCurrentProcessAsync(
                 document.Project.Solution,
-                cancellationToken => HandleExtensionMessageInCurrentProcessAsync(
-                    executeArgument: document, isSolution: false, messageName, jsonMessage, _cachedDocumentHandlers_useOnlyUnderLock, cancellationToken),
-                (remoteService, checksum, cancellationToken) => remoteService.HandleExtensionDocumentMessageAsync(checksum!.Value, messageName, jsonMessage, document.Id, cancellationToken),
+                static (localService, arg, cancellationToken) =>
+                {
+                    var (document, messageName, jsonMessage, handlers) = arg;
+                    return localService.HandleExtensionMessageInCurrentProcessAsync(
+                        executeArgument: document, isSolution: false, messageName, jsonMessage, handlers, cancellationToken);
+                },
+                static (remoteService, arg, checksum, cancellationToken) =>
+                {
+                    var (document, messageName, jsonMessage, _) = arg;
+                    return remoteService.HandleExtensionDocumentMessageAsync(
+                        checksum!.Value, messageName, jsonMessage, document.Id, cancellationToken);
+                },
+                (document, messageName, jsonMessage, _cachedDocumentHandlers_useOnlyUnderLock),
                 cancellationToken);
     }
 }
