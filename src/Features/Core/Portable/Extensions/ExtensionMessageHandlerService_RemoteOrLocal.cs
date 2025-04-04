@@ -21,7 +21,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             Func<IRemoteExtensionMessageHandlerService, Checksum?, CancellationToken, ValueTask<TResult>> executeOutOfProcessAsync,
             CancellationToken cancellationToken)
         {
-            var client = await RemoteHostClient.TryGetClientAsync(this.SolutionServices, cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(_solutionServices, cancellationToken).ConfigureAwait(false);
             if (client is null)
                 return await executeInProcessAsync(cancellationToken).ConfigureAwait(false);
 
