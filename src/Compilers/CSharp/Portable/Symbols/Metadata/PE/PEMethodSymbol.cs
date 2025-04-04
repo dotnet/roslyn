@@ -1172,6 +1172,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private bool IsValidInstanceUserDefinedOperatorSignature(int parameterCount)
         {
+            // PROTOTYPE: Cover negative scenarios
+
             if (!this.ReturnsVoid || this.IsGenericMethod || this.IsVararg || this.ParameterCount != parameterCount || this.IsParams())
             {
                 return false;
@@ -1278,6 +1280,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             case WellKnownMemberNames.CheckedIncrementOperatorName:
                             case WellKnownMemberNames.IncrementOperatorName:
                                 return IsValidInstanceUserDefinedOperatorSignature(0) ? MethodKind.UserDefinedOperator : MethodKind.Ordinary;
+
+                            case WellKnownMemberNames.AdditionAssignmentOperatorName:
+                            case WellKnownMemberNames.SubtractionAssignmentOperatorName:
+                            case WellKnownMemberNames.MultiplicationAssignmentOperatorName:
+                            case WellKnownMemberNames.DivisionAssignmentOperatorName:
+                            case WellKnownMemberNames.ModulusAssignmentOperatorName:
+                            case WellKnownMemberNames.BitwiseAndAssignmentOperatorName:
+                            case WellKnownMemberNames.BitwiseOrAssignmentOperatorName:
+                            case WellKnownMemberNames.ExclusiveOrAssignmentOperatorName:
+                            case WellKnownMemberNames.LeftShiftAssignmentOperatorName:
+                            case WellKnownMemberNames.RightShiftAssignmentOperatorName:
+                            case WellKnownMemberNames.UnsignedRightShiftAssignmentOperatorName:
+                            case WellKnownMemberNames.CheckedAdditionAssignmentOperatorName:
+                            case WellKnownMemberNames.CheckedSubtractionAssignmentOperatorName:
+                            case WellKnownMemberNames.CheckedMultiplicationAssignmentOperatorName:
+                            case WellKnownMemberNames.CheckedDivisionAssignmentOperatorName:
+                                return IsValidInstanceUserDefinedOperatorSignature(1) ? MethodKind.UserDefinedOperator : MethodKind.Ordinary;
                         }
                     }
 

@@ -1106,6 +1106,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.MinusToken;
 
                 case WellKnownMemberNames.UnaryPlusOperatorName: return SyntaxKind.PlusToken;
+
+                case WellKnownMemberNames.CheckedAdditionAssignmentOperatorName:
+                case WellKnownMemberNames.AdditionAssignmentOperatorName:
+                    return SyntaxKind.PlusEqualsToken;
+
+                case WellKnownMemberNames.CheckedDivisionAssignmentOperatorName:
+                case WellKnownMemberNames.DivisionAssignmentOperatorName:
+                    return SyntaxKind.SlashEqualsToken;
+
+                case WellKnownMemberNames.CheckedMultiplicationAssignmentOperatorName:
+                case WellKnownMemberNames.MultiplicationAssignmentOperatorName:
+                    return SyntaxKind.AsteriskEqualsToken;
+
+                case WellKnownMemberNames.CheckedSubtractionAssignmentOperatorName:
+                case WellKnownMemberNames.SubtractionAssignmentOperatorName:
+                    return SyntaxKind.MinusEqualsToken;
+
+                case WellKnownMemberNames.ModulusAssignmentOperatorName: return SyntaxKind.PercentEqualsToken;
+
+                case WellKnownMemberNames.BitwiseAndAssignmentOperatorName: return SyntaxKind.AmpersandEqualsToken;
+
+                case WellKnownMemberNames.BitwiseOrAssignmentOperatorName: return SyntaxKind.BarEqualsToken;
+
+                case WellKnownMemberNames.ExclusiveOrAssignmentOperatorName: return SyntaxKind.CaretEqualsToken;
+
+                case WellKnownMemberNames.LeftShiftAssignmentOperatorName: return SyntaxKind.LessThanLessThanEqualsToken;
+
+                case WellKnownMemberNames.RightShiftAssignmentOperatorName: return SyntaxKind.GreaterThanGreaterThanEqualsToken;
+
+                case WellKnownMemberNames.UnsignedRightShiftAssignmentOperatorName: return SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken;
+
                 default:
                     return SyntaxKind.None;
             }
@@ -1123,6 +1154,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case WellKnownMemberNames.CheckedMultiplyOperatorName:
                 case WellKnownMemberNames.CheckedSubtractionOperatorName:
                 case WellKnownMemberNames.CheckedExplicitConversionName:
+                case WellKnownMemberNames.CheckedAdditionAssignmentOperatorName:
+                case WellKnownMemberNames.CheckedDivisionAssignmentOperatorName:
+                case WellKnownMemberNames.CheckedMultiplicationAssignmentOperatorName:
+                case WellKnownMemberNames.CheckedSubtractionAssignmentOperatorName:
                     return true;
 
                 default:
