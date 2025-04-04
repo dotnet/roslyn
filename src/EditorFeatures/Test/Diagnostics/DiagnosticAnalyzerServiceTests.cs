@@ -239,7 +239,7 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         var solution = workspace.CurrentSolution;
 
-        var analyzerReference = new AnalyzerImageReference([new LeakDocumentAnalyzer()]);
+        var analyzerReference = new AnalyzerImageReference([new LeakDocumentAnalyzer(), new LeakProjectAnalyzer()]);
 
         var globalOptions = GetGlobalOptions(workspace);
         globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution);
@@ -911,6 +911,13 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
             => SpecializedTasks.Default<ImmutableArray<Diagnostic>>();
+    }
+
+    private sealed class LeakProjectAnalyzer : ProjectDiagnosticAnalyzer
+    {
+        private static readonly DiagnosticDescriptor s_rule = new DiagnosticDescriptor("project", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [s_rule];
+        public override Task<ImmutableArray<Diagnostic>> AnalyzeProjectAsync(Project project, CancellationToken cancellationToken) => SpecializedTasks.Default<ImmutableArray<Diagnostic>>();
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
