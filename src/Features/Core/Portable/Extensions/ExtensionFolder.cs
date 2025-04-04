@@ -136,7 +136,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                 return _assemblyFilePathToHandlers.Count == 0;
             }
 
-            public async ValueTask<AssemblyMessageHandlers> GetAssemblyHandlersAsync(string assemblyFilePath, CancellationToken cancellationToken)
+            public async ValueTask<GetExtensionMessageNamesResponse> GetExtensionMessageNamesAsync(string assemblyFilePath, CancellationToken cancellationToken)
             {
                 // This is safe to do as our general contract is that all handler operations should be called explicitly
                 // between calls to Register/Unregister the extension.  So this cannot race with an extension being
@@ -146,7 +146,11 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
 
                 // If loading the assembly and getting the handlers failed, then we will throw that exception outwards
                 // for the client to hear about.
-                return await lazyHandlers.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                var handlers = await lazyHandlers.GetValueAsync(cancellationToken).ConfigureAwait(false);
+
+                return new(
+                    WorkspaceMessageHandlers: [.. handlers.WorkspaceMessageHandlers.Keys],
+                    DocumentMessageHandlers: [.. handlers.DocumentMessageHandlers.Keys]);
             }
 
             public async ValueTask AddHandlersAsync(string messageName, bool isSolution, ArrayBuilder<IExtensionMessageHandlerWrapper> result, CancellationToken cancellationToken)

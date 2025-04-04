@@ -73,47 +73,52 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             // Take lock as we both want to update our state, and the state of the ExtensionFolder instance we get back.
             lock (_gate)
             {
+                // Clear out the cached handler names.  They will be recomputed the next time we need them.
+                ClearCachedHandlers_WhileUnderLock();
+
                 var extensionFolder = ImmutableInterlocked.GetOrAdd(
                     ref _folderPathToExtensionFolder,
                     assemblyFolderPath,
                     assemblyFolderPath => new ExtensionFolder(this, assemblyFolderPath));
 
                 extensionFolder.RegisterAssembly(assemblyFilePath);
-
-                // After registering, clear out the cached handler names.  They will be recomputed the next time we need them.
-                ClearCachedHandlers_WhileUnderLock();
                 return default;
             }
         }
 
         private ValueTask<VoidResult> UnregisterExtensionInCurrentProcessAsync(string assemblyFilePath)
         {
-            var assemblyFolderPath = GetAssemblyFolderPath(assemblyFilePath);
+            var folderToUnload = Unregister();
 
-            // Take lock as we both want to update our state, and the state of the ExtensionFolder instance we get back.
-            ExtensionFolder? folderToUnload = null;
-            lock (_gate)
-            {
-                if (!_folderPathToExtensionFolder.TryGetValue(assemblyFolderPath, out var extensionFolder))
-                    throw new InvalidOperationException($"No extension registered as '{assemblyFolderPath}'");
-
-                // Unregister this particular assembly file from teh assembly folder.  If it was the last extension within
-                // this folder, we can remove the registration for the extension entirely.
-                if (extensionFolder.UnregisterAssembly(assemblyFilePath))
-                {
-                    folderToUnload = extensionFolder;
-                    _folderPathToExtensionFolder = _folderPathToExtensionFolder.Remove(assemblyFolderPath);
-                }
-
-                // After unregistering, clear out the cached handler names.  They will be recomputed the next time we need them.
-                ClearCachedHandlers_WhileUnderLock();
-            }
-
-            // Now that we're done with the folder, ask it to unload any resources it is holding onto. This will ask it
+            // If we're done with the folder, ask it to unload any resources it is holding onto. This will ask it
             // to unload all ALCs needed to load it and the extensions within.  Unloading will happen once the
             // runtime/gc determine the ALC is finally collectible.
             folderToUnload?.Unload();
             return default;
+
+            ExtensionFolder? Unregister()
+            {
+                var assemblyFolderPath = GetAssemblyFolderPath(assemblyFilePath);
+
+                // Take lock as we both want to update our state, and the state of the ExtensionFolder instance we get back.
+                lock (_gate)
+                {
+                    if (!_folderPathToExtensionFolder.TryGetValue(assemblyFolderPath, out var extensionFolder))
+                        throw new InvalidOperationException($"No extension registered as '{assemblyFolderPath}'");
+
+                    // Clear out the cached handler names.  They will be recomputed the next time we need them.
+                    ClearCachedHandlers_WhileUnderLock();
+
+                    // If we're not done with the folder.  Return null so our caller doesn't unload anything.
+                    if (!extensionFolder.UnregisterAssembly(assemblyFilePath))
+                        return null;
+
+                    // Last extension in the folder.  Remove our folder registration entirely, and return it so the
+                    // caller can unload it.
+                    _folderPathToExtensionFolder = _folderPathToExtensionFolder.Remove(assemblyFolderPath);
+                    return extensionFolder;
+                }
+            }
         }
 
         public async ValueTask<GetExtensionMessageNamesResponse> GetExtensionMessageNamesInCurrentProcessAsync(
@@ -125,11 +130,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             if (!_folderPathToExtensionFolder.TryGetValue(assemblyFolderPath, out var extensionFolder))
                 throw new InvalidOperationException($"No extensions registered at '{assemblyFolderPath}'");
 
-            var assemblyHandlers = await extensionFolder.GetAssemblyHandlersAsync(assemblyFilePath, cancellationToken).ConfigureAwait(false);
-
-            return new(
-                [.. assemblyHandlers.WorkspaceMessageHandlers.Keys],
-                [.. assemblyHandlers.DocumentMessageHandlers.Keys]);
+            return await extensionFolder.GetExtensionMessageNamesAsync(assemblyFilePath, cancellationToken).ConfigureAwait(false);
         }
 
         private ValueTask<VoidResult> ResetInCurrentProcessAsync()
