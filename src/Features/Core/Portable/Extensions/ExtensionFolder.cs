@@ -95,6 +95,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
 
                 var assembly = analyzerAssemblyLoader.LoadFromPath(assemblyFilePath);
                 var factory = _extensionMessageHandlerService._customMessageHandlerFactory;
+                Contract.ThrowIfNull(factory);
 
                 var documentMessageHandlers = factory
                     .CreateDocumentMessageHandlers(assembly, extensionIdentifier: assemblyFilePath, cancellationToken)

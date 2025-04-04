@@ -12,7 +12,8 @@ namespace Microsoft.CodeAnalysis.Extensions;
 [ExportWorkspaceServiceFactory(typeof(IExtensionMessageHandlerService)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed partial class ExtensionMessageHandlerServiceFactory(IExtensionMessageHandlerFactory customMessageHandlerFactory)
+internal sealed partial class ExtensionMessageHandlerServiceFactory(
+    [Import(AllowDefault = true)] IExtensionMessageHandlerFactory? customMessageHandlerFactory)
     : IWorkspaceServiceFactory
 {
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
