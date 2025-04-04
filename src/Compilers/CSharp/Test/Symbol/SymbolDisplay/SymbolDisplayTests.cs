@@ -2338,7 +2338,7 @@ class C {
                 text,
                 findSymbol,
                 format,
-                "private String C.<P>k__BackingField",
+                "private string? C.<P>k__BackingField",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
@@ -2374,7 +2374,7 @@ class C {
 
             Verify(
                 parts,
-                "private string <P>k__BackingField",
+                "private string? <P>k__BackingField",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
