@@ -1980,43 +1980,130 @@ partial class C : I
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77346")]
         public void InInterface_Virtual(
-            [CombinatorialValues("", "virtual")] string virt,
-            [CombinatorialValues(LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion langVersion)
+            [CombinatorialValues("", "public", "private", "protected", "internal", "protected internal", "private protected")] string access,
+            [CombinatorialValues("", "virtual", "sealed")] string virt,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion langVersion)
         {
-            var source = $$"""
+            var source1 = $$"""
                 using System;
-
-                M(new C1());
-                M(new C2());
-
-                static void M(I x)
-                {
-                    x.M();
-                }
 
                 partial interface I
                 {
-                    public {{virt}} partial int M();
-                    public {{virt}} partial int M() { Console.Write(1); return 0; }
+                    {{access}} {{virt}}
+                    partial void M();
+                    {{access}} {{virt}}
+                    partial void M() { Console.Write(1); }
+                }
+                """;
+
+            var source2 = """
+                using System;
+
+                partial interface I
+                {
+                    static void Main()
+                    {
+                        Helper(new C1());
+                        Helper(new C2());
+                    }
+
+                    static void Helper(I x)
+                    {
+                        x.M();
+                    }
                 }
 
                 class C1 : I;
 
                 class C2 : I
                 {
-                    int I.M() { Console.Write(2); return 0; }
+                    void I.M() { Console.Write(2); }
                 }
                 """;
-            var comp = CreateCompilation(source,
+
+            bool expectedPrivate = access is "" or "private";
+
+            bool nonVirtualByDefault = expectedPrivate || langVersion == LanguageVersion.CSharp13;
+
+            var expectedAccessibility = access switch
+            {
+                _ when expectedPrivate => Accessibility.Private,
+                "public" => Accessibility.Public,
+                "protected" => Accessibility.Protected,
+                "internal" => Accessibility.Internal,
+                "protected internal" => Accessibility.ProtectedOrInternal,
+                "private protected" => Accessibility.ProtectedAndFriend,
+                _ => throw ExceptionUtilities.UnexpectedValue(access),
+            };
+
+            bool expectedVirtual = langVersion == LanguageVersion.CSharp13 || expectedPrivate
+                ? virt == "virtual"
+                : virt != "sealed";
+
+            bool expectedSealed = nonVirtualByDefault && virt == "sealed";
+
+            bool executable = expectedVirtual && !expectedPrivate;
+
+            DiagnosticDescription[] expectedDiagnostics = [];
+
+            if (access == "" && virt != "")
+            {
+                expectedDiagnostics =
+                [
+                    // (6,18): error CS8798: Partial method 'I.M()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
+                    //     partial void M();
+                    Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M").WithArguments("I.M()").WithLocation(6, 18),
+                    // (8,18): error CS8798: Partial method 'I.M()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
+                    //     partial void M() { Console.Write(1); }
+                    Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M").WithArguments("I.M()").WithLocation(8, 18)
+                ];
+            }
+            else if (virt == "sealed" && nonVirtualByDefault)
+            {
+                expectedDiagnostics =
+                [
+                    // (6,18): error CS0238: 'I.M()' cannot be sealed because it is not an override
+                    //     partial void M();
+                    Diagnostic(ErrorCode.ERR_SealedNonOverride, "M").WithArguments("I.M()").WithLocation(6, 18),
+                    // (8,18): error CS0238: 'I.M()' cannot be sealed because it is not an override
+                    //     partial void M() { Console.Write(1); }
+                    Diagnostic(ErrorCode.ERR_SealedNonOverride, "M").WithArguments("I.M()").WithLocation(8, 18)
+                ];
+            }
+            else if (expectedPrivate && expectedVirtual)
+            {
+                expectedDiagnostics =
+                [
+                    // (6,18): error CS0621: 'I.M()': virtual or abstract members cannot be private
+                    //     partial void M();
+                    Diagnostic(ErrorCode.ERR_VirtualPrivate, "M").WithArguments("I.M()").WithLocation(6, 18),
+                    // (8,18): error CS0621: 'I.M()': virtual or abstract members cannot be private
+                    //     partial void M() { Console.Write(1); }
+                    Diagnostic(ErrorCode.ERR_VirtualPrivate, "M").WithArguments("I.M()").WithLocation(8, 18)
+                ];
+            }
+
+            var comp = CreateCompilation(executable ? [source1, source2] : source1,
+                options: TestOptions.DebugDll
+                    .WithOutputKind(executable ? OutputKind.ConsoleApplication : OutputKind.DynamicallyLinkedLibrary)
+                    .WithMetadataImportOptions(MetadataImportOptions.All),
                 parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion),
-                targetFramework: TargetFramework.Net60).VerifyDiagnostics();
-            CompileAndVerify(comp,
-                sourceSymbolValidator: validate,
-                symbolValidator: validate,
-                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "12" : null,
-                verify: Verification.FailsPEVerify).VerifyDiagnostics();
+                targetFramework: TargetFramework.Net60).VerifyDiagnostics(expectedDiagnostics);
 
-            static void validate(ModuleSymbol module)
+            if (expectedDiagnostics.Length == 0)
+            {
+                CompileAndVerify(comp,
+                    sourceSymbolValidator: validate,
+                    symbolValidator: validate,
+                    expectedOutput: executable && ExecutionConditionUtil.IsMonoOrCoreClr ? "12" : null,
+                    verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            }
+            else
+            {
+                validate(comp.SourceModule);
+            }
+
+            void validate(ModuleSymbol module)
             {
                 var m = module.GlobalNamespace.GetMember<MethodSymbol>("I.M");
                 validateMethod(m);
@@ -2027,334 +2114,139 @@ partial class C : I
                 }
             }
 
-            static void validateMethod(MethodSymbol m)
+            void validateMethod(MethodSymbol m)
             {
                 Assert.False(m.IsAbstract);
-                Assert.True(m.IsVirtual);
-                Assert.True(m.IsMetadataVirtual());
-                Assert.True(m.IsMetadataNewSlot());
-                Assert.False(m.IsSealed);
+                Assert.Equal(expectedVirtual, m.IsVirtual);
+                Assert.Equal(expectedVirtual, m.IsMetadataVirtual());
+                Assert.Equal(expectedVirtual, m.IsMetadataNewSlot());
+                Assert.Equal(expectedSealed, m.IsSealed);
                 Assert.False(m.IsStatic);
                 Assert.False(m.IsExtern);
                 Assert.False(m.IsOverride);
-                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+                Assert.Equal(expectedAccessibility, m.DeclaredAccessibility);
                 Assert.True(m.ContainingModule is not SourceModuleSymbol || m.IsPartialMember());
-            }
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77346")]
-        public void InInterface_NonVirtual_CSharp13()
-        {
-            var source = """
-                partial interface I
-                {
-                    public partial int M();
-                    public partial int M() => 0;
-                }
-                """;
-            var comp = CreateCompilation(source,
-                parseOptions: TestOptions.Regular13,
-                targetFramework: TargetFramework.Net60).VerifyDiagnostics();
-            CompileAndVerify(comp,
-                sourceSymbolValidator: validate,
-                symbolValidator: validate,
-                verify: Verification.FailsPEVerify).VerifyDiagnostics();
-
-            static void validate(ModuleSymbol module)
-            {
-                var m = module.GlobalNamespace.GetMember<MethodSymbol>("I.M");
-                validateMethod(m);
-
-                if (module is SourceModuleSymbol)
-                {
-                    validateMethod((MethodSymbol)m.GetPartialImplementationPart()!);
-                }
-            }
-
-            static void validateMethod(MethodSymbol m)
-            {
-                Assert.False(m.IsAbstract);
-                Assert.False(m.IsVirtual);
-                Assert.False(m.IsMetadataVirtual());
-                Assert.False(m.IsMetadataNewSlot());
-                Assert.False(m.IsSealed);
-                Assert.False(m.IsStatic);
-                Assert.False(m.IsExtern);
-                Assert.False(m.IsOverride);
-                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
-                Assert.True(m.ContainingModule is not SourceModuleSymbol || m.IsPartialMember());
-            }
-        }
-
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77346")]
-        public void InInterface_NonVirtual_CSharp13_Private(
-            [CombinatorialValues("", "private")] string access)
-        {
-            var source = $$"""
-                partial interface I
-                {
-                    {{access}} partial void M();
-                    {{access}} partial void M() { }
-                }
-                """;
-            var comp = CreateCompilation(source,
-                parseOptions: TestOptions.Regular13,
-                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                targetFramework: TargetFramework.Net60).VerifyDiagnostics();
-            CompileAndVerify(comp,
-                sourceSymbolValidator: validate,
-                symbolValidator: validate,
-                verify: Verification.FailsPEVerify).VerifyDiagnostics();
-
-            static void validate(ModuleSymbol module)
-            {
-                var m = module.GlobalNamespace.GetMember<MethodSymbol>("I.M");
-                validateMethod(m);
-
-                if (module is SourceModuleSymbol)
-                {
-                    validateMethod((MethodSymbol)m.GetPartialImplementationPart()!);
-                }
-            }
-
-            static void validateMethod(MethodSymbol m)
-            {
-                Assert.False(m.IsAbstract);
-                Assert.False(m.IsVirtual);
-                Assert.False(m.IsMetadataVirtual());
-                Assert.False(m.IsMetadataNewSlot());
-                Assert.False(m.IsSealed);
-                Assert.False(m.IsStatic);
-                Assert.False(m.IsExtern);
-                Assert.False(m.IsOverride);
-                Assert.Equal(Accessibility.Private, m.DeclaredAccessibility);
-                Assert.True(m.ContainingModule is not SourceModuleSymbol || m.IsPartialMember());
-            }
-        }
-
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77346")]
-        public void InInterface_Private(
-            [CombinatorialValues("", "private")] string access,
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion langVersion)
-        {
-            var source = $$"""
-                partial interface I
-                {
-                    {{access}} partial void M();
-                    {{access}} partial void M() { }
-                }
-                """;
-            var comp = CreateCompilation(source,
-                parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion),
-                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                targetFramework: TargetFramework.Net60).VerifyDiagnostics();
-            CompileAndVerify(comp,
-                sourceSymbolValidator: validate,
-                symbolValidator: validate,
-                verify: Verification.FailsPEVerify).VerifyDiagnostics();
-
-            static void validate(ModuleSymbol module)
-            {
-                var m = module.GlobalNamespace.GetMember<MethodSymbol>("I.M");
-                validateMethod(m);
-
-                if (module is SourceModuleSymbol)
-                {
-                    validateMethod((MethodSymbol)m.GetPartialImplementationPart()!);
-                }
-            }
-
-            static void validateMethod(MethodSymbol m)
-            {
-                Assert.False(m.IsAbstract);
-                Assert.False(m.IsVirtual);
-                Assert.False(m.IsMetadataVirtual());
-                Assert.False(m.IsMetadataNewSlot());
-                Assert.False(m.IsSealed);
-                Assert.False(m.IsStatic);
-                Assert.False(m.IsExtern);
-                Assert.False(m.IsOverride);
-                Assert.Equal(Accessibility.Private, m.DeclaredAccessibility);
-                Assert.True(m.ContainingModule is not SourceModuleSymbol || m.IsPartialMember());
-            }
-        }
-
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77346")]
-        public void InInterface_Sealed(
-            [CombinatorialValues(LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion langVersion)
-        {
-            var source = """
-                partial interface I
-                {
-                    public sealed partial int M();
-                    public sealed partial int M() => 0;
-                }
-                """;
-            var comp = CreateCompilation(source,
-                parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion),
-                targetFramework: TargetFramework.Net60).VerifyDiagnostics();
-            CompileAndVerify(comp,
-                sourceSymbolValidator: validate,
-                symbolValidator: validate,
-                verify: Verification.FailsPEVerify).VerifyDiagnostics();
-
-            static void validate(ModuleSymbol module)
-            {
-                var m = module.GlobalNamespace.GetMember<MethodSymbol>("I.M");
-                validateMethod(m);
-
-                if (module is SourceModuleSymbol)
-                {
-                    validateMethod((MethodSymbol)m.GetPartialImplementationPart()!);
-                }
-            }
-
-            static void validateMethod(MethodSymbol m)
-            {
-                Assert.False(m.IsAbstract);
-                Assert.False(m.IsVirtual);
-                Assert.False(m.IsMetadataVirtual());
-                Assert.False(m.IsMetadataNewSlot());
-                Assert.False(m.IsSealed);
-                Assert.False(m.IsStatic);
-                Assert.False(m.IsExtern);
-                Assert.False(m.IsOverride);
-                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
-                Assert.True(m.ContainingModule is not SourceModuleSymbol || m.IsPartialMember());
-            }
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77346")]
-        public void InInterface_Sealed_CSharp13()
-        {
-            var source = """
-                partial interface I
-                {
-                    public sealed partial int M();
-                    public sealed partial int M() => 0;
-                }
-                """;
-            var comp = CreateCompilation(source,
-                parseOptions: TestOptions.Regular13,
-                targetFramework: TargetFramework.Net60)
-                .VerifyDiagnostics(
-                    // (3,31): error CS0238: 'I.M()' cannot be sealed because it is not an override
-                    //     public sealed partial int M();
-                    Diagnostic(ErrorCode.ERR_SealedNonOverride, "M").WithArguments("I.M()").WithLocation(3, 31),
-                    // (4,31): error CS0238: 'I.M()' cannot be sealed because it is not an override
-                    //     public sealed partial int M() => 0;
-                    Diagnostic(ErrorCode.ERR_SealedNonOverride, "M").WithArguments("I.M()").WithLocation(4, 31));
-
-            var m = comp.GetMember<SourceMethodSymbol>("I.M");
-            validateMethod(m);
-            validateMethod(m.PartialImplementationPart!);
-
-            static void validateMethod(MethodSymbol m)
-            {
-                Assert.False(m.IsAbstract);
-                Assert.False(m.IsVirtual);
-                Assert.False(m.IsMetadataVirtual());
-                Assert.False(m.IsMetadataNewSlot());
-                Assert.True(m.IsSealed);
-                Assert.False(m.IsStatic);
-                Assert.False(m.IsExtern);
-                Assert.False(m.IsOverride);
-                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
-                Assert.True(m.IsPartialMember());
-            }
-        }
-
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77346")]
-        public void InInterface_Sealed_Private(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion langVersion)
-        {
-            var source = """
-                partial interface I
-                {
-                    private sealed partial int M();
-                    private sealed partial int M() => 0;
-                }
-                """;
-            var comp = CreateCompilation(source,
-                parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion),
-                targetFramework: TargetFramework.Net60)
-                .VerifyDiagnostics(
-                    // (3,32): error CS0238: 'I.M()' cannot be sealed because it is not an override
-                    //     private sealed partial int M();
-                    Diagnostic(ErrorCode.ERR_SealedNonOverride, "M").WithArguments("I.M()").WithLocation(3, 32),
-                    // (4,32): error CS0238: 'I.M()' cannot be sealed because it is not an override
-                    //     private sealed partial int M() => 0;
-                    Diagnostic(ErrorCode.ERR_SealedNonOverride, "M").WithArguments("I.M()").WithLocation(4, 32));
-
-            var m = comp.GetMember<SourceMethodSymbol>("I.M");
-            validateMethod(m);
-            validateMethod(m.PartialImplementationPart!);
-
-            static void validateMethod(MethodSymbol m)
-            {
-                Assert.False(m.IsAbstract);
-                Assert.False(m.IsVirtual);
-                Assert.False(m.IsMetadataVirtual());
-                Assert.False(m.IsMetadataNewSlot());
-                Assert.True(m.IsSealed);
-                Assert.False(m.IsStatic);
-                Assert.False(m.IsExtern);
-                Assert.False(m.IsOverride);
-                Assert.Equal(Accessibility.Private, m.DeclaredAccessibility);
-                Assert.True(m.IsPartialMember());
             }
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77346")]
         public void InInterface_StaticVirtual(
+            [CombinatorialValues("", "public", "private", "protected", "internal", "protected internal", "private protected")] string access,
+            [CombinatorialValues("", "virtual", "sealed")] string virt,
             [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion langVersion)
         {
-            var source = """
-                M<C1>();
-                M<C2>();
-                M<C3>();
-
-                static void M<T>() where T : I
-                {
-                    System.Console.Write(T.M());
-                }
-
+            var source1 = $$"""
                 partial interface I
                 {
-                    public static virtual partial int M();
-                    public static virtual partial int M() => 1;
+                    {{access}} static {{virt}}
+                    partial void M();
+                    {{access}} static {{virt}}
+                    partial void M() { System.Console.Write(1); }
+                }
+                """;
+
+            var source2 = """
+                partial interface I
+                {
+                    static void Main()
+                    {
+                        Helper<C1>();
+                        Helper<C2>();
+                        Helper<C3>();
+                    }
+
+                    static void Helper<T>() where T : I
+                    {
+                        T.M();
+                    }
                 }
 
                 class C1 : I
                 {
-                    static int M() => 2;
+                    static void M() { System.Console.Write(2); }
                 }
 
                 class C2 : I
                 {
-                    public static int M() => 3;
+                    public static void M() { System.Console.Write(3); }
                 }
 
                 class C3 : I
                 {
-                    static int I.M() => 4;
+                    static void I.M() { System.Console.Write(4); }
                 }
                 """;
-            var comp = CreateCompilation(source,
-                parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion),
-                targetFramework: TargetFramework.Net60).VerifyDiagnostics();
-            CompileAndVerify(comp,
-                sourceSymbolValidator: validate,
-                symbolValidator: validate,
-                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "134" : null,
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = """
-                        [<<Main>$>g__M|0_0]: Missing callvirt following constrained prefix. { Offset = 0x6 }
-                        """,
-                }).VerifyDiagnostics();
 
-            static void validate(ModuleSymbol module)
+            bool expectedPrivate = access is "" or "private";
+
+            var expectedAccessibility = access switch
+            {
+                _ when expectedPrivate => Accessibility.Private,
+                "public" => Accessibility.Public,
+                "protected" => Accessibility.Protected,
+                "internal" => Accessibility.Internal,
+                "protected internal" => Accessibility.ProtectedOrInternal,
+                "private protected" => Accessibility.ProtectedAndFriend,
+                _ => throw ExceptionUtilities.UnexpectedValue(access),
+            };
+
+            bool expectedVirtual = virt == "virtual";
+
+            bool executable = virt == "virtual" && !expectedPrivate;
+
+            DiagnosticDescription[] expectedDiagnostics = [];
+
+            if (access == "" && virt == "virtual")
+            {
+                expectedDiagnostics =
+                [
+                    // (4,18): error CS8798: Partial method 'I.M()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
+                    //     partial void M();
+                    Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M").WithArguments("I.M()").WithLocation(4, 18),
+                    // (6,18): error CS8798: Partial method 'I.M()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
+                    //     partial void M() { System.Console.Write(1); }
+                    Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M").WithArguments("I.M()").WithLocation(6, 18)
+                ];
+            }
+            else if (access == "private" && virt == "virtual")
+            {
+                expectedDiagnostics =
+                [
+                    // (4,18): error CS0621: 'I.M()': virtual or abstract members cannot be private
+                    //     partial void M();
+                    Diagnostic(ErrorCode.ERR_VirtualPrivate, "M").WithArguments("I.M()").WithLocation(4, 18),
+                    // (6,18): error CS0621: 'I.M()': virtual or abstract members cannot be private
+                    //     partial void M() { System.Console.Write(1); }
+                    Diagnostic(ErrorCode.ERR_VirtualPrivate, "M").WithArguments("I.M()").WithLocation(6, 18)
+                ];
+            }
+
+            var comp = CreateCompilation(executable ? [source1, source2] : source1,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion),
+                options: TestOptions.DebugDll
+                    .WithOutputKind(executable ? OutputKind.ConsoleApplication : OutputKind.DynamicallyLinkedLibrary)
+                    .WithMetadataImportOptions(MetadataImportOptions.All),
+                targetFramework: TargetFramework.Net60).VerifyDiagnostics(expectedDiagnostics);
+
+            if (expectedDiagnostics.Length == 0)
+            {
+                CompileAndVerify(comp,
+                    sourceSymbolValidator: validate,
+                    symbolValidator: validate,
+                    expectedOutput: executable && ExecutionConditionUtil.IsMonoOrCoreClr ? "134" : null,
+                    verify: virt != "virtual" ? Verification.FailsPEVerify : Verification.Fails with
+                    {
+                        ILVerifyMessage = """
+                            [Helper]: Missing callvirt following constrained prefix. { Offset = 0x7 }
+                            """,
+                    }).VerifyDiagnostics();
+            }
+            else
+            {
+                validate(comp.SourceModule);
+            }
+
+            void validate(ModuleSymbol module)
             {
                 var m = module.GlobalNamespace.GetMember<MethodSymbol>("I.M");
                 validateMethod(m);
@@ -2365,63 +2257,17 @@ partial class C : I
                 }
             }
 
-            static void validateMethod(MethodSymbol m)
+            void validateMethod(MethodSymbol m)
             {
                 Assert.False(m.IsAbstract);
-                Assert.True(m.IsVirtual);
-                Assert.True(m.IsMetadataVirtual());
+                Assert.Equal(expectedVirtual, m.IsVirtual);
+                Assert.Equal(expectedVirtual, m.IsMetadataVirtual());
                 Assert.False(m.IsMetadataNewSlot());
                 Assert.False(m.IsSealed);
                 Assert.True(m.IsStatic);
                 Assert.False(m.IsExtern);
                 Assert.False(m.IsOverride);
-                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
-                Assert.True(m.ContainingModule is not SourceModuleSymbol || m.IsPartialMember());
-            }
-        }
-
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77346")]
-        public void InInterface_StaticNonVirtual(
-            [CombinatorialValues("", "sealed")] string modifier,
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion langVersion)
-        {
-            var source = $$"""
-                partial interface I
-                {
-                    public static {{modifier}} partial int M();
-                    public static {{modifier}} partial int M() => 1;
-                }
-                """;
-            var comp = CreateCompilation(source,
-                parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion),
-                targetFramework: TargetFramework.Net60).VerifyDiagnostics();
-            CompileAndVerify(comp,
-                sourceSymbolValidator: validate,
-                symbolValidator: validate,
-                verify: Verification.FailsPEVerify).VerifyDiagnostics();
-
-            static void validate(ModuleSymbol module)
-            {
-                var m = module.GlobalNamespace.GetMember<MethodSymbol>("I.M");
-                validateMethod(m);
-
-                if (module is SourceModuleSymbol)
-                {
-                    validateMethod((MethodSymbol)m.GetPartialImplementationPart()!);
-                }
-            }
-
-            static void validateMethod(MethodSymbol m)
-            {
-                Assert.False(m.IsAbstract);
-                Assert.False(m.IsVirtual);
-                Assert.False(m.IsMetadataVirtual());
-                Assert.False(m.IsMetadataNewSlot());
-                Assert.False(m.IsSealed);
-                Assert.True(m.IsStatic);
-                Assert.False(m.IsExtern);
-                Assert.False(m.IsOverride);
-                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+                Assert.Equal(expectedAccessibility, m.DeclaredAccessibility);
                 Assert.True(m.ContainingModule is not SourceModuleSymbol || m.IsPartialMember());
             }
         }
