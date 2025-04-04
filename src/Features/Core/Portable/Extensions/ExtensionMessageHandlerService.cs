@@ -31,7 +31,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
         private readonly IExtensionMessageHandlerFactory _customMessageHandlerFactory = customMessageHandlerFactory;
 
         /// <summary>
-        /// Lock for <see cref="_folderPathToExtensionFolder_useOnlyUnderLock"/>, <see cref="_cachedDocumentHandlers_useOnlyUnderLock"/>, and <see
+        /// Lock for <see cref="_folderPathToExtensionFolder"/>, <see cref="_cachedDocumentHandlers_useOnlyUnderLock"/>, and <see
         /// cref="_cachedWorkspaceHandlers_useOnlyUnderLock"/>.  Note: this type is designed such that all time while this lock is held
         /// should be minimal.  Importantly, no async work or IO should be done while holding this lock.  Instead,
         /// all of that work should be pushed into AsyncLazy values that compute when asked, outside of this lock.
@@ -41,7 +41,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
         /// <summary>
         /// Extensions assembly load contexts and loaded handlers, indexed by extension folder path.
         /// </summary>
-        private readonly Dictionary<string, ExtensionFolder> _folderPathToExtensionFolder_useOnlyUnderLock = new();
+        private ImmutableDictionary<string, ExtensionFolder> _folderPathToExtensionFolder = ImmutableDictionary<string, ExtensionFolder>.Empty;
 
         /// <summary>
         /// Cached handlers of document-related messages, indexed by handler message name.
@@ -70,9 +70,11 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
         {
             var assemblyFolderPath = GetAssemblyFolderPath(assemblyFilePath);
 
+            // Take lock as we both want to update our state, and the state of the ExtensionFolder instance we get back.
             lock (_gate)
             {
-                var extensionFolder = _folderPathToExtensionFolder_useOnlyUnderLock.GetOrAdd(
+                var extensionFolder = ImmutableInterlocked.GetOrAdd(
+                    ref _folderPathToExtensionFolder,
                     assemblyFolderPath,
                     assemblyFolderPath => new ExtensionFolder(this, assemblyFolderPath));
 
@@ -88,12 +90,11 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
         {
             var assemblyFolderPath = GetAssemblyFolderPath(assemblyFilePath);
 
-            // Note: unregistering is slightly expensive as we do everything under a lock, to ensure that we have a
-            // consistent view of the world.  This is fine as we don't expect this to be called very often.
+            // Take lock as we both want to update our state, and the state of the ExtensionFolder instance we get back.
             ExtensionFolder? folderToUnload = null;
             lock (_gate)
             {
-                if (!_folderPathToExtensionFolder_useOnlyUnderLock.TryGetValue(assemblyFolderPath, out var extensionFolder))
+                if (!_folderPathToExtensionFolder.TryGetValue(assemblyFolderPath, out var extensionFolder))
                     throw new InvalidOperationException($"No extension registered as '{assemblyFolderPath}'");
 
                 // Unregister this particular assembly file from teh assembly folder.  If it was the last extension within
@@ -101,7 +102,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                 if (extensionFolder.UnregisterAssembly(assemblyFilePath))
                 {
                     folderToUnload = extensionFolder;
-                    _folderPathToExtensionFolder_useOnlyUnderLock.Remove(assemblyFolderPath);
+                    _folderPathToExtensionFolder = _folderPathToExtensionFolder.Remove(assemblyFolderPath);
                 }
 
                 // After unregistering, clear out the cached handler names.  They will be recomputed the next time we need them.
@@ -121,12 +122,8 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
         {
             var assemblyFolderPath = GetAssemblyFolderPath(assemblyFilePath);
 
-            ExtensionFolder? extensionFolder;
-            lock (_gate)
-            {
-                if (!_folderPathToExtensionFolder_useOnlyUnderLock.TryGetValue(assemblyFolderPath, out extensionFolder))
-                    throw new InvalidOperationException($"No extensions registered at '{assemblyFolderPath}'");
-            }
+            if (!_folderPathToExtensionFolder.TryGetValue(assemblyFolderPath, out var extensionFolder))
+                throw new InvalidOperationException($"No extensions registered at '{assemblyFolderPath}'");
 
             var assemblyHandlers = await extensionFolder.GetAssemblyHandlersAsync(assemblyFilePath, cancellationToken).ConfigureAwait(false);
 
@@ -137,16 +134,15 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
 
         private ValueTask<VoidResult> ResetInCurrentProcessAsync()
         {
-            using var _ = ArrayBuilder<ExtensionFolder>.GetInstance(out var foldersToUnload);
-
+            ImmutableDictionary<string, ExtensionFolder> oldFolderPathToExtensionFolder;
             lock (_gate)
             {
-                foldersToUnload.AddRange(_folderPathToExtensionFolder_useOnlyUnderLock.Values);
-                _folderPathToExtensionFolder_useOnlyUnderLock.Clear();
+                oldFolderPathToExtensionFolder = _folderPathToExtensionFolder;
+                _folderPathToExtensionFolder = ImmutableDictionary<string, ExtensionFolder>.Empty;
                 ClearCachedHandlers_WhileUnderLock();
             }
 
-            foreach (var folderToUnload in foldersToUnload)
+            foreach (var (_, folderToUnload) in oldFolderPathToExtensionFolder)
                 folderToUnload.Unload();
 
             return default;
@@ -186,22 +182,10 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
         private async Task<ImmutableArray<IExtensionMessageHandlerWrapper>> ComputeHandlersAsync(
             string messageName, bool isSolution, CancellationToken cancellationToken)
         {
-            using var _1 = ArrayBuilder<ExtensionFolder>.GetInstance(out var extensionFolders);
-            lock (_gate)
-            {
-                foreach (var (_, extensionFolder) in _folderPathToExtensionFolder_useOnlyUnderLock)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    extensionFolders.Add(extensionFolder);
-                }
-            }
-
             using var _ = ArrayBuilder<IExtensionMessageHandlerWrapper>.GetInstance(out var result);
-            foreach (var extensionFolder in extensionFolders)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
+
+            foreach (var (_, extensionFolder) in _folderPathToExtensionFolder)
                 await extensionFolder.AddHandlersAsync(messageName, isSolution, result, cancellationToken).ConfigureAwait(false);
-            }
 
             return result.ToImmutable();
         }
