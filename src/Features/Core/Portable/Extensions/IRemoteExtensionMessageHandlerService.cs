@@ -13,9 +13,11 @@ namespace Microsoft.CodeAnalysis.Extensions;
 /// </summary>
 internal interface IRemoteExtensionMessageHandlerService
 {
-    ValueTask<VoidResult> RegisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken);
+    ValueTask RegisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken);
 
-    ValueTask<VoidResult> UnregisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken);
+    ValueTask UnregisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken);
+
+    ValueTask ResetAsync(CancellationToken cancellationToken);
 
     ValueTask<GetExtensionMessageNamesResponse> GetExtensionMessageNamesAsync(string assemblyFilePath, CancellationToken cancellationToken);
 
@@ -24,6 +26,4 @@ internal interface IRemoteExtensionMessageHandlerService
 
     ValueTask<string> HandleExtensionWorkspaceMessageAsync(
         Checksum solutionChecksum, string messageName, string jsonMessage, CancellationToken cancellationToken);
-
-    ValueTask<VoidResult> ResetAsync(CancellationToken cancellationToken);
 }

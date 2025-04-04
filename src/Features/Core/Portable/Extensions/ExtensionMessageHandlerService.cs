@@ -66,7 +66,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             _cachedDocumentHandlers_useOnlyUnderLock.Clear();
         }
 
-        public ValueTask<VoidResult> RegisterExtensionInCurrentProcessAsync(string assemblyFilePath)
+        private ValueTask RegisterExtensionInCurrentProcessAsync(string assemblyFilePath)
         {
             var assemblyFolderPath = GetAssemblyFolderPath(assemblyFilePath);
 
@@ -86,7 +86,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             }
         }
 
-        private ValueTask<VoidResult> UnregisterExtensionInCurrentProcessAsync(string assemblyFilePath)
+        private ValueTask UnregisterExtensionInCurrentProcessAsync(string assemblyFilePath)
         {
             var folderToUnload = Unregister();
 
@@ -121,19 +121,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             }
         }
 
-        public async ValueTask<GetExtensionMessageNamesResponse> GetExtensionMessageNamesInCurrentProcessAsync(
-            string assemblyFilePath,
-            CancellationToken cancellationToken)
-        {
-            var assemblyFolderPath = GetAssemblyFolderPath(assemblyFilePath);
-
-            if (!_folderPathToExtensionFolder.TryGetValue(assemblyFolderPath, out var extensionFolder))
-                throw new InvalidOperationException($"No extensions registered at '{assemblyFolderPath}'");
-
-            return await extensionFolder.GetExtensionMessageNamesAsync(assemblyFilePath, cancellationToken).ConfigureAwait(false);
-        }
-
-        private ValueTask<VoidResult> ResetInCurrentProcessAsync()
+        private ValueTask ResetInCurrentProcessAsync()
         {
             ImmutableDictionary<string, ExtensionFolder> oldFolderPathToExtensionFolder;
             lock (_gate)
@@ -147,6 +135,18 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                 folderToUnload.Unload();
 
             return default;
+        }
+
+        private async ValueTask<GetExtensionMessageNamesResponse> GetExtensionMessageNamesInCurrentProcessAsync(
+            string assemblyFilePath,
+            CancellationToken cancellationToken)
+        {
+            var assemblyFolderPath = GetAssemblyFolderPath(assemblyFilePath);
+
+            if (!_folderPathToExtensionFolder.TryGetValue(assemblyFolderPath, out var extensionFolder))
+                throw new InvalidOperationException($"No extensions registered at '{assemblyFolderPath}'");
+
+            return await extensionFolder.GetExtensionMessageNamesAsync(assemblyFilePath, cancellationToken).ConfigureAwait(false);
         }
 
         private async ValueTask<string> HandleExtensionMessageInCurrentProcessAsync<TArgument>(

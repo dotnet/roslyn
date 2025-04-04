@@ -6,6 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Threading;
 
 namespace Microsoft.CodeAnalysis.Extensions;
 
@@ -15,7 +16,28 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
     {
         // Code for bifurcating calls to either the local or remote process.
 
-        private async ValueTask<TResult> ExecuteInRemoteOrCurrentProcessAsync<TResult>(
+        private async ValueTask ExecuteActionInRemoteOrCurrentProcessAsync(
+            Solution? solution,
+            Func<CancellationToken, ValueTask> executeInProcessAsync,
+            Func<IRemoteExtensionMessageHandlerService, Checksum?, CancellationToken, ValueTask> executeOutOfProcessAsync,
+            CancellationToken cancellationToken)
+        {
+            await ExecuteFuncInRemoteOrCurrentProcessAsync(
+                solution,
+                async cancellationToken =>
+                {
+                    await executeInProcessAsync(cancellationToken).ConfigureAwait(false);
+                    return default(VoidResult);
+                },
+                async (service, checksum, cancellationToken) =>
+                {
+                    await executeOutOfProcessAsync(service, checksum, cancellationToken).ConfigureAwait(false);
+                    return default(VoidResult);
+                },
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        private async ValueTask<TResult> ExecuteFuncInRemoteOrCurrentProcessAsync<TResult>(
             Solution? solution,
             Func<CancellationToken, ValueTask<TResult>> executeInProcessAsync,
             Func<IRemoteExtensionMessageHandlerService, Checksum?, CancellationToken, ValueTask<TResult>> executeOutOfProcessAsync,
@@ -40,38 +62,36 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             return result.Value;
         }
 
-        public async ValueTask RegisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken)
-            => await ExecuteInRemoteOrCurrentProcessAsync(
+        public ValueTask RegisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken)
+            => ExecuteActionInRemoteOrCurrentProcessAsync(
                 solution: null,
                 _ => RegisterExtensionInCurrentProcessAsync(assemblyFilePath),
                 (remoteService, _, cancellationToken) => remoteService.RegisterExtensionAsync(assemblyFilePath, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken);
 
-        public async ValueTask UnregisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken)
-            => await ExecuteInRemoteOrCurrentProcessAsync(
+        public ValueTask UnregisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken)
+            => ExecuteActionInRemoteOrCurrentProcessAsync(
                 solution: null,
                 _ => UnregisterExtensionInCurrentProcessAsync(assemblyFilePath),
                 (remoteService, _, cancellationToken) => remoteService.UnregisterExtensionAsync(assemblyFilePath, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken);
 
         public ValueTask<GetExtensionMessageNamesResponse> GetExtensionMessageNamesAsync(string assemblyFilePath, CancellationToken cancellationToken)
-            => ExecuteInRemoteOrCurrentProcessAsync(
+            => ExecuteFuncInRemoteOrCurrentProcessAsync(
                 solution: null,
                 cancellationToken => GetExtensionMessageNamesInCurrentProcessAsync(assemblyFilePath, cancellationToken),
                 (remoteService, _, cancellationToken) => remoteService.GetExtensionMessageNamesAsync(assemblyFilePath, cancellationToken),
                 cancellationToken);
 
-        public async ValueTask ResetAsync(CancellationToken cancellationToken)
-        {
-            await ExecuteInRemoteOrCurrentProcessAsync(
+        public ValueTask ResetAsync(CancellationToken cancellationToken)
+            => ExecuteActionInRemoteOrCurrentProcessAsync(
                 solution: null,
                 _ => ResetInCurrentProcessAsync(),
                 (remoteService, _, cancellationToken) => remoteService.ResetAsync(cancellationToken),
-                cancellationToken).ConfigureAwait(false);
-        }
+                cancellationToken);
 
         public ValueTask<string> HandleExtensionWorkspaceMessageAsync(Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken)
-            => ExecuteInRemoteOrCurrentProcessAsync(
+            => ExecuteFuncInRemoteOrCurrentProcessAsync(
                 solution,
                 cancellationToken => HandleExtensionMessageInCurrentProcessAsync(
                     executeArgument: solution, isSolution: true, messageName, jsonMessage, _cachedWorkspaceHandlers_useOnlyUnderLock, cancellationToken),
@@ -79,7 +99,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                 cancellationToken);
 
         public ValueTask<string> HandleExtensionDocumentMessageAsync(Document document, string messageName, string jsonMessage, CancellationToken cancellationToken)
-            => ExecuteInRemoteOrCurrentProcessAsync(
+            => ExecuteFuncInRemoteOrCurrentProcessAsync(
                 document.Project.Solution,
                 cancellationToken => HandleExtensionMessageInCurrentProcessAsync(
                     executeArgument: document, isSolution: false, messageName, jsonMessage, _cachedDocumentHandlers_useOnlyUnderLock, cancellationToken),

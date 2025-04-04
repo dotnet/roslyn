@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Threading;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
@@ -23,21 +22,20 @@ internal sealed partial class RemoteExtensionMessageHandlerService(
     private IExtensionMessageHandlerService GetExtensionService()
         => this.GetWorkspaceServices().GetRequiredService<IExtensionMessageHandlerService>();
 
-    public ValueTask<VoidResult> RegisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken)
+    public ValueTask RegisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken)
         => RunServiceAsync(
-            async cancellationToken =>
-            {
-                await GetExtensionService().RegisterExtensionAsync(assemblyFilePath, cancellationToken).ConfigureAwait(false);
-                return default(VoidResult);
-            }, cancellationToken);
+            cancellationToken => GetExtensionService().RegisterExtensionAsync(assemblyFilePath, cancellationToken),
+            cancellationToken);
 
-    public ValueTask<VoidResult> UnregisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken)
+    public ValueTask UnregisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken)
         => RunServiceAsync(
-            async cancellationToken =>
-            {
-                await GetExtensionService().UnregisterExtensionAsync(assemblyFilePath, cancellationToken).ConfigureAwait(false);
-                return default(VoidResult);
-            }, cancellationToken);
+            cancellationToken => GetExtensionService().UnregisterExtensionAsync(assemblyFilePath, cancellationToken),
+            cancellationToken);
+
+    public ValueTask ResetAsync(CancellationToken cancellationToken)
+        => RunServiceAsync(
+            cancellationToken => GetExtensionService().ResetAsync(cancellationToken),
+            cancellationToken);
 
     public ValueTask<GetExtensionMessageNamesResponse> GetExtensionMessageNamesAsync(string assemblyFilePath, CancellationToken cancellationToken)
         => RunServiceAsync(
@@ -60,14 +58,5 @@ internal sealed partial class RemoteExtensionMessageHandlerService(
         => RunServiceAsync(
             solutionChecksum,
             solution => GetExtensionService().HandleExtensionWorkspaceMessageAsync(solution, messageName, jsonMessage, cancellationToken),
-            cancellationToken);
-
-    public ValueTask<VoidResult> ResetAsync(CancellationToken cancellationToken)
-        => RunServiceAsync(
-            async cancellationToken =>
-            {
-                await GetExtensionService().ResetAsync(cancellationToken).ConfigureAwait(false);
-                return default(VoidResult);
-            },
             cancellationToken);
 }
