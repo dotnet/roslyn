@@ -364,7 +364,7 @@ class extension { } // type may not be named "extension"
 class C<extension> { } // type parameter may not be named "extension"
 ```
 
-## Extended partial members are now virtual and public
+## Extended partial members are now implicitly virtual and public
 
 ***Introduced in Visual Studio 2022 version 17.15***
 
