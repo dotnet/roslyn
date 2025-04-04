@@ -67,7 +67,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)RazorDocumentPropertiesServiceWrapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorDocumentServiceProviderWrapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorDynamicFileInfo.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)RazorDynamicFileInfoProviderWrapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorExcerptMode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorExcerptResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorGlobalOptions.cs" />
