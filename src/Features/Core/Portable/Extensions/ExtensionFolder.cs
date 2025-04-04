@@ -138,7 +138,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                 return _assemblyFilePathToHandlers.Count == 0;
             }
 
-            public async ValueTask<GetExtensionMessageNamesResponse> GetExtensionMessageNamesAsync(string assemblyFilePath, CancellationToken cancellationToken)
+            public async ValueTask<GetExtensionMessageNamesResult> GetExtensionMessageNamesAsync(string assemblyFilePath, CancellationToken cancellationToken)
             {
                 // This is safe to do as our general contract is that all handler operations should be called explicitly
                 // between calls to Register/Unregister the extension.  So this cannot race with an extension being
