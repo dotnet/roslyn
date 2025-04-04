@@ -19,7 +19,7 @@ internal interface IExtensionMessageHandlerFactory
     /// </summary>
     /// <param name="assembly">The assembly to scan for handlers.</param>
     /// <param name="extensionIdentifier">Unique identifier of the extension owning this handler.</param>
-    /// <returns>The handlers.</returns>
+    /// <remarks>May be called multiple times for the same <see cref="Assembly"/> instance.</remarks>
     ImmutableArray<IExtensionMessageHandlerWrapper<Solution>> CreateWorkspaceMessageHandlers(
         Assembly assembly, string extensionIdentifier, CancellationToken cancellationToken);
 
@@ -29,7 +29,7 @@ internal interface IExtensionMessageHandlerFactory
     /// </summary>
     /// <param name="assembly">The assembly to scan for handlers.</param>
     /// <param name="extensionIdentifier">Unique identifier of the extension owning this handler.</param>
-    /// <returns>The handlers.</returns>
+    /// <remarks>May be called multiple times for the same <see cref="Assembly"/> instance.</remarks>
     ImmutableArray<IExtensionMessageHandlerWrapper<Document>> CreateDocumentMessageHandlers(
         Assembly assembly, string extensionIdentifier, CancellationToken cancellationToken);
 }
