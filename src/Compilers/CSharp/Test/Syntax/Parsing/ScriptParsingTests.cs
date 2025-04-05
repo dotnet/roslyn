@@ -9739,6 +9739,10 @@ Console.WriteLine(""Hi!"");", TestOptions.Script);
             var skippedText = endOfDirective.LeadingTrivia.Single();
             Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, skippedText.Kind());
             Assert.Equal(expectedSkippedText, skippedText.ToString());
+            var content = shebang.Content;
+            Assert.False(content.HasLeadingTrivia || content.HasTrailingTrivia);
+            Assert.Equal(SyntaxKind.StringLiteralToken, content.Kind());
+            Assert.Equal(expectedSkippedText, content.ToString());
         }
 
         #endregion

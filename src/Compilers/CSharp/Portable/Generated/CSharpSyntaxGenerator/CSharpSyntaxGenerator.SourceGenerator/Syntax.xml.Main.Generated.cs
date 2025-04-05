@@ -2230,7 +2230,7 @@ public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>
         => node.Update(VisitToken(node.HashToken), VisitToken(node.ExclamationToken), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
     public override SyntaxNode? VisitIgnoredDirectiveTrivia(IgnoredDirectiveTriviaSyntax node)
-        => node.Update(VisitToken(node.HashToken), VisitToken(node.ColonToken), VisitToken(node.EndOfDirectiveToken), node.IsActive);
+        => node.Update(VisitToken(node.HashToken), VisitToken(node.ColonToken), VisitToken(node.Content), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
     public override SyntaxNode? VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node)
         => node.Update(VisitToken(node.HashToken), VisitToken(node.NullableKeyword), VisitToken(node.SettingToken), VisitToken(node.TargetToken), VisitToken(node.EndOfDirectiveToken), node.IsActive);
@@ -6521,17 +6521,27 @@ public static partial class SyntaxFactory
         => SyntaxFactory.ShebangDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.ExclamationToken), SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), isActive);
 
     /// <summary>Creates a new IgnoredDirectiveTriviaSyntax instance.</summary>
-    public static IgnoredDirectiveTriviaSyntax IgnoredDirectiveTrivia(SyntaxToken hashToken, SyntaxToken colonToken, SyntaxToken endOfDirectiveToken, bool isActive)
+    public static IgnoredDirectiveTriviaSyntax IgnoredDirectiveTrivia(SyntaxToken hashToken, SyntaxToken colonToken, SyntaxToken content, SyntaxToken endOfDirectiveToken, bool isActive)
     {
         if (hashToken.Kind() != SyntaxKind.HashToken) throw new ArgumentException(nameof(hashToken));
         if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
+        switch (content.Kind())
+        {
+            case SyntaxKind.StringLiteralToken:
+            case SyntaxKind.None: break;
+            default: throw new ArgumentException(nameof(content));
+        }
         if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
-        return (IgnoredDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.IgnoredDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
+        return (IgnoredDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.IgnoredDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!, (Syntax.InternalSyntax.SyntaxToken?)content.Node, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
     }
 
     /// <summary>Creates a new IgnoredDirectiveTriviaSyntax instance.</summary>
+    public static IgnoredDirectiveTriviaSyntax IgnoredDirectiveTrivia(SyntaxToken content, bool isActive)
+        => SyntaxFactory.IgnoredDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.ColonToken), content, SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), isActive);
+
+    /// <summary>Creates a new IgnoredDirectiveTriviaSyntax instance.</summary>
     public static IgnoredDirectiveTriviaSyntax IgnoredDirectiveTrivia(bool isActive)
-        => SyntaxFactory.IgnoredDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.ColonToken), SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), isActive);
+        => SyntaxFactory.IgnoredDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.ColonToken), default, SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), isActive);
 
     /// <summary>Creates a new NullableDirectiveTriviaSyntax instance.</summary>
     public static NullableDirectiveTriviaSyntax NullableDirectiveTrivia(SyntaxToken hashToken, SyntaxToken nullableKeyword, SyntaxToken settingToken, SyntaxToken targetToken, SyntaxToken endOfDirectiveToken, bool isActive)
