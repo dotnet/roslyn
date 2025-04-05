@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EncapsulateField;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -63,6 +64,7 @@ internal sealed class ServiceDescriptors
         (typeof(IRemoteDocumentHighlightsService), null),
         (typeof(IRemoteEditAndContinueService), typeof(IRemoteEditAndContinueService.ICallback)),
         (typeof(IRemoteEncapsulateFieldService), null),
+        (typeof(IRemoteExtensionMessageHandlerService), null),
         (typeof(IRemoteExtensionMethodImportCompletionService), null),
         (typeof(IRemoteFindUsagesService), typeof(IRemoteFindUsagesService.ICallback)),
         (typeof(IRemoteFullyQualifyService), null),
