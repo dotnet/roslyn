@@ -2,11 +2,29 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Immutable;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Extensions;
+
+[DataContract]
+internal readonly record struct ExtensionMessageNames(
+    [property: DataMember(Order = 0)] ImmutableArray<string> WorkspaceMessageHandlers,
+    [property: DataMember(Order = 1)] ImmutableArray<string> DocumentMessageHandlers,
+    // Note: ServiceHub supports translating *all* exceptions over the wire.  Even exceptions whose types are not
+    // available on the other side.
+    [property: DataMember(Order = 2)] Exception? ExtensionException);
+
+[DataContract]
+internal readonly record struct ExtensionMessageResult(
+    [property: DataMember(Order = 0)] string Response,
+    // Note: ServiceHub supports translating *all* exceptions over the wire.  Even exceptions whose types are not
+    // available on the other side.
+    [property: DataMember(Order = 1)] Exception? ExtensionException);
 
 /// <summary>
 /// This service is used to register, unregister and execute extension message handlers.
@@ -26,14 +44,14 @@ internal interface IExtensionMessageHandlerService : IWorkspaceService
     ValueTask UnregisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Gets the message names supported by the extension specified by <paramref name="assemblyFilePath"/>.
-    /// </summary>
-    ValueTask<GetExtensionMessageNamesResponse> GetExtensionMessageNamesAsync(string assemblyFilePath, CancellationToken cancellationToken);
-
-    /// <summary>
     /// Unregisters all extension message handlers.
     /// </summary>
     ValueTask ResetAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets the message names supported by the extension specified by <paramref name="assemblyFilePath"/>.
+    /// </summary>
+    ValueTask<ExtensionMessageNames> GetExtensionMessageNamesAsync(string assemblyFilePath, CancellationToken cancellationToken);
 
     /// <summary>
     /// Executes a non-document-specific extension message handler with the given message and solution.
@@ -42,7 +60,7 @@ internal interface IExtensionMessageHandlerService : IWorkspaceService
     /// <param name="messageName">The name of the handler to execute. This is generally the full name of the type implementing the handler.</param>
     /// <param name="jsonMessage">The json message to be passed to the handler.</param>
     /// <returns>The json message returned by the handler.</returns>
-    ValueTask<string> HandleExtensionWorkspaceMessageAsync(
+    ValueTask<ExtensionMessageResult> HandleExtensionWorkspaceMessageAsync(
         Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken);
 
     /// <summary>
@@ -52,6 +70,6 @@ internal interface IExtensionMessageHandlerService : IWorkspaceService
     /// <param name="messageName">The name of the handler to execute. This is generally the full name of the type implementing the handler.</param>
     /// <param name="jsonMessage">The json message to be passed to the handler.</param>
     /// <returns>The json message returned by the handler.</returns>
-    ValueTask<string> HandleExtensionDocumentMessageAsync(
+    ValueTask<ExtensionMessageResult> HandleExtensionDocumentMessageAsync(
         Document documentId, string messageName, string jsonMessage, CancellationToken cancellationToken);
 }

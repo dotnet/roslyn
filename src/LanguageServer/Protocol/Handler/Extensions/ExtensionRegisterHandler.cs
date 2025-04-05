@@ -30,6 +30,10 @@ internal sealed class ExtensionRegisterHandler()
         await service.RegisterExtensionAsync(request.AssemblyFilePath, cancellationToken).ConfigureAwait(false);
         var handlerNames = await service.GetExtensionMessageNamesAsync(request.AssemblyFilePath, cancellationToken).ConfigureAwait(false);
 
+        // Report any exceptions the extension itself caused while registering and getting the message names.
+        if (handlerNames.ExtensionException is not null)
+            context.Logger.LogException(handlerNames.ExtensionException);
+
         return new(handlerNames.WorkspaceMessageHandlers, handlerNames.DocumentMessageHandlers);
     }
 }

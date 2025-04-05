@@ -83,7 +83,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                 assemblyFilePath,
                 cancellationToken);
 
-        public ValueTask<GetExtensionMessageNamesResponse> GetExtensionMessageNamesAsync(string assemblyFilePath, CancellationToken cancellationToken)
+        public ValueTask<ExtensionMessageNames> GetExtensionMessageNamesAsync(string assemblyFilePath, CancellationToken cancellationToken)
             => ExecuteFuncInRemoteOrCurrentProcessAsync(
                 solution: null,
                 static (localService, assemblyFilePath, cancellationToken) => localService.GetExtensionMessageNamesInCurrentProcessAsync(assemblyFilePath, cancellationToken),
@@ -99,7 +99,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                 default(VoidResult),
                 cancellationToken);
 
-        public ValueTask<string> HandleExtensionWorkspaceMessageAsync(Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken)
+        public ValueTask<ExtensionMessageResult> HandleExtensionWorkspaceMessageAsync(Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken)
             => ExecuteFuncInRemoteOrCurrentProcessAsync(
                 solution,
                 static (localService, arg, cancellationToken) =>
@@ -117,7 +117,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                 (solution, messageName, jsonMessage, _cachedWorkspaceHandlers_useOnlyUnderLock),
                 cancellationToken);
 
-        public ValueTask<string> HandleExtensionDocumentMessageAsync(Document document, string messageName, string jsonMessage, CancellationToken cancellationToken)
+        public ValueTask<ExtensionMessageResult> HandleExtensionDocumentMessageAsync(Document document, string messageName, string jsonMessage, CancellationToken cancellationToken)
             => ExecuteFuncInRemoteOrCurrentProcessAsync(
                 document.Project.Solution,
                 static (localService, arg, cancellationToken) =>
