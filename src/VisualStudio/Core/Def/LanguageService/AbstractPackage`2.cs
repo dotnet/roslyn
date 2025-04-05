@@ -72,6 +72,8 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
              task: (PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken) =>
              {
                  RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
+
+                 return Task.CompletedTask;
              });
     }
 
