@@ -3127,6 +3127,34 @@ class Attr : System.Attribute { public Attr(string s) {} }";
         public void Nameof_Indexer_04()
         {
             string source = """
+                class C<T>
+                {
+                    public ref T this[int i] => throw null;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var c = new C<object>();
+                        _ = nameof(c[0]);
+                        _ = nameof(c[0] = default);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (10,20): error CS8081: Expression does not have a name.
+                //         _ = nameof(c[0]);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "c[0]").WithLocation(10, 20),
+                // (11,20): error CS8081: Expression does not have a name.
+                //         _ = nameof(c[0] = default);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "c[0] = default").WithLocation(11, 20));
+        }
+
+        [Fact]
+        public void Nameof_Indexer_05()
+        {
+            string source = """
                 ref struct R<T>
                 {
                     public T this[int i] => default;
@@ -3148,7 +3176,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
         }
 
         [Fact]
-        public void Nameof_Indexer_05()
+        public void Nameof_Indexer_06()
         {
             string source = """
                 ref struct R<T>
@@ -3161,6 +3189,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                     {
                         var r = new R<object>();
                         _ = nameof(r[0]);
+                        _ = nameof(r[0] = default);
                     }
                 }
                 """;
@@ -3171,11 +3200,14 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                 Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "r[0]").WithLocation(10, 20),
                 // (10,20): error CS0154: The property or indexer 'R<object>.this[int]' cannot be used in this context because it lacks the get accessor
                 //         _ = nameof(r[0]);
-                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "r[0]").WithArguments("R<object>.this[int]").WithLocation(10, 20));
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "r[0]").WithArguments("R<object>.this[int]").WithLocation(10, 20),
+                // (11,20): error CS8081: Expression does not have a name.
+                //         _ = nameof(r[0] = default);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "r[0] = default").WithLocation(11, 20));
         }
 
         [Fact]
-        public void Nameof_Indexer_06()
+        public void Nameof_Indexer_07()
         {
             string source = """
                 using System.Diagnostics.CodeAnalysis;
