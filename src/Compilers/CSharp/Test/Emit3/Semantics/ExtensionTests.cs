@@ -32914,6 +32914,44 @@ static class E
     }
 
     [Fact]
+    public void RefAnalysis_Invocation_07()
+    {
+        string source = """
+class C
+{
+    void MA(ref readonly int j)
+    {
+        int i = 0;
+        j = ref i.M();
+        j = ref E.M(ref i);
+        j = ref i.M2();
+    }
+}
+
+static class E
+{
+    extension(ref readonly int i)
+    {
+        public ref readonly int M() => ref i;
+    }
+    public static ref readonly int M2(this ref readonly int i) => ref i;
+}
+""";
+
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (6,9): error CS8374: Cannot ref-assign 'i.M()' to 'j' because 'i.M()' has a narrower escape scope than 'j'.
+            //         j = ref i.M();
+            Diagnostic(ErrorCode.ERR_RefAssignNarrower, "j = ref i.M()").WithArguments("j", "i.M()").WithLocation(6, 9),
+            // (7,9): error CS8374: Cannot ref-assign 'E.M(ref i)' to 'j' because 'E.M(ref i)' has a narrower escape scope than 'j'.
+            //         j = ref E.M(ref i);
+            Diagnostic(ErrorCode.ERR_RefAssignNarrower, "j = ref E.M(ref i)").WithArguments("j", "E.M(ref i)").WithLocation(7, 9),
+            // (8,9): error CS8374: Cannot ref-assign 'i.M2()' to 'j' because 'i.M2()' has a narrower escape scope than 'j'.
+            //         j = ref i.M2();
+            Diagnostic(ErrorCode.ERR_RefAssignNarrower, "j = ref i.M2()").WithArguments("j", "i.M2()").WithLocation(8, 9));
+    }
+
+    [Fact]
     public void RefAnalysis_PropertyAccess_01()
     {
         string source = """

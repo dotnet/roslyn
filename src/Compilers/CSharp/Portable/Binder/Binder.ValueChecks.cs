@@ -2132,7 +2132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return escapeScope;
         }
 
-        private void ReplaceWithExtensionImplementationIfNeeded(ref MethodInfo methodInfo, ref ImmutableArray<ParameterSymbol> parameters,
+        private static void ReplaceWithExtensionImplementationIfNeeded(ref MethodInfo methodInfo, ref ImmutableArray<ParameterSymbol> parameters,
             ref BoundExpression? receiver, ref ImmutableArray<BoundExpression> argsOpt, ref ImmutableArray<RefKind> argRefKindsOpt,
             ref ImmutableArray<int> argsToParamsOpt)
         {
@@ -2145,29 +2145,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             var extensionParameter = symbol.ContainingType.ExtensionParameter;
             Debug.Assert(extensionParameter is not null);
             Debug.Assert(receiver is not null);
-            methodInfo = methodInfo.ReplaceWithExtensionImplementation(out bool wasError);
+            MethodInfo replacedMethodInfo = methodInfo.ReplaceWithExtensionImplementation(out bool wasError);
             if (wasError)
             {
                 return;
             }
 
+            methodInfo = replacedMethodInfo;
             parameters = parameters.IsDefault ? [extensionParameter] : [extensionParameter, .. parameters];
             argsOpt = argsOpt.IsDefault ? [receiver] : [receiver, .. argsOpt];
             receiver = null;
 
-            if (argRefKindsOpt.IsDefault)
+            if (!argRefKindsOpt.IsDefault)
             {
-                if (extensionParameter.RefKind == RefKind.Ref)
-                {
-                    var argRefKindsBuilder = ArrayBuilder<RefKind>.GetInstance(argsOpt.Length + 1, fillWithValue: RefKind.None);
-                    argRefKindsBuilder[0] = RefKind.Ref;
-                    argRefKindsOpt = argRefKindsBuilder.ToImmutableAndFree();
-                }
-            }
-            else
-            {
-                var receiverRefKind = extensionParameter.RefKind == RefKind.Ref ? RefKind.Ref : RefKind.None;
-                argRefKindsOpt = [receiverRefKind, .. argRefKindsOpt];
+                argRefKindsOpt = [RefKind.None, .. argRefKindsOpt];
             }
 
             if (!argsToParamsOpt.IsDefault)
