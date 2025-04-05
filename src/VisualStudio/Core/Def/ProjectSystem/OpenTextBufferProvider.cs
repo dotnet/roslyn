@@ -37,7 +37,7 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
     /// <summary>
     /// A simple object for asserting when we're on the UI thread.
     /// </summary>
-    private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
+    private readonly Lazy<IVsEditorAdaptersFactoryService> _editorAdaptersFactoryService;
     private readonly IVsRunningDocumentTable4 _runningDocumentTable;
 
     private ImmutableArray<IOpenTextBufferEventListener> _listeners = [];
@@ -53,7 +53,8 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public OpenTextBufferProvider(
         IThreadingContext threadingContext,
-        IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
+        // *** TESTING WHETHER MAKING THIS LAZY AVOIDS THE DDRIT ISSUE ***
+        Lazy<IVsEditorAdaptersFactoryService> editorAdaptersFactoryService,
         [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
@@ -306,7 +307,7 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
     private bool TryGetBufferFromRunningDocumentTable(uint docCookie, [NotNullWhen(true)] out ITextBuffer? textBuffer)
     {
         _threadingContext.ThrowIfNotOnUIThread();
-        return _runningDocumentTable.TryGetBuffer(_editorAdaptersFactoryService, docCookie, out textBuffer);
+        return _runningDocumentTable.TryGetBuffer(_editorAdaptersFactoryService.Value, docCookie, out textBuffer);
     }
 
     public void Dispose()
