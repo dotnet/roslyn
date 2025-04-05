@@ -2302,8 +2302,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // nameof(x[y]) where the argument is an indexer is an error. Ref analysis requires
                 // the indexer to be recognized as get, set, or both. We don't know which was
                 // intended for nameof() but since this is already an error, assume it's get.
-                Debug.Assert(!syntaxIsOk);
-                if (!syntaxIsOk)
+                bool setAccessorKind = !syntaxIsOk && indexerAccess.AccessorKind == AccessorKind.Unknown;
+                Debug.Assert(setAccessorKind);
+                if (setAccessorKind)
                 {
                     boundArgument = CheckValue(boundArgument, BindValueKind.RValue, diagnostics);
                 }
