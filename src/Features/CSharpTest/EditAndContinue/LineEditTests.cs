@@ -1371,7 +1371,8 @@ class C
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             Array.Empty<SequencePointUpdates>(),
-            semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single(), preserveLocalVariables: true)]);
+            semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single(), preserveLocalVariables: true)],
+            diagnostics: [Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Bar = 1", GetResource("field"))]);
     }
 
     [Fact]

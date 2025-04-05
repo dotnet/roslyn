@@ -479,7 +479,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return False
                     End If
 
+                    ' Const field initializers do not contribute to constructors
                     Dim declarator = DirectCast(declaration.Parent, VariableDeclaratorSyntax)
+                    If declarator.Parent.IsKind(SyntaxKind.FieldDeclaration) AndAlso
+                        DirectCast(declarator.Parent, FieldDeclarationSyntax).Modifiers.Any(SyntaxKind.ConstKeyword) Then
+                        Return False
+                    End If
 
                     Dim identifier = DirectCast(declaration, ModifiedIdentifierSyntax)
                     Return identifier.ArrayBounds IsNot Nothing OrElse
@@ -957,6 +962,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         Friend Overrides ReadOnly Property IsNotLambda As Func(Of SyntaxNode, Boolean)
             Get
                 Return AddressOf LambdaUtilities.IsNotLambda
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property DescendantTokensIgnoringLambdaBodies As Func(Of SyntaxNode, IEnumerable(Of SyntaxToken))
+            Get
+                Return AddressOf LambdaUtilities.DescendantTokensIgnoringLambdaBodies
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property AreTokensEquivalent As Func(Of SyntaxToken, SyntaxToken, Boolean)
+            Get
+                Return AddressOf SyntaxFactory.AreEquivalent
             End Get
         End Property
 
@@ -1688,7 +1705,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         Private Structure EditClassifier
 
             Private ReadOnly _analyzer As VisualBasicEditAndContinueAnalyzer
-            Private ReadOnly _diagnostics As ArrayBuilder(Of RudeEditDiagnostic)
+            Private ReadOnly _diagnostics As RudeEditDiagnosticsBuilder
             Private ReadOnly _match As Match(Of SyntaxNode)
             Private ReadOnly _oldNode As SyntaxNode
             Private ReadOnly _newNode As SyntaxNode
@@ -1696,7 +1713,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Private ReadOnly _span As TextSpan?
 
             Public Sub New(analyzer As VisualBasicEditAndContinueAnalyzer,
-                           diagnostics As ArrayBuilder(Of RudeEditDiagnostic),
+                           diagnostics As RudeEditDiagnosticsBuilder,
                            oldNode As SyntaxNode,
                            newNode As SyntaxNode,
                            kind As EditKind,
@@ -1888,7 +1905,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Structure
 
         Friend Overrides Sub ReportTopLevelSyntacticRudeEdits(
-            diagnostics As ArrayBuilder(Of RudeEditDiagnostic),
+            diagnostics As RudeEditDiagnosticsBuilder,
             match As Match(Of SyntaxNode),
             edit As Edit(Of SyntaxNode),
             editMap As Dictionary(Of SyntaxNode, EditKind))
@@ -1965,7 +1982,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 End Function)
         End Function
 
-        Friend Overrides Sub ReportInsertedMemberSymbolRudeEdits(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), newSymbol As ISymbol, newNode As SyntaxNode, insertingIntoExistingContainingType As Boolean)
+        Friend Overrides Sub ReportInsertedMemberSymbolRudeEdits(diagnostics As RudeEditDiagnosticsBuilder, newSymbol As ISymbol, newNode As SyntaxNode, insertingIntoExistingContainingType As Boolean)
             Dim kind = GetInsertedMemberSymbolRudeEditKind(newSymbol, insertingIntoExistingContainingType)
 
             If kind <> RudeEditKind.None Then
@@ -2076,7 +2093,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return result
         End Function
 
-        Friend Overrides Sub ReportEnclosingExceptionHandlingRudeEdits(diagnostics As ArrayBuilder(Of RudeEditDiagnostic),
+        Friend Overrides Sub ReportEnclosingExceptionHandlingRudeEdits(diagnostics As RudeEditDiagnosticsBuilder,
                                                                        exceptionHandlingEdits As IEnumerable(Of Edit(Of SyntaxNode)),
                                                                        oldStatement As SyntaxNode,
                                                                        newStatementSpan As TextSpan)
@@ -2268,7 +2285,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
 #Region "Rude Edits around Active Statement"
 
-        Friend Overrides Sub ReportOtherRudeEditsAroundActiveStatement(diagnostics As ArrayBuilder(Of RudeEditDiagnostic),
+        Friend Overrides Sub ReportOtherRudeEditsAroundActiveStatement(diagnostics As RudeEditDiagnosticsBuilder,
                                                                        forwardMap As IReadOnlyDictionary(Of SyntaxNode, SyntaxNode),
                                                                        oldActiveStatement As SyntaxNode,
                                                                        oldBody As DeclarationBody,
@@ -2306,7 +2323,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return Nothing
         End Function
 
-        Private Sub ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics As ArrayBuilder(Of RudeEditDiagnostic),
+        Private Sub ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics As RudeEditDiagnosticsBuilder,
                                                                             forwardMap As IReadOnlyDictionary(Of SyntaxNode, SyntaxNode),
                                                                             oldActiveStatement As SyntaxNode,
                                                                             oldEncompassingAncestor As SyntaxNode,
