@@ -47,6 +47,10 @@ public static class RuntimeHelpers
     public static void Await(ValueTask task);
     [MethodImpl(MethodImplOptions.Async)]
     public static T Await<T>(ValueTask<T> task);
+    [MethodImpl(MethodImplOptions.Async)]
+    public static void Await(ConfiguredTaskAwaitable task);
+    [MethodImpl(MethodImplOptions.Async)]
+    public static T Await<T>(ConfiguredTaskAwaitable<T> task);
 }
 ```
 
@@ -136,10 +140,37 @@ for given scenarios are elaborated in more detail below.
 
 TODO: Async iterators (returning `IAsyncEnumerable<T>`)
 
-#### `Task`, `Task<T>`, `ValueTask`, `ValueTask<T>` Scenarios
+#### `RuntimeHelpers.Await` Scenarios
 
-For any lvalue of one of these types, we'll generally rewrite `await expr` into `System.Runtime.CompilerServices.RuntimeHelpers.Await(expr)`. A number of different example scenarios for this are covered below. The
+The for any `await expr` with type `E`, the compiler will attempt to match it to a helper method in `System.Runtime.CompilerServices.RuntimeHelpers`. The following algorithm is used:
+
+1. If `E` has generic arity greater than 1, no match is found and instead move to [await any other type].
+2. `System.Runtime.CompilerServices.RuntimeHelpers` from corelib (the library that defines `System.Object` and has no references) is fetched.
+3. All methods named `Await` are put into a group called `M`.
+4. For every `Mi` in `M`:
+   1. If `Mi`'s generic arity does not match `E`, it is removed.
+   2. If `Mi` takes more than 1 parameter (named `P`), it is removed.
+   3. If `Mi` has a generic arity of 0, all of the following must be true, or `Mi` is removed:
+      1. The return type is `System.Void`
+      2. There is an identity or implicit reference conversion from `E` to the type of `P`.
+   4. Otherwise, if `Mi` has a generic arity of 1 with type param `Tm`, all of the following must be true, or `Mi` is removed:
+      1. The return type is `Tm`
+      2. There is an identity or implicit reference conversion from `E`'s unsubstituted definition to `P`
+      3. `E`'s type argument, `Te`, is valid to substitute for `Tm`
+6. If only one `Mi` remains, that method is used for the following rewrites. Otherwise, we instead move to [await any other type].
+
+We'll generally rewrite `await expr` into `System.Runtime.CompilerServices.RuntimeHelpers.Await(expr)`. A number of different example scenarios for this are covered below. The
 main interesting deviations are when `struct` rvalues need to be hoisted across an `await`, and exception handling rewriting.
+
+These rules are intended cover the following types:
+
+* `Task`, or any subtypes of `Task`
+* `Task<T>`, or any subtypes of `Task<T>`
+* `ValueTask`
+* `ValueTask<T>`
+* `ConfiguredTaskAwaitable`
+* `ConfiguredTaskAwaitable<T>`
+* Any future `Task`-like types the runtime would like to intrinsify
 
 ##### Await `Task`-returning method
 
@@ -634,7 +665,8 @@ a[_tmp1] = _tmp2 + _tmp3;
 }
 ```
 
-#### Await a non-Task/ValueTask
+#### Await any other type
+[await any other type]: #await-any-other-type
 
 For anything that isn't a `Task`, `Task<T>`, `ValueTask`, and `ValueTask<T>`, we instead use `System.Runtime.CompilerServices.RuntimeHelpers.AwaitAwaiterFromRuntimeAsync` or
 `System.Runtime.CompilerServices.RuntimeHelpers.UnsafeAwaitAwaiterFromRuntimeAsync`. These are covered below.
