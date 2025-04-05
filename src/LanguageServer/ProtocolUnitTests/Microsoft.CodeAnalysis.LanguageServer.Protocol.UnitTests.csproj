@@ -23,6 +23,7 @@
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
+    <ProjectReference Include="..\..\EditorFeatures\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" />
     <ProjectReference Include="..\..\Interactive\Host\Microsoft.CodeAnalysis.InteractiveHost.csproj" />
     <ProjectReference Include="..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
     <ProjectReference Include="..\..\Scripting\CSharp\Microsoft.CodeAnalysis.CSharp.Scripting.csproj" />

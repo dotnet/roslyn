@@ -16,9 +16,9 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
+using Roslyn.Text.Adornments;
 using Xunit;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -423,7 +423,7 @@ link text";
             };
         }
 
-        expectedCompletionItem.Description = description.ToLSPElement();
+        expectedCompletionItem.Description = description;
         return expectedCompletionItem;
     }
 
