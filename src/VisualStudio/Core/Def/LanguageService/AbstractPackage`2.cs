@@ -59,10 +59,8 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
             RegisterEditorFactory(editorFactory);
         }
 
-        // Misc workspace has to be up and running by the time our package is usable so that it can track running
-        // doc events and appropriately map files to/from it and other relevant workspaces (like the
-        // metadata-as-source workspace).
-        var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
+        // *** TESTING WHETHER THIS NEEDS CREATION ON THE MAIN THREAD, IF SO COMMENT THIS APPROPRIATELY ***
+        var openTextBufferProvider = this.ComponentModel.GetService<OpenTextBufferProvider>();
 
         // awaiting an IVsTask guarantees to return on the captured context
         await shell.LoadPackageAsync(Guids.RoslynPackageId);
@@ -71,6 +69,11 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
              isMainThreadTask: false,
              task: (PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken) =>
              {
+                 // Misc workspace has to be up and running by the time our package is usable so that it can track running
+                 // doc events and appropriately map files to/from it and other relevant workspaces (like the
+                 // metadata-as-source workspace).
+                 var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
+
                  RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
 
                  return Task.CompletedTask;
