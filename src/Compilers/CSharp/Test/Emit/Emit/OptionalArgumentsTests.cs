@@ -255,10 +255,10 @@ interface I
 delegate void D([DecimalConstant(0, 0, 0, 0, 3)]decimal b = 4);
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,14): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
+                // (5,14): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterValueAttribute or OptionalAttribute
                 //     void F1([DefaultParameterValue(1)]int o = 2);
                 Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "DefaultParameterValue").WithLocation(5, 14),
-                // (6,14): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
+                // (6,14): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterValueAttribute or OptionalAttribute
                 //     void F2([DefaultParameterValue(1)]decimal o = 2);
                 Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "DefaultParameterValue").WithLocation(6, 14),
                 // (6,51): error CS8017: The parameter has multiple distinct default values.
@@ -267,7 +267,7 @@ delegate void D([DecimalConstant(0, 0, 0, 0, 3)]decimal b = 4);
                 // (7,57): error CS8017: The parameter has multiple distinct default values.
                 //     void F4([DecimalConstant(0, 0, 0, 0, 1)]decimal o = 2);
                 Diagnostic(ErrorCode.ERR_ParamDefaultValueDiffersFromAttribute, "2").WithLocation(7, 57),
-                // (8,35): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
+                // (8,35): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterValueAttribute or OptionalAttribute
                 //     void F6([DateTimeConstant(1), DefaultParameterValue(1), DecimalConstant(0, 0, 0, 0, 1)]int o = 1);
                 Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "DefaultParameterValue").WithLocation(8, 35),
                 // (8,61): error CS8017: The parameter has multiple distinct default values.
@@ -279,13 +279,13 @@ delegate void D([DecimalConstant(0, 0, 0, 0, 3)]decimal b = 4);
                 // (9,35): error CS8017: The parameter has multiple distinct default values.
                 //     void F7([DateTimeConstant(2), DecimalConstant(0, 0, 0, 0, 2), DefaultParameterValue(2)]decimal o = 2);
                 Diagnostic(ErrorCode.ERR_ParamDefaultValueDiffersFromAttribute, "DecimalConstant(0, 0, 0, 0, 2)").WithLocation(9, 35),
-                // (9,67): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
+                // (9,67): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterValueAttribute or OptionalAttribute
                 //     void F7([DateTimeConstant(2), DecimalConstant(0, 0, 0, 0, 2), DefaultParameterValue(2)]decimal o = 2);
                 Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "DefaultParameterValue").WithLocation(9, 67),
                 // (9,104): error CS8017: The parameter has multiple distinct default values.
                 //     void F7([DateTimeConstant(2), DecimalConstant(0, 0, 0, 0, 2), DefaultParameterValue(2)]decimal o = 2);
                 Diagnostic(ErrorCode.ERR_ParamDefaultValueDiffersFromAttribute, "2").WithLocation(9, 104),
-                // (10,25): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
+                // (10,25): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterValueAttribute or OptionalAttribute
                 //     object this[int a, [DefaultParameterValue(1)]int o = 2] { get; set; }
                 Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "DefaultParameterValue").WithLocation(10, 25),
                 // (10,58): error CS8017: The parameter has multiple distinct default values.

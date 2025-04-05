@@ -962,13 +962,13 @@ class Test{
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (9,21): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
+                // (9,21): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterValueAttribute or OptionalAttribute
                 //     public int Bar([DefaultParameterValue(1)]int i = 2) {
                 Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "DefaultParameterValue").WithLocation(9, 21),
                 // (9,54): error CS8017: The parameter has multiple distinct default values.
                 //     public int Bar([DefaultParameterValue(1)]int i = 2) {
                 Diagnostic(ErrorCode.ERR_ParamDefaultValueDiffersFromAttribute, "2").WithLocation(9, 54),
-                // (5,21): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
+                // (5,21): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterValueAttribute or OptionalAttribute
                 //     public int Goo([Optional]object i = null) {
                 Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "Optional").WithLocation(5, 21)
                 );

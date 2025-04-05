@@ -756,7 +756,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (HasDefaultArgumentSyntax)
                 {
-                    // error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
+                    // error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterValueAttribute or OptionalAttribute
                     diagnostics.Add(ErrorCode.ERR_DefaultValueUsedWithAttributes, arguments.AttributeSyntaxOpt.Name.Location);
                 }
             }
@@ -952,7 +952,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (HasDefaultArgumentSyntax)
             {
-                // error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
+                // error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterValueAttribute or OptionalAttribute
                 if (diagnose)
                 {
                     diagnosticsOpt.Add(ErrorCode.ERR_DefaultValueUsedWithAttributes, node.Name.Location);
