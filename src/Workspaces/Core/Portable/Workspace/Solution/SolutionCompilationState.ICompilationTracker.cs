@@ -65,7 +65,6 @@ internal sealed partial class SolutionCompilationState
         ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(
             SolutionCompilationState compilationState, bool withFrozenSourceGeneratedDocuments, CancellationToken cancellationToken);
 
-        ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
         ValueTask<GeneratorDriverRunResult?> GetSourceGeneratorRunResultAsync(SolutionCompilationState solution, CancellationToken cancellationToken);
 
         Task<bool> HasSuccessfullyLoadedAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
