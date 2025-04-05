@@ -328,6 +328,7 @@
       <VSIXSubPath>SemanticSearchRefs</VSIXSubPath>
       <IncludeOutputGroupsInVSIX>PublishedProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <Ngen>false</Ngen>
     </ProjectReference>
   </ItemGroup>

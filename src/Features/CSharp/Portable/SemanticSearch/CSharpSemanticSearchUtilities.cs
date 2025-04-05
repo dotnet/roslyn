@@ -20,7 +20,7 @@ internal sealed class CSharpSemanticSearchUtilities
                 return compilation.Assembly.GlobalNamespace.GetMembers("C");
             }
             """,
-        GlobalUsings = """
+        GlobalUsingsAndTools = $$"""
             global using System;
             global using System.Collections.Generic;
             global using System.Collections.Immutable;
@@ -28,6 +28,24 @@ internal sealed class CSharpSemanticSearchUtilities
             global using System.Threading;
             global using System.Threading.Tasks;
             global using Microsoft.CodeAnalysis;
+
+            public static class {{SemanticSearchUtilities.ToolsTypeName}}
+            {
+                private static Func<ISymbol, IEnumerable<SyntaxNode>> {{SemanticSearchUtilities.FindReferencingSyntaxNodesImplName}};
+                private static Func<SyntaxTree, Task<SemanticModel>> {{SemanticSearchUtilities.GetSemanticModelImplName}};
+
+                /// <summary>
+                /// Returns all syntax nodes that reference the given <paramref name="symbol" />.
+                /// </summary>
+                public static IEnumerable<SyntaxNode> FindReferencingSyntaxNodes(this ISymbol symbol)
+                    => {{SemanticSearchUtilities.FindReferencingSyntaxNodesImplName}}(symbol);
+
+                /// <summary>
+                /// Returns the semantic model for the given <paramref name="tree" />.
+                /// </summary>
+                public static Task<SemanticModel> GetSemanticModelAsync(this SyntaxTree tree)
+                    => {{SemanticSearchUtilities.GetSemanticModelImplName}}(tree);
+            }
             """,
         EditorConfig = """
             is_global = true

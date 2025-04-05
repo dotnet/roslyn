@@ -1285,6 +1285,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Operátory</target>
         <note />
       </trans-unit>
+      <trans-unit id="Parameter_type_0_is_not_among_supported_types_1">
+        <source>Parameter type '{0}' is not among supported types: {1}</source>
+        <target state="new">Parameter type '{0}' is not among supported types: {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Please_resolve_errors_in_your_code_before_renaming_this_element">
         <source>Please resolve errors in your code before renaming this element.</source>
         <target state="translated">Před přejmenováním tohoto elementu prosím vyřešte chyby v kódu.</target>
@@ -2550,6 +2555,11 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <target state="translated">Přeložit modul: {0} z {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Return_type_0_is_not_among_supported_types_1">
+        <source>Return type '{0}' is not among supported types: {1}</source>
+        <target state="new">Return type '{0}' is not among supported types: {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">Hrubá úprava</target>
@@ -2743,11 +2753,6 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       <trans-unit id="Trailing_comma_not_allowed">
         <source>Trailing comma not allowed</source>
         <target state="translated">Čárka na konci není povolená</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Type_0_is_not_among_supported_types_1">
-        <source>Type '{0}' is not among supported types: {1}</source>
-        <target state="new">Type '{0}' is not among supported types: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Types_colon">

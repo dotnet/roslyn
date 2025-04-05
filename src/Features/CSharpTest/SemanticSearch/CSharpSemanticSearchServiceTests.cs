@@ -265,6 +265,65 @@ public sealed class CSharpSemanticSearchServiceTests
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
+    public async Task FindReferencingSyntaxNodes()
+    {
+        using var workspace = TestWorkspace.Create("""
+        <Workspace>
+            <Project Language="C#" CommonReferences="true">
+                <Document FilePath="File1.cs">
+                    class C
+                    {
+                        void F()
+                        {
+                        }
+                    }
+
+                    class D
+                    {
+                        void R1() => new C().F();
+                        void R2() => new C().F();
+                    }
+                </Document>
+            </Project>
+        </Workspace>
+        """, composition: FeaturesTestCompositions.Features);
+
+        var solution = workspace.CurrentSolution;
+
+        var service = solution.Services.GetRequiredLanguageService<ISemanticSearchService>(LanguageNames.CSharp);
+
+        var query = """
+        static async IAsyncEnumerable<ISymbol> Find(IMethodSymbol e)
+        {
+            if (e.Name != "F")
+            {
+                yield break;
+            }
+
+            foreach (var node in e.FindReferencingSyntaxNodes())
+            {
+                var model = await node.SyntaxTree.GetSemanticModelAsync()
+                yield return model.GetEnclosingSymbol(node.SpanStart);
+            }
+        }
+        """;
+
+        var results = new List<DefinitionItem>();
+        var observer = new MockSemanticSearchResultsObserver() { OnDefinitionFoundImpl = results.Add };
+        var traceSource = new TraceSource("test");
+
+        var options = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var result = await service.ExecuteQueryAsync(solution, query, s_referenceAssembliesDir, observer, options, traceSource, CancellationToken.None);
+
+        Assert.Null(result.ErrorMessage);
+        AssertEx.Equal(
+        [
+            "void D.R1()",
+            "void D.R2()"
+        ], results.Select(Inspect));
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
     public async Task ForcedCancellation()
     {
         using var workspace = TestWorkspace.Create(DefaultWorkspaceXml, composition: FeaturesTestCompositions.Features);
