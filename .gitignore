@@ -4,6 +4,7 @@
 # User-specific files
 *.suo
 *.user
+*.user.props
 *.userprefs
 *.sln.docstates
 *.svclog
