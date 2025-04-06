@@ -116,11 +116,19 @@ public partial class Solution
 
     /// <summary>
     /// A list of all the ids for all the projects contained by the solution.
+    /// Ordering determined by the order the projects were added to the solution.
     /// </summary>
     public IReadOnlyList<ProjectId> ProjectIds => this.SolutionState.ProjectIds;
 
     /// <summary>
+    /// A list of all the project states contained by the solution.
+    /// Ordered by <see cref="ProjectState.Id"/>'s <see cref="ProjectId.Id"/> value.
+    /// </summary>
+    internal ImmutableArray<ProjectState> SortedProjectStates => this.SolutionState.SortedProjectStates;
+
+    /// <summary>
     /// A list of all the projects contained by the solution.
+    /// Ordering determined by the order the projects were added to the solution.
     /// </summary>
     public IEnumerable<Project> Projects => ProjectIds.Select(id => GetProject(id)!);
 

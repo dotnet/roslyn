@@ -2506,6 +2506,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_PPIgnoredFollowsToken
                 or ErrorCode.ERR_PPIgnoredNeedsFileBasedProgram
                 or ErrorCode.ERR_PPIgnoredFollowsIf
+                or ErrorCode.ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne
+                or ErrorCode.ERR_InExtensionParameterMustBeValueType
+                or ErrorCode.ERR_ProtectedInExtension
+                or ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter
+                or ErrorCode.ERR_InitInExtension
+                or ErrorCode.ERR_ModifierOnUnnamedReceiverParameter
+                or ErrorCode.ERR_ExtensionTypeNameDisallowed
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.
