@@ -107,6 +107,10 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="EditorFeaturesResources.resx" GenerateSource="true" />
+    <EmbeddedResource Update="EditorFeaturesWpfResources.resx">
+      <GenerateSource>true</GenerateSource>
+      <Generator>MSBuild:_GenerateResxSource</Generator>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
