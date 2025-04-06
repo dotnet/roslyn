@@ -12,11 +12,6 @@
         <target state="translated">Aplicando cambios</target>
         <note />
       </trans-unit>
-      <trans-unit id="Building_Project">
-        <source>Building Project</source>
-        <target state="new">Building Project</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Chat_limit_reached_upgrade_now_or_wait_for_the_limit_to_reset">
         <source>Chat limit reached, [upgrade now] or wait for the limit to reset.</source>
         <target state="translated">Se alcanzó el límite de chats, [upgrade now] o esperar a que se restablezca el límite.</target>
@@ -35,11 +30,6 @@
       <trans-unit id="Copilot_thinking">
         <source>Copilot thinking...</source>
         <target state="translated">Copilot pensando...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Copying_selection_to_Interactive_Window">
-        <source>Copying selection to Interactive Window.</source>
-        <target state="new">Copying selection to Interactive Window.</target>
         <note />
       </trans-unit>
       <trans-unit id="Describe_with_Copilot">
@@ -62,29 +52,9 @@
         <target state="translated">¿Desea continuar? Esto puede producir código roto.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enter_to_rename_shift_enter_to_preview">
-        <source>Enter to rename, Shift+Enter to preview</source>
-        <target state="new">Enter to rename, Shift+Enter to preview</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enter_to_rename_shift_enter_to_preview_ctrl_space_for_ai_suggestion">
-        <source>Enter to rename, Shift+Enter to preview, Ctrl+Space for rename suggestions</source>
-        <target state="new">Enter to rename, Shift+Enter to preview, Ctrl+Space for rename suggestions</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_performing_rename_0">
-        <source>Error performing rename: '{0}'</source>
-        <target state="new">Error performing rename: '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Execute_Suggested_Action">
         <source>Execute Suggested Action</source>
         <target state="translated">Ejecutar acción recomendada</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Executing_selection_in_Interactive_Window">
-        <source>Executing selection in Interactive Window.</source>
-        <target state="new">Executing selection in Interactive Window.</target>
         <note />
       </trans-unit>
       <trans-unit id="Expander_display_text">
@@ -110,16 +80,6 @@
       <trans-unit id="Generate_summary_with_Copilot">
         <source>Generate summary with Copilot (might be inaccurate)</source>
         <target state="translated">Generar resumen con Copilot (puede ser inexacto)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generating_suggestions">
-        <source>Generating suggestions...</source>
-        <target state="new">Generating suggestions...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Get_AI_suggestions">
-        <source>Get AI-powered rename suggestions (Ctrl+Space)</source>
-        <target state="new">Get AI-powered rename suggestions (Ctrl+Space)</target>
         <note />
       </trans-unit>
       <trans-unit id="Get_help_for_0">
@@ -175,11 +135,6 @@
       <trans-unit id="Insert_Final_Newline">
         <source>Insert Final Newline</source>
         <target state="translated">Insertar nueva línea final</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interactive_host_process_platform">
-        <source>Interactive host process platform</source>
-        <target state="new">Interactive host process platform</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -362,26 +317,6 @@
         <target state="translated">Cambiar nombre del _archivo del símbolo</target>
         <note>Indicates that the file a symbol is defined in will also be renamed</note>
       </trans-unit>
-      <trans-unit id="Reset_the_execution_environment_to_the_initial_state_and_keep_history_with_the_option_to_switch_the_runtime_of_the_host_process">
-        <source>Reset the execution environment to the initial state and keep history, with the option to switch the runtime of the host process.</source>
-        <target state="new">Reset the execution environment to the initial state and keep history, with the option to switch the runtime of the host process.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Reset_to_a_clean_environment_only_mscorlib_referenced_do_not_run_initialization_script">
-        <source>Reset to a clean environment (only mscorlib referenced), do not run initialization script.</source>
-        <target state="new">Reset to a clean environment (only mscorlib referenced), do not run initialization script.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Resetting_Interactive">
-        <source>Resetting Interactive</source>
-        <target state="new">Resetting Interactive</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Resetting_execution_engine">
-        <source>Resetting execution engine.</source>
-        <target state="new">Resetting execution engine.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Roslyn_Test_Code">
         <source>Roslyn Test Code</source>
         <target state="translated">Código de prueba de Roslyn</target>
@@ -417,19 +352,9 @@
         <target state="translated">Tamaño de tabulación</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_CurrentWindow_property_may_only_be_assigned_once">
-        <source>The CurrentWindow property may only be assigned once.</source>
-        <target state="new">The CurrentWindow property may only be assigned once.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="The_results_may_be_incomplete_due_to_the_solution_still_loading_projects">
         <source>The results may be incomplete due to the solution still loading projects.</source>
         <target state="translated">Los resultados pueden estar incompletos porque la solución aún está cargando proyectos.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Toggle_AI_suggestions">
-        <source>Toggle rename suggestions (Ctrl+Space)</source>
-        <target state="new">Toggle rename suggestions (Ctrl+Space)</target>
         <note />
       </trans-unit>
       <trans-unit id="Toggle_Block_Comment">
