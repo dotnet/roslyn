@@ -59,8 +59,26 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
             RegisterEditorFactory(editorFactory);
         }
 
+        // Ensure the OpenTextBufferProvider is created on the main thread. This is important because
+        // it performs various RDT operations in it's constructor, and those are not thread-safe.
+        this.ComponentModel.GetService<OpenTextBufferProvider>();
+
         // awaiting an IVsTask guarantees to return on the captured context
         await shell.LoadPackageAsync(Guids.RoslynPackageId);
+
+        packageInitializationTasks.AddTask(
+             isMainThreadTask: false,
+             task: (PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken) =>
+             {
+                 // Misc workspace has to be up and running by the time our package is usable so that it can track running
+                 // doc events and appropriately map files to/from it and other relevant workspaces (like the
+                 // metadata-as-source workspace).
+                 var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
+
+                 RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
+
+                 return Task.CompletedTask;
+             });
     }
 
     private Task PackageInitializationBackgroundThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
@@ -77,13 +95,6 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
 
             return _languageService.ComAggregate!;
         });
-
-        // Misc workspace has to be up and running by the time our package is usable so that it can track running
-        // doc events and appropriately map files to/from it and other relevant workspaces (like the
-        // metadata-as-source workspace).
-        var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
-
-        RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
 
         return Task.CompletedTask;
     }

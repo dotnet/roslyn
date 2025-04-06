@@ -57,12 +57,12 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
         [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
+        // This ctor does RDT operations, and thus requires the UI thread.
+        threadingContext.ThrowIfNotOnUIThread();
+
         _threadingContext = threadingContext;
         _editorAdaptersFactoryService = editorAdaptersFactoryService;
 
-        // The running document table since 16.0 has limited operations that can be done in a free threaded manner, specifically fetching the service and advising events.
-        // This is specifically guaranteed by the shell that those limited operations are safe and do not cause RPCs, and it's important we don't try to fetch the service
-        // via a helper that will "helpfully" try to jump to the UI thread.
         var runningDocumentTable = (IVsRunningDocumentTable)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
         _runningDocumentTable = (IVsRunningDocumentTable4)runningDocumentTable;
         runningDocumentTable.AdviseRunningDocTableEvents(this, out _runningDocumentTableEventsCookie);
@@ -93,7 +93,8 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
 
     private async Task CheckForExistingOpenDocumentsAsync(IThreadingContext threadingContext)
     {
-        await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+        // Yield the thread, so the caller can proceed and return immediately.
+        await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true);
 
         foreach (var (filePath, textBuffer, hierarchy) in EnumerateDocumentSet())
         {
