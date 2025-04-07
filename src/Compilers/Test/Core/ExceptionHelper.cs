@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Roslyn.Test.Utilities
 {
@@ -41,6 +42,8 @@ namespace Roslyn.Test.Utilities
             $"""
                 Execution failed for assembly '{exePath}'
                 Output differed from expected
+                Diff:
+                {DiffUtil.DiffReport(expectedOutput, actualOutput)}
                 Expected:
                 {expectedOutput}
                 Actual:
