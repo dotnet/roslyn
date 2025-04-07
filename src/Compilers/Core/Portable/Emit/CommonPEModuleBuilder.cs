@@ -75,6 +75,11 @@ namespace Microsoft.CodeAnalysis.Emit
         public abstract SymbolChanges? EncSymbolChanges { get; }
 
         /// <summary>
+        /// True if FieldRVA table is supported by the runtime.
+        /// </summary>
+        public abstract bool FieldRvaSupported { get; }
+
+        /// <summary>
         /// Previous EnC generation baseline, or null if this is not EnC delta.
         /// </summary>
         public abstract EmitBaseline? PreviousGeneration { get; }
@@ -83,12 +88,6 @@ namespace Microsoft.CodeAnalysis.Emit
         /// True if this module is an EnC update.
         /// </summary>
         public bool IsEncDelta => PreviousGeneration != null;
-
-        /// <summary>
-        /// True if FieldRVA table is supported by the runtime.
-        /// TODO: Base on a feature switch in the BCL instead of TestData flag (https://github.com/dotnet/roslyn/issues/69480).
-        /// </summary>
-        public bool FieldRvaSupported => !IsEncDelta || TestData?.EncFieldRvaSupported == true;
 
         /// <summary>
         /// EnC generation. 0 if the module is not an EnC delta, 1 if it is the first EnC delta, etc.
