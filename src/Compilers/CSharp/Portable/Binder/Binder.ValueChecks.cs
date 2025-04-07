@@ -2137,14 +2137,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref ImmutableArray<int> argsToParamsOpt)
         {
             Symbol? symbol = methodInfo.Symbol;
-            if (symbol?.GetIsNewExtensionMember() != true)
+            if (symbol?.GetIsNewExtensionMember() != true || symbol.IsStatic)
             {
                 return;
             }
 
-            var extensionParameter = symbol.ContainingType.ExtensionParameter;
-            Debug.Assert(extensionParameter is not null);
-            Debug.Assert(receiver is not null);
             MethodInfo replacedMethodInfo = methodInfo.ReplaceWithExtensionImplementation(out bool wasError);
             if (wasError)
             {
@@ -2152,7 +2149,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             methodInfo = replacedMethodInfo;
-            parameters = parameters.IsDefault ? [extensionParameter] : [extensionParameter, .. parameters];
+
+            Debug.Assert(receiver is not null);
+            parameters = methodInfo.Symbol.GetParameters();
             argsOpt = argsOpt.IsDefault ? [receiver] : [receiver, .. argsOpt];
             receiver = null;
 

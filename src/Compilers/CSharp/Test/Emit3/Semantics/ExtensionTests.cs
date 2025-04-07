@@ -32876,6 +32876,37 @@ static class E
     }
 
     [Fact]
+    public void RefAnalysis_Invocation_05_Static()
+    {
+        var text = """
+class Program
+{
+    void Test1()
+    {
+        System.Span<int> inner = stackalloc int[1];
+        S1 rInner = MayWrap(ref inner);
+
+        S1.MayAssign(ref rInner);
+    }
+
+    static S1 MayWrap(ref System.Span<int> arg) => default;
+}
+
+ref struct S1 { }
+
+static class E
+{
+    extension(ref S1 arg1)
+    {
+        public static void MayAssign(ref S1 arg2) { }
+    }
+}
+""";
+        var comp = CreateCompilation(text, targetFramework: TargetFramework.Net90);
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
     public void RefAnalysis_Invocation_06()
     {
         string source = """
@@ -32949,6 +32980,138 @@ static class E
             // (8,9): error CS8374: Cannot ref-assign 'i.M2()' to 'j' because 'i.M2()' has a narrower escape scope than 'j'.
             //         j = ref i.M2();
             Diagnostic(ErrorCode.ERR_RefAssignNarrower, "j = ref i.M2()").WithArguments("j", "i.M2()").WithLocation(8, 9));
+    }
+
+    [Fact]
+    public void RefAnalysis_Invocation_08()
+    {
+        string source = """
+class C
+{
+    void MA(ref readonly int j, ref int k)
+    {
+        int i = 0;
+        j = ref i.M(ref k);
+        j = ref E.M(ref i, ref k);
+        j = ref i.M2(ref k);
+    }
+}
+
+static class E
+{
+    extension(ref readonly int i)
+    {
+        public ref readonly int M(ref int k) => ref i;
+    }
+    public static ref readonly int M2(this ref readonly int i, ref int k) => ref i;
+}
+""";
+
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (6,9): error CS8374: Cannot ref-assign 'i.M(ref k)' to 'j' because 'i.M(ref k)' has a narrower escape scope than 'j'.
+            //         j = ref i.M(ref k);
+            Diagnostic(ErrorCode.ERR_RefAssignNarrower, "j = ref i.M(ref k)").WithArguments("j", "i.M(ref k)").WithLocation(6, 9),
+            // (7,9): error CS8374: Cannot ref-assign 'E.M(ref i, ref k)' to 'j' because 'E.M(ref i, ref k)' has a narrower escape scope than 'j'.
+            //         j = ref E.M(ref i, ref k);
+            Diagnostic(ErrorCode.ERR_RefAssignNarrower, "j = ref E.M(ref i, ref k)").WithArguments("j", "E.M(ref i, ref k)").WithLocation(7, 9),
+            // (8,9): error CS8374: Cannot ref-assign 'i.M2(ref k)' to 'j' because 'i.M2(ref k)' has a narrower escape scope than 'j'.
+            //         j = ref i.M2(ref k);
+            Diagnostic(ErrorCode.ERR_RefAssignNarrower, "j = ref i.M2(ref k)").WithArguments("j", "i.M2(ref k)").WithLocation(8, 9));
+    }
+
+    [Fact]
+    public void RefAnalysis_Invocation_09()
+    {
+        string source = """
+class C
+{
+    void MA(ref int j, ref int k)
+    {
+        int i = 0;
+        j = ref i.M(ref k);
+        j = ref E.M(ref i, ref k);
+        j = ref i.M2(ref k);
+    }
+}
+
+static class E
+{
+    extension(ref int i)
+    {
+        public ref int M(ref int k) => ref i;
+    }
+    public static ref int M2(this ref int i, ref int k) => ref i;
+}
+""";
+
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (6,9): error CS8374: Cannot ref-assign 'i.M(ref k)' to 'j' because 'i.M(ref k)' has a narrower escape scope than 'j'.
+            //         j = ref i.M(ref k);
+            Diagnostic(ErrorCode.ERR_RefAssignNarrower, "j = ref i.M(ref k)").WithArguments("j", "i.M(ref k)").WithLocation(6, 9),
+            // (7,9): error CS8374: Cannot ref-assign 'E.M(ref i, ref k)' to 'j' because 'E.M(ref i, ref k)' has a narrower escape scope than 'j'.
+            //         j = ref E.M(ref i, ref k);
+            Diagnostic(ErrorCode.ERR_RefAssignNarrower, "j = ref E.M(ref i, ref k)").WithArguments("j", "E.M(ref i, ref k)").WithLocation(7, 9),
+            // (8,9): error CS8374: Cannot ref-assign 'i.M2(ref k)' to 'j' because 'i.M2(ref k)' has a narrower escape scope than 'j'.
+            //         j = ref i.M2(ref k);
+            Diagnostic(ErrorCode.ERR_RefAssignNarrower, "j = ref i.M2(ref k)").WithArguments("j", "i.M2(ref k)").WithLocation(8, 9));
+    }
+
+    [Fact]
+    public void RefAnalysis_Invocation_10()
+    {
+        var source = """
+class Program
+{
+    static ref int G8A()
+    {
+        int t = default;
+        int u = default;
+        return ref t.F8(out u); // 1
+    }
+    static ref int G8A_2()
+    {
+        int t = default;
+        int u = default;
+        return ref E.F8(t, out u); // 2
+    }
+    static ref int G8A_3()
+    {
+        int t = default;
+        int u = default;
+        return ref E.F8(in t, out u); // 3
+    }
+}
+static class E
+{
+    extension(in int t)
+    {
+        public ref int F8(out int u) => throw null;
+    }
+}
+""";
+
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (7,20): error CS8168: Cannot return local 't' by reference because it is not a ref local
+            //         return ref t.F8(out u); // 1
+            Diagnostic(ErrorCode.ERR_RefReturnLocal, "t").WithArguments("t").WithLocation(7, 20),
+            // (7,20): error CS8347: Cannot use a result of 'E.extension(in int).F8(out int)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+            //         return ref t.F8(out u); // 1
+            Diagnostic(ErrorCode.ERR_EscapeCall, "t.F8(out u)").WithArguments("E.extension(in int).F8(out int)", "t").WithLocation(7, 20),
+            // (13,20): error CS8347: Cannot use a result of 'E.F8(in int, out int)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+            //         return ref E.F8(t, out u); // 2
+            Diagnostic(ErrorCode.ERR_EscapeCall, "E.F8(t, out u)").WithArguments("E.F8(in int, out int)", "t").WithLocation(13, 20),
+            // (13,25): error CS8168: Cannot return local 't' by reference because it is not a ref local
+            //         return ref E.F8(t, out u); // 2
+            Diagnostic(ErrorCode.ERR_RefReturnLocal, "t").WithArguments("t").WithLocation(13, 25),
+            // (19,20): error CS8347: Cannot use a result of 'E.F8(in int, out int)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+            //         return ref E.F8(in t, out u); // 3
+            Diagnostic(ErrorCode.ERR_EscapeCall, "E.F8(in t, out u)").WithArguments("E.F8(in int, out int)", "t").WithLocation(19, 20),
+            // (19,28): error CS8168: Cannot return local 't' by reference because it is not a ref local
+            //         return ref E.F8(in t, out u); // 3
+            Diagnostic(ErrorCode.ERR_RefReturnLocal, "t").WithArguments("t").WithLocation(19, 28));
     }
 
     [Fact]
