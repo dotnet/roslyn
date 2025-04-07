@@ -60,7 +60,9 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
         }
 
         // Ensure the OpenTextBufferProvider is created on the main thread. This is important because
-        // it performs various RDT operations in it's constructor, and those are not thread-safe.
+        // it potentially creates the RDT in it's constructor, and that is not thread-safe until
+        // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2441480 is fixed. Once that is merged,
+        // we can remove the following statement.
         this.ComponentModel.GetService<OpenTextBufferProvider>();
 
         // awaiting an IVsTask guarantees to return on the captured context

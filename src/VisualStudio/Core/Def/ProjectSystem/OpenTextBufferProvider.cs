@@ -57,12 +57,18 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
         [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
-        // This ctor does RDT operations, and thus requires the UI thread.
+        // This ctor potentially creates the RDT and thus requires the UI thread until
+        // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2441480 is fixed.
+        // At that point, the following statement can be removed
         threadingContext.ThrowIfNotOnUIThread();
 
         _threadingContext = threadingContext;
         _editorAdaptersFactoryService = editorAdaptersFactoryService;
 
+        /* NOTE: THIS COMMENT IS NOT VALID UNTIL https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2441480 IS FIXED */
+        // The running document table since 18.0 has limited operations that can be done in a free threaded manner, specifically fetching the service and advising events.
+        // This is specifically guaranteed by the shell that those limited operations are safe and do not cause RPCs, and it's important we don't try to fetch the service
+        // via a helper that will "helpfully" try to jump to the UI thread.
         var runningDocumentTable = (IVsRunningDocumentTable)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
         _runningDocumentTable = (IVsRunningDocumentTable4)runningDocumentTable;
         runningDocumentTable.AdviseRunningDocTableEvents(this, out _runningDocumentTableEventsCookie);
