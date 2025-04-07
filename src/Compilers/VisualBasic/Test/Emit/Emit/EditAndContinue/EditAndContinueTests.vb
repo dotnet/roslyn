@@ -7436,7 +7436,7 @@ End Class",
 
         <ConditionalFact(GetType(NotOnMonoCore))>
         <WorkItem("https://github.com/dotnet/roslyn/issues/69480")>
-        Public Sub PrivateImplDetails_DataFields_Arrays()
+        Public Sub PrivateImplDetails_DataFields_Arrays_FieldRvaNotSupported()
             Using New EditAndContinueTest().
                 AddBaseline(
                     source:="
@@ -7536,6 +7536,88 @@ End Class
 
         <ConditionalFact(GetType(NotOnMonoCore))>
         <WorkItem("https://github.com/dotnet/roslyn/issues/69480")>
+        Public Sub PrivateImplDetails_DataFields_Arrays_FieldRvaSupported()
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
+Class C
+    Dim b As Byte() = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }
+End Class
+",
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames("<Module>", "C", "<PrivateImplementationDetails>", "__StaticArrayInitTypeSize=10")
+                            g.VerifyFieldDefNames("b", "1F825AA2F0020EF7CF91DFA30DA4668D791C5D4824FC8E41354B89EC05795AB3")
+                            g.VerifyMethodDefNames(".ctor")
+                        End Sub).
+                AddGeneration(
+                    source:="
+Class C
+    Dim b As Byte() = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Update, symbolProvider:=Function(c) c.GetMember("C..ctor"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "__StaticArrayInitTypeSize=11")
+                            g.VerifyFieldDefNames("78A6273103D17C39A0B6126E226CEC70E33337F4BC6A38067401B54A33E78EAD")
+                            g.VerifyMethodDefNames(".ctor")
+
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                                Row(6, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                                Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                                Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.ClassLayout, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.FieldRva, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.NestedClass, EditAndContinueOperation.Default)
+                            })
+
+                            g.VerifyEncMapDefinitions(
+                            {
+                                Handle(5, TableIndex.TypeDef),
+                                Handle(6, TableIndex.TypeDef),
+                                Handle(3, TableIndex.Field),
+                                Handle(1, TableIndex.MethodDef),
+                                Handle(5, TableIndex.CustomAttribute),
+                                Handle(2, TableIndex.ClassLayout),
+                                Handle(2, TableIndex.FieldRva),
+                                Handle(2, TableIndex.NestedClass)
+                            })
+
+                            g.VerifyIL("C..ctor", "
+{
+  // Code size       32 (0x20)
+  .maxstack  4
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""Sub Object..ctor()""
+  IL_0006:  nop
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.s   11
+  IL_000a:  newarr     ""Byte""
+  IL_000f:  dup
+  IL_0010:  ldtoken    ""<PrivateImplementationDetails>#1.__StaticArrayInitTypeSize=11 <PrivateImplementationDetails>#1.78A6273103D17C39A0B6126E226CEC70E33337F4BC6A38067401B54A33E78EAD""
+  IL_0015:  call       ""Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_001a:  stfld      ""C.b As Byte()""
+  IL_001f:  ret
+}")
+                        End Sub,
+                    options:=
+                        New EmitDifferenceOptions() With
+                        {
+                            .EmitFieldRva = True
+                        }).
+                    Verify()
+            End Using
+        End Sub
+
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub PrivateImplDetails_ComputeStringHash()
             Using New EditAndContinueTest().
                 AddBaseline(

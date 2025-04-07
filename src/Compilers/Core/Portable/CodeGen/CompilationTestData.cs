@@ -44,8 +44,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         private ImmutableDictionary<string, MethodData>? _lazyMethodsByName;
 
-        public bool EncFieldRvaSupported { get; set; }
-
         public void SetMetadataWriter(MetadataWriter writer)
         {
             Debug.Assert(MetadataWriter == null);

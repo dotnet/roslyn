@@ -3095,7 +3095,7 @@ namespace Microsoft.CodeAnalysis
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default(CancellationToken))
             => EmitDifference(baseline, edits, isAddedSymbol, metadataStream, ilStream, pdbStream, EmitDifferenceOptions.Default, cancellationToken);
 
         /// <summary>
