@@ -220,6 +220,31 @@ public sealed partial class ServiceHubServicesTests
         Assert.Equal(ExpectedExceptionMessage, result.ExtensionException.Message);
     }
 
+    [Fact]
+    public async Task TestExtensionMessageHandlerService_GetExtensionMessageNamesForRegisteredService_CancellationExceptionWhenLoading()
+    {
+        using var localWorkspace = CreateWorkspace(additionalRemoteParts: [typeof(TestExtensionAssemblyLoaderProvider)]);
+
+        var extensionMessageHandlerService = localWorkspace.Services.GetRequiredService<IExtensionMessageHandlerService>();
+
+        var assemblyLoaderProvider = await GetRemoteAssemblyLoaderProvider(localWorkspace);
+
+        // Throw a cancellation exception here.  That's legal as per the signature of CreateNewShadowCopyLoader.  It
+        // should gracefully cancel, and not cause us to tear down anything.
+        assemblyLoaderProvider.CreateNewShadowCopyLoaderCallback = (_, _) => throw new OperationCanceledException();
+
+        string errorMessage = null;
+        var errorReportingService = (TestErrorReportingService)localWorkspace.Services.GetRequiredService<IErrorReportingService>();
+        errorReportingService.OnError = message => errorMessage = message;
+
+        await extensionMessageHandlerService.RegisterExtensionAsync("TempPath", CancellationToken.None);
+        Assert.Null(errorMessage);
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            async () => await extensionMessageHandlerService.GetExtensionMessageNamesAsync("TempPath", CancellationToken.None));
+        Assert.Null(errorMessage);
+    }
+
     [PartNotDiscoverable]
     [ExportWorkspaceService(typeof(IExtensionAssemblyLoaderProvider), ServiceLayer.Test), Shared]
     [method: ImportingConstructor]
