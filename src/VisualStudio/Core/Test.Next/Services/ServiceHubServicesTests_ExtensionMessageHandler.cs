@@ -60,6 +60,23 @@ public sealed partial class ServiceHubServicesTests
         Assert.Contains(nameof(InvalidOperationException), errorMessage);
     }
 
+    [Fact]
+    public async Task TestExtensionMessageHandlerService_UnregisterNonRegisteredServiceThrows()
+    {
+        using var workspace = CreateWorkspace();
+
+        var extensionMessageHandlerService = workspace.Services.GetRequiredService<IExtensionMessageHandlerService>();
+
+        // Don't trap the error here.  We want to validate that this crosses the ServiceHub boundary and is reported as
+        // a real roslyn/gladstone error.
+        string errorMessage = null;
+        var errorReportingService = (TestErrorReportingService)workspace.Services.GetRequiredService<IErrorReportingService>();
+        errorReportingService.OnError = message => errorMessage = message;
+
+        await extensionMessageHandlerService.UnregisterExtensionAsync("TempPath", CancellationToken.None);
+        Assert.Contains(nameof(InvalidOperationException), errorMessage);
+    }
+
     //[PartNotDiscoverable]
     //[ExportWorkspaceService(typeof(IWorkspaceConfigurationService), ServiceLayer.Test), Shared]
     //[method: ImportingConstructor]
