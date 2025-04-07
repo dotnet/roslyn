@@ -374,7 +374,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotMatchOnINumberBase">
         <source>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.</source>
-        <target state="needs-review-translation">無法在 '{0}' 上使用數值常數或關聯式模式，因為它繼承自或延伸 'INumberBase&lt;T&gt;'。請考慮使用類型模式來縮小為特定數數值型別。</target>
+        <target state="new">Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
@@ -2864,12 +2864,12 @@
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
         <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="needs-review-translation">分析程式組件 '{0}' 參考編譯器的版本 '{1}' ，比目前執行的版本 '{2}' 還要新。</target>
+        <target state="new">Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
         <source>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</source>
-        <target state="needs-review-translation">分析程式組件參考的編譯器版本比目前執行的版本新。</target>
+        <target state="new">Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedIn">
@@ -3841,7 +3841,7 @@
                             Visual C# 編譯器選項
 
                       - OUTPUT FILES -
--out:&lt;file&gt;                   指定輸出檔案名稱 (預設:
+-out:&lt;file&gt;                   指定輸出檔案名稱 (預設: 
                              具有主要類別或第一個檔案的檔案基礎名稱)
 -target:exe                   建置主控台可執行檔 (預設) (簡短
                              形式: -t:exe)
@@ -3958,7 +3958,7 @@ strument:TestCoverage      產生檢測要收集
                       - ADVANCED -
 -baseaddress:&lt;address&gt;        要建置程式庫的基底位址
 -checksumalgorithm:&lt;alg&gt;      指定計算儲存在 PDB 中
-                             來源檔案總和檢查碼的演算法。支援的值為:
+                             來源檔案總和檢查碼的演算法。支援的值為: 
                              SHA1 或 SHA256 (預設)。
 -codepage:&lt;n&gt;                 指定開啟來源
                              檔案時所要使用的字碼頁
@@ -5500,12 +5500,12 @@ strument:TestCoverage      產生檢測要收集
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField">
         <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
-        <target state="translated">退出建構函式時，不可為 Null {0} '{1}' 必須包含不可為 Null 值。請考慮新增 'required' 修飾元，或將 {0} 宣告為可為 Null，或新增 '[field: MaybeNull, AllowNull]' 屬性。</target>
+        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</target>
         <note>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</note>
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField_Title">
         <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
-        <target state="translated">退出建構函式時，不可為 Null 屬性必須包含不可為 Null 值。請考慮新增 'required' 修飾元，或將屬性宣告為可為 Null，或新增 '[field: MaybeNull, AllowNull]' 屬性。</target>
+        <target state="new">Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
@@ -6850,7 +6850,7 @@ strument:TestCoverage      產生檢測要收集
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
         <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</source>
-        <target state="needs-review-translation">'partial' 修飾元只能直接出現在 'class'、'record'、'struct'、'interface' 或方法或屬性傳回型別之前。</target>
+        <target state="new">The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -8958,7 +8958,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_ExtensionAttrNotFound">
         <source>Cannot define a new extension because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</source>
-        <target state="needs-review-translation">無法定義新的擴充方法，因為找不到編譯器的必要類型 '{0}'。是否遺漏了 System.Core.dll 的參考?</target>
+        <target state="new">Cannot define a new extension because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitExtension">
@@ -9053,7 +9053,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
         <source>Invalid token '{0}' in a member declaration</source>
-        <target state="needs-review-translation">類別、記錄、結構或介面成員宣告中的語彙基元 '{0}' 無效</target>
+        <target state="new">Invalid token '{0}' in a member declaration</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">
