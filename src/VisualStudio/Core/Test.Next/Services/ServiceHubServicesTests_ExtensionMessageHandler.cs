@@ -2,40 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.DesignerAttribute;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
-using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.Threading;
 using Moq;
 using Roslyn.Test.Utilities;
-using Roslyn.Test.Utilities.TestGenerators;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Remote;
@@ -51,15 +33,15 @@ public sealed partial class ServiceHubServicesTests
 
         // Don't trap the error here.  We want to validate that this crosses the ServiceHub boundary and is reported as
         // a real roslyn/gladstone error.
-        string errorMessage = null;
+        string? fatalRpcErrorMessage = null;
         var errorReportingService = (TestErrorReportingService)workspace.Services.GetRequiredService<IErrorReportingService>();
-        errorReportingService.OnError = message => errorMessage = message;
+        errorReportingService.OnError = message => fatalRpcErrorMessage = message;
 
         await extensionMessageHandlerService.RegisterExtensionAsync("TempPath", CancellationToken.None);
-        Assert.Null(errorMessage);
+        Assert.Null(fatalRpcErrorMessage);
 
         await extensionMessageHandlerService.RegisterExtensionAsync("TempPath", CancellationToken.None);
-        Assert.Contains(nameof(InvalidOperationException), errorMessage);
+        Assert.Contains(nameof(InvalidOperationException), fatalRpcErrorMessage);
     }
 
     [Fact]
@@ -71,12 +53,12 @@ public sealed partial class ServiceHubServicesTests
 
         // Don't trap the error here.  We want to validate that this crosses the ServiceHub boundary and is reported as
         // a real roslyn/gladstone error.
-        string errorMessage = null;
+        string? fatalRpcErrorMessage = null;
         var errorReportingService = (TestErrorReportingService)workspace.Services.GetRequiredService<IErrorReportingService>();
-        errorReportingService.OnError = message => errorMessage = message;
+        errorReportingService.OnError = message => fatalRpcErrorMessage = message;
 
         await extensionMessageHandlerService.UnregisterExtensionAsync("TempPath", CancellationToken.None);
-        Assert.Contains(nameof(InvalidOperationException), errorMessage);
+        Assert.Contains(nameof(InvalidOperationException), fatalRpcErrorMessage);
     }
 
     [Fact]
@@ -88,13 +70,13 @@ public sealed partial class ServiceHubServicesTests
 
         // Don't trap the error here.  We want to validate that this crosses the ServiceHub boundary and is reported as
         // a real roslyn/gladstone error.
-        string errorMessage = null;
+        string? fatalRpcErrorMessage = null;
         var errorReportingService = (TestErrorReportingService)workspace.Services.GetRequiredService<IErrorReportingService>();
-        errorReportingService.OnError = message => errorMessage = message;
+        errorReportingService.OnError = message => fatalRpcErrorMessage = message;
 
         await extensionMessageHandlerService.HandleExtensionWorkspaceMessageAsync(
              workspace.CurrentSolution, "MessageName", "JsonMessage", CancellationToken.None);
-        Assert.Contains(nameof(InvalidOperationException), errorMessage);
+        Assert.Contains(nameof(InvalidOperationException), fatalRpcErrorMessage);
     }
 
     [Fact]
@@ -111,13 +93,13 @@ public sealed partial class ServiceHubServicesTests
 
         // Don't trap the error here.  We want to validate that this crosses the ServiceHub boundary and is reported as
         // a real roslyn/gladstone error.
-        string errorMessage = null;
+        string? fatalRpcErrorMessage = null;
         var errorReportingService = (TestErrorReportingService)workspace.Services.GetRequiredService<IErrorReportingService>();
-        errorReportingService.OnError = message => errorMessage = message;
+        errorReportingService.OnError = message => fatalRpcErrorMessage = message;
 
         await extensionMessageHandlerService.HandleExtensionDocumentMessageAsync(
              workspace.CurrentSolution.Projects.Single().Documents.Single(), "MessageName", "JsonMessage", CancellationToken.None);
-        Assert.Contains(nameof(InvalidOperationException), errorMessage);
+        Assert.Contains(nameof(InvalidOperationException), fatalRpcErrorMessage);
     }
 
     [Fact]
@@ -129,12 +111,12 @@ public sealed partial class ServiceHubServicesTests
 
         // Don't trap the error here.  We want to validate that this crosses the ServiceHub boundary and is reported as
         // a real roslyn/gladstone error.
-        string errorMessage = null;
+        string? fatalRpcErrorMessage = null;
         var errorReportingService = (TestErrorReportingService)workspace.Services.GetRequiredService<IErrorReportingService>();
-        errorReportingService.OnError = message => errorMessage = message;
+        errorReportingService.OnError = message => fatalRpcErrorMessage = message;
 
         await extensionMessageHandlerService.GetExtensionMessageNamesAsync("TempPath", CancellationToken.None);
-        Assert.Contains(nameof(InvalidOperationException), errorMessage);
+        Assert.Contains(nameof(InvalidOperationException), fatalRpcErrorMessage);
     }
 
     [Fact]
@@ -146,17 +128,17 @@ public sealed partial class ServiceHubServicesTests
 
         // Don't trap the error here.  We want to validate that this crosses the ServiceHub boundary and is reported as
         // a real roslyn/gladstone error.
-        string errorMessage = null;
+        string? fatalRpcErrorMessage = null;
         var errorReportingService = (TestErrorReportingService)workspace.Services.GetRequiredService<IErrorReportingService>();
-        errorReportingService.OnError = message => errorMessage = message;
+        errorReportingService.OnError = message => fatalRpcErrorMessage = message;
 
         await extensionMessageHandlerService.RegisterExtensionAsync("TempPath", CancellationToken.None);
-        Assert.Null(errorMessage);
+        Assert.Null(fatalRpcErrorMessage);
         await extensionMessageHandlerService.UnregisterExtensionAsync("TempPath", CancellationToken.None);
-        Assert.Null(errorMessage);
+        Assert.Null(fatalRpcErrorMessage);
 
         await extensionMessageHandlerService.GetExtensionMessageNamesAsync("TempPath", CancellationToken.None);
-        Assert.Contains(nameof(InvalidOperationException), errorMessage);
+        Assert.Contains(nameof(InvalidOperationException), fatalRpcErrorMessage);
     }
 
     private static async Task<TestExtensionAssemblyLoaderProvider> GetRemoteAssemblyLoaderProvider(TestWorkspace localWorkspace)
@@ -188,14 +170,15 @@ public sealed partial class ServiceHubServicesTests
         // report no errors and an empty list of handlers.
         assemblyLoaderProvider.CreateNewShadowCopyLoaderCallback = (_, _) => default;
 
-        string errorMessage = null;
+        string? fatalRpcErrorMessage = null;
         var errorReportingService = (TestErrorReportingService)localWorkspace.Services.GetRequiredService<IErrorReportingService>();
-        errorReportingService.OnError = message => errorMessage = message;
+        errorReportingService.OnError = message => fatalRpcErrorMessage = message;
 
         await extensionMessageHandlerService.RegisterExtensionAsync("TempPath", CancellationToken.None);
-        Assert.Null(errorMessage);
+        Assert.Null(fatalRpcErrorMessage);
 
         var result = await extensionMessageHandlerService.GetExtensionMessageNamesAsync("TempPath", CancellationToken.None);
+        Assert.Null(fatalRpcErrorMessage);
         Assert.Empty(result.WorkspaceMessageHandlers);
         Assert.Empty(result.DocumentMessageHandlers);
         Assert.Null(result.ExtensionException);
@@ -216,14 +199,15 @@ public sealed partial class ServiceHubServicesTests
         // should return the exception as an extension exception along with an empty list of handlers.
         assemblyLoaderProvider.CreateNewShadowCopyLoaderCallback = (_, _) => (null, new Exception(ExpectedExceptionMessage));
 
-        string errorMessage = null;
+        string? fatalRpcErrorMessage = null;
         var errorReportingService = (TestErrorReportingService)localWorkspace.Services.GetRequiredService<IErrorReportingService>();
-        errorReportingService.OnError = message => errorMessage = message;
+        errorReportingService.OnError = message => fatalRpcErrorMessage = message;
 
         await extensionMessageHandlerService.RegisterExtensionAsync("TempPath", CancellationToken.None);
-        Assert.Null(errorMessage);
+        Assert.Null(fatalRpcErrorMessage);
 
         var result = await extensionMessageHandlerService.GetExtensionMessageNamesAsync("TempPath", CancellationToken.None);
+        Assert.Null(fatalRpcErrorMessage);
         Assert.Empty(result.WorkspaceMessageHandlers);
         Assert.Empty(result.DocumentMessageHandlers);
         Assert.NotNull(result.ExtensionException);
@@ -243,16 +227,16 @@ public sealed partial class ServiceHubServicesTests
         // should gracefully cancel, and not cause us to tear down anything.
         assemblyLoaderProvider.CreateNewShadowCopyLoaderCallback = (_, _) => throw new OperationCanceledException();
 
-        string errorMessage = null;
+        string? fatalRpcErrorMessage = null;
         var errorReportingService = (TestErrorReportingService)localWorkspace.Services.GetRequiredService<IErrorReportingService>();
-        errorReportingService.OnError = message => errorMessage = message;
+        errorReportingService.OnError = message => fatalRpcErrorMessage = message;
 
         await extensionMessageHandlerService.RegisterExtensionAsync("TempPath", CancellationToken.None);
-        Assert.Null(errorMessage);
+        Assert.Null(fatalRpcErrorMessage);
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(
             async () => await extensionMessageHandlerService.GetExtensionMessageNamesAsync("TempPath", CancellationToken.None));
-        Assert.Null(errorMessage);
+        Assert.Null(fatalRpcErrorMessage);
     }
 
     [Fact]
@@ -273,20 +257,54 @@ public sealed partial class ServiceHubServicesTests
 
         // Make a basic loader that just returns null for the assembly.
         var assemblyLoader = new Mock<IExtensionAssemblyLoader>(MockBehavior.Strict);
-        assemblyLoader.Setup(loader => loader.LoadFromPath("TempPath")).Returns((Assembly)null);
+        assemblyLoader.Setup(loader => loader.LoadFromPath("TempPath")).Returns((Assembly?)null!);
         assemblyLoaderProvider.CreateNewShadowCopyLoaderCallback = (_, _) => (assemblyLoader.Object, extensionException: null);
 
-        string errorMessage = null;
+        string? fatalRpcErrorMessage = null;
         var errorReportingService = (TestErrorReportingService)localWorkspace.Services.GetRequiredService<IErrorReportingService>();
-        errorReportingService.OnError = message => errorMessage = message;
+        errorReportingService.OnError = message => fatalRpcErrorMessage = message;
 
         await extensionMessageHandlerService.RegisterExtensionAsync("TempPath", CancellationToken.None);
-        Assert.Null(errorMessage);
+        Assert.Null(fatalRpcErrorMessage);
 
         var result = await extensionMessageHandlerService.GetExtensionMessageNamesAsync("TempPath", CancellationToken.None);
+        Assert.Null(fatalRpcErrorMessage);
         Assert.Null(result.ExtensionException);
         AssertEx.SequenceEqual(["DocumentMessageName"], result.DocumentMessageHandlers);
         AssertEx.SequenceEqual(["WorkspaceMessageName"], result.WorkspaceMessageHandlers);
+    }
+
+    [Fact]
+    public async Task TestExtensionMessageHandlerService_GetExtensionMessageNamesForRegisteredService_ThrowsCancellationToken()
+    {
+        using var localWorkspace = CreateWorkspace(additionalRemoteParts:
+            [typeof(TestExtensionAssemblyLoaderProvider), typeof(TestExtensionMessageHandlerFactory)]);
+
+        var extensionMessageHandlerService = localWorkspace.Services.GetRequiredService<IExtensionMessageHandlerService>();
+
+        var assemblyLoaderProvider = await GetRemoteAssemblyLoaderProvider(localWorkspace);
+        var handlerFactory = await GetRemoteAssemblyHandlerFactory(localWorkspace);
+
+        handlerFactory.CreateDocumentMessageHandlersCallback =
+            (_, _, _) => throw new OperationCanceledException();
+        handlerFactory.CreateWorkspaceMessageHandlersCallback =
+            (_, _, _) => [new TestHandler<Solution>("WorkspaceMessageName")];
+
+        // Make a basic loader that just returns null for the assembly.
+        var assemblyLoader = new Mock<IExtensionAssemblyLoader>(MockBehavior.Strict);
+        assemblyLoader.Setup(loader => loader.LoadFromPath("TempPath")).Returns((Assembly?)null!);
+        assemblyLoaderProvider.CreateNewShadowCopyLoaderCallback = (_, _) => (assemblyLoader.Object, extensionException: null);
+
+        string? fatalRpcErrorMessage = null;
+        var errorReportingService = (TestErrorReportingService)localWorkspace.Services.GetRequiredService<IErrorReportingService>();
+        errorReportingService.OnError = message => fatalRpcErrorMessage = message;
+
+        await extensionMessageHandlerService.RegisterExtensionAsync("TempPath", CancellationToken.None);
+        Assert.Null(fatalRpcErrorMessage);
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            async () => await extensionMessageHandlerService.GetExtensionMessageNamesAsync("TempPath", CancellationToken.None));
+        Assert.Null(fatalRpcErrorMessage);
     }
 
     [PartNotDiscoverable]
@@ -295,10 +313,10 @@ public sealed partial class ServiceHubServicesTests
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     private sealed class TestExtensionAssemblyLoaderProvider() : IExtensionAssemblyLoaderProvider
     {
-        public Func<string, CancellationToken, (IExtensionAssemblyLoader assemblyLoader, Exception extensionException)> CreateNewShadowCopyLoaderCallback { get; set; }
+        public Func<string, CancellationToken, (IExtensionAssemblyLoader? assemblyLoader, Exception? extensionException)>? CreateNewShadowCopyLoaderCallback { get; set; }
 
-        public (IExtensionAssemblyLoader assemblyLoader, Exception extensionException) CreateNewShadowCopyLoader(string assemblyFolderPath, CancellationToken cancellationToken)
-            => CreateNewShadowCopyLoaderCallback.Invoke(assemblyFolderPath, cancellationToken);
+        public (IExtensionAssemblyLoader? assemblyLoader, Exception? extensionException) CreateNewShadowCopyLoader(string assemblyFolderPath, CancellationToken cancellationToken)
+            => CreateNewShadowCopyLoaderCallback!.Invoke(assemblyFolderPath, cancellationToken);
     }
 
     [PartNotDiscoverable]
@@ -307,22 +325,22 @@ public sealed partial class ServiceHubServicesTests
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     private sealed class TestExtensionMessageHandlerFactory() : IExtensionMessageHandlerFactory
     {
-        public Func<Assembly, string, CancellationToken, ImmutableArray<IExtensionMessageHandlerWrapper<Solution>>> CreateWorkspaceMessageHandlersCallback { get; set; }
-        public Func<Assembly, string, CancellationToken, ImmutableArray<IExtensionMessageHandlerWrapper<Document>>> CreateDocumentMessageHandlersCallback { get; set; }
+        public Func<Assembly, string, CancellationToken, ImmutableArray<IExtensionMessageHandlerWrapper<Solution>>>? CreateWorkspaceMessageHandlersCallback { get; set; }
+        public Func<Assembly, string, CancellationToken, ImmutableArray<IExtensionMessageHandlerWrapper<Document>>>? CreateDocumentMessageHandlersCallback { get; set; }
 
         public ImmutableArray<IExtensionMessageHandlerWrapper<Solution>> CreateWorkspaceMessageHandlers(Assembly assembly, string extensionIdentifier, CancellationToken cancellationToken)
-            => CreateWorkspaceMessageHandlersCallback.Invoke(assembly, extensionIdentifier, cancellationToken);
+            => CreateWorkspaceMessageHandlersCallback!.Invoke(assembly, extensionIdentifier, cancellationToken);
 
         public ImmutableArray<IExtensionMessageHandlerWrapper<Document>> CreateDocumentMessageHandlers(Assembly assembly, string extensionIdentifier, CancellationToken cancellationToken)
-            => CreateDocumentMessageHandlersCallback.Invoke(assembly, extensionIdentifier, cancellationToken);
+            => CreateDocumentMessageHandlersCallback!.Invoke(assembly, extensionIdentifier, cancellationToken);
     }
 
     private sealed class TestHandler<TArgument>(
         string name,
-        Func<int, TArgument, CancellationToken, int> executeCallback = null) : IExtensionMessageHandlerWrapper<TArgument>
+        Func<int, TArgument, CancellationToken, int>? executeCallback = null) : IExtensionMessageHandlerWrapper<TArgument>
     {
-        public Task<object> ExecuteAsync(object message, TArgument argument, CancellationToken cancellationToken)
-            => Task.FromResult((object)executeCallback((int)message, argument, cancellationToken));
+        public Task<object?> ExecuteAsync(object? message, TArgument argument, CancellationToken cancellationToken)
+            => Task.FromResult((object?)executeCallback!((int)message!, argument, cancellationToken));
 
         public Type MessageType => typeof(int);
 
