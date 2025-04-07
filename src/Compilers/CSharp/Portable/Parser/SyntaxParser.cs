@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             var blendedTokens = _blendedTokens;
             if (blendedTokens != null)

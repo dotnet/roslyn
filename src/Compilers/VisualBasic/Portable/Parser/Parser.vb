@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private _evaluatingConditionCompilationExpression As Boolean
         Private ReadOnly _scanner As Scanner
         Private ReadOnly _cancellationToken As CancellationToken
-        Friend ReadOnly _pool As New SyntaxListPool
+        Friend ReadOnly _pool As SyntaxListPool = SyntaxListPool.GetInstance()
         Private ReadOnly _syntaxFactory As ContextAwareSyntaxFactory
 
         ' When parser owns the scanner, it is responsible for disposing it
@@ -68,6 +68,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If _disposeScanner Then
                 Me._scanner.Dispose()
             End If
+
+            ' Ensure the context's statements have been freed
+            Context?.FreeStatements()
+
+            _pool.Free()
         End Sub
 
         Friend ReadOnly Property IsScript As Boolean
