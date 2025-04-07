@@ -2150,8 +2150,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             methodInfo = replacedMethodInfo;
 
+            var extensionParameter = symbol.ContainingType.ExtensionParameter;
+            Debug.Assert(extensionParameter is not null);
+            parameters = parameters.IsDefault ? [extensionParameter] : [extensionParameter, .. parameters];
+
             Debug.Assert(receiver is not null);
-            parameters = methodInfo.Symbol.GetParameters();
             argsOpt = argsOpt.IsDefault ? [receiver] : [receiver, .. argsOpt];
             receiver = null;
 
