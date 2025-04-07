@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
         End Sub
 
-        <ConditionalFact(GetType(WindowsOrLinuxOnly), Reason:="https://github.com/dotnet/roslyn/issues/77861")>
+        <Fact>
         Public Sub Test1_Date()
             ' test binary operator between Date value and another type data
             ' call ToString() on it defeat the purpose of these scenarios
@@ -219,11 +219,11 @@ End Module
 [Ob & Da] Object: -138:30:00 AM
 [Tc & Da] String: [148:30:00 AM]]]>
 
-                Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+                Dim compilation = CompilationUtils.CreateCompilation(compilationDef, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe)
                 Assert.True(compilation.Options.CheckOverflow)
                 CompileAndVerify(compilation, expectedOutput:=expected)
 
-                compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOverflowChecks(False))
+                compilation = CompilationUtils.CreateCompilation(compilationDef, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe.WithOverflowChecks(False))
                 Assert.False(compilation.Options.CheckOverflow)
                 CompileAndVerify(compilation, expectedOutput:=expected)
 
@@ -381,7 +381,7 @@ False
 
         End Sub
 
-        <ConditionalFact(GetType(WindowsOrLinuxOnly), Reason:="https://github.com/dotnet/roslyn/issues/77861")>
+        <Fact>
         Public Sub Test5_DateConst()
             ' test binary operator between Date const and another type data
             ' call ToString() on it defeat the purpose of these scenarios
@@ -487,11 +487,11 @@ End Module
 [TypeCode.Double & #8:30:00 AM#] String: [148:30:00 AM]
 ]]>
 
-                Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+                Dim compilation = CompilationUtils.CreateCompilation(compilationDef, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe)
                 Assert.True(compilation.Options.CheckOverflow)
                 CompileAndVerify(compilation, expectedOutput:=expected)
 
-                compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOverflowChecks(False))
+                compilation = CompilationUtils.CreateCompilation(compilationDef, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe.WithOverflowChecks(False))
                 Assert.False(compilation.Options.CheckOverflow)
                 CompileAndVerify(compilation, expectedOutput:=expected)
 
