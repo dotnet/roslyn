@@ -26,22 +26,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void Increment_001([CombinatorialValues("++", "--")] string op, bool structure)
+        public void Increment_001([CombinatorialValues("++", "--")] string op, [CombinatorialValues("struct", "class", "interface")] string typeKeyword)
         {
             var source =
-(structure ? "struct" : "class") + @" C1
+typeKeyword + @" C1
 {
     public void operator" + op + @"() {} 
     public void operator checked" + op + @"() {} 
 }
 ";
-            var comp = CreateCompilation(source);
-            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net60);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular13, targetFramework: TargetFramework.Net60);
             comp.VerifyDiagnostics(
                 // (3,25): error CS8652: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public void operator++() {} 
@@ -59,12 +59,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)));
             }
 
-            static void validateOp(MethodSymbol m)
+            void validateOp(MethodSymbol m)
             {
                 Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
                 Assert.False(m.IsStatic);
                 Assert.False(m.IsAbstract);
-                Assert.False(m.IsVirtual);
+                Assert.Equal(typeKeyword == "interface", m.IsVirtual);
                 Assert.False(m.IsSealed);
                 Assert.False(m.IsOverride);
                 Assert.True(m.HasSpecialName);
@@ -5974,19 +5974,21 @@ public class C1 : C2
 
         private static string CompoundAssignmentOperatorName(string op, bool isChecked = false)
         {
-            return op switch
+            var kind = op switch
             {
-                ">>=" => WellKnownMemberNames.RightShiftAssignmentOperatorName,
-                ">>>=" => WellKnownMemberNames.UnsignedRightShiftAssignmentOperatorName,
-                _ => OperatorFacts.CompoundAssignmentOperatorNameFromSyntaxKind(SyntaxFactory.ParseToken(op).Kind(), isChecked: isChecked)
+                ">>=" => SyntaxKind.GreaterThanGreaterThanEqualsToken,
+                ">>>=" => SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken,
+                _ => SyntaxFactory.ParseToken(op).Kind(),
             };
+
+            return OperatorFacts.CompoundAssignmentOperatorNameFromSyntaxKind(kind, isChecked: isChecked);
         }
 
         private static bool CompoundAssignmentOperatorHasCheckedForm(string op) => op is "+=" or "-=" or "*=" or "/=";
 
         [Theory]
         [CombinatorialData]
-        public void CompoundAssignment_00010([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, bool structure)
+        public void CompoundAssignment_00010([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, [CombinatorialValues("struct", "class", "interface")] string typeKeyword)
         {
             string checkedForm = null;
 
@@ -5998,19 +6000,19 @@ public class C1 : C2
             }
 
             var source =
-(structure ? "struct" : "class") + @" C1
+typeKeyword + @" C1
 {
     public void operator" + op + @"(C1 x) {}
 " + checkedForm + @"
 }
 ";
-            var comp = CreateCompilation(source);
-            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net60);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular13, targetFramework: TargetFramework.Net60);
             comp.VerifyDiagnostics(
                 checkedForm is null ?
                     [
@@ -6039,12 +6041,12 @@ public class C1 : C2
                 }
             }
 
-            static void validateOp(MethodSymbol m)
+            void validateOp(MethodSymbol m)
             {
                 Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
                 Assert.False(m.IsStatic);
                 Assert.False(m.IsAbstract);
-                Assert.False(m.IsVirtual);
+                Assert.Equal(typeKeyword == "interface", m.IsVirtual);
                 Assert.False(m.IsSealed);
                 Assert.False(m.IsOverride);
                 Assert.True(m.HasSpecialName);
