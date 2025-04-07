@@ -381,8 +381,10 @@ False
 
         End Sub
 
-        <Fact>
-        Public Sub Test5_DateConst()
+        <Theory>
+        <InlineData(True)>
+        <InlineData(False)>
+        Public Sub Test5_DateConst(overflowChecks As Boolean)
             ' test binary operator between Date const and another type data
             ' call ToString() on it defeat the purpose of these scenarios
             Dim currCulture = System.Threading.Thread.CurrentThread.CurrentCulture
@@ -402,7 +404,6 @@ Imports System
 Module Module1
 
     Sub Main()
-
         PrintResult("#8:30:00 AM# + ""12""", #8:30:00 AM# + "12")
         PrintResult("#8:30:00 AM# + #8:30:00 AM#", #8:30:00 AM# + #8:30:00 AM#)
         PrintResult("""12"" + #8:30:00 AM#", "12" + #8:30:00 AM#)
@@ -487,20 +488,12 @@ End Module
 [TypeCode.Double & #8:30:00 AM#] String: [148:30:00 AM]
 ]]>
 
-                Dim compilation = CompilationUtils.CreateCompilation(compilationDef, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe)
-                Assert.True(compilation.Options.CheckOverflow)
+                Dim compilation = CompilationUtils.CreateCompilation(compilationDef, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe.WithOverflowChecks(overflowChecks))
                 CompileAndVerify(compilation, expectedOutput:=expected)
 
-                compilation = CompilationUtils.CreateCompilation(compilationDef, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe.WithOverflowChecks(False))
-                Assert.False(compilation.Options.CheckOverflow)
-                CompileAndVerify(compilation, expectedOutput:=expected)
-
-            Catch ex As Exception
-                Assert.Null(ex)
             Finally
                 System.Threading.Thread.CurrentThread.CurrentCulture = currCulture
             End Try
-
         End Sub
 
         <Fact>
