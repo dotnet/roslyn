@@ -41,7 +41,7 @@
                     </StackPanel>
                     <StackPanel>
                         <CheckBox x:Name="DisplayDiagnosticsInline"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_diagnostics_inline_experimental}"/>
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_diagnostics_inline}"/>
                         <StackPanel Margin="15, 0, 0, 0">
                             <RadioButton GroupName="Inline_diagnostic_location"
                                      x:Name="at_the_end_of_the_line_of_code"

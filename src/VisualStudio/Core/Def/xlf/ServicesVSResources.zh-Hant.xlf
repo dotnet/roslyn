@@ -317,9 +317,9 @@
         <target state="translated">按 Alt+F1 時顯示所有提示</target>
         <note />
       </trans-unit>
-      <trans-unit id="Display_diagnostics_inline_experimental">
-        <source>Display diagnostics inline (experimental)</source>
-        <target state="translated">顯示內嵌診斷 (實驗性)</target>
+      <trans-unit id="Display_diagnostics_inline">
+        <source>Display diagnostics inline</source>
+        <target state="new">Display diagnostics inline</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
@@ -442,11 +442,6 @@
         <target state="translated">完成</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_text_pasted_into_string_literals_experimental">
-        <source>Fix text pasted into string literals (experimental)</source>
-        <target state="translated">修正已貼到字串常值的文字 (實驗性)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fix_analyzer_warnings_and_errors">
         <source>Fix analyzer warnings and errors</source>
         <target state="translated">修正分析器警告與錯誤</target>
@@ -460,6 +455,11 @@
       <trans-unit id="Fix_analyzer_warnings_and_errors_set_in_EditorConfig">
         <source>Fix analyzer warnings and errors set in EditorConfig</source>
         <target state="translated">修正 EditorConfig 中設定的分析器警告與錯誤</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_text_pasted_into_string_literals">
+        <source>Fix text pasted into string literals</source>
+        <target state="new">Fix text pasted into string literals</target>
         <note />
       </trans-unit>
       <trans-unit id="For_non_interface_members">

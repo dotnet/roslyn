@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Composition;
 using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -24,6 +25,7 @@ internal interface IExtensionAssemblyLoaderProvider : IWorkspaceService
 
 internal interface IExtensionAssemblyLoader
 {
+    Assembly LoadFromPath(string assemblyFilePath);
     void Unload();
 }
 
@@ -33,16 +35,24 @@ internal interface IExtensionAssemblyLoader
 internal sealed class DefaultExtensionAssemblyLoaderProviderFactory() : IWorkspaceServiceFactory
 {
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        => new DefaultExtensionAssemblyLoaderProvider(workspaceServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>());
+        => new DefaultExtensionAssemblyLoaderProvider(workspaceServices);
 
-    private sealed class DefaultExtensionAssemblyLoaderProvider(IAnalyzerAssemblyLoaderProvider assemblyLoaderProvider)
+    private sealed class DefaultExtensionAssemblyLoaderProvider(HostWorkspaceServices workspaceServices)
         : IExtensionAssemblyLoaderProvider
     {
+        private readonly HostWorkspaceServices _workspaceServices = workspaceServices;
+
         public (IExtensionAssemblyLoader? assemblyLoader, Exception? extensionException) CreateNewShadowCopyLoader(
             string assemblyFolderPath, CancellationToken cancellationToken)
         {
 #if NET
-            var shadowCopyLoader = assemblyLoaderProvider.CreateNewShadowCopyLoader();
+            // These lines should always succeed.  If they don't, they indicate a bug in our code that we want
+            // to bubble out as it must be fixed.
+            var analyzerAssemblyLoaderProvider = _workspaceServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+            var analyzerAssemblyLoader = analyzerAssemblyLoaderProvider.CreateNewShadowCopyLoader();
+
+            // Catch exceptions here related to working with the file system.  If we can't properly enumerate,
+            // we want to report that back to the client, while not blocking the entire extension service.
             try
             {
                 // Allow this assembly loader to load any dll in assemblyFolderPath.
@@ -60,35 +70,21 @@ internal sealed class DefaultExtensionAssemblyLoaderProviderFactory() : IWorkspa
                         continue;
                     }
 
-                    shadowCopyLoader.AddDependencyLocation(dll);
+                    analyzerAssemblyLoader.AddDependencyLocation(dll);
                 }
 
-                return (new DefaultExtensionAssemblyLoader(shadowCopyLoader), null);
+                return (new DefaultExtensionAssemblyLoader(analyzerAssemblyLoader), null);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
+                // Capture any exceptions here to be reported back in CreateAssemblyHandlersAsync.
                 return (null, ex);
             }
-
 #else
             return default;
 #endif
         }
     }
-
-#if false
-
-
-#if NET
-                    var analyzerAssemblyLoader = analyzerAssemblyLoaderProvider.CreateNewShadowCopyLoader();
-
-
-
-                    return (IAnalyzerAssemblyLoaderInternal?)analyzerAssemblyLoader;
-#else
-                    return (IAnalyzerAssemblyLoaderInternal?)null;
-#endif
-#endif
 
     private sealed class DefaultExtensionAssemblyLoader(
         IAnalyzerAssemblyLoaderInternal assemblyLoader) : IExtensionAssemblyLoader
