@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Reflection;
+using System.ServiceModel.Syndication;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -345,6 +346,52 @@ public sealed partial class ServiceHubServicesTests
         Assert.Equal(ExpectedExceptionMessage, result.ExtensionException.Message);
         Assert.Empty(result.DocumentMessageHandlers);
         Assert.Empty(result.WorkspaceMessageHandlers);
+    }
+
+    [Fact]
+    public async Task TestExtensionMessageHandlerService_HandleExtensionMessage_UnregisteredName()
+    {
+        using var localWorkspace = CreateWorkspace(additionalRemoteParts:
+            [typeof(TestExtensionAssemblyLoaderProvider), typeof(TestExtensionMessageHandlerFactory)]);
+
+        localWorkspace.SetCurrentSolution(solution =>
+        {
+            return AddProject(solution, LanguageNames.CSharp, ["// empty"]);
+        }, WorkspaceChangeKind.SolutionChanged);
+
+        var extensionMessageHandlerService = localWorkspace.Services.GetRequiredService<IExtensionMessageHandlerService>();
+
+        var assemblyLoaderProvider = await GetRemoteAssemblyLoaderProvider(localWorkspace);
+        var handlerFactory = await GetRemoteAssemblyHandlerFactory(localWorkspace);
+
+        handlerFactory.CreateDocumentMessageHandlersCallback =
+            (_, _, _) => [new TestHandler<Document>("HandlerName")];
+        handlerFactory.CreateWorkspaceMessageHandlersCallback = (_, _, _) => [];
+
+        // Make a basic loader that just returns null for the assembly.
+        var assemblyLoader = new Mock<IExtensionAssemblyLoader>(MockBehavior.Strict);
+        assemblyLoader.Setup(loader => loader.LoadFromPath("TempPath")).Returns((Assembly?)null!);
+        assemblyLoaderProvider.CreateNewShadowCopyLoaderCallback = (_, _) => (assemblyLoader.Object, extensionException: null);
+
+        string? fatalRpcErrorMessage = null;
+        var errorReportingService = (TestErrorReportingService)localWorkspace.Services.GetRequiredService<IErrorReportingService>();
+        errorReportingService.OnError = message => fatalRpcErrorMessage = message;
+
+        await extensionMessageHandlerService.RegisterExtensionAsync("TempPath", CancellationToken.None);
+        Assert.Null(fatalRpcErrorMessage);
+
+        var messageNames = await extensionMessageHandlerService.GetExtensionMessageNamesAsync("TempPath", CancellationToken.None);
+        Assert.Null(fatalRpcErrorMessage);
+        Assert.Null(messageNames.ExtensionException);
+        Assert.Equal("HandlerName", messageNames.DocumentMessageHandlers.Single());
+        Assert.Empty(messageNames.WorkspaceMessageHandlers);
+
+        // Invoking a handler name that doesn't exist is a bug.
+        var result = await extensionMessageHandlerService.HandleExtensionDocumentMessageAsync(
+            localWorkspace.CurrentSolution.Projects.Single().Documents.Single(),
+            "NonRegisteredHandlerName", jsonMessage: "0", CancellationToken.None);
+        Assert.NotNull(fatalRpcErrorMessage);
+        Assert.Contains(nameof(InvalidOperationException), fatalRpcErrorMessage);
     }
 
     [PartNotDiscoverable]
