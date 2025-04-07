@@ -3135,20 +3135,25 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                 {
                     static void Main()
                     {
-                        var c = new C<object>();
-                        _ = nameof(c[0]);
-                        _ = nameof(c[0] = default);
+                        var x = new C<object>();
+                        _ = nameof(x[0]);
+                        _ = nameof(x[0] = default);
+                        var y = new C<int>();
+                        _ = nameof(y[0] += 1);
                     }
                 }
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (10,20): error CS8081: Expression does not have a name.
-                //         _ = nameof(c[0]);
-                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "c[0]").WithLocation(10, 20),
+                //         _ = nameof(x[0]);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "x[0]").WithLocation(10, 20),
                 // (11,20): error CS8081: Expression does not have a name.
-                //         _ = nameof(c[0] = default);
-                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "c[0] = default").WithLocation(11, 20));
+                //         _ = nameof(x[0] = default);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "x[0] = default").WithLocation(11, 20),
+                // (13,20): error CS8081: Expression does not have a name.
+                //         _ = nameof(y[0] += 1);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "y[0] += 1").WithLocation(13, 20));
         }
 
         [Fact]
