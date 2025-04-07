@@ -285,6 +285,7 @@ public sealed partial class ServiceHubServicesTests
         var assemblyLoaderProvider = await GetRemoteAssemblyLoaderProvider(localWorkspace);
         var handlerFactory = await GetRemoteAssemblyHandlerFactory(localWorkspace);
 
+        // Cancellation exception should be reported normally through the entire stack.
         handlerFactory.CreateDocumentMessageHandlersCallback =
             (_, _, _) => throw new OperationCanceledException();
         handlerFactory.CreateWorkspaceMessageHandlersCallback =
@@ -305,6 +306,45 @@ public sealed partial class ServiceHubServicesTests
         await Assert.ThrowsAnyAsync<OperationCanceledException>(
             async () => await extensionMessageHandlerService.GetExtensionMessageNamesAsync("TempPath", CancellationToken.None));
         Assert.Null(fatalRpcErrorMessage);
+    }
+
+    [Fact]
+    public async Task TestExtensionMessageHandlerService_GetExtensionMessageNamesForRegisteredService_HandlerFactoryThrows()
+    {
+        const string ExpectedExceptionMessage = "Error Creating Handler";
+
+        using var localWorkspace = CreateWorkspace(additionalRemoteParts:
+            [typeof(TestExtensionAssemblyLoaderProvider), typeof(TestExtensionMessageHandlerFactory)]);
+
+        var extensionMessageHandlerService = localWorkspace.Services.GetRequiredService<IExtensionMessageHandlerService>();
+
+        var assemblyLoaderProvider = await GetRemoteAssemblyLoaderProvider(localWorkspace);
+        var handlerFactory = await GetRemoteAssemblyHandlerFactory(localWorkspace);
+
+        // Cancellation exception should be reported normally through the entire stack.
+        handlerFactory.CreateDocumentMessageHandlersCallback =
+            (_, _, _) => throw new Exception(ExpectedExceptionMessage);
+        handlerFactory.CreateWorkspaceMessageHandlersCallback =
+            (_, _, _) => [];
+
+        // Make a basic loader that just returns null for the assembly.
+        var assemblyLoader = new Mock<IExtensionAssemblyLoader>(MockBehavior.Strict);
+        assemblyLoader.Setup(loader => loader.LoadFromPath("TempPath")).Returns((Assembly?)null!);
+        assemblyLoaderProvider.CreateNewShadowCopyLoaderCallback = (_, _) => (assemblyLoader.Object, extensionException: null);
+
+        string? fatalRpcErrorMessage = null;
+        var errorReportingService = (TestErrorReportingService)localWorkspace.Services.GetRequiredService<IErrorReportingService>();
+        errorReportingService.OnError = message => fatalRpcErrorMessage = message;
+
+        await extensionMessageHandlerService.RegisterExtensionAsync("TempPath", CancellationToken.None);
+        Assert.Null(fatalRpcErrorMessage);
+
+        var result = await extensionMessageHandlerService.GetExtensionMessageNamesAsync("TempPath", CancellationToken.None);
+        Assert.Null(fatalRpcErrorMessage);
+        Assert.NotNull(result.ExtensionException);
+        Assert.Equal(ExpectedExceptionMessage, result.ExtensionException.Message);
+        Assert.Empty(result.DocumentMessageHandlers);
+        Assert.Empty(result.WorkspaceMessageHandlers);
     }
 
     [PartNotDiscoverable]
