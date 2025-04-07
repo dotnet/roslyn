@@ -1,4 +1,5 @@
 Microsoft.CodeAnalysis.Compilation.EmitDifference(Microsoft.CodeAnalysis.Emit.EmitBaseline! baseline, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Emit.SemanticEdit>! edits, System.Func<Microsoft.CodeAnalysis.ISymbol!, bool>! isAddedSymbol, System.IO.Stream! metadataStream, System.IO.Stream! ilStream, System.IO.Stream! pdbStream, Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions options, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.Emit.EmitDifferenceResult!
+Microsoft.CodeAnalysis.Compilation.EmitDifference(Microsoft.CodeAnalysis.Emit.EmitBaseline! baseline, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Emit.SemanticEdit>! edits, System.Func<Microsoft.CodeAnalysis.ISymbol!, bool>! isAddedSymbol, System.IO.Stream! metadataStream, System.IO.Stream! ilStream, System.IO.Stream! pdbStream, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.Emit.EmitDifferenceResult!
 Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions
 Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.EmitDifferenceOptions() -> void
 Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.EmitFieldRva.get -> bool

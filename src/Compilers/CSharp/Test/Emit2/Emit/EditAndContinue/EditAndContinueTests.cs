@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -19319,13 +19320,13 @@ file class C
                         // trailing zeros for alignment:
                         g.VerifyEncFieldRvaData([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0, 0]);
                     },
-                    withTestData: d => d.EncFieldRvaSupported = true)
+                    options: new EmitDifferenceOptions() { EmitFieldRva = true })
                 .Verify();
         }
 
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
-        public void PrivateImplDetails_DataFields_StackAlloc()
+        public void PrivateImplDetails_DataFields_StackAlloc_FieldRvaNotSupported()
         {
             using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net80, verification: Verification.Skipped)
                 .AddBaseline(
@@ -19434,7 +19435,96 @@ file class C
 
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
-        public void PrivateImplDetails_DataFields_Utf8()
+        public void PrivateImplDetails_DataFields_StackAlloc_FieldRvaSupported()
+        {
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net80, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            void F() { System.ReadOnlySpan<byte> b = stackalloc byte[] { 0, 1, 2, 3, 4, 5, 6 }; }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C", "<PrivateImplementationDetails>", "__StaticArrayInitTypeSize=7");
+                        g.VerifyFieldDefNames("57355AC3303C148F11AEF7CB179456B9232CDE33A818DFDA2C2FCB9325749A6B");
+                        g.VerifyMethodDefNames("F", ".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            void F() { System.ReadOnlySpan<byte> b = stackalloc byte[] { 0, 1, 2, 3, 4, 5, 6, 7 }; }
+                        }
+                        """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1");
+                        g.VerifyFieldDefNames("8A851FF82EE7048AD09EC3847F1DDF44944104D2CBD17EF4E3DB22C6785A0D45");
+                        g.VerifyMethodDefNames("F");
+
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.FieldRva, EditAndContinueOperation.Default)
+                        });
+
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(5, TableIndex.TypeDef),
+                            Handle(2, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(5, TableIndex.CustomAttribute),
+                            Handle(2, TableIndex.StandAloneSig),
+                            Handle(2, TableIndex.FieldRva)
+                        });
+
+                        g.VerifyIL("C.F", """
+                        {
+                          // Code size       32 (0x20)
+                          .maxstack  4
+                          .locals init (System.ReadOnlySpan<byte> V_0, //b
+                                        System.Span<byte> V_1)
+                          IL_0000:  nop
+                          IL_0001:  ldc.i4.8
+                          IL_0002:  conv.u
+                          IL_0003:  localloc
+                          IL_0005:  dup
+                          IL_0006:  ldsflda    "long <PrivateImplementationDetails>#1.8A851FF82EE7048AD09EC3847F1DDF44944104D2CBD17EF4E3DB22C6785A0D45"
+                          IL_000b:  ldc.i4.8
+                          IL_000c:  unaligned. 1
+                          IL_000f:  cpblk
+                          IL_0011:  ldc.i4.8
+                          IL_0012:  newobj     "System.Span<byte>..ctor(void*, int)"
+                          IL_0017:  stloc.1
+                          IL_0018:  ldloc.1
+                          IL_0019:  call       "System.ReadOnlySpan<byte> System.Span<byte>.op_Implicit(System.Span<byte>)"
+                          IL_001e:  stloc.0
+                          IL_001f:  ret
+                        }
+                        """);
+
+                        // TODO: better test would be to specify FieldDef -> data.
+                        g.VerifyEncFieldRvaData([0, 1, 2, 3, 4, 5, 6, 7]);
+                    },
+                    options: new EmitDifferenceOptions() { EmitFieldRva = true })
+                .Verify();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
+        public void PrivateImplDetails_DataFields_Utf8_FieldRvaNotSupported()
         {
             using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net80, verification: Verification.Skipped)
                 .AddBaseline(
@@ -19535,6 +19625,86 @@ file class C
                         }
                         """);
                     })
+                .Verify();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
+        public void PrivateImplDetails_DataFields_Utf8_FieldRvaSupported()
+        {
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net80, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: """
+                        class C
+                        {
+                            System.ReadOnlySpan<byte> F() => "0123456789"u8;
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C", "<PrivateImplementationDetails>", "__StaticArrayInitTypeSize=11");
+                        g.VerifyFieldDefNames("BEB0DBD1C6FAC1140DD817514F2FBDF501E246BF16C8E877E71187E9EB008189");
+                        g.VerifyMethodDefNames("F", ".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            System.ReadOnlySpan<byte> F() => "0123456789X"u8;
+                        }
+                        """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "__StaticArrayInitTypeSize=12");
+                        g.VerifyFieldDefNames("AFB1C33C5229BFF7EF739BA44DA795A2B68A49E06001C07C5B026CAA6C6322BB");
+                        g.VerifyMethodDefNames("F");
+
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.ClassLayout, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.FieldRva, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.NestedClass, EditAndContinueOperation.Default)
+                        });
+
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(5, TableIndex.TypeDef),
+                            Handle(6, TableIndex.TypeDef),
+                            Handle(2, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(5, TableIndex.CustomAttribute),
+                            Handle(2, TableIndex.ClassLayout),
+                            Handle(2, TableIndex.FieldRva),
+                            Handle(2, TableIndex.NestedClass)
+                        });
+
+                        g.VerifyIL("C.F", """
+                        {
+                          // Code size       13 (0xd)
+                          .maxstack  2
+                          IL_0000:  ldsflda    "<PrivateImplementationDetails>#1.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>#1.AFB1C33C5229BFF7EF739BA44DA795A2B68A49E06001C07C5B026CAA6C6322BB"
+                          IL_0005:  ldc.i4.s   11
+                          IL_0007:  newobj     "System.ReadOnlySpan<byte>..ctor(void*, int)"
+                          IL_000c:  ret
+                        }
+                        """);
+
+                        // TODO: better test would be to specify FieldDef -> data.
+                        // Trailing zeros for alignment.
+                        g.VerifyEncFieldRvaData([.. Encoding.UTF8.GetBytes("0123456789X"), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+                    },
+                    options: new EmitDifferenceOptions() { EmitFieldRva = true })
                 .Verify();
         }
 
