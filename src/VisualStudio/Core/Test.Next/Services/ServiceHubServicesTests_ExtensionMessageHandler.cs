@@ -519,7 +519,7 @@ public sealed partial class ServiceHubServicesTests
         Assert.NotNull(result.ExtensionException);
         Assert.Contains(ExtensionExceptionMessage, result.ExtensionException.Message);
 
-        // Second call should be fine.
+        // Second call should be fine.  Failing the first call doesn't disable the extension.
         result = await extensionMessageHandlerService.HandleExtensionDocumentMessageAsync(
             localWorkspace.CurrentSolution.Projects.Single().Documents.Single(),
             "HandlerName", jsonMessage: "0", CancellationToken.None);
