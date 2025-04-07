@@ -3,17 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class ExpressionOptionalAndNamedArgumentsTests : CSharpTestBase
     {
-        // PROTOTYPE: Document breaking changes. Are additional overloads now considered (at least those with default parameters)? Test those cases with language version.
-        // PROTOTYPE: Test unrecognized name.
-        // PROTOTYPE: Test name when parameter name is duplicated.
-
-        // PROTOTYPE: Use this for optional argument tests as well.
         private static string GetUtilities(bool useExpression)
         {
             return useExpression ?
@@ -56,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void OptionalParameter_01(
             [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
             bool useIn,
+            bool useExpression,
             bool useCompilationReference)
         {
             string refKind = useIn ? "in" : "";
@@ -69,8 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = $$"""
-                using System;
-                using System.Linq.Expressions;
                 struct S
                 {
                 }
@@ -78,50 +73,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     static void Main()
                     {
-                        Report(A.GetValue<int>());
-                        Report(A.GetValue<string>());
-                        Report(A.GetValue<S>());
-                        Report(Run(() => A.GetValue<int>()));
-                        Report(Run(() => A.GetValue<string>()));
-                        Report(Run(() => A.GetValue<S>()));
-                    }
-                    static void Report(object arg)
-                    {
-                        Console.WriteLine(arg is null ? "null" : arg.ToString());
-                    }
-                    static T Run<T>(Expression<Func<T>> e)
-                    {
-                        var f = e.Compile();
-                        return f();
+                        Utils.Report(() => A.GetValue<int>());
+                        Utils.Report(() => A.GetValue<string>());
+                        Utils.Report(() => A.GetValue<S>());
                     }
                 }
                 """;
             comp = CreateCompilation(
-                sourceB,
+                [sourceB, GetUtilities(useExpression)],
                 references: [refA],
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.ReleaseExe);
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp13 && useExpression)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (13,26): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
-                    //         Report(Run(() => A.GetValue<int>()));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "A.GetValue<int>()").WithLocation(13, 26),
-                    // (14,26): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
-                    //         Report(Run(() => A.GetValue<string>()));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "A.GetValue<string>()").WithLocation(14, 26),
-                    // (15,26): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
-                    //         Report(Run(() => A.GetValue<S>()));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "A.GetValue<S>()").WithLocation(15, 26));
+                    // (8,28): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
+                    //         Utils.Report(() => A.GetValue<int>());
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "A.GetValue<int>()").WithLocation(8, 28),
+                    // (9,28): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
+                    //         Utils.Report(() => A.GetValue<string>());
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "A.GetValue<string>()").WithLocation(9, 28),
+                    // (10,28): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
+                    //         Utils.Report(() => A.GetValue<S>());
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "A.GetValue<S>()").WithLocation(10, 28));
             }
             else
             {
                 var verifier = CompileAndVerify(
                     comp,
                     expectedOutput: """
-                    0
-                    null
-                    S
                     0
                     null
                     S
@@ -132,7 +112,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void OptionalParameter_02(bool useIn, bool useCompilationReference)
+        public void OptionalParameter_02(
+            bool useIn,
+            bool useExpression,
+            bool useCompilationReference)
         {
             string refKind = useIn ? "in" : "";
             string sourceA = $$"""
@@ -147,37 +130,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = $$"""
-                using System;
-                using System.Linq.Expressions;
                 class Program
                 {
                     static void Main()
                     {
-                        Report(A.GetIntValue());
-                        Report(A.GetStringValue());
-                        Report(A.GetObjectValue());
-                        Report(Run(() => A.GetIntValue()));
-                        Report(Run(() => A.GetStringValue()));
-                        Report(Run(() => A.GetObjectValue()));
-                    }
-                    static void Report(object arg)
-                    {
-                        Console.WriteLine(arg is null ? "null" : arg.ToString());
-                    }
-                    static T Run<T>(Expression<Func<T>> e)
-                    {
-                        var f = e.Compile();
-                        return f();
+                        Utils.Report(() => A.GetIntValue());
+                        Utils.Report(() => A.GetStringValue());
+                        Utils.Report(() => A.GetObjectValue());
                     }
                 }
                 """;
             var verifier = CompileAndVerify(
-                sourceB,
+                [sourceB, GetUtilities(useExpression)],
                 references: [refA],
                 expectedOutput: """
-                    10
-                    default
-                    null
                     10
                     default
                     null
@@ -187,7 +153,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void OptionalParameter_AndParams(bool useIn, bool useCompilationReference)
+        public void OptionalParameter_AndParams(
+            bool useIn,
+            bool useExpression,
+            bool useCompilationReference)
         {
             string refKind = useIn ? "in" : "";
             string sourceA = $$"""
@@ -200,8 +169,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = $$"""
-                using System;
-                using System.Linq.Expressions;
                 struct S
                 {
                 }
@@ -209,28 +176,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     static void Main()
                     {
-                        Report(A.GetValue<int>(1));
-                        Report(A.GetValue<int>(2, 3, 4));
-                        Report(Run(() => A.GetValue<int>(1)));
-                        Report(Run(() => A.GetValue<int>(2, 3, 4)));
-                    }
-                    static void Report(object arg)
-                    {
-                        Console.WriteLine(arg is null ? "null" : arg.ToString());
-                    }
-                    static T Run<T>(Expression<Func<T>> e)
-                    {
-                        var f = e.Compile();
-                        return f();
+                        Utils.Report(() => A.GetValue<int>(1));
+                        Utils.Report(() => A.GetValue<int>(2, 3, 4));
                     }
                 }
                 """;
             var verifier = CompileAndVerify(
-                sourceB,
+                [sourceB, GetUtilities(useExpression)],
                 references: [refA],
                 expectedOutput: """
-                    0
-                    3
                     0
                     3
                     """);
@@ -241,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CombinatorialData]
         public void OptionalParameter_Constructor(
             [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
-            bool useCompilationReference)
+            bool useExpression)
         {
             string sourceA = $$"""
                 public class A
@@ -249,56 +203,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public readonly string X;
                     public readonly int Y;
                     public A(string x = "default", in int y = 10) { X = x; Y = y; }
+                    public override string ToString() => $"({X}, {Y})";
                 }
                 """;
             var comp = CreateCompilation(sourceA);
-            var refA = AsReference(comp, useCompilationReference);
+            var refA = comp.EmitToImageReference();
 
             string sourceB = $$"""
-                using System;
-                using System.Linq.Expressions;
                 class Program
                 {
                     static void Main()
                     {
-                        Report(new A("str"));
-                        Report(new A());
-                        Report(Run(() => new A("str")));
-                        Report(Run(() => new A()));
-                    }
-                    static void Report(A a)
-                    {
-                        Console.WriteLine((a.X, a.Y));
-                    }
-                    static T Run<T>(Expression<Func<T>> e)
-                    {
-                        var f = e.Compile();
-                        return f();
+                        Utils.Report(() => new A("str"));
+                        Utils.Report(() => new A());
                     }
                 }
                 """;
             comp = CreateCompilation(
-                sourceB,
+                [sourceB, GetUtilities(useExpression)],
                 references: [refA],
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.ReleaseExe);
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp13 && useExpression)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (9,26): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
-                    //         Report(Run(() => new A("str")));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, @"new A(""str"")").WithLocation(9, 26),
-                    // (10,26): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
-                    //         Report(Run(() => new A()));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "new A()").WithLocation(10, 26));
+                    // (5,28): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
+                    //         Utils.Report(() => new A("str"));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, @"new A(""str"")").WithLocation(5, 28),
+                    // (6,28): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
+                    //         Utils.Report(() => new A());
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "new A()").WithLocation(6, 28));
             }
             else
             {
                 var verifier = CompileAndVerify(
                     comp,
                     expectedOutput: """
-                    (str, 10)
-                    (default, 10)
                     (str, 10)
                     (default, 10)
                     """);
@@ -310,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CombinatorialData]
         public void OptionalParameter_Indexer(
             [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
-            bool useCompilationReference)
+            bool useExpression)
         {
             string sourceA = $$"""
                 public class A
@@ -319,47 +259,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(sourceA);
-            var refA = AsReference(comp, useCompilationReference);
+            var refA = comp.EmitToImageReference();
 
             string sourceB = $$"""
-                using System;
-                using System.Linq.Expressions;
                 class Program
                 {
                     static void Main()
                     {
                         var a = new A();
-                        Console.WriteLine(a[1, 2]);
-                        Console.WriteLine(a[3]);
-                        Console.WriteLine(Run(() => a[1, 2]));
-                        Console.WriteLine(Run(() => a[3]));
-                    }
-                    static T Run<T>(Expression<Func<T>> e)
-                    {
-                        var f = e.Compile();
-                        return f();
+                        Utils.Report(() => a[1, 2]);
+                        Utils.Report(() => a[3]);
                     }
                 }
                 """;
             comp = CreateCompilation(
-                sourceB,
+                [sourceB, GetUtilities(useExpression)],
                 references: [refA],
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.ReleaseExe);
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp13 && useExpression)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (11,37): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
-                    //         Console.WriteLine(Run(() => a[3]));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "a[3]").WithLocation(11, 37));
+                    // (7,28): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
+                    //         Utils.Report(() => a[3]);
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "a[3]").WithLocation(7, 28));
             }
             else
             {
                 var verifier = CompileAndVerify(
                     comp,
                     expectedOutput: """
-                    2
-                    10
                     2
                     10
                     """);
@@ -371,54 +300,43 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CombinatorialData]
         public void OptionalParameter_Delegate(
             [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
-            bool useCompilationReference)
+            bool useExpression)
         {
             string sourceA = $$"""
                 public delegate int D(int x, in int y = 10);
                 """;
             var comp = CreateCompilation(sourceA);
-            var refA = AsReference(comp, useCompilationReference);
+            var refA = comp.EmitToImageReference();
 
             string sourceB = $$"""
-                using System;
-                using System.Linq.Expressions;
                 class Program
                 {
                     static void Main()
                     {
                         D d = F<int>;
-                        Console.WriteLine(d(1, 2));
-                        Console.WriteLine(d(3));
-                        Console.WriteLine(Run(() => d(1, 2)));
-                        Console.WriteLine(Run(() => d(3)));
-                    }
-                    static T Run<T>(Expression<Func<T>> e)
-                    {
-                        var f = e.Compile();
-                        return f();
+                        Utils.Report(() => d(1, 2));
+                        Utils.Report(() => d(3));
                     }
                     static T F<T>(T x, in T y) => y;
                 }
                 """;
             comp = CreateCompilation(
-                sourceB,
+                [sourceB, GetUtilities(useExpression)],
                 references: [refA],
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.ReleaseExe);
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp13 && useExpression)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (11,37): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
-                    //         Console.WriteLine(Run(() => d(3)));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "d(3)").WithLocation(11, 37));
+                    // (7,28): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
+                    //         Utils.Report(() => d(3));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "d(3)").WithLocation(7, 28));
             }
             else
             {
                 var verifier = CompileAndVerify(
                     comp,
                     expectedOutput: """
-                    2
-                    10
                     2
                     10
                     """);
@@ -430,52 +348,51 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CombinatorialData]
         public void OptionalParameter_CollectionInitializer(
             [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            bool useExpression,
             bool useIn)
         {
             string refKind = useIn ? "in" : "";
             string sourceA = $$"""
                 using System.Collections;
                 using System.Collections.Generic;
+                using System.Text;
                 class MyCollection<K, V> : IEnumerable
                 {
                     private List<KeyValuePair<K, V>> _list = new();
                     public void Add({{refKind}} K k = default, {{refKind}} V v = default) { _list.Add(new(k, v)); }
                     public IEnumerator<KeyValuePair<K, V>> GetEnumerator() => _list.GetEnumerator();
                     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                    public override string ToString()
+                    {
+                        var builder = new StringBuilder();
+                        foreach (var kvp in this)
+                        {
+                            if (builder.Length > 0) builder.Append(", ");
+                            builder.AppendFormat("({0}, {1})", kvp.Key, kvp.Value);
+                        }
+                        return builder.ToString();
+                    }
                 }
                 """;
             string sourceB = """
-                using System;
-                using System.Linq.Expressions;
                 class Program
                 {
                     static void Main()
                     {
-                        Report(new MyCollection<string, int>() { { "one", 1 }, { "two" } });
-                        Report(Run(() => new MyCollection<string, int>() { { "one", 1 }, { "two" } }));
-                    }
-                    static void Report<K, V>(MyCollection<K, V> c)
-                    {
-                        foreach (var kvp in c)
-                            System.Console.WriteLine("{0}, {1}", kvp.Key, kvp.Value);
-                    }
-                    static T Run<T>(Expression<Func<T>> e)
-                    {
-                        var f = e.Compile();
-                        return f();
+                        Utils.Report(() => new MyCollection<string, int>() { { "one", 1 }, { "two" } });
                     }
                 }
                 """;
             var comp = CreateCompilation(
-                [sourceA, sourceB],
+                [sourceA, sourceB, GetUtilities(useExpression)],
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.ReleaseExe);
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp13 && useExpression)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (8,74): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
-                    //         Report(Run(() => new MyCollection<string, int>() { { "one", 1 }, { "two" } }));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, @"{ ""two"" }").WithLocation(8, 74));
+                    // (5,76): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
+                    //         Utils.Report(() => new MyCollection<string, int>() { { "one", 1 }, { "two" } });
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, @"{ ""two"" }").WithLocation(5, 76));
             }
             else if (useIn)
             {
@@ -486,12 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 var verifier = CompileAndVerify(
                     comp,
-                    expectedOutput: """
-                        one, 1
-                        two, 0
-                        one, 1
-                        two, 0
-                        """);
+                    expectedOutput: "(one, 1), (two, 0)");
                 verifier.VerifyDiagnostics();
             }
         }
@@ -542,9 +454,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void Decimal(bool preferInterpretation, bool useCompilationReference)
+        public void Decimal(
+            bool useExpression,
+            bool useCompilationReference)
         {
-            string value = preferInterpretation ? "true" : "false";
             string sourceA = """
                 public static class A
                 {
@@ -555,28 +468,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = $$"""
-                using System;
-                using System.Linq.Expressions;
                 class Program
                 {
                     static void Main()
                     {
-                        Console.WriteLine(A.GetValue());
-                        Console.WriteLine(Run(() => A.GetValue(200)));
-                        Console.WriteLine(Run(() => A.GetValue()));
-                    }
-                    static T Run<T>(Expression<Func<T>> e)
-                    {
-                        var f = e.Compile();
-                        return f();
+                        Utils.Report(() => A.GetValue(200));
+                        Utils.Report(() => A.GetValue());
                     }
                 }
                 """;
             var verifier = CompileAndVerify(
-                sourceB,
+                [sourceB, GetUtilities(useExpression)],
                 references: [refA],
                 expectedOutput: """
-                    100
                     200
                     100
                     """);
@@ -585,9 +489,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void DateTime_01(bool preferInterpretation, bool useCompilationReference)
+        public void DateTime_01(
+            bool useExpression,
+            bool useCompilationReference)
         {
-            string value = preferInterpretation ? "true" : "false";
             string sourceA = """
                 using System;
                 using System.Runtime.CompilerServices;
@@ -602,27 +507,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             string sourceB = $$"""
                 using System;
-                using System.Linq.Expressions;
                 class Program
                 {
                     static void Main()
                     {
-                        Console.WriteLine(A.GetValue().Ticks);
-                        Console.WriteLine(Run(() => A.GetValue(new DateTime(200))).Ticks);
-                        Console.WriteLine(Run(() => A.GetValue()).Ticks);
-                    }
-                    static T Run<T>(Expression<Func<T>> e)
-                    {
-                        var f = e.Compile();
-                        return f();
+                        Utils.Report(() => A.GetValue(new DateTime(200)).Ticks);
+                        Utils.Report(() => A.GetValue().Ticks);
                     }
                 }
                 """;
             var verifier = CompileAndVerify(
-                sourceB,
+                [sourceB, GetUtilities(useExpression)],
                 references: [refA],
                 expectedOutput: """
-                    100
                     200
                     100
                     """);
@@ -631,7 +528,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void DateTime_02(bool useCompilationReference)
+        public void DateTime_02(
+            bool useExpression,
+            bool useCompilationReference)
         {
             string sourceA = """
                 using System;
@@ -645,35 +544,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = $$"""
-                using System;
-                using System.Linq.Expressions;
                 class Program
                 {
                     static void Main()
                     {
-                        Console.WriteLine(A.GetValue().Ticks);
-                        Console.WriteLine(Run(() => A.GetValue()).Ticks);
-                    }
-                    static T Run<T>(Expression<Func<T>> e)
-                    {
-                        var f = e.Compile();
-                        return f();
+                        Utils.Report(() => A.GetValue().Ticks);
                     }
                 }
                 """;
-            comp = CreateCompilation(sourceB, references: [refA]);
+            comp = CreateCompilation(
+                [sourceB, GetUtilities(useExpression)],
+                references: [refA]);
             comp.VerifyEmitDiagnostics(
-                // (7,29): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'A.GetValue(DateTime)'
-                //         Console.WriteLine(A.GetValue().Ticks);
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "GetValue").WithArguments("value", "A.GetValue(System.DateTime)").WithLocation(7, 29),
-                // (8,39): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'A.GetValue(DateTime)'
-                //         Console.WriteLine(Run(() => A.GetValue()).Ticks);
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "GetValue").WithArguments("value", "A.GetValue(System.DateTime)").WithLocation(8, 39));
+                // (5,30): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'A.GetValue(DateTime)'
+                //         Utils.Report(() => A.GetValue().Ticks);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "GetValue").WithArguments("value", "A.GetValue(System.DateTime)").WithLocation(5, 30));
         }
 
         [Theory]
         [CombinatorialData]
-        public void OptionalAndDefaultParameterValue(bool includeOptional, bool includeDefaultParameterValue, bool useCompilationReference)
+        public void OptionalAndDefaultParameterValue(
+            bool includeOptional,
+            bool includeDefaultParameterValue,
+            bool useExpression,
+            bool useCompilationReference)
         {
             string sourceA = $$"""
                 using System.Runtime.InteropServices;
@@ -689,94 +583,75 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
-                using System;
-                using System.Linq.Expressions;
                 class Program
                 {
                     static void Main()
                     {
-                        Console.WriteLine(A.GetValue());
-                        Console.WriteLine(Run(() => A.GetValue(200)));
-                        Console.WriteLine(Run(() => A.GetValue()));
-                    }
-                    static T Run<T>(Expression<Func<T>> e)
-                    {
-                        var f = e.Compile();
-                        return f();
+                        Utils.Report(() => A.GetValue(200));
+                        Utils.Report(() => A.GetValue());
                     }
                 }
                 """;
-            comp = CreateCompilation(sourceB, references: [refA], options: TestOptions.ReleaseExe);
+            comp = CreateCompilation(
+                [sourceB, GetUtilities(useExpression)],
+                references: [refA],
+                options: TestOptions.ReleaseExe);
             if (includeOptional)
             {
-                string optionalValue = includeDefaultParameterValue ? "100" : "0";
                 var verifier = CompileAndVerify(
                     comp,
                     expectedOutput: $$"""
-                        {{optionalValue}}
                         200
-                        {{optionalValue}}
+                        {{(includeDefaultParameterValue ? "100" : "0")}}
                         """);
                 verifier.VerifyDiagnostics();
             }
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (7,29): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'A.GetValue(int)'
-                    //         Console.WriteLine(A.GetValue());
-                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "GetValue").WithArguments("value", "A.GetValue(int)").WithLocation(7, 29),
-                    // (9,39): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'A.GetValue(int)'
-                    //         Console.WriteLine(Run(() => A.GetValue()));
-                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "GetValue").WithArguments("value", "A.GetValue(int)").WithLocation(9, 39));
+                    // (6,30): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'A.GetValue(int)'
+                    //         Utils.Report(() => A.GetValue());
+                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "GetValue").WithArguments("value", "A.GetValue(int)").WithLocation(6, 30));
             }
         }
 
         [Theory]
         [CombinatorialData]
-        public void OptionalParams(bool includeDefaultParameterValue, bool useCompilationReference)
+        public void OptionalParams(
+            bool includeDefaultParameterValue,
+            bool useExpression,
+            bool useCompilationReference)
         {
             string sourceA = $$"""
                 using System.Runtime.InteropServices;
                 public static class A
                 {
-                    public static object[] GetValue(
+                    public static string GetValue(
                         [Optional]
                         {{(includeDefaultParameterValue ? "[DefaultParameterValue(null)]" : "")}}
-                        params object[] args) => args;
+                        params object[] args)
+                    {
+                        return (args is null) ? "null" : args.Length.ToString();
+                    }
                 }
                 """;
             var comp = CreateCompilation(sourceA);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
-                using System;
-                using System.Linq.Expressions;
                 class Program
                 {
                     static void Main()
                     {
-                        Report(A.GetValue(1, 2, 3));
-                        Report(A.GetValue());
-                        Report(Run(() => A.GetValue(1, 2, 3)));
-                        Report(Run(() => A.GetValue()));
-                    }
-                    static void Report(object[] args)
-                    {
-                        Console.WriteLine(args is null ? "null" : args.Length.ToString());
-                    }
-                    static T Run<T>(Expression<Func<T>> e)
-                    {
-                        var f = e.Compile();
-                        return f();
+                        Utils.Report(() => A.GetValue(1, 2, 3));
+                        Utils.Report(() => A.GetValue());
                     }
                 }
                 """;
             var verifier = CompileAndVerify(
-                sourceB,
+                [sourceB, GetUtilities(useExpression)],
                 references: [refA],
                 expectedOutput: """
-                    3
-                    0
                     3
                     0
                     """);
@@ -854,12 +729,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 references: [refA],
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.ReleaseExe);
-            if (useExpression)
+            if (languageVersion == LanguageVersion.CSharp13 && useExpression)
             {
                 comp.VerifyEmitDiagnostics(
                     // (5,28): error CS0853: An expression tree may not contain a named argument specification
                     //         Utils.Report(() => A.GetFirst<int>(second:2, first: 1));
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "A.GetFirst<int>(second:2, first: 1)").WithLocation(5, 28));
+            }
+            else if (useExpression)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (5,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    //         Utils.Report(() => A.GetFirst<int>(second:2, first: 1));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetFirst<int>(second:2, first: 1)").WithLocation(5, 28));
             }
             else
             {
@@ -992,7 +874,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 references: [refA],
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.ReleaseExe);
-            if (useExpression)
+            if (languageVersion == LanguageVersion.CSharp13 && useExpression)
             {
                 comp.VerifyEmitDiagnostics(
                     // (5,28): error CS0853: An expression tree may not contain a named argument specification
@@ -1016,6 +898,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (11,28): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
                     //         Utils.Report(() => A.GetFirst<object>());
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "A.GetFirst<object>()").WithLocation(11, 28));
+            }
+            else if (useExpression)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (5,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    //         Utils.Report(() => A.GetFirst<object>(third:3, second: 2, first: 1));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetFirst<object>(third:3, second: 2, first: 1)").WithLocation(5, 28),
+                    // (6,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    //         Utils.Report(() => A.GetFirst<object>(second:2, first: 1));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetFirst<object>(second:2, first: 1)").WithLocation(6, 28),
+                    // (7,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    //         Utils.Report(() => A.GetFirst<object>(second:2, third: 3));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetFirst<object>(second:2, third: 3)").WithLocation(7, 28),
+                    // (8,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    //         Utils.Report(() => A.GetFirst<object>(second:2));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetFirst<object>(second:2)").WithLocation(8, 28),
+                    // (9,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    //         Utils.Report(() => A.GetFirst<object>(third:3, second: 2));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetFirst<object>(third:3, second: 2)").WithLocation(9, 28),
+                    // (10,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    //         Utils.Report(() => A.GetFirst<object>(third:3));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetFirst<object>(third:3)").WithLocation(10, 28));
             }
             else
             {
@@ -1120,12 +1024,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 references: [refA],
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.ReleaseExe);
-            if (useExpression)
+            if (languageVersion == LanguageVersion.CSharp13 && useExpression)
             {
                 comp.VerifyEmitDiagnostics(
-                // (5,28): error CS0853: An expression tree may not contain a named argument specification
-                //         Utils.Report(() => A.GetFirstAndParamsLength(more: default, first: 1));
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "A.GetFirstAndParamsLength(more: default, first: 1)").WithLocation(5, 28));
+                    // (5,28): error CS0853: An expression tree may not contain a named argument specification
+                    //         Utils.Report(() => A.GetFirstAndParamsLength(more: default, first: 1));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "A.GetFirstAndParamsLength(more: default, first: 1)").WithLocation(5, 28));
+            }
+            else if (useExpression)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (5,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    //         Utils.Report(() => A.GetFirstAndParamsLength(more: default, first: 1));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetFirstAndParamsLength(more: default, first: 1)").WithLocation(5, 28));
             }
             else
             {
@@ -1292,7 +1203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 references: [refA],
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.ReleaseExe);
-            if (useExpression)
+            if (languageVersion == LanguageVersion.CSharp13 && useExpression)
             {
                 comp.VerifyEmitDiagnostics(
                     // (5,28): error CS0853: An expression tree may not contain a named argument specification
@@ -1319,6 +1230,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (12,28): error CS0853: An expression tree may not contain a named argument specification
                     //         Utils.Report(() => A.GetSecondAndParamsLength(more: new[] { 3, 4 }, second: 2, first: 1));
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "A.GetSecondAndParamsLength(more: new[] { 3, 4 }, second: 2, first: 1)").WithLocation(12, 28));
+            }
+            else if (useExpression)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (6,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    //         Utils.Report(() => A.GetSecondAndParamsLength(first: 1, more: default, second: 2));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetSecondAndParamsLength(first: 1, more: default, second: 2)").WithLocation(6, 28),
+                    // (7,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    //         Utils.Report(() => A.GetSecondAndParamsLength(first: 1, more: default));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetSecondAndParamsLength(first: 1, more: default)").WithLocation(7, 28),
+                    // (8,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    //         Utils.Report(() => A.GetSecondAndParamsLength(second: 2));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetSecondAndParamsLength(second: 2)").WithLocation(8, 28),
+                    // (9,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    //         Utils.Report(() => A.GetSecondAndParamsLength(second: 2, first: 1));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetSecondAndParamsLength(second: 2, first: 1)").WithLocation(9, 28),
+                    // (10,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    //         Utils.Report(() => A.GetSecondAndParamsLength(second: 2, more: default));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetSecondAndParamsLength(second: 2, more: default)").WithLocation(10, 28),
+                    // (11,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    //         Utils.Report(() => A.GetSecondAndParamsLength(more: new[] { 3, 4 }));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetSecondAndParamsLength(more: new[] { 3, 4 })").WithLocation(11, 28),
+                    // (12,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    //         Utils.Report(() => A.GetSecondAndParamsLength(more: new[] { 3, 4 }, second: 2, first: 1));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetSecondAndParamsLength(more: new[] { 3, 4 }, second: 2, first: 1)").WithLocation(12, 28));
             }
             else
             {
@@ -1433,10 +1369,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         Utils.Report(() => A.GetFirst(second: 2, first: 1));
                         Utils.Report(() => A.GetFirst(first: "one", second: "two"));
-                        Utils.Report(() => A.GetFirst(first: default, default));
-                        Utils.Report(() => A.GetFirst(second: default, default));
-                        Utils.Report(() => A.GetFirst(default, second: default));
-                        Utils.Report(() => A.GetFirst(default, first: default));
                     }
                 }
                 """;
@@ -1453,19 +1385,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "A.GetFirst(second: 2, first: 1)").WithLocation(5, 28),
                     // (6,28): error CS0853: An expression tree may not contain a named argument specification
                     //         Utils.Report(() => A.GetFirst(first: "one", second: "two"));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, @"A.GetFirst(first: ""one"", second: ""two"")").WithLocation(6, 28),
-                    // (7,28): error CS0853: An expression tree may not contain a named argument specification
-                    //         Utils.Report(() => A.GetFirst(first: default, default));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "A.GetFirst(first: default, default)").WithLocation(7, 28),
-                    // (8,28): error CS0853: An expression tree may not contain a named argument specification
-                    //         Utils.Report(() => A.GetFirst(second: default, default));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "A.GetFirst(second: default, default)").WithLocation(8, 28),
-                    // (9,28): error CS0853: An expression tree may not contain a named argument specification
-                    //         Utils.Report(() => A.GetFirst(default, second: default));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "A.GetFirst(default, second: default)").WithLocation(9, 28),
-                    // (10,28): error CS0853: An expression tree may not contain a named argument specification
-                    //         Utils.Report(() => A.GetFirst(default, first: default));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "A.GetFirst(default, first: default)").WithLocation(10, 28));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, @"A.GetFirst(first: ""one"", second: ""two"")").WithLocation(6, 28));
+            }
+            else if (useExpression)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (5,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    //         Utils.Report(() => A.GetFirst(second: 2, first: 1));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetFirst(second: 2, first: 1)").WithLocation(5, 28),
+                    // (6,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    //         Utils.Report(() => A.GetFirst(first: "one", second: "two"));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, @"A.GetFirst(first: ""one"", second: ""two"")").WithLocation(6, 28));
             }
             else
             {
@@ -1474,6 +1404,52 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     expectedOutput: """
                         1
                         one
+                        """);
+                verifier.VerifyDiagnostics();
+            }
+
+            string sourceB3 = $$"""
+                class Program
+                {
+                    static void Main()
+                    {
+                        Utils.Report(() => A.GetFirst(first: default, default));
+                        Utils.Report(() => A.GetFirst(second: default, default));
+                        Utils.Report(() => A.GetFirst(default, second: default));
+                        Utils.Report(() => A.GetFirst(default, first: default));
+                    }
+                }
+                """;
+            comp = CreateCompilation(
+                [sourceB3, GetUtilities(useExpression)],
+                references: [refA],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe);
+            if (languageVersion == LanguageVersion.CSharp13 && useExpression)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (5,28): error CS0853: An expression tree may not contain a named argument specification
+                    //         Utils.Report(() => A.GetFirst(first: default, default));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "A.GetFirst(first: default, default)").WithLocation(5, 28),
+                    // (6,28): error CS0853: An expression tree may not contain a named argument specification
+                    //         Utils.Report(() => A.GetFirst(second: default, default));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "A.GetFirst(second: default, default)").WithLocation(6, 28),
+                    // (7,28): error CS0853: An expression tree may not contain a named argument specification
+                    //         Utils.Report(() => A.GetFirst(default, second: default));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "A.GetFirst(default, second: default)").WithLocation(7, 28),
+                    // (8,28): error CS0853: An expression tree may not contain a named argument specification
+                    //         Utils.Report(() => A.GetFirst(default, first: default));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "A.GetFirst(default, first: default)").WithLocation(8, 28));
+            }
+            else if (useExpression)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else
+            {
+                var verifier = CompileAndVerify(
+                    comp,
+                    expectedOutput: """
                         0
                         null
                         0
@@ -1482,7 +1458,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 verifier.VerifyDiagnostics();
             }
 
-            string sourceB3 = $$"""
+            string sourceB4 = $$"""
                 class Program
                 {
                     static void Main()
@@ -1493,7 +1469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             comp = CreateCompilation(
-                [sourceB3, GetUtilities(useExpression)],
+                [sourceB4, GetUtilities(useExpression)],
                 references: [refA],
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.ReleaseExe);
@@ -1504,6 +1480,312 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (6,30): error CS0121: The call is ambiguous between the following methods or properties: 'A.GetFirst(int, int)' and 'A.GetFirst(string, string)'
                 //         Utils.Report(() => A.GetFirst(second: default, first: default));
                 Diagnostic(ErrorCode.ERR_AmbigCall, "GetFirst").WithArguments("A.GetFirst(int, int)", "A.GetFirst(string, string)").WithLocation(6, 30));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NamedArgument_Constructor(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            bool useExpression)
+        {
+            string sourceA = $$"""
+                public class A
+                {
+                    public readonly string X;
+                    public readonly int Y;
+                    public A(string x, ref int y) { X = x; Y = y; }
+                    public override string ToString() => $"({X}, {Y})";
+                }
+                """;
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            string sourceB1 = $$"""
+                class Program
+                {
+                    static void Main()
+                    {
+                        int y = 1;
+                        Utils.Report(() => new A(x: "one", ref y));
+                        y = 2;
+                        Utils.Report(() => new A("two", y: ref y));
+                        y = 3;
+                        Utils.Report(() => new A(x: "three", y: ref y));
+                    }
+                }
+                """;
+            comp = CreateCompilation(
+                [sourceB1, GetUtilities(useExpression)],
+                references: [refA],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe);
+            if (languageVersion == LanguageVersion.CSharp13 && useExpression)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (6,28): error CS0853: An expression tree may not contain a named argument specification
+                    //         Utils.Report(() => new A(x: "one", ref y));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, @"new A(x: ""one"", ref y)").WithLocation(6, 28),
+                    // (8,28): error CS0853: An expression tree may not contain a named argument specification
+                    //         Utils.Report(() => new A("two", y: ref y));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, @"new A(""two"", y: ref y)").WithLocation(8, 28),
+                    // (10,28): error CS0853: An expression tree may not contain a named argument specification
+                    //         Utils.Report(() => new A(x: "three", y: ref y));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, @"new A(x: ""three"", y: ref y)").WithLocation(10, 28));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(
+                    comp,
+                    expectedOutput: """
+                    (one, 1)
+                    (two, 2)
+                    (three, 3)
+                    """);
+                verifier.VerifyDiagnostics();
+            }
+
+            string sourceB2 = $$"""
+                class Program
+                {
+                    static void Main()
+                    {
+                        int y = 1;
+                        Utils.Report(() => new A(y: ref y, x: "one"));
+                    }
+                }
+                """;
+            comp = CreateCompilation(
+                [sourceB2, GetUtilities(useExpression)],
+                references: [refA],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe);
+            if (languageVersion == LanguageVersion.CSharp13 && useExpression)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (6,28): error CS0853: An expression tree may not contain a named argument specification
+                    //         Utils.Report(() => new A(y: ref y, x: "one"));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, @"new A(y: ref y, x: ""one"")").WithLocation(6, 28));
+            }
+            else if (useExpression)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (6,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    //         Utils.Report(() => new A(y: ref y, x: "one"));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, @"new A(y: ref y, x: ""one"")").WithLocation(6, 28));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(
+                    comp,
+                    expectedOutput: """
+                    (one, 1)
+                    """);
+                verifier.VerifyDiagnostics();
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NamedArgument_Indexer(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            bool useExpression)
+        {
+            string sourceA = $$"""
+                public class A
+                {
+                    public string this[int x, in string y] => y;
+                }
+                """;
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            string sourceB1 = $$"""
+                class Program
+                {
+                    static void Main()
+                    {
+                        var a = new A();
+                        string y = "one";
+                        Utils.Report(() => a[x: 1, in y]);
+                        Utils.Report(() => a[2, y: "two"]);
+                        y = "three";
+                        Utils.Report(() => a[x: 2, y: in y]);
+                    }
+                }
+                """;
+            comp = CreateCompilation(
+                [sourceB1, GetUtilities(useExpression)],
+                references: [refA],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe);
+            if (languageVersion == LanguageVersion.CSharp13 && useExpression)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (7,28): error CS0853: An expression tree may not contain a named argument specification
+                    //         Utils.Report(() => a[x: 1, in y]);
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "a[x: 1, in y]").WithLocation(7, 28),
+                    // (8,28): error CS0853: An expression tree may not contain a named argument specification
+                    //         Utils.Report(() => a[2, y: "two"]);
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, @"a[2, y: ""two""]").WithLocation(8, 28),
+                    // (10,28): error CS0853: An expression tree may not contain a named argument specification
+                    //         Utils.Report(() => a[x: 2, y: in y]);
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "a[x: 2, y: in y]").WithLocation(10, 28));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(
+                    comp,
+                    expectedOutput: """
+                        one
+                        two
+                        three
+                        """);
+                verifier.VerifyDiagnostics();
+            }
+
+            string sourceB2 = $$"""
+                class Program
+                {
+                    static void Main()
+                    {
+                        var a = new A();
+                        string y = "two";
+                        Utils.Report(() => a[y: "one", x: 1]);
+                        Utils.Report(() => a[y: in y, x: 2]);
+                    }
+                }
+                """;
+            comp = CreateCompilation(
+                [sourceB2, GetUtilities(useExpression)],
+                references: [refA],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe);
+            if (languageVersion == LanguageVersion.CSharp13 && useExpression)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (7,28): error CS0853: An expression tree may not contain a named argument specification
+                    //         Utils.Report(() => a[y: "one", x: 1]);
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, @"a[y: ""one"", x: 1]").WithLocation(7, 28),
+                    // (8,28): error CS0853: An expression tree may not contain a named argument specification
+                    //         Utils.Report(() => a[y: in y, x: 2]);
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "a[y: in y, x: 2]").WithLocation(8, 28));
+            }
+            else if (useExpression)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (7,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    //         Utils.Report(() => a[y: "one", x: 1]);
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, @"a[y: ""one"", x: 1]").WithLocation(7, 28),
+                    // (8,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    //         Utils.Report(() => a[y: in y, x: 2]);
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "a[y: in y, x: 2]").WithLocation(8, 28));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(
+                    comp,
+                    expectedOutput: """
+                        one
+                        two
+                        """);
+                verifier.VerifyDiagnostics();
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NamedArgument_Delegate(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            bool useExpression)
+        {
+            string sourceA = $$"""
+                public delegate (T, U) D<T, U>(T x, U y);
+                """;
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            string sourceB1 = $$"""
+                class Program
+                {
+                    static void Main()
+                    {
+                        D<int, string> d = F;
+                        Utils.Report(() => d(x: 1, "one"));
+                        Utils.Report(() => d(2, y: "two"));
+                        Utils.Report(() => d(x: 3, y: "three"));
+                    }
+                    static (int, string) F(int i, string s) => (i, s);
+                }
+                """;
+            comp = CreateCompilation(
+                [sourceB1, GetUtilities(useExpression)],
+                references: [refA],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe);
+            if (languageVersion == LanguageVersion.CSharp13 && useExpression)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (6,28): error CS0853: An expression tree may not contain a named argument specification
+                    //         Utils.Report(() => d(x: 1, "one"));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, @"d(x: 1, ""one"")").WithLocation(6, 28),
+                    // (7,28): error CS0853: An expression tree may not contain a named argument specification
+                    //         Utils.Report(() => d(2, y: "two"));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, @"d(2, y: ""two"")").WithLocation(7, 28),
+                    // (8,28): error CS0853: An expression tree may not contain a named argument specification
+                    //         Utils.Report(() => d(x: 3, y: "three"));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, @"d(x: 3, y: ""three"")").WithLocation(8, 28));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(
+                    comp,
+                    expectedOutput: """
+                        (1, one)
+                        (2, two)
+                        (3, three)
+                        """);
+                verifier.VerifyDiagnostics();
+            }
+
+            string sourceB2 = $$"""
+                class Program
+                {
+                    static void Main()
+                    {
+                        D<int, string> d = F;
+                        Utils.Report(() => d(y:"one", x:1));
+                    }
+                    static (int, string) F(int i, string s) => (i, s);
+                }
+                """;
+            comp = CreateCompilation(
+                [sourceB2, GetUtilities(useExpression)],
+                references: [refA],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe);
+            if (languageVersion == LanguageVersion.CSharp13 && useExpression)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (6,28): error CS0853: An expression tree may not contain a named argument specification
+                    //         Utils.Report(() => d(y:"one", x:1));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, @"d(y:""one"", x:1)").WithLocation(6, 28));
+            }
+            else if (useExpression)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (6,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    //         Utils.Report(() => d(y:"one", x:1));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, @"d(y:""one"", x:1)").WithLocation(6, 28));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(
+                    comp,
+                    expectedOutput: """
+                        (1, one)
+                        """);
+                verifier.VerifyDiagnostics();
+            }
         }
 
         [Theory]
@@ -1552,9 +1834,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (13,19): error CS8110: An expression tree may not contain a reference to a local function
                     //         e = () => GetFirst(1, second: 2);
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, "GetFirst(1, second: 2)").WithLocation(13, 19),
-                    // (14,19): error CS0853: An expression tree may not contain a named argument specification
+                    // (14,19): error CS9300: An expression tree may not contain a named argument specification out of position
                     //         e = () => GetFirst(second: 2, first: 1);
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "GetFirst(second: 2, first: 1)").WithLocation(14, 19));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "GetFirst(second: 2, first: 1)").WithLocation(14, 19));
             }
         }
     }

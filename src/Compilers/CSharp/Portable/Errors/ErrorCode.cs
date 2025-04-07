@@ -2389,6 +2389,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PPIgnoredFollowsToken = 9297,
         ERR_PPIgnoredNeedsFileBasedProgram = 9298,
         ERR_PPIgnoredFollowsIf = 9299,
+        ERR_ExpressionTreeContainsNamedArgumentOutOfPosition = 9300,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
