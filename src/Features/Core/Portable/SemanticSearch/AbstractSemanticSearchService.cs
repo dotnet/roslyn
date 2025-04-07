@@ -140,10 +140,10 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
 
                 SetToolImplementations(
                     queryAssembly,
-                    new ReferencingSyntaxFinder(solution, classificationOptions, cancellationToken),
+                    new ReferencingSyntaxFinder(solution, cancellationToken),
                     new SemanticModelGetter(solution, cancellationToken));
 
-                if (!TryGetFindMethod(queryAssembly, out var findMethod, out var queryKind, out var isAsync, out var errorMessage, out var errorMessageArgs))
+                if (!TryGetFindMethod(queryAssembly, out var findMethod, out var queryKind, out var errorMessage, out var errorMessageArgs))
                 {
                     traceSource.TraceInformation($"Semantic search failed: {errorMessage}");
                     return CreateResult(compilationErrors: [], errorMessage, errorMessageArgs);
@@ -152,7 +152,7 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
                 var invocationContext = new QueryExecutionContext(queryText, findMethod, observer, classificationOptions, traceSource);
                 try
                 {
-                    await invocationContext.InvokeAsync(solution, queryKind, isAsync, cancellationToken).ConfigureAwait(false);
+                    await invocationContext.InvokeAsync(solution, queryKind, cancellationToken).ConfigureAwait(false);
 
                     if (invocationContext.TerminatedWithException)
                     {
@@ -201,7 +201,7 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
         var toolsType = queryAssembly.GetType(SemanticSearchUtilities.ToolsTypeName, throwOnError: true);
         Contract.ThrowIfNull(toolsType);
 
-        SetFieldValue(SemanticSearchUtilities.FindReferencingSyntaxNodesImplName, new Func<ISymbol, IEnumerable<SyntaxNode>>(finder.FindSyntaxNodes));
+        SetFieldValue(SemanticSearchUtilities.FindReferencingSyntaxNodesImplName, new Func<ISymbol, IEnumerable<SyntaxNode>>(finder.Find));
         SetFieldValue(SemanticSearchUtilities.GetSemanticModelImplName, new Func<SyntaxTree, Task<SemanticModel>>(semanticModelGetter.GetSemanticModelAsync));
 
         void SetFieldValue(string fieldName, object value)
@@ -212,18 +212,21 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
         }
     }
 
-    private static bool TryGetFindMethod(Assembly queryAssembly, [NotNullWhen(true)] out MethodInfo? method, out QueryKind queryKind, out bool isAsync, out string? error, out string[]? errorMessageArgs)
+    private static bool TryGetFindMethod(
+        Assembly queryAssembly,
+        [NotNullWhen(true)] out MethodInfo? method,
+        out QueryKind queryKind,
+        [NotNullWhen(false)] out string? error,
+        out string[]? errorMessageArgs)
     {
         method = null;
-        error = null;
         errorMessageArgs = null;
         queryKind = default;
-        isAsync = false;
 
         Type? program;
         try
         {
-            program = queryAssembly.GetType(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName, throwOnError: false);
+            program = queryAssembly.GetType(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName, throwOnError: true);
         }
         catch (Exception e)
         {
@@ -232,33 +235,12 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
             return false;
         }
 
-        if (program != null)
-        {
-            try
-            {
-                (method, queryKind, isAsync) = GetFindMethod(program, ref error);
-            }
-            catch
-            {
-            }
-        }
+        Contract.ThrowIfNull(program);
 
-        if (method != null)
-        {
-            return true;
-        }
-
-        error ??= string.Format(FeaturesResources.The_query_does_not_specify_0_top_level_function, SemanticSearchUtilities.FindMethodName);
-        return false;
-    }
-
-    private static (MethodInfo? method, QueryKind queryKind, bool isAsync) GetFindMethod(Type type, ref string? error)
-    {
+        using var _ = ArrayBuilder<MethodInfo>.GetInstance(out var candidates);
         try
         {
-            using var _ = ArrayBuilder<MethodInfo>.GetInstance(out var candidates);
-
-            foreach (var candidate in type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance))
+            foreach (var candidate in program.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance))
             {
                 if (candidate.Name.StartsWith($"<{WellKnownMemberNames.TopLevelStatementsEntryPointMethodName}>g__{SemanticSearchUtilities.FindMethodName}|"))
                 {
@@ -269,58 +251,59 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
             if (candidates is [])
             {
                 error = string.Format(FeaturesResources.The_query_does_not_specify_0_top_level_function, SemanticSearchUtilities.FindMethodName);
-                return default;
+                return false;
             }
 
             candidates.RemoveAll(candidate => candidate.IsGenericMethod || !candidate.IsStatic);
             if (candidates is [])
             {
                 error = string.Format(FeaturesResources.Method_0_must_be_static_and_non_generic, SemanticSearchUtilities.FindMethodName);
-                return default;
+                return false;
             }
 
-            if (candidates is not [var method])
+            if (candidates.Count > 1)
             {
                 error = string.Format(FeaturesResources.The_query_specifies_multiple_top_level_functions_1, SemanticSearchUtilities.FindMethodName);
-                return default;
+                return false;
             }
+
+            method = candidates[0];
 
             if (method.GetParameters() is not [var parameter])
             {
                 error = string.Format(FeaturesResources.The_query_specifies_multiple_top_level_functions_1, SemanticSearchUtilities.FindMethodName);
-                return default;
+                return false;
             }
 
-            if (!s_queryKindByParameterType.TryGetValue(parameter.ParameterType, out var queryKind))
+            if (!s_queryKindByParameterType.TryGetValue(parameter.ParameterType, out queryKind))
             {
                 error = string.Format(
                     FeaturesResources.Parameter_type_0_is_not_among_supported_types_1,
                     parameter.ParameterType,
                     string.Join(", ", s_queryKindByParameterType.Keys.Select(t => $"'{t.Name}'")));
 
-                return default;
+                return false;
             }
 
-            // IEnumerable<ISymbol>
-            // IAsyncEnumerable<ISymbol>
-            bool? isAsync = method.ReturnType == typeof(IEnumerable<ISymbol>) ? false : method.ReturnType == typeof(IAsyncEnumerable<ISymbol>) ? true : null;
-            if (isAsync == null)
+            if (method.ReturnType != typeof(IEnumerable<ISymbol>) &&
+                method.ReturnType != typeof(IAsyncEnumerable<ISymbol>))
             {
                 error = string.Format(
                     FeaturesResources.Return_type_0_is_not_among_supported_types_1,
                     method.ReturnType,
-                    $"'{typeof(IEnumerable<ISymbol>).Name}', '{typeof(IAsyncEnumerable<ISymbol>).Name}'");
+                    "'IEnumerable<ISymbol>', 'IAsyncEnumerable<ISymbol>'");
 
-                return default;
+                return false;
             }
-
-            return (method, queryKind, isAsync.Value);
         }
         catch (Exception e)
         {
             error = e.Message;
-            return default;
+            return false;
         }
+
+        error = null;
+        return true;
     }
 }
 #endif

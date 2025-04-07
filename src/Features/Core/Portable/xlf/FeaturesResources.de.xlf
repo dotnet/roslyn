@@ -2750,6 +2750,11 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
         <target state="translated">Zu viele )-Zeichen.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
       </trans-unit>
+      <trans-unit id="Top_level_function_0_must_have_a_single_parameter">
+        <source>Top-level function '{0}' must have a single parameter</source>
+        <target state="new">Top-level function '{0}' must have a single parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Trailing_comma_not_allowed">
         <source>Trailing comma not allowed</source>
         <target state="translated">Ein nachgestelltes Komma ist unzulässig</target>

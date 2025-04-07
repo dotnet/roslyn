@@ -14,5 +14,6 @@ internal sealed class SemanticModelGetter(Solution solution, CancellationToken c
     /// Returns <see cref="SemanticModel"/> for any <see cref="SyntaxTree"/> in the <see cref="Solution"/>.
     /// </summary>
     public Task<SemanticModel> GetSemanticModelAsync(SyntaxTree tree)
+        // TODO: consider caching the model for the duration of the query execution
         => solution.GetRequiredDocument(tree).GetRequiredSemanticModelAsync(cancellationToken).AsTask();
 }
