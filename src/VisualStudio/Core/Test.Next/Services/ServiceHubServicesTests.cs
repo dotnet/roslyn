@@ -1721,8 +1721,16 @@ public sealed partial class ServiceHubServicesTests
         return solution;
     }
 
-    private static Solution AddProject(Solution solution, string language, string[] documents, string[] additionalDocuments, ProjectId[] p2pReferences)
+    private static Solution AddProject(
+        Solution solution,
+        string language,
+        string[] documents,
+        string[] additionalDocuments = null,
+        ProjectId[] p2pReferences = null)
     {
+        additionalDocuments ??= [];
+        p2pReferences ??= [];
+
         var projectName = $"Project{solution.ProjectIds.Count}";
         var project = solution.AddProject(projectName, $"{projectName}.dll", language)
                               .AddMetadataReference(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))

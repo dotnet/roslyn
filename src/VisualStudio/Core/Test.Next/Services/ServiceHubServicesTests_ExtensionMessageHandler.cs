@@ -77,41 +77,82 @@ public sealed partial class ServiceHubServicesTests
         Assert.Contains(nameof(InvalidOperationException), errorMessage);
     }
 
-    //[PartNotDiscoverable]
-    //[ExportWorkspaceService(typeof(IWorkspaceConfigurationService), ServiceLayer.Test), Shared]
-    //[method: ImportingConstructor]
-    //[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    //private sealed class TestExtensionMessageHandlerService() : IExtensionMessageHandlerService
-    //{
-    //    public ValueTask RegisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
+    [Fact]
+    public async Task TestExtensionMessageHandlerService_ExecuteWorkspaceMessageForUnregisteredServiceThrows()
+    {
+        using var workspace = CreateWorkspace();
 
-    //    public ValueTask UnregisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
+        var extensionMessageHandlerService = workspace.Services.GetRequiredService<IExtensionMessageHandlerService>();
 
-    //    public ValueTask<GetExtensionMessageNamesResponse> GetExtensionMessageNamesAsync(string assemblyFilePath, CancellationToken cancellationToken)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
+        // Don't trap the error here.  We want to validate that this crosses the ServiceHub boundary and is reported as
+        // a real roslyn/gladstone error.
+        string errorMessage = null;
+        var errorReportingService = (TestErrorReportingService)workspace.Services.GetRequiredService<IErrorReportingService>();
+        errorReportingService.OnError = message => errorMessage = message;
 
-    //    public ValueTask ResetAsync(CancellationToken cancellationToken)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
+        await extensionMessageHandlerService.HandleExtensionWorkspaceMessageAsync(
+             workspace.CurrentSolution, "MessageName", "JsonMessage", CancellationToken.None);
+        Assert.Contains(nameof(InvalidOperationException), errorMessage);
+    }
 
-    //    public ValueTask<string> HandleExtensionWorkspaceMessageAsync(Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
+    [Fact]
+    public async Task TestExtensionMessageHandlerService_ExecuteDocumentMessageForUnregisteredServiceThrows()
+    {
+        using var workspace = CreateWorkspace();
 
-    //    public ValueTask<string> HandleExtensionDocumentMessageAsync(Document documentId, string messageName, string jsonMessage, CancellationToken cancellationToken)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
-    //}
+        workspace.SetCurrentSolution(solution =>
+        {
+            return AddProject(solution, LanguageNames.CSharp, ["// empty"]);
+        }, WorkspaceChangeKind.SolutionChanged);
 
-}
+        var extensionMessageHandlerService = workspace.Services.GetRequiredService<IExtensionMessageHandlerService>();
+
+        // Don't trap the error here.  We want to validate that this crosses the ServiceHub boundary and is reported as
+        // a real roslyn/gladstone error.
+        string errorMessage = null;
+        var errorReportingService = (TestErrorReportingService)workspace.Services.GetRequiredService<IErrorReportingService>();
+        errorReportingService.OnError = message => errorMessage = message;
+
+        await extensionMessageHandlerService.HandleExtensionDocumentMessageAsync(
+             workspace.CurrentSolution.Projects.Single().Documents.Single(), "MessageName", "JsonMessage", CancellationToken.None);
+        Assert.Contains(nameof(InvalidOperationException), errorMessage);
+    }
+
+        //[PartNotDiscoverable]
+        //[ExportWorkspaceService(typeof(IWorkspaceConfigurationService), ServiceLayer.Test), Shared]
+        //[method: ImportingConstructor]
+        //[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        //private sealed class TestExtensionMessageHandlerService() : IExtensionMessageHandlerService
+        //{
+        //    public ValueTask RegisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken)
+        //    {
+        //        throw new NotImplementedException();
+        //    }
+
+        //    public ValueTask UnregisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken)
+        //    {
+        //        throw new NotImplementedException();
+        //    }
+
+        //    public ValueTask<GetExtensionMessageNamesResponse> GetExtensionMessageNamesAsync(string assemblyFilePath, CancellationToken cancellationToken)
+        //    {
+        //        throw new NotImplementedException();
+        //    }
+
+        //    public ValueTask ResetAsync(CancellationToken cancellationToken)
+        //    {
+        //        throw new NotImplementedException();
+        //    }
+
+        //    public ValueTask<string> HandleExtensionWorkspaceMessageAsync(Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken)
+        //    {
+        //        throw new NotImplementedException();
+        //    }
+
+        //    public ValueTask<string> HandleExtensionDocumentMessageAsync(Document documentId, string messageName, string jsonMessage, CancellationToken cancellationToken)
+        //    {
+        //        throw new NotImplementedException();
+        //    }
+        //}
+
+    }
