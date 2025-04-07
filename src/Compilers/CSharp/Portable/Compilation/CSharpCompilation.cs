@@ -3778,6 +3778,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
+            EmitDifferenceOptions options,
             CompilationTestData? testData,
             CancellationToken cancellationToken)
         {
@@ -3789,6 +3790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 metadataStream,
                 ilStream,
                 pdbStream,
+                options,
                 testData,
                 cancellationToken);
         }

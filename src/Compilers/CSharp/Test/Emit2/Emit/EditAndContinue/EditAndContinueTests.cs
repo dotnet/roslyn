@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -12192,8 +12193,9 @@ class C
                     badStream,
                     ilStream,
                     pdbStream,
+                    EmitDifferenceOptions.Default,
                     new CompilationTestData(),
-                    default);
+                    CancellationToken.None);
                 Assert.False(result.Success);
                 result.Diagnostics.Verify(
                     // error CS8104: An error occurred while writing the output file: System.IO.IOException: I/O error occurred.
@@ -12207,8 +12209,9 @@ class C
                     mdStream,
                     badStream,
                     pdbStream,
+                    EmitDifferenceOptions.Default,
                     new CompilationTestData(),
-                    default);
+                    CancellationToken.None);
                 Assert.False(result.Success);
                 result.Diagnostics.Verify(
                     // error CS8104: An error occurred while writing the output file: System.IO.IOException: I/O error occurred.
@@ -12222,8 +12225,9 @@ class C
                     mdStream,
                     ilStream,
                     badStream,
+                    EmitDifferenceOptions.Default,
                     new CompilationTestData(),
-                    default);
+                    CancellationToken.None);
                 Assert.False(result.Success);
                 result.Diagnostics.Verify(
                     // error CS0041: Unexpected error writing debug information -- 'I/O error occurred.'
@@ -12277,8 +12281,9 @@ class C
                     mdStream,
                     ilStream,
                     badStream,
+                    EmitDifferenceOptions.Default,
                     new CompilationTestData(),
-                    default);
+                    CancellationToken.None);
                 Assert.False(result.Success);
                 result.Diagnostics.Verify(
                     // error CS0041: Unexpected error writing debug information -- 'I/O error occurred.'

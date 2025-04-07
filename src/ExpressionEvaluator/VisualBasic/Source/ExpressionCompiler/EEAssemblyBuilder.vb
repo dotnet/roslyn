@@ -81,6 +81,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
+        Public Overrides ReadOnly Property FieldRvaSupported As Boolean
+            Get
+                Return True
+            End Get
+        End Property
+
         Public Overrides Function TryGetOrCreateSynthesizedHotReloadExceptionType() As INamedTypeSymbolInternal
             Return Nothing
         End Function

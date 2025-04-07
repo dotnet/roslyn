@@ -654,6 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
     {
         public override EmitBaseline? PreviousGeneration => null;
         public override SymbolChanges? EncSymbolChanges => null;
+        public override bool FieldRvaSupported => true;
 
         public override INamedTypeSymbolInternal? TryGetOrCreateSynthesizedHotReloadExceptionType()
             => null;

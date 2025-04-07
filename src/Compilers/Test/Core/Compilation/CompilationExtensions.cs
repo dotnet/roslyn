@@ -158,6 +158,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 mdStream,
                 ilStream,
                 pdbStream,
+                EmitDifferenceOptions.Default,
                 testData,
                 CancellationToken.None);
 

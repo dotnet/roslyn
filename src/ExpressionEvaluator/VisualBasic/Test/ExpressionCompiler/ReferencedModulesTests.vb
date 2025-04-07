@@ -969,7 +969,13 @@ End Class"
 
             Public Overrides ReadOnly Property PreviousGeneration As EmitBaseline
                 Get
-                    Return Nothing
+                    Return _builder.PreviousGeneration
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property FieldRvaSupported As Boolean
+                Get
+                    Return _builder.FieldRvaSupported
                 End Get
             End Property
 
