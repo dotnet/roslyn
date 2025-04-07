@@ -435,6 +435,44 @@ public sealed partial class ServiceHubServicesTests
         Assert.IsType<ArgumentException>(result.ExtensionException);
     }
 
+    [Fact]
+    public async Task TestExtensionMessageHandlerService_HandleExtensionMessage_HandlerThrowsException()
+    {
+        const string ExtensionExceptionMessage = "3rd Party Message";
+
+        using var localWorkspace = CreateWorkspace(additionalRemoteParts:
+            [typeof(TestExtensionAssemblyLoaderProvider), typeof(TestExtensionMessageHandlerFactory)]);
+
+        var handlerWasCalled = false;
+        await RegisterTestHandlers(
+            localWorkspace,
+            (_, _, _) => [],
+            (_, _, _) => [new TestHandler<Document>(
+                "HandlerName",
+                (_, _, _) =>
+                {
+                    handlerWasCalled = true;
+                    throw new Exception(ExtensionExceptionMessage);
+                })]);
+
+        var extensionMessageHandlerService = localWorkspace.Services.GetRequiredService<IExtensionMessageHandlerService>();
+
+        string? fatalRpcErrorMessage = null;
+        var errorReportingService = (TestErrorReportingService)localWorkspace.Services.GetRequiredService<IErrorReportingService>();
+        errorReportingService.OnError = message => fatalRpcErrorMessage = message;
+
+        // The test handlers only take/receive ints, so passing in a json array should fail.  This is a bug with the
+        // handler though, not roslyn/gladstone.  So we should get a normal extension exception.
+        var result = await extensionMessageHandlerService.HandleExtensionDocumentMessageAsync(
+            localWorkspace.CurrentSolution.Projects.Single().Documents.Single(),
+            "HandlerName", jsonMessage: "0", CancellationToken.None);
+        Assert.Null(fatalRpcErrorMessage);
+        Assert.True(handlerWasCalled);
+
+        Assert.NotNull(result.ExtensionException);
+        Assert.Contains(ExtensionExceptionMessage, result.ExtensionException.Message);
+    }
+
     [PartNotDiscoverable]
     [ExportWorkspaceService(typeof(IExtensionAssemblyLoaderProvider), ServiceLayer.Test), Shared]
     [method: ImportingConstructor]
