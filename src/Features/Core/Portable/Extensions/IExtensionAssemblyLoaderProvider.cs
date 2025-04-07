@@ -3,26 +3,27 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
 using System.IO;
-using System.Linq;
-using System.Net.Http.Headers;
 using System.Reflection;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Extensions;
 
+/// <summary>
+/// Abstraction around <see cref="IAnalyzerAssemblyLoaderProvider"/> so that we can mock that behavior in tests.
+/// </summary>
 internal interface IExtensionAssemblyLoaderProvider : IWorkspaceService
 {
     (IExtensionAssemblyLoader? assemblyLoader, Exception? extensionException) CreateNewShadowCopyLoader(
         string assemblyFolderPath, CancellationToken cancellationToken);
 }
 
+/// <summary>
+/// Abstraction around <see cref="IAnalyzerAssemblyLoader"/> so that we can mock that behavior in tests.
+/// </summary>
 internal interface IExtensionAssemblyLoader
 {
     Assembly LoadFromPath(string assemblyFilePath);
@@ -40,7 +41,9 @@ internal sealed class DefaultExtensionAssemblyLoaderProviderFactory() : IWorkspa
     private sealed class DefaultExtensionAssemblyLoaderProvider(HostWorkspaceServices workspaceServices)
         : IExtensionAssemblyLoaderProvider
     {
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly HostWorkspaceServices _workspaceServices = workspaceServices;
+#pragma warning restore IDE0052 // Remove unread private members
 
         public (IExtensionAssemblyLoader? assemblyLoader, Exception? extensionException) CreateNewShadowCopyLoader(
             string assemblyFolderPath, CancellationToken cancellationToken)
@@ -90,5 +93,8 @@ internal sealed class DefaultExtensionAssemblyLoaderProviderFactory() : IWorkspa
         IAnalyzerAssemblyLoaderInternal assemblyLoader) : IExtensionAssemblyLoader
     {
         public void Unload() => assemblyLoader.Dispose();
+
+        public Assembly LoadFromPath(string assemblyFilePath)
+            => assemblyLoader.LoadFromPath(assemblyFilePath);
     }
 }
