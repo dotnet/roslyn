@@ -157,59 +157,78 @@ public sealed partial class ServiceHubServicesTests
         Assert.Contains(nameof(InvalidOperationException), errorMessage);
     }
 
-    [Fact]
-    public async Task TestExtensionMessageHandlerService_GetExtensionMessageNamesForRegisteredService1()
+    private static async Task<TestExtensionAssemblyLoaderProvider> GetRemoteAssemblyLoaderProvider(TestWorkspace localWorkspace)
     {
-        using var workspace = CreateWorkspace();
+        var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace);
+        var remoteWorkspace = client.TestData.WorkspaceManager.GetWorkspace();
+        var assemblyLoaderProvider = (TestExtensionAssemblyLoaderProvider)remoteWorkspace.Services.GetRequiredService<IExtensionAssemblyLoaderProvider>();
+        return assemblyLoaderProvider;
+    }
 
-        var extensionMessageHandlerService = workspace.Services.GetRequiredService<IExtensionMessageHandlerService>();
+    [Fact]
+    public async Task TestExtensionMessageHandlerService_GetExtensionMessageNamesForRegisteredService_NoLoaderOrException()
+    {
+        using var localWorkspace = CreateWorkspace(additionalRemoteParts: [typeof(TestExtensionAssemblyLoaderProvider)]);
 
-        // Don't trap the error here.  We want to validate that this crosses the ServiceHub boundary and is reported as
-        // a real roslyn/gladstone error.
+        var extensionMessageHandlerService = localWorkspace.Services.GetRequiredService<IExtensionMessageHandlerService>();
+
+        var assemblyLoaderProvider = await GetRemoteAssemblyLoaderProvider(localWorkspace);
+
+        // Return null for the loader, and no exception.  This is effectively the .Net framework case, and it should
+        // report no errors and an empty list of handlers.
+        assemblyLoaderProvider.CreateNewShadowCopyLoaderCallback = (_, _) => default;
+
         string errorMessage = null;
-        var errorReportingService = (TestErrorReportingService)workspace.Services.GetRequiredService<IErrorReportingService>();
+        var errorReportingService = (TestErrorReportingService)localWorkspace.Services.GetRequiredService<IErrorReportingService>();
         errorReportingService.OnError = message => errorMessage = message;
 
         await extensionMessageHandlerService.RegisterExtensionAsync("TempPath", CancellationToken.None);
-        await extensionMessageHandlerService.GetExtensionMessageNamesAsync("TempPath", CancellationToken.None);
         Assert.Null(errorMessage);
+
+        var result = await extensionMessageHandlerService.GetExtensionMessageNamesAsync("TempPath", CancellationToken.None);
+        Assert.Empty(result.WorkspaceMessageHandlers);
+        Assert.Empty(result.DocumentMessageHandlers);
+        Assert.Null(result.ExtensionException);
     }
 
-    //[PartNotDiscoverable]
-    //[ExportWorkspaceService(typeof(IWorkspaceConfigurationService), ServiceLayer.Test), Shared]
-    //[method: ImportingConstructor]
-    //[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    //private sealed class TestExtensionMessageHandlerService() : IExtensionMessageHandlerService
-    //{
-    //    public ValueTask RegisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
+    [Fact]
+    public async Task TestExtensionMessageHandlerService_GetExtensionMessageNamesForRegisteredService_NoLoader_ExtensionException()
+    {
+        const string ExpectedExceptionMessage = "IO Error";
 
-    //    public ValueTask UnregisterExtensionAsync(string assemblyFilePath, CancellationToken cancellationToken)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
+        using var localWorkspace = CreateWorkspace(additionalRemoteParts: [typeof(TestExtensionAssemblyLoaderProvider)]);
 
-    //    public ValueTask<GetExtensionMessageNamesResponse> GetExtensionMessageNamesAsync(string assemblyFilePath, CancellationToken cancellationToken)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
+        var extensionMessageHandlerService = localWorkspace.Services.GetRequiredService<IExtensionMessageHandlerService>();
 
-    //    public ValueTask ResetAsync(CancellationToken cancellationToken)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
+        var assemblyLoaderProvider = await GetRemoteAssemblyLoaderProvider(localWorkspace);
 
-    //    public ValueTask<string> HandleExtensionWorkspaceMessageAsync(Solution solution, string messageName, string jsonMessage, CancellationToken cancellationToken)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
+        // Return null for the loader, and an exception representing IO issues when trying to do the loading. this
+        // should return the exception as an extension exception along with an empty list of handlers.
+        assemblyLoaderProvider.CreateNewShadowCopyLoaderCallback = (_, _) => (null, new Exception(ExpectedExceptionMessage));
 
-    //    public ValueTask<string> HandleExtensionDocumentMessageAsync(Document documentId, string messageName, string jsonMessage, CancellationToken cancellationToken)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
-    //}
+        string errorMessage = null;
+        var errorReportingService = (TestErrorReportingService)localWorkspace.Services.GetRequiredService<IErrorReportingService>();
+        errorReportingService.OnError = message => errorMessage = message;
 
+        await extensionMessageHandlerService.RegisterExtensionAsync("TempPath", CancellationToken.None);
+        Assert.Null(errorMessage);
+
+        var result = await extensionMessageHandlerService.GetExtensionMessageNamesAsync("TempPath", CancellationToken.None);
+        Assert.Empty(result.WorkspaceMessageHandlers);
+        Assert.Empty(result.DocumentMessageHandlers);
+        Assert.NotNull(result.ExtensionException);
+        Assert.Equal(ExpectedExceptionMessage, result.ExtensionException.Message);
+    }
+
+    [PartNotDiscoverable]
+    [ExportWorkspaceService(typeof(IExtensionAssemblyLoaderProvider), ServiceLayer.Test), Shared]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    private sealed class TestExtensionAssemblyLoaderProvider() : IExtensionAssemblyLoaderProvider
+    {
+        public Func<string, CancellationToken, (IExtensionAssemblyLoader assemblyLoader, Exception extensionException)> CreateNewShadowCopyLoaderCallback { get; set; }
+
+        public (IExtensionAssemblyLoader assemblyLoader, Exception extensionException) CreateNewShadowCopyLoader(string assemblyFolderPath, CancellationToken cancellationToken)
+            => CreateNewShadowCopyLoaderCallback.Invoke(assemblyFolderPath, cancellationToken);
+    }
 }

@@ -48,6 +48,8 @@ internal sealed class DefaultExtensionAssemblyLoaderProviderFactory() : IWorkspa
         public (IExtensionAssemblyLoader? assemblyLoader, Exception? extensionException) CreateNewShadowCopyLoader(
             string assemblyFolderPath, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
 #if NET
             // These lines should always succeed.  If they don't, they indicate a bug in our code that we want
             // to bubble out as it must be fixed.

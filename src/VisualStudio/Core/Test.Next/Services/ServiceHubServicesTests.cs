@@ -40,8 +40,20 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote;
 [Trait(Traits.Feature, Traits.Features.RemoteHost)]
 public sealed partial class ServiceHubServicesTests
 {
-    private static TestWorkspace CreateWorkspace(Type[] additionalParts = null)
-         => new(composition: FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess).AddParts(additionalParts));
+    private static TestWorkspace CreateWorkspace(
+        Type[] additionalParts = null,
+        Type[] additionalRemoteParts = null)
+    {
+        var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess).AddParts(additionalParts));
+
+        if (additionalRemoteParts != null)
+        {
+            var clientProvider = (InProcRemoteHostClientProvider)workspace.Services.GetService<IRemoteHostClientProvider>();
+            clientProvider.AdditionalRemoteParts = additionalRemoteParts;
+        }
+
+        return workspace;
+    }
 
     [Fact]
     public async Task TestRemoteHostSynchronize()
