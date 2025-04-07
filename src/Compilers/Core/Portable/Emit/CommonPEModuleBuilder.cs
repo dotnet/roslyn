@@ -85,6 +85,12 @@ namespace Microsoft.CodeAnalysis.Emit
         public bool IsEncDelta => PreviousGeneration != null;
 
         /// <summary>
+        /// True if FieldRVA table is supported by the runtime.
+        /// TODO: Base on a feature switch in the BCL instead of TestData flag (https://github.com/dotnet/roslyn/issues/69480).
+        /// </summary>
+        public bool FieldRvaSupported => !IsEncDelta || TestData?.EncFieldRvaSupported == true;
+
+        /// <summary>
         /// EnC generation. 0 if the module is not an EnC delta, 1 if it is the first EnC delta, etc.
         /// </summary>
         public int CurrentGenerationOrdinal => (PreviousGeneration?.Ordinal + 1) ?? 0;

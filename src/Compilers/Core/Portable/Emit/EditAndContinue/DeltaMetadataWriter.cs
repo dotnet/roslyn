@@ -1359,9 +1359,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 TableIndex.ModuleRef,
                 TableIndex.TypeSpec,
                 TableIndex.ImplMap,
-                // FieldRva is not needed since we do not emit fields with explicit mapping during EnC.
-                // https://github.com/dotnet/roslyn/issues/69480
-                //TableIndex.FieldRva,
+                TableIndex.FieldRva,
                 TableIndex.EncLog,
                 TableIndex.EncMap,
                 TableIndex.Assembly,

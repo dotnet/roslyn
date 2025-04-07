@@ -202,6 +202,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     }
                 });
 
+            internal void VerifyEncFieldRvaData(byte[] expected)
+                => Verify(() =>
+                {
+                    Debug.Assert(generationInfo.CompilationDifference != null);
+                    AssertEx.SequenceEqual(expected, generationInfo.CompilationDifference.ILDelta[^expected.Length..]);
+                });
+
             public void VerifyLocalSignature(string qualifiedMethodName, string expectedSignature)
                 => Verify(() =>
                 {

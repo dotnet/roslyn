@@ -19129,7 +19129,7 @@ file class C
 
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
-        public void PrivateImplDetails_DataFields_Arrays()
+        public void PrivateImplDetails_DataFields_Arrays_FieldRvaNotSupported()
         {
             using var _ = new EditAndContinueTest()
                 .AddBaseline(
@@ -19228,6 +19228,93 @@ file class C
                         }
                         """);
                     })
+                .Verify();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
+        public void PrivateImplDetails_DataFields_Arrays_FieldRvaSupported()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            byte[] b = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C", "<PrivateImplementationDetails>", "__StaticArrayInitTypeSize=10");
+                        g.VerifyFieldDefNames("b", "1F825AA2F0020EF7CF91DFA30DA4668D791C5D4824FC8E41354B89EC05795AB3");
+                        g.VerifyMethodDefNames(".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            byte[] b = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+                        }
+                        """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetParameterlessConstructor("C")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "__StaticArrayInitTypeSize=11");
+                        g.VerifyFieldDefNames("78A6273103D17C39A0B6126E226CEC70E33337F4BC6A38067401B54A33E78EAD");
+                        g.VerifyMethodDefNames(".ctor");
+
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.ClassLayout, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.FieldRva, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.NestedClass, EditAndContinueOperation.Default)
+                        });
+
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(5, TableIndex.TypeDef),
+                            Handle(6, TableIndex.TypeDef),
+                            Handle(3, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(5, TableIndex.CustomAttribute),
+                            Handle(2, TableIndex.ClassLayout),
+                            Handle(2, TableIndex.FieldRva),
+                            Handle(2, TableIndex.NestedClass)
+                        });
+
+                        g.VerifyIL("C..ctor", """
+                        {
+                          // Code size       32 (0x20)
+                          .maxstack  4
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldc.i4.s   11
+                          IL_0003:  newarr     "byte"
+                          IL_0008:  dup
+                          IL_0009:  ldtoken    "<PrivateImplementationDetails>#1.__StaticArrayInitTypeSize=11 <PrivateImplementationDetails>#1.78A6273103D17C39A0B6126E226CEC70E33337F4BC6A38067401B54A33E78EAD"
+                          IL_000e:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
+                          IL_0013:  stfld      "byte[] C.b"
+                          IL_0018:  ldarg.0
+                          IL_0019:  call       "object..ctor()"
+                          IL_001e:  nop
+                          IL_001f:  ret
+                        }
+                        """);
+
+                        // TODO: better test would be to specify FieldDef -> data.
+                        // trailing zeros for alignment:
+                        g.VerifyEncFieldRvaData([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0, 0]);
+                    },
+                    withTestData: d => d.EncFieldRvaSupported = true)
                 .Verify();
         }
 
