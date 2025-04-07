@@ -473,6 +473,62 @@ public sealed partial class ServiceHubServicesTests
     }
 
     [Fact]
+    public async Task TestExtensionMessageHandlerService_HandleExtensionMessage_HandlerThrowsException_CanCallAfterwards()
+    {
+        const string ExtensionExceptionMessage = "3rd Party Message";
+
+        using var localWorkspace = CreateWorkspace(additionalRemoteParts:
+            [typeof(TestExtensionAssemblyLoaderProvider), typeof(TestExtensionMessageHandlerFactory)]);
+
+        var handlerWasCalled1 = false;
+        var handlerWasCalled2 = false;
+        await RegisterTestHandlers(
+            localWorkspace,
+            (_, _, _) => [],
+            (_, _, _) => [new TestHandler<Document>(
+                "HandlerName",
+                (_, _, _) =>
+                {
+                    if (!handlerWasCalled1)
+                    {
+                        handlerWasCalled1 = true;
+                        throw new Exception(ExtensionExceptionMessage);
+                    }
+                    else
+                    {
+                        handlerWasCalled2 = true;
+                        return 1;
+                    }
+                })]);
+
+        var extensionMessageHandlerService = localWorkspace.Services.GetRequiredService<IExtensionMessageHandlerService>();
+
+        string? fatalRpcErrorMessage = null;
+        var errorReportingService = (TestErrorReportingService)localWorkspace.Services.GetRequiredService<IErrorReportingService>();
+        errorReportingService.OnError = message => fatalRpcErrorMessage = message;
+
+        // An unexpected exception thrown by the handler should be reported as an extension exception, and should not be
+        // a fatal rpc error.
+        var result = await extensionMessageHandlerService.HandleExtensionDocumentMessageAsync(
+            localWorkspace.CurrentSolution.Projects.Single().Documents.Single(),
+            "HandlerName", jsonMessage: "0", CancellationToken.None);
+        Assert.Null(fatalRpcErrorMessage);
+        Assert.True(handlerWasCalled1);
+        Assert.False(handlerWasCalled2);
+
+        Assert.NotNull(result.ExtensionException);
+        Assert.Contains(ExtensionExceptionMessage, result.ExtensionException.Message);
+
+        // Second call should be fine.
+        result = await extensionMessageHandlerService.HandleExtensionDocumentMessageAsync(
+            localWorkspace.CurrentSolution.Projects.Single().Documents.Single(),
+            "HandlerName", jsonMessage: "0", CancellationToken.None);
+        Assert.Null(fatalRpcErrorMessage);
+        Assert.True(handlerWasCalled2);
+        Assert.Equal("1", result.Response);
+    }
+
+    [Fact]
     public async Task TestExtensionMessageHandlerService_HandleExtensionMessage_HandlerThrowsCancellationException()
     {
         using var localWorkspace = CreateWorkspace(additionalRemoteParts:
@@ -529,8 +585,6 @@ public sealed partial class ServiceHubServicesTests
         var errorReportingService = (TestErrorReportingService)localWorkspace.Services.GetRequiredService<IErrorReportingService>();
         errorReportingService.OnError = message => fatalRpcErrorMessage = message;
 
-        // An cancellation exception thrown by the handler should be reported as a normal cancellation exception, and
-        // should not be a fatal rpc error.
         var result = await extensionMessageHandlerService.HandleExtensionDocumentMessageAsync(
             localWorkspace.CurrentSolution.Projects.Single().Documents.Single(),
             "HandlerName", jsonMessage: "0", CancellationToken.None);
