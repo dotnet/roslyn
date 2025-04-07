@@ -73,8 +73,14 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                 }
 
                 var assembly = analyzerAssemblyLoader.LoadFromPath(assemblyFilePath);
-                var factory = _extensionMessageHandlerService._customMessageHandlerFactory;
-                Contract.ThrowIfNull(factory);
+                var factory = _extensionMessageHandlerService._solutionServices.GetService<IExtensionMessageHandlerFactory>();
+                if (factory is null)
+                {
+                    return new(
+                        DocumentMessageHandlers: ImmutableDictionary<string, IExtensionMessageHandlerWrapper>.Empty,
+                        WorkspaceMessageHandlers: ImmutableDictionary<string, IExtensionMessageHandlerWrapper>.Empty,
+                        ExtensionException: null);
+                }
 
                 // We're calling into code here to analyze the assembly at the specified file and to create handlers we
                 // find within it.  If this throws, then we will capture that exception and return it to the caller to 

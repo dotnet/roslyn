@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,6 +32,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.Threading;
+using Moq;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
@@ -165,6 +167,14 @@ public sealed partial class ServiceHubServicesTests
         return assemblyLoaderProvider;
     }
 
+    private static async Task<TestExtensionMessageHandlerFactory> GetRemoteAssemblyHandlerFactory(TestWorkspace localWorkspace)
+    {
+        var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace);
+        var remoteWorkspace = client.TestData.WorkspaceManager.GetWorkspace();
+        var handlerFactory = (TestExtensionMessageHandlerFactory)remoteWorkspace.Services.GetRequiredService<IExtensionMessageHandlerFactory>();
+        return handlerFactory;
+    }
+
     [Fact]
     public async Task TestExtensionMessageHandlerService_GetExtensionMessageNamesForRegisteredService_NoLoaderOrException()
     {
@@ -245,6 +255,40 @@ public sealed partial class ServiceHubServicesTests
         Assert.Null(errorMessage);
     }
 
+    [Fact]
+    public async Task TestExtensionMessageHandlerService_GetExtensionMessageNamesForRegisteredService_TestWorkspaceAndDocumentNames()
+    {
+        using var localWorkspace = CreateWorkspace(additionalRemoteParts:
+            [typeof(TestExtensionAssemblyLoaderProvider), typeof(TestExtensionMessageHandlerFactory)]);
+
+        var extensionMessageHandlerService = localWorkspace.Services.GetRequiredService<IExtensionMessageHandlerService>();
+
+        var assemblyLoaderProvider = await GetRemoteAssemblyLoaderProvider(localWorkspace);
+        var handlerFactory = await GetRemoteAssemblyHandlerFactory(localWorkspace);
+
+        handlerFactory.CreateDocumentMessageHandlersCallback =
+            (_, _, _) => [new TestHandler<Document>("DocumentMessageName")];
+        handlerFactory.CreateWorkspaceMessageHandlersCallback =
+            (_, _, _) => [new TestHandler<Solution>("WorkspaceMessageName")];
+
+        // Make a basic loader that just returns null for the assembly.
+        var assemblyLoader = new Mock<IExtensionAssemblyLoader>(MockBehavior.Strict);
+        assemblyLoader.Setup(loader => loader.LoadFromPath("TempPath")).Returns((Assembly)null);
+        assemblyLoaderProvider.CreateNewShadowCopyLoaderCallback = (_, _) => (assemblyLoader.Object, extensionException: null);
+
+        string errorMessage = null;
+        var errorReportingService = (TestErrorReportingService)localWorkspace.Services.GetRequiredService<IErrorReportingService>();
+        errorReportingService.OnError = message => errorMessage = message;
+
+        await extensionMessageHandlerService.RegisterExtensionAsync("TempPath", CancellationToken.None);
+        Assert.Null(errorMessage);
+
+        var result = await extensionMessageHandlerService.GetExtensionMessageNamesAsync("TempPath", CancellationToken.None);
+        Assert.Null(result.ExtensionException);
+        AssertEx.SequenceEqual(["DocumentMessageName"], result.DocumentMessageHandlers);
+        AssertEx.SequenceEqual(["WorkspaceMessageName"], result.WorkspaceMessageHandlers);
+    }
+
     [PartNotDiscoverable]
     [ExportWorkspaceService(typeof(IExtensionAssemblyLoaderProvider), ServiceLayer.Test), Shared]
     [method: ImportingConstructor]
@@ -255,5 +299,37 @@ public sealed partial class ServiceHubServicesTests
 
         public (IExtensionAssemblyLoader assemblyLoader, Exception extensionException) CreateNewShadowCopyLoader(string assemblyFolderPath, CancellationToken cancellationToken)
             => CreateNewShadowCopyLoaderCallback.Invoke(assemblyFolderPath, cancellationToken);
+    }
+
+    [PartNotDiscoverable]
+    [ExportWorkspaceService(typeof(IExtensionMessageHandlerFactory), ServiceLayer.Test), Shared]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    private sealed class TestExtensionMessageHandlerFactory() : IExtensionMessageHandlerFactory
+    {
+        public Func<Assembly, string, CancellationToken, ImmutableArray<IExtensionMessageHandlerWrapper<Solution>>> CreateWorkspaceMessageHandlersCallback { get; set; }
+        public Func<Assembly, string, CancellationToken, ImmutableArray<IExtensionMessageHandlerWrapper<Document>>> CreateDocumentMessageHandlersCallback { get; set; }
+
+        public ImmutableArray<IExtensionMessageHandlerWrapper<Solution>> CreateWorkspaceMessageHandlers(Assembly assembly, string extensionIdentifier, CancellationToken cancellationToken)
+            => CreateWorkspaceMessageHandlersCallback.Invoke(assembly, extensionIdentifier, cancellationToken);
+
+        public ImmutableArray<IExtensionMessageHandlerWrapper<Document>> CreateDocumentMessageHandlers(Assembly assembly, string extensionIdentifier, CancellationToken cancellationToken)
+            => CreateDocumentMessageHandlersCallback.Invoke(assembly, extensionIdentifier, cancellationToken);
+    }
+
+    private sealed class TestHandler<TArgument>(
+        string name,
+        Func<int, TArgument, CancellationToken, int> executeCallback = null) : IExtensionMessageHandlerWrapper<TArgument>
+    {
+        public Task<object> ExecuteAsync(object message, TArgument argument, CancellationToken cancellationToken)
+            => Task.FromResult((object)executeCallback((int)message, argument, cancellationToken));
+
+        public Type MessageType => typeof(int);
+
+        public Type ResponseType => typeof(int);
+
+        public string Name => name;
+
+        public string ExtensionIdentifier => throw new NotImplementedException();
     }
 }

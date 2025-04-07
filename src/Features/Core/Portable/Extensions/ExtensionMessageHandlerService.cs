@@ -23,12 +23,10 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
         Exception? ExtensionException);
 
     private sealed partial class ExtensionMessageHandlerService(
-        SolutionServices solutionServices,
-        IExtensionMessageHandlerFactory? customMessageHandlerFactory)
+        SolutionServices solutionServices)
         : IExtensionMessageHandlerService
     {
         private readonly SolutionServices _solutionServices = solutionServices;
-        private readonly IExtensionMessageHandlerFactory? _customMessageHandlerFactory = customMessageHandlerFactory;
 
         /// <summary>
         /// Lock for <see cref="_folderPathToExtensionFolder"/>, <see cref="_cachedDocumentHandlers_useOnlyUnderLock"/>, and <see

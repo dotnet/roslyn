@@ -5,13 +5,14 @@
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Threading;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Extensions;
 
 /// <summary>
 /// Factory for creating instances of extension message handlers.
 /// </summary>
-internal interface IExtensionMessageHandlerFactory
+internal interface IExtensionMessageHandlerFactory : IWorkspaceService
 {
     /// <summary>
     /// Creates <see cref="IExtensionMessageHandlerWrapper{Solution}"/> instances for each
