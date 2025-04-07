@@ -38,7 +38,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.RemoteHost)]
-public sealed class ServiceHubServicesTests
+public sealed partial class ServiceHubServicesTests
 {
     private static TestWorkspace CreateWorkspace(Type[] additionalParts = null)
          => new(composition: FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess).AddParts(additionalParts));
