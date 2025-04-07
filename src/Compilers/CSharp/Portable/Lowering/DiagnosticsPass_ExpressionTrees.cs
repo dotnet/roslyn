@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, node);
                 }
-                else if (!argumentNamesOpt.IsDefaultOrEmpty)
+                else if (!argumentNamesOpt.IsDefaultOrEmpty && !_compilation.IsFeatureEnabled(MessageID.IDS_FeatureExpressionOptionalAndNamedArguments)) // PROTOTYPE: Check arguments are in order.
                 {
                     Error(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, node);
                 }
