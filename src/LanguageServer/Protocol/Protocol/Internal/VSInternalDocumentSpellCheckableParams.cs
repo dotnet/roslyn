@@ -10,7 +10,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Parameter for textDocument/_vs_spellCheckableRanges.
 /// </summary>
-internal sealed class VSInternalDocumentSpellCheckableParams : VSInternalStreamingParams, IPartialResultParams<VSInternalSpellCheckableRangeReport[]>
+internal class VSInternalDocumentSpellCheckableParams : VSInternalStreamingParams, IPartialResultParams<VSInternalSpellCheckableRangeReport[]>
 {
     /// <inheritdoc/>
     [JsonPropertyName(Methods.PartialResultTokenName)]

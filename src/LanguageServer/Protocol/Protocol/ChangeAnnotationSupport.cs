@@ -10,7 +10,7 @@ using System.Text.Json.Serialization;
 /// Describes how the client handles change annotations on workspace edits.
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal sealed class ChangeAnnotationSupport
+internal class ChangeAnnotationSupport
 {
     /// <summary>
     /// Whether the client groups edits with equal labels into tree nodes,

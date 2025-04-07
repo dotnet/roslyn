@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// / Class representing the options for registering textDocument/_vs_OnAutoInsert support.
 /// </summary>
-internal sealed class VSInternalTextDocumentRegistrationOptions : TextDocumentRegistrationOptions
+internal class VSInternalTextDocumentRegistrationOptions : TextDocumentRegistrationOptions
 {
     /// <summary>
     /// Gets or sets trigger characters for on auto insert.

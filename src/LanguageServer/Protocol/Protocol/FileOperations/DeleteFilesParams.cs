@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal sealed class DeleteFilesParams
+internal class DeleteFilesParams
 {
     /// <summary>
     /// An array of all files/folders deleted in this operation.

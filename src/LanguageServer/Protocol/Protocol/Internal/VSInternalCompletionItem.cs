@@ -10,7 +10,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Extension class for CompletionItem with fields specific to Visual Studio functionalities.
 /// </summary>
-internal sealed class VSInternalCompletionItem : CompletionItem
+internal class VSInternalCompletionItem : CompletionItem
 {
     internal const string IconSerializedName = "_vs_icon";
     internal const string DescriptionSerializedName = "_vs_description";

@@ -9,7 +9,7 @@ using Roslyn.LanguageServer.Protocol;
 namespace Roslyn.Text.Adornments;
 
 [JsonConverter(typeof(ClassifiedTextRunConverter))]
-internal sealed class ClassifiedTextRun(
+internal class ClassifiedTextRun(
     string classificationTypeName,
     string text,
     ClassifiedTextRunStyle style = ClassifiedTextRunStyle.Plain,

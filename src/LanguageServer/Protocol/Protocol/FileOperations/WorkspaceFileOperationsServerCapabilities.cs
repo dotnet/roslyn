@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal sealed class WorkspaceFileOperationsServerCapabilities
+internal class WorkspaceFileOperationsServerCapabilities
 {
     /// <summary>
     /// The server is interested in receiving didCreateFiles notifications.

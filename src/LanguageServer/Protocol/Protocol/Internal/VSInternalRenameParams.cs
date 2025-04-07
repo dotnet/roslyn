@@ -10,7 +10,7 @@ using System.Text.Json.Serialization;
 /// Class representing the parameters (together with extra VS-specific options) sent for the
 /// 'textDocument/rename' request.
 /// </summary>
-internal sealed class VSInternalRenameParams : RenameParams
+internal class VSInternalRenameParams : RenameParams
 {
     /// <summary>
     /// Gets or sets the rename option values as selected by the user.

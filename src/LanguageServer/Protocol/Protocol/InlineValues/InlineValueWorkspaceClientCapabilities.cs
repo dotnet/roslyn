@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal sealed class InlineValueWorkspaceClientCapabilities
+internal class InlineValueWorkspaceClientCapabilities
 {
     /// <summary>
     /// Whether the client implementation supports a refresh request sent from

@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#signatureHelpRegistrationOptions">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal sealed class SignatureHelpRegistrationOptions : SignatureHelpOptions, ITextDocumentRegistrationOptions
+internal class SignatureHelpRegistrationOptions : SignatureHelpOptions, ITextDocumentRegistrationOptions
 {
     /// <inheritdoc/>
     [JsonPropertyName("documentSelector")]

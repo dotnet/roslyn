@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal sealed class InlineValueRegistrationOptions : InlineValueOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
+internal class InlineValueRegistrationOptions : InlineValueOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
 {
     /// <inheritdoc/>
     [JsonPropertyName("documentSelector")]

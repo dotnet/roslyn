@@ -12,7 +12,7 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#codeActionClientCapabilities">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal sealed class CodeActionSetting : DynamicRegistrationSetting
+internal class CodeActionSetting : DynamicRegistrationSetting
 {
     /// <summary>
     /// The client supports code action literals as a valid response of

@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class representing settings for well-known Visual Studio's code action command.
 /// </summary>
-internal sealed class VSInternalExecuteCommandClientCapabilities : DynamicRegistrationSetting
+internal class VSInternalExecuteCommandClientCapabilities : DynamicRegistrationSetting
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="VSInternalExecuteCommandClientCapabilities"/> class.

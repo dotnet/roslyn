@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#definitionClientCapabilities">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal sealed class DefinitionClientCapabilities : DynamicRegistrationSetting
+internal class DefinitionClientCapabilities : DynamicRegistrationSetting
 {
     /// <summary>
     /// Whether the client supports supports additional metadata in the form of <see cref="LocationLink"/> definition links

@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// Report for workspace spell checkable range request.
 /// </summary>
-internal sealed class VSInternalWorkspaceSpellCheckableReport : VSInternalSpellCheckableRangeReport, ITextDocumentParams
+internal class VSInternalWorkspaceSpellCheckableReport : VSInternalSpellCheckableRangeReport, ITextDocumentParams
 {
     /// <summary>
     /// Gets or sets the document for which the spell checkable ranges are returned.

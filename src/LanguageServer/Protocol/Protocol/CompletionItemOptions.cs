@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal sealed class CompletionItemOptions
+internal class CompletionItemOptions
 {
     /// <summary>
     /// Gets or sets a value indicating The server has support for completion item label details

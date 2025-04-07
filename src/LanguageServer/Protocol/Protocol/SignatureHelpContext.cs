@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.15</remarks>
-internal sealed class SignatureHelpContext
+internal class SignatureHelpContext
 {
     /// <summary>
     /// Gets or sets the <see cref="SignatureHelpTriggerKind"/> indicating how the signature help was triggered.

@@ -6,7 +6,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 using System.Text.Json.Serialization;
 
-internal sealed class VSInternalMapCodeMapping
+internal class VSInternalMapCodeMapping
 {
     /// <summary>
     /// Gets or sets identifier for the document the contents are supposed to be mapped into.

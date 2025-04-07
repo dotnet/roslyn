@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class which represents initialization setting for VS completion.
 /// </summary>
-internal sealed class VSInternalCompletionSetting : CompletionSetting
+internal class VSInternalCompletionSetting : CompletionSetting
 {
     /// <summary>
     /// Gets or sets completion list setting.

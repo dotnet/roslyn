@@ -14,7 +14,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal sealed class SemanticTokensDeltaParams : ITextDocumentParams, IWorkDoneProgressParams, IPartialResultParams<SemanticTokensDeltaPartialResult>
+internal class SemanticTokensDeltaParams : ITextDocumentParams, IWorkDoneProgressParams, IPartialResultParams<SemanticTokensDeltaPartialResult>
 {
     /// <summary>
     /// Gets or sets an identifier for the document to fetch semantic tokens from.

@@ -11,7 +11,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class which represents references information.
 /// </summary>
-internal sealed class VSInternalReferenceItem
+internal class VSInternalReferenceItem
 {
     private object? definitionTextValue = null;
     private object? textValue = null;

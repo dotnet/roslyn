@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal sealed class SemanticTokensFullOptions
+internal class SemanticTokensFullOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether the server supports deltas for full documents.

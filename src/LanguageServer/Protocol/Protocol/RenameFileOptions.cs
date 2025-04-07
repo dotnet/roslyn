@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.13</remarks>
-internal sealed class RenameFileOptions
+internal class RenameFileOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether the rename should overwrite the target if it already exists. (Overwrite wins over ignoreIfExists).

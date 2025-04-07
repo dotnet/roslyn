@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.15</remarks>
-internal sealed class WorkDoneProgressCancelParams
+internal class WorkDoneProgressCancelParams
 {
     /// <summary>
     /// The token used to report progress.

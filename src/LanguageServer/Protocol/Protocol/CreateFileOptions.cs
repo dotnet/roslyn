@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.13</remarks>
-internal sealed class CreateFileOptions
+internal class CreateFileOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether the creation should overwrite the file if it already exists.

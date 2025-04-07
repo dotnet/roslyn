@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#monikerOptions">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal sealed class MonikerOptions : IWorkDoneProgressOptions
+internal class MonikerOptions : IWorkDoneProgressOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether work done progress is supported.

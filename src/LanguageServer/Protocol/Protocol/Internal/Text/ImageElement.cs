@@ -9,7 +9,7 @@ using Roslyn.LanguageServer.Protocol;
 namespace Roslyn.Text.Adornments;
 
 [JsonConverter(typeof(ImageElementConverter))]
-internal sealed class ImageElement
+internal class ImageElement
 {
     public static readonly ImageElement Empty = new(default, string.Empty);
 

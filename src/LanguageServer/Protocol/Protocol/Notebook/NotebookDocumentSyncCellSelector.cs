@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// <remarks>Since LSP 3.17</remarks>
 /// </summary>
-internal sealed class NotebookDocumentSyncCellSelector
+internal class NotebookDocumentSyncCellSelector
 {
     [JsonPropertyName("language")]
     [JsonRequired]

@@ -14,7 +14,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.12</remarks>
-internal sealed class PrepareRenameParams : ITextDocumentPositionParams, IWorkDoneProgressParams
+internal class PrepareRenameParams : ITextDocumentPositionParams, IWorkDoneProgressParams
 {
     /// <inheritdoc/>
     [JsonPropertyName("textDocument")]

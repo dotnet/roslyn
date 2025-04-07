@@ -10,7 +10,7 @@ using System.Text.Json.Serialization;
 /// Context for inline completion request.
 /// See https://github.com/microsoft/vscode/blob/075ba020e8493f40dba89891b1a08453f2c067e9/src/vscode-dts/vscode.proposed.inlineCompletions.d.ts#L27.
 /// </summary>
-internal sealed class VSInternalInlineCompletionContext
+internal class VSInternalInlineCompletionContext
 {
     /// <summary>
     /// Gets or sets how completion was triggered.

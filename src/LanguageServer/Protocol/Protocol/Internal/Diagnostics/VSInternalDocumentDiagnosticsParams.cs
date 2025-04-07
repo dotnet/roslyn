@@ -10,7 +10,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class representing a diagnostic pull request for a specific document.
 /// </summary>
-internal sealed class VSInternalDocumentDiagnosticsParams : VSInternalDiagnosticParams, IPartialResultParams<VSInternalDiagnosticReport[]>, IWorkDoneProgressParams
+internal class VSInternalDocumentDiagnosticsParams : VSInternalDiagnosticParams, IPartialResultParams<VSInternalDiagnosticReport[]>, IWorkDoneProgressParams
 {
     /// <inheritdoc/>
     [JsonPropertyName(Methods.WorkDoneTokenName)]

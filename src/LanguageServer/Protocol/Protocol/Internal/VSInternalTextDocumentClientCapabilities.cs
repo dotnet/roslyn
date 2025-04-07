@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Text document capabilities specific to Visual Studio.
 /// </summary>
-internal sealed class VSInternalTextDocumentClientCapabilities : TextDocumentClientCapabilities
+internal class VSInternalTextDocumentClientCapabilities : TextDocumentClientCapabilities
 {
     /// <summary>
     /// Gets or sets the setting which determines if on auto insert can be dynamically registered.

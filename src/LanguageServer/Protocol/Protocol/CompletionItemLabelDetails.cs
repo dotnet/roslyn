@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal sealed class CompletionItemLabelDetails
+internal class CompletionItemLabelDetails
 {
     /// <summary>
     /// An optional string which is rendered less prominently directly after

@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class containing the set of code action default groups that are supported.
 /// </summary>
-internal sealed class VSInternalCodeActionGroupSetting
+internal class VSInternalCodeActionGroupSetting
 {
     /// <summary>
     /// Gets or sets the code actions default group names the client supports.

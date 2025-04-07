@@ -11,7 +11,7 @@ using System.Text.Json.Serialization;
 /// is the completion list that do not provide a value for those properties.
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal sealed class CompletionListItemDefaults
+internal class CompletionListItemDefaults
 {
     /// <summary>
     /// A default commit character set.

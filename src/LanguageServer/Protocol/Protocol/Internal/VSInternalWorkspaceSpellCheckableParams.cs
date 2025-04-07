@@ -10,7 +10,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Parameter for workspace/_vs_spellCheckableRanges.
 /// </summary>
-internal sealed class VSInternalWorkspaceSpellCheckableParams : IPartialResultParams<VSInternalWorkspaceSpellCheckableReport[]>
+internal class VSInternalWorkspaceSpellCheckableParams : IPartialResultParams<VSInternalWorkspaceSpellCheckableReport[]>
 {
     /// <summary>
     /// Gets or sets the current state of the documents the client already has received.

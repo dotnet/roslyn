@@ -14,7 +14,7 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#initializeParams">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal sealed class InitializeParams : IWorkDoneProgressParams
+internal class InitializeParams : IWorkDoneProgressParams
 {
     /// <summary>
     /// Gets or sets the ID of the process which launched the language server.

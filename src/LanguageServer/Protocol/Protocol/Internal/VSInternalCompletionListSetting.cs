@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class which represents initialization setting for completion list.
 /// </summary>
-internal sealed class VSInternalCompletionListSetting
+internal class VSInternalCompletionListSetting
 {
     /// <summary>
     /// Gets or sets a value indicating whether completion lists can have Data bags. These data bags get propagated

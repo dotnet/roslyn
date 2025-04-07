@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol;
 ///
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#logTrace">Language Server Protocol specification</see> for additional information.
 /// </summary>
-internal sealed class LogTraceParams
+internal class LogTraceParams
 {
     /// <summary>
     /// The message to be logged.

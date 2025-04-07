@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Extension to Hover which adds additional data for colorization.
 /// </summary>
-internal sealed class VSInternalHover : Hover
+internal class VSInternalHover : Hover
 {
     /// <summary>
     /// Gets or sets the value which represents the hover content as a tree

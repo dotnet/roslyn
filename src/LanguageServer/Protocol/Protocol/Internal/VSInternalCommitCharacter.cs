@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Extension class for CompletionItem with fields specific to Visual Studio functionalities.
 /// </summary>
-internal sealed class VSInternalCommitCharacter
+internal class VSInternalCommitCharacter
 {
     /// <summary>
     /// Gets or sets the commit character.

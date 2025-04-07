@@ -11,7 +11,7 @@ using System.Text.Json.Serialization;
 ///
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#registrationParams">Language Server Protocol specification</see> for additional information.
 /// </summary>
-internal sealed class RegistrationParams
+internal class RegistrationParams
 {
     /// <summary>
     /// Gets or sets the set of capabilities that are being registered.

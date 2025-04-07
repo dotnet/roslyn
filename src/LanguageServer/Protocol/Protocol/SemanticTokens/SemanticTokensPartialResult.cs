@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal sealed class SemanticTokensPartialResult
+internal class SemanticTokensPartialResult
 {
     /// <summary>
     /// Gets or sets and array containing encoded semantic tokens data.

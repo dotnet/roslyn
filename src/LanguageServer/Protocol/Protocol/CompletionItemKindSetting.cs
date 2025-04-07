@@ -12,7 +12,7 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#completionClientCapabilities">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal sealed class CompletionItemKindSetting
+internal class CompletionItemKindSetting
 {
     /// <summary>
     /// Gets or sets the <see cref="CompletionItemKind"/> values that the client supports.

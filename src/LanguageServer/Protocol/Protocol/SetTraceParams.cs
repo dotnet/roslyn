@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#setTrace">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal sealed class SetTraceParams
+internal class SetTraceParams
 {
     /// <summary>
     /// The new value that should be assigned to the trace setting.

@@ -14,7 +14,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal sealed class FoldingRangeParams : ITextDocumentParams, IWorkDoneProgressParams, IPartialResultParams<FoldingRange[]>
+internal class FoldingRangeParams : ITextDocumentParams, IWorkDoneProgressParams, IPartialResultParams<FoldingRange[]>
 {
     /// <summary>
     /// Gets or sets the text document associated with the folding range request.

@@ -12,7 +12,7 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#regExp">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal sealed class RegularExpressionsClientCapabilities
+internal class RegularExpressionsClientCapabilities
 {
     /// <summary>
     /// The name of the regular expression engine.

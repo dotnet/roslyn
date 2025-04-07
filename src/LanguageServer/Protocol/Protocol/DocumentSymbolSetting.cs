@@ -12,7 +12,7 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentSymbolClientCapabilities">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal sealed class DocumentSymbolSetting : DynamicRegistrationSetting
+internal class DocumentSymbolSetting : DynamicRegistrationSetting
 {
     /// <summary>
     /// Specific capabilities for <see cref="SymbolKind"/> in <c>textDocument/documentSymbol</c> requests

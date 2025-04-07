@@ -10,7 +10,7 @@ using System.Text.Json.Serialization;
 /// Describes the tags supported by the client on <see cref="SymbolInformation"/> and <see cref="WorkspaceSymbol"/>.
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal sealed class SymbolTagSupport
+internal class SymbolTagSupport
 {
     /// <summary>
     /// The tags supported by the client.

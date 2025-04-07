@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal sealed class FileDelete
+internal class FileDelete
 {
     /// <summary>
     /// A <c>file://</c> URI for the location of the file/folder being deleted.

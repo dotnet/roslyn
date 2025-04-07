@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal sealed class SemanticTokensDeltaPartialResult
+internal class SemanticTokensDeltaPartialResult
 {
     /// <summary>
     /// The semantic token edits to transform a previous result into a new result.

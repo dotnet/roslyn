@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class representing support for code action literals.
 /// </summary>
-internal sealed class VSInternalCodeActionLiteralSetting : CodeActionLiteralSetting
+internal class VSInternalCodeActionLiteralSetting : CodeActionLiteralSetting
 {
     /// <summary>
     /// Gets or sets a value indicating what code action default groups are supported.

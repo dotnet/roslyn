@@ -11,7 +11,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Extension class for <see cref="CompletionContext"/> with properties specific to Visual Studio.
 /// </summary>
-internal sealed class VSInternalCompletionContext : CompletionContext
+internal class VSInternalCompletionContext : CompletionContext
 {
     /// <summary>
     /// Gets or sets the <see cref="CompletionTriggerKind"/> indicating how the completion was triggered.

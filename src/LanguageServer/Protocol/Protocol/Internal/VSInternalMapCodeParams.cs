@@ -10,7 +10,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// LSP Params for textDocument/mapCode calls.
 /// </summary>
-internal sealed class VSInternalMapCodeParams
+internal class VSInternalMapCodeParams
 {
     /// <summary>
     /// Internal correlation GUID, used to correlate map code messages from Copilot

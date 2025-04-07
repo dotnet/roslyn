@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal sealed class SemanticTokensFullParams : ITextDocumentParams, IWorkDoneProgressParams, IPartialResultParams<SemanticTokensPartialResult>
+internal class SemanticTokensFullParams : ITextDocumentParams, IWorkDoneProgressParams, IPartialResultParams<SemanticTokensPartialResult>
 {
     /// <summary>
     /// Gets or sets an identifier for the document to fetch semantic tokens from.

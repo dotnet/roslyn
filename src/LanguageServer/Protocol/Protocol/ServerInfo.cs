@@ -10,7 +10,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// Information about the server name and version
 /// </summary>
 /// <remarks>Since LSP 3.15</remarks>
-internal sealed class ServerInfo
+internal class ServerInfo
 {
 
     /// <summary>

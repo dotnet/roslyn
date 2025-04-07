@@ -12,7 +12,7 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#signatureHelp">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal sealed class SignatureHelp
+internal class SignatureHelp
 {
     /// <summary>
     /// One or more signatures.

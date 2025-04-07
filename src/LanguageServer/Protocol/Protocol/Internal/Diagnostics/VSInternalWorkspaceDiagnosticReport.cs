@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class representing a diagnostic pull request result for all documents.
 /// </summary>
-internal sealed class VSInternalWorkspaceDiagnosticReport : VSInternalDiagnosticReport
+internal class VSInternalWorkspaceDiagnosticReport : VSInternalDiagnosticReport
 {
     /// <summary>
     /// Gets or sets the document for which diagnostics is returned.

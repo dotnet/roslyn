@@ -12,7 +12,7 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentOnTypeFormattingParams">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal sealed class DocumentOnTypeFormattingParams : ITextDocumentPositionParams
+internal class DocumentOnTypeFormattingParams : ITextDocumentPositionParams
 {
     /// <summary>
     /// The document to format.

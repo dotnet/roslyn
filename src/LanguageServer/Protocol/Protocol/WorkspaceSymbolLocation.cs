@@ -10,7 +10,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// A workspace symbol location without a range
 /// </summary>
-internal sealed class WorkspaceSymbolLocation
+internal class WorkspaceSymbolLocation
 {
     [JsonPropertyName("uri")]
     [JsonRequired]

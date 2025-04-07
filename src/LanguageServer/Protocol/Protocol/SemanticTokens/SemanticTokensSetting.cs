@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal sealed class SemanticTokensSetting : DynamicRegistrationSetting
+internal class SemanticTokensSetting : DynamicRegistrationSetting
 {
     /// <summary>
     /// Which requests the client supports and might send to the server

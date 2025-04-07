@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class representing a unicode character class for completion continuation.
 /// </summary>
-internal sealed class VSInternalContinueCharacterClass
+internal class VSInternalContinueCharacterClass
 {
     /// <summary>
     /// Gets the type value.

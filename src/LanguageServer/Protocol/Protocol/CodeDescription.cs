@@ -14,7 +14,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal sealed class CodeDescription : IEquatable<CodeDescription>
+internal class CodeDescription : IEquatable<CodeDescription>
 {
     /// <summary>
     /// Gets or sets URI to open with more information about the diagnostic error.

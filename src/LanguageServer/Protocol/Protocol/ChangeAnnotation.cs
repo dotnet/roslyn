@@ -15,7 +15,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <remarks>
 /// Since LSP 3.16
 /// </remarks>
-internal sealed class ChangeAnnotation
+internal class ChangeAnnotation
 {
     /// <summary>
     /// Human-readable string describing the change, rendered in the UI.

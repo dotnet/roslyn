@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal sealed class InsertReplaceEdit
+internal class InsertReplaceEdit
 {
     /// <summary>
     /// Gets or sets the string to be inserted.

@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentChangeRegistrationOptions">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal sealed class TextDocumentChangeRegistrationOptions : TextDocumentRegistrationOptions
+internal class TextDocumentChangeRegistrationOptions : TextDocumentRegistrationOptions
 {
     /// <summary>
     /// How documents are synced to the server. See <see cref="TextDocumentSyncKind.Full"/>

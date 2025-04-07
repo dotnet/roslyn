@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#messageActionItem">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal sealed class MessageActionItem
+internal class MessageActionItem
 {
     /// <summary>
     /// A short title like 'Retry', 'Open Log' etc.

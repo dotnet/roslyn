@@ -14,7 +14,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal sealed class PreviousResultId
+internal class PreviousResultId
 {
     /// <summary>
     /// Gets or sets the URI for which the client knows a result id.

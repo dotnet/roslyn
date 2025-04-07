@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#executeCommandParams">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal sealed class ExecuteCommandParams : IWorkDoneProgressParams
+internal class ExecuteCommandParams : IWorkDoneProgressParams
 {
     /// <summary>
     /// Gets or sets the command identifier associated with the command handler.

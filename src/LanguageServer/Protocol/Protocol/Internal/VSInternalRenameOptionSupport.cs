@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class representing a renaming option for customizing the edit in the 'textDocument/rename' request.
 /// </summary>
-internal sealed class VSInternalRenameOptionSupport
+internal class VSInternalRenameOptionSupport
 {
     /// <summary>
     /// Gets or sets the name that identifies the option.

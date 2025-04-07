@@ -11,7 +11,7 @@ using Roslyn.LanguageServer.Protocol;
 namespace Roslyn.Text.Adornments;
 
 [JsonConverter(typeof(ClassifiedTextElementConverter))]
-internal sealed class ClassifiedTextElement
+internal class ClassifiedTextElement
 {
     public const string TextClassificationTypeName = "text";
 

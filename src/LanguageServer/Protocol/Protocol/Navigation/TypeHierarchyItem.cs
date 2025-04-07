@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal sealed class TypeHierarchyItem
+internal class TypeHierarchyItem
 {
     /// <summary>
     /// The name of this item.

@@ -12,7 +12,7 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#didChangeConfigurationParams">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal sealed class DidChangeConfigurationParams
+internal class DidChangeConfigurationParams
 {
     /// <summary>
     /// Gets or sets the settings that are applicable to the language server.

@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal sealed class DefaultBehaviorPrepareRename
+internal class DefaultBehaviorPrepareRename
 {
     /// <summary>
     /// Gets or sets a value indicating whether the rename position is valid and the client should use its

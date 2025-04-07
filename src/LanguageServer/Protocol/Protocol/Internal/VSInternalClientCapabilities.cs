@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Extension class for ClientCapabilities with fields specific to Visual Studio.
 /// </summary>
-internal sealed class VSInternalClientCapabilities : ClientCapabilities
+internal class VSInternalClientCapabilities : ClientCapabilities
 {
     /// <summary>
     /// Gets or sets a value indicating whether client supports Visual Studio extensions.

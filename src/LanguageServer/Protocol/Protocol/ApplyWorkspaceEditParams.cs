@@ -11,7 +11,7 @@ using System.Text.Json.Serialization;
 ///
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#applyWorkspaceEditParams">Language Server Protocol specification</see> for additional information.
 /// </summary>
-internal sealed class ApplyWorkspaceEditParams
+internal class ApplyWorkspaceEditParams
 {
     /// <summary>
     /// An optional label of the workspace edit. This label is

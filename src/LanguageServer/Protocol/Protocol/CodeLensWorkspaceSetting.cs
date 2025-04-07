@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal sealed class CodeLensWorkspaceSetting
+internal class CodeLensWorkspaceSetting
 {
     /// <summary>
     /// Whether the client implementation supports a refresh request sent from the

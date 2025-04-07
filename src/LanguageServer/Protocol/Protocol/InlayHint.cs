@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal sealed class InlayHint
+internal class InlayHint
 {
     /// <summary>
     /// The position of this hint.

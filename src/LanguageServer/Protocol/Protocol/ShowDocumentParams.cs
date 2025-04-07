@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal sealed class ShowDocumentParams
+internal class ShowDocumentParams
 {
     /// <summary>
     /// The uri to show.

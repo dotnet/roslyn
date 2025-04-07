@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// Indicates why a code action is disabled
 /// </summary>
-sealed class CodeActionDisabledReason
+class CodeActionDisabledReason
 {
 
     /// <summary>

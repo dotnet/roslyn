@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal sealed class DidCloseNotebookDocumentParams
+internal class DidCloseNotebookDocumentParams
 {
 
     /// <summary>

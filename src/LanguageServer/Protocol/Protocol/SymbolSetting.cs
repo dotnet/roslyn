@@ -12,7 +12,7 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workspace_symbol">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal sealed class SymbolSetting : DynamicRegistrationSetting
+internal class SymbolSetting : DynamicRegistrationSetting
 {
     /// <summary>
     /// Specific capabilities for <see cref="SymbolKind"/> in <c>workspace/symbol</c> requests

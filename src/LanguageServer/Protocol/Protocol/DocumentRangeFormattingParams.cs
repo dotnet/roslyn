@@ -12,7 +12,7 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentRangeFormattingParams">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal sealed class DocumentRangeFormattingParams : ITextDocumentParams
+internal class DocumentRangeFormattingParams : ITextDocumentParams
 {
     /// <summary>
     /// Gets or sets the identifier for the text document to be formatted.

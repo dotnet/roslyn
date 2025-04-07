@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal sealed class FoldingRangeSettingOptions
+internal class FoldingRangeSettingOptions
 {
     /// <summary>
     /// If set, the client signals that it supports setting <see cref="FoldingRange.CollapsedText"/>

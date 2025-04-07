@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Represents the <see cref="SymbolKind"/> values that the client supports.
 /// </summary>
-internal sealed class SymbolKindSetting
+internal class SymbolKindSetting
 {
     /// <summary>
     /// The symbol kind values the client supports.

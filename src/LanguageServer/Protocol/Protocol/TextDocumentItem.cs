@@ -12,7 +12,7 @@ using System.Text.Json.Serialization;
 ///
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentItem">Language Server Protocol specification</see> for additional information.
 /// </summary>
-internal sealed class TextDocumentItem
+internal class TextDocumentItem
 {
     /// <summary>
     /// Gets or sets the document URI.

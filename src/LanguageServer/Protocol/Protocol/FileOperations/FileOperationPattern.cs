@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal sealed class FileOperationPattern
+internal class FileOperationPattern
 {
     /// <summary>
     /// The glob pattern to match. Glob patterns can have the following syntax:

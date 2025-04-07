@@ -11,7 +11,7 @@ using System.Text.Json.Serialization;
 ///
 /// See https://github.com/microsoft/vscode/blob/075ba020e8493f40dba89891b1a08453f2c067e9/src/vscode-dts/vscode.proposed.inlineCompletions.d.ts#L48.
 /// </summary>
-internal sealed class VSInternalSelectedCompletionInfo
+internal class VSInternalSelectedCompletionInfo
 {
     /// <summary>
     /// Gets or sets the range of the selected completion item.

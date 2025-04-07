@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class which represents default range of InsertReplaceEdit for the entire completion list
 /// </summary>
-internal sealed class InsertReplaceRange
+internal class InsertReplaceRange
 {
     /// <summary>
     /// Gets or sets the insert range.

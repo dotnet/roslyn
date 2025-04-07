@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal sealed class SemanticTokensRequestsSetting
+internal class SemanticTokensRequestsSetting
 {
     /// <summary>
     /// The client will send the <c>textDocument/semanticTokens/range</c> request

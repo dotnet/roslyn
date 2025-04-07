@@ -10,7 +10,7 @@ using System.Text.Json.Serialization;
 /// A subclass of the VS LSP protocol extension <see cref="VSInternalCompletionList"/> that has a fast serialization path.
 /// </summary>
 [JsonConverter(typeof(OptimizedVSCompletionListJsonConverter))]
-internal sealed class OptimizedVSCompletionList : VSInternalCompletionList
+internal class OptimizedVSCompletionList : VSInternalCompletionList
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="OptimizedVSCompletionList"/> class.

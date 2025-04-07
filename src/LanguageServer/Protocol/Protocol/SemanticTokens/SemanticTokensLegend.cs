@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal sealed class SemanticTokensLegend
+internal class SemanticTokensLegend
 {
     /// <summary>.
     /// The semantic token types the server uses. Indices into this array are used to encode token types in semantic tokens responses.

@@ -15,7 +15,7 @@ using System.Text.Json.Serialization;
 /// </summary>
 /// <remarks>Since LSP 3.13</remarks>
 [Kind("create")]
-internal sealed class CreateFile : IAnnotatedChange
+internal class CreateFile : IAnnotatedChange
 {
     /// <summary>
     /// Gets the kind value.

@@ -10,7 +10,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Extension class for signature help information which contains colorized label information.
 /// </summary>
-internal sealed class VSInternalSignatureInformation : SignatureInformation
+internal class VSInternalSignatureInformation : SignatureInformation
 {
     /// <summary>
     /// Gets or sets the value representing the colorized label.

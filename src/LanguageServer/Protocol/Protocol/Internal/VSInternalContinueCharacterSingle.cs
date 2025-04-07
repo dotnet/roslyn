@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class representing single continue character for completion.
 /// </summary>
-internal sealed class VSInternalContinueCharacterSingle
+internal class VSInternalContinueCharacterSingle
 {
     /// <summary>
     /// Gets the type value.

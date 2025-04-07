@@ -10,7 +10,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Parameter for copilot/_related_documents.
 /// </summary>
-internal sealed class VSInternalRelatedDocumentParams : IPartialResultParams<VSInternalRelatedDocumentReport[]>
+internal class VSInternalRelatedDocumentParams : IPartialResultParams<VSInternalRelatedDocumentReport[]>
 {
     /// <summary>
     /// Gets or sets the document for which the feature is being requested for.
@@ -32,7 +32,7 @@ internal sealed class VSInternalRelatedDocumentParams : IPartialResultParams<VSI
     public IProgress<VSInternalRelatedDocumentReport[]>? PartialResultToken { get; set; }
 }
 
-internal sealed class VSInternalRelatedDocumentReport
+internal class VSInternalRelatedDocumentReport
 {
     [JsonPropertyName("_vs_file_paths")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

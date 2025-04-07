@@ -11,7 +11,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Extension class for <see cref="Protocol.Location"/>.  Used to relay reference text information with colorization.
 /// </summary>
-internal sealed class VSInternalLocation : VSLocation
+internal class VSInternalLocation : VSLocation
 {
     private object? textValue = null;
 

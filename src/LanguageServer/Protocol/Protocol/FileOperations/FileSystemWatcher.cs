@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#fileSystemWatcher">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal sealed class FileSystemWatcher
+internal class FileSystemWatcher
 {
     /// <summary>
     /// The glob pattern to watch. See <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#pattern">Glob Pattern</see>

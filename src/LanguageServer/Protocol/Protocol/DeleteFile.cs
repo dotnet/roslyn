@@ -15,7 +15,7 @@ using System.Text.Json.Serialization;
 /// </summary>
 /// <remarks>Since LSP 3.13</remarks>
 [Kind("delete")]
-internal sealed class DeleteFile : IAnnotatedChange
+internal class DeleteFile : IAnnotatedChange
 {
     /// <summary>
     /// Gets the kind value.

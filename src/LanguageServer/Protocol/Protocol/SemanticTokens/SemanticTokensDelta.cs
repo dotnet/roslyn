@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal sealed class SemanticTokensDelta
+internal class SemanticTokensDelta
 {
     /// <summary>
     /// The ID of this result, which can then be used as a base for future deltas.

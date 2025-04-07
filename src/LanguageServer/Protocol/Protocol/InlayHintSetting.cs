@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal sealed class InlayHintSetting : DynamicRegistrationSetting
+internal class InlayHintSetting : DynamicRegistrationSetting
 {
     /// <summary>
     /// Indicates which properties a client can resolve lazily on an inlay hint.

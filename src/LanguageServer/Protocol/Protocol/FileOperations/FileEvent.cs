@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#fileEvent">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal sealed class FileEvent
+internal class FileEvent
 {
     /// <summary>
     /// Gets or sets the URI of the file.

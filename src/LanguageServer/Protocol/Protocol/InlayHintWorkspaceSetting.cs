@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal sealed class InlayHintWorkspaceSetting
+internal class InlayHintWorkspaceSetting
 {
     /// <summary>
     /// Gets or sets a value indicating whether the client supports a refresh request sent from the server to the client.

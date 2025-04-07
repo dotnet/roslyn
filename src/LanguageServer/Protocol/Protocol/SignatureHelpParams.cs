@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#signatureHelpParams">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal sealed class SignatureHelpParams : TextDocumentPositionParams, IWorkDoneProgressParams
+internal class SignatureHelpParams : TextDocumentPositionParams, IWorkDoneProgressParams
 {
     /// <summary>
     /// The signature help context.

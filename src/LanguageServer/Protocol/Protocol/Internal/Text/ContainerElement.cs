@@ -11,7 +11,7 @@ using Roslyn.LanguageServer.Protocol;
 namespace Roslyn.Text.Adornments;
 
 [JsonConverter(typeof(ContainerElementConverter))]
-internal sealed class ContainerElement
+internal class ContainerElement
 {
     public IEnumerable<object> Elements { get; }
 

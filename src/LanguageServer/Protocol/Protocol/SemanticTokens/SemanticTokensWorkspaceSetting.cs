@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal sealed class SemanticTokensWorkspaceSetting
+internal class SemanticTokensWorkspaceSetting
 {
     /// <summary>
     /// Gets or sets a value indicating whether the client implementation

@@ -10,7 +10,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class that contains the base kind and modifiers used to describe a response item.
 /// </summary>
-internal sealed class VSInternalKindAndModifier : IEquatable<VSInternalKindAndModifier>
+internal class VSInternalKindAndModifier : IEquatable<VSInternalKindAndModifier>
 {
     /// <summary>
     /// Gets or sets the ImageIds for a certain kind.

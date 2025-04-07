@@ -11,6 +11,6 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal sealed class InlineValueClientCapability : DynamicRegistrationSetting
+internal class InlineValueClientCapability : DynamicRegistrationSetting
 {
 }

@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#markdownClientCapabilities">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// <remarks>Since LSP 3.16</remarks>
-internal sealed class MarkdownClientCapabilities
+internal class MarkdownClientCapabilities
 {
     /// <summary>
     /// The name of the parser.

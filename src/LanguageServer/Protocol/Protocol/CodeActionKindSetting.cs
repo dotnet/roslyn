@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.8</remarks>
-internal sealed class CodeActionKindSetting
+internal class CodeActionKindSetting
 {
     /// <summary>
     /// Gets or sets the code actions kinds the client supports.

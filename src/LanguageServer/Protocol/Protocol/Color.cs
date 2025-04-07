@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.6</remarks>
-internal sealed class Color
+internal class Color
 {
     /// <summary>
     /// Gets or sets the Red value.

@@ -10,7 +10,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Response class when asking server to resolve the rendering information of a string kind.
 /// </summary>
-internal sealed class VSInternalIconMapping : IEquatable<VSInternalIconMapping>
+internal class VSInternalIconMapping : IEquatable<VSInternalIconMapping>
 {
     /// <summary>
     /// Gets or sets the ImageElements for a certain kind.

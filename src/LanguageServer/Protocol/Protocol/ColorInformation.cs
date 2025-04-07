@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.6</remarks>
-internal sealed class ColorInformation
+internal class ColorInformation
 {
     /// <summary>
     /// Gets or sets the text range representing the color.

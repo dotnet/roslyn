@@ -12,7 +12,7 @@ using System.Text.Json.Serialization;
 ///
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#publishDiagnosticsParams">Language Server Protocol specification</see> for additional information.
 /// </summary>
-internal sealed class PublishDiagnosticParams
+internal class PublishDiagnosticParams
 {
     /// <summary>
     /// Gets or sets the URI of the text document.

@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class representing range of characters for completion continuation.
 /// </summary>
-internal sealed class VSInternalContinueCharacterRange
+internal class VSInternalContinueCharacterRange
 {
     /// <summary>
     /// Gets the type value.

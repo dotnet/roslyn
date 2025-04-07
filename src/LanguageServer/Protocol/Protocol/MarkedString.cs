@@ -27,7 +27,7 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#markedString">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal sealed class MarkedString
+internal class MarkedString
 {
     // Code has to reference MarkedString in a SumType even if it's not using the class itself.
     // This means that if we deprecate the type itself, referencing code would have to suppress

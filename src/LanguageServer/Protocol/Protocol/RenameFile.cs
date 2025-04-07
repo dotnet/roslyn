@@ -15,7 +15,7 @@ using System.Text.Json.Serialization;
 /// </summary>
 /// <remarks>Since LSP 3.13</remarks>
 [Kind("rename")]
-internal sealed class RenameFile : IAnnotatedChange
+internal class RenameFile : IAnnotatedChange
 {
     /// <summary>
     /// Gets the kind value.

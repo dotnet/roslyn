@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal sealed class CallHierarchyOutgoingCall
+internal class CallHierarchyOutgoingCall
 {
     /// <summary>
     /// The <see cref="CallHierarchyItem"/> for which to return outgoing calls

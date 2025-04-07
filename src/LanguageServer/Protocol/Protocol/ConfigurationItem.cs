@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#configurationItem">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal sealed class ConfigurationItem
+internal class ConfigurationItem
 {
     /// <summary>
     /// Gets or sets the scope to get the configuration section for.

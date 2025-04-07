@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal sealed class RenameFilesParams
+internal class RenameFilesParams
 {
     /// <summary>
     /// An array of all files/folders renamed in this operation. When a folder

@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.14</remarks>
-internal sealed class ParameterInformationSetting
+internal class ParameterInformationSetting
 {
     /// <summary>
     /// The client supports processing label offsets instead of a simple label string.

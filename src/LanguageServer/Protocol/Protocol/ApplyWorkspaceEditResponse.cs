@@ -12,7 +12,7 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#applyWorkspaceEditResult">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal sealed class ApplyWorkspaceEditResponse
+internal class ApplyWorkspaceEditResponse
 {
     /// <summary>
     /// Indicates whether the edit was applied or not.

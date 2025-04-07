@@ -16,7 +16,7 @@ using System.Text.Json.Serialization;
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
 [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1036:Override methods on comparable types", Justification = "Pending implementation of IComparable")]
-internal sealed class SemanticTokensEdit : IComparable<SemanticTokensEdit>
+internal class SemanticTokensEdit : IComparable<SemanticTokensEdit>
 {
     /// <summary>
     /// Gets or sets the position in the previous response's <see cref="SemanticTokens.Data"/>

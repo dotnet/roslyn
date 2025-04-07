@@ -11,7 +11,7 @@ using System.Text.Json.Serialization;
 ///
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#registration">Language Server Protocol specification</see> for additional information.
 /// </summary>
-internal sealed class Registration
+internal class Registration
 {
     /// <summary>
     /// Gets or sets the id used to register the request. This can be used to deregister later.

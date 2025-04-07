@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.15</remarks>
-internal sealed class WorkDoneProgressBegin : WorkDoneProgress
+internal class WorkDoneProgressBegin : WorkDoneProgress
 {
     // NOTE: the kind property from the spec is used as a JsonPolymorphic discriminator on the base type
 

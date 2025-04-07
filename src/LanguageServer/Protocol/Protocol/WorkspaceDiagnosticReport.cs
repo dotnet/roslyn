@@ -12,7 +12,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal sealed class WorkspaceDiagnosticReport
+internal class WorkspaceDiagnosticReport
 {
     /// <summary>
     /// Gets or sets the items in this diagnostic report.

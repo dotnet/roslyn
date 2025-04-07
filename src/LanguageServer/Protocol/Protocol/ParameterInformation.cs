@@ -15,7 +15,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 [JsonConverter(typeof(ParameterInformationConverter))]
-internal sealed class ParameterInformation
+internal class ParameterInformation
 {
     /// <summary>
     /// The label of this parameter information.
