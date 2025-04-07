@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Reflection;
-using System.ServiceModel.Syndication;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -504,6 +503,40 @@ public sealed partial class ServiceHubServicesTests
             "HandlerName", jsonMessage: "0", CancellationToken.None));
         Assert.Null(fatalRpcErrorMessage);
         Assert.True(handlerWasCalled);
+    }
+
+    [Fact]
+    public async Task TestExtensionMessageHandlerService_HandleExtensionMessage_ValidateHandlerResponse()
+    {
+        using var localWorkspace = CreateWorkspace(additionalRemoteParts:
+            [typeof(TestExtensionAssemblyLoaderProvider), typeof(TestExtensionMessageHandlerFactory)]);
+
+        var handlerWasCalled = false;
+        await RegisterTestHandlers(
+            localWorkspace,
+            (_, _, _) => [],
+            (_, _, _) => [new TestHandler<Document>(
+                "HandlerName",
+                (_, _, _) =>
+                {
+                    handlerWasCalled = true;
+                    return 1;
+                })]);
+
+        var extensionMessageHandlerService = localWorkspace.Services.GetRequiredService<IExtensionMessageHandlerService>();
+
+        string? fatalRpcErrorMessage = null;
+        var errorReportingService = (TestErrorReportingService)localWorkspace.Services.GetRequiredService<IErrorReportingService>();
+        errorReportingService.OnError = message => fatalRpcErrorMessage = message;
+
+        // An cancellation exception thrown by the handler should be reported as a normal cancellation exception, and
+        // should not be a fatal rpc error.
+        var result = await extensionMessageHandlerService.HandleExtensionDocumentMessageAsync(
+            localWorkspace.CurrentSolution.Projects.Single().Documents.Single(),
+            "HandlerName", jsonMessage: "0", CancellationToken.None);
+        Assert.Null(fatalRpcErrorMessage);
+        Assert.True(handlerWasCalled);
+        Assert.Equal("1", result.Response);
     }
 
     [PartNotDiscoverable]
