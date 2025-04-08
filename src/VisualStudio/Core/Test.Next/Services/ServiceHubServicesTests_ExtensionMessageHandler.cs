@@ -609,6 +609,58 @@ public sealed partial class ServiceHubServicesTests
         Assert.True(result.ExtensionWasUnloaded);
     }
 
+    [Fact]
+    public async Task TestExtensionMessageHandlerService_RegisteringMultipleHandlersWithSameName()
+    {
+        using var localWorkspace = CreateWorkspace(additionalRemoteParts:
+            [typeof(TestExtensionAssemblyLoaderProvider), typeof(TestExtensionMessageHandlerFactory)]);
+
+        localWorkspace.SetCurrentSolution(solution =>
+        {
+            return AddProject(solution, LanguageNames.CSharp, ["// empty"]);
+        }, WorkspaceChangeKind.SolutionChanged);
+
+        var assemblyLoaderProvider = await GetRemoteAssemblyLoaderProvider(localWorkspace);
+        var handlerFactory = await GetRemoteAssemblyHandlerFactory(localWorkspace);
+
+        handlerFactory.CreateDocumentMessageHandlersCallback = (_, _, _) => [new TestHandler<Document>("HandlerName")];
+        handlerFactory.CreateWorkspaceMessageHandlersCallback = (_, _, _) => [];
+
+        // Make a basic loader that just returns null for the assembly.
+        var assemblyLoader = new Mock<IExtensionAssemblyLoader>(MockBehavior.Loose);
+        assemblyLoader.Setup(loader => loader.LoadFromPath(It.IsAny<string>())).Returns((Assembly?)null!);
+        assemblyLoaderProvider.CreateNewShadowCopyLoaderCallback = (_, _) => (assemblyLoader.Object, extensionException: null);
+
+        string? fatalRpcErrorMessage = null;
+        var errorReportingService = (TestErrorReportingService)localWorkspace.Services.GetRequiredService<IErrorReportingService>();
+        errorReportingService.OnError = message => fatalRpcErrorMessage = message;
+
+        // Multiple registration won't fail.
+
+        var extensionMessageHandlerService = localWorkspace.Services.GetRequiredService<IExtensionMessageHandlerService>();
+        await extensionMessageHandlerService.RegisterExtensionAsync("TempPath1", CancellationToken.None);
+        Assert.Null(fatalRpcErrorMessage);
+
+        await extensionMessageHandlerService.RegisterExtensionAsync("TempPath2", CancellationToken.None);
+        Assert.Null(fatalRpcErrorMessage);
+
+        var messageNames1 = await extensionMessageHandlerService.GetExtensionMessageNamesAsync("TempPath1", CancellationToken.None);
+        Assert.Null(fatalRpcErrorMessage);
+
+        var messageNames2 = await extensionMessageHandlerService.GetExtensionMessageNamesAsync("TempPath2", CancellationToken.None);
+        Assert.Null(fatalRpcErrorMessage);
+
+        Assert.Contains("HandlerName", messageNames1.DocumentMessageHandlers);
+        Assert.Contains("HandlerName", messageNames2.DocumentMessageHandlers);
+
+        // We'll only fail if we try to invoke the handler.
+        await extensionMessageHandlerService.HandleExtensionDocumentMessageAsync(
+            localWorkspace.CurrentSolution.Projects.Single().Documents.Single(),
+            "HandlerName", jsonMessage: "0", CancellationToken.None);
+        Assert.NotNull(fatalRpcErrorMessage);
+        Assert.Contains(nameof(InvalidOperationException), fatalRpcErrorMessage);
+    }
+
     [PartNotDiscoverable]
     [ExportWorkspaceService(typeof(IExtensionAssemblyLoaderProvider), ServiceLayer.Test), Shared]
     [method: ImportingConstructor]
