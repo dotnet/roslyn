@@ -166,10 +166,16 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                     ExtensionException: handlers.ExtensionException);
             }
 
-            public void AddHandlers(string messageName, bool isSolution, ArrayBuilder<IExtensionMessageHandlerWrapper> result)
+            public void AddHandlers(
+                string messageName,
+                bool isSolution,
+                ArrayBuilder<IExtensionMessageHandlerWrapper> result,
+                CancellationToken cancellationToken)
             {
                 foreach (var (_, lazyHandler) in _assemblyFilePathToHandlers)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     // Note1: We will only be adding handlers for for the specific messageName we're being asked for.
                     // However that message name will only be known for extensions we've actually loaded handlers for.
                     // So we can just synchronously only process lazyHandlers that have values already computed for

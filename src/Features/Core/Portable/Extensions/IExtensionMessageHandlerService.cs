@@ -19,12 +19,21 @@ internal readonly record struct ExtensionMessageNames(
     // available on the other side.
     [property: DataMember(Order = 2)] Exception? ExtensionException);
 
+/// <param name="Response">The result value the extension produced, converted to Json using JsonSerializer.Serialize. On
+/// the object value returned from <see cref="IExtensionMessageHandlerWrapper{TArgument}.ExecuteAsync"/>.  Can be <see
+/// langword="null"/> if the extension was unloaded, or there was an extension thrown by the extension.  If the
+/// extension actually returns <see langword="null"/> then that will be encoded into Json as <c>"null"</c>.</param>
+/// <param name="ExtensionWasUnloaded">If the extension the message was called for was previously unloaded and is no longer
+/// available to perform the request.</param>
+/// <param name="ExtensionException">Any exception produced by the extension itself during <see
+/// cref="IExtensionMessageHandlerWrapper{TArgument}.ExecuteAsync"/>.</param>
 [DataContract]
 internal readonly record struct ExtensionMessageResult(
-    [property: DataMember(Order = 0)] string Response,
+    [property: DataMember(Order = 0)] string? Response,
+    [property: DataMember(Order = 1)] bool ExtensionWasUnloaded,
     // Note: ServiceHub supports translating *all* exceptions over the wire.  Even exceptions whose types are not
     // available on the other side.
-    [property: DataMember(Order = 1)] Exception? ExtensionException);
+    [property: DataMember(Order = 2)] Exception? ExtensionException);
 
 /// <summary>
 /// This service is used to register, unregister and execute extension message handlers.

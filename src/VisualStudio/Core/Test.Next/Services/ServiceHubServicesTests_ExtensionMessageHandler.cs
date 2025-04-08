@@ -593,6 +593,42 @@ public sealed partial class ServiceHubServicesTests
         Assert.Equal("1", result.Response);
     }
 
+    [Fact]
+    public async Task TestExtensionMessageHandlerService_HandleExtensionMessage_CalledAfterUnregister()
+    {
+        using var localWorkspace = CreateWorkspace(additionalRemoteParts:
+            [typeof(TestExtensionAssemblyLoaderProvider), typeof(TestExtensionMessageHandlerFactory)]);
+
+        var handlerWasCalled = false;
+        await RegisterTestHandlers(
+            localWorkspace,
+            (_, _, _) => [],
+            (_, _, _) => [new TestHandler<Document>(
+                "HandlerName",
+                (_, _, _) =>
+                {
+                    handlerWasCalled = true;
+                    return 1;
+                })]);
+
+        var extensionMessageHandlerService = localWorkspace.Services.GetRequiredService<IExtensionMessageHandlerService>();
+
+        string? fatalRpcErrorMessage = null;
+        var errorReportingService = (TestErrorReportingService)localWorkspace.Services.GetRequiredService<IErrorReportingService>();
+        errorReportingService.OnError = message => fatalRpcErrorMessage = message;
+
+        await extensionMessageHandlerService.UnregisterExtensionAsync("TempPath", CancellationToken.None);
+        Assert.Null(fatalRpcErrorMessage);
+        Assert.False(handlerWasCalled);
+
+        var result = await extensionMessageHandlerService.HandleExtensionDocumentMessageAsync(
+            localWorkspace.CurrentSolution.Projects.Single().Documents.Single(),
+            "HandlerName", jsonMessage: "0", CancellationToken.None);
+        Assert.Null(fatalRpcErrorMessage);
+        Assert.False(handlerWasCalled);
+        Assert.True(result.ExtensionWasUnloaded);
+    }
+
     [PartNotDiscoverable]
     [ExportWorkspaceService(typeof(IExtensionAssemblyLoaderProvider), ServiceLayer.Test), Shared]
     [method: ImportingConstructor]

@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Extensions;
 
 using HandlerWrappers = ImmutableArray<IExtensionMessageHandlerWrapper>;
-using CachedHandlers = Dictionary<string, Lazy<ImmutableArray<IExtensionMessageHandlerWrapper>>>;
+using CachedHandlers = Dictionary<string, AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper>>>;
 
 internal sealed partial class ExtensionMessageHandlerServiceFactory
 {
@@ -114,15 +114,22 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                     ClearCachedHandlers_WhileUnderLock();
 
                     var (removeFolder, lazyHandlers) = extensionFolder.UnregisterAssembly(assemblyFilePath);
-                    
-                    // Add the names of the handlers we loaded for this extension to the unloaded handler set.
-                    // That way if we see a call to them in the future, we can report an appropriate message 
+
+                    // Add the names of the handlers we loaded for this extension to the unloaded handler set. That way
+                    // if we see a call to them in the future, we can report an appropriate message that the extension
+                    // is no longer loaded.
+                    if (lazyHandlers.TryGetValue(out var handlers))
+                    {
+                        _unregisteredHandlerNames_useOnlyUnderLock.workspace.UnionWith(handlers.WorkspaceMessageHandlers.Keys);
+                        _unregisteredHandlerNames_useOnlyUnderLock.document.UnionWith(handlers.DocumentMessageHandlers.Keys);
+                    }
 
                     // If we're not done with the folder.  Return null so our caller doesn't unload anything.
+                    // Otherwise, this was the last extension in the folder.  Remove our folder registration entirely,
+                    // and return it so the caller can unload it.
+                    if (!removeFolder)
+                        return null;
 
-
-                    // Last extension in the folder.  Remove our folder registration entirely, and return it so the
-                    // caller can unload it.
                     _folderPathToExtensionFolder = _folderPathToExtensionFolder.Remove(assemblyFolderPath);
                     return extensionFolder;
                 }
@@ -171,25 +178,41 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             CachedHandlers cachedHandlers,
             CancellationToken cancellationToken)
         {
-            Lazy<HandlerWrappers> lazyHandlers;
+            AsyncLazy<HandlerWrappers> lazyHandlers;
+            var potentiallyRefersToUnregisteredHandlerName = false;
             lock (_gate)
             {
                 // May be called a lot.  So we use the non-allocating form of this lookup pattern.
                 lazyHandlers = cachedHandlers.GetOrAdd(
                     messageName,
-                    static (messageName, arg) => new Lazy<HandlerWrappers>(
-                        () => arg.@this.ComputeHandlers(arg.messageName, arg.isSolution),
-                        LazyThreadSafetyMode.PublicationOnly),
+                    static (messageName, arg) => AsyncLazy.Create(
+                        static (arg, cancellationToken) => arg.@this.ComputeHandlers(arg.messageName, arg.isSolution, cancellationToken),
+                        arg),
                     (messageName, @this: this, isSolution));
+
+                var unregisteredHandlerNames = isSolution
+                    ? _unregisteredHandlerNames_useOnlyUnderLock.workspace
+                    : _unregisteredHandlerNames_useOnlyUnderLock.document;
+                potentiallyRefersToUnregisteredHandlerName = unregisteredHandlerNames.Contains(messageName);
             }
 
-            var handlers = lazyHandlers.Value;
+            var handlers = await lazyHandlers.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
-            // Throwing here indicates a bug in the gladstone client itself (as it allowed calling into an lsp message
-            // that has no registered handlers).  So we want this to bubble outwards as a failure that disables
-            // extension running in the OOP process.  This must be fixed by gladstone.
             if (handlers.Length == 0)
+            {
+                // It's ok to find no handlers *if* this was the name of a handler that was previously unloaded. As
+                // gladstone allows unloads to happen concurrently with calls to handlers, it's possible that we may
+                // unload first, then receive a call to the handler.  In that case, just report back to the client what
+                // happened and let them decide what to do.
+                if (potentiallyRefersToUnregisteredHandlerName)
+                    return new(Response: null, ExtensionWasUnloaded: true, ExtensionException: null);
+
+                // Otherwise, if this was not the name of a handler that was unloaded, then we throw ad this indicates a
+                // bug in the gladstone client itself (as it allowed calling into an lsp message that never had
+                // registered handlers).  So we want this to bubble outwards as a failure that disables extension
+                // running in the OOP process.  This must be fixed by gladstone.
                 throw new InvalidOperationException($"No handler found for message {messageName}.");
+            }
 
             // Throwing here indicates a bug in the gladstone client itself (as it allowed calling into an lsp message
             // that had multiple registered handlers).  So we want this to bubble outwards as a failure that disables
@@ -206,20 +229,23 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             {
                 var message = JsonSerializer.Deserialize(jsonMessage, handler.MessageType);
                 var result = await handler.ExecuteAsync(message, executeArgument, cancellationToken).ConfigureAwait(false);
-                return new(JsonSerializer.Serialize(result, handler.ResponseType), ExtensionException: null);
+                return new(JsonSerializer.Serialize(result, handler.ResponseType), ExtensionWasUnloaded: false, ExtensionException: null);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                return new(Response: "", ExtensionException: ex);
+                return new(Response: "", ExtensionWasUnloaded: false, ExtensionException: ex);
             }
         }
 
-        private HandlerWrappers ComputeHandlers(string messageName, bool isSolution)
+        private HandlerWrappers ComputeHandlers(string messageName, bool isSolution, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<IExtensionMessageHandlerWrapper>.GetInstance(out var result);
 
             foreach (var (_, extensionFolder) in _folderPathToExtensionFolder)
-                extensionFolder.AddHandlers(messageName, isSolution, result);
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                extensionFolder.AddHandlers(messageName, isSolution, result, cancellationToken);
+            }
 
             return result.ToImmutable();
         }
