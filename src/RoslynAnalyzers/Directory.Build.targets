@@ -17,6 +17,12 @@
       Release tables use borders and need https://github.com/dotnet/roslyn-analyzers/pull/7466 to be valid.
     -->
     <NoWarn>$(NoWarn);RS2007</NoWarn>
+
+    <!--
+      Disabled TransitivePinning to workaround source-build issues in SDK insertions.
+      A proper fix is being tracked by https://github.com/dotnet/roslyn/issues/78036
+    -->
+    <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
 
   <!-- Add License and Third Party Notices files into each VSIX. -->
