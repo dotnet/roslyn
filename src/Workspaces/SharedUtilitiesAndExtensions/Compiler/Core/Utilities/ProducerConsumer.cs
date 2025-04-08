@@ -259,6 +259,9 @@ internal static class ProducerConsumer<TItem>
             cancellationToken);
     }
 
+    /// <summary>
+    /// Version of <see cref="RunChannelAsync"/> when caller the prefers to just push all the results into a channel
+    /// that it receives in the return value to process asynchronously.
     public static async IAsyncEnumerable<TItem> RunAsync<TArgs>(
         Func<Action<TItem>, TArgs, CancellationToken, Task> produceItems,
         TArgs args,
