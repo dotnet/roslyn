@@ -3153,8 +3153,14 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="The_query_specifies_multiple_top_level_functions_1" xml:space="preserve">
     <value>The query specifies multiple top-level functions '{1}'</value>
   </data>
-  <data name="Type_0_is_not_among_supported_types_1" xml:space="preserve">
-    <value>Type '{0}' is not among supported types: {1}</value>
+  <data name="Top_level_function_0_must_have_a_single_parameter" xml:space="preserve">
+    <value>Top-level function '{0}' must have a single parameter</value>
+  </data>
+  <data name="Parameter_type_0_is_not_among_supported_types_1" xml:space="preserve">
+    <value>Parameter type '{0}' is not among supported types: {1}</value>
+  </data>
+  <data name="Return_type_0_is_not_among_supported_types_1" xml:space="preserve">
+    <value>Return type '{0}' is not among supported types: {1}</value>
   </data>
   <data name="Unable_to_load_type_0_1" xml:space="preserve">
     <value>Unable to load type '{0}': '{1}'</value>
@@ -3198,5 +3204,26 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Convert_to_field_property" xml:space="preserve">
     <value>Convert to 'field' property</value>
     <comment>{Locked="field"} "field" is C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Extension_0_is_already_registered" xml:space="preserve">
+    <value>Extension '{0}' is already registered.</value>
+  </data>
+  <data name="Extension_0_was_not_registered" xml:space="preserve">
+    <value>Extension '{0}' was not registered.</value>
+  </data>
+  <data name="Unable_to_get_the_directory_name_for_0" xml:space="preserve">
+    <value>Unable to get the directory name for {0}.</value>
+  </data>
+  <data name="No_extension_registered_as_0" xml:space="preserve">
+    <value>No extension registered as '{0}'.</value>
+  </data>
+  <data name="No_extensions_registered_at_0" xml:space="preserve">
+    <value>No extensions registered at '{0}'.</value>
+  </data>
+  <data name="No_handler_found_for_message_0" xml:space="preserve">
+    <value>No handler found for message {0}.</value>
+  </data>
+  <data name="Multiple_handlers_found_for_message_0" xml:space="preserve">
+    <value>Multiple handlers found for message {0}.</value>
   </data>
 </root>
