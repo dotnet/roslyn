@@ -14,6 +14,9 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 internal class DidChangeWatchedFilesClientCapabilities : DynamicRegistrationSetting
 {
+    /// <remarks>
+    /// Do not seal this class. It is intended to be an extensible LSP type through IVT.
+    /// </remarks>
     /// <summary>
     /// Whether the client has support for relative patterns.
     /// </summary>

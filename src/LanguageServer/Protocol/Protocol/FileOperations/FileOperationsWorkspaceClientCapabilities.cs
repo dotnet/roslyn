@@ -9,6 +9,9 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// The client's capabilities for file requests/notifications.
 /// </summary>
+/// <remarks>
+/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
+/// </remarks>
 internal class FileOperationsWorkspaceClientCapabilities
 {
     /// <summary>
