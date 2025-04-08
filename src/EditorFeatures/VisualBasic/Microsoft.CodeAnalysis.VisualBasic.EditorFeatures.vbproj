@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <RootNamespace>Microsoft.CodeAnalysis.Editor.VisualBasic</RootNamespace>
+    <RootNamespace></RootNamespace>
     <UseWpf>true</UseWpf>
     <TargetFramework>net472</TargetFramework>
     <!--Temporarily bypass ibcmerge due to an error
