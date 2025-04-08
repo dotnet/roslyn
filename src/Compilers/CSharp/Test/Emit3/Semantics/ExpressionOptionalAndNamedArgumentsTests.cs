@@ -739,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             else if (useExpression)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (5,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    // (5,28): error CS9307: An expression tree may not contain a named argument specification out of position
                     //         Utils.Report(() => A.GetFirst<int>(second:2, first: 1));
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetFirst<int>(second:2, first: 1)").WithLocation(5, 28));
             }
@@ -902,22 +902,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             else if (useExpression)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (5,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    // (5,28): error CS9307: An expression tree may not contain a named argument specification out of position
                     //         Utils.Report(() => A.GetFirst<object>(third:3, second: 2, first: 1));
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetFirst<object>(third:3, second: 2, first: 1)").WithLocation(5, 28),
-                    // (6,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    // (6,28): error CS9307: An expression tree may not contain a named argument specification out of position
                     //         Utils.Report(() => A.GetFirst<object>(second:2, first: 1));
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetFirst<object>(second:2, first: 1)").WithLocation(6, 28),
-                    // (7,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    // (7,28): error CS9307: An expression tree may not contain a named argument specification out of position
                     //         Utils.Report(() => A.GetFirst<object>(second:2, third: 3));
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetFirst<object>(second:2, third: 3)").WithLocation(7, 28),
-                    // (8,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    // (8,28): error CS9307: An expression tree may not contain a named argument specification out of position
                     //         Utils.Report(() => A.GetFirst<object>(second:2));
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetFirst<object>(second:2)").WithLocation(8, 28),
-                    // (9,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    // (9,28): error CS9307: An expression tree may not contain a named argument specification out of position
                     //         Utils.Report(() => A.GetFirst<object>(third:3, second: 2));
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetFirst<object>(third:3, second: 2)").WithLocation(9, 28),
-                    // (10,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    // (10,28): error CS9307: An expression tree may not contain a named argument specification out of position
                     //         Utils.Report(() => A.GetFirst<object>(third:3));
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetFirst<object>(third:3)").WithLocation(10, 28));
             }
@@ -1034,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             else if (useExpression)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (5,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    // (5,28): error CS9307: An expression tree may not contain a named argument specification out of position
                     //         Utils.Report(() => A.GetFirstAndParamsLength(more: default, first: 1));
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetFirstAndParamsLength(more: default, first: 1)").WithLocation(5, 28));
             }
@@ -1234,25 +1234,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             else if (useExpression)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (6,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    // (6,28): error CS9307: An expression tree may not contain a named argument specification out of position
                     //         Utils.Report(() => A.GetSecondAndParamsLength(first: 1, more: default, second: 2));
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetSecondAndParamsLength(first: 1, more: default, second: 2)").WithLocation(6, 28),
-                    // (7,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    // (7,28): error CS9307: An expression tree may not contain a named argument specification out of position
                     //         Utils.Report(() => A.GetSecondAndParamsLength(first: 1, more: default));
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetSecondAndParamsLength(first: 1, more: default)").WithLocation(7, 28),
-                    // (8,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    // (8,28): error CS9307: An expression tree may not contain a named argument specification out of position
                     //         Utils.Report(() => A.GetSecondAndParamsLength(second: 2));
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetSecondAndParamsLength(second: 2)").WithLocation(8, 28),
-                    // (9,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    // (9,28): error CS9307: An expression tree may not contain a named argument specification out of position
                     //         Utils.Report(() => A.GetSecondAndParamsLength(second: 2, first: 1));
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetSecondAndParamsLength(second: 2, first: 1)").WithLocation(9, 28),
-                    // (10,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    // (10,28): error CS9307: An expression tree may not contain a named argument specification out of position
                     //         Utils.Report(() => A.GetSecondAndParamsLength(second: 2, more: default));
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetSecondAndParamsLength(second: 2, more: default)").WithLocation(10, 28),
-                    // (11,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    // (11,28): error CS9307: An expression tree may not contain a named argument specification out of position
                     //         Utils.Report(() => A.GetSecondAndParamsLength(more: new[] { 3, 4 }));
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetSecondAndParamsLength(more: new[] { 3, 4 })").WithLocation(11, 28),
-                    // (12,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    // (12,28): error CS9307: An expression tree may not contain a named argument specification out of position
                     //         Utils.Report(() => A.GetSecondAndParamsLength(more: new[] { 3, 4 }, second: 2, first: 1));
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetSecondAndParamsLength(more: new[] { 3, 4 }, second: 2, first: 1)").WithLocation(12, 28));
             }
@@ -1390,10 +1390,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             else if (useExpression)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (5,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    // (5,28): error CS9307: An expression tree may not contain a named argument specification out of position
                     //         Utils.Report(() => A.GetFirst(second: 2, first: 1));
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetFirst(second: 2, first: 1)").WithLocation(5, 28),
-                    // (6,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    // (6,28): error CS9307: An expression tree may not contain a named argument specification out of position
                     //         Utils.Report(() => A.GetFirst(first: "one", second: "two"));
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, @"A.GetFirst(first: ""one"", second: ""two"")").WithLocation(6, 28));
             }
@@ -1569,7 +1569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             else if (useExpression)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (6,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    // (6,28): error CS9307: An expression tree may not contain a named argument specification out of position
                     //         Utils.Report(() => new A(y: ref y, x: "one"));
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, @"new A(y: ref y, x: ""one"")").WithLocation(6, 28));
             }
@@ -1673,10 +1673,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             else if (useExpression)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (7,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    // (7,28): error CS9307: An expression tree may not contain a named argument specification out of position
                     //         Utils.Report(() => a[y: "one", x: 1]);
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, @"a[y: ""one"", x: 1]").WithLocation(7, 28),
-                    // (8,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    // (8,28): error CS9307: An expression tree may not contain a named argument specification out of position
                     //         Utils.Report(() => a[y: in y, x: 2]);
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "a[y: in y, x: 2]").WithLocation(8, 28));
             }
@@ -1773,7 +1773,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             else if (useExpression)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (6,28): error CS9300: An expression tree may not contain a named argument specification out of position
+                    // (6,28): error CS9307: An expression tree may not contain a named argument specification out of position
                     //         Utils.Report(() => d(y:"one", x:1));
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, @"d(y:""one"", x:1)").WithLocation(6, 28));
             }
@@ -1834,7 +1834,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (13,19): error CS8110: An expression tree may not contain a reference to a local function
                     //         e = () => GetFirst(1, second: 2);
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, "GetFirst(1, second: 2)").WithLocation(13, 19),
-                    // (14,19): error CS9300: An expression tree may not contain a named argument specification out of position
+                    // (14,19): error CS9307: An expression tree may not contain a named argument specification out of position
                     //         e = () => GetFirst(second: 2, first: 1);
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "GetFirst(second: 2, first: 1)").WithLocation(14, 19));
             }
