@@ -16,8 +16,11 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 internal abstract class SettingsUpdaterBase<TOption, TValue> : ISettingUpdater<TOption, TValue>
 {
     private readonly List<(TOption option, TValue value)> _queue = [];
-    private readonly SemaphoreSlim _guard = new(1);
     private readonly IAsynchronousOperationListener _listener;
+#pragma warning disable RS0030 // Do not use banned APIs
+    private readonly SemaphoreSlim _guard = new(initialCount: 1);
+#pragma warning restore RS0030 // Do not use banned APIs
+
     protected readonly Workspace Workspace;
     protected readonly string EditorconfigPath;
 
