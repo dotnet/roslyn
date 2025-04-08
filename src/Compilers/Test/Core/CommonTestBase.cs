@@ -76,6 +76,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Action<IModuleSymbol>? sourceSymbolValidator = null,
             Action<PEAssembly>? assemblyValidator = null,
             Action<IModuleSymbol>? symbolValidator = null,
+            Action<int, string, string> executionValidator = null,
             SignatureDescription[]? expectedSignatures = null,
             string? expectedOutput = null,
             bool trimOutput = true,
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.NotNull(compilation);
 
-            Assert.True(expectedOutput == null ||
+            Assert.True(executionValidator == null ||
                 (compilation.Options.OutputKind == OutputKind.ConsoleApplication || compilation.Options.OutputKind == OutputKind.WindowsApplication),
                 "Compilation must be executable if output is expected.");
 
@@ -102,12 +103,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 dependencies,
                                 manifestResources,
                                 expectedSignatures,
-                                expectedOutput,
-                                trimOutput,
-                                expectedReturnCode,
-                                args,
                                 assemblyValidator,
                                 symbolValidator,
+                                args,
+                                executionValidator,
                                 emitOptions,
                                 verify);
 
@@ -171,6 +170,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+#nullable enable
+
         internal CompilationVerifier Emit(
             Compilation compilation,
             IEnumerable<ModuleData>? dependencies,
@@ -179,15 +180,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string? expectedOutput,
             bool trimOutput,
             int? expectedReturnCode,
-            string[]? args,
             Action<PEAssembly>? assemblyValidator,
             Action<IModuleSymbol>? symbolValidator,
+            string[]? args,
+            Action<int, string, string>? executionValidator,
             EmitOptions? emitOptions,
             Verification verify)
         {
             var verifier = new CompilationVerifier(compilation, VisualizeRealIL, dependencies);
 
-            verifier.Emit(expectedOutput, trimOutput, expectedReturnCode, args, manifestResources, emitOptions, verify, expectedSignatures);
+            verifier.Emit(manifestResources, emitOptions, verify, expectedSignatures, args, executionValidator);
 
             if (assemblyValidator != null || symbolValidator != null)
             {
@@ -198,6 +200,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             return verifier;
         }
+
+#nullable disable
 
         /// <summary>
         /// Reads content of the specified file.

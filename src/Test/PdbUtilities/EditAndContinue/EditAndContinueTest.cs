@@ -50,14 +50,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             output?.WriteLine($"Emitting baseline");
 
             verifier.Emit(
-                expectedOutput: null,
-                trimOutput: false,
-                expectedReturnCode: null,
                 args: null,
                 manifestResources: null,
                 emitOptions: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
                 peVerify: _verification,
-                expectedSignatures: null);
+                expectedSignatures: null,
+                executionValidator: null);
 
             var md = ModuleMetadata.CreateFromImage(verifier.EmittedAssemblyData);
             _disposables.Add(md);
