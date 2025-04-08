@@ -131,7 +131,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             /// Unregisters this assembly path from this extension folder.  If this was the last registered path, then this
             /// will return true so that this folder can be unloaded.
             /// </summary>
-            public bool UnregisterAssembly(string assemblyFilePath)
+            public (bool removeFolder, AsyncLazy<AssemblyMessageHandlers> lazyHandlers) UnregisterAssembly(string assemblyFilePath)
             {
                 // Must be called under our parent's lock to ensure we see a consistent state of things. This allows us
                 // to safely examine our current state, remove the existing item, and then return if we are now empty.
@@ -139,11 +139,11 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
 
                 // If this throws, it also indicated a bug in gladstone that must be fixed.  As such, it is ok if this
                 // tears down the extension service in OOP.
-                if (!_assemblyFilePathToHandlers.ContainsKey(assemblyFilePath))
+                if (!_assemblyFilePathToHandlers.TryGetValue(assemblyFilePath, out var lazyHandlers))
                     throw new InvalidOperationException($"Extension '{assemblyFilePath}' was not registered.");
 
                 _assemblyFilePathToHandlers = _assemblyFilePathToHandlers.Remove(assemblyFilePath);
-                return _assemblyFilePathToHandlers.Count == 0;
+                return (_assemblyFilePathToHandlers.Count == 0, lazyHandlers);
             }
 
             public async ValueTask<ExtensionMessageNames> GetExtensionMessageNamesAsync(string assemblyFilePath, CancellationToken cancellationToken)
@@ -166,19 +166,23 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                     ExtensionException: handlers.ExtensionException);
             }
 
-            public async ValueTask AddHandlersAsync(string messageName, bool isSolution, ArrayBuilder<IExtensionMessageHandlerWrapper> result, CancellationToken cancellationToken)
+            public void AddHandlers(string messageName, bool isSolution, ArrayBuilder<IExtensionMessageHandlerWrapper> result)
             {
                 foreach (var (_, lazyHandler) in _assemblyFilePathToHandlers)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    // Note1: We will only be adding handlers for for the specific messageName we're being asked for.
+                    // However that message name will only be known for extensions we've actually loaded handlers for.
+                    // So we can just synchronously only process lazyHandlers that have values already computed for
+                    // them.  We don't need to compute them here.
 
-                    // Note that if loading the handlers from the assembly failed, then getting this value will still
+                    // Note1 that if loading the handlers from the assembly failed, then getting this value will still
                     // succeed. It will just give us back an empty set of handlers, which will effectively be a no-op.
-                    var handlers = await lazyHandler.GetValueAsync(cancellationToken).ConfigureAwait(false);
-
-                    var specificHandlers = isSolution ? handlers.WorkspaceMessageHandlers : handlers.DocumentMessageHandlers;
-                    if (specificHandlers.TryGetValue(messageName, out var handler))
-                        result.Add(handler);
+                    if (lazyHandler.TryGetValue(out var handlers))
+                    {
+                        var specificHandlers = isSolution ? handlers.WorkspaceMessageHandlers : handlers.DocumentMessageHandlers;
+                        if (specificHandlers.TryGetValue(messageName, out var handler))
+                            result.Add(handler);
+                    }
                 }
             }
         }

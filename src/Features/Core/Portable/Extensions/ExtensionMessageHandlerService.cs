@@ -15,6 +15,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Extensions;
 
+using HandlerWrappers = ImmutableArray<IExtensionMessageHandlerWrapper>;
+using CachedHandlers = Dictionary<string, Lazy<ImmutableArray<IExtensionMessageHandlerWrapper>>>;
+
 internal sealed partial class ExtensionMessageHandlerServiceFactory
 {
     private readonly record struct AssemblyMessageHandlers(
@@ -29,10 +32,11 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
         private readonly SolutionServices _solutionServices = solutionServices;
 
         /// <summary>
-        /// Lock for <see cref="_folderPathToExtensionFolder"/>, <see cref="_cachedDocumentHandlers_useOnlyUnderLock"/>, and <see
-        /// cref="_cachedWorkspaceHandlers_useOnlyUnderLock"/>.RegisterExtensionResponse  Note: this type is designed such that all time while this lock is held
-        /// should be minimal.  Importantly, no async work or IO should be done while holding this lock.  Instead,
-        /// all of that work should be pushed into AsyncLazy values that compute when asked, outside of this lock.
+        /// Lock for <see cref="_folderPathToExtensionFolder"/>, <see cref="_cachedHandlers_useOnlyUnderLock"/>, and
+        /// <see cref="_unregisteredHandlerNames_useOnlyUnderLock"/>.  Note: this type is designed such that all time
+        /// while this lock is held should be minimal.  Importantly, no async work or IO should be done while holding
+        /// this lock.  Instead, all of that work should be pushed into AsyncLazy values that compute when asked,
+        /// outside of this lock.
         /// </summary>
         private readonly object _gate = new();
 
@@ -42,14 +46,10 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
         private ImmutableDictionary<string, ExtensionFolder> _folderPathToExtensionFolder = ImmutableDictionary<string, ExtensionFolder>.Empty;
 
         /// <summary>
-        /// Cached handlers of document-related messages, indexed by handler message name.
+        /// Cached handlers of workspace or document related messages, indexed by handler message name.
         /// </summary>
-        private readonly Dictionary<string, AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper>>> _cachedDocumentHandlers_useOnlyUnderLock = new();
-
-        /// <summary>
-        /// Cached handlers of non-document-related messages, indexed by handler message name.
-        /// </summary>
-        private readonly Dictionary<string, AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper>>> _cachedWorkspaceHandlers_useOnlyUnderLock = new();
+        private readonly (CachedHandlers workspace, CachedHandlers document) _cachedHandlers_useOnlyUnderLock = ([], []);
+        private readonly (HashSet<string> workspace, HashSet<string> document) _unregisteredHandlerNames_useOnlyUnderLock = ([], []);
 
         private static string GetAssemblyFolderPath(string assemblyFilePath)
         {
@@ -60,8 +60,8 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
         private void ClearCachedHandlers_WhileUnderLock()
         {
             Contract.ThrowIfTrue(!Monitor.IsEntered(_gate));
-            _cachedWorkspaceHandlers_useOnlyUnderLock.Clear();
-            _cachedDocumentHandlers_useOnlyUnderLock.Clear();
+            _cachedHandlers_useOnlyUnderLock.workspace.Clear();
+            _cachedHandlers_useOnlyUnderLock.document.Clear();
         }
 
         private ValueTask RegisterExtensionInCurrentProcessAsync(string assemblyFilePath)
@@ -113,9 +113,13 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                     // Clear out the cached handler names.  They will be recomputed the next time we need them.
                     ClearCachedHandlers_WhileUnderLock();
 
+                    var (removeFolder, lazyHandlers) = extensionFolder.UnregisterAssembly(assemblyFilePath);
+                    
+                    // Add the names of the handlers we loaded for this extension to the unloaded handler set.
+                    // That way if we see a call to them in the future, we can report an appropriate message 
+
                     // If we're not done with the folder.  Return null so our caller doesn't unload anything.
-                    if (!extensionFolder.UnregisterAssembly(assemblyFilePath))
-                        return null;
+
 
                     // Last extension in the folder.  Remove our folder registration entirely, and return it so the
                     // caller can unload it.
@@ -135,6 +139,8 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             {
                 oldFolderPathToExtensionFolder = _folderPathToExtensionFolder;
                 _folderPathToExtensionFolder = ImmutableDictionary<string, ExtensionFolder>.Empty;
+                _unregisteredHandlerNames_useOnlyUnderLock.workspace.Clear();
+                _unregisteredHandlerNames_useOnlyUnderLock.document.Clear();
                 ClearCachedHandlers_WhileUnderLock();
             }
 
@@ -162,22 +168,22 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
 
         private async ValueTask<ExtensionMessageResult> HandleExtensionMessageInCurrentProcessAsync<TArgument>(
             TArgument executeArgument, bool isSolution, string messageName, string jsonMessage,
-            Dictionary<string, AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper>>> cachedHandlers,
+            CachedHandlers cachedHandlers,
             CancellationToken cancellationToken)
         {
-            AsyncLazy<ImmutableArray<IExtensionMessageHandlerWrapper>> lazyHandlers;
+            Lazy<HandlerWrappers> lazyHandlers;
             lock (_gate)
             {
                 // May be called a lot.  So we use the non-allocating form of this lookup pattern.
                 lazyHandlers = cachedHandlers.GetOrAdd(
                     messageName,
-                    static (messageName, arg) => AsyncLazy.Create(
-                        static (arg, cancellationToken) => arg.@this.ComputeHandlersAsync(arg.messageName, arg.isSolution, cancellationToken),
-                        (messageName, arg.@this, arg.isSolution)),
+                    static (messageName, arg) => new Lazy<HandlerWrappers>(
+                        () => arg.@this.ComputeHandlers(arg.messageName, arg.isSolution),
+                        LazyThreadSafetyMode.PublicationOnly),
                     (messageName, @this: this, isSolution));
             }
 
-            var handlers = await lazyHandlers.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            var handlers = lazyHandlers.Value;
 
             // Throwing here indicates a bug in the gladstone client itself (as it allowed calling into an lsp message
             // that has no registered handlers).  So we want this to bubble outwards as a failure that disables
@@ -208,13 +214,12 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             }
         }
 
-        private async Task<ImmutableArray<IExtensionMessageHandlerWrapper>> ComputeHandlersAsync(
-            string messageName, bool isSolution, CancellationToken cancellationToken)
+        private HandlerWrappers ComputeHandlers(string messageName, bool isSolution)
         {
             using var _ = ArrayBuilder<IExtensionMessageHandlerWrapper>.GetInstance(out var result);
 
             foreach (var (_, extensionFolder) in _folderPathToExtensionFolder)
-                await extensionFolder.AddHandlersAsync(messageName, isSolution, result, cancellationToken).ConfigureAwait(false);
+                extensionFolder.AddHandlers(messageName, isSolution, result);
 
             return result.ToImmutable();
         }
