@@ -4,6 +4,7 @@
   <PropertyGroup>
     <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.Razor</RootNamespace>
     <TargetFrameworks>net472</TargetFrameworks>
+    <UseWPF>true</UseWPF>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
