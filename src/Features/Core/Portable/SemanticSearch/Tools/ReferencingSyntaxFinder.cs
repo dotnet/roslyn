@@ -7,11 +7,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Threading;
@@ -34,65 +36,39 @@ internal sealed class ReferencingSyntaxFinder(Solution solution, CancellationTok
 
     public async IAsyncEnumerable<SyntaxNode> FindAsync(ISymbol symbol)
     {
-        var channel = Channel.CreateUnbounded<ReferenceLocation>(new()
-        {
-            SingleReader = true,
-            SingleWriter = false,
-        });
+        using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var cachedRoots);
 
-        using var _ = cancellationToken.Register(
-            static (obj, cancellationToken) => ((Channel<SourceReferenceItem>)obj!).Writer.TryComplete(new OperationCanceledException(cancellationToken)),
-            state: channel);
-
-        var progress = new Progress(channel);
-
-        var writeTask = ProduceItemsAndWriteToChannelAsync();
-
-        await foreach (var reference in channel.Reader.ReadAllAsync(cancellationToken))
-        {
-            // TODO: consider grouping by document to avoid repeated syntax root lookup
-
-            var root = await reference.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (root == null)
+        var reader = await ProducerConsumer<ReferenceLocation>.RunChannelAsync(
+            ProducerConsumerOptions.SingleReaderOptions,
+            async static (callback, args, cancellationToken) =>
             {
-                continue;
-            }
+                var (solution, symbol) = args;
 
-            yield return root.FindNode(reference.Location.SourceSpan, findInTrivia: true, getInnermostNodeForTie: true);
-        }
-
-        await writeTask.ConfigureAwait(false);
-
-        async Task ProduceItemsAndWriteToChannelAsync()
-        {
-            await Task.Yield().ConfigureAwait(false);
-
-            Exception? exception = null;
-            try
-            {
-                //await service.FindReferencesAsync(context, document, location.SourceSpan.Start, classificationOptions, cancellationToken).ConfigureAwait(false);
                 await SymbolFinder.FindReferencesAsync(
                     symbol,
                     solution,
-                    progress,
+                    new Progress(callback),
                     documents: null,
                     s_options,
                     cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex) when ((exception = ex) == null)
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
-            finally
-            {
-                // No matter what path we take (exceptional or non-exceptional), always complete the channel so the
-                // writing task knows it's done.
-                channel.Writer.TryComplete(exception);
-            }
+            },
+            static (reader, _, _) => Task.FromResult(reader),
+            args: (solution, symbol),
+            cancellationToken).ConfigureAwait(false);
+
+        await foreach (var item in reader.ReadAllAsync(cancellationToken))
+        {
+            var root = await item.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (root == null)
+                continue;
+
+            // Hold onto the root so that if we find more references in the same document, we don't have to reparse it.
+            cachedRoots.Add(root);
+            yield return item.Location.FindNode(findInsideTrivia: true, getInnermostNodeForTie: true, cancellationToken);
         }
     }
 
-    private sealed class Progress(Channel<ReferenceLocation> channel) : IStreamingFindReferencesProgress
+    private sealed class Progress(Action<ReferenceLocation> callback) : IStreamingFindReferencesProgress
     {
         public ValueTask OnStartedAsync(CancellationToken cancellationToken)
             => ValueTask.CompletedTask;
@@ -106,13 +82,7 @@ internal sealed class ReferencingSyntaxFinder(Solution solution, CancellationTok
         public ValueTask OnReferencesFoundAsync(ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken)
         {
             foreach (var (_, _, location) in references)
-            {
-                // It's ok to use TryWrite here.  TryWrite always succeeds unless the channel is completed. And the
-                // channel is only ever completed by us (after produceItems completes or throws an exception) or if the
-                // cancellationToken is triggered above in RunAsync. In that latter case, it's ok for writing to the
-                // channel to do nothing as we no longer need to write out those assets to the pipe.
-                _ = channel.Writer.TryWrite(location);
-            }
+                callback(location);
 
             return ValueTask.CompletedTask;
         }

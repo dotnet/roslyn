@@ -273,7 +273,7 @@ internal static class ProducerConsumer<TItem>
     /// <paramref name="consumeItems"/> is the routine called to consume the items.  Similarly, reading can have just a
     /// single reader or multiple readers, depending on the value passed into <see cref="ChannelOptions.SingleReader"/>.
     /// </summary>
-    private static async Task<TResult> RunChannelAsync<TArgs, TResult>(
+    public static async Task<TResult> RunChannelAsync<TArgs, TResult>(
         ProducerConsumerOptions options,
         Func<Action<TItem>, TArgs, CancellationToken, Task> produceItems,
         Func<ChannelReader<TItem>, TArgs, CancellationToken, Task<TResult>> consumeItems,
