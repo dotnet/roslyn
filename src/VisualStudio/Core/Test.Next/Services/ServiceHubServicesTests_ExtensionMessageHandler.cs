@@ -256,9 +256,12 @@ public sealed partial class ServiceHubServicesTests
         handlerFactory.CreateDocumentMessageHandlersCallback = createDocumentMessageHandlersCallback;
         handlerFactory.CreateWorkspaceMessageHandlersCallback = createWorkspaceMessageHandlersCallback;
 
-        // Make a basic loader that just returns null for the assembly.
-        var assemblyLoader = new Mock<IExtensionAssemblyLoader>(MockBehavior.Loose);
+        // Make a basic loader that just returns null for the assembly.  We're not actually going to try to load
+        // anything.  We just need to make sure we can get through the mock loading process.
+        var assemblyLoader = new Mock<IExtensionAssemblyLoader>(MockBehavior.Strict);
         assemblyLoader.Setup(loader => loader.LoadFromPath("TempPath")).Returns((Assembly?)null!);
+        assemblyLoader.Setup(loader => loader.Unload());
+
         assemblyLoaderProvider.CreateNewShadowCopyLoaderCallback = (_, _) => (assemblyLoader.Object, extensionException: null);
 
         string? fatalRpcErrorMessage = null;
