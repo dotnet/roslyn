@@ -49,6 +49,12 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
         /// Cached handlers of workspace or document related messages, indexed by handler message name.
         /// </summary>
         private readonly (CachedHandlers workspace, CachedHandlers document) _cachedHandlers_useOnlyUnderLock = ([], []);
+
+        /// <summary>
+        /// Names of handlers that were previously loaded, but have since been unloaded.  This is used to distinguish a
+        /// strict bug, where Gladstone calls into a handler that was never registered, versus a benign case where it is
+        /// concurrently calling into a handler that it is also unloading.
+        /// </summary>
         private readonly (HashSet<string> workspace, HashSet<string> document) _unregisteredHandlerNames_useOnlyUnderLock = ([], []);
 
         private static string GetAssemblyFolderPath(string assemblyFilePath)
