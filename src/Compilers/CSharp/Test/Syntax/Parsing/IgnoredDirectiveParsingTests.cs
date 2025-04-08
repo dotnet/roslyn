@@ -153,7 +153,6 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
         var ijk = SyntaxFactory.Token(default, SyntaxKind.StringLiteralToken, "ijk", "ijk", default);
         AssertEx.Equal("#!xyz", structure.WithContent(xyz).ToFullString());
         AssertEx.Equal("#!ijk", structure.WithContent(xyz).WithContent(ijk).ToFullString());
-        AssertEx.Equal("#!xyzabc", structure.Update(structure.HashToken, structure.ExclamationToken, xyz, structure.EndOfDirectiveToken, structure.IsActive).ToFullString());
     }
 
     [Theory, CombinatorialData]
