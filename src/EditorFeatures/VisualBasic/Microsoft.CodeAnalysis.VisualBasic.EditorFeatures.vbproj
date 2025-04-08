@@ -4,9 +4,12 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor.VisualBasic</RootNamespace>
+    <UseWpf>true</UseWpf>
     <TargetFrameworks>$(NetVS);net472-windows</TargetFrameworks>
-    <RootNamespace></RootNamespace>
     <ApplyNgenOptimization Condition="'$(TargetFramework)' == 'netstandard2.0'">full</ApplyNgenOptimization>
+    <!--Temporarily bypass ibcmerge due to an error
+      https://github.com/dotnet/roslyn/issues/57863 -->
+    <ApplyNgenOptimization></ApplyNgenOptimization>
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
     <PackageDescription>

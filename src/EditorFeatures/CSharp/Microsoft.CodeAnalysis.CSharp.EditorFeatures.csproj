@@ -5,8 +5,11 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor.CSharp</RootNamespace>
     <TargetFrameworks>$(NetVS);net472-windows</TargetFrameworks>
+    <UseWpf>true</UseWpf>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <ApplyNgenOptimization Condition="'$(TargetFramework)' == 'netstandard2.0'">full</ApplyNgenOptimization>
+    <!--Temporarily bypass ibcmerge due to an error
+      https://github.com/dotnet/roslyn/issues/57863 -->
+    <ApplyNgenOptimization></ApplyNgenOptimization>
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
     <PackageDescription>
