@@ -8129,7 +8129,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>'#:' directives cannot be after first token in file</value>
   </data>
   <data name="ERR_PPIgnoredNeedsFileBasedProgram" xml:space="preserve">
-    <value>'#:' directives can be only used in file-based programs ('/feature:FileBasedProgram')</value>
+    <value>'#:' directives can be only used in file-based programs ('-features:FileBasedProgram')</value>
   </data>
   <data name="ERR_PPIgnoredFollowsIf" xml:space="preserve">
     <value>'#:' directives cannot be after '#if' directive</value>

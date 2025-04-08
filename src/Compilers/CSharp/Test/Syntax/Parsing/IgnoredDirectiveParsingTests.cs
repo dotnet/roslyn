@@ -27,7 +27,7 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
 
         VerifyTrivia();
         UsingTree(source, options,
-            // (2,2): error CS9282: '#:' directives can be only used in file-based programs ('/feature:FileBasedProgram')
+            // (2,2): error CS9282: '#:' directives can be only used in file-based programs ('-features:FileBasedProgram')
             // #:name value
             Diagnostic(ErrorCode.ERR_PPIgnoredNeedsFileBasedProgram, ":").WithLocation(2, 2));
 
