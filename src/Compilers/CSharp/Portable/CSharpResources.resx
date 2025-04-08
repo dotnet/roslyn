@@ -4062,7 +4062,7 @@ You should consider suppressing the warning only if you're sure that you don't w
     <value>Named argument '{0}' is used out-of-position but is followed by an unnamed argument</value>
   </data>
   <data name="ERR_DefaultValueUsedWithAttributes" xml:space="preserve">
-    <value>Cannot specify default parameter value in conjunction with DefaultParameterValueAttribute or OptionalAttribute</value>
+    <value>Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute</value>
   </data>
   <data name="ERR_DefaultValueMustBeConstant" xml:space="preserve">
     <value>Default parameter value for '{0}' must be a compile-time constant</value>

@@ -11367,8 +11367,8 @@ Yalnızca asenkron çağrının tamamlanmasını beklemek istemediğinizden ve �
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueUsedWithAttributes">
-        <source>Cannot specify default parameter value in conjunction with DefaultParameterValueAttribute or OptionalAttribute</source>
-        <target state="needs-review-translation">DefaultParameterAttribute veya OptionalAttribute ile birlikte varsayılan parametre değeri belirtilemez</target>
+        <source>Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute</source>
+        <target state="translated">DefaultParameterAttribute veya OptionalAttribute ile birlikte varsayılan parametre değeri belirtilemez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueMustBeConstant">

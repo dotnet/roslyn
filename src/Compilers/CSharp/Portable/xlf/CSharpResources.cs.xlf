@@ -11367,8 +11367,8 @@ Potlačení upozornění zvažte jenom v případě, když určitě nechcete če
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueUsedWithAttributes">
-        <source>Cannot specify default parameter value in conjunction with DefaultParameterValueAttribute or OptionalAttribute</source>
-        <target state="needs-review-translation">Nejde zadat výchozí hodnotu parametru v kombinaci s atributy DefaultParameterAttribute nebo OptionalAttribute.</target>
+        <source>Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute</source>
+        <target state="translated">Nejde zadat výchozí hodnotu parametru v kombinaci s atributy DefaultParameterAttribute nebo OptionalAttribute.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueMustBeConstant">
