@@ -340,9 +340,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, node);
                 }
                 else if (!argumentNamesOpt.IsDefaultOrEmpty &&
-                    _compilation.IsFeatureEnabled(MessageID.IDS_FeatureExpressionOptionalAndNamedArguments) &&
                     hasNamedArgumentOutOfOrder(argsToParamsOpt))
                 {
+                    Debug.Assert(_compilation.IsFeatureEnabled(MessageID.IDS_FeatureExpressionOptionalAndNamedArguments));
                     Error(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, node);
                 }
                 else if (IsComCallWithRefOmitted(method, arguments, argumentRefKindsOpt))

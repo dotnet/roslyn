@@ -2596,8 +2596,7 @@ public class Test
         }
 
         [Theory]
-        [InlineData(LanguageVersion.CSharp13)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [MemberData(nameof(LanguageVersions13AndNewer))]
         public void MethodCallWithParams3(LanguageVersion languageVersion)
         {
             var text =
@@ -2614,7 +2613,7 @@ public class Test
         Console.WriteLine(testExpr);
     }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseExe);
             if (languageVersion == LanguageVersion.CSharp13)
             {
                 comp.VerifyDiagnostics(
@@ -2625,7 +2624,8 @@ public class Test
             }
             else
             {
-                comp.VerifyDiagnostics();
+                var verifier = CompileAndVerify(comp, expectedOutput: "() => ModAdd2(3, 4, new [] {})");
+                verifier.VerifyDiagnostics();
             }
         }
 

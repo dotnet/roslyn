@@ -13083,8 +13083,7 @@ public class Program
         }
 
         [Theory]
-        [InlineData(LanguageVersion.CSharp13)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [MemberData(nameof(LanguageVersions13AndNewer))]
         public void CS0853ERR_ExpressionTreeContainsNamedArgument01(LanguageVersion languageVersion)
         {
             var text = @"
@@ -13097,6 +13096,7 @@ namespace ConsoleApplication3
         static void Main(string[] args)
         {
             Expression<dg> myET = x => Index(minSessions:5);
+            System.Console.WriteLine(myET);
         }
         public static string Index(int minSessions = 0)
         {
@@ -13105,7 +13105,7 @@ namespace ConsoleApplication3
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseExe);
             if (languageVersion == LanguageVersion.CSharp13)
             {
                 comp.VerifyDiagnostics(
@@ -13115,14 +13115,14 @@ namespace ConsoleApplication3
             }
             else
             {
-                comp.VerifyDiagnostics();
+                var verifier = CompileAndVerify(comp, expectedOutput: "x => Index(5)");
+                verifier.VerifyDiagnostics();
             }
         }
 
         [WorkItem(545063, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545063")]
         [Theory]
-        [InlineData(LanguageVersion.CSharp13)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [MemberData(nameof(LanguageVersions13AndNewer))]
         public void CS0853ERR_ExpressionTreeContainsNamedArgument02(LanguageVersion languageVersion)
         {
             var text = @"
@@ -13135,10 +13135,11 @@ class A
     static void Main()
     {
         Expression<Func<int>> f = () => new List<int> { 1 } [index: 0];
+        Console.WriteLine(f);
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseExe);
             if (languageVersion == LanguageVersion.CSharp13)
             {
                 comp.VerifyDiagnostics(
@@ -13148,13 +13149,13 @@ class A
             }
             else
             {
-                comp.VerifyDiagnostics();
+                var verifier = CompileAndVerify(comp, expectedOutput: "() => new List`1() {Void Add(Int32)(1)}.get_Item(0)");
+                verifier.VerifyDiagnostics();
             }
         }
 
         [Theory]
-        [InlineData(LanguageVersion.CSharp13)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [MemberData(nameof(LanguageVersions13AndNewer))]
         public void CS0854ERR_ExpressionTreeContainsOptionalArgument01(LanguageVersion languageVersion)
         {
             var text = @"
@@ -13167,6 +13168,7 @@ namespace ConsoleApplication3
         static void Main(string[] args)
         {
             Expression<dg> myET = x => Index();
+            System.Console.WriteLine(myET);
         }
         public static string Index(int minSessions = 0)
         {
@@ -13175,7 +13177,7 @@ namespace ConsoleApplication3
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseExe);
             if (languageVersion == LanguageVersion.CSharp13)
             {
                 comp.VerifyDiagnostics(
@@ -13185,13 +13187,13 @@ namespace ConsoleApplication3
             }
             else
             {
-                comp.VerifyDiagnostics();
+                var verifier = CompileAndVerify(comp, expectedOutput: "x => Index(0)");
+                verifier.VerifyDiagnostics();
             }
         }
 
         [Theory]
-        [InlineData(LanguageVersion.CSharp13)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [MemberData(nameof(LanguageVersions13AndNewer))]
         public void CS0854ERR_ExpressionTreeContainsOptionalArgument02(LanguageVersion languageVersion)
         {
             var text =
@@ -13253,8 +13255,7 @@ class C
         }
 
         [Theory]
-        [InlineData(LanguageVersion.CSharp13)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [MemberData(nameof(LanguageVersions13AndNewer))]
         public void CS0854ERR_ExpressionTreeContainsOptionalArgument03(LanguageVersion languageVersion)
         {
             var text =
@@ -13273,12 +13274,13 @@ public class Collection : IEnumerable
 }
 
 public class C {
-    public void M() {
+    static void Main() {
         Expression<Func<Collection>> expr =
             () => new Collection { 1 }; // 1
+        Console.WriteLine(expr);
     }
 }";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseExe);
             if (languageVersion == LanguageVersion.CSharp13)
             {
                 comp.VerifyDiagnostics(
@@ -13288,7 +13290,8 @@ public class C {
             }
             else
             {
-                comp.VerifyDiagnostics();
+                var verifier = CompileAndVerify(comp, expectedOutput: "() => new Collection() {Void Add(Int32, Int32)(1, 0)}");
+                verifier.VerifyDiagnostics();
             }
         }
 

@@ -50,12 +50,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void OptionalParameter_01(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
-            bool useIn,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues("", "in", "ref readonly")] string refKind,
             bool useExpression,
             bool useCompilationReference)
         {
-            string refKind = useIn ? "in" : "";
             string sourceA = $$"""
                 public static class A
                 {
@@ -106,18 +105,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     null
                     S
                     """);
-                verifier.VerifyDiagnostics();
+                if (useCompilationReference && refKind == "ref readonly")
+                {
+                    verifier.VerifyDiagnostics(
+                        // (3,52): warning CS9200: A default value is specified for 'ref readonly' parameter 't', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+                        //     public static T GetValue<T>(ref readonly T t = default) => t;
+                        Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "default").WithArguments("t").WithLocation(3, 52));
+                }
+                else
+                {
+                    verifier.VerifyDiagnostics();
+                }
             }
         }
 
         [Theory]
         [CombinatorialData]
         public void OptionalParameter_02(
-            bool useIn,
+            [CombinatorialValues("", "in", "ref readonly")] string refKind,
             bool useExpression,
             bool useCompilationReference)
         {
-            string refKind = useIn ? "in" : "";
             string sourceA = $$"""
                 public static class A
                 {
@@ -148,17 +156,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     default
                     null
                     """);
-            verifier.VerifyDiagnostics();
+            if (useCompilationReference && refKind == "ref readonly")
+            {
+                verifier.VerifyDiagnostics(
+                    // (3,56): warning CS9200: A default value is specified for 'ref readonly' parameter 'i', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+                    //     public static int GetIntValue(ref readonly int i = 10) => i;
+                    Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "10").WithArguments("i").WithLocation(3, 56),
+                    // (4,65): warning CS9200: A default value is specified for 'ref readonly' parameter 's', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+                    //     public static string GetStringValue(ref readonly string s = "default") => s;
+                    Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, @"""default""").WithArguments("s").WithLocation(4, 65),
+                    // (5,65): warning CS9200: A default value is specified for 'ref readonly' parameter 'o', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+                    //     public static object GetObjectValue(ref readonly object o = null) => o;
+                    Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "null").WithArguments("o").WithLocation(5, 65));
+            }
+            else
+            {
+                verifier.VerifyDiagnostics();
+            }
         }
 
         [Theory]
         [CombinatorialData]
         public void OptionalParameter_AndParams(
-            bool useIn,
+            [CombinatorialValues("", "in", "ref readonly")] string refKind,
             bool useExpression,
             bool useCompilationReference)
         {
-            string refKind = useIn ? "in" : "";
             string sourceA = $$"""
                 public static class A
                 {
@@ -188,13 +211,48 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     0
                     3
                     """);
-            verifier.VerifyDiagnostics();
+            if (refKind == "ref readonly")
+            {
+                if (useCompilationReference)
+                {
+                    verifier.VerifyDiagnostics(
+                        // (3,70): warning CS9200: A default value is specified for 'ref readonly' parameter 'y', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+                        //     public static T GetValue<T>(ref readonly T x, ref readonly T y = default, params T[] args) => y;
+                        Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "default").WithArguments("y").WithLocation(3, 70),
+                        // (8,44): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+                        //         Utils.Report(() => A.GetValue<int>(1));
+                        Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "1").WithArguments("1").WithLocation(8, 44),
+                        // (9,44): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+                        //         Utils.Report(() => A.GetValue<int>(2, 3, 4));
+                        Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "2").WithArguments("1").WithLocation(9, 44),
+                        // (9,47): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter
+                        //         Utils.Report(() => A.GetValue<int>(2, 3, 4));
+                        Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "3").WithArguments("2").WithLocation(9, 47));
+                }
+                else
+                {
+                    verifier.VerifyDiagnostics(
+                        // (8,44): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+                        //         Utils.Report(() => A.GetValue<int>(1));
+                        Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "1").WithArguments("1").WithLocation(8, 44),
+                        // (9,44): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+                        //         Utils.Report(() => A.GetValue<int>(2, 3, 4));
+                        Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "2").WithArguments("1").WithLocation(9, 44),
+                        // (9,47): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter
+                        //         Utils.Report(() => A.GetValue<int>(2, 3, 4));
+                        Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "3").WithArguments("2").WithLocation(9, 47));
+                }
+            }
+            else
+            {
+                verifier.VerifyDiagnostics();
+            }
         }
 
         [Theory]
         [CombinatorialData]
         public void OptionalParameter_Constructor(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
             bool useExpression)
         {
             string sourceA = $$"""
@@ -249,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void OptionalParameter_Indexer(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
             bool useExpression)
         {
             string sourceA = $$"""
@@ -299,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void OptionalParameter_Delegate(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
             bool useExpression)
         {
             string sourceA = $$"""
@@ -347,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void OptionalParameter_CollectionInitializer(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
             bool useExpression,
             bool useIn)
         {
@@ -411,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void OptionalParameter_LocalFunction(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 using System;
@@ -661,7 +719,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void NamedArgument_01(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
             bool useExpression,
             bool useCompilationReference)
         {
@@ -780,7 +838,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void NamedArgument_02(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
             bool useExpression,
             bool useCompilationReference)
         {
@@ -941,7 +999,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void NamedArgument_03(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
             bool useExpression,
             bool useCompilationReference)
         {
@@ -1083,7 +1141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void NamedArgument_04(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
             bool useExpression,
             bool useCompilationReference)
         {
@@ -1312,7 +1370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void NamedArgument_OverloadsDifferentOrder(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
             bool useExpression,
             bool useCompilationReference)
         {
@@ -1485,7 +1543,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void NamedArgument_Constructor(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
             bool useExpression)
         {
             string sourceA = $$"""
@@ -1587,7 +1645,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void NamedArgument_Indexer(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
             bool useExpression)
         {
             string sourceA = $$"""
@@ -1695,7 +1753,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void NamedArgument_Delegate(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
             bool useExpression)
         {
             string sourceA = $$"""
@@ -1791,7 +1849,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void NamedArgument_LocalFunction(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 using System;
