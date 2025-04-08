@@ -77,7 +77,6 @@
         <ForceIncludeInVsix>true</ForceIncludeInVsix>
         <Private>true</Private>
         <Ngen Condition="'%(_RuntimeAssetsWithMetadata.Optimization)' == 'true'">true</Ngen>
-        <NgenArchitecture Condition="'%(_RuntimeAssetsWithMetadata.Optimization)' == 'true'">All</NgenArchitecture>
         <NgenPriority Condition="'%(_RuntimeAssetsWithMetadata.Optimization)' == 'true'">3</NgenPriority>
       </VSIXCopyLocalReferenceSourceItem>
 
