@@ -142,7 +142,7 @@ TODO: Async iterators (returning `IAsyncEnumerable<T>`)
 
 #### `RuntimeHelpers.Await` Scenarios
 
-The for any `await expr` with type `E`, the compiler will attempt to match it to a helper method in `System.Runtime.CompilerServices.RuntimeHelpers`. The following algorithm is used:
+For any `await expr` with where `expr` has type `E`, the compiler will attempt to match it to a helper method in `System.Runtime.CompilerServices.RuntimeHelpers`. The following algorithm is used:
 
 1. If `E` has generic arity greater than 1, no match is found and instead move to [await any other type].
 2. `System.Runtime.CompilerServices.RuntimeHelpers` from corelib (the library that defines `System.Object` and has no references) is fetched.
