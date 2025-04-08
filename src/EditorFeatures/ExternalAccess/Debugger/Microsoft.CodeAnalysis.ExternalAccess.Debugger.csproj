@@ -5,6 +5,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.Debugger</RootNamespace>
     <TargetFramework>net472</TargetFramework>
+    <UseWPF>true</UseWPF>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
