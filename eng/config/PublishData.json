@@ -177,7 +177,7 @@
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "feature/d18initial",
+      "vsBranch": "main",
       "insertionCreateDraftPR": false,
       "insertionTitlePrefix": "[d17.15 P1]"
     }
