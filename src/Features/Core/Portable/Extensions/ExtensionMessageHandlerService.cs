@@ -244,10 +244,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             using var _ = ArrayBuilder<IExtensionMessageHandlerWrapper>.GetInstance(out var result);
 
             foreach (var (_, extensionFolder) in _folderPathToExtensionFolder)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
                 extensionFolder.AddHandlers(messageName, isSolution, result, cancellationToken);
-            }
 
             return result.ToImmutable();
         }
