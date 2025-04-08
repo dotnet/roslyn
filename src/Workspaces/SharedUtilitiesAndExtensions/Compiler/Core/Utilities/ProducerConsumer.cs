@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -258,6 +259,23 @@ internal static class ProducerConsumer<TItem>
             cancellationToken);
     }
 
+    public static async IAsyncEnumerable<TItem> RunAsync<TArgs>(
+        Func<Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        TArgs args,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var channelReader = await RunChannelAsync(
+            // We're the only reader (in the foreach loop below).  So we can use the single reader options.
+            ProducerConsumerOptions.SingleReaderOptions,
+            produceItems,
+            static (reader, _, _) => Task.FromResult(reader),
+            args,
+            cancellationToken).ConfigureAwait(false);
+
+        await foreach (var item in channelReader.ReadAllAsync(cancellationToken))
+            yield return item;
+    }
+
     /// <summary>
     /// Helper utility for the pattern of a pair of a production routine and consumption routine using a channel to
     /// coordinate data transfer.  The provided <paramref name="options"/> are used to create a <see
@@ -273,7 +291,7 @@ internal static class ProducerConsumer<TItem>
     /// <paramref name="consumeItems"/> is the routine called to consume the items.  Similarly, reading can have just a
     /// single reader or multiple readers, depending on the value passed into <see cref="ChannelOptions.SingleReader"/>.
     /// </summary>
-    public static async Task<TResult> RunChannelAsync<TArgs, TResult>(
+    private static async Task<TResult> RunChannelAsync<TArgs, TResult>(
         ProducerConsumerOptions options,
         Func<Action<TItem>, TArgs, CancellationToken, Task> produceItems,
         Func<ChannelReader<TItem>, TArgs, CancellationToken, Task<TResult>> consumeItems,

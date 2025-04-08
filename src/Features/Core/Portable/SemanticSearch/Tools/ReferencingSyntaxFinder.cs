@@ -38,25 +38,19 @@ internal sealed class ReferencingSyntaxFinder(Solution solution, CancellationTok
     {
         using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var cachedRoots);
 
-        var reader = await ProducerConsumer<ReferenceLocation>.RunChannelAsync(
-            ProducerConsumerOptions.SingleReaderOptions,
-            async static (callback, args, cancellationToken) =>
-            {
-                var (solution, symbol) = args;
-
-                await SymbolFinder.FindReferencesAsync(
-                    symbol,
-                    solution,
+        var referenceLocations = ProducerConsumer<ReferenceLocation>.RunAsync(
+            static (callback, args, cancellationToken) =>
+                SymbolFinder.FindReferencesAsync(
+                    args.symbol,
+                    args.solution,
                     new Progress(callback),
                     documents: null,
                     s_options,
-                    cancellationToken).ConfigureAwait(false);
-            },
-            static (reader, _, _) => Task.FromResult(reader),
+                    cancellationToken),
             args: (solution, symbol),
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
 
-        await foreach (var item in reader.ReadAllAsync(cancellationToken))
+        await foreach (var item in referenceLocations)
         {
             var root = await item.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             if (root == null)
