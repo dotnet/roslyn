@@ -1034,18 +1034,16 @@ namespace System.Diagnostics.CodeAnalysis
         {
             options = options ?? (expectedOutput != null ? TestOptions.ReleaseExe : CheckForTopLevelStatements(source.GetSyntaxTrees(parseOptions)));
             var compilation = CreateCompilation(source, references, options, parseOptions, targetFramework, assemblyName: GetUniqueName());
-            return CompileAndVerify(
+            return CompileAndVerifyCore(
                 compilation,
                 manifestResources,
                 dependencies,
                 sourceSymbolValidator,
                 assemblyValidator,
                 symbolValidator,
-                expectedSignatures,
-                expectedOutput,
-                trimOutput,
-                expectedReturnCode,
                 args,
+                ExecutionValidators.TryCreate(expectedReturnCode, expectedOutput, trimOutput),
+                expectedSignatures,
                 emitOptions,
                 verify);
         }
@@ -1062,6 +1060,31 @@ namespace System.Diagnostics.CodeAnalysis
             bool trimOutput = true,
             int? expectedReturnCode = null,
             string[]? args = null,
+            EmitOptions? emitOptions = null,
+            Verification verify = default) =>
+            CompileAndVerifyCore(
+                compilation,
+                manifestResources,
+                dependencies,
+                sourceSymbolValidator,
+                validator,
+                symbolValidator,
+                args,
+                ExecutionValidators.TryCreate(expectedReturnCode, expectedOutput, trimOutput),
+                expectedSignatures,
+                emitOptions,
+                verify);
+
+        internal CompilationVerifier CompileAndVerifyCore(
+            Compilation compilation,
+            IEnumerable<ResourceDescription>? manifestResources = null,
+            IEnumerable<ModuleData>? dependencies = null,
+            Action<ModuleSymbol>? sourceSymbolValidator = null,
+            Action<PEAssembly>? validator = null,
+            Action<ModuleSymbol>? symbolValidator = null,
+            string[]? args = null,
+            Action<int, string, string>? executionValidator = null,
+            SignatureDescription[]? expectedSignatures = null,
             EmitOptions? emitOptions = null,
             Verification verify = default)
         {
@@ -1085,10 +1108,8 @@ namespace System.Diagnostics.CodeAnalysis
                 validator,
                 translate(symbolValidator),
                 expectedSignatures,
-                expectedOutput,
-                trimOutput,
-                expectedReturnCode,
                 args,
+                executionValidator,
                 emitOptions,
                 verify);
         }

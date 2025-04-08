@@ -327,18 +327,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             validateExpected(output.ToString());
         }
 
+#nullable enable
+
         public void Emit(
-            string? expectedOutput,
-            bool trimOutput,
-            int? expectedReturnCode,
-            string[]? args,
             IEnumerable<ResourceDescription>? manifestResources,
-            EmitOptions? emitOptions,
+            EmitOptions emitOptions,
             Verification peVerify,
-            SignatureDescription[]? expectedSignatures)
+            SignatureDescription[]? expectedSignatures,
+            string[]? args,
+            Action<int, string, string>? executionValidator)
         {
             var emitData = Emit(manifestResources, emitOptions);
-
             using var testEnvironment = CreateRuntimeEnvironment(emitData.EmittedModule, emitData.Modules);
             try
             {
@@ -364,27 +363,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 MetadataSignatureUnitTestHelper.VerifyMemberSignatures(testEnvironment, expectedSignatures);
             }
 
-            if (expectedOutput != null || expectedReturnCode != null)
+            if (executionValidator is not null)
             {
-                var (exitCode, output, errorOutput) = testEnvironment.Execute(args ?? [], expectedOutput?.Length);
-                if (expectedReturnCode.HasValue)
-                {
-                    Assert.Equal(expectedReturnCode.Value, exitCode);
-                }
-
-                if (expectedOutput != null)
-                {
-                    if (trimOutput)
-                    {
-                        expectedOutput = expectedOutput.Trim();
-                        output = output.Trim();
-                    }
-
-                    Assert.Equal(expectedOutput, output);
-                    Assert.Empty(errorOutput);
-                }
+                var (exitCode, output, errorOutput) = testEnvironment.Execute(args ?? [], maxOutputLength: null);
+                executionValidator(exitCode, output, errorOutput);
             }
         }
+
+#nullable disable
 
         private sealed class Resolver : ILVerify.IResolver
         {

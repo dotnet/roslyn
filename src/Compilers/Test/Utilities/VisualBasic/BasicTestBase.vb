@@ -95,10 +95,8 @@ End Namespace
             validator,
             Translate(symbolValidator),
             expectedSignatures,
-            expectedOutput,
-            trimOutput,
-            expectedReturnCode,
             args,
+            ExecutionValidators.TryCreate(expectedReturnCode, expectedOutput, Nothing, trimOutput),
             emitOptions,
             verify)
     End Function
@@ -207,10 +205,8 @@ End Namespace
             validator,
             Translate(symbolValidator),
             expectedSignatures,
-            expectedOutput,
-            trimOutput,
-            expectedReturnCode,
             args,
+            ExecutionValidators.TryCreate(expectedReturnCode, expectedOutput, Nothing, trimOutput),
             emitOptions,
             verify)
     End Function
@@ -343,10 +339,8 @@ End Namespace
             validator,
             Translate(symbolValidator),
             expectedSignatures,
-            expectedOutput,
-            trimOutput,
-            expectedReturnCode,
             args,
+            ExecutionValidators.TryCreate(expectedReturnCode, expectedOutput, Nothing, trimOutput),
             emitOptions,
             verify)
     End Function
