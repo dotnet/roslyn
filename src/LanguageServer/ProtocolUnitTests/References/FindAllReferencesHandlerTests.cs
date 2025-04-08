@@ -10,9 +10,8 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.ReferenceHighlighting;
 using Roslyn.Test.Utilities;
 using Roslyn.Text.Adornments;
 using Roslyn.Utilities;
@@ -360,8 +359,8 @@ class C
         var definitionId = definition.DefinitionId;
         Assert.NotNull(definition.DefinitionText);
 
-        Assert.Equal(definitionGlyph.GetImageId().Guid, definition.DefinitionIcon.ImageId.Guid);
-        Assert.Equal(definitionGlyph.GetImageId().Id, definition.DefinitionIcon.ImageId.Id);
+        Assert.Equal(definitionGlyph.GetVsImageData().guid, definition.DefinitionIcon.ImageId.Guid);
+        Assert.Equal(definitionGlyph.GetVsImageData().id, definition.DefinitionIcon.ImageId.Id);
 
         for (var i = 0; i < referenceItems.Length; i++)
         {
@@ -384,11 +383,11 @@ class C
         int expectedReferenceCount)
     {
         var actualDefinitionCount = referenceItems.Select(
-            item => ((ClassifiedTextElement)item.Text).Runs.Where(run => run.MarkerTagType == DefinitionHighlightTag.TagId)).Where(i => i.Any()).Count();
+            item => ((ClassifiedTextElement)item.Text).Runs.Where(run => run.MarkerTagType == ReferenceHighlightingConstants.DefinitionTagId)).Where(i => i.Any()).Count();
         var actualWrittenReferenceCount = referenceItems.Select(
-            item => ((ClassifiedTextElement)item.Text).Runs.Where(run => run.MarkerTagType == WrittenReferenceHighlightTag.TagId)).Where(i => i.Any()).Count();
+            item => ((ClassifiedTextElement)item.Text).Runs.Where(run => run.MarkerTagType == ReferenceHighlightingConstants.WrittenReferenceTagId)).Where(i => i.Any()).Count();
         var actualReferenceCount = referenceItems.Select(
-            item => ((ClassifiedTextElement)item.Text).Runs.Where(run => run.MarkerTagType == ReferenceHighlightTag.TagId)).Where(i => i.Any()).Count();
+            item => ((ClassifiedTextElement)item.Text).Runs.Where(run => run.MarkerTagType == ReferenceHighlightingConstants.ReferenceTagId)).Where(i => i.Any()).Count();
 
         Assert.Equal(expectedDefinitionCount, actualDefinitionCount);
         Assert.Equal(expectedWrittenReferenceCount, actualWrittenReferenceCount);

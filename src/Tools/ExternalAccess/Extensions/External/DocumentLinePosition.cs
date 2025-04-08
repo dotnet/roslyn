@@ -4,6 +4,7 @@
 
 using System;
 using System.Text.Json.Serialization;
+using Microsoft.CodeAnalysis.ExternalAccess.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Extensions;
@@ -25,7 +26,7 @@ public readonly struct DocumentLinePosition
     {
         _ = document ?? throw new ArgumentNullException(nameof(document));
 
-        FilePath = document.FilePath ?? throw new InvalidOperationException("Missing document file path");
+        FilePath = document.FilePath ?? throw new InvalidOperationException(ExternalAccessExtensionsResources.Missing_document_file_path);
         Line = linePosition.Line;
         Character = linePosition.Character;
     }

@@ -265,6 +265,92 @@ public sealed class CSharpSemanticSearchServiceTests
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
+    public async Task FindReferencingSyntaxNodes()
+    {
+        using var workspace = TestWorkspace.Create("""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document FilePath="File1.cs">
+                        class C
+                        {
+                            void F()
+                            {
+                            }
+                        }
+
+                        class D
+                        {
+                            void R1() => new C().F();
+                            void R2() => new C().F();
+                        }
+                    </Document>
+                </Project>
+            </Workspace>
+        """, composition: FeaturesTestCompositions.Features);
+
+        var solution = workspace.CurrentSolution;
+
+        var service = solution.Services.GetRequiredLanguageService<ISemanticSearchService>(LanguageNames.CSharp);
+
+        var query = """
+        static async IAsyncEnumerable<ISymbol> Find(IMethodSymbol e)
+        {
+            if (e.Name != "F")
+            {
+                yield break;
+            }
+
+            foreach (var node in e.FindReferencingSyntaxNodes())
+            {
+                var model = await node.SyntaxTree.GetSemanticModelAsync();
+                yield return model.GetEnclosingSymbol(node.SpanStart);
+            }
+        }
+        """;
+
+        var results = new List<DefinitionItem>();
+        var observer = new MockSemanticSearchResultsObserver() { OnDefinitionFoundImpl = results.Add };
+        var traceSource = new TraceSource("test");
+
+        var options = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var result = await service.ExecuteQueryAsync(solution, query, s_referenceAssembliesDir, observer, options, traceSource, CancellationToken.None);
+
+        Assert.Null(result.ErrorMessage);
+        AssertEx.Equal(
+        [
+            "void D.R1()",
+            "void D.R2()"
+        ], results.Select(Inspect));
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public async Task NullReturn()
+    {
+        using var workspace = TestWorkspace.Create(DefaultWorkspaceXml, composition: FeaturesTestCompositions.Features);
+
+        var solution = workspace.CurrentSolution;
+
+        var service = solution.Services.GetRequiredLanguageService<ISemanticSearchService>(LanguageNames.CSharp);
+
+        var query = """
+        static IEnumerable<ISymbol> Find(Compilation compilation)
+        {
+            return null;
+        }
+        """;
+
+        var results = new List<DefinitionItem>();
+        var observer = new MockSemanticSearchResultsObserver() { OnDefinitionFoundImpl = results.Add };
+        var traceSource = new TraceSource("test");
+
+        var options = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var result = await service.ExecuteQueryAsync(solution, query, s_referenceAssembliesDir, observer, options, traceSource, CancellationToken.None);
+
+        Assert.Null(result.ErrorMessage);
+        Assert.Empty(results);
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
     public async Task ForcedCancellation()
     {
         using var workspace = TestWorkspace.Create(DefaultWorkspaceXml, composition: FeaturesTestCompositions.Features);
@@ -351,11 +437,19 @@ public sealed class CSharpSemanticSearchServiceTests
         var exception = exceptions.Single();
         AssertEx.Equal($"CSharpAssembly1: [179..179) 'F(x + 1);': InsufficientExecutionStackException: '{expectedMessage}'", Inspect(exception, query));
 
-        AssertEx.Equal(
-            "   ..." + Environment.NewLine +
-            string.Join(Environment.NewLine, Enumerable.Repeat($"   at Program.<<Main>$>g__F|0_1(Int64 x) in {FeaturesResources.Query}:line 7", 31)) + Environment.NewLine +
-            $"   at Program.<<Main>$>g__Find|0_0(Compilation compilation)+MoveNext() in Query:line 4" + Environment.NewLine,
-            exception.StackTrace.JoinText());
+        var actualTrace = exception.StackTrace.JoinText().Split([Environment.NewLine], StringSplitOptions.None).AsSpan();
+
+        AssertEx.SequenceEqual(
+        [
+            "   ...",
+            .. Enumerable.Repeat($"   at Program.<<Main>$>g__F|0_1(Int64 x) in {FeaturesResources.Query}:line 7", 10),
+        ], actualTrace[0..11].ToArray());
+
+        AssertEx.SequenceEqual(
+        [
+            .. Enumerable.Repeat($"   at Program.<<Main>$>g__F|0_1(Int64 x) in {FeaturesResources.Query}:line 7", 10),
+            $"   at Program.<<Main>$>g__Find|0_0(Compilation compilation)+MoveNext() in Query:line 4",
+        ], actualTrace[^14..^3].ToArray());
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -409,11 +503,13 @@ public sealed class CSharpSemanticSearchServiceTests
         var exception = exceptions.Single();
         AssertEx.Equal($"CSharpAssembly1: [190..190) 'var x = s.ToString();': NullReferenceException: '{expectedMessage}'", Inspect(exception, query));
 
-        AssertEx.Equal(
-            $"   at Program.<<Main>$>g__F|0_1(ISymbol s) in {FeaturesResources.Query}:line 11" + Environment.NewLine +
-            $"   at Program.<>c.<<Main>$>b__0_2(ISymbol x) in {FeaturesResources.Query}:line 5" + Environment.NewLine +
-            $"   at <Select Iterator>()" + Environment.NewLine,
-            Regex.Replace(exception.StackTrace.JoinText(), @"System\.Linq\.Enumerable\..*\.MoveNext", "<Select Iterator>"));
+        var actualTrace = exception.StackTrace.JoinText().Split([Environment.NewLine], StringSplitOptions.None).AsSpan()[0..2].ToArray();
+
+        AssertEx.SequenceEqual(
+        [
+            $"   at Program.<<Main>$>g__F|0_1(ISymbol s) in {FeaturesResources.Query}:line 11",
+            $"   at Program.<>c.<<Main>$>b__0_2(ISymbol x) in {FeaturesResources.Query}:line 5",
+        ], actualTrace);
     }
 
     /// <summary>

@@ -12131,5 +12131,512 @@ class C<T>
             Assert.Equal(NullableAnnotation.Annotated, sourceField.GetInferredNullableAnnotation());
             Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.TypeWithAnnotations.NullableAnnotation);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77909")]
+        public void MultipleFieldBackedPropsInStructs()
+        {
+            var source = """
+                #nullable enable
+
+                public struct CrashMe
+                {
+                    public  uint Value1
+                    {
+                        get => field;
+                        set => field = value;
+                    }
+                    public  uint Value2
+                    {
+                        get => field;
+                        set => field = value;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77909")]
+        public void MultipleFieldBackedPropsInStructs_ReferenceTypes()
+        {
+            var source = """
+                #nullable enable
+
+                public struct CrashMe
+                {
+                    public string Value1
+                    {
+                        get => field;
+                        set => field = value;
+                    }
+                    public string Value2
+                    {
+                        get => field;
+                        set => field = value;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Nullable_Cycle_01()
+        {
+            var source = """
+                #nullable enable
+
+                var s = new S
+                {
+                    Value1 = "a",
+                    Value2 = "b"
+                };
+
+                public struct S
+                {
+                    public S()
+                    {
+                        Value1 = "a";
+                        Value2 = "b";
+                    }
+
+                    public string Value1
+                    {
+                        get => Value2 = field;
+                    }
+                    public string Value2
+                    {
+                        get => Value1 = field;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,5): error CS0200: Property or indexer 'S.Value1' cannot be assigned to -- it is read only
+                //     Value1 = "a",
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Value1").WithArguments("S.Value1").WithLocation(5, 5),
+                // (6,5): error CS0200: Property or indexer 'S.Value2' cannot be assigned to -- it is read only
+                //     Value2 = "b"
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Value2").WithArguments("S.Value2").WithLocation(6, 5),
+                // (19,16): error CS0200: Property or indexer 'S.Value2' cannot be assigned to -- it is read only
+                //         get => Value2 = field;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Value2").WithArguments("S.Value2").WithLocation(19, 16),
+                // (23,16): error CS0200: Property or indexer 'S.Value1' cannot be assigned to -- it is read only
+                //         get => Value1 = field;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Value1").WithArguments("S.Value1").WithLocation(23, 16));
+        }
+
+        [Fact]
+        public void Nullable_Accessor_FieldStateAffectedByAssigningThis()
+        {
+            var source = """
+                #nullable enable
+
+                public struct S
+                {
+                    public string Prop
+                    {
+                        get
+                        {
+                            field = "a";
+                            this = default;
+                            field.ToString(); // 1
+                            return field;
+                        }
+                        set
+                        {
+                            field = "a";
+                            this = default;
+                            field.ToString(); // 2
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (11,13): warning CS8602: Dereference of a possibly null reference.
+                //             field.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "field").WithLocation(11, 13),
+                // (18,13): warning CS8602: Dereference of a possibly null reference.
+                //             field.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "field").WithLocation(18, 13));
+        }
+
+        [Fact]
+        public void Nullable_Constructor_FieldStateAffectedByAssigningThis()
+        {
+            var source = """
+                #nullable enable
+
+                public struct S
+                {
+                    public string Prop
+                    {
+                        get => field;
+                        set => field = value;
+                    }
+
+                    public static string StaticProp
+                    {
+                        get => field;
+                        set => field = value;
+                    } = "b";
+
+                    public S(string str)
+                    {
+                        Prop = str;
+                    }
+
+                    public S() : this("a")
+                    {
+                        Prop.ToString();
+                        this = default;
+                        Prop.ToString(); // 1
+                        StaticProp.ToString();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (26,9): warning CS8602: Dereference of a possibly null reference.
+                //         Prop.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(26, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77991")]
+        public void Nullable_OrdinaryMethod_FieldStateAffectedByAssigningStruct()
+        {
+            var source = """
+                #nullable enable
+
+                public struct S
+                {
+                    public string Prop
+                    {
+                        get => field;
+                        set => field = value;
+                    }
+
+                    public static string StaticProp
+                    {
+                        get => field;
+                        set => field = value;
+                    } = "b";
+                    
+                    public void M(S s)
+                    {
+                        s.Prop.ToString();
+                        StaticProp.ToString();
+
+                        s = default;
+                        s.Prop.ToString(); // expected warning is missing
+                        StaticProp.ToString();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77991")]
+        public void Nullable_Accessor_OtherPropStateAffectedByAssigningStruct()
+        {
+            var source = """
+                #nullable enable
+
+                public struct S()
+                {
+                    public string Prop1
+                    {
+                        get
+                        {
+                            Prop2 = "a";
+                            this = default;
+                            Prop2.ToString(); // expected warning missing
+                            StaticProp.ToString();
+                            return "a";
+                        }
+                    }
+
+                    public string Prop2
+                    {
+                        get => field;
+                        set => field = value;
+                    } = "b";
+
+                    public static string StaticProp
+                    {
+                        get => field;
+                        set => field = value;
+                    } = "c";
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77991")]
+        public void Nullable_PropInitializer_PropStateAffectedByAssigningStruct()
+        {
+            var source = """
+                #nullable enable
+
+                public struct S()
+                {
+                    public string Prop { get => field; set => field = value; } = "a";
+
+                    public static S StaticProp
+                    {
+                        get => field;
+                        set => field = value;
+                    } = M(
+                        StaticProp = default,
+                        StaticProp.Prop.ToString()); // expected warning missing
+
+                    public static S OtherProp
+                    {
+                        get => field;
+                        set => field = value;
+                    } = M(
+                        StaticProp = default,
+                        StaticProp.Prop.ToString()); // expected warning missing
+
+                    public static S M(S s, string str) => s;
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77909")]
+        public void Nullable_Cycle_02()
+        {
+            var source = """
+                #nullable enable
+
+                var s = new S
+                {
+                    Resilient = "a", // 1
+                    NonResilient = "b" // 2
+                };
+
+                public struct S
+                {
+                    public S()
+                    {
+                        Resilient.ToString(); // 3
+                        NonResilient.ToString(); // 4
+                    }
+
+                    public S(bool ignored) : this()
+                    {
+                        Resilient.ToString(); // 5
+                        NonResilient.ToString();
+                    }
+
+                    public S((bool, bool) ignored2)
+                    {
+                        this = new();
+                        Resilient.ToString(); // 6
+                        NonResilient.ToString();
+                    }
+
+                    public S((bool, bool, bool) ignored3)
+                    {
+                        this = default;
+                        Resilient.ToString(); // 7
+                        NonResilient.ToString(); // 8
+                    }
+
+                    public string Resilient
+                    {
+                        get => field ??= "a";
+                    }
+                    public string NonResilient
+                    {
+                        get => field;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,5): error CS0200: Property or indexer 'S.Resilient' cannot be assigned to -- it is read only
+                //     Resilient = "a", // 1
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Resilient").WithArguments("S.Resilient").WithLocation(5, 5),
+                // (6,5): error CS0200: Property or indexer 'S.NonResilient' cannot be assigned to -- it is read only
+                //     NonResilient = "b" // 2
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "NonResilient").WithArguments("S.NonResilient").WithLocation(6, 5),
+                // (13,9): warning CS8602: Dereference of a possibly null reference.
+                //         Resilient.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Resilient").WithLocation(13, 9),
+                // (14,9): warning CS8602: Dereference of a possibly null reference.
+                //         NonResilient.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "NonResilient").WithLocation(14, 9),
+                // (19,9): warning CS8602: Dereference of a possibly null reference.
+                //         Resilient.ToString(); // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Resilient").WithLocation(19, 9),
+                // (26,9): warning CS8602: Dereference of a possibly null reference.
+                //         Resilient.ToString(); // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Resilient").WithLocation(26, 9),
+                // (33,9): warning CS8602: Dereference of a possibly null reference.
+                //         Resilient.ToString(); // 7
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Resilient").WithLocation(33, 9),
+                // (34,9): warning CS8602: Dereference of a possibly null reference.
+                //         NonResilient.ToString(); // 8
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "NonResilient").WithLocation(34, 9));
+        }
+
+        [Fact]
+        public void Nullable_Cycle_03()
+        {
+            var source = """
+                #nullable enable
+
+                var s = new S
+                {
+                    Resilient = "a", // 1
+                    NonResilient = "b" // 2
+                };
+
+                public struct S
+                {
+                    public S()
+                    {
+                        Resilient = "a";
+                        NonResilient = "b";
+                    }
+
+                    public S(bool ignored) : this()
+                    {
+                        Resilient = "a";
+                        NonResilient = "b";
+                    }
+
+                    public string Resilient
+                    {
+                        get => field ??= "a";
+                    }
+                    public string NonResilient
+                    {
+                        get => field;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,5): error CS0200: Property or indexer 'S.Resilient' cannot be assigned to -- it is read only
+                //     Resilient = "a", // 1
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Resilient").WithArguments("S.Resilient").WithLocation(5, 5),
+                // (6,5): error CS0200: Property or indexer 'S.NonResilient' cannot be assigned to -- it is read only
+                //     NonResilient = "b" // 2
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "NonResilient").WithArguments("S.NonResilient").WithLocation(6, 5));
+        }
+
+        [Fact]
+        public void Nullable_Cycle_04()
+        {
+            var source = """
+                #nullable enable
+
+                public struct S
+                {
+                    public static int P1 { get => field; set => field = value; } = 1;
+                    public static int P2 { get => field; set => field = value; } = 2;
+                    public static int P3 { get => field; set => field = value; } = 3;
+                    
+                    public int P4 { get => field; set => field = value; } = 4;
+                    public int P5 { get => field; set => field = value; } = 5;
+                    public int P6 { get => field; set => field = value; } = 6;
+
+                    public S() { }
+                    static S() { }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Nullable_Cycle_05()
+        {
+            var source = """
+                #nullable enable
+
+                public struct S
+                {
+                    public static int P1 { get => field; set => field = value; } = field;
+                    public static int P2 { get => field; set => field = value; } = field;
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,68): error CS0103: The name 'field' does not exist in the current context
+                //     public static int P1 { get => field; set => field = value; } = field;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(5, 68),
+                // (6,68): error CS0103: The name 'field' does not exist in the current context
+                //     public static int P2 { get => field; set => field = value; } = field;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(6, 68));
+        }
+
+        [Fact]
+        public void Nullable_Cycle_06()
+        {
+            var source = """
+                #nullable enable
+
+                public struct S
+                {
+                    public static string P1 { get => field; set => field = value; }
+                    public static string P2 { get => field; set => field = value; }
+
+                    static S()
+                    {
+                        P1 = "a";
+                        P2 = "b";
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77991")]
+        public void Nullable_Resilient_InitialStateInConstructor()
+        {
+            var source = """
+                #nullable enable
+
+                public class C
+                {
+                    public string Prop => field ??= "a";
+
+                    public C(bool ignored)
+                    {
+                        Prop.ToString(); // unexpected warning
+                    }
+
+                    public C() : this(false)
+                    {
+                        Prop.ToString(); // unexpected warning
+                    }
+
+                    public void M()
+                    {
+                        Prop.ToString();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,9): warning CS8602: Dereference of a possibly null reference.
+                //         Prop.ToString(); // unexpected warning
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(9, 9),
+                // (14,9): warning CS8602: Dereference of a possibly null reference.
+                //         Prop.ToString(); // unexpected warning
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(14, 9));
+        }
     }
 }

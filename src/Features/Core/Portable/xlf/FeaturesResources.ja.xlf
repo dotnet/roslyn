@@ -750,6 +750,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">例:</target>
         <note>Plural form when we have multiple examples to show.</note>
       </trans-unit>
+      <trans-unit id="Extension_0_is_already_registered">
+        <source>Extension '{0}' is already registered.</source>
+        <target state="new">Extension '{0}' is already registered.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extension_0_was_not_registered">
+        <source>Extension '{0}' was not registered.</source>
+        <target state="new">Extension '{0}' was not registered.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Extract_base_class">
         <source>Extract base class...</source>
         <target state="translated">基底クラスの抽出...</target>
@@ -1215,6 +1225,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">{0} を移動するには、アプリケーションを再起動する必要があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Multiple_handlers_found_for_message_0">
+        <source>Multiple handlers found for message {0}.</source>
+        <target state="new">Multiple handlers found for message {0}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="NET_Code_Actions">
         <source>.NET Code Actions</source>
         <target state="translated">.NET コード アクション</target>
@@ -1243,6 +1258,21 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="No_common_root_node_for_extraction">
         <source>No common root node for extraction.</source>
         <target state="translated">抽出するための一般的なルート ノードがありません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_extension_registered_as_0">
+        <source>No extension registered as '{0}'.</source>
+        <target state="new">No extension registered as '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_extensions_registered_at_0">
+        <source>No extensions registered at '{0}'.</source>
+        <target state="new">No extensions registered at '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_handler_found_for_message_0">
+        <source>No handler found for message {0}.</source>
+        <target state="new">No handler found for message {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="No_source_document_info_found_in_PDB">
@@ -1283,6 +1313,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Operators">
         <source>Operators</source>
         <target state="translated">演算子</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_type_0_is_not_among_supported_types_1">
+        <source>Parameter type '{0}' is not among supported types: {1}</source>
+        <target state="new">Parameter type '{0}' is not among supported types: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Please_resolve_errors_in_your_code_before_renaming_this_element">
@@ -2550,6 +2585,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">モジュールの解決: '{1}' の '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Return_type_0_is_not_among_supported_types_1">
+        <source>Return type '{0}' is not among supported types: {1}</source>
+        <target state="new">Return type '{0}' is not among supported types: {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">Rude 編集</target>
@@ -2740,14 +2780,14 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">) が多すぎます</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
       </trans-unit>
+      <trans-unit id="Top_level_function_0_must_have_a_single_parameter">
+        <source>Top-level function '{0}' must have a single parameter</source>
+        <target state="new">Top-level function '{0}' must have a single parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Trailing_comma_not_allowed">
         <source>Trailing comma not allowed</source>
         <target state="translated">末尾にコンマは使用できない</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Type_0_is_not_among_supported_types_1">
-        <source>Type '{0}' is not among supported types: {1}</source>
-        <target state="new">Type '{0}' is not among supported types: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Types_colon">
@@ -2763,6 +2803,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Unable_to_create_0">
         <source>Unable to create '{0}'</source>
         <target state="translated">'{0}' を作成できません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unable_to_get_the_directory_name_for_0">
+        <source>Unable to get the directory name for {0}.</source>
+        <target state="new">Unable to get the directory name for {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_load_type_0_1">
