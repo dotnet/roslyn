@@ -553,7 +553,7 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
             using var pool = SharedPools.Default<HashSet<string>>().GetPooledObject();
             if (_solutionId != null)
             {
-                pool.Object.UnionWith(solution.SolutionState.ProjectStates.Select(kv => kv.Value.Language));
+                pool.Object.UnionWith(solution.SortedProjectStates.Select(project => project.Language));
                 return string.Join(",", pool.Object);
             }
 
@@ -597,9 +597,9 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
             var count = 0;
             if (_solutionId != null)
             {
-                foreach (var projectState in solution.SolutionState.ProjectStates)
+                foreach (var projectState in solution.SortedProjectStates)
                 {
-                    count += projectState.Value.DocumentStates.Count;
+                    count += projectState.DocumentStates.Count;
                 }
 
                 return count;

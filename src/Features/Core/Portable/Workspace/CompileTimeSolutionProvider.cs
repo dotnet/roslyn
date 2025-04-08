@@ -98,7 +98,7 @@ internal sealed class CompileTimeSolutionProvider : ICompileTimeSolutionProvider
             var staleSolution = _lastCompileTimeSolution;
             var compileTimeSolution = designTimeSolution;
 
-            foreach (var (_, projectState) in compileTimeSolution.SolutionState.ProjectStates)
+            foreach (var projectState in compileTimeSolution.SolutionState.SortedProjectStates)
             {
                 using var _1 = ArrayBuilder<DocumentId>.GetInstance(out var configIdsToRemove);
                 using var _2 = ArrayBuilder<DocumentId>.GetInstance(out var documentIdsToRemove);

@@ -21,13 +21,14 @@
     https://github.com/dotnet/sdk/issues/45155
   -->
   <PropertyGroup Condition="'$(DotNetBuildSourceOnly)' == 'true'">
-    <MicrosoftIORedistVersion>6.1.2</MicrosoftIORedistVersion>
+    <MicrosoftIORedistVersion>6.1.3</MicrosoftIORedistVersion>
     <SystemBuffersVersion>4.6.1</SystemBuffersVersion>
     <SystemDataSqlClientVersion>4.9.0</SystemDataSqlClientVersion>
-    <SystemMemoryVersion>4.6.2</SystemMemoryVersion>
+    <SystemMemoryVersion>4.6.3</SystemMemoryVersion>
     <SystemNumericsVectorsVersion>4.6.1</SystemNumericsVectorsVersion>
-    <SystemRuntimeCompilerServicesUnsafeVersion>6.1.1</SystemRuntimeCompilerServicesUnsafeVersion>
-    <SystemThreadingTasksExtensionsVersion>4.6.2</SystemThreadingTasksExtensionsVersion>
+    <SystemRuntimeCompilerServicesUnsafeVersion>6.1.2</SystemRuntimeCompilerServicesUnsafeVersion>
+    <SystemThreadingTasksExtensionsVersion>4.6.3</SystemThreadingTasksExtensionsVersion>
+    <SystemValueTupleVersion>4.6.1</SystemValueTupleVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
     <MicrosoftIORedistVersion>6.0.1</MicrosoftIORedistVersion>
@@ -41,6 +42,7 @@
     <SystemNumericsVectorsVersion>4.5.0</SystemNumericsVectorsVersion>
     <SystemRuntimeCompilerServicesUnsafeVersion>6.0.0</SystemRuntimeCompilerServicesUnsafeVersion>
     <SystemThreadingTasksExtensionsVersion>4.5.4</SystemThreadingTasksExtensionsVersion>
+    <SystemValueTupleVersion>4.5.0</SystemValueTupleVersion>
   </PropertyGroup>
   <!--
     Versions managed by Arcade (see Versions.Details.xml)

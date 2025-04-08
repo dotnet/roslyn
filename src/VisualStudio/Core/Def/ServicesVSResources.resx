@@ -1471,8 +1471,8 @@ Additional information: {1}</value>
   <data name="This_rule_is_not_configurable" xml:space="preserve">
     <value>This rule is not configurable</value>
   </data>
-  <data name="Display_diagnostics_inline_experimental" xml:space="preserve">
-    <value>Display diagnostics inline (experimental)</value>
+  <data name="Display_diagnostics_inline" xml:space="preserve">
+    <value>Display diagnostics inline</value>
   </data>
   <data name="at_the_end_of_the_line_of_code" xml:space="preserve">
     <value>at the end of the line of code</value>
@@ -1653,8 +1653,8 @@ Additional information: {1}</value>
   <data name="Navigating" xml:space="preserve">
     <value>Navigating</value>
   </data>
-  <data name="Fix_text_pasted_into_string_literals_experimental" xml:space="preserve">
-    <value>Fix text pasted into string literals (experimental)</value>
+  <data name="Fix_text_pasted_into_string_literals" xml:space="preserve">
+    <value>Fix text pasted into string literals</value>
   </data>
   <data name="Go_To_Definition" xml:space="preserve">
     <value>Go To Definition</value>

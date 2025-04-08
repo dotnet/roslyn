@@ -10,7 +10,8 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class representing the parameters sent for a textDocument/_vs_uriPresentation request.
 /// </summary>
-internal sealed class VSInternalUriPresentationParams : ITextDocumentParams
+/// <remarks>Do not seal this type! This is extended by Razor</remarks>
+internal class VSInternalUriPresentationParams : ITextDocumentParams
 {
     /// <summary>
     /// Gets or sets the identifier for the text document to be operate on.
