@@ -117,7 +117,9 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
 
                     // Add the names of the handlers we loaded for this extension to the unloaded handler set. That way
                     // if we see a call to them in the future, we can report an appropriate message that the extension
-                    // is no longer loaded.
+                    // is no longer loaded.  Note: if TryGetValue fails, then that means we never called
+                    // GetExtensionMessageNamesAsync for this extension.  In which case, we won't know any hanlder names
+                    // for it, and we'll have nothing to add to our unregistered handler set.
                     if (lazyHandlers.TryGetValue(out var handlers))
                     {
                         _unregisteredHandlerNames_useOnlyUnderLock.workspace.UnionWith(handlers.WorkspaceMessageHandlers.Keys);

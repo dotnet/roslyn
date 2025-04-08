@@ -128,8 +128,10 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             }
 
             /// <summary>
-            /// Unregisters this assembly path from this extension folder.  If this was the last registered path, then this
-            /// will return true so that this folder can be unloaded.
+            /// Unregisters this assembly path from this extension folder.  If this was the last registered path, then
+            /// this will return true so that this folder can be unloaded.  Also returns the lazy handlers for this
+            /// assembly path.  If <see cref="GetExtensionMessageNamesAsync"/> has been called, this will be a fully
+            /// computed value. Otherwise, it will be an uncomputed value.
             /// </summary>
             public (bool removeFolder, AsyncLazy<AssemblyMessageHandlers> lazyHandlers) UnregisterAssembly(string assemblyFilePath)
             {
