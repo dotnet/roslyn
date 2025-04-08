@@ -144,7 +144,6 @@ internal sealed partial class DiagnosticAnalyzerService
             return state switch
             {
                 DocumentDiagnosticAnalyzer analyzer => analyzer.Priority,
-                ProjectDiagnosticAnalyzer analyzer => Math.Max(0, analyzer.Priority),
                 _ => RegularDiagnosticAnalyzerPriority,
             };
         }
