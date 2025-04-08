@@ -153,8 +153,9 @@ internal sealed partial class SolutionCompilationState
     {
         var builder = this.SourceGeneratorExecutionVersionMap.Map.ToBuilder();
 
-        foreach (var (projectId, projectState) in this.SolutionState.ProjectStates)
+        foreach (var projectState in this.SolutionState.SortedProjectStates)
         {
+            var projectId = projectState.Id;
             if (!RemoteSupportedLanguages.IsSupported(projectState.Language))
             {
                 builder.Remove(projectId);

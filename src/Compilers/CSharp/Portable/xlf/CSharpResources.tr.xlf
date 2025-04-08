@@ -792,6 +792,11 @@
         <target state="new">'{0}' does not contain a definition for '{1}' and no accessible extension member '{1}' for receiver of type '{0}' could be found (are you missing a using directive or an assembly reference?)</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExtensionTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'extension'.</source>
+        <target state="new">Types and aliases cannot be named 'extension'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
         <source>'{0}': extern event cannot have initializer</source>
         <target state="translated">'{0}': dış etkinliğin başlatıcısı olamaz</target>
@@ -1022,6 +1027,11 @@
         <target state="translated">'in' değiştiricisine sahip bağımsız değişkenler dinamik olarak dağıtılan ifadelerde kullanılamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InExtensionParameterMustBeValueType">
+        <source>The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</source>
+        <target state="new">The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
         <source>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</source>
         <target state="translated">Mühürlü bir 'Object.ToString' içeren bir kayıttan devralma işlemi C# {0} sürümünde desteklenmiyor. Lütfen '{1}' veya üstü bir dil sürümünü kullanın.</target>
@@ -1030,6 +1040,11 @@
       <trans-unit id="ERR_InitCannotBeReadonly">
         <source>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</source>
         <target state="translated">'init' erişimcileri 'readonly' olarak işaretlenemez. Bunun yerine '{0}' öğesini salt okunur olarak işaretleyin.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InitInExtension">
+        <source>'{0}': cannot declare init-only accessors in an extension block</source>
+        <target state="new">'{0}': cannot declare init-only accessors in an extension block</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InlineArrayAttributeOnRecord">
@@ -1065,6 +1080,11 @@
       <trans-unit id="ERR_InlineArrayUnsupportedElementFieldModifier">
         <source>Inline array element field cannot be declared as required, readonly, volatile, or as a fixed size buffer.</source>
         <target state="translated">Satır içi dizi öğesi alanı gerekli, salt okunur, geçici veya sabit boyutlu arabellek olarak bildirilemez.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InstanceMemberWithUnnamedExtensionsParameter">
+        <source>'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</source>
+        <target state="new">'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
@@ -1460,6 +1480,11 @@
       <trans-unit id="ERR_MissingPattern">
         <source>Pattern missing</source>
         <target state="translated">Desen eksik</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ModifierOnUnnamedReceiverParameter">
+        <source>Cannot use modifiers on the unnamed receiver parameter of extension block</source>
+        <target state="new">Cannot use modifiers on the unnamed receiver parameter of extension block</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleInitializerCannotBeUnmanagedCallersOnly">
@@ -1907,6 +1932,11 @@
         <target state="translated">Bir özellik alt deseni, özellik veya alan başvurusunun eşleşmesini gerektiriyor, ör. '{{ Name: {0} }}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ProtectedInExtension">
+        <source>'{0}': new protected member declared in an extension block</source>
+        <target state="new">'{0}': new protected member declared in an extension block</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RawStringDelimiterOnOwnLine">
         <source>Raw string literal delimiter must be on its own line.</source>
         <target state="translated">Ham dize sabit değer sınırlayıcısı kendi satırında olmalıdır.</target>
@@ -1970,6 +2000,11 @@
       <trans-unit id="ERR_RefAssignValEscapeWider">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escape scopes than '{1}'.</source>
         <target state="translated">'{1}' değeri '{0}' değerinden daha geniş bir değer kaçış kapsamına sahip olduğundan '{1}' değerinden daha dar kaçış kapsamlarına sahip '{0}' değeri üzerinden atamaya izin verdiği için '{1}' başvuru değeri, '{0}' olarak atanamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne">
+        <source>The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.</source>
+        <target state="new">The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
@@ -8927,8 +8962,8 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadTypeforThis">
-        <source>The first parameter of an extension method cannot be of type '{0}'</source>
-        <target state="translated">Genişletme yönteminin ilk parametresi '{0}' türünde olamaz</target>
+        <source>The receiver parameter of an extension cannot be of type '{0}'</source>
+        <target state="needs-review-translation">Genişletme yönteminin ilk parametresi '{0}' türünde olamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamModThis">

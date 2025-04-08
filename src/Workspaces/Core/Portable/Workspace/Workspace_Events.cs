@@ -27,6 +27,8 @@ public abstract partial class Workspace
     private const string TextDocumentOpenedEventName = "TextDocumentOpened";
     private const string TextDocumentClosedEventName = "TextDocumentClosed";
 
+    private IWorkspaceEventListenerService _workspaceEventListenerService;
+
     /// <summary>
     /// An event raised whenever the current solution is changed.
     /// </summary>
@@ -289,6 +291,9 @@ public abstract partial class Workspace
 
     private void EnsureEventListeners()
     {
-        this.Services.GetService<IWorkspaceEventListenerService>()?.EnsureListeners();
+        // Cache this service so it doesn't need to be retrieved from MEF during disposal.
+        _workspaceEventListenerService ??= this.Services.GetService<IWorkspaceEventListenerService>();
+
+        _workspaceEventListenerService?.EnsureListeners();
     }
 }

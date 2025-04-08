@@ -12,8 +12,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeLens;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Language.CodeLens.Remoting;
@@ -104,7 +104,7 @@ internal sealed class ReferenceCodeLensProvider : IAsyncCodeLensDataPointProvide
 
             var projectVersions = await _lazyCodeLensCallbackService.Value.InvokeAsync<ImmutableDictionary<Guid, string>>(
                 this,
-                nameof(ICodeLensContext.GetProjectVersionsAsync),
+                "GetProjectVersionsAsync",
                 [keys],
                 _cancellationTokenSource.Token).ConfigureAwait(false);
 
@@ -200,7 +200,7 @@ internal sealed class ReferenceCodeLensProvider : IAsyncCodeLensDataPointProvide
             // raw data from Roslyn OOP such as razor find all reference results
             var referenceCountOpt = await _callbackService.InvokeAsync<ReferenceCount?>(
                 _owner,
-                nameof(ICodeLensContext.GetReferenceCountAsync),
+                "GetReferenceCountAsync",
                 [Descriptor, descriptorContext, _calculatedReferenceCount],
                 cancellationToken).ConfigureAwait(false);
 
@@ -243,7 +243,7 @@ internal sealed class ReferenceCodeLensProvider : IAsyncCodeLensDataPointProvide
             // raw data from Roslyn OOP such as razor find all reference results
             var referenceLocationDescriptors = await _callbackService.InvokeAsync<(string projectVersion, ImmutableArray<ReferenceLocationDescriptor> references)?>(
                 _owner,
-                nameof(ICodeLensContext.FindReferenceLocationsAsync),
+                "FindReferenceLocationsAsync",
                 [Descriptor, descriptorContext],
                 cancellationToken).ConfigureAwait(false);
 
@@ -263,8 +263,8 @@ internal sealed class ReferenceCodeLensProvider : IAsyncCodeLensDataPointProvide
                 ImageId imageId = default;
                 if (referenceLocationDescriptor.Glyph.HasValue)
                 {
-                    var moniker = referenceLocationDescriptor.Glyph.Value.GetImageMoniker();
-                    imageId = new ImageId(moniker.Guid, moniker.Id);
+                    var imageData = referenceLocationDescriptor.Glyph.Value.GetVsImageData();
+                    imageId = new ImageId(imageData.guid, imageData.id);
                 }
 
                 return new CodeLensDetailEntryDescriptor()

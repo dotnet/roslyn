@@ -138,6 +138,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         internal sealed override bool HasInterpolatedStringHandlerArgumentError => _underlyingParameter.HasInterpolatedStringHandlerArgumentError;
 
+        internal sealed override bool HasEnumeratorCancellationAttribute => _underlyingParameter.HasEnumeratorCancellationAttribute;
+
         internal sealed override bool IsCallerLineNumber
         {
             get { return _underlyingParameter.IsCallerLineNumber; }

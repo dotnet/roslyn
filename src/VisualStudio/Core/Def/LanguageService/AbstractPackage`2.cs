@@ -39,7 +39,6 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
         base.RegisterInitializeAsyncWork(packageInitializationTasks);
 
         packageInitializationTasks.AddTask(isMainThreadTask: true, task: PackageInitializationMainThreadAsync);
-        packageInitializationTasks.AddTask(isMainThreadTask: false, task: PackageInitializationBackgroundThreadAsync);
     }
 
     private async Task PackageInitializationMainThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
@@ -59,33 +58,35 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
             RegisterEditorFactory(editorFactory);
         }
 
-        // awaiting an IVsTask guarantees to return on the captured context
-        await shell.LoadPackageAsync(Guids.RoslynPackageId);
-    }
-
-    private Task PackageInitializationBackgroundThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
-    {
-        RegisterLanguageService(typeof(TLanguageService), async cancellationToken =>
-        {
-            // Ensure we're on the BG when creating the language service.
-            await TaskScheduler.Default;
-
-            // Create the language service, tell it to set itself up, then store it in a field
-            // so we can notify it that it's time to clean up.
-            _languageService = CreateLanguageService();
-            await _languageService.SetupAsync(cancellationToken).ConfigureAwait(false);
-
-            return _languageService.ComAggregate!;
-        });
-
         // Misc workspace has to be up and running by the time our package is usable so that it can track running
         // doc events and appropriately map files to/from it and other relevant workspaces (like the
         // metadata-as-source workspace).
         var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
 
-        RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
+        // awaiting an IVsTask guarantees to return on the captured context
+        await shell.LoadPackageAsync(Guids.RoslynPackageId);
 
-        return Task.CompletedTask;
+        packageInitializationTasks.AddTask(
+             isMainThreadTask: false,
+             task: (PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken) =>
+             {
+                 RegisterLanguageService(typeof(TLanguageService), async cancellationToken =>
+                 {
+                     // Ensure we're on the BG when creating the language service.
+                     await TaskScheduler.Default;
+
+                     // Create the language service, tell it to set itself up, then store it in a field
+                     // so we can notify it that it's time to clean up.
+                     _languageService = CreateLanguageService();
+                     await _languageService.SetupAsync(cancellationToken).ConfigureAwait(false);
+
+                     return _languageService.ComAggregate!;
+                 });
+
+                 RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
+
+                 return Task.CompletedTask;
+             });
     }
 
     protected override void RegisterOnAfterPackageLoadedAsyncWork(PackageLoadTasks afterPackageLoadedTasks)
