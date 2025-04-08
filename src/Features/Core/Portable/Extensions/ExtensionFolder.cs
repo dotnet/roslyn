@@ -28,7 +28,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             /// <summary>
             /// Lazily computed assembly loader for this particular folder.
             /// </summary>
-            private readonly AsyncLazy<(IAnalyzerAssemblyLoaderInternal? assemblyLoader, Exception? extensionException)> _lazyAssemblyLoader;
+            private readonly AsyncLazy<(IExtensionAssemblyLoader? assemblyLoader, Exception? extensionException)> _lazyAssemblyLoader;
 
             /// <summary>
             /// Mapping from assembly file path to the handlers it contains.  Should only be mutated while the <see
@@ -43,44 +43,8 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                 _extensionMessageHandlerService = extensionMessageHandlerService;
                 _lazyAssemblyLoader = AsyncLazy.Create(cancellationToken =>
                 {
-#if NET
-                    // These lines should always succeed.  If they don't, they indicate a bug in our code that we want
-                    // to bubble out as it must be fixed.
-                    var analyzerAssemblyLoaderProvider = _extensionMessageHandlerService._solutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-                    var analyzerAssemblyLoader = analyzerAssemblyLoaderProvider.CreateNewShadowCopyLoader();
-
-                    // Catch exceptions here related to working with the file system.  If we can't properly enumerate,
-                    // we want to report that back to the client, while not blocking the entire extension service.
-                    try
-                    {
-                        // Allow this assembly loader to load any dll in assemblyFolderPath.
-                        foreach (var dll in Directory.EnumerateFiles(assemblyFolderPath, "*.dll"))
-                        {
-                            cancellationToken.ThrowIfCancellationRequested();
-                            try
-                            {
-                                // Check if the file is a valid .NET assembly.
-                                AssemblyName.GetAssemblyName(dll);
-                            }
-                            catch
-                            {
-                                // The file is not a valid .NET assembly, skip it.
-                                continue;
-                            }
-
-                            analyzerAssemblyLoader.AddDependencyLocation(dll);
-                        }
-
-                        return ((IAnalyzerAssemblyLoaderInternal?)analyzerAssemblyLoader, (Exception?)null);
-                    }
-                    catch (Exception ex) when (ex is not OperationCanceledException)
-                    {
-                        // Capture any exceptions here to be reported back in CreateAssemblyHandlersAsync.
-                        return (null, ex);
-                    }
-#else
-                    return ((IAnalyzerAssemblyLoaderInternal?)null, (Exception?)null);
-#endif
+                    var analyzerAssemblyLoaderProvider = _extensionMessageHandlerService._solutionServices.GetRequiredService<IExtensionAssemblyLoaderProvider>();
+                    return analyzerAssemblyLoaderProvider.CreateNewShadowCopyLoader(assemblyFolderPath, cancellationToken);
                 });
             }
 
@@ -88,7 +52,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             {
                 // Only if we've created the assembly loader do we need to do anything.
                 _lazyAssemblyLoader.TryGetValue(out var tuple);
-                tuple.assemblyLoader?.Dispose();
+                tuple.assemblyLoader?.Unload();
             }
 
             private async Task<AssemblyMessageHandlers> CreateAssemblyHandlersAsync(
@@ -109,8 +73,14 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                 }
 
                 var assembly = analyzerAssemblyLoader.LoadFromPath(assemblyFilePath);
-                var factory = _extensionMessageHandlerService._customMessageHandlerFactory;
-                Contract.ThrowIfNull(factory);
+                var factory = _extensionMessageHandlerService._solutionServices.GetService<IExtensionMessageHandlerFactory>();
+                if (factory is null)
+                {
+                    return new(
+                        DocumentMessageHandlers: ImmutableDictionary<string, IExtensionMessageHandlerWrapper>.Empty,
+                        WorkspaceMessageHandlers: ImmutableDictionary<string, IExtensionMessageHandlerWrapper>.Empty,
+                        ExtensionException: null);
+                }
 
                 // We're calling into code here to analyze the assembly at the specified file and to create handlers we
                 // find within it.  If this throws, then we will capture that exception and return it to the caller to 
