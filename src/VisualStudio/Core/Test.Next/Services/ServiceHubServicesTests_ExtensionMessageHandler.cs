@@ -661,6 +661,36 @@ public sealed partial class ServiceHubServicesTests
         Assert.Contains(nameof(InvalidOperationException), fatalRpcErrorMessage);
     }
 
+    [Fact]
+    public async Task TestExtensionMessageHandlerService_RegisteringMultipleHandlersWithSameName_WorkspaceVersusDocument()
+    {
+        using var localWorkspace = CreateWorkspace(additionalRemoteParts:
+            [typeof(TestExtensionAssemblyLoaderProvider), typeof(TestExtensionMessageHandlerFactory)]);
+
+        await RegisterTestHandlers(
+            localWorkspace,
+            (_, _, _) => [new TestHandler<Solution>("HandlerName", (_, _, _) => 1)],
+            (_, _, _) => [new TestHandler<Document>("HandlerName", (_, _, _) => 2)]);
+
+        var extensionMessageHandlerService = localWorkspace.Services.GetRequiredService<IExtensionMessageHandlerService>();
+
+        string? fatalRpcErrorMessage = null;
+        var errorReportingService = (TestErrorReportingService)localWorkspace.Services.GetRequiredService<IErrorReportingService>();
+        errorReportingService.OnError = message => fatalRpcErrorMessage = message;
+
+        var result = await extensionMessageHandlerService.HandleExtensionWorkspaceMessageAsync(
+            localWorkspace.CurrentSolution,
+            "HandlerName", jsonMessage: "0", CancellationToken.None);
+        Assert.Null(fatalRpcErrorMessage);
+        Assert.Equal("1", result.Response);
+
+        result = await extensionMessageHandlerService.HandleExtensionDocumentMessageAsync(
+            localWorkspace.CurrentSolution.Projects.Single().Documents.Single(),
+            "HandlerName", jsonMessage: "0", CancellationToken.None);
+        Assert.Null(fatalRpcErrorMessage);
+        Assert.Equal("2", result.Response);
+    }
+
     [PartNotDiscoverable]
     [ExportWorkspaceService(typeof(IExtensionAssemblyLoaderProvider), ServiceLayer.Test), Shared]
     [method: ImportingConstructor]
