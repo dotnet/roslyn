@@ -113,11 +113,14 @@ public sealed class ProjectId : IEquatable<ProjectId>, IComparable<ProjectId>
                 writer.WriteGuid(@this.Id);
             }), this);
 
+    internal int CompareTo(ProjectId other)
+        => this.Id.CompareTo(other.Id);
+
     int IComparable<ProjectId>.CompareTo(ProjectId? other)
     {
         if (other is null)
             return 1;
 
-        return this.Id.CompareTo(other.Id);
+        return this.CompareTo(other);
     }
 }

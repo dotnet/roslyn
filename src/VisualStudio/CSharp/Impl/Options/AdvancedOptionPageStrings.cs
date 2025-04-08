@@ -124,8 +124,8 @@ internal static class AdvancedOptionPageStrings
     public static string Option_Show_hints_for_collection_expressions
         => ServicesVSResources.Show_hints_for_collection_expressions;
 
-    public static string Option_Display_diagnostics_inline_experimental
-        => ServicesVSResources.Display_diagnostics_inline_experimental;
+    public static string Option_Display_diagnostics_inline
+        => ServicesVSResources.Display_diagnostics_inline;
 
     public static string Option_at_the_end_of_the_line_of_code
         => ServicesVSResources.at_the_end_of_the_line_of_code;
@@ -361,8 +361,8 @@ internal static class AdvancedOptionPageStrings
     public static string Option_Automatically_open_stack_trace_explorer_on_focus
         => ServicesVSResources.Automatically_open_stack_trace_explorer_on_focus;
 
-    public static string Option_Fix_text_pasted_into_string_literals_experimental
-        => ServicesVSResources.Fix_text_pasted_into_string_literals_experimental;
+    public static string Option_Fix_text_pasted_into_string_literals
+        => ServicesVSResources.Fix_text_pasted_into_string_literals;
 
     public static string Option_Go_To_Definition
         => ServicesVSResources.Go_To_Definition;
