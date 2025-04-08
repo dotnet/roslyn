@@ -9,6 +9,9 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class representing settings for well-known Visual Studio's code action command.
 /// </summary>
+/// <remarks>
+/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
+/// </remarks>
 internal class VSInternalExecuteCommandClientCapabilities : DynamicRegistrationSetting
 {
     /// <summary>

@@ -9,6 +9,9 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// Class representing the registration options for on auto insert support.
 /// </summary>
+/// <remarks>
+/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
+/// </remarks>
 internal class VSInternalDocumentOnAutoInsertRegistrationOptions : VSInternalDocumentOnAutoInsertOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
 {
     /// <summary>

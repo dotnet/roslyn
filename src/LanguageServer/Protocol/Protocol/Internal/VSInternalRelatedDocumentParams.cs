@@ -10,6 +10,9 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Parameter for copilot/_related_documents.
 /// </summary>
+/// <remarks>
+/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
+/// </remarks>
 internal class VSInternalRelatedDocumentParams : IPartialResultParams<VSInternalRelatedDocumentReport[]>
 {
     /// <summary>

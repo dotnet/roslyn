@@ -9,6 +9,9 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Extension class for ClientCapabilities with fields specific to Visual Studio.
 /// </summary>
+/// <remarks>
+/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
+/// </remarks>
 internal class VSInternalClientCapabilities : ClientCapabilities
 {
     /// <summary>

@@ -10,6 +10,9 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// LSP Params for textDocument/mapCode calls.
 /// </summary>
+/// <remarks>
+/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
+/// </remarks>
 internal class VSInternalMapCodeParams
 {
     /// <summary>

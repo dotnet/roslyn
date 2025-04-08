@@ -9,7 +9,10 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Diagnostic registration options.
 /// </summary>
-internal sealed record class VSInternalDiagnosticRegistrationOptions : VSInternalDiagnosticOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
+/// <remarks>
+/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
+/// </remarks>
+internal record class VSInternalDiagnosticRegistrationOptions : VSInternalDiagnosticOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
 {
     /// <summary>
     /// Gets or sets the document filters for this registration option.

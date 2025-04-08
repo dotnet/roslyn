@@ -10,6 +10,9 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class representing a diagnostic pull request for a specific document.
 /// </summary>
+/// <remarks>
+/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
+/// </remarks>
 internal class VSInternalDocumentDiagnosticsParams : VSInternalDiagnosticParams, IPartialResultParams<VSInternalDiagnosticReport[]>, IWorkDoneProgressParams
 {
     /// <inheritdoc/>

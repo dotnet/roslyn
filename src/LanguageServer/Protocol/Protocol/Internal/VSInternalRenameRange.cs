@@ -10,6 +10,9 @@ using System.Text.Json.Serialization;
 /// Class which represents a possible result value of the 'textDocument/prepareRename' request,
 /// together with extra VS-specific options.
 /// </summary>
+/// <remarks>
+/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
+/// </remarks>
 internal class VSInternalRenameRange : RenameRange
 {
     /// <summary>

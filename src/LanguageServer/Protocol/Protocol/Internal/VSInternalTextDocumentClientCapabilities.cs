@@ -9,6 +9,9 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Text document capabilities specific to Visual Studio.
 /// </summary>
+/// <remarks>
+/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
+/// </remarks>
 internal class VSInternalTextDocumentClientCapabilities : TextDocumentClientCapabilities
 {
     /// <summary>

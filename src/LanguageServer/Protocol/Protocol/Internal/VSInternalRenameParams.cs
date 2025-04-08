@@ -10,6 +10,9 @@ using System.Text.Json.Serialization;
 /// Class representing the parameters (together with extra VS-specific options) sent for the
 /// 'textDocument/rename' request.
 /// </summary>
+/// <remarks>
+/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
+/// </remarks>
 internal class VSInternalRenameParams : RenameParams
 {
     /// <summary>

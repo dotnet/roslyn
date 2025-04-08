@@ -7,6 +7,9 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// Class which contains the string values for all well-known Visual Studion LSP code action commands.
 /// </summary>
+/// <remarks>
+/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
+/// </remarks>
 internal static class VSInternalWellKnownCodeActionCommands
 {
     /// <summary>

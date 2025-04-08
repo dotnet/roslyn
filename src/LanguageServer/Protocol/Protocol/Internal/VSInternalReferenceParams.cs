@@ -10,6 +10,9 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class which represents extensions of <see cref="ReferenceParams"/> passed as parameter of find reference requests.
 /// </summary>
+/// <remarks>
+/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
+/// </remarks>
 internal class VSInternalReferenceParams : ReferenceParams, IPartialResultParams<SumType<VSInternalReferenceItem, Location>[]>
 {
     /// <summary>

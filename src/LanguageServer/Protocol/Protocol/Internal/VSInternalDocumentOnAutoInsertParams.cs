@@ -9,6 +9,9 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class representing the parameters sent for a textDocument/_ms_onAutoInsert request.
 /// </summary>
+/// <remarks>
+/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
+/// </remarks>
 internal class VSInternalDocumentOnAutoInsertParams : ITextDocumentPositionParams
 {
     /// <summary>

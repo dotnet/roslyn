@@ -6,6 +6,9 @@ namespace Roslyn.LanguageServer.Protocol;
 
 using System.Text.Json.Serialization;
 
+/// <remarks>
+/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
+/// </remarks>
 internal class VSInternalMapCodeMapping
 {
     /// <summary>

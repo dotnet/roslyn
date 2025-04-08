@@ -9,6 +9,12 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class which represents content to be sent to the clipboard.
 /// </summary>
+/// <remarks>
+/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
+/// </remarks>
+/// <remarks>
+/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
+/// </remarks>
 internal class VSInternalClipboardContent
 {
     /// <summary>

@@ -9,6 +9,9 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class representing a renaming option for customizing the edit in the 'textDocument/rename' request.
 /// </summary>
+/// <remarks>
+/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
+/// </remarks>
 internal class VSInternalRenameOptionSupport
 {
     /// <summary>

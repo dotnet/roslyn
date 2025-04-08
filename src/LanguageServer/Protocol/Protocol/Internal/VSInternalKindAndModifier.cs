@@ -10,6 +10,9 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class that contains the base kind and modifiers used to describe a response item.
 /// </summary>
+/// <remarks>
+/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
+/// </remarks>
 internal class VSInternalKindAndModifier : IEquatable<VSInternalKindAndModifier>
 {
     /// <summary>
