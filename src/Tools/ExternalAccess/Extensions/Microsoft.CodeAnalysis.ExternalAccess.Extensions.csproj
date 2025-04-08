@@ -30,4 +30,7 @@
     <PublicAPI Include="InternalAPI.Unshipped.txt" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Update="ExternalAccessExtensionsResources.resx" GenerateSource="true" />
+  </ItemGroup>
 </Project>

@@ -118,7 +118,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                 // If this throws, it also indicated a bug in gladstone that must be fixed.  As such, it is ok if this
                 // tears down the extension service in OOP.
                 if (_assemblyFilePathToHandlers.ContainsKey(assemblyFilePath))
-                    throw new InvalidOperationException($"Extension '{assemblyFilePath}' is already registered.");
+                    throw new InvalidOperationException(string.Format(FeaturesResources.Extension_0_is_already_registered, assemblyFilePath));
 
                 _assemblyFilePathToHandlers = _assemblyFilePathToHandlers.Add(
                    assemblyFilePath,
@@ -141,7 +141,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                 // If this throws, it also indicated a bug in gladstone that must be fixed.  As such, it is ok if this
                 // tears down the extension service in OOP.
                 if (!_assemblyFilePathToHandlers.TryGetValue(assemblyFilePath, out var lazyHandlers))
-                    throw new InvalidOperationException($"Extension '{assemblyFilePath}' was not registered.");
+                    throw new InvalidOperationException(string.Format(FeaturesResources.Extension_0_was_not_registered, assemblyFilePath));
 
                 _assemblyFilePathToHandlers = _assemblyFilePathToHandlers.Remove(assemblyFilePath);
                 return (_assemblyFilePathToHandlers.Count == 0, lazyHandlers);
@@ -156,7 +156,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                 // If this throws, it also indicated a bug in gladstone that must be fixed.  As such, it is ok if this
                 // tears down the extension service in OOP.
                 if (!_assemblyFilePathToHandlers.TryGetValue(assemblyFilePath, out var lazyHandlers))
-                    throw new InvalidOperationException($"Extension '{assemblyFilePath}' was not registered.");
+                    throw new InvalidOperationException(string.Format(FeaturesResources.Extension_0_was_not_registered, assemblyFilePath));
 
                 // Handlers already encapsulates any extension-level exceptions that occurred when loading the assembly.
                 // As such, we don't need our own try/catch here.  We can just return the result directly.
