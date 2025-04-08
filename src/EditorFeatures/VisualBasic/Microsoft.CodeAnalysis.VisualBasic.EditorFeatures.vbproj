@@ -5,8 +5,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor.VisualBasic</RootNamespace>
     <UseWpf>true</UseWpf>
-    <TargetFrameworks>$(NetVS);net472-windows</TargetFrameworks>
-    <ApplyNgenOptimization Condition="'$(TargetFramework)' == 'netstandard2.0'">full</ApplyNgenOptimization>
+    <TargetFramework>net472-windows</TargetFramework>
     <!--Temporarily bypass ibcmerge due to an error
       https://github.com/dotnet/roslyn/issues/57863 -->
     <ApplyNgenOptimization></ApplyNgenOptimization>

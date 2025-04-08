@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
-    <TargetFrameworks>$(NetVS);net472-windows</TargetFrameworks>
+    <TargetFramework>net472-windows</TargetFramework>
     <UseWpf>true</UseWpf>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!--Temporarily bypass ibcmerge due to an error
