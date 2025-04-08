@@ -9,7 +9,8 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class representing the parameters sent for a textDocument/_vs_textPresentation request.
 /// </summary>
-internal sealed class VSInternalTextPresentationParams : ITextDocumentParams
+/// <remarks>Do not seal this type! This is extended by Razor</remarks>
+internal class VSInternalTextPresentationParams : ITextDocumentParams
 {
     /// <summary>
     /// Gets or sets the identifier for the text document to be operate on.
