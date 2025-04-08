@@ -60,7 +60,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
         private static string GetAssemblyFolderPath(string assemblyFilePath)
         {
             return Path.GetDirectoryName(assemblyFilePath)
-                ?? throw new InvalidOperationException($"Unable to get the directory name for {assemblyFilePath}.");
+                ?? throw new InvalidOperationException(string.Format(FeaturesResources.Unable_to_get_the_directory_name_for_0, assemblyFilePath));
         }
 
         private void ClearCachedHandlers_WhileUnderLock()
@@ -114,7 +114,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                 lock (_gate)
                 {
                     if (!_folderPathToExtensionFolder.TryGetValue(assemblyFolderPath, out var extensionFolder))
-                        throw new InvalidOperationException($"No extension registered as '{assemblyFolderPath}'");
+                        throw new InvalidOperationException(string.Format(FeaturesResources.No_extension_registered_as_0, assemblyFolderPath));
 
                     // Clear out the cached handler names.  They will be recomputed the next time we need them.
                     ClearCachedHandlers_WhileUnderLock();
@@ -174,7 +174,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             // Throwing here indicates a bug in the gladstone client itself.  So we want this to bubble outwards as a
             // failure that disables extension running in the OOP process.  This must be fixed by gladstone.
             if (!_folderPathToExtensionFolder.TryGetValue(assemblyFolderPath, out var extensionFolder))
-                throw new InvalidOperationException($"No extensions registered at '{assemblyFolderPath}'");
+                throw new InvalidOperationException(string.Format(FeaturesResources.No_extensions_registered_at_0, assemblyFolderPath));
 
             // Note if loading the extension assembly failed (due to issues in the extension itself), then the exception
             // produced by it will be passed outwards as data in the ExtensionMessageNames result.
@@ -219,14 +219,14 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                 // bug in the gladstone client itself (as it allowed calling into an lsp message that never had
                 // registered handlers).  So we want this to bubble outwards as a failure that disables extension
                 // running in the OOP process.  This must be fixed by gladstone.
-                throw new InvalidOperationException($"No handler found for message {messageName}.");
+                throw new InvalidOperationException(string.Format(FeaturesResources.No_handler_found_for_message_0, messageName));
             }
 
             // Throwing here indicates a bug in the gladstone client itself (as it allowed calling into an lsp message
             // that had multiple registered handlers).  So we want this to bubble outwards as a failure that disables
             // extension running in the OOP process.  This must be fixed by gladstone.
             if (handlers.Length > 1)
-                throw new InvalidOperationException($"Multiple handlers found for message {messageName}.");
+                throw new InvalidOperationException(string.Format(FeaturesResources.Multiple_handlers_found_for_message_0, messageName));
 
             var handler = (IExtensionMessageHandlerWrapper<TArgument>)handlers[0];
 

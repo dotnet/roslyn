@@ -750,6 +750,16 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Esempi:</target>
         <note>Plural form when we have multiple examples to show.</note>
       </trans-unit>
+      <trans-unit id="Extension_0_is_already_registered">
+        <source>Extension '{0}' is already registered.</source>
+        <target state="new">Extension '{0}' is already registered.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extension_0_was_not_registered">
+        <source>Extension '{0}' was not registered.</source>
+        <target state="new">Extension '{0}' was not registered.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Extract_base_class">
         <source>Extract base class...</source>
         <target state="translated">Estrai classe di base...</target>
@@ -1215,6 +1225,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Se si sposta {0}, è necessario riavviare l'applicazione.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Multiple_handlers_found_for_message_0">
+        <source>Multiple handlers found for message {0}.</source>
+        <target state="new">Multiple handlers found for message {0}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="NET_Code_Actions">
         <source>.NET Code Actions</source>
         <target state="translated">Azioni codice .NET</target>
@@ -1243,6 +1258,21 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="No_common_root_node_for_extraction">
         <source>No common root node for extraction.</source>
         <target state="translated">Non esiste un nodo radice comune per l'estrazione.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_extension_registered_as_0">
+        <source>No extension registered as '{0}'.</source>
+        <target state="new">No extension registered as '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_extensions_registered_at_0">
+        <source>No extensions registered at '{0}'.</source>
+        <target state="new">No extensions registered at '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_handler_found_for_message_0">
+        <source>No handler found for message {0}.</source>
+        <target state="new">No handler found for message {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="No_source_document_info_found_in_PDB">
@@ -2763,6 +2793,11 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       <trans-unit id="Unable_to_create_0">
         <source>Unable to create '{0}'</source>
         <target state="translated">Non è stato possibile creare "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unable_to_get_the_directory_name_for_0">
+        <source>Unable to get the directory name for {0}.</source>
+        <target state="new">Unable to get the directory name for {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_load_type_0_1">
