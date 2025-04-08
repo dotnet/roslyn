@@ -11,4 +11,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Extensions;
 /// </summary>
 /// <param name="Response">Json response returned by the extension message handler.</param>
 internal readonly record struct ExtensionMessageResponse(
-    [property: JsonPropertyName("response")] string Response);
+    [property: JsonPropertyName("response"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Response,
+    [property: JsonPropertyName("extensionWasUnloaded"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool ExtensionWasUnloaded,
+    [property: JsonPropertyName("extensionException"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        ExtensionException? ExtensionException);
