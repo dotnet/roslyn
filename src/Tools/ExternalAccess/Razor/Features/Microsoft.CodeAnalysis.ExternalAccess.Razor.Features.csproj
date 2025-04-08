@@ -3,8 +3,7 @@
 
   <PropertyGroup>
     <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.Razor.Features</RootNamespace>
-    <TargetFramework>$(NetVSCode)</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <TargetFrameworks>$(NetVSCode);$(NetVS);netstandard2.0</TargetFrameworks>
     <Nullable>enable</Nullable>
 
     <!-- NuGet -->
@@ -25,6 +24,9 @@
       This is used to load in the language server so it gets special treatment. Otherwise only razor assemblies should be added.
     -->
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer" />
+
+    <!-- OOP references -->
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
     
     <!--
       ⚠ ONLY RAZOR ASSEMBLIES MAY BE ADDED HERE ⚠

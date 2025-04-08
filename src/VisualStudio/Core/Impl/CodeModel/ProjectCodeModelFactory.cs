@@ -83,7 +83,7 @@ internal sealed class ProjectCodeModelFactory : IProjectCodeModelFactory
         // This code avoids allocations where possible.
         // https://github.com/dotnet/roslyn/issues/54159
         string? previousLanguage = null;
-        foreach (var (_, projectState) in _visualStudioWorkspace.CurrentSolution.SolutionState.ProjectStates)
+        foreach (var projectState in _visualStudioWorkspace.CurrentSolution.SolutionState.SortedProjectStates)
         {
             if (projectState.Language == previousLanguage)
             {

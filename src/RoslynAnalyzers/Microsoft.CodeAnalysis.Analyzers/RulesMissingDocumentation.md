@@ -23,7 +23,6 @@ RS1018 |  | DiagnosticId for analyzers must be in specified format |
 RS1019 |  | DiagnosticId must be unique across analyzers |
 RS1020 |  | Category for analyzers must be from the specified values |
 RS1021 |  | Invalid entry in analyzer category and diagnostic ID range specification file |
-RS1022 | <https://github.com/dotnet/roslyn/blob/main/docs/roslyn-analyzers/rules/RS1022.md> | Do not use types from Workspaces assembly in an analyzer |
 RS1024 |  | Symbols should be compared for equality |
 RS1025 |  | Configure generated code analysis |
 RS1026 |  | Enable concurrent execution |
@@ -38,18 +37,7 @@ RS1034 |  | Prefer 'IsKind' for checking syntax kinds |
 RS1035 |  | Do not use APIs banned for analyzers |
 RS1036 |  | Specify analyzer banned API enforcement setting |
 RS1037 |  | Add "CompilationEnd" custom tag to compilation end diagnostic descriptor |
-RS1038 | <https://github.com/dotnet/roslyn/blob/main/docs/roslyn-analyzers/rules/RS1038.md> | Compiler extensions should be implemented in assemblies with compiler-provided references |
 RS1039 |  | This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null' |
 RS1040 |  | This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null' |
-RS1041 | <https://github.com/dotnet/roslyn/blob/main/docs/roslyn-analyzers/rules/RS1041.md> | Compiler extensions should be implemented in assemblies targeting netstandard2.0 |
 RS1042 |  | Implementations of this interface are not allowed |
 RS1043 |  | Do not use file types for implementing analyzers, generators, and code fixers |
-RS2000 | <https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md> | Add analyzer diagnostic IDs to analyzer release |
-RS2001 | <https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md> | Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release |
-RS2002 | <https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md> | Do not add removed analyzer diagnostic IDs to unshipped analyzer release |
-RS2003 | <https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md> | Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file |
-RS2004 | <https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md> | Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers |
-RS2005 | <https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md> | Remove duplicate entries for diagnostic ID in the same analyzer release |
-RS2006 | <https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md> | Remove duplicate entries for diagnostic ID between analyzer releases |
-RS2007 | <https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md> | Invalid entry in analyzer release file |
-RS2008 | <https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md> | Enable analyzer release tracking |

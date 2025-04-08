@@ -304,7 +304,7 @@ internal sealed class SolutionStateChecksums(
             {
                 // Check all projects for the remaining checksums.
 
-                foreach (var (projectId, projectState) in solution.ProjectStates)
+                foreach (var projectState in solution.SortedProjectStates)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
@@ -312,7 +312,7 @@ internal sealed class SolutionStateChecksums(
                     if (searchingChecksumsLeft.Count == 0)
                         break;
 
-                    if (projectCone != null && !projectCone.Contains(projectId))
+                    if (projectCone != null && !projectCone.Contains(projectState.Id))
                         continue;
 
                     // It's possible not all all our projects have checksums.  Specifically, we may have only been asked to
