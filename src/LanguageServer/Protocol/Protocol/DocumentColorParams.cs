@@ -14,7 +14,8 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.6</remarks>
-internal sealed class DocumentColorParams : ITextDocumentParams, IWorkDoneProgressParams, IPartialResultParams<ColorInformation[]>
+/// <remarks>Do not seal this type! This is extended by Razor</remarks>
+internal class DocumentColorParams : ITextDocumentParams, IWorkDoneProgressParams, IPartialResultParams<ColorInformation[]>
 {
     /// <summary>
     /// The <see cref="TextDocumentIdentifier"/> to provide color information for.

@@ -36,6 +36,7 @@
 
 -T:System.Threading.*
 +T:System.Threading.CancellationToken
++T:System.Threading.CancellationTokenSource
 
 +T:System.Threading.Tasks.*
 -M:System.Threading.Tasks.Task.*

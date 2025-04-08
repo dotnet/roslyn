@@ -29,10 +29,10 @@ internal sealed class CSharpSemanticSearchService() : AbstractSemanticSearchServ
     {
         var syntaxTreeFactory = services.GetRequiredLanguageService<ISyntaxTreeFactoryService>(LanguageNames.CSharp);
 
-        var globalUsingsTree = syntaxTreeFactory.ParseSyntaxTree(
+        var globalUsingsAndToolsTree = syntaxTreeFactory.ParseSyntaxTree(
             filePath: null,
             CSharpSemanticSearchUtilities.ParseOptions,
-            SemanticSearchUtilities.CreateSourceText(CSharpSemanticSearchUtilities.Configuration.GlobalUsings),
+            SemanticSearchUtilities.CreateSourceText(CSharpSemanticSearchUtilities.Configuration.GlobalUsingsAndTools),
             cancellationToken);
 
         queryTree = syntaxTreeFactory.ParseSyntaxTree(
@@ -43,7 +43,7 @@ internal sealed class CSharpSemanticSearchService() : AbstractSemanticSearchServ
 
         return CSharpCompilation.Create(
             assemblyName: SemanticSearchUtilities.QueryProjectName,
-            [queryTree, globalUsingsTree],
+            [queryTree, globalUsingsAndToolsTree],
             references,
             CSharpSemanticSearchUtilities.CompilationOptions);
     }
