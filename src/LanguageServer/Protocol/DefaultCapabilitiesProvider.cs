@@ -122,6 +122,15 @@ internal sealed class ExperimentalCapabilitiesProvider : ICapabilitiesProvider
         // Using VS server capabilities because we have our own custom client.
         capabilities.OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions { TriggerCharacters = ["'", "/", "\n"] };
 
+        var diagnosticDynamicRegistationCapabilities = clientCapabilities.TextDocument?.Diagnostic?.DynamicRegistration;
+        if (diagnosticDynamicRegistationCapabilities is false)
+        {
+            capabilities.DiagnosticOptions = new DiagnosticOptions()
+            {
+                InterFileDependencies = true
+            };
+        }
+
         return capabilities;
     }
 
