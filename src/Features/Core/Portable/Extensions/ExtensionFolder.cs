@@ -4,15 +4,14 @@
 
 using System;
 using System.Collections.Immutable;
-using System.IO;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Extensions;
+
+using HandlerMap = ImmutableDictionary<string, IExtensionMessageHandlerWrapper>;
 
 internal sealed partial class ExtensionMessageHandlerServiceFactory
 {
@@ -67,8 +66,8 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                 if (analyzerAssemblyLoader is null || extensionException is not null)
                 {
                     return new(
-                        DocumentMessageHandlers: ImmutableDictionary<string, IExtensionMessageHandlerWrapper>.Empty,
-                        WorkspaceMessageHandlers: ImmutableDictionary<string, IExtensionMessageHandlerWrapper>.Empty,
+                        DocumentMessageHandlers: HandlerMap.Empty,
+                        WorkspaceMessageHandlers: HandlerMap.Empty,
                         extensionException);
                 }
 
@@ -77,8 +76,8 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                 if (factory is null)
                 {
                     return new(
-                        DocumentMessageHandlers: ImmutableDictionary<string, IExtensionMessageHandlerWrapper>.Empty,
-                        WorkspaceMessageHandlers: ImmutableDictionary<string, IExtensionMessageHandlerWrapper>.Empty,
+                        DocumentMessageHandlers: HandlerMap.Empty,
+                        WorkspaceMessageHandlers: HandlerMap.Empty,
                         ExtensionException: null);
                 }
 
@@ -104,8 +103,8 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                     // In the case of an exception, act as if the extension has no handlers to proffer.  Also capture
                     // the exception so it can be reported back to the client.
                     return new(
-                        DocumentMessageHandlers: ImmutableDictionary<string, IExtensionMessageHandlerWrapper>.Empty,
-                        WorkspaceMessageHandlers: ImmutableDictionary<string, IExtensionMessageHandlerWrapper>.Empty,
+                        DocumentMessageHandlers: HandlerMap.Empty,
+                        WorkspaceMessageHandlers: HandlerMap.Empty,
                         ex);
                 }
             }
