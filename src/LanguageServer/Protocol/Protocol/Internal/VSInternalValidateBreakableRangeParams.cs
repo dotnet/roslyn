@@ -9,7 +9,8 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class representing the parameters sent for the textDocument/validateBreakableRange request.
 /// </summary>
-internal sealed class VSInternalValidateBreakableRangeParams : ITextDocumentParams
+/// <remarks>Do not seal this type! This is extended by Razor</remarks>
+internal class VSInternalValidateBreakableRangeParams : ITextDocumentParams
 {
     /// <summary>
     /// Gets or sets the <see cref="TextDocumentIdentifier"/> for the request.

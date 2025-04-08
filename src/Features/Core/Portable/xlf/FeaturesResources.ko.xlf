@@ -1285,6 +1285,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">연산자</target>
         <note />
       </trans-unit>
+      <trans-unit id="Parameter_type_0_is_not_among_supported_types_1">
+        <source>Parameter type '{0}' is not among supported types: {1}</source>
+        <target state="new">Parameter type '{0}' is not among supported types: {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Please_resolve_errors_in_your_code_before_renaming_this_element">
         <source>Please resolve errors in your code before renaming this element.</source>
         <target state="translated">이 요소의 이름을 바꾸기 전에 코드 오류를 해결하세요.</target>
@@ -2550,6 +2555,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">모듈 확인: '{0}'/'{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Return_type_0_is_not_among_supported_types_1">
+        <source>Return type '{0}' is not among supported types: {1}</source>
+        <target state="new">Return type '{0}' is not among supported types: {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">편집 다시 실행</target>
@@ -2740,14 +2750,14 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">)가 너무 많습니다.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
       </trans-unit>
+      <trans-unit id="Top_level_function_0_must_have_a_single_parameter">
+        <source>Top-level function '{0}' must have a single parameter</source>
+        <target state="new">Top-level function '{0}' must have a single parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Trailing_comma_not_allowed">
         <source>Trailing comma not allowed</source>
         <target state="translated">후행 쉼표는 허용되지 않습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Type_0_is_not_among_supported_types_1">
-        <source>Type '{0}' is not among supported types: {1}</source>
-        <target state="new">Type '{0}' is not among supported types: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Types_colon">

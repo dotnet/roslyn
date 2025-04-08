@@ -114,7 +114,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                     return remoteService.HandleExtensionWorkspaceMessageAsync(
                         checksum!.Value, messageName, jsonMessage, cancellationToken);
                 },
-                (solution, messageName, jsonMessage, _cachedWorkspaceHandlers_useOnlyUnderLock),
+                (solution, messageName, jsonMessage, _cachedHandlers_useOnlyUnderLock.workspace),
                 cancellationToken);
 
         public ValueTask<ExtensionMessageResult> HandleExtensionDocumentMessageAsync(Document document, string messageName, string jsonMessage, CancellationToken cancellationToken)
@@ -132,7 +132,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                     return remoteService.HandleExtensionDocumentMessageAsync(
                         checksum!.Value, messageName, jsonMessage, document.Id, cancellationToken);
                 },
-                (document, messageName, jsonMessage, _cachedDocumentHandlers_useOnlyUnderLock),
+                (document, messageName, jsonMessage, _cachedHandlers_useOnlyUnderLock.document),
                 cancellationToken);
     }
 }
