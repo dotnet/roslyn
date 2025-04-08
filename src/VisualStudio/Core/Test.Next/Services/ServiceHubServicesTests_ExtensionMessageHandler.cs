@@ -694,6 +694,67 @@ public sealed partial class ServiceHubServicesTests
         Assert.Equal("2", result.Response);
     }
 
+    [Fact]
+    public async Task TestExtensionMessageHandlerService_OnlyUnloadWhenAllPathsAreUnregistered()
+    {
+        using var localWorkspace = CreateWorkspace(additionalRemoteParts:
+            [typeof(TestExtensionAssemblyLoaderProvider), typeof(TestExtensionMessageHandlerFactory)]);
+
+        localWorkspace.SetCurrentSolution(solution =>
+        {
+            return AddProject(solution, LanguageNames.CSharp, ["// empty"]);
+        }, WorkspaceChangeKind.SolutionChanged);
+
+        var assemblyLoaderProvider = await GetRemoteAssemblyLoaderProvider(localWorkspace);
+        var handlerFactory = await GetRemoteAssemblyHandlerFactory(localWorkspace);
+
+        handlerFactory.CreateDocumentMessageHandlersCallback = (_, _, _) => [];
+        handlerFactory.CreateWorkspaceMessageHandlersCallback = (_, _, _) => [];
+
+        var unloadCalled = false;
+        var assemblyLoader = new TestExtensionAssemblyLoader(
+            loadFromPath: _ => null!,
+            unload: () => unloadCalled = true);
+
+        assemblyLoaderProvider.CreateNewShadowCopyLoaderCallback = (_, _) => (assemblyLoader, extensionException: null);
+
+        var extensionMessageHandlerService = localWorkspace.Services.GetRequiredService<IExtensionMessageHandlerService>();
+
+        // Don't trap the error here.  We want to validate that this crosses the ServiceHub boundary and is reported as
+        // a real roslyn/gladstone error.
+        string? fatalRpcErrorMessage = null;
+        var errorReportingService = (TestErrorReportingService)localWorkspace.Services.GetRequiredService<IErrorReportingService>();
+        errorReportingService.OnError = message => fatalRpcErrorMessage = message;
+
+        await extensionMessageHandlerService.RegisterExtensionAsync(@"TempPath\a.dll", CancellationToken.None);
+        await extensionMessageHandlerService.GetExtensionMessageNamesAsync(@"TempPath\a.dll", CancellationToken.None);
+        Assert.Null(fatalRpcErrorMessage);
+        Contract.ThrowIfTrue(unloadCalled);
+
+        await extensionMessageHandlerService.RegisterExtensionAsync(@"TempPath\b.dll", CancellationToken.None);
+        await extensionMessageHandlerService.GetExtensionMessageNamesAsync(@"TempPath\b.dll", CancellationToken.None);
+        Assert.Null(fatalRpcErrorMessage);
+        Contract.ThrowIfTrue(unloadCalled);
+
+        await extensionMessageHandlerService.UnregisterExtensionAsync(@"TempPath\a.dll", CancellationToken.None);
+        Assert.Null(fatalRpcErrorMessage);
+        Contract.ThrowIfTrue(unloadCalled);
+
+        // Unregistering the second dll should unload the ALC.
+        await extensionMessageHandlerService.UnregisterExtensionAsync(@"TempPath\b.dll", CancellationToken.None);
+        Assert.Null(fatalRpcErrorMessage);
+        Contract.ThrowIfFalse(unloadCalled);
+    }
+
+    private sealed class TestExtensionAssemblyLoader(
+        Func<string, Assembly>? loadFromPath = null,
+        Action? unload = null) : IExtensionAssemblyLoader
+    {
+        public Assembly LoadFromPath(string assemblyFilePath) => loadFromPath!(assemblyFilePath);
+
+        public void Unload() => unload!();
+    }
+
     [PartNotDiscoverable]
     [ExportWorkspaceService(typeof(IExtensionAssemblyLoaderProvider), ServiceLayer.Test), Shared]
     [method: ImportingConstructor]
