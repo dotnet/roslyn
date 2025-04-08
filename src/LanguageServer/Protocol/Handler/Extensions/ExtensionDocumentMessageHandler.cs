@@ -31,8 +31,12 @@ internal sealed class ExtensionDocumentMessageHandler()
         var solution = context.Document.Project.Solution;
 
         var service = solution.Services.GetRequiredService<IExtensionMessageHandlerService>();
-        var response = await service.HandleExtensionDocumentMessageAsync(
+        var (response, exception) = await service.HandleExtensionDocumentMessageAsync(
             context.Document, request.MessageName, request.Message, cancellationToken).ConfigureAwait(false);
+
+        // Report any exceptions the extension itself caused while handling the request.
+        if (exception is not null)
+            context.Logger.LogException(exception);
 
         return new ExtensionMessageResponse(response);
     }

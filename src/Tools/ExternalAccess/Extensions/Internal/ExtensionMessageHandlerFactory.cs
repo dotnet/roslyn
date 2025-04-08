@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Extensions;
 
-[Export(typeof(IExtensionMessageHandlerFactory)), Shared]
+[ExportWorkspaceService(typeof(IExtensionMessageHandlerFactory)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class ExtensionMessageHandlerFactory() : IExtensionMessageHandlerFactory
