@@ -9,6 +9,9 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Describes how the client handles stale requests
 /// </summary>
+/// <remarks>
+/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
+/// </remarks>
 internal class StaleRequestSupport
 {
     /// <summary>

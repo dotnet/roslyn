@@ -16,6 +16,9 @@ using System.Text.Json.Serialization;
 /// <remarks>
 /// Since LSP 3.17
 /// </remarks>
+/// <remarks>
+/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
+/// </remarks>
 internal class WorkspaceDiagnosticParams : IWorkDoneProgressParams, IPartialResultParams<SumType<WorkspaceDiagnosticReport, WorkspaceDiagnosticReportPartialResult>>
 {
     /// <summary>

@@ -13,6 +13,9 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
+/// <remarks>
+/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
+/// </remarks>
 internal class FoldingRangeRegistrationOptions : FoldingRangeOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
 {
     /// <summary>

@@ -10,6 +10,9 @@ namespace Roslyn.LanguageServer.Protocol;
 /// Information about the client
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
+/// <remarks>
+/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
+/// </remarks>
 internal class ClientInfo
 {
     /// <summary>

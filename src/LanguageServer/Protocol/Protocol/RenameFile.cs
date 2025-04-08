@@ -13,7 +13,10 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#renameFile">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-/// <remarks>Since LSP 3.13</remarks>
+/// <remarks>
+/// Since LSP 3.13
+/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
+/// </remarks>
 [Kind("rename")]
 internal class RenameFile : IAnnotatedChange
 {

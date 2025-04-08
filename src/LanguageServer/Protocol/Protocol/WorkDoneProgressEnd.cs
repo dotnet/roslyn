@@ -13,6 +13,9 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.15</remarks>
+/// <remarks>
+/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
+/// </remarks>
 internal class WorkDoneProgressEnd : WorkDoneProgress
 {
     // NOTE: the kind property from the spec is used as a JsonPolymorphic discriminator on the base type

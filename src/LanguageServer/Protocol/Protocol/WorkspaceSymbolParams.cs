@@ -13,6 +13,9 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workspaceSymbolParams">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
+/// <remarks>
+/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
+/// </remarks>
 internal class WorkspaceSymbolParams
 #pragma warning disable CS0618 // SymbolInformation is obsolete but this class is not
     : IPartialResultParams<SumType<SymbolInformation[], WorkspaceSymbol[]>>, IWorkDoneProgressParams

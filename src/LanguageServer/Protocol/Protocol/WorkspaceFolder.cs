@@ -9,6 +9,9 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>Describes a workspace folder</summary>
 /// <remarks>Since LSP 3.6</remarks>
+/// <remarks>
+/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
+/// </remarks>
 internal class WorkspaceFolder
 {
     /// <summary>
