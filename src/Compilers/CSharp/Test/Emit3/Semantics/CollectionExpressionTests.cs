@@ -9460,7 +9460,7 @@ static class Program
                 // (7,13): error CS9215: Collection expression type 'Dictionary<int, int>' must have an instance or extension method 'Add' that can be called with a single argument.
                 //         d = [3:4];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[3:4]").WithArguments("System.Collections.Generic.Dictionary<int, int>").WithLocation(7, 13),
-                // (7,14): error CS9275: Collection expression type 'Dictionary<int, int>' does not support key-value pair elements.
+                // (7,14): error CS9300: Collection expression type 'Dictionary<int, int>' does not support key-value pair elements.
                 //         d = [3:4];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "3:4").WithArguments("System.Collections.Generic.Dictionary<int, int>").WithLocation(7, 14),
                 // (7,15): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.

@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -69,11 +71,26 @@ internal static class ICompilationExtensions
         return builder.ToImmutableAndFree();
     }
 
+    public static INamedTypeSymbol? ArgumentExceptionType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(ArgumentException).FullName!);
+
+    public static INamedTypeSymbol? ArgumentNullExceptionType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(ArgumentNullException).FullName!);
+
     public static INamedTypeSymbol? ArrayType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(Array).FullName!);
 
     public static INamedTypeSymbol? AttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(Attribute).FullName!);
+
+    public static INamedTypeSymbol? DictionaryOfKVType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(Dictionary<,>).FullName!);
+
+    public static INamedTypeSymbol? BlockingCollectionOfTType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(BlockingCollection<>).FullName!);
+
+    public static INamedTypeSymbol? CollectionOfTType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(Collection<>).FullName!);
 
     public static INamedTypeSymbol? ExceptionType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(Exception).FullName!);
@@ -84,8 +101,14 @@ internal static class ICompilationExtensions
     public static INamedTypeSymbol? StructLayoutAttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(StructLayoutAttribute).FullName!);
 
+    public static INamedTypeSymbol? IDictionaryOfKVType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(IDictionary<,>).FullName!);
+
     public static INamedTypeSymbol? InlineArrayAttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.InlineArrayAttribute");
+
+    public static INamedTypeSymbol? IReadOnlyDictionaryOfKVType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(IReadOnlyDictionary<,>).FullName!);
 
     public static INamedTypeSymbol? DesignerCategoryAttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName("System.ComponentModel.DesignerCategoryAttribute");

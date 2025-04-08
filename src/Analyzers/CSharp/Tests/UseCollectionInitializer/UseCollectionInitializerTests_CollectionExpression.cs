@@ -6362,4 +6362,192 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
+    public async Task DictionaryType1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        X([|new|] Dictionary<int, string>()
+                        {
+                            [1] = "x",
+                            [2] = "y",
+                        });
+                    }
+
+                    void X(Dictionary<int, string> map)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        X(
+                        [
+                            1: "x",
+                            2: "y",
+                        ]);
+                    }
+                
+                    void X(Dictionary<int, string> map)
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
+    public async Task DictionaryType2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        X([|new|] Dictionary<int, string>()
+                        {
+                            [1] = "x",
+                            [2] = "y",
+                        });
+                    }
+
+                    void X(IDictionary<int, string> map)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        X(
+                        [
+                            1: "x",
+                            2: "y",
+                        ]);
+                    }
+                
+                    void X(IDictionary<int, string> map)
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
+    public async Task DictionaryType3_ExactMatch()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        X(new Dictionary<int, string>()
+                        {
+                            [1] = "x",
+                            [2] = "y",
+                        });
+                    }
+
+                    void X(IReadOnlyDictionary<int, string> map)
+                    {
+                    }
+                }
+                """,
+            EditorConfig = """
+                [*]
+                dotnet_style_prefer_collection_expression=when_types_exactly_match
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
+    public async Task DictionaryType3_LooseMatch()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        X([|new|] Dictionary<int, string>()
+                        {
+                            [1] = "x",
+                            [2] = "y",
+                        });
+                    }
+
+                    void X(IReadOnlyDictionary<int, string> map)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        X(
+                        [
+                            1: "x",
+                            2: "y",
+                        ]);
+                    }
+                
+                    void X(IReadOnlyDictionary<int, string> map)
+                    {
+                    }
+                }
+                """,
+            EditorConfig = """
+                [*]
+                dotnet_style_prefer_collection_expression=when_types_loosely_match
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
 }

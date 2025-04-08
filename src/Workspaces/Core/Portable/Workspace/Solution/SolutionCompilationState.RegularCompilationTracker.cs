@@ -118,11 +118,14 @@ namespace Microsoft.CodeAnalysis
                 return finalState.RootedSymbolSet.ContainsAssemblyOrModuleOrDynamic(symbol, primary, out compilation, out referencedThrough);
             }
 
+            ICompilationTracker ICompilationTracker.Fork(ProjectState newProjectState, TranslationAction? translate)
+                => Fork(newProjectState, translate);
+
             /// <summary>
             /// Creates a new instance of the compilation info, retaining any already built
             /// compilation state as the now 'old' state
             /// </summary>
-            public ICompilationTracker Fork(
+            public RegularCompilationTracker Fork(
                 ProjectState newProjectState,
                 TranslationAction? translate)
             {
@@ -680,7 +683,10 @@ namespace Microsoft.CodeAnalysis
                 return finalState.HasSuccessfullyLoaded;
             }
 
-            public ICompilationTracker WithCreateCreationPolicy(bool forceRegeneration)
+            ICompilationTracker ICompilationTracker.WithCreateCreationPolicy(bool forceRegeneration)
+                => WithCreateCreationPolicy(forceRegeneration);
+
+            public RegularCompilationTracker WithCreateCreationPolicy(bool forceRegeneration)
             {
                 var state = this.ReadState();
 
@@ -736,7 +742,10 @@ namespace Microsoft.CodeAnalysis
                     skeletonReferenceCacheToClone: _skeletonReferenceCache);
             }
 
-            public ICompilationTracker WithDoNotCreateCreationPolicy()
+            ICompilationTracker ICompilationTracker.WithDoNotCreateCreationPolicy()
+                => WithDoNotCreateCreationPolicy();
+
+            public RegularCompilationTracker WithDoNotCreateCreationPolicy()
             {
                 var state = this.ReadState();
 

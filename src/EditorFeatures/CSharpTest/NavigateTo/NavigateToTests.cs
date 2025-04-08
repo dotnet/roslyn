@@ -616,6 +616,42 @@ public class NavigateToTests : AbstractNavigateToTests
     }
 
     [Theory, CombinatorialData]
+    public async Task FindPartialEvents(TestHost testHost, Composition composition)
+    {
+        await TestAsync(testHost, composition, """
+        partial class C
+        {
+            partial event System.Action E;
+            partial event System.Action E { add { } remove { } }
+        }
+        """, async w =>
+        {
+            var expecteditem1 = new NavigateToItem("E", NavigateToItemKind.Event, "csharp", null, null, s_emptyExactPatternMatch, null);
+            var items = await _aggregator.GetItemsAsync("E");
+
+            VerifyNavigateToResultItems([expecteditem1, expecteditem1], items);
+        });
+    }
+
+    [Theory, CombinatorialData]
+    public async Task FindPartialConstructors(TestHost testHost, Composition composition)
+    {
+        await TestAsync(testHost, composition, """
+        partial class C
+        {
+            public partial C();
+            public partial C() { }
+        }
+        """, async w =>
+        {
+            var expecteditem1 = new NavigateToItem("C", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null);
+            var items = (await _aggregator.GetItemsAsync("C")).Where(t => t.Kind == NavigateToItemKind.Method);
+
+            VerifyNavigateToResultItems([expecteditem1, expecteditem1], items);
+        });
+    }
+
+    [Theory, CombinatorialData]
     public async Task FindPartialMethodDefinitionOnly(TestHost testHost, Composition composition)
     {
         await TestAsync(
@@ -1858,6 +1894,85 @@ public class NavigateToTests : AbstractNavigateToTests
 
             Assert.Single(items, i => i.SecondarySort.StartsWith("0000") && IsFromFile(i, "File1.cs"));
             Assert.Single(items, i => i.SecondarySort.StartsWith("0003") && IsFromFile(i, "File2.cs"));
+        });
+    }
+
+    [Theory, CombinatorialData]
+    public async Task FindModernExtensionMethod1(TestHost testHost, Composition composition)
+    {
+        var content = XElement.Parse("""
+            <Workspace>
+                <Project Language="C#"  LanguageVersion="preview" CommonReferences="true">
+                    <Document FilePath="File1.cs">
+            static class Class
+            {
+                extension(string s)
+                {
+                    public void Goo()
+                    {
+                    }
+                }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
+        await TestAsync(testHost, composition, content, async w =>
+        {
+            var item = (await _aggregator.GetItemsAsync("Goo")).Single();
+            VerifyNavigateToResultItem(item, "Goo", "[|Goo|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic);
+        });
+    }
+
+    [Theory, CombinatorialData]
+    public async Task FindModernExtensionMethod2(TestHost testHost, Composition composition)
+    {
+        var content = XElement.Parse("""
+            <Workspace>
+                <Project Language="C#"  LanguageVersion="preview" CommonReferences="true">
+                    <Document FilePath="File1.cs">
+            static class Class
+            {
+                extension(string s)
+                {
+                    public static void Goo()
+                    {
+                    }
+                }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
+        await TestAsync(testHost, composition, content, async w =>
+        {
+            var item = (await _aggregator.GetItemsAsync("Goo")).Single();
+            VerifyNavigateToResultItem(item, "Goo", "[|Goo|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic);
+        });
+    }
+
+    [Theory, CombinatorialData]
+    public async Task FindModernExtensionProperty(TestHost testHost, Composition composition)
+    {
+        var content = XElement.Parse("""
+            <Workspace>
+                <Project Language="C#"  LanguageVersion="preview" CommonReferences="true">
+                    <Document FilePath="File1.cs">
+            static class Class
+            {
+                extension(string s)
+                {
+                    public int Goo => 0;
+                }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
+        await TestAsync(testHost, composition, content, async w =>
+        {
+            var item = (await _aggregator.GetItemsAsync("Goo")).Single();
+            VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Property, Glyph.PropertyPublic);
         });
     }
 }
