@@ -67,26 +67,20 @@ internal class FSharpDocumentDiagnosticAnalyzer : DocumentDiagnosticAnalyzer, IB
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => _supportedDiagnostics;
 
-    public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
+    public override async Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(TextDocument textDocument, SyntaxTree tree, CancellationToken cancellationToken)
     {
-        var analyzer = document.Project.Services.GetService<FSharpDocumentDiagnosticAnalyzerService>();
-        if (analyzer == null)
-        {
-            return Task.FromResult(ImmutableArray<Diagnostic>.Empty);
-        }
-
-        return analyzer.AnalyzeSemanticsAsync(document, cancellationToken);
+        var analyzer = textDocument.Project.Services.GetService<FSharpDocumentDiagnosticAnalyzerService>();
+        return analyzer is null || textDocument is not Document document
+            ? []
+            : await analyzer.AnalyzeSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
     }
 
-    public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+    public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(TextDocument textDocument, SyntaxTree tree, CancellationToken cancellationToken)
     {
-        var analyzer = document.Project.Services.GetService<FSharpDocumentDiagnosticAnalyzerService>();
-        if (analyzer == null)
-        {
-            return Task.FromResult(ImmutableArray<Diagnostic>.Empty);
-        }
-
-        return analyzer.AnalyzeSyntaxAsync(document, cancellationToken);
+        var analyzer = textDocument.Project.Services.GetService<FSharpDocumentDiagnosticAnalyzerService>();
+        return analyzer is null || textDocument is not Document document
+            ? []
+            : await analyzer.AnalyzeSyntaxAsync(document, cancellationToken).ConfigureAwait(false);
     }
 
     public DiagnosticAnalyzerCategory GetAnalyzerCategory()
