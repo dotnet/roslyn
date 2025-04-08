@@ -792,6 +792,11 @@
         <target state="new">'{0}' does not contain a definition for '{1}' and no accessible extension member '{1}' for receiver of type '{0}' could be found (are you missing a using directive or an assembly reference?)</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExtensionTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'extension'.</source>
+        <target state="new">Types and aliases cannot be named 'extension'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
         <source>'{0}': extern event cannot have initializer</source>
         <target state="translated">“{0}”: 外部事件不能有初始值设定项</target>
@@ -1022,6 +1027,11 @@
         <target state="translated">带有 "in" 修饰符的参数不能用于动态调度的表达式。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InExtensionParameterMustBeValueType">
+        <source>The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</source>
+        <target state="new">The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
         <source>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</source>
         <target state="translated">C# {0} 中不支持从包含密封 'Object.ToString' 的记录继承。请使用语言版本 '{1}’ 或更高版本。</target>
@@ -1030,6 +1040,11 @@
       <trans-unit id="ERR_InitCannotBeReadonly">
         <source>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</source>
         <target state="translated">"init" 访问器不能标记为“只读”。请转而将“{0}”标记为“只读”。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InitInExtension">
+        <source>'{0}': cannot declare init-only accessors in an extension block</source>
+        <target state="new">'{0}': cannot declare init-only accessors in an extension block</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InlineArrayAttributeOnRecord">
@@ -1065,6 +1080,11 @@
       <trans-unit id="ERR_InlineArrayUnsupportedElementFieldModifier">
         <source>Inline array element field cannot be declared as required, readonly, volatile, or as a fixed size buffer.</source>
         <target state="translated">不能将内联数组元素字段声明为必需、只读、可变或固定大小缓冲区。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InstanceMemberWithUnnamedExtensionsParameter">
+        <source>'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</source>
+        <target state="new">'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
@@ -1460,6 +1480,11 @@
       <trans-unit id="ERR_MissingPattern">
         <source>Pattern missing</source>
         <target state="translated">模式缺失</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ModifierOnUnnamedReceiverParameter">
+        <source>Cannot use modifiers on the unnamed receiver parameter of extension block</source>
+        <target state="new">Cannot use modifiers on the unnamed receiver parameter of extension block</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleInitializerCannotBeUnmanagedCallersOnly">
@@ -1907,6 +1932,11 @@
         <target state="translated">属性子模式需要引用要匹配的属性或字段，例如，"{{ Name: {0} }}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ProtectedInExtension">
+        <source>'{0}': new protected member declared in an extension block</source>
+        <target state="new">'{0}': new protected member declared in an extension block</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RawStringDelimiterOnOwnLine">
         <source>Raw string literal delimiter must be on its own line.</source>
         <target state="translated">原始字符串字面量分隔符必须位于其自己的行上。</target>
@@ -1970,6 +2000,11 @@
       <trans-unit id="ERR_RefAssignValEscapeWider">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escape scopes than '{1}'.</source>
         <target state="translated">无法将“{1}”ref-assign 给“{0}”，因为“{1}”比“{0}”具有更广的值转义范围，允许通过转义范围比“{1}”更窄的值的“{0}”进行赋值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne">
+        <source>The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.</source>
+        <target state="new">The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
@@ -8927,8 +8962,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadTypeforThis">
-        <source>The first parameter of an extension method cannot be of type '{0}'</source>
-        <target state="translated">扩展方法的第一个参数的类型不能是“{0}”</target>
+        <source>The receiver parameter of an extension cannot be of type '{0}'</source>
+        <target state="needs-review-translation">扩展方法的第一个参数的类型不能是“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamModThis">

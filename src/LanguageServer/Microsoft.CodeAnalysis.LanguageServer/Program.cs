@@ -116,18 +116,9 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     var telemetryReporter = exportProvider.GetExports<ITelemetryReporter>().SingleOrDefault()?.Value;
     RoslynLogger.Initialize(telemetryReporter, serverConfiguration.TelemetryLevel, serverConfiguration.SessionId);
 
-    // Create the workspace first, since right now the language server will assume there's at least one Workspace
+    // Create the workspace first, since right now the language server will assume there's at least one Workspace. This as a side effect creates the actual workspace
+    // object which is registered by the LspWorkspaceRegistrationEventListener.
     var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
-
-    var analyzerPaths = new DirectoryInfo(AppContext.BaseDirectory).GetFiles("*.dll")
-        .Where(f => f.Name.StartsWith("Microsoft.CodeAnalysis.", StringComparison.Ordinal) && !f.Name.Contains("LanguageServer", StringComparison.Ordinal))
-        .Select(f => f.FullName)
-        .ToImmutableArray();
-
-    // Include analyzers from extension assemblies.
-    analyzerPaths = analyzerPaths.AddRange(extensionManager.ExtensionAssemblyPaths);
-
-    await workspaceFactory.InitializeSolutionLevelAnalyzersAsync(analyzerPaths);
 
     var serviceBrokerFactory = exportProvider.GetExportedValue<ServiceBrokerFactory>();
     StarredCompletionAssemblyHelper.InitializeInstance(serverConfiguration.StarredCompletionsPath, extensionManager, loggerFactory, serviceBrokerFactory);

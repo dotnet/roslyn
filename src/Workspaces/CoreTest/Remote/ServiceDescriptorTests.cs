@@ -299,6 +299,12 @@ public sealed class ServiceDescriptorTests
         {
             try
             {
+                // Andrew Arnott assures us that System.Exception is serializable through the custom formatters that
+                // StreamJsonRpc adds to MessagePack.  So we allow this in the test as a workaround:
+                // https://github.com/microsoft/vs-streamjsonrpc/blob/cdd916a20be8b0854648316c44192eef2e5ac71d/src/StreamJsonRpc/MessagePackFormatter.cs#L455
+                if (type == typeof(Exception))
+                    continue;
+
                 if (resolver.GetFormatterDynamic(type) == null)
                 {
                     errors.Add($"{type} referenced by {declaringMember} is not serializable");

@@ -34,7 +34,11 @@ internal sealed class ReferencingSyntaxFinder(Solution solution, CancellationTok
     {
         using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var cachedRoots);
 
-        var referenceLocations = ProducerConsumer<ReferenceLocation>.RunAsync(
+        // Kick off the SymbolFinder.FindReferencesAsync call on the provided symbol/solution.  As it finds
+        // ReferenceLocations, it will push those into the 'callback' delegate passed into it. ProducerConsumer will
+        // then convert this to a simple IAsyncEnumerable<ReferenceLocation> that we can iterate over, converting those
+        // locations to SyntaxNodes in the corresponding C# or VB document.
+        await foreach (var item in ProducerConsumer<ReferenceLocation>.RunAsync(
             static (callback, args, cancellationToken) =>
                 SymbolFinder.FindReferencesAsync(
                     args.symbol,
@@ -44,9 +48,7 @@ internal sealed class ReferencingSyntaxFinder(Solution solution, CancellationTok
                     s_options,
                     cancellationToken),
             args: (solution, symbol),
-            cancellationToken);
-
-        await foreach (var item in referenceLocations)
+            cancellationToken))
         {
             var root = await item.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             if (root == null)
@@ -60,14 +62,9 @@ internal sealed class ReferencingSyntaxFinder(Solution solution, CancellationTok
 
     private sealed class Progress(Action<ReferenceLocation> callback) : IStreamingFindReferencesProgress
     {
-        public ValueTask OnStartedAsync(CancellationToken cancellationToken)
-            => ValueTask.CompletedTask;
-
-        public ValueTask OnCompletedAsync(CancellationToken cancellationToken)
-            => ValueTask.CompletedTask;
-
-        public ValueTask OnDefinitionFoundAsync(SymbolGroup group, CancellationToken cancellationToken)
-            => ValueTask.CompletedTask;
+        public ValueTask OnStartedAsync(CancellationToken cancellationToken) => ValueTask.CompletedTask;
+        public ValueTask OnCompletedAsync(CancellationToken cancellationToken) => ValueTask.CompletedTask;
+        public ValueTask OnDefinitionFoundAsync(SymbolGroup group, CancellationToken cancellationToken) => ValueTask.CompletedTask;
 
         public ValueTask OnReferencesFoundAsync(ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken)
         {

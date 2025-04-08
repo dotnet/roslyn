@@ -792,6 +792,11 @@
         <target state="new">'{0}' does not contain a definition for '{1}' and no accessible extension member '{1}' for receiver of type '{0}' could be found (are you missing a using directive or an assembly reference?)</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExtensionTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'extension'.</source>
+        <target state="new">Types and aliases cannot be named 'extension'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
         <source>'{0}': extern event cannot have initializer</source>
         <target state="translated">'{0}': extern イベントは初期化子を持つことができません</target>
@@ -1022,6 +1027,11 @@
         <target state="translated">'in' 修飾子を持つ引数を、動的ディスパッチされる式で使用することはできません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InExtensionParameterMustBeValueType">
+        <source>The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</source>
+        <target state="new">The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
         <source>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</source>
         <target state="translated">シールされた ' Object. ToString ' を含むレコードからの継承は、C# {0} ではサポートされていません。' {1} ' 以上の言語バージョンを使用してください。</target>
@@ -1030,6 +1040,11 @@
       <trans-unit id="ERR_InitCannotBeReadonly">
         <source>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</source>
         <target state="translated">'init' アクセサーを 'readonly' としてマークできません。代わりに '{0}' を readonly としてマークします。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InitInExtension">
+        <source>'{0}': cannot declare init-only accessors in an extension block</source>
+        <target state="new">'{0}': cannot declare init-only accessors in an extension block</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InlineArrayAttributeOnRecord">
@@ -1065,6 +1080,11 @@
       <trans-unit id="ERR_InlineArrayUnsupportedElementFieldModifier">
         <source>Inline array element field cannot be declared as required, readonly, volatile, or as a fixed size buffer.</source>
         <target state="translated">インライン配列要素フィールドは、必須バッファー、読み取り専用バッファー、揮発性バッファー、または固定サイズ バッファーとして宣言できません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InstanceMemberWithUnnamedExtensionsParameter">
+        <source>'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</source>
+        <target state="new">'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
@@ -1460,6 +1480,11 @@
       <trans-unit id="ERR_MissingPattern">
         <source>Pattern missing</source>
         <target state="translated">パターンがありません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ModifierOnUnnamedReceiverParameter">
+        <source>Cannot use modifiers on the unnamed receiver parameter of extension block</source>
+        <target state="new">Cannot use modifiers on the unnamed receiver parameter of extension block</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleInitializerCannotBeUnmanagedCallersOnly">
@@ -1907,6 +1932,11 @@
         <target state="translated">プロパティ サブパターンには、一致させるプロパティまたはフィールドへの参照が必要です。例: '{{ Name: {0} }}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ProtectedInExtension">
+        <source>'{0}': new protected member declared in an extension block</source>
+        <target state="new">'{0}': new protected member declared in an extension block</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RawStringDelimiterOnOwnLine">
         <source>Raw string literal delimiter must be on its own line.</source>
         <target state="translated">生文字列リテラルの区切り記号は、独自の行に置かれる必要があります。</target>
@@ -1970,6 +2000,11 @@
       <trans-unit id="ERR_RefAssignValEscapeWider">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escape scopes than '{1}'.</source>
         <target state="translated">'{1}' を '{0}' に参照割り当てできません。これは、'{1} の値エスケープ スコープが '{0} よりも広く、'{1}' よりも狭いエスケープ スコープを持つ値の '{0} による割り当てが許可されているためです。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne">
+        <source>The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.</source>
+        <target state="new">The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
@@ -8927,8 +8962,8 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadTypeforThis">
-        <source>The first parameter of an extension method cannot be of type '{0}'</source>
-        <target state="translated">拡張メソッドの最初のパラメーターを型 '{0}' にすることはできません</target>
+        <source>The receiver parameter of an extension cannot be of type '{0}'</source>
+        <target state="needs-review-translation">拡張メソッドの最初のパラメーターを型 '{0}' にすることはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamModThis">

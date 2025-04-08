@@ -71,6 +71,7 @@
       "Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.Debugger": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.Extensions": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.FSharp": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.IntelliTrace": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem": "vs-impl",
@@ -120,8 +121,7 @@
     },
     "dev15.9.x-vs-deps": {
       "nugetKind": "PerBuildPreRelease",
-      "vsBranch": "rel/d15.9",
-      "vsMajorVersion": 15
+      "vsBranch": "rel/d15.9"
     },
     "release/dev16.11-vs-deps": {
       "nugetKind": [
@@ -129,7 +129,6 @@
         "NonShipping"
       ],
       "vsBranch": "rel/d16.11",
-      "vsMajorVersion": 16,
       "insertionTitlePrefix": "[d16.11]"
     },
     "release/dev17.8": {
@@ -138,7 +137,6 @@
         "NonShipping"
       ],
       "vsBranch": "rel/d17.8",
-      "vsMajorVersion": 17,
       "insertionTitlePrefix": "[d17.8]"
     },
     "release/dev17.10": {
@@ -147,7 +145,6 @@
         "NonShipping"
       ],
       "vsBranch": "rel/d17.10",
-      "vsMajorVersion": 17,
       "insertionTitlePrefix": "[d17.10]"
     },
     "release/dev17.12": {
@@ -156,7 +153,6 @@
         "NonShipping"
       ],
       "vsBranch": "rel/d17.12",
-      "vsMajorVersion": 17,
       "insertionTitlePrefix": "[d17.12]"
     },
     "release/dev17.13": {
@@ -165,7 +161,6 @@
         "NonShipping"
       ],
       "vsBranch": "rel/d17.13",
-      "vsMajorVersion": 17,
       "insertionTitlePrefix": "[d17.13]"
     },
     "release/dev17.14": {
@@ -173,8 +168,7 @@
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "main",
-      "vsMajorVersion": 17,
+      "vsBranch": "rel/d17.14",
       "insertionTitlePrefix": "[d17.14 P3]",
       "insertionCreateDraftPR": false
     },
@@ -183,9 +177,8 @@
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "main",
-      "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
+      "vsBranch": "feature/d18initial",
+      "insertionCreateDraftPR": false,
       "insertionTitlePrefix": "[d17.15 P1]"
     }
   }

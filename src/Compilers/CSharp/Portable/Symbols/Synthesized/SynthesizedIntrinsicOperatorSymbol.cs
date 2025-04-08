@@ -500,6 +500,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return ImmutableArray<CustomModifier>.Empty; }
             }
 
+            internal override bool HasEnumeratorCancellationAttribute => false;
+
             internal override MarshalPseudoCustomAttributeData MarshallingInformation
             {
                 get { return null; }
