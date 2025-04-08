@@ -269,11 +269,11 @@ internal static class ProducerConsumer<TItem>
     {
         var channelReader = await RunChannelAsync(
             // We're the only reader (in the foreach loop below).  So we can use the single reader options.
-            ProducerConsumerOptions.SingleReaderOptions,
-            produceItems,
+            ProducerConsumerOptions.SingleReaderOptions, produceItems,
+            // Trivially grab the reader and return it.  We don't need to do any processing of the values, as the
+            // callers just wants them as is.
             static (reader, _, _) => Task.FromResult(reader),
-            args,
-            cancellationToken).ConfigureAwait(false);
+            args, cancellationToken).ConfigureAwait(false);
 
         await foreach (var item in channelReader.ReadAllAsync(cancellationToken))
             yield return item;
