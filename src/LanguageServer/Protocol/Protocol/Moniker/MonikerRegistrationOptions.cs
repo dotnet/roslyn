@@ -12,6 +12,9 @@ namespace Roslyn.LanguageServer.Protocol;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#monikerRegistrationOptions">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
+/// <remarks>
+/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
+/// </remarks>
 internal class MonikerRegistrationOptions : CallHierarchyOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
 {
     /// <summary>
