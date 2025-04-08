@@ -59,6 +59,7 @@ internal sealed class CSharpEditorInlineRenameService([ImportMany] IEnumerable<I
                 var docComment = symbol?.GetDocumentationCommentXml(expandIncludes: true, cancellationToken: cancellationToken);
                 if (!string.IsNullOrWhiteSpace(docComment))
                 {
+                    Contract.ThrowIfNull(docComment);
                     var filePath = renameDefinition.Document.FilePath;
                     if (filePath != null)
                     {
