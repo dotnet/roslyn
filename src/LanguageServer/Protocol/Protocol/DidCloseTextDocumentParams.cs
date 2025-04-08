@@ -12,10 +12,7 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#didCloseTextDocumentParams">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class DidCloseTextDocumentParams : ITextDocumentParams
+internal sealed class DidCloseTextDocumentParams : ITextDocumentParams
 {
     /// <summary>
     /// Gets or sets the text document identifier.

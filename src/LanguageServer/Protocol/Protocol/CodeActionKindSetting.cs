@@ -13,10 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.8</remarks>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class CodeActionKindSetting
+internal sealed class CodeActionKindSetting
 {
     /// <summary>
     /// Gets or sets the code actions kinds the client supports.

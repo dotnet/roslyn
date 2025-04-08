@@ -12,10 +12,7 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#hoverClientCapabilities">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class HoverSetting : DynamicRegistrationSetting
+internal sealed class HoverSetting : DynamicRegistrationSetting
 {
     /// <summary>
     /// The client supports the following content formats in a <see cref="MarkupContent"/>

@@ -9,9 +9,6 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Report of spell checkable ranges.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
 internal class VSInternalSpellCheckableRangeReport
 {
     /// <summary>

@@ -13,10 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.15</remarks>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class WorkDoneProgressCreateParams
+internal sealed class WorkDoneProgressCreateParams
 {
     /// <summary>
     /// The token to be used to report progress.

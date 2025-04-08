@@ -14,10 +14,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class InlayHintParams : ITextDocumentParams, IWorkDoneProgressParams
+internal sealed class InlayHintParams : ITextDocumentParams, IWorkDoneProgressParams
 {
     /// <summary>
     /// Gets or sets the document identifier to fetch inlay hints results for.

@@ -17,10 +17,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class InlineValueEvaluatableExpression
+internal sealed class InlineValueEvaluatableExpression
 {
     /// <summary>
     /// The document range for which the inline value applies.

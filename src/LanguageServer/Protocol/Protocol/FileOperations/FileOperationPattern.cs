@@ -14,10 +14,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class FileOperationPattern
+internal sealed class FileOperationPattern
 {
     /// <summary>
     /// The glob pattern to match. Glob patterns can have the following syntax:

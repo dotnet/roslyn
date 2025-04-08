@@ -9,10 +9,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class representing a unicode character class for completion continuation.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class VSInternalContinueCharacterClass
+internal sealed class VSInternalContinueCharacterClass
 {
     /// <summary>
     /// Gets the type value.

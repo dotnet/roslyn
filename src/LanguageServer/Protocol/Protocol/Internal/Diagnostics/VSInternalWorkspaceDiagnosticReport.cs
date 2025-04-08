@@ -9,10 +9,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class representing a diagnostic pull request result for all documents.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class VSInternalWorkspaceDiagnosticReport : VSInternalDiagnosticReport
+internal sealed class VSInternalWorkspaceDiagnosticReport : VSInternalDiagnosticReport
 {
     /// <summary>
     /// Gets or sets the document for which diagnostics is returned.

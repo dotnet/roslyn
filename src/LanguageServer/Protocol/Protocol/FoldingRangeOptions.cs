@@ -11,9 +11,6 @@ using System.Text.Json.Serialization;
 ///
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#foldingRangeOptions">Language Server Protocol specification</see> for additional information.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
 internal class FoldingRangeOptions : IWorkDoneProgressOptions
 {
     /// <summary>

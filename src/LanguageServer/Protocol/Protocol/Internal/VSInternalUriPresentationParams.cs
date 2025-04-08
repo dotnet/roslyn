@@ -10,10 +10,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class representing the parameters sent for a textDocument/_vs_uriPresentation request.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class VSInternalUriPresentationParams : ITextDocumentParams
+internal sealed class VSInternalUriPresentationParams : ITextDocumentParams
 {
     /// <summary>
     /// Gets or sets the identifier for the text document to be operate on.

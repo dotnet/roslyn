@@ -9,9 +9,6 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Server provided options for pull diagnostic requests.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
 internal record class VSInternalDiagnosticOptions : IWorkDoneProgressOptions
 {
     /// <summary>

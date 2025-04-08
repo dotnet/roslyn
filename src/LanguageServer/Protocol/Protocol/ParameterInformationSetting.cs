@@ -13,10 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.14</remarks>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class ParameterInformationSetting
+internal sealed class ParameterInformationSetting
 {
     /// <summary>
     /// The client supports processing label offsets instead of a simple label string.

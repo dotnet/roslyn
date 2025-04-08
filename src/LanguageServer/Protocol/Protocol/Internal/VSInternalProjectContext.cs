@@ -10,10 +10,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class for a project context.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class VSInternalProjectContext : VSProjectContext, IEquatable<VSInternalProjectContext>
+internal sealed class VSInternalProjectContext : VSProjectContext, IEquatable<VSInternalProjectContext>
 {
     /// <summary>
     /// Gets or sets the string context kind of the project context.

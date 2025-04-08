@@ -13,10 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class NotebookDocumentSyncClientCapabilities : IDynamicRegistrationSetting
+internal sealed class NotebookDocumentSyncClientCapabilities : IDynamicRegistrationSetting
 {
     /// <summary>
     /// The client supports sending execution summary data per cell.

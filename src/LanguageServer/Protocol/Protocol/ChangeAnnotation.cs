@@ -15,10 +15,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <remarks>
 /// Since LSP 3.16
 /// </remarks>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class ChangeAnnotation
+internal sealed class ChangeAnnotation
 {
     /// <summary>
     /// Human-readable string describing the change, rendered in the UI.

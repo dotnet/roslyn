@@ -9,9 +9,6 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class representing a diagnostic pull request parameter used.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
 internal class VSInternalDiagnosticParams
 {
     /// <summary>

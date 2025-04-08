@@ -9,10 +9,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class which represents default range of InsertReplaceEdit for the entire completion list
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class InsertReplaceRange
+internal sealed class InsertReplaceRange
 {
     /// <summary>
     /// Gets or sets the insert range.

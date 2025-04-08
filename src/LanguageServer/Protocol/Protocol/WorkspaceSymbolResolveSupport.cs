@@ -10,10 +10,7 @@ using System.Text.Json.Serialization;
 /// Describes the client's support for partial workspace symbols
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class WorkspaceSymbolResolveSupport
+internal sealed class WorkspaceSymbolResolveSupport
 {
     /// <summary>
     /// The properties that a client can resolve lazily. Usually `location.range`

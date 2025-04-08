@@ -9,10 +9,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class representing the parameters sent for the textDocument/validateBreakableRange request.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class VSInternalValidateBreakableRangeParams : ITextDocumentParams
+internal sealed class VSInternalValidateBreakableRangeParams : ITextDocumentParams
 {
     /// <summary>
     /// Gets or sets the <see cref="TextDocumentIdentifier"/> for the request.

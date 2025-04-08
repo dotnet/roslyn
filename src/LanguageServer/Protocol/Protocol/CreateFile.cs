@@ -14,11 +14,8 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.13</remarks>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
 [Kind("create")]
-internal class CreateFile : IAnnotatedChange
+internal sealed class CreateFile : IAnnotatedChange
 {
     /// <summary>
     /// Gets the kind value.

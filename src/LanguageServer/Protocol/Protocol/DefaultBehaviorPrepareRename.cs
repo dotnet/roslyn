@@ -13,10 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class DefaultBehaviorPrepareRename
+internal sealed class DefaultBehaviorPrepareRename
 {
     /// <summary>
     /// Gets or sets a value indicating whether the rename position is valid and the client should use its

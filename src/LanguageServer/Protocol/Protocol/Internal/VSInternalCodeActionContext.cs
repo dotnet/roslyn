@@ -9,10 +9,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class representing the parameters sent from the client to the server for the textDocument/codeAction request.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class VSInternalCodeActionContext : CodeActionContext
+internal sealed class VSInternalCodeActionContext : CodeActionContext
 {
     /// <summary>
     /// Gets or sets the range of the current selection in the document for which the command was invoked.

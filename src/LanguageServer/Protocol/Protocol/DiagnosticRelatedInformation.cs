@@ -13,10 +13,7 @@ using System.Text.Json.Serialization;
 ///
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#diagnosticRelatedInformation">Language Server Protocol specification</see> for additional information.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class DiagnosticRelatedInformation
+internal sealed class DiagnosticRelatedInformation
 {
     /// <summary>
     /// Gets or sets the location for the related information.

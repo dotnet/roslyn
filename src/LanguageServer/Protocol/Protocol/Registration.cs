@@ -11,10 +11,7 @@ using System.Text.Json.Serialization;
 ///
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#registration">Language Server Protocol specification</see> for additional information.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class Registration
+internal sealed class Registration
 {
     /// <summary>
     /// Gets or sets the id used to register the request. This can be used to deregister later.

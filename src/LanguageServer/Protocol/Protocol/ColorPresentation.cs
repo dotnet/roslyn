@@ -13,10 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.6</remarks>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class ColorPresentation
+internal sealed class ColorPresentation
 {
     /// <summary>
     /// The label of this color presentation. It will be shown on the color picker header.

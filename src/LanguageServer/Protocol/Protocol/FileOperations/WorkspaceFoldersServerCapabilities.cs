@@ -13,10 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.6</remarks>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class WorkspaceFoldersServerCapabilities
+internal sealed class WorkspaceFoldersServerCapabilities
 {
     /// <summary>
     /// The server has support for workspace folders

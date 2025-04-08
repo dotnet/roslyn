@@ -11,9 +11,6 @@ using System.Text.Json.Serialization;
 ///
 /// TODO: Deprecate VSInternalDiagnosticParams.cs to use this merged param instead.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
 internal class VSInternalStreamingParams : ITextDocumentParams
 {
     /// <summary>

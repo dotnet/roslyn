@@ -9,10 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// Indicates why a code action is disabled
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-class CodeActionDisabledReason
+sealed class CodeActionDisabledReason
 {
 
     /// <summary>

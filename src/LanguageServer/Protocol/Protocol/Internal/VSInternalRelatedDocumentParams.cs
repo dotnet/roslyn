@@ -10,10 +10,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Parameter for copilot/_related_documents.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class VSInternalRelatedDocumentParams : IPartialResultParams<VSInternalRelatedDocumentReport[]>
+internal sealed class VSInternalRelatedDocumentParams : IPartialResultParams<VSInternalRelatedDocumentReport[]>
 {
     /// <summary>
     /// Gets or sets the document for which the feature is being requested for.
@@ -35,7 +32,7 @@ internal class VSInternalRelatedDocumentParams : IPartialResultParams<VSInternal
     public IProgress<VSInternalRelatedDocumentReport[]>? PartialResultToken { get; set; }
 }
 
-internal class VSInternalRelatedDocumentReport
+internal sealed class VSInternalRelatedDocumentReport
 {
     [JsonPropertyName("_vs_file_paths")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

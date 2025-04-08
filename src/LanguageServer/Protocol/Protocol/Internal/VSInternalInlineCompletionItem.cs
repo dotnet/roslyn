@@ -11,10 +11,7 @@ using System.Text.Json.Serialization;
 ///
 /// See https://github.com/microsoft/vscode/blob/075ba020e8493f40dba89891b1a08453f2c067e9/src/vscode-dts/vscode.proposed.inlineCompletions.d.ts#L78.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class VSInternalInlineCompletionItem
+internal sealed class VSInternalInlineCompletionItem
 {
     /// <summary>
     /// Gets or sets the text to replace the range with.

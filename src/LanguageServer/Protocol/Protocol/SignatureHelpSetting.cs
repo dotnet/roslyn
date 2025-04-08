@@ -12,10 +12,7 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#signatureHelpClientCapabilities">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class SignatureHelpSetting : DynamicRegistrationSetting
+internal sealed class SignatureHelpSetting : DynamicRegistrationSetting
 {
     /// <summary>
     /// Client capabilities specific to <see cref="Protocol.SignatureInformation"/>.

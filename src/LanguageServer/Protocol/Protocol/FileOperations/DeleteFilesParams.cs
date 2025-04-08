@@ -13,10 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class DeleteFilesParams
+internal sealed class DeleteFilesParams
 {
     /// <summary>
     /// An array of all files/folders deleted in this operation.

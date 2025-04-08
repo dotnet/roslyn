@@ -9,10 +9,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Represents the <see cref="SymbolKind"/> values that the client supports.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class SymbolKindSetting
+internal sealed class SymbolKindSetting
 {
     /// <summary>
     /// The symbol kind values the client supports.

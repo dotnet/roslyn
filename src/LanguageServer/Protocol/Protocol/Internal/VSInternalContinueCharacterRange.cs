@@ -9,13 +9,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class representing range of characters for completion continuation.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class VSInternalContinueCharacterRange
+internal sealed class VSInternalContinueCharacterRange
 {
     /// <summary>
     /// Gets the type value.

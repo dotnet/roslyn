@@ -12,10 +12,7 @@ using System.Text.Json.Serialization;
 /// <remarks>
 /// This is a temporary protocol and should not be used.
 /// </remarks>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class VSInternalSymbolInformation : VSSymbolInformation
+internal sealed class VSInternalSymbolInformation : VSSymbolInformation
 {
     /// <summary>
     /// Gets or sets the string kind used for icons.

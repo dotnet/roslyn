@@ -8,13 +8,10 @@ using System.Text.Json.Serialization;
 
 /// <summary>
 /// Class representing the parameters sent from a server to a client for the workspace/applyEdit request.
-/// 
+///
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#applyWorkspaceEditParams">Language Server Protocol specification</see> for additional information.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class ApplyWorkspaceEditParams
+internal sealed class ApplyWorkspaceEditParams
 {
     /// <summary>
     /// An optional label of the workspace edit. This label is

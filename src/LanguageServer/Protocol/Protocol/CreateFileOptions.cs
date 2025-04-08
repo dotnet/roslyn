@@ -13,10 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.13</remarks>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class CreateFileOptions
+internal sealed class CreateFileOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether the creation should overwrite the file if it already exists.

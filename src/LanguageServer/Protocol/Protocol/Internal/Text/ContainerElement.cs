@@ -10,11 +10,8 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Roslyn.Text.Adornments;
 
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
 [JsonConverter(typeof(ContainerElementConverter))]
-internal class ContainerElement
+internal sealed class ContainerElement
 {
     public IEnumerable<object> Elements { get; }
 

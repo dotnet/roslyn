@@ -12,10 +12,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentFormattingRegistrationOptions">Language Server Protocol specification</see> for additional information.
 /// </code>
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class DocumentFormattingRegistrationOptions : DocumentFormattingOptions, ITextDocumentRegistrationOptions
+internal sealed class DocumentFormattingRegistrationOptions : DocumentFormattingOptions, ITextDocumentRegistrationOptions
 {
     /// <inheritdoc/>
     [JsonPropertyName("documentSelector")]

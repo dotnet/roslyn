@@ -10,10 +10,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class used to extend <see cref="CodeAction" /> to add the data field for codeAction/_ms_resolve support.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class VSInternalCodeAction : CodeAction
+internal sealed class VSInternalCodeAction : CodeAction
 {
     /// <summary>
     /// Gets or sets the group this CodeAction belongs to.

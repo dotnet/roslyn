@@ -13,10 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class InlineValueWorkspaceClientCapabilities
+internal sealed class InlineValueWorkspaceClientCapabilities
 {
     /// <summary>
     /// Whether the client implementation supports a refresh request sent from

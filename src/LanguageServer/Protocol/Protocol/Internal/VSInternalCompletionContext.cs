@@ -11,10 +11,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Extension class for <see cref="CompletionContext"/> with properties specific to Visual Studio.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class VSInternalCompletionContext : CompletionContext
+internal sealed class VSInternalCompletionContext : CompletionContext
 {
     /// <summary>
     /// Gets or sets the <see cref="CompletionTriggerKind"/> indicating how the completion was triggered.

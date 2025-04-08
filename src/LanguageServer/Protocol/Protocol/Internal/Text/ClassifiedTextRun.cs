@@ -8,11 +8,8 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Roslyn.Text.Adornments;
 
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
 [JsonConverter(typeof(ClassifiedTextRunConverter))]
-internal class ClassifiedTextRun(
+internal sealed class ClassifiedTextRun(
     string classificationTypeName,
     string text,
     ClassifiedTextRunStyle style = ClassifiedTextRunStyle.Plain,

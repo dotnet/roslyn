@@ -9,10 +9,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class which represents initialization setting for VS completion.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class VSInternalCompletionSetting : CompletionSetting
+internal sealed class VSInternalCompletionSetting : CompletionSetting
 {
     /// <summary>
     /// Gets or sets completion list setting.

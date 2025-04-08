@@ -8,11 +8,8 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Roslyn.Text.Adornments;
 
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
 [JsonConverter(typeof(ImageElementConverter))]
-internal class ImageElement
+internal sealed class ImageElement
 {
     public static readonly ImageElement Empty = new(default, string.Empty);
 

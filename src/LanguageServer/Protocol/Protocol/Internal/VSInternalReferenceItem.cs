@@ -11,10 +11,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class which represents references information.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class VSInternalReferenceItem
+internal sealed class VSInternalReferenceItem
 {
     private object? definitionTextValue = null;
     private object? textValue = null;

@@ -9,10 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// Report for workspace spell checkable range request.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class VSInternalWorkspaceSpellCheckableReport : VSInternalSpellCheckableRangeReport, ITextDocumentParams
+internal sealed class VSInternalWorkspaceSpellCheckableReport : VSInternalSpellCheckableRangeReport, ITextDocumentParams
 {
     /// <summary>
     /// Gets or sets the document for which the spell checkable ranges are returned.

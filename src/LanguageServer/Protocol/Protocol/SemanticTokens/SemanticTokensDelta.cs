@@ -13,10 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class SemanticTokensDelta
+internal sealed class SemanticTokensDelta
 {
     /// <summary>
     /// The ID of this result, which can then be used as a base for future deltas.

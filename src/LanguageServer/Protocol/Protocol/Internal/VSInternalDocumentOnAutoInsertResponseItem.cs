@@ -11,10 +11,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class representing the response of an AutoInsert response.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class VSInternalDocumentOnAutoInsertResponseItem
+internal sealed class VSInternalDocumentOnAutoInsertResponseItem
 {
     /// <summary>
     /// Gets or sets the insert text format of the primary text edit. <see cref="TextEditFormat"/> for supported formats.

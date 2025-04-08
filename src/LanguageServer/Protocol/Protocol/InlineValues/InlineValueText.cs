@@ -10,10 +10,7 @@ using System.Text.Json.Serialization;
 /// Provide inline value as text.
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class InlineValueText
+internal sealed class InlineValueText
 {
     /// <summary>
     /// The document range for which the inline value applies.

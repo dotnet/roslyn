@@ -10,10 +10,7 @@ using System.Text.Json.Serialization;
 /// Describes how the client handles change annotations on workspace edits.
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class ChangeAnnotationSupport
+internal sealed class ChangeAnnotationSupport
 {
     /// <summary>
     /// Whether the client groups edits with equal labels into tree nodes,

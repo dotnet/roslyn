@@ -13,10 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.15</remarks>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class SelectionRangeOptions : IWorkDoneProgressOptions
+internal sealed class SelectionRangeOptions : IWorkDoneProgressOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether work done progress is supported.

@@ -9,10 +9,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Extension to Hover which adds additional data for colorization.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class VSInternalHover : Hover
+internal sealed class VSInternalHover : Hover
 {
     /// <summary>
     /// Gets or sets the value which represents the hover content as a tree

@@ -12,11 +12,8 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#renameFileOptions">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-/// <remarks>
-/// Since LSP 3.13
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class RenameFileOptions
+/// <remarks>Since LSP 3.13</remarks>
+internal sealed class RenameFileOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether the rename should overwrite the target if it already exists. (Overwrite wins over ignoreIfExists).

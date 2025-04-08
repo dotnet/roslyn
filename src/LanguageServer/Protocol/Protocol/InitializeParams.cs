@@ -14,10 +14,7 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#initializeParams">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class InitializeParams : IWorkDoneProgressParams
+internal sealed class InitializeParams : IWorkDoneProgressParams
 {
     /// <summary>
     /// Gets or sets the ID of the process which launched the language server.

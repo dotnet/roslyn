@@ -10,10 +10,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// Notebook specific client capabilities
 /// </summary>
 /// <remarks>Since LSP 3.15</remarks>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class WindowClientCapabilities : IWorkDoneProgressOptions
+internal sealed class WindowClientCapabilities : IWorkDoneProgressOptions
 {
     /// <summary>
     /// Indicates whether the client supports server initiated

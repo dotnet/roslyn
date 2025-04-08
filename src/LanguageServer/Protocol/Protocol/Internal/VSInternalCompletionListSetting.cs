@@ -9,10 +9,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class which represents initialization setting for completion list.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class VSInternalCompletionListSetting
+internal sealed class VSInternalCompletionListSetting
 {
     /// <summary>
     /// Gets or sets a value indicating whether completion lists can have Data bags. These data bags get propagated

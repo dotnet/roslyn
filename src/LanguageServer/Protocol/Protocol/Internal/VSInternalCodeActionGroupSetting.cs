@@ -9,10 +9,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class containing the set of code action default groups that are supported.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class VSInternalCodeActionGroupSetting
+internal sealed class VSInternalCodeActionGroupSetting
 {
     /// <summary>
     /// Gets or sets the code actions default group names the client supports.

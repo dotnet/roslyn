@@ -9,9 +9,6 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// A subclass of the LSP protocol <see cref="CompletionList"/> that contains extensions specific to Visual Studio.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
 internal class VSInternalCompletionList : CompletionList
 {
     internal const string SuggestionModeSerializedName = "_vs_suggestionMode";

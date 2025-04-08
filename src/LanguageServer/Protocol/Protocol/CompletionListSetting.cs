@@ -10,10 +10,7 @@ using System.Text.Json.Serialization;
 /// Client capabilities specific to <see cref="CompletionList"/>
 /// </summary>
 /// <remarks>Since 3.17</remarks>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class CompletionListSetting
+internal sealed class CompletionListSetting
 {
     /// <summary>
     /// The supported property names of the <see cref="CompletionList.ItemDefaults"/> object.

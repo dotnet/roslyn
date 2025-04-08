@@ -17,10 +17,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class FoldingRange
+internal sealed class FoldingRange
 {
     /// <summary>
     /// The zero-based start line of the range to fold.

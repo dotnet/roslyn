@@ -12,10 +12,7 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#showMessageRequestParams">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class ShowMessageRequestParams : ShowMessageParams
+internal sealed class ShowMessageRequestParams : ShowMessageParams
 {
     /// <summary>
     /// Gets or sets an array of <see cref="MessageActionItem"/>s to present.

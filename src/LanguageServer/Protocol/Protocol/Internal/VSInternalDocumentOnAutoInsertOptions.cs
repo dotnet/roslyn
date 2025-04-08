@@ -9,9 +9,6 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class representing the options for on auto insert.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
 internal class VSInternalDocumentOnAutoInsertOptions
 {
     /// <summary>

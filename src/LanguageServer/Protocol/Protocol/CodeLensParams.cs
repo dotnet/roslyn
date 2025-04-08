@@ -13,10 +13,7 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#codeLensParams">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class CodeLensParams : ITextDocumentParams, IWorkDoneProgressParams, IPartialResultParams<CodeLens[]>
+internal sealed class CodeLensParams : ITextDocumentParams, IWorkDoneProgressParams, IPartialResultParams<CodeLens[]>
 {
     /// <summary>
     /// Gets or sets the document identifier to fetch code lens results for.

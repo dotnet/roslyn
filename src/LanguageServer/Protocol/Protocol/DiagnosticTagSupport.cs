@@ -13,10 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.15</remarks>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class DiagnosticTagSupport
+internal sealed class DiagnosticTagSupport
 {
     /// <summary>
     /// Gets or sets a value indicating the tags supported by the client.

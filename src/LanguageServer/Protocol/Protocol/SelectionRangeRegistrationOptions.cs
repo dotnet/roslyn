@@ -13,10 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.15</remarks>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class SelectionRangeRegistrationOptions : DeclarationOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
+internal sealed class SelectionRangeRegistrationOptions : DeclarationOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
 {
     /// <summary>
     /// A document selector to identify the scope of the registration. If set to

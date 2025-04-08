@@ -13,10 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since 3.16</remarks>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class ResolveSupportSetting
+internal sealed class ResolveSupportSetting
 {
     /// <summary>
     /// Gets or sets a value indicating the properties that a client can resolve lazily.

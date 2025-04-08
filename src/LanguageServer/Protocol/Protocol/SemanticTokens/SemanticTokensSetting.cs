@@ -13,10 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class SemanticTokensSetting : DynamicRegistrationSetting
+internal sealed class SemanticTokensSetting : DynamicRegistrationSetting
 {
     /// <summary>
     /// Which requests the client supports and might send to the server

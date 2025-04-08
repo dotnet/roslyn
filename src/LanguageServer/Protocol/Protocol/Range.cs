@@ -13,10 +13,7 @@ using System.Text.Json.Serialization;
 ///
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#range">Language Server Protocol specification</see> for additional information.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class Range : IEquatable<Range>
+internal sealed class Range : IEquatable<Range>
 {
     /// <summary>
     /// Gets or sets the text start position.

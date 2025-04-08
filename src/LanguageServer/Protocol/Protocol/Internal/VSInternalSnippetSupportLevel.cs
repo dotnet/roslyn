@@ -7,7 +7,6 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// The version of support that is available from the client.
 /// </summary>
-/// 
 internal enum VSInternalSnippetSupportLevel
 {
     /// <summary>

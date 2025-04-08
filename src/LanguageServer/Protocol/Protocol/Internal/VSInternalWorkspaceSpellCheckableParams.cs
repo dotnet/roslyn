@@ -10,10 +10,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Parameter for workspace/_vs_spellCheckableRanges.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class VSInternalWorkspaceSpellCheckableParams : IPartialResultParams<VSInternalWorkspaceSpellCheckableReport[]>
+internal sealed class VSInternalWorkspaceSpellCheckableParams : IPartialResultParams<VSInternalWorkspaceSpellCheckableReport[]>
 {
     /// <summary>
     /// Gets or sets the current state of the documents the client already has received.

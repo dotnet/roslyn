@@ -10,10 +10,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// A workspace symbol location without a range
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class WorkspaceSymbolLocation
+internal sealed class WorkspaceSymbolLocation
 {
     [JsonPropertyName("uri")]
     [JsonRequired]

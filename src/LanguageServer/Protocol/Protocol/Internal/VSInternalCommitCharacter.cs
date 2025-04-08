@@ -9,10 +9,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Extension class for CompletionItem with fields specific to Visual Studio functionalities.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class VSInternalCommitCharacter
+internal sealed class VSInternalCommitCharacter
 {
     /// <summary>
     /// Gets or sets the commit character.

@@ -10,10 +10,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Parameter for textDocument/_vs_spellCheckableRanges.
 /// </summary>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class VSInternalDocumentSpellCheckableParams : VSInternalStreamingParams, IPartialResultParams<VSInternalSpellCheckableRangeReport[]>
+internal sealed class VSInternalDocumentSpellCheckableParams : VSInternalStreamingParams, IPartialResultParams<VSInternalSpellCheckableRangeReport[]>
 {
     /// <inheritdoc/>
     [JsonPropertyName(Methods.PartialResultTokenName)]

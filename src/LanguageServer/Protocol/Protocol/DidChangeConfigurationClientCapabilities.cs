@@ -10,9 +10,6 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <para>
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#didChangeConfigurationClientCapabilities">Language Server Protocol specification</see> for additional information.
 /// </para>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class DidChangeConfigurationClientCapabilities : DynamicRegistrationSetting
+internal sealed class DidChangeConfigurationClientCapabilities : DynamicRegistrationSetting
 {
 }

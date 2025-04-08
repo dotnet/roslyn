@@ -13,10 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// folder root, but it can be another absolute URI as well.
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class RelativePattern
+internal sealed class RelativePattern
 {
     /// <summary>
     /// A workspace folder or a base URI to which this pattern will be matched

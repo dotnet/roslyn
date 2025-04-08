@@ -10,10 +10,7 @@ using System.Text.Json.Serialization;
 /// The client's capabilities specific to the <see cref="CompletionItem.InsertTextMode"/> property.
 /// </summary>
 /// <remarks>Since 3.16</remarks>
-/// <remarks>
-/// Do not seal this class. It is intended to be an extensible LSP type through IVT.
-/// </remarks>
-internal class InsertTextModeSupportSetting
+internal sealed class InsertTextModeSupportSetting
 {
     /// <summary>
     /// The <see cref="InsertTextMode"/> values that the client supports
