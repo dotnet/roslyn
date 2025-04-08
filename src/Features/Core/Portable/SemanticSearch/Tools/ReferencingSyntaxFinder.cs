@@ -39,7 +39,7 @@ internal sealed class ReferencingSyntaxFinder(Solution solution, CancellationTok
         // then convert this to a simple IAsyncEnumerable<ReferenceLocation> that we can iterate over, converting those
         // locations to SyntaxNodes in the corresponding C# or VB document.
         await foreach (var item in ProducerConsumer<ReferenceLocation>.RunAsync(
-            FuncReferencesAsync, args: (solution, symbol), cancellationToken))
+            FindReferencesAsync, args: (solution, symbol), cancellationToken))
         {
             var root = await item.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             if (root == null)
@@ -51,7 +51,7 @@ internal sealed class ReferencingSyntaxFinder(Solution solution, CancellationTok
         }
     }
 
-    private static Task FuncReferencesAsync(Action<ReferenceLocation> callback, (Solution solution, ISymbol symbol) args, CancellationToken cancellationToken)
+    private static Task FindReferencesAsync(Action<ReferenceLocation> callback, (Solution solution, ISymbol symbol) args, CancellationToken cancellationToken)
         => SymbolFinder.FindReferencesAsync(
             args.symbol, args.solution, new Progress(callback), documents: null, s_options, cancellationToken);
 
