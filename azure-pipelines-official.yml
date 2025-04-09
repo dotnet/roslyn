@@ -204,16 +204,6 @@ extends:
             usePat: false
             retentionDays: 90
 
-          # Publishes setup VSIXes to a drop.
-          # Note: The insertion tool looks for the display name of this task in the logs.
-          - output: microBuildVstsDrop
-            displayName: Upload VSTS Drop
-            condition: succeeded()
-            dropFolder: 'artifacts\VSSetup\$(BuildConfiguration)\Insertion'
-            dropName: $(VisualStudio.DropName)
-            accessToken: $(_DevDivDropAccessToken)
-            dropRetentionDays: 90
-
           # Publish insertion packages to CoreXT store.
           - output: nuget
             displayName: 'Publish CoreXT Packages'
@@ -223,6 +213,16 @@ extends:
             allowPackageConflicts: true
             nuGetFeedType: external
             publishFeedCredentials: 'DevDiv - VS package feed'
+
+          # Publishes setup VSIXes to a drop.
+          # Note: The insertion tool looks for the display name of this task in the logs.
+          - output: microBuildVstsDrop
+            displayName: Upload VSTS Drop
+            condition: succeeded()
+            dropFolder: 'artifacts\VSSetup\$(BuildConfiguration)\Insertion'
+            dropName: $(VisualStudio.DropName)
+            accessToken: $(_DevDivDropAccessToken)
+            dropRetentionDays: 90
 
         steps:
         - pwsh: Set-MpPreference -DisableRealtimeMonitoring $true
