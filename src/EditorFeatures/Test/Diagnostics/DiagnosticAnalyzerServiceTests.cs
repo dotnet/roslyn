@@ -891,10 +891,6 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         public override int Priority { get; }
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [];
-        public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
-            => Task.FromResult(ImmutableArray<Diagnostic>.Empty);
-        public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
-            => Task.FromResult(ImmutableArray<Diagnostic>.Empty);
     }
 
     private sealed class LeakDocumentAnalyzer : DocumentDiagnosticAnalyzer
@@ -903,14 +899,11 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [s_syntaxRule];
 
-        public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+        public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(TextDocument document, SyntaxTree tree, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return [Diagnostic.Create(s_syntaxRule, root.GetLocation())];
+            return Task.FromResult<ImmutableArray<Diagnostic>>(
+                [Diagnostic.Create(s_syntaxRule, tree.GetRoot(cancellationToken).GetLocation())]);
         }
-
-        public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
-            => SpecializedTasks.Default<ImmutableArray<Diagnostic>>();
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]

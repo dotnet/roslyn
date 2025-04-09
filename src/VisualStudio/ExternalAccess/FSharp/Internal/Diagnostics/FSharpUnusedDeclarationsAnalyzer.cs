@@ -53,20 +53,12 @@ internal class FSharpUnusedDeclarationsDiagnosticAnalyzer : DocumentDiagnosticAn
 
     public override int Priority => 80; // Default = 50
 
-    public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
+    public override async Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(TextDocument textDocument, SyntaxTree tree, CancellationToken cancellationToken)
     {
-        var analyzer = document.Project.Services.GetService<FSharpUnusedDeclarationsDiagnosticAnalyzerService>();
-        if (analyzer == null)
-        {
-            return Task.FromResult(ImmutableArray<Diagnostic>.Empty);
-        }
-
-        return analyzer.AnalyzeSemanticsAsync(_descriptor, document, cancellationToken);
-    }
-
-    public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
-    {
-        return Task.FromResult(ImmutableArray<Diagnostic>.Empty);
+        var analyzer = textDocument.Project.Services.GetService<FSharpUnusedDeclarationsDiagnosticAnalyzerService>();
+        return analyzer is null || textDocument is not Document document
+            ? []
+            : await analyzer.AnalyzeSemanticsAsync(_descriptor, document, cancellationToken).ConfigureAwait(false);
     }
 
     public DiagnosticAnalyzerCategory GetAnalyzerCategory()
