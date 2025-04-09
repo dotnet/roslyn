@@ -26,22 +26,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void Increment_001([CombinatorialValues("++", "--")] string op, bool structure)
+        public void Increment_001([CombinatorialValues("++", "--")] string op, [CombinatorialValues("struct", "class", "interface")] string typeKeyword)
         {
             var source =
-(structure ? "struct" : "class") + @" C1
+typeKeyword + @" C1
 {
     public void operator" + op + @"() {} 
     public void operator checked" + op + @"() {} 
 }
 ";
-            var comp = CreateCompilation(source);
-            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net60);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular13, targetFramework: TargetFramework.Net60);
             comp.VerifyDiagnostics(
                 // (3,25): error CS8652: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public void operator++() {} 
@@ -59,12 +59,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)));
             }
 
-            static void validateOp(MethodSymbol m)
+            void validateOp(MethodSymbol m)
             {
                 Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
                 Assert.False(m.IsStatic);
                 Assert.False(m.IsAbstract);
-                Assert.False(m.IsVirtual);
+                Assert.Equal(typeKeyword == "interface", m.IsVirtual);
                 Assert.False(m.IsSealed);
                 Assert.False(m.IsOverride);
                 Assert.True(m.HasSpecialName);
@@ -108,9 +108,33 @@ static class C1
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (3,18): error CS9501: User-defined operator 'C1.operator ++()' must be declared public
+                // (3,19): error CS9501: User-defined operator 'C1.operator ++()' must be declared public
                 //     void operator ++() {} 
                 Diagnostic(ErrorCode.ERR_OperatorsMustBePublic, op).WithArguments("C1.operator " + (isChecked ? "checked " : "") + op + @"()").WithLocation(3, 19 + (isChecked ? 8 : 0))
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_002_MustBePublic_ExplicitAccessibility(
+            [CombinatorialValues("++", "--")] string op,
+            [CombinatorialValues("struct", "class", "interface")] string typeKeyword,
+            [CombinatorialValues("private", "internal", "protected", "internal protected", "private protected")] string accessibility,
+            bool isChecked)
+        {
+            var source =
+typeKeyword + @" C1
+{
+    " + accessibility + @"
+    void operator " + (isChecked ? "checked " : "") + op + @"() {} 
+" + (isChecked ? "public void operator " + op + @"() {}" : "") + @"
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
+            comp.VerifyDiagnostics(
+                // (4,19): error CS9501: User-defined operator 'C1.operator ++()' must be declared public
+                //     void operator ++() {} 
+                Diagnostic(ErrorCode.ERR_OperatorsMustBePublic, op).WithArguments("C1.operator " + (isChecked ? "checked " : "") + op + @"()").WithLocation(4, 19 + (isChecked ? 8 : 0))
                 );
         }
 
@@ -5947,5 +5971,3762 @@ public class C1 : C2
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
         }
+
+        private static string CompoundAssignmentOperatorName(string op, bool isChecked = false)
+        {
+            var kind = op switch
+            {
+                ">>=" => SyntaxKind.GreaterThanGreaterThanEqualsToken,
+                ">>>=" => SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken,
+                _ => SyntaxFactory.ParseToken(op).Kind(),
+            };
+
+            return OperatorFacts.CompoundAssignmentOperatorNameFromSyntaxKind(kind, isChecked: isChecked);
+        }
+
+        private static bool CompoundAssignmentOperatorHasCheckedForm(string op) => op is "+=" or "-=" or "*=" or "/=";
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00010([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, [CombinatorialValues("struct", "class", "interface")] string typeKeyword)
+        {
+            string checkedForm = null;
+
+            if (CompoundAssignmentOperatorHasCheckedForm(op))
+            {
+                checkedForm = @"
+    public void operator checked" + op + @"(C1 x) {} 
+";
+            }
+
+            var source =
+typeKeyword + @" C1
+{
+    public void operator" + op + @"(C1 x) {}
+" + checkedForm + @"
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net60);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular13, targetFramework: TargetFramework.Net60);
+            comp.VerifyDiagnostics(
+                checkedForm is null ?
+                    [
+                        // (3,25): error CS8652: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     public void operator+=(C1 x) {}
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, op).WithArguments("user-defined compound assignment operators").WithLocation(3, 25)
+                    ] :
+                    [
+                        // (3,25): error CS8652: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     public void operator+=(C1 x) {}
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, op).WithArguments("user-defined compound assignment operators").WithLocation(3, 25),
+                        // (5,33): error CS8652: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     public void operator checked+=(C1 x) {} 
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, op).WithArguments("user-defined compound assignment operators").WithLocation(5, 33)
+                    ]
+                );
+
+            validate(comp.SourceModule);
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: false)));
+                if (checkedForm is not null)
+                {
+                    validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: true)));
+                }
+            }
+
+            void validateOp(MethodSymbol m)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsAbstract);
+                Assert.Equal(typeKeyword == "interface", m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.False(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00011_HasCheckedForm([CombinatorialValues("+=", "-=", "*=", "/=")] string op, [CombinatorialValues("struct", "class", "interface")] string typeKeyword)
+        {
+            Assert.True(CompoundAssignmentOperatorHasCheckedForm(op));
+
+            var source =
+typeKeyword + @" C1
+{
+    public void operator " + op + @"(C1 x) {} 
+    public void operator checked" + op + @"(C1 x) {} 
+}
+
+interface I1
+{
+    public void operator " + op + @"(C1 x) {} 
+    public void operator checked" + op + @"(C1 x) {} 
+}
+
+" + typeKeyword + @" C2 : I1
+{
+    void I1.operator " + op + @"(C1 x) {} 
+    void I1.operator checked" + op + @"(C1 x) {} 
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00012_DoesNotHaveCheckedForm([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, [CombinatorialValues("struct", "class", "interface")] string typeKeyword)
+        {
+            Assert.False(CompoundAssignmentOperatorHasCheckedForm(op));
+
+            var source =
+typeKeyword + @" C1
+{
+    public void operator checked" + op + @"(C1 x) {} 
+}
+
+interface I1
+{
+    public void operator " + op + @"(C1 x) {} 
+}
+
+" + typeKeyword + @" C2 : I1
+{
+    void I1.operator checked" + op + @"(C1 x) {} 
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
+            comp.VerifyDiagnostics(
+                // (3,26): error CS9023: User-defined operator '%=' cannot be declared checked
+                //     public void operator checked%=(C1 x) {} 
+                Diagnostic(ErrorCode.ERR_OperatorCantBeChecked, "checked").WithArguments(op).WithLocation(3, 26),
+                // (13,22): error CS9023: User-defined operator '%=' cannot be declared checked
+                //     void I1.operator checked%=(C1 x) {} 
+                Diagnostic(ErrorCode.ERR_OperatorCantBeChecked, "checked").WithArguments(op).WithLocation(13, 22)
+                );
+
+            validateOp(comp.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: false)));
+
+            static void validateOp(MethodSymbol m)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsAbstract);
+                Assert.Equal(m.ContainingType.IsInterface, m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.False(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00013_Not_Static(
+            [CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op,
+            [CombinatorialValues("struct", "class", "interface")] string typeKeyword)
+        {
+            string checkedForm = null;
+
+            if (CompoundAssignmentOperatorHasCheckedForm(op))
+            {
+                checkedForm = @"
+    public static void operator checked" + op + @"(C1 x) {} 
+";
+            }
+
+            var source =
+typeKeyword + @" C1
+{
+    public static void operator" + op + @"(C1 x) {}
+" + checkedForm + @"
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
+            comp.VerifyDiagnostics(
+                checkedForm is null ?
+                    [
+                        // (3,32): error CS0106: The modifier 'static' is not valid for this item
+                        //     public static void operator+=(C1 x) {}
+                        Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("static").WithLocation(3, 32)
+                    ] :
+                    [
+                        // (3,32): error CS0106: The modifier 'static' is not valid for this item
+                        //     public static void operator+=(C1 x) {}
+                        Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("static").WithLocation(3, 32),
+                        // (5,40): error CS0106: The modifier 'static' is not valid for this item
+                        //     public static void operator checked+=(C1 x) {} 
+                        Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("static").WithLocation(5, 40)
+                    ]
+                );
+
+            validate(comp.SourceModule);
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: false)));
+                if (checkedForm is not null)
+                {
+                    validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: true)));
+                }
+            }
+
+            void validateOp(MethodSymbol m)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsAbstract);
+                Assert.Equal(typeKeyword == "interface", m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.False(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00014_NotInStaticClass([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            string checkedForm = null;
+
+            if (CompoundAssignmentOperatorHasCheckedForm(op))
+            {
+                checkedForm = @"
+    public void operator checked" + op + @"(int x) {} 
+";
+            }
+
+            var source = @"
+static class C1
+{
+    public void operator" + op + @"(int x) {}
+" + checkedForm + @"
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                checkedForm is null ?
+                    [
+                        // (4,25): error CS0715: 'C1.operator +=(int)': static classes cannot contain user-defined operators
+                        //     public void operator+=(int x) {}
+                        Diagnostic(ErrorCode.ERR_OperatorInStaticClass, op).WithArguments("C1.operator " + op + @"(int)").WithLocation(4, 25)
+                    ] :
+                    [
+                        // (4,25): error CS0715: 'C1.operator +=(int)': static classes cannot contain user-defined operators
+                        //     public void operator+=(int x) {}
+                        Diagnostic(ErrorCode.ERR_OperatorInStaticClass, op).WithArguments("C1.operator " + op + @"(int)").WithLocation(4, 25),
+                        // (6,33): error CS0715: 'C1.operator checked +=(int)': static classes cannot contain user-defined operators
+                        //     public void operator checked+=(int x) {} 
+                        Diagnostic(ErrorCode.ERR_OperatorInStaticClass, op).WithArguments("C1.operator checked " + op + @"(int)").WithLocation(6, 33)
+                    ]
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00020_MustBePublic([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, bool structure, bool isChecked)
+        {
+            if (isChecked && !CompoundAssignmentOperatorHasCheckedForm(op))
+            {
+                return;
+            }
+
+            var source =
+(structure ? "struct" : "class") + @" C1
+{
+    void operator " + (isChecked ? "checked " : "") + op + @"(int x) {} 
+" + (isChecked ? "public void operator " + op + @"(int x) {}" : "") + @"
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,19): error CS9501: User-defined operator 'C1.operator +=(int)' must be declared public
+                //     void operator +=(int x) {} 
+                Diagnostic(ErrorCode.ERR_OperatorsMustBePublic, op).WithArguments("C1.operator " + (isChecked ? "checked " : "") + op + @"(int)").WithLocation(3, 19 + (isChecked ? 8 : 0))
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00021_ImplicitlyPublicInInterface([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            string checkedForm = null;
+
+            if (CompoundAssignmentOperatorHasCheckedForm(op))
+            {
+                checkedForm = @"
+    void operator checked" + op + @"(C1 x);
+";
+            }
+
+            var source = @"
+interface C1
+{
+    void operator" + op + @"(C1 x);
+" + checkedForm + @"
+}
+";
+            var comp = CreateCompilation(source);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+            validate(comp.SourceModule);
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: false)));
+                if (checkedForm is not null)
+                {
+                    validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: true)));
+                }
+            }
+
+            static void validateOp(MethodSymbol m)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.True(m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.False(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00022_MustBePublic_ExplicitAccessibility(
+            [CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op,
+            [CombinatorialValues("struct", "class", "interface")] string typeKeyword,
+            [CombinatorialValues("private", "internal", "protected", "internal protected", "private protected")] string accessibility,
+            bool isChecked)
+        {
+            if (isChecked && !CompoundAssignmentOperatorHasCheckedForm(op))
+            {
+                return;
+            }
+
+            var source =
+typeKeyword + @" C1
+{
+    " + accessibility + @"
+    void operator " + (isChecked ? "checked " : "") + op + @"(int x) {} 
+" + (isChecked ? "public void operator " + op + @"(int x) {}" : "") + @"
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
+            comp.VerifyDiagnostics(
+                // (4,19): error CS9501: User-defined operator 'C1.operator +=(int)' must be declared public
+                //     void operator +=(int x) {} 
+                Diagnostic(ErrorCode.ERR_OperatorsMustBePublic, op).WithArguments("C1.operator " + (isChecked ? "checked " : "") + op + @"(int)").WithLocation(4, 19 + (isChecked ? 8 : 0))
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00030_MustReturnVoid([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, [CombinatorialValues("struct", "class", "interface")] string typeKeyword)
+        {
+            var source =
+typeKeyword + @" C1
+{
+    public C1 operator " + op + @"(int x) => throw null; 
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (3,24): error CS9503: The return type for this operator must be void
+                //     public C1 operator +=(int x) => throw null; 
+                Diagnostic(ErrorCode.ERR_OperatorMustReturnVoid, op).WithLocation(3, 24)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00040_MustReturnVoid_Checked([CombinatorialValues("+=", "-=", "*=", "/=")] string op, [CombinatorialValues("struct", "class", "interface")] string typeKeyword)
+        {
+            var source =
+typeKeyword + @" C1
+{
+    public C1 operator checked " + op + @"(int x) => throw null; 
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (3,32): error CS9503: The return type for this operator must be void
+                //     public C1 operator checked +=(int x) => throw null; 
+                Diagnostic(ErrorCode.ERR_OperatorMustReturnVoid, op).WithLocation(3, 32),
+                // (3,32): error CS9025: The operator 'C1.operator checked +=(int)' requires a matching non-checked version of the operator to also be defined
+                //     public C1 operator checked +=(int x) => throw null; 
+                Diagnostic(ErrorCode.ERR_CheckedOperatorNeedsMatch, op).WithArguments("C1.operator checked " + op + "(int)").WithLocation(3, 32)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00050_WrongNumberOfParameters([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, [CombinatorialValues("struct", "class", "interface")] string typeKeyword)
+        {
+            var source =
+typeKeyword + @" C1
+{
+    public void operator" + op + @"() {} 
+    public void operator" + op + @"(C1 x, C1 y) {} 
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (3,25): error CS9506: Overloaded compound assignment operator '+=' takes one parameter
+                //     public void operator+=() {} 
+                Diagnostic(ErrorCode.ERR_BadCompoundAssignmentOpArgs, op).WithArguments(op).WithLocation(3, 25),
+                // (4,25): error CS1020: Overloadable binary operator expected
+                //     public void operator+=(C1 x, C1 y) {} 
+                Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, op).WithLocation(4, 25)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00060_WrongNumberOfParameters_Checked([CombinatorialValues("+=", "-=", "*=", "/=")] string op, [CombinatorialValues("struct", "class", "interface")] string typeKeyword)
+        {
+            var source =
+typeKeyword + @" C1
+{
+    public void operator checked " + op + @"() {} 
+    public void operator checked " + op + @"(C1 x, C1 y) {} 
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (3,34): error CS9506: Overloaded compound assignment operator '+=' takes one parameter
+                //     public void operator checked +=() {} 
+                Diagnostic(ErrorCode.ERR_BadCompoundAssignmentOpArgs, op).WithArguments(op).WithLocation(3, 34),
+                // (3,34): error CS9025: The operator 'C1.operator checked +=()' requires a matching non-checked version of the operator to also be defined
+                //     public void operator checked +=() {} 
+                Diagnostic(ErrorCode.ERR_CheckedOperatorNeedsMatch, op).WithArguments("C1.operator checked " + op + "()").WithLocation(3, 34),
+                // (4,34): error CS1020: Overloadable binary operator expected
+                //     public void operator checked +=(C1 x, C1 y) {} 
+                Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, op).WithLocation(4, 34),
+                // (4,34): error CS9025: The operator 'C1.operator checked +=(C1, C1)' requires a matching non-checked version of the operator to also be defined
+                //     public void operator checked +=(C1 x, C1 y) {} 
+                Diagnostic(ErrorCode.ERR_CheckedOperatorNeedsMatch, op).WithArguments("C1.operator checked " + op + "(C1, C1)").WithLocation(4, 34)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00090_AbstractAllowedInClassAndInterface([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, [CombinatorialValues("abstract class", "interface")] string typeKeyword)
+        {
+            string checkedForm = null;
+
+            if (CompoundAssignmentOperatorHasCheckedForm(op))
+            {
+                checkedForm = @"
+    public abstract void operator checked" + op + @"(int x); 
+";
+            }
+
+            var source =
+typeKeyword + @" C1
+{
+    public abstract void operator" + op + @"(int x);
+" + checkedForm + @"
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: false)));
+                if (checkedForm is not null)
+                {
+                    validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: true)));
+                }
+            }
+
+            static void validateOp(MethodSymbol m)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.True(m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.False(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+            }
+
+            comp = CreateCompilation(["class C2 : C1 {}", source]);
+            if (typeKeyword == "interface")
+            {
+                comp.VerifyDiagnostics(
+                    checkedForm is null ?
+                        [
+                            // (1,12): error CS0535: 'C2' does not implement interface member 'C1.operator +=(int)'
+                            // class C2 : C1 {}
+                            Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "C1").WithArguments("C2", "C1.operator " + op + @"(int)").WithLocation(1, 12)
+                        ] :
+                        [
+                            // (1,12): error CS0535: 'C2' does not implement interface member 'C1.operator +=(int)'
+                            // class C2 : C1 {}
+                            Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "C1").WithArguments("C2", "C1.operator " + op + @"(int)").WithLocation(1, 12),
+                            // (1,12): error CS0535: 'C2' does not implement interface member 'C1.operator checked +=(int)'
+                            // class C2 : C1 {}
+                            Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "C1").WithArguments("C2", "C1.operator checked " + op + @"(int)").WithLocation(1, 12)
+                        ]
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    checkedForm is null ?
+                        [
+                            // (1,7): error CS0534: 'C2' does not implement inherited abstract member 'C1.operator +=(int)'
+                            // class C2 : C1 {}
+                            Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C2").WithArguments("C2", "C1.operator " + op + @"(int)").WithLocation(1, 7)
+                        ] :
+                        [
+                            // (1,7): error CS0534: 'C2' does not implement inherited abstract member 'C1.operator checked +=(int)'
+                            // class C2 : C1 {}
+                            Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C2").WithArguments("C2", "C1.operator checked " + op + @"(int)").WithLocation(1, 7),
+                            // (1,7): error CS0534: 'C2' does not implement inherited abstract member 'C1.operator +=(int)'
+                            // class C2 : C1 {}
+                            Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C2").WithArguments("C2", "C1.operator " + op + @"(int)").WithLocation(1, 7)
+                        ]
+                    );
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00100_AbstractIsOptionalInInterface([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            string checkedForm = null;
+
+            if (CompoundAssignmentOperatorHasCheckedForm(op))
+            {
+                checkedForm = @"
+    public void operator checked" + op + @"(int x);
+";
+            }
+
+            var source = @"
+interface C1
+{
+    public void operator" + op + @"(int x);
+" + checkedForm + @"
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: false)));
+                if (checkedForm is not null)
+                {
+                    validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: true)));
+                }
+            }
+
+            static void validateOp(MethodSymbol m)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.True(m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.False(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00110_AbstractCanBeImplementedInInterface([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"(int x);
+}
+
+interface I3 : I1
+{
+    void I1.operator " + op + @"(int x) {}
+}
+";
+            bool hasCheckedForm = CompoundAssignmentOperatorHasCheckedForm(op);
+
+            if (hasCheckedForm)
+            {
+                source += @"
+interface I2
+{
+    void operator checked " + op + @"(int x);
+    sealed void operator " + op + @"(int x) {}
+}
+
+interface I4 : I2
+{
+    void I2.operator checked " + op + @"(int x) {}
+}
+
+class C : I3, I4
+{}
+";
+            }
+            else
+            {
+                source += @"
+class C : I3
+{}
+";
+            }
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(
+                    m.GlobalNamespace.GetTypeMember("I3").GetMembers().OfType<MethodSymbol>().Single(),
+                    "void I1." + CompoundAssignmentOperatorName(op, isChecked: false) + "(System.Int32 x)");
+                if (hasCheckedForm)
+                {
+                    validateOp(
+                        m.GlobalNamespace.GetTypeMember("I4").GetMembers().OfType<MethodSymbol>().Single(),
+                        "void I2." + CompoundAssignmentOperatorName(op, isChecked: true) + "(System.Int32 x)");
+                }
+            }
+
+            static void validateOp(MethodSymbol m, string implements)
+            {
+                Assert.Equal(MethodKind.ExplicitInterfaceImplementation, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.False(m.IsOverride);
+                Assert.False(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+                Assert.Equal(Accessibility.Private, m.DeclaredAccessibility);
+                Assert.Equal(implements, m.ExplicitInterfaceImplementations.Single().ToTestDisplayString());
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00120_AbstractCanBeImplementedExplicitlyInClassAndStruct([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, [CombinatorialValues("class", "struct")] string typeKeyword)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"(int x);
+}
+
+" + typeKeyword + @" C3 : I1
+{
+    void I1.operator " + op + @"(int x) {}
+}
+";
+            bool hasCheckedForm = CompoundAssignmentOperatorHasCheckedForm(op);
+
+            if (hasCheckedForm)
+            {
+                source += @"
+interface I2
+{
+    void operator checked " + op + @"(int x);
+    sealed void operator " + op + @"(int x) {}
+}
+
+" + typeKeyword + @" C4 : I2
+{
+    void I2.operator checked " + op + @"(int x) {}
+}
+";
+            }
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(
+                    m.GlobalNamespace.GetTypeMember("C3").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Single(),
+                    "void I1." + CompoundAssignmentOperatorName(op, isChecked: false) + "(System.Int32 x)");
+                if (hasCheckedForm)
+                {
+                    validateOp(
+                        m.GlobalNamespace.GetTypeMember("C4").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Single(),
+                        "void I2." + CompoundAssignmentOperatorName(op, isChecked: true) + "(System.Int32 x)");
+                }
+            }
+
+            static void validateOp(MethodSymbol m, string implements)
+            {
+                Assert.Equal(MethodKind.ExplicitInterfaceImplementation, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.False(m.IsOverride);
+                Assert.False(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+                Assert.Equal(Accessibility.Private, m.DeclaredAccessibility);
+                Assert.Equal(implements, m.ExplicitInterfaceImplementations.Single().ToTestDisplayString());
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00130_AbstractCanBeImplementedImplicitlyInClassAndStruct([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, [CombinatorialValues("class", "struct")] string typeKeyword)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"(int x);
+}
+
+" + typeKeyword + @" C3 : I1
+{
+    public void operator " + op + @"(int x) {}
+}
+";
+            bool hasCheckedForm = CompoundAssignmentOperatorHasCheckedForm(op);
+
+            if (hasCheckedForm)
+            {
+                source += @"
+interface I2
+{
+    void operator checked " + op + @"(int x);
+    sealed void operator " + op + @"(int x) {}
+}
+
+" + typeKeyword + @" C4 : I2
+{
+    public void operator checked " + op + @"(int x) {}
+    public void operator " + op + @"(int x) {}
+}
+";
+            }
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(m.GlobalNamespace.GetTypeMember("C3").GetMembers().OfType<MethodSymbol>().
+                    Where(m => m.Name == CompoundAssignmentOperatorName(op, isChecked: false)).Single());
+                if (hasCheckedForm)
+                {
+                    validateOp(m.GlobalNamespace.GetTypeMember("C4").GetMembers().OfType<MethodSymbol>().
+                        Where(m => m.Name == CompoundAssignmentOperatorName(op, isChecked: true)).Single());
+                }
+            }
+
+            static void validateOp(MethodSymbol m)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.False(m.IsSealed);
+
+                if (m is PEMethodSymbol)
+                {
+                    Assert.True(m.IsMetadataVirtual());
+                    Assert.True(m.IsMetadataFinal);
+                }
+
+                Assert.False(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00140_AbstractAllowedOnExplicitImplementationInInterface([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"(int x) {}
+}
+
+interface I3 : I1
+{
+    abstract void I1.operator " + op + @"(int x);
+}
+";
+            bool hasCheckedForm = CompoundAssignmentOperatorHasCheckedForm(op);
+
+            if (hasCheckedForm)
+            {
+                source += @"
+interface I2
+{
+    void operator checked " + op + @"(int x) {}
+    sealed void operator " + op + @"(int x) {}
+}
+
+interface I4 : I2
+{
+    abstract void I2.operator checked " + op + @"(int x);
+}
+";
+            }
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(
+                    m.GlobalNamespace.GetTypeMember("I3").GetMembers().OfType<MethodSymbol>().Single(),
+                    "void I1." + CompoundAssignmentOperatorName(op, isChecked: false) + "(System.Int32 x)");
+                if (hasCheckedForm)
+                {
+                    validateOp(
+                        m.GlobalNamespace.GetTypeMember("I4").GetMembers().OfType<MethodSymbol>().Single(),
+                        "void I2." + CompoundAssignmentOperatorName(op, isChecked: true) + "(System.Int32 x)");
+                }
+            }
+
+            static void validateOp(MethodSymbol m, string implements)
+            {
+                Assert.Equal(MethodKind.ExplicitInterfaceImplementation, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.True(m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.True(m.IsSealed);
+                Assert.False(m.IsOverride);
+                Assert.False(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+                Assert.Equal(Accessibility.Private, m.DeclaredAccessibility);
+                Assert.Equal(implements, m.ExplicitInterfaceImplementations.Single().ToTestDisplayString());
+            }
+
+            comp = CreateCompilation(["class C1 : I3 {}", source], targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (1,12): error CS0535: 'C1' does not implement interface member 'I1.operator +=(int)'
+                // class C1 : I3 {}
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("C1", "I1.operator " + op + @"(int)").WithLocation(1, 12)
+                );
+
+            if (hasCheckedForm)
+            {
+                comp = CreateCompilation(["class C1 : I4 {}", source], targetFramework: TargetFramework.Net90);
+                comp.VerifyDiagnostics(
+                    // (1,12): error CS0535: 'C1' does not implement interface member 'I2.operator checked +=(int)'
+                    // class C1 : I4 {}
+                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I4").WithArguments("C1", "I2.operator checked " + op + @"(int)").WithLocation(1, 12)
+                    );
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00150_AbstractCannotHaveBody([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, [CombinatorialValues("abstract class", "interface")] string typeKeyword)
+        {
+            string checkedForm = null;
+
+            if (CompoundAssignmentOperatorHasCheckedForm(op))
+            {
+                checkedForm = @"
+    public abstract void operator checked" + op + @"(int x) {} 
+";
+            }
+
+            var source =
+typeKeyword + @" C1
+{
+    public abstract void operator" + op + @"(int x) {}
+" + checkedForm + @"
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                checkedForm is null ?
+                    [
+                        // (3,34): error CS0500: 'C1.operator +=(int)' cannot declare a body because it is marked abstract
+                        //     public abstract void operator+=(int x) {}
+                        Diagnostic(ErrorCode.ERR_AbstractHasBody, op).WithArguments("C1.operator " + op + @"(int)").WithLocation(3, 34)
+                    ] :
+                    [
+                        // (3,34): error CS0500: 'C1.operator +=(int)' cannot declare a body because it is marked abstract
+                        //     public abstract void operator+=(int x) {}
+                        Diagnostic(ErrorCode.ERR_AbstractHasBody, op).WithArguments("C1.operator " + op + @"(int)").WithLocation(3, 34),
+                        // (5,42): error CS0500: 'C1.operator checked +=(int)' cannot declare a body because it is marked abstract
+                        //     public abstract void operator checked+=(int x) {} 
+                        Diagnostic(ErrorCode.ERR_AbstractHasBody, op).WithArguments("C1.operator checked " + op + @"(int)").WithLocation(5, 42)
+                    ]
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00160_AbstractExplicitImplementationCannotHaveBody([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+interface I1
+{
+    void operator" + op + @"(int x);
+}
+
+interface I2 : I1
+{
+   abstract void I1.operator" + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (9,29): error CS0500: 'I2.I1.operator +=(int)' cannot declare a body because it is marked abstract
+                //    abstract void I1.operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, op).WithArguments("I2.I1.operator " + op + @"(int)").WithLocation(9, 29)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00161_AbstractExplicitImplementationCannotHaveBody_Checked([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+interface I1
+{
+    sealed void operator" + op + @"(int x) {}
+    void operator checked" + op + @"(int x);
+}
+
+interface I2 : I1
+{
+   abstract void I1.operator checked" + op + @"(int x) {} 
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (10,37): error CS0500: 'I2.I1.operator checked +=(int)' cannot declare a body because it is marked abstract
+                //    abstract void I1.operator checked+=(int x) {} 
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, op).WithArguments("I2.I1.operator checked " + op + @"(int)").WithLocation(10, 37)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00170_AbstractNotAllowedInNonAbstractClass([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, [CombinatorialValues("sealed", "")] string typeModifier)
+        {
+            var source = @"
+" + typeModifier + @" class C1
+{
+    public abstract void operator" + op + @"(int x);
+}
+";
+            bool hasCheckedForm = CompoundAssignmentOperatorHasCheckedForm(op);
+
+            if (hasCheckedForm)
+            {
+                source +=
+typeModifier + @" class C2
+{
+    public abstract void operator checked " + op + @"(int x);
+    public void operator " + op + @"(int x) {}
+}
+";
+            }
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                hasCheckedForm ?
+                    [
+                        // (4,34): error CS0513: 'C1.operator +=(int)' is abstract but it is contained in non-abstract type 'C1'
+                        //     public abstract void operator+=(int x);
+                        Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, op).WithArguments("C1.operator " + op + @"(int)", "C1").WithLocation(4, 34),
+                        // (8,43): error CS0513: 'C2.operator checked +=(int)' is abstract but it is contained in non-abstract type 'C2'
+                        //     public abstract void operator checked +=(int x);
+                        Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, op).WithArguments("C2.operator checked " + op + @"(int)", "C2").WithLocation(8, 43)
+                    ] :
+                    [
+                        // (4,34): error CS0513: 'C1.operator +=(int)' is abstract but it is contained in non-abstract type 'C1'
+                        //     public abstract void operator+=(int x);
+                        Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, op).WithArguments("C1.operator " + op + @"(int)", "C1").WithLocation(4, 34)
+                    ]
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00190_AbstractNotAllowedInStruct([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+struct C1
+{
+    public abstract void operator" + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,34): error CS0106: The modifier 'abstract' is not valid for this item
+                //     public abstract void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(4, 34)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00191_AbstractNotAllowedInStruct_Checked([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+struct C2
+{
+    public abstract void operator checked " + op + @"(int x) {}
+    public void operator " + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,43): error CS0106: The modifier 'abstract' is not valid for this item
+                //     public abstract void operator checked +=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(4, 43)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00200_AbstractNotAllowedOnExplicitImplementationInClassAndStruct([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, [CombinatorialValues("abstract class", "struct")] string typeKeyword)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"(int x);
+}
+
+" + typeKeyword + @" C3 : I1
+{
+    abstract void I1.operator " + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (9,31): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract void I1.operator +=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(9, 31)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00201_AbstractNotAllowedOnExplicitImplementationInClassAndStruct_Checked([CombinatorialValues("+=", "-=", "*=", "/=")] string op, [CombinatorialValues("abstract class", "struct")] string typeKeyword)
+        {
+            var source = @"
+interface I2
+{
+    void operator checked " + op + @"(int x);
+    sealed void operator " + op + @"(int x) {}
+}
+
+" + typeKeyword + @" C4 : I2
+{
+    abstract void I2.operator checked " + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (10,39): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract void I2.operator checked +=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(10, 39)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00210_VirtualAllowedInClassAndInterface([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, [CombinatorialValues("class", "interface")] string typeKeyword)
+        {
+            string checkedForm = null;
+
+            if (CompoundAssignmentOperatorHasCheckedForm(op))
+            {
+                checkedForm = @"
+    public virtual void operator checked" + op + @"(int x) {} 
+";
+            }
+
+            var source =
+typeKeyword + @" C1
+{
+    public virtual void operator" + op + @"(int x) {}
+" + checkedForm + @" 
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: false)));
+                if (checkedForm is not null)
+                {
+                    validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: true)));
+                }
+            }
+
+            static void validateOp(MethodSymbol m)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsAbstract);
+                Assert.True(m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.False(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00220_VirtualIsOptionalInInterface([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            string checkedForm = null;
+
+            if (CompoundAssignmentOperatorHasCheckedForm(op))
+            {
+                checkedForm = @"
+    void operator checked" + op + @"(int x) {}
+";
+            }
+
+            var source = @"
+interface C1
+{
+    void operator" + op + @"(int x) {}
+" + checkedForm + @" 
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: false)));
+                if (checkedForm is not null)
+                {
+                    validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: true)));
+                }
+            }
+
+            static void validateOp(MethodSymbol m)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsAbstract);
+                Assert.True(m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.False(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00230_VirtualCanBeImplementedInInterface([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+interface I1
+{
+    virtual void operator " + op + @"(int x) {}
+}
+
+interface I3 : I1
+{
+    void I1.operator " + op + @"(int x) {}
+}
+";
+            bool hasCheckedForm = CompoundAssignmentOperatorHasCheckedForm(op);
+
+            if (hasCheckedForm)
+            {
+                source += @"
+interface I2
+{
+    void operator checked " + op + @"(int x);
+    sealed void operator " + op + @"(int x) {}
+}
+
+interface I4 : I2
+{
+    void I2.operator checked " + op + @"(int x) {}
+}
+
+class C : I3, I4
+{}
+";
+            }
+            else
+            {
+                source += @"
+class C : I3
+{}
+";
+            }
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(
+                    m.GlobalNamespace.GetTypeMember("I3").GetMembers().OfType<MethodSymbol>().Single(),
+                    "void I1." + CompoundAssignmentOperatorName(op, isChecked: false) + "(System.Int32 x)");
+                if (hasCheckedForm)
+                {
+                    validateOp(
+                        m.GlobalNamespace.GetTypeMember("I4").GetMembers().OfType<MethodSymbol>().Single(),
+                        "void I2." + CompoundAssignmentOperatorName(op, isChecked: true) + "(System.Int32 x)");
+                }
+            }
+
+            static void validateOp(MethodSymbol m, string implements)
+            {
+                Assert.Equal(MethodKind.ExplicitInterfaceImplementation, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.False(m.IsOverride);
+                Assert.False(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+                Assert.Equal(Accessibility.Private, m.DeclaredAccessibility);
+                Assert.Equal(implements, m.ExplicitInterfaceImplementations.Single().ToTestDisplayString());
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00240_VirtualCanBeImplementedExplicitlyInClassAndStruct([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, [CombinatorialValues("class", "struct")] string typeKeyword)
+        {
+            var source = @"
+interface I1
+{
+    virtual void operator " + op + @"(int x) {}
+}
+
+" + typeKeyword + @" C3 : I1
+{
+    void I1.operator " + op + @"(int x) {}
+}
+";
+            bool hasCheckedForm = CompoundAssignmentOperatorHasCheckedForm(op);
+
+            if (hasCheckedForm)
+            {
+                source += @"
+interface I2
+{
+    void operator checked " + op + @"(int x);
+    sealed void operator " + op + @"(int x) {}
+}
+
+" + typeKeyword + @" C4 : I2
+{
+    void I2.operator checked " + op + @"(int x) {}
+}
+";
+            }
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(
+                    m.GlobalNamespace.GetTypeMember("C3").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Single(),
+                    "void I1." + CompoundAssignmentOperatorName(op, isChecked: false) + "(System.Int32 x)");
+                if (hasCheckedForm)
+                {
+                    validateOp(
+                        m.GlobalNamespace.GetTypeMember("C4").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Single(),
+                        "void I2." + CompoundAssignmentOperatorName(op, isChecked: true) + "(System.Int32 x)");
+                }
+            }
+
+            static void validateOp(MethodSymbol m, string implements)
+            {
+                Assert.Equal(MethodKind.ExplicitInterfaceImplementation, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.False(m.IsOverride);
+                Assert.False(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+                Assert.Equal(Accessibility.Private, m.DeclaredAccessibility);
+                Assert.Equal(implements, m.ExplicitInterfaceImplementations.Single().ToTestDisplayString());
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00250_VirtualCanBeImplementedImplicitlyInClassAndStruct([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, [CombinatorialValues("class", "struct")] string typeKeyword)
+        {
+            var source = @"
+interface I1
+{
+    virtual void operator " + op + @"(int x) {}
+}
+
+" + typeKeyword + @" C3 : I1
+{
+    public void operator " + op + @"(int x) {}
+}
+";
+            bool hasCheckedForm = CompoundAssignmentOperatorHasCheckedForm(op);
+
+            if (hasCheckedForm)
+            {
+                source += @"
+interface I2
+{
+    void operator checked " + op + @"(int x);
+    sealed void operator " + op + @"(int x) {}
+}
+
+" + typeKeyword + @" C4 : I2
+{
+    public void operator checked " + op + @"(int x) {}
+    public void operator " + op + @"(int x) {}
+}
+";
+            }
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(m.GlobalNamespace.GetTypeMember("C3").GetMembers().OfType<MethodSymbol>().
+                    Where(m => m.Name == CompoundAssignmentOperatorName(op, isChecked: false)).Single());
+                if (hasCheckedForm)
+                {
+                    validateOp(m.GlobalNamespace.GetTypeMember("C4").GetMembers().OfType<MethodSymbol>().
+                        Where(m => m.Name == CompoundAssignmentOperatorName(op, isChecked: true)).Single());
+                }
+            }
+
+            static void validateOp(MethodSymbol m)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.False(m.IsSealed);
+
+                if (m is PEMethodSymbol)
+                {
+                    Assert.True(m.IsMetadataVirtual());
+                    Assert.True(m.IsMetadataFinal);
+                }
+
+                Assert.False(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00260_VirtualMustHaveBody([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, [CombinatorialValues("class", "interface")] string typeKeyword)
+        {
+            var source =
+typeKeyword + @" C1
+{
+    public virtual void operator" + op + @"(int x);
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (3,33): error CS0501: 'C1.operator +=(int)' must declare a body because it is not marked abstract, extern, or partial
+                //     public virtual void operator+=(int x);
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, op).WithArguments("C1.operator " + op + @"(int)").WithLocation(3, 33)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00261_VirtualMustHaveBody_Checked([CombinatorialValues("+=", "-=", "*=", "/=")] string op, [CombinatorialValues("class", "interface")] string typeKeyword)
+        {
+            var source =
+typeKeyword + @" C1
+{
+    public void operator" + op + @"(int x) {}
+    public virtual void operator checked" + op + @"(int x); 
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (4,41): error CS0501: 'C1.operator checked +=(int)' must declare a body because it is not marked abstract, extern, or partial
+                //     public virtual void operator checked+=(int x); 
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, op).WithArguments("C1.operator checked " + op + @"(int)").WithLocation(4, 41)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00270_VirtualNotAllowedInSealedClass([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+sealed class C1
+{
+    public virtual void operator" + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,33): error CS0549: 'C1.operator +=(int x)' is a new virtual member in sealed type 'C1'
+                //     public virtual void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_NewVirtualInSealed, op).WithArguments("C1.operator " + op + @"(int)", "C1").WithLocation(4, 33)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00271_VirtualNotAllowedInSealedClass_Checked([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+sealed class C2
+{
+#line 9
+    public virtual void operator checked " + op + @"(int x) {}
+    public void operator " + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,42): error CS0549: 'C2.operator checked +=(int x)' is a new virtual member in sealed type 'C2'
+                //     public virtual void operator checked +=(int x) {}
+                Diagnostic(ErrorCode.ERR_NewVirtualInSealed, op).WithArguments("C2.operator checked " + op + @"(int)", "C2").WithLocation(9, 42)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00290_VirtualNotAllowedInStruct([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+struct C1
+{
+    public virtual void operator" + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,33): error CS0106: The modifier 'virtual' is not valid for this item
+                //     public virtual void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("virtual").WithLocation(4, 33)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00291_VirtualNotAllowedInStruct_Checked([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+struct C2
+{
+#line 9
+    public virtual void operator checked " + op + @"(int x) {}
+    public void operator " + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,42): error CS0106: The modifier 'virtual' is not valid for this item
+                //     public virtual void operator checked +=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("virtual").WithLocation(9, 42)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00300_VirtualNotAllowedOnExplicitImplementation([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, [CombinatorialValues("class", "struct", "interface")] string typeKeyword)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"(int x);
+}
+
+" + typeKeyword + @" C3 : I1
+{
+#line 15
+    virtual void I1.operator " + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (15,30): error CS0106: The modifier 'virtual' is not valid for this item
+                //     virtual void I1.operator +=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("virtual").WithLocation(15, 30)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00301_VirtualNotAllowedOnExplicitImplementation_Checked([CombinatorialValues("+=", "-=", "*=", "/=")] string op, [CombinatorialValues("class", "struct", "interface")] string typeKeyword)
+        {
+            var source = @"
+interface I2
+{
+    void operator checked " + op + @"(int x);
+    sealed void operator " + op + @"(int x) {}
+}
+
+" + typeKeyword + @" C4 : I2
+{
+#line 20
+    virtual void I2.operator checked " + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (20,38): error CS0106: The modifier 'virtual' is not valid for this item
+                //     virtual void I2.operator checked +(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("virtual").WithLocation(20, 38)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00320_VirtualAbstractNotAllowed([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, [CombinatorialValues("abstract class", "interface")] string typeKeyword)
+        {
+            var source =
+typeKeyword + @" C1
+{
+    public virtual abstract void operator" + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (3,42): error CS0503: The abstract method 'C1.operator +=(int)' cannot be marked virtual
+                //     public virtual abstract void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, op).WithArguments("method", "C1.operator " + op + @"(int)").WithLocation(3, 42)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00321_VirtualAbstractNotAllowed_Checked([CombinatorialValues("+=", "-=", "*=", "/=")] string op, [CombinatorialValues("abstract class", "interface")] string typeKeyword)
+        {
+            var source =
+typeKeyword + @" C1
+{
+    public void operator" + op + @"(int x) {}
+#line 4
+    public virtual abstract void operator checked" + op + @"(int x) {} 
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (4,50): error CS0503: The abstract method 'C1.operator checked +=(int)' cannot be marked virtual
+                //     public virtual abstract void operator checked+=(int x) {} 
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, op).WithArguments("method", "C1.operator checked " + op + @"(int)").WithLocation(4, 50)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00330_OverrideAllowedInClass([CombinatorialValues("+=", "-=", "*=", "/=")] string op, bool abstractInBase)
+        {
+            var source = @"
+abstract class C1
+{
+    public " + (abstractInBase ? "abstract" : "virtual") + @" void operator" + op + @"(int x) " + (abstractInBase ? ";" : "{}") + @"
+    public " + (abstractInBase ? "abstract" : "virtual") + @" void operator checked" + op + @"(int x) " + (abstractInBase ? ";" : "{}") + @" 
+}
+
+class C2 : C1
+{
+    public override void operator" + op + @"(int x) {}
+    public override void operator checked" + op + @"(int x) {} 
+}
+
+class C3 : C2
+{
+    public override void operator" + op + @"(int x) {}
+    public override void operator checked" + op + @"(int x) {} 
+}
+";
+            var comp = CreateCompilation(source);
+            CompileAndVerify(comp, symbolValidator: validate1, sourceSymbolValidator: validate1).VerifyDiagnostics();
+
+            var source2 = @"
+abstract class C1
+{
+    public virtual void operator" + op + @"(int x) {}
+    public " + (abstractInBase ? "abstract" : "virtual") + @" void operator checked" + op + @"(int x) " + (abstractInBase ? ";" : "{}") + @" 
+}
+
+class C2 : C1
+{
+    public override void operator checked" + op + @"(int x) {} 
+}
+";
+            var comp2 = CreateCompilation(source2);
+
+            CompileAndVerify(comp2, symbolValidator: validate2, sourceSymbolValidator: validate2).VerifyDiagnostics();
+
+            void validate1(ModuleSymbol m)
+            {
+                validateOp(
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + CompoundAssignmentOperatorName(op, isChecked: false)),
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: false)));
+                validateOp(
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + CompoundAssignmentOperatorName(op, isChecked: true)),
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: true)));
+
+                validateOp(
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C3." + CompoundAssignmentOperatorName(op, isChecked: false)),
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + CompoundAssignmentOperatorName(op, isChecked: false)));
+                validateOp(
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C3." + CompoundAssignmentOperatorName(op, isChecked: true)),
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + CompoundAssignmentOperatorName(op, isChecked: true)));
+            }
+
+            void validate2(ModuleSymbol m)
+            {
+                validateOp(
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + CompoundAssignmentOperatorName(op, isChecked: true)),
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: true)));
+            }
+
+            static void validateOp(MethodSymbol m, MethodSymbol overridden)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.True(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+                Assert.Same(overridden, m.OverriddenMethod);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00331_OverrideAllowedInClass([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, bool abstractInBase)
+        {
+            var source = @"
+abstract class C1
+{
+    public " + (abstractInBase ? "abstract" : "virtual") + @" void operator" + op + @"(int x) " + (abstractInBase ? ";" : "{}") + @"
+}
+
+class C2 : C1
+{
+    public override void operator" + op + @"(int x) {}
+}
+
+class C3 : C2
+{
+    public override void operator" + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            CompileAndVerify(comp, symbolValidator: validate1, sourceSymbolValidator: validate1).VerifyDiagnostics();
+
+            void validate1(ModuleSymbol m)
+            {
+                validateOp(
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + CompoundAssignmentOperatorName(op, isChecked: false)),
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: false)));
+
+                validateOp(
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C3." + CompoundAssignmentOperatorName(op, isChecked: false)),
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + CompoundAssignmentOperatorName(op, isChecked: false)));
+            }
+
+            static void validateOp(MethodSymbol m, MethodSymbol overridden)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.True(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+                Assert.Same(overridden, m.OverriddenMethod);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00340_AbstractOverrideAllowedInClass([CombinatorialValues("+=", "-=", "*=", "/=")] string op, bool abstractInBase)
+        {
+            var source = @"
+abstract class C1
+{
+    public " + (abstractInBase ? "abstract" : "virtual") + @" void operator" + op + @"(int x) " + (abstractInBase ? ";" : "{}") + @"
+    public " + (abstractInBase ? "abstract" : "virtual") + @" void operator checked" + op + @"(int x) " + (abstractInBase ? ";" : "{}") + @" 
+}
+
+abstract class C2 : C1
+{
+    public abstract override void operator" + op + @"(int x);
+    public abstract override void operator checked" + op + @"(int x); 
+}
+
+class C3 : C2
+{
+    public override void operator" + op + @"(int x) {}
+    public override void operator checked" + op + @"(int x) {} 
+}
+";
+            var comp = CreateCompilation(source);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + CompoundAssignmentOperatorName(op, isChecked: false)),
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: false)));
+                validateOp(
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + CompoundAssignmentOperatorName(op, isChecked: true)),
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: true)));
+
+                validateOp(
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C3." + CompoundAssignmentOperatorName(op, isChecked: false)),
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + CompoundAssignmentOperatorName(op, isChecked: false)));
+                validateOp(
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C3." + CompoundAssignmentOperatorName(op, isChecked: true)),
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + CompoundAssignmentOperatorName(op, isChecked: true)));
+            }
+
+            static void validateOp(MethodSymbol m, MethodSymbol overridden)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.Equal(m.ContainingType.Name == "C2", m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.True(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+                Assert.Same(overridden, m.OverriddenMethod);
+            }
+
+            comp = CreateCompilation(["class C4 : C2 {}", source]);
+            comp.VerifyDiagnostics(
+                // (1,7): error CS0534: 'C4' does not implement inherited abstract member 'C2.operator checked +=(int)'
+                // class C4 : C2 {}
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C4").WithArguments("C4", "C2.operator checked " + op + @"(int)").WithLocation(1, 7),
+                // (1,7): error CS0534: 'C4' does not implement inherited abstract member 'C2.operator +=(int)'
+                // class C4 : C2 {}
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C4").WithArguments("C4", "C2.operator " + op + @"(int)").WithLocation(1, 7)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00341_AbstractOverrideAllowedInClass([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, bool abstractInBase)
+        {
+            var source = @"
+abstract class C1
+{
+    public " + (abstractInBase ? "abstract" : "virtual") + @" void operator" + op + @"(int x) " + (abstractInBase ? ";" : "{}") + @"
+}
+
+abstract class C2 : C1
+{
+    public abstract override void operator" + op + @"(int x);
+}
+
+class C3 : C2
+{
+    public override void operator" + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + CompoundAssignmentOperatorName(op, isChecked: false)),
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: false)));
+
+                validateOp(
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C3." + CompoundAssignmentOperatorName(op, isChecked: false)),
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + CompoundAssignmentOperatorName(op, isChecked: false)));
+            }
+
+            static void validateOp(MethodSymbol m, MethodSymbol overridden)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.Equal(m.ContainingType.Name == "C2", m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.True(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+                Assert.Same(overridden, m.OverriddenMethod);
+            }
+
+            comp = CreateCompilation(["class C4 : C2 {}", source]);
+            comp.VerifyDiagnostics(
+                // (1,7): error CS0534: 'C4' does not implement inherited abstract member 'C2.operator +=(int)'
+                // class C4 : C2 {}
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C4").WithArguments("C4", "C2.operator " + op + @"(int)").WithLocation(1, 7)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00350_OverrideAllowedInStruct([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+struct S1
+{
+    public override void operator" + op + @"(int x) {}
+    public override void operator checked" + op + @"(int x) {} 
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+
+            validateOp(comp.GetMember<MethodSymbol>("S1." + CompoundAssignmentOperatorName(op, isChecked: false)));
+            validateOp(comp.GetMember<MethodSymbol>("S1." + CompoundAssignmentOperatorName(op, isChecked: true)));
+
+            comp.VerifyDiagnostics(
+                // (4,34): error CS0115: 'S1.operator +=(int)': no suitable method found to override
+                //     public override void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, op).WithArguments("S1.operator " + op + @"(int)").WithLocation(4, 34),
+                // (5,42): error CS0115: 'S1.operator checked +=(int)': no suitable method found to override
+                //     public override void operator checked+=(int x) {} 
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, op).WithArguments("S1.operator checked " + op + @"(int)").WithLocation(5, 42)
+                );
+
+            static void validateOp(MethodSymbol m)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.True(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+                Assert.Null(m.OverriddenMethod);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00351_OverrideAllowedInStruct([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+struct S1
+{
+    public override void operator" + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+
+            validateOp(comp.GetMember<MethodSymbol>("S1." + CompoundAssignmentOperatorName(op, isChecked: false)));
+            validateOp(comp.GetMember<MethodSymbol>("S1." + CompoundAssignmentOperatorName(op, isChecked: true)));
+
+            comp.VerifyDiagnostics(
+                // (4,34): error CS0115: 'S1.operator +=(int)': no suitable method found to override
+                //     public override void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, op).WithArguments("S1.operator " + op + @"(int)").WithLocation(4, 34)
+                );
+
+            static void validateOp(MethodSymbol m)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.True(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+                Assert.Null(m.OverriddenMethod);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00370_OverrideNotAllowedInInterface([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+interface I1
+{
+    public override void operator" + op + @"(int x) {}
+}
+
+interface I2
+{
+    public override void operator checked " + op + @"(int x) {}
+    public void operator " + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (4,34): error CS0106: The modifier 'override' is not valid for this item
+                //     public override void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("override").WithLocation(4, 34),
+                // (9,43): error CS0106: The modifier 'override' is not valid for this item
+                //     public override void operator checked +=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("override").WithLocation(9, 43)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00371_OverrideNotAllowedInInterface([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+interface I1
+{
+    public override void operator" + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (4,34): error CS0106: The modifier 'override' is not valid for this item
+                //     public override void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("override").WithLocation(4, 34)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00380_OverrideNotAllowedOnExplicitImplementation([CombinatorialValues("+=", "-=", "*=", "/=")] string op, [CombinatorialValues("class", "struct", "interface")] string typeKeyword)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"(int x);
+}
+
+interface I2
+{
+    void operator checked " + op + @"(int x);
+    sealed void operator " + op + @"(int x) {}
+}
+
+" + typeKeyword + @" C3 : I1
+{
+    override void I1.operator " + op + @"(int x) {}
+}
+
+" + typeKeyword + @" C4 : I2
+{
+    override void I2.operator checked " + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (15,31): error CS0106: The modifier 'override' is not valid for this item
+                //     override void I1.operator +=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("override").WithLocation(15, 31),
+                // (20,39): error CS0106: The modifier 'override' is not valid for this item
+                //     override void I2.operator checked +=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("override").WithLocation(20, 39)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00381_OverrideNotAllowedOnExplicitImplementation([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, [CombinatorialValues("class", "struct", "interface")] string typeKeyword)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"(int x);
+}
+
+" + typeKeyword + @" C3 : I1
+{
+#line 15
+    override void I1.operator " + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (15,31): error CS0106: The modifier 'override' is not valid for this item
+                //     override void I1.operator +=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("override").WithLocation(15, 31)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00400_VirtualOverrideNotAllowed([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+class C1
+{
+    public virtual void operator" + op + @"(int x) {}
+    public virtual void operator checked" + op + @"(int x) {} 
+}
+
+class C2 : C1
+{
+    public virtual override void operator" + op + @"(int x) {}
+    public virtual override void operator checked" + op + @"(int x) {} 
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,42): error CS0113: A member 'C2.operator +=(int)' marked as override cannot be marked as new or virtual
+                //     public virtual override void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_OverrideNotNew, op).WithArguments("C2.operator " + op + @"(int)").WithLocation(10, 42),
+                // (11,50): error CS0113: A member 'C2.operator checked +=(int)' marked as override cannot be marked as new or virtual
+                //     public virtual override void operator checked+=(int x) {} 
+                Diagnostic(ErrorCode.ERR_OverrideNotNew, op).WithArguments("C2.operator checked " + op + @"(int)").WithLocation(11, 50)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00401_VirtualOverrideNotAllowed([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+class C1
+{
+    public virtual void operator" + op + @"(int x) {}
+}
+
+class C2 : C1
+{
+#line 10
+    public virtual override void operator" + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,42): error CS0113: A member 'C2.operator +=(int)' marked as override cannot be marked as new or virtual
+                //     public virtual override void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_OverrideNotNew, op).WithArguments("C2.operator " + op + @"(int)").WithLocation(10, 42)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00410_SealedAllowedInInterface([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+interface C1
+{
+    sealed void operator" + op + @"(int x) {}
+    sealed void operator checked" + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: false)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: true)));
+            }
+
+            static void validateOp(MethodSymbol m)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.False(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+            }
+
+            var source2 = @"
+class C3 : C1
+{
+    void C1.operator" + op + @"(int x) {}
+    void C1.operator checked" + op + @"(int x) {} 
+}
+";
+            comp = CreateCompilation([source2, source], targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (4,21): error CS0539: 'C3.operator +=(int)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void C1.operator++() {}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C3.operator " + op + @"(int)").WithLocation(4, 21),
+                // (5,29): error CS0539: 'C3.operator checked +=(int)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void C1.operator checked++() {} 
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C3.operator checked " + op + @"(int)").WithLocation(5, 29)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00411_SealedAllowedInInterface([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+interface C1
+{
+    sealed void operator" + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: false)));
+            }
+
+            static void validateOp(MethodSymbol m)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.False(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+            }
+
+            var source2 = @"
+class C3 : C1
+{
+    void C1.operator" + op + @"(int x) {}
+}
+";
+            comp = CreateCompilation([source2, source], targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (4,21): error CS0539: 'C3.operator +=(int)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void C1.operator++() {}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C3.operator " + op + @"(int)").WithLocation(4, 21)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00420_SealedOverrideAllowedInClass([CombinatorialValues("+=", "-=", "*=", "/=")] string op, bool abstractInBase)
+        {
+            var source = @"
+abstract class C1
+{
+    public " + (abstractInBase ? "abstract" : "virtual") + @" void operator" + op + @"(int x) " + (abstractInBase ? ";" : "{}") + @"
+    public " + (abstractInBase ? "abstract" : "virtual") + @" void operator checked" + op + @"(int x) " + (abstractInBase ? ";" : "{}") + @" 
+}
+
+abstract class C2 : C1
+{
+    public sealed override void operator" + op + @"(int x) {}
+    public sealed override void operator checked" + op + @"(int x) {} 
+}
+";
+            var comp = CreateCompilation(source);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + CompoundAssignmentOperatorName(op, isChecked: false)),
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: false)));
+                validateOp(
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + CompoundAssignmentOperatorName(op, isChecked: true)),
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: true)));
+            }
+
+            static void validateOp(MethodSymbol m, MethodSymbol overridden)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.True(m.IsSealed);
+                Assert.True(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+                Assert.Same(overridden, m.OverriddenMethod);
+            }
+
+            var source2 = @"
+class C3 : C2
+{
+    public override void operator" + op + @"(int x) {}
+    public override void operator checked" + op + @"(int x) {} 
+}
+";
+            comp = CreateCompilation([source2, source]);
+            comp.VerifyDiagnostics(
+                // (4,34): error CS0239: 'C3.operator +=(int)': cannot override inherited member 'C2.operator +=(int)' because it is sealed
+                //     public override void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_CantOverrideSealed, op).WithArguments("C3.operator " + op + @"(int)", "C2.operator " + op + @"(int)").WithLocation(4, 34),
+                // (5,42): error CS0239: 'C3.operator checked +=(int)': cannot override inherited member 'C2.operator checked +=(int)' because it is sealed
+                //     public override void operator checked+=(int x) {} 
+                Diagnostic(ErrorCode.ERR_CantOverrideSealed, op).WithArguments("C3.operator checked " + op + @"(int)", "C2.operator checked " + op + @"(int)").WithLocation(5, 42)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00421_SealedOverrideAllowedInClass([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, bool abstractInBase)
+        {
+            var source = @"
+abstract class C1
+{
+    public " + (abstractInBase ? "abstract" : "virtual") + @" void operator" + op + @"(int x) " + (abstractInBase ? ";" : "{}") + @"
+}
+
+abstract class C2 : C1
+{
+    public sealed override void operator" + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + CompoundAssignmentOperatorName(op, isChecked: false)),
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: false)));
+            }
+
+            static void validateOp(MethodSymbol m, MethodSymbol overridden)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.True(m.IsSealed);
+                Assert.True(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+                Assert.Same(overridden, m.OverriddenMethod);
+            }
+
+            var source2 = @"
+class C3 : C2
+{
+    public override void operator" + op + @"(int x) {}
+}
+";
+            comp = CreateCompilation([source2, source]);
+            comp.VerifyDiagnostics(
+                // (4,34): error CS0239: 'C3.operator +=(int)': cannot override inherited member 'C2.operator +=(int)' because it is sealed
+                //     public override void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_CantOverrideSealed, op).WithArguments("C3.operator " + op + @"(int)", "C2.operator " + op + @"(int)").WithLocation(4, 34)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00430_SealedNotAllowedInClass([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+class C1
+{
+    public sealed void operator" + op + @"(int x) {}
+}
+
+class C2
+{
+    public sealed void operator checked " + op + @"(int x) {}
+    public void operator " + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,32): error CS0238: 'C1.operator +=(int)' cannot be sealed because it is not an override
+                //     public sealed void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_SealedNonOverride, op).WithArguments("C1.operator " + op + @"(int)").WithLocation(4, 32),
+                // (9,41): error CS0238: 'C2.operator checked +=(int x)' cannot be sealed because it is not an override
+                //     public sealed void operator checked +=(int x) {}
+                Diagnostic(ErrorCode.ERR_SealedNonOverride, op).WithArguments("C2.operator checked " + op + @"(int)").WithLocation(9, 41)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00431_SealedNotAllowedInClass([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+class C1
+{
+    public sealed void operator" + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,32): error CS0238: 'C1.operator +=(int)' cannot be sealed because it is not an override
+                //     public sealed void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_SealedNonOverride, op).WithArguments("C1.operator " + op + @"(int)").WithLocation(4, 32)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00440_SealedNotAllowedInStruct([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+struct C1
+{
+    public sealed void operator" + op + @"(int x) {}
+}
+
+struct C2
+{
+    public sealed void operator checked " + op + @"(int x) {}
+    public void operator " + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,32): error CS0106: The modifier 'sealed' is not valid for this item
+                //     public sealed void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("sealed").WithLocation(4, 32),
+                // (9,41): error CS0106: The modifier 'sealed' is not valid for this item
+                //     public sealed void operator checked +=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("sealed").WithLocation(9, 41)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00441_SealedNotAllowedInStruct([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+struct C1
+{
+    public sealed void operator" + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,32): error CS0106: The modifier 'sealed' is not valid for this item
+                //     public sealed void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("sealed").WithLocation(4, 32)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00450_SealedOverrideNotAllowedInStruct([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+struct C1
+{
+    public sealed override void operator" + op + @"(int x) {}
+}
+
+struct C2
+{
+    public sealed override void operator checked " + op + @"(int x) {}
+    public void operator " + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,41): error CS0106: The modifier 'sealed' is not valid for this item
+                //     public sealed override void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("sealed").WithLocation(4, 41),
+                // (4,41): error CS0115: 'C1.operator +=(int)': no suitable method found to override
+                //     public sealed override void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, op).WithArguments("C1.operator " + op + @"(int)").WithLocation(4, 41),
+                // (9,50): error CS0106: The modifier 'sealed' is not valid for this item
+                //     public sealed override void operator checked +=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("sealed").WithLocation(9, 50),
+                // (9,50): error CS0115: 'C2.operator checked +=(int)': no suitable method found to override
+                //     public sealed override void operator checked +=(int x) {}
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, op).WithArguments("C2.operator checked " + op + @"(int)").WithLocation(9, 50)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00451_SealedOverrideNotAllowedInStruct([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+struct C1
+{
+    public sealed override void operator" + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,41): error CS0106: The modifier 'sealed' is not valid for this item
+                //     public sealed override void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("sealed").WithLocation(4, 41),
+                // (4,41): error CS0115: 'C1.operator +=(int)': no suitable method found to override
+                //     public sealed override void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, op).WithArguments("C1.operator " + op + @"(int)").WithLocation(4, 41)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00460_SealedAbstractOverrideNotAllowedInStruct([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+struct C1
+{
+    public sealed abstract override void operator" + op + @"(int x) {}
+}
+
+struct C2
+{
+    public sealed abstract override void operator checked " + op + @"(int x) {}
+    public void operator " + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,50): error CS0106: The modifier 'abstract' is not valid for this item
+                //     public sealed abstract override void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(4, 50),
+                // (4,50): error CS0106: The modifier 'sealed' is not valid for this item
+                //     public sealed abstract override void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("sealed").WithLocation(4, 50),
+                // (4,50): error CS0115: 'C1.operator +=(int)': no suitable method found to override
+                //     public sealed abstract override void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, op).WithArguments("C1.operator " + op + @"(int)").WithLocation(4, 50),
+                // (9,59): error CS0106: The modifier 'abstract' is not valid for this item
+                //     public sealed abstract override void operator checked +=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(9, 59),
+                // (9,59): error CS0106: The modifier 'sealed' is not valid for this item
+                //     public sealed abstract override void operator checked +=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("sealed").WithLocation(9, 59),
+                // (9,59): error CS0115: 'C2.operator checked +=(int)': no suitable method found to override
+                //     public sealed abstract override void operator checked +=(int x) {}
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, op).WithArguments("C2.operator checked " + op + @"(int)").WithLocation(9, 59)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00461_SealedAbstractOverrideNotAllowedInStruct([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+struct C1
+{
+    public sealed abstract override void operator" + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,50): error CS0106: The modifier 'abstract' is not valid for this item
+                //     public sealed abstract override void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(4, 50),
+                // (4,50): error CS0106: The modifier 'sealed' is not valid for this item
+                //     public sealed abstract override void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("sealed").WithLocation(4, 50),
+                // (4,50): error CS0115: 'C1.operator +=(int)': no suitable method found to override
+                //     public sealed abstract override void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, op).WithArguments("C1.operator " + op + @"(int)").WithLocation(4, 50)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00470_SealedNotAllowedOnExplicitImplementation([CombinatorialValues("+=", "-=", "*=", "/=")] string op, [CombinatorialValues("class", "struct", "interface")] string typeKeyword)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"(int x);
+}
+
+interface I2
+{
+    void operator checked " + op + @"(int x);
+    sealed void operator " + op + @"(int x) {}
+}
+
+" + typeKeyword + @" C3 : I1
+{
+    sealed void I1.operator " + op + @"(int x) {}
+}
+
+" + typeKeyword + @" C4 : I2
+{
+    sealed void I2.operator checked " + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (15,29): error CS0106: The modifier 'sealed' is not valid for this item
+                //     sealed void I1.operator +(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("sealed").WithLocation(15, 29),
+                // (20,37): error CS0106: The modifier 'sealed' is not valid for this item
+                //     sealed void I2.operator checked +=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("sealed").WithLocation(20, 37)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00471_SealedNotAllowedOnExplicitImplementation([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, [CombinatorialValues("class", "struct", "interface")] string typeKeyword)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"(int x);
+}
+
+" + typeKeyword + @" C3 : I1
+{
+#line 15
+    sealed void I1.operator " + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (15,29): error CS0106: The modifier 'sealed' is not valid for this item
+                //     sealed void I1.operator +(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("sealed").WithLocation(15, 29)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00490_SealedAbstractNotAllowed([CombinatorialValues("+=", "-=", "*=", "/=")] string op, [CombinatorialValues("abstract class", "interface")] string typeKeyword)
+        {
+            var source =
+typeKeyword + @" C1
+{
+    public sealed abstract void operator" + op + @"(int x);
+    public sealed abstract void operator checked" + op + @"(int x); 
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            if (typeKeyword == "interface")
+            {
+                comp.VerifyDiagnostics(
+                    // (3,41): error CS0106: The modifier 'sealed' is not valid for this item
+                    //     public sealed abstract void operator-=(int x);
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("sealed").WithLocation(3, 41),
+                    // (4,49): error CS0106: The modifier 'sealed' is not valid for this item
+                    //     public sealed abstract void operator checked-=(int x); 
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("sealed").WithLocation(4, 49)
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (3,41): error CS0238: 'C1.operator +=(int)' cannot be sealed because it is not an override
+                    //     public sealed abstract void operator+=(int x);
+                    Diagnostic(ErrorCode.ERR_SealedNonOverride, op).WithArguments("C1.operator " + op + @"(int)").WithLocation(3, 41),
+                    // (4,49): error CS0238: 'C1.operator checked +=(int)' cannot be sealed because it is not an override
+                    //     public sealed abstract void operator checked+=(int x); 
+                    Diagnostic(ErrorCode.ERR_SealedNonOverride, op).WithArguments("C1.operator checked " + op + @"(int)").WithLocation(4, 49)
+                    );
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00491_SealedAbstractNotAllowed([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, [CombinatorialValues("abstract class", "interface")] string typeKeyword)
+        {
+            var source =
+typeKeyword + @" C1
+{
+    public sealed abstract void operator" + op + @"(int x);
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            if (typeKeyword == "interface")
+            {
+                comp.VerifyDiagnostics(
+                    // (3,41): error CS0106: The modifier 'sealed' is not valid for this item
+                    //     public sealed abstract void operator-=(int x);
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("sealed").WithLocation(3, 41)
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (3,41): error CS0238: 'C1.operator +=(int)' cannot be sealed because it is not an override
+                    //     public sealed abstract void operator+=(int x);
+                    Diagnostic(ErrorCode.ERR_SealedNonOverride, op).WithArguments("C1.operator " + op + @"(int)").WithLocation(3, 41)
+                    );
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00500_SealedAbstractOverrideNotAllowedInClass([CombinatorialValues("+=", "-=", "*=", "/=")] string op, bool abstractInBase)
+        {
+            var source = @"
+abstract class C1
+{
+    public " + (abstractInBase ? "abstract" : "virtual") + @" void operator" + op + @"(int x) " + (abstractInBase ? ";" : "{}") + @"
+    public " + (abstractInBase ? "abstract" : "virtual") + @" void operator checked" + op + @"(int x) " + (abstractInBase ? ";" : "{}") + @" 
+}
+
+abstract class C2 : C1
+{
+    public sealed abstract override void operator" + op + @"(int x);
+    public sealed abstract override void operator checked" + op + @"(int x);
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,50): error CS0502: 'C2.operator +=(int)' cannot be both abstract and sealed
+                //     public sealed abstract override void operator+=(int x);
+                Diagnostic(ErrorCode.ERR_AbstractAndSealed, op).WithArguments("C2.operator " + op + @"(int)").WithLocation(10, 50),
+                // (11,58): error CS0502: 'C2.operator checked +=(int)' cannot be both abstract and sealed
+                //     public sealed abstract override void operator checked+=(int x);
+                Diagnostic(ErrorCode.ERR_AbstractAndSealed, op).WithArguments("C2.operator checked " + op + @"(int)").WithLocation(11, 58)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00501_SealedAbstractOverrideNotAllowedInClass([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, bool abstractInBase)
+        {
+            var source = @"
+abstract class C1
+{
+    public " + (abstractInBase ? "abstract" : "virtual") + @" void operator" + op + @"(int x) " + (abstractInBase ? ";" : "{}") + @"
+}
+
+abstract class C2 : C1
+{
+    public sealed abstract override void operator" + op + @"(int x);
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,50): error CS0502: 'C2.operator +=(int)' cannot be both abstract and sealed
+                //     public sealed abstract override void operator+=(int x);
+                Diagnostic(ErrorCode.ERR_AbstractAndSealed, op).WithArguments("C2.operator " + op + @"(int)").WithLocation(9, 50)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00510_SealedAbstractNotAllowedOnExplicitImplementation([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"(int x);
+}
+
+interface I2
+{
+    void operator checked " + op + @"(int x);
+    sealed void operator " + op + @"(int x) {}
+}
+
+interface I3 : I1
+{
+    sealed abstract void I1.operator " + op + @"(int x);
+}
+
+interface I4 : I2
+{
+    sealed abstract void I2.operator checked " + op + @"(int x);
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (15,38): error CS0106: The modifier 'sealed' is not valid for this item
+                //     sealed abstract void I1.operator +=(int x);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("sealed").WithLocation(15, 38),
+                // (20,46): error CS0106: The modifier 'sealed' is not valid for this item
+                //     sealed abstract void I2.operator checked +=(int x);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("sealed").WithLocation(20, 46)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00511_SealedAbstractNotAllowedOnExplicitImplementation([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"(int x);
+}
+
+interface I3 : I1
+{
+#line 15
+    sealed abstract void I1.operator " + op + @"(int x);
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (15,38): error CS0106: The modifier 'sealed' is not valid for this item
+                //     sealed abstract void I1.operator +=(int x);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("sealed").WithLocation(15, 38)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00530_SealedVirtualNotAllowed([CombinatorialValues("+=", "-=", "*=", "/=")] string op, [CombinatorialValues("class", "interface")] string typeKeyword)
+        {
+            var source =
+typeKeyword + @" C1
+{
+    public virtual sealed void operator" + op + @"(int x) {}
+    public virtual sealed void operator checked" + op + @"(int x) {} 
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            if (typeKeyword == "interface")
+            {
+                comp.VerifyDiagnostics(
+                    // (3,40): error CS0106: The modifier 'sealed' is not valid for this item
+                    //     public virtual sealed void operator+(int x) {}
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("sealed").WithLocation(3, 40),
+                    // (4,48): error CS0106: The modifier 'sealed' is not valid for this item
+                    //     public virtual sealed void operator checked+(int x) {} 
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("sealed").WithLocation(4, 48)
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (3,40): error CS0238: 'C1.operator +(int)' cannot be sealed because it is not an override
+                    //     public virtual sealed void operator+=(int x) {}
+                    Diagnostic(ErrorCode.ERR_SealedNonOverride, op).WithArguments("C1.operator " + op + @"(int)").WithLocation(3, 40),
+                    // (4,48): error CS0238: 'C1.operator checked +=(int)' cannot be sealed because it is not an override
+                    //     public virtual sealed void operator checked+(int x) {} 
+                    Diagnostic(ErrorCode.ERR_SealedNonOverride, op).WithArguments("C1.operator checked " + op + @"(int)").WithLocation(4, 48)
+                    );
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00531_SealedVirtualNotAllowed([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, [CombinatorialValues("class", "interface")] string typeKeyword)
+        {
+            var source =
+typeKeyword + @" C1
+{
+    public virtual sealed void operator" + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            if (typeKeyword == "interface")
+            {
+                comp.VerifyDiagnostics(
+                    // (3,40): error CS0106: The modifier 'sealed' is not valid for this item
+                    //     public virtual sealed void operator+(int x) {}
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("sealed").WithLocation(3, 40)
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (3,40): error CS0238: 'C1.operator +(int)' cannot be sealed because it is not an override
+                    //     public virtual sealed void operator+=(int x) {}
+                    Diagnostic(ErrorCode.ERR_SealedNonOverride, op).WithArguments("C1.operator " + op + @"(int)").WithLocation(3, 40)
+                    );
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00540_NewAllowedInInterface_WRN_NewRequired([CombinatorialValues("+=", "-=", "*=", "/=")] string op, [CombinatorialValues("abstract", "virtual", "sealed")] string baseModifier)
+        {
+            var source = @"
+interface C1
+{
+    public " + baseModifier + @" void operator" + op + @"(int x) " + (baseModifier == "abstract" ? ";" : "{}") + @"
+    public " + baseModifier + @" void operator checked" + op + @"(int x) " + (baseModifier == "abstract" ? ";" : "{}") + @" 
+}
+
+interface C2 : C1
+{
+    public void operator" + op + @"(int x) {}
+    public void operator checked" + op + @"(int x) {} 
+}
+
+interface C3 : C1
+{
+    public new void operator" + op + @"(int x) {}
+    public new void operator checked" + op + @"(int x) {} 
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(
+                // (10,25): warning CS0108: 'C2.operator +=(int)' hides inherited member 'C1.operator +=(int)'. Use the new keyword if hiding was intended.
+                //     public void operator+=(int x) {}
+                Diagnostic(ErrorCode.WRN_NewRequired, op).WithArguments("C2.operator " + op + @"(int)", "C1.operator " + op + @"(int)").WithLocation(10, 25),
+                // (11,33): warning CS0108: 'C2.operator checked +=(int)' hides inherited member 'C1.operator checked +=(int)'. Use the new keyword if hiding was intended.
+                //     public void operator checked+=(int x) {} 
+                Diagnostic(ErrorCode.WRN_NewRequired, op).WithArguments("C2.operator checked " + op + @"(int)", "C1.operator checked " + op + @"(int)").WithLocation(11, 33)
+                );
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C2." + CompoundAssignmentOperatorName(op, isChecked: false)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C2." + CompoundAssignmentOperatorName(op, isChecked: true)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C3." + CompoundAssignmentOperatorName(op, isChecked: false)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C3." + CompoundAssignmentOperatorName(op, isChecked: true)));
+            }
+
+            void validateOp(MethodSymbol m)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsAbstract);
+                Assert.True(m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.False(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00541_NewAllowedInInterface_WRN_NewRequired([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, [CombinatorialValues("abstract", "virtual", "sealed")] string baseModifier)
+        {
+            var source = @"
+interface C1
+{
+    public " + baseModifier + @" void operator" + op + @"(int x) " + (baseModifier == "abstract" ? ";" : "{}") + @"
+}
+
+interface C2 : C1
+{
+#line 10
+    public void operator" + op + @"(int x) {}
+}
+
+interface C3 : C1
+{
+    public new void operator" + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(
+                // (10,25): warning CS0108: 'C2.operator +=(int)' hides inherited member 'C1.operator +=(int)'. Use the new keyword if hiding was intended.
+                //     public void operator+=(int x) {}
+                Diagnostic(ErrorCode.WRN_NewRequired, op).WithArguments("C2.operator " + op + @"(int)", "C1.operator " + op + @"(int)").WithLocation(10, 25)
+                );
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C2." + CompoundAssignmentOperatorName(op, isChecked: false)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C3." + CompoundAssignmentOperatorName(op, isChecked: false)));
+            }
+
+            void validateOp(MethodSymbol m)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsAbstract);
+                Assert.True(m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.False(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00550_NewAllowedInClass_WRN_NewRequired([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+class C1
+{
+    public void operator" + op + @"(int x) {}
+    public void operator checked" + op + @"(int x) {}
+}
+
+class C2 : C1
+{
+    public void operator" + op + @"(int x) {}
+    public void operator checked" + op + @"(int x) {} 
+}
+
+class C3 : C1
+{
+    public new void operator" + op + @"(int x) {}
+    public new void operator checked" + op + @"(int x) {} 
+}
+";
+            var comp = CreateCompilation(source);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics(
+                // (10,25): warning CS0108: 'C2.operator +=(int)' hides inherited member 'C1.operator +=(int)'. Use the new keyword if hiding was intended.
+                //     public void operator+=(int x) {}
+                Diagnostic(ErrorCode.WRN_NewRequired, op).WithArguments("C2.operator " + op + @"(int)", "C1.operator " + op + @"(int)").WithLocation(10, 25),
+                // (11,33): warning CS0108: 'C2.operator checked +=(int)' hides inherited member 'C1.operator checked +(int)'. Use the new keyword if hiding was intended.
+                //     public void operator checked+=(int x) {} 
+                Diagnostic(ErrorCode.WRN_NewRequired, op).WithArguments("C2.operator checked " + op + @"(int)", "C1.operator checked " + op + @"(int)").WithLocation(11, 33)
+                );
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C2." + CompoundAssignmentOperatorName(op, isChecked: false)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C2." + CompoundAssignmentOperatorName(op, isChecked: true)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C3." + CompoundAssignmentOperatorName(op, isChecked: false)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C3." + CompoundAssignmentOperatorName(op, isChecked: true)));
+            }
+
+            void validateOp(MethodSymbol m)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.False(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00551_NewAllowedInClass_WRN_NewRequired([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+class C1
+{
+    public void operator" + op + @"(int x) {}
+}
+
+class C2 : C1
+{
+#line 10
+    public void operator" + op + @"(int x) {}
+}
+
+class C3 : C1
+{
+    public new void operator" + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics(
+                // (10,25): warning CS0108: 'C2.operator +=(int)' hides inherited member 'C1.operator +=(int)'. Use the new keyword if hiding was intended.
+                //     public void operator+=(int x) {}
+                Diagnostic(ErrorCode.WRN_NewRequired, op).WithArguments("C2.operator " + op + @"(int)", "C1.operator " + op + @"(int)").WithLocation(10, 25)
+                );
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C2." + CompoundAssignmentOperatorName(op, isChecked: false)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C3." + CompoundAssignmentOperatorName(op, isChecked: false)));
+            }
+
+            void validateOp(MethodSymbol m)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.False(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00560_NewAllowedInClass_WRN_NewOrOverrideExpected([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+class C1
+{
+    public virtual void operator" + op + @"(int x) {}
+    public virtual void operator checked" + op + @"(int x) {}
+}
+
+class C2 : C1
+{
+    public void operator" + op + @"(int x) {}
+    public void operator checked" + op + @"(int x) {} 
+}
+
+class C3 : C1
+{
+    public new void operator" + op + @"(int x) {}
+    public new void operator checked" + op + @"(int x) {} 
+}
+";
+            var comp = CreateCompilation(source);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics(
+                // (10,25): warning CS0114: 'C2.operator +=(int)' hides inherited member 'C1.operator +=(int)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public void operator+=(int x) {}
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, op).WithArguments("C2.operator " + op + @"(int)", "C1.operator " + op + @"(int)").WithLocation(10, 25),
+                // (11,33): warning CS0114: 'C2.operator checked +=(int)' hides inherited member 'C1.operator checked +=(int)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public void operator checked+=(int x) {} 
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, op).WithArguments("C2.operator checked " + op + @"(int)", "C1.operator checked " + op + @"(int)").WithLocation(11, 33)
+                );
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C2." + CompoundAssignmentOperatorName(op, isChecked: false)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C2." + CompoundAssignmentOperatorName(op, isChecked: true)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C3." + CompoundAssignmentOperatorName(op, isChecked: false)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C3." + CompoundAssignmentOperatorName(op, isChecked: true)));
+            }
+
+            void validateOp(MethodSymbol m)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.False(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00561_NewAllowedInClass_WRN_NewOrOverrideExpected([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+class C1
+{
+    public virtual void operator" + op + @"(int x) {}
+}
+
+class C2 : C1
+{
+#line 10
+    public void operator" + op + @"(int x) {}
+}
+
+class C3 : C1
+{
+    public new void operator" + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics(
+                // (10,25): warning CS0114: 'C2.operator +=(int)' hides inherited member 'C1.operator +=(int)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public void operator+=(int x) {}
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, op).WithArguments("C2.operator " + op + @"(int)", "C1.operator " + op + @"(int)").WithLocation(10, 25)
+                );
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C2." + CompoundAssignmentOperatorName(op, isChecked: false)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C3." + CompoundAssignmentOperatorName(op, isChecked: false)));
+            }
+
+            void validateOp(MethodSymbol m)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.False(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00570_NewAllowedInClass_ERR_HidingAbstractMethod([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+abstract class C1
+{
+    public abstract void operator" + op + @"(int x);
+    public abstract void operator checked" + op + @"(int x);
+}
+
+abstract class C2 : C1
+{
+    public void operator" + op + @"(int x) {}
+    public void operator checked" + op + @"(int x) {} 
+}
+
+abstract class C3 : C1
+{
+    public new void operator" + op + @"(int x) {}
+    public new void operator checked" + op + @"(int x) {} 
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,25): error CS0533: 'C2.operator +=(int)' hides inherited abstract member 'C1.operator +=(int)'
+                //     public void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, op).WithArguments("C2.operator " + op + @"(int)", "C1.operator " + op + @"(int)").WithLocation(10, 25),
+                // (10,25): warning CS0114: 'C2.operator +=(int)' hides inherited member 'C1.operator +=(int)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public void operator+=(int x) {}
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, op).WithArguments("C2.operator " + op + @"(int)", "C1.operator " + op + @"(int)").WithLocation(10, 25),
+                // (11,33): error CS0533: 'C2.operator checked +=(int)' hides inherited abstract member 'C1.operator checked +=(int)'
+                //     public void operator checked+=(int x) {} 
+                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, op).WithArguments("C2.operator checked " + op + @"(int)", "C1.operator checked " + op + @"(int)").WithLocation(11, 33),
+                // (11,33): warning CS0114: 'C2.operator checked +=(int)' hides inherited member 'C1.operator checked +=(int)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public void operator checked+=(int x) {} 
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, op).WithArguments("C2.operator checked " + op + @"(int)", "C1.operator checked " + op + @"(int)").WithLocation(11, 33),
+                // (16,29): error CS0533: 'C3.operator +=(int)' hides inherited abstract member 'C1.operator +=(int)'
+                //     public new void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, op).WithArguments("C3.operator " + op + @"(int)", "C1.operator " + op + @"(int)").WithLocation(16, 29),
+                // (17,37): error CS0533: 'C3.operator checked +=(int)' hides inherited abstract member 'C1.operator checked +=(int)'
+                //     public new void operator checked+=(int x) {} 
+                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, op).WithArguments("C3.operator checked " + op + @"(int)", "C1.operator checked " + op + @"(int)").WithLocation(17, 37)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00571_NewAllowedInClass_ERR_HidingAbstractMethod([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+abstract class C1
+{
+    public abstract void operator" + op + @"(int x);
+}
+
+abstract class C2 : C1
+{
+#line 10
+    public void operator" + op + @"(int x) {}
+}
+
+abstract class C3 : C1
+{
+#line 16
+    public new void operator" + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,25): error CS0533: 'C2.operator +=(int)' hides inherited abstract member 'C1.operator +=(int)'
+                //     public void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, op).WithArguments("C2.operator " + op + @"(int)", "C1.operator " + op + @"(int)").WithLocation(10, 25),
+                // (10,25): warning CS0114: 'C2.operator +=(int)' hides inherited member 'C1.operator +=(int)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public void operator+=(int x) {}
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, op).WithArguments("C2.operator " + op + @"(int)", "C1.operator " + op + @"(int)").WithLocation(10, 25),
+                // (16,29): error CS0533: 'C3.operator +=(int)' hides inherited abstract member 'C1.operator +=(int)'
+                //     public new void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, op).WithArguments("C3.operator " + op + @"(int)", "C1.operator " + op + @"(int)").WithLocation(16, 29)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00580_NewAllowed_WRN_NewNotRequired([CombinatorialValues("+=", "-=", "*=", "/=")] string op, [CombinatorialValues("class", "struct", "interface")] string typeKeyword)
+        {
+            var source =
+typeKeyword + @" C1
+{
+    public new void operator" + op + @"(int x) {}
+    public new void operator checked" + op + @"(int x) {} 
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(
+                // (3,29): warning CS0109: The member 'C1.operator +=(int)' does not hide an accessible member. The new keyword is not required.
+                //     public new void operator+=(int x) {}
+                Diagnostic(ErrorCode.WRN_NewNotRequired, op).WithArguments("C1.operator " + op + @"(int)").WithLocation(3, 29),
+                // (4,37): warning CS0109: The member 'C1.operator checked +=(int)' does not hide an accessible member. The new keyword is not required.
+                //     public new void operator checked+=(int x) {} 
+                Diagnostic(ErrorCode.WRN_NewNotRequired, op).WithArguments("C1.operator checked " + op + @"(int)").WithLocation(4, 37)
+                );
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: false)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: true)));
+            }
+
+            void validateOp(MethodSymbol m)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsAbstract);
+                Assert.Equal(typeKeyword == "interface", m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.False(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00581_NewAllowed_WRN_NewNotRequired([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, [CombinatorialValues("class", "struct", "interface")] string typeKeyword)
+        {
+            var source =
+typeKeyword + @" C1
+{
+    public new void operator" + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(
+                // (3,29): warning CS0109: The member 'C1.operator +=(int)' does not hide an accessible member. The new keyword is not required.
+                //     public new void operator+=(int x) {}
+                Diagnostic(ErrorCode.WRN_NewNotRequired, op).WithArguments("C1.operator " + op + @"(int)").WithLocation(3, 29)
+                );
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: false)));
+            }
+
+            void validateOp(MethodSymbol m)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsAbstract);
+                Assert.Equal(typeKeyword == "interface", m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.False(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00590_NewAbstractAllowedInClassAndInterface([CombinatorialValues("+=", "-=", "*=", "/=")] string op, [CombinatorialValues("abstract class", "interface")] string typeKeyword)
+        {
+            var source =
+typeKeyword + @" C1
+{
+    public new abstract void operator" + op + @"(int x);
+    public new abstract void operator checked" + op + @"(int x); 
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(
+                // (3,38): warning CS0109: The member 'C1.operator +=(int)' does not hide an accessible member. The new keyword is not required.
+                //     public new abstract void operator+=(int x);
+                Diagnostic(ErrorCode.WRN_NewNotRequired, op).WithArguments("C1.operator " + op + @"(int)").WithLocation(3, 38),
+                // (4,46): warning CS0109: The member 'C1.operator checked +=(int)' does not hide an accessible member. The new keyword is not required.
+                //     public new abstract void operator checked+=(int x); 
+                Diagnostic(ErrorCode.WRN_NewNotRequired, op).WithArguments("C1.operator checked " + op + @"(int)").WithLocation(4, 46)
+                );
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: false)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: true)));
+            }
+
+            static void validateOp(MethodSymbol m)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.True(m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.False(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_005910_NewAbstractAllowedInClassAndInterface([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, [CombinatorialValues("abstract class", "interface")] string typeKeyword)
+        {
+            var source =
+typeKeyword + @" C1
+{
+    public new abstract void operator" + op + @"(int x);
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(
+                // (3,38): warning CS0109: The member 'C1.operator +=(int)' does not hide an accessible member. The new keyword is not required.
+                //     public new abstract void operator+=(int x);
+                Diagnostic(ErrorCode.WRN_NewNotRequired, op).WithArguments("C1.operator " + op + @"(int)").WithLocation(3, 38)
+                );
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: false)));
+            }
+
+            static void validateOp(MethodSymbol m)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.True(m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.False(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00600_NewVirtualAllowedInClassAndInterface([CombinatorialValues("+=", "-=", "*=", "/=")] string op, [CombinatorialValues("class", "interface")] string typeKeyword)
+        {
+            var source =
+typeKeyword + @" C1
+{
+    public new virtual void operator" + op + @"(int x) {}
+    public new virtual void operator checked" + op + @"(int x) {} 
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(
+                // (3,37): warning CS0109: The member 'C1.operator +=(int)' does not hide an accessible member. The new keyword is not required.
+                //     public new virtual void operator+=(int x) {}
+                Diagnostic(ErrorCode.WRN_NewNotRequired, op).WithArguments("C1.operator " + op + @"(int)").WithLocation(3, 37),
+                // (4,45): warning CS0109: The member 'C1.operator checked +=(int)' does not hide an accessible member. The new keyword is not required.
+                //     public new virtual void operator checked+=(int x) {} 
+                Diagnostic(ErrorCode.WRN_NewNotRequired, op).WithArguments("C1.operator checked " + op + @"(int)").WithLocation(4, 45)
+                );
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: false)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: true)));
+            }
+
+            static void validateOp(MethodSymbol m)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsAbstract);
+                Assert.True(m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.False(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00601_NewVirtualAllowedInClassAndInterface([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, [CombinatorialValues("class", "interface")] string typeKeyword)
+        {
+            var source =
+typeKeyword + @" C1
+{
+    public new virtual void operator" + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(
+                // (3,37): warning CS0109: The member 'C1.operator +=(int)' does not hide an accessible member. The new keyword is not required.
+                //     public new virtual void operator+=(int x) {}
+                Diagnostic(ErrorCode.WRN_NewNotRequired, op).WithArguments("C1.operator " + op + @"(int)").WithLocation(3, 37)
+                );
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: false)));
+            }
+
+            static void validateOp(MethodSymbol m)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsAbstract);
+                Assert.True(m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.False(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00610_NewSealedAllowedInInterface([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+interface C1
+{
+    sealed new void operator" + op + @"(int x) {}
+    sealed new void operator checked" + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(
+                // (4,29): warning CS0109: The member 'C1.operator +=(int)' does not hide an accessible member. The new keyword is not required.
+                //     sealed new void operator+=(int x) {}
+                Diagnostic(ErrorCode.WRN_NewNotRequired, op).WithArguments("C1.operator " + op + @"(int)").WithLocation(4, 29),
+                // (5,37): warning CS0109: The member 'C1.operator checked +=(int)' does not hide an accessible member. The new keyword is not required.
+                //     sealed new void operator checked+=(int x) {}
+                Diagnostic(ErrorCode.WRN_NewNotRequired, op).WithArguments("C1.operator checked " + op + @"(int)").WithLocation(5, 37)
+                );
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: false)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: true)));
+            }
+
+            static void validateOp(MethodSymbol m)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.False(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00611_NewSealedAllowedInInterface([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+interface C1
+{
+    sealed new void operator" + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(
+                // (4,29): warning CS0109: The member 'C1.operator +=(int)' does not hide an accessible member. The new keyword is not required.
+                //     sealed new void operator+=(int x) {}
+                Diagnostic(ErrorCode.WRN_NewNotRequired, op).WithArguments("C1.operator " + op + @"(int)").WithLocation(4, 29)
+                );
+
+            void validate(ModuleSymbol m)
+            {
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + CompoundAssignmentOperatorName(op, isChecked: false)));
+            }
+
+            static void validateOp(MethodSymbol m)
+            {
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.False(m.IsSealed);
+                Assert.False(m.IsOverride);
+                Assert.True(m.HasSpecialName);
+                Assert.False(m.HasRuntimeSpecialName);
+                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00620_NewOverrideNotAllowedInClass([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+class C1
+{
+    public virtual void operator" + op + @"(int x) {}
+}
+
+class C2
+{
+    public virtual void operator checked " + op + @"(int x) {}
+    public void operator " + op + @"(int x) {}
+}
+
+class C3 : C1
+{
+    public new override void operator" + op + @"(int x) {}
+}
+
+class C4 : C2
+{
+    public new override void operator checked " + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (15,38): error CS0113: A member 'C3.operator +=(int)' marked as override cannot be marked as new or virtual
+                //     public new override void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_OverrideNotNew, op).WithArguments("C3.operator " + op + @"(int)").WithLocation(15, 38),
+                // (20,47): error CS0113: A member 'C4.operator checked +=(int)' marked as override cannot be marked as new or virtual
+                //     public new override void operator checked +=(int x) {}
+                Diagnostic(ErrorCode.ERR_OverrideNotNew, op).WithArguments("C4.operator checked " + op + @"(int)").WithLocation(20, 47)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00621_NewOverrideNotAllowedInClass([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+class C1
+{
+    public virtual void operator" + op + @"(int x) {}
+}
+
+class C3 : C1
+{
+#line 15
+    public new override void operator" + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (15,38): error CS0113: A member 'C3.operator +=(int)' marked as override cannot be marked as new or virtual
+                //     public new override void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_OverrideNotNew, op).WithArguments("C3.operator " + op + @"(int)").WithLocation(15, 38)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00630_NewOverrideNotAllowedInStruct([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+struct S1
+{
+    public new override void operator" + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,38): error CS0113: A member 'S1.operator +=(int)' marked as override cannot be marked as new or virtual
+                //     public new override void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_OverrideNotNew, op).WithArguments("S1.operator " + op + @"(int)").WithLocation(4, 38),
+                // (4,38): error CS0115: 'S1.operator +=(int)': no suitable method found to override
+                //     public new override void operator+=(int x) {}
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, op).WithArguments("S1.operator " + op + @"(int)").WithLocation(4, 38)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00650_NewNotAllowedOnExplicitImplementation([CombinatorialValues("+=", "-=", "*=", "/=")] string op, [CombinatorialValues("class", "struct", "interface")] string typeKeyword)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"(int x);
+}
+
+interface I2
+{
+    void operator checked " + op + @"(int x);
+    sealed void operator " + op + @"(int x) {}
+}
+
+" + typeKeyword + @" C3 : I1
+{
+    new void I1.operator " + op + @"(int x) {}
+}
+
+" + typeKeyword + @" C4 : I2
+{
+    new void I2.operator checked " + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (15,26): error CS0106: The modifier 'new' is not valid for this item
+                //     new void I1.operator +=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("new").WithLocation(15, 26),
+                // (20,34): error CS0106: The modifier 'new' is not valid for this item
+                //     new void I2.operator checked +=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("new").WithLocation(20, 34)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00651_NewNotAllowedOnExplicitImplementation([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, [CombinatorialValues("class", "struct", "interface")] string typeKeyword)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"(int x);
+}
+
+" + typeKeyword + @" C3 : I1
+{
+#line 15
+    new void I1.operator " + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (15,26): error CS0106: The modifier 'new' is not valid for this item
+                //     new void I1.operator +=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("new").WithLocation(15, 26)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00670_ExplicitImplementationStaticVsInstanceMismatch([CombinatorialValues("+=", "-=", "*=", "/=")] string op, [CombinatorialValues("class", "struct")] string typeKeyword)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"(int x);
+}
+
+interface I2
+{
+    void operator checked " + op + @"(int x);
+    sealed void operator " + op + @"(int x) {}
+}
+
+" + typeKeyword + @" C3
+    : I1
+{
+    static void I1.operator " + op + @"(int x) {}
+}
+
+" + typeKeyword + @" C4
+    : I2
+{
+    static void I2.operator checked " + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (16,29): error CS0106: The modifier 'static' is not valid for this item
+                //     static void I1.operator +=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("static").WithLocation(16, 29),
+                // (22,37): error CS0106: The modifier 'static' is not valid for this item
+                //     static void I2.operator checked +=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("static").WithLocation(22, 37)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00671_ExplicitImplementationStaticVsInstanceMismatch([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, [CombinatorialValues("class", "struct")] string typeKeyword)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"(int x);
+}
+
+" + typeKeyword + @" C3
+    : I1
+{
+#line 16
+    static void I1.operator " + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (16,29): error CS0106: The modifier 'static' is not valid for this item
+                //     static void I1.operator +=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("static").WithLocation(16, 29)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00680_ExplicitImplementationStaticVsInstanceMismatch([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"(int x);
+}
+
+interface I2
+{
+    void operator checked " + op + @"(int x);
+    sealed void operator " + op + @"(int x) {}
+}
+
+interface C3
+    : I1
+{
+    static void I1.operator " + op + @"(int x) {}
+}
+
+interface C4
+    : I2
+{
+    static void I2.operator checked " + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (16,29): error CS0106: The modifier 'static' is not valid for this item
+                //     static void I1.operator +=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("static").WithLocation(16, 29),
+                // (22,37): error CS0106: The modifier 'static' is not valid for this item
+                //     static void I2.operator checked +=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("static").WithLocation(22, 37)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00681_ExplicitImplementationStaticVsInstanceMismatch([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"(int x);
+}
+
+interface C3
+    : I1
+{
+#line 16
+    static void I1.operator " + op + @"(int x) {}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (16,29): error CS0106: The modifier 'static' is not valid for this item
+                //     static void I1.operator +=(int x) {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("static").WithLocation(16, 29)
+                );
+        }
+
+        // PROTOTYPE: Test checked/unchecked at call site
+        //            Disable ORPA during overload resolution? 
     }
 }
