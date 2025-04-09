@@ -145,6 +145,7 @@ extends:
         displayName: Official Build
         timeoutInMinutes: 360
         templateContext:
+          outputParentDirectory: $(Build.SourcesDirectory)\artifacts
           outputs:
 
           # Publish OptProf generated JSON files as a pipeline artifact. This allows for easy inspection from
