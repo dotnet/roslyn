@@ -86,7 +86,7 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     /// Method to retrieve the documentation comment for a given <paramref name="proposal"/>
     /// </summary>
     /// <param name="proposal">The documentation comment that has been broken down into its individual pieces.</param>
-    Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken);
+    Task<ImmutableArray<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)>> GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken);
 
     /// <summary>
     /// Checks if the feature for implementing <see cref="System.NotImplementedException"/> is available.

@@ -186,7 +186,16 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             ITextSnapshot oldSnapshot, string? indentText, CancellationToken cancellationToken)
         {
             var list = new List<ProposedEdit>();
-            var (documentationCommentDictionary, isQuotaExceeded) = await copilotService.GetDocumentationCommentAsync(proposal, cancellationToken).ConfigureAwait(false);
+            var documentationCommentResults = await copilotService.GetDocumentationCommentAsync(proposal, cancellationToken).ConfigureAwait(false);
+
+            Dictionary<string, string>? documentationCommentDictionary = null;
+            var isQuotaExceeded = false;
+
+            if (!documentationCommentResults.IsEmpty)
+            {
+                documentationCommentDictionary = documentationCommentResults[0].responseDictionary;
+                isQuotaExceeded = documentationCommentResults[0].isQuotaExceeded;
+            }
 
             // Quietly fail if the quota has been exceeded.
             if (isQuotaExceeded)
