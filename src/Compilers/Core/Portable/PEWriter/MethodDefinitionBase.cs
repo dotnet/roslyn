@@ -149,13 +149,13 @@ internal abstract class MethodDefinitionBase : IMethodDefinition, IMethodBody
 
     public DebugId MethodId => default;
 
-    public ImmutableArray<StateMachineHoistedLocalScope> StateMachineHoistedLocalScopes => ImmutableArray<StateMachineHoistedLocalScope>.Empty;
+    public ImmutableArray<StateMachineHoistedLocalScope> StateMachineHoistedLocalScopes => default;
 
     public string StateMachineTypeName => null;
 
-    public ImmutableArray<EncHoistedLocalInfo> StateMachineHoistedLocalSlots => ImmutableArray<EncHoistedLocalInfo>.Empty;
+    public ImmutableArray<EncHoistedLocalInfo> StateMachineHoistedLocalSlots => default;
 
-    public ImmutableArray<ITypeReference> StateMachineAwaiterSlots => ImmutableArray<ITypeReference>.Empty;
+    public ImmutableArray<ITypeReference> StateMachineAwaiterSlots => default;
 
     public ImmutableArray<EncClosureInfo> ClosureDebugInfo => ImmutableArray<EncClosureInfo>.Empty;
 

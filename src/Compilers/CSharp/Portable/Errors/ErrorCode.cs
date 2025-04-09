@@ -1337,6 +1337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PublicSignButNoKey = 8102,
         ERR_TooManyUserStrings = 8103,
         ERR_PeWritingFailure = 8104,
+
         #endregion diagnostics introduced in Roslyn (C# 6)
 
         #region diagnostics introduced in C# 6 updates
@@ -2397,6 +2398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InitInExtension = 9304,
         ERR_ModifierOnUnnamedReceiverParameter = 9305,
         ERR_ExtensionTypeNameDisallowed = 9306,
+        ERR_TooManyUserStrings_RestartRequired = 9307,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
