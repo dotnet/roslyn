@@ -422,11 +422,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw ExceptionUtilities.Unreachable();
             }
 
-            BoundAssignmentOperator tempAssignment;
-            BoundLocal boundTemp;
-
             if (operandType.IsReferenceType)
             {
+                BoundAssignmentOperator tempAssignment;
+                BoundLocal boundTemp;
+
                 boundTemp = _factory.StoreToTemp(VisitExpression(node.Operand), out tempAssignment);
                 return new BoundSequence(
                     syntax: syntax,
@@ -436,29 +436,53 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type: operandType);
             }
 
+            return MakeInstanceCompoundAssignmentOperatorResult(node.Syntax, node.Operand, rightOpt: null, node.MethodOpt, node.OperatorKind.IsChecked());
+        }
+
+        private BoundExpression MakeInstanceCompoundAssignmentOperatorResult(SyntaxNode syntax, BoundExpression left, BoundExpression? rightOpt, MethodSymbol operatorMethod, bool isChecked)
+        {
+            TypeSymbol? operandType = left.Type; //type of the variable being incremented
+            Debug.Assert(operandType is { });
+
             ArrayBuilder<LocalSymbol> tempSymbols = ArrayBuilder<LocalSymbol>.GetInstance();
             ArrayBuilder<BoundExpression> tempInitializers = ArrayBuilder<BoundExpression>.GetInstance();
 
             // This will be filled in with the LHS that uses temporaries to prevent
             // double-evaluation of side effects.
-            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.Operand, isRegularCompoundAssignment: true, tempInitializers, tempSymbols, isDynamicAssignment: false);
+            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(left, isRegularCompoundAssignment: true, tempInitializers, tempSymbols, isDynamicAssignment: false);
             Debug.Assert(TypeSymbol.Equals(operandType, transformedLHS.Type, TypeCompareKind.AllIgnoreOptions));
+
+            BoundAssignmentOperator tempAssignment;
+            BoundLocal boundTemp;
 
             boundTemp = _factory.StoreToTemp(transformedLHS, out tempAssignment);
             tempSymbols.Add(boundTemp.LocalSymbol);
 
             tempInitializers.Add(tempAssignment);
 
-            var increment = BoundCall.Synthesized(syntax, boundTemp, initialBindingReceiverIsSubjectToCloning: ThreeState.False, node.MethodOpt);
-            var assignBack = MakeAssignmentOperator(syntax, transformedLHS, boundTemp, used: false, isChecked: node.OperatorKind.IsChecked(), isCompoundAssignment: false);
+            rightOpt = VisitExpression(rightOpt);
 
             if (operandType.IsValueType)
             {
+                BoundCall increment = makeIncrementCall(syntax, boundTemp, rightOpt, operatorMethod);
+                BoundExpression assignBack = makeAssignmentBack(syntax, transformedLHS, boundTemp, isChecked);
+
                 tempInitializers.Add(increment);
                 tempInitializers.Add(assignBack);
             }
             else
             {
+                if (rightOpt is not null)
+                {
+                    BoundLocal capturedRight = _factory.StoreToTemp(rightOpt, out tempAssignment);
+                    tempSymbols.Add(capturedRight.LocalSymbol);
+                    tempInitializers.Add(tempAssignment);
+                    rightOpt = capturedRight;
+                }
+
+                BoundCall increment = makeIncrementCall(syntax, boundTemp, rightOpt, operatorMethod);
+                BoundExpression assignBack = makeAssignmentBack(syntax, transformedLHS, boundTemp, isChecked);
+
                 //  (object)default(T) != null
                 var isNotClass = _factory.IsNotNullReference(_factory.Default(operandType));
                 tempInitializers.Add(
@@ -481,6 +505,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sideEffects: tempInitializers.ToImmutableAndFree(),
                 value: boundTemp,
                 type: operandType);
+
+            static BoundCall makeIncrementCall(SyntaxNode syntax, BoundLocal boundTemp, BoundExpression? rightOpt, MethodSymbol operatorMethod)
+            {
+                return BoundCall.Synthesized(syntax, boundTemp, initialBindingReceiverIsSubjectToCloning: ThreeState.False, operatorMethod, rightOpt is null ? [] : [rightOpt]);
+            }
+
+            BoundExpression makeAssignmentBack(SyntaxNode syntax, BoundExpression transformedLHS, BoundLocal boundTemp, bool isChecked)
+            {
+                return MakeAssignmentOperator(syntax, transformedLHS, boundTemp, used: false, isChecked: isChecked, isCompoundAssignment: false);
+            }
         }
 
         /// <summary>

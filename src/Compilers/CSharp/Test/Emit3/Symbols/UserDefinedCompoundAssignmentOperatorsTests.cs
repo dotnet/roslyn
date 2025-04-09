@@ -5168,6 +5168,39 @@ public class Program
                 //             ++x;
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(17, 15)
                 );
+
+            var source2 = @"
+public class C1
+{
+    public void operator ++() {}
+}
+
+#nullable enable
+
+public class Program
+{
+    static void Main()
+    {
+        C1? x = null;
+
+        if (false)
+        {
+            ++x;
+            System.Console.Write(""unreachable"");
+            x.ToString();
+        }
+
+        System.Console.Write(""Done"");
+    } 
+}
+";
+
+            var comp2 = CreateCompilation(source2, options: TestOptions.DebugExe);
+            CompileAndVerify(comp2, expectedOutput: "Done").VerifyDiagnostics(
+                // (17,13): warning CS0162: Unreachable code detected
+                //             ++x;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "++").WithLocation(17, 13)
+                );
         }
 
         [Fact]
@@ -9726,7 +9759,3707 @@ interface C3
                 );
         }
 
-        // PROTOTYPE: Test checked/unchecked at call site
-        //            Disable ORPA during overload resolution? 
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00690_Consumption_OnNonVariable([CombinatorialValues("+=", "-=", "*=", "/=")] string op, bool fromMetadata)
+        {
+            var source1 = @"
+public class C1
+{
+    public int _F;
+
+    public void operator" + op + @"(int x) => throw null; 
+    public void operator checked" + op + @"(int x) => throw null; 
+
+    public static C1 operator" + op[..^1] + @"(C1 x, int y)
+    {
+        System.Console.Write(""[operator]"");
+        return new C1() { _F = x._F + y };
+    } 
+    public static C1 operator checked" + op[..^1] + @"(C1 x, int y)
+    {
+        System.Console.Write(""[operator checked]"");
+        checked
+        {
+            return new C1() { _F = x._F + y };
+        }
+    } 
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class Program
+{
+    static C1 P {get; set;} = new C1();
+
+    static void Main()
+    {
+        C1 x;
+
+        P" + op + @" 1;
+        System.Console.WriteLine(P._F);
+        x = P" + op + @" 1;
+        System.Console.WriteLine(P._F);
+
+        checked
+        {
+            P" + op + @" 1;
+            System.Console.WriteLine(P._F);
+            x = P" + op + @" 1;
+            System.Console.WriteLine(P._F);
+        }
+    } 
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp2, expectedOutput: @"
+[operator]1
+[operator]2
+[operator checked]3
+[operator checked]4
+").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00691_Consumption_OnNonVariable([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, bool fromMetadata)
+        {
+            var source1 = @"
+public class C1
+{
+    public int _F;
+
+    public void operator" + op + @"(int x) => throw null; 
+
+    public static C1 operator" + op[..^1] + @"(C1 x, int y)
+    {
+        System.Console.Write(""[operator]"");
+        return new C1() { _F = x._F + y };
+    } 
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class Program
+{
+    static C1 P {get; set;} = new C1();
+
+    static void Main()
+    {
+        C1 x;
+
+        P" + op + @" 1;
+        System.Console.WriteLine(P._F);
+        x = P" + op + @" 1;
+        System.Console.WriteLine(P._F);
+
+        checked
+        {
+            P" + op + @" 1;
+            System.Console.WriteLine(P._F);
+            x = P" + op + @" 1;
+            System.Console.WriteLine(P._F);
+        }
+    } 
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp2, expectedOutput: @"
+[operator]1
+[operator]2
+[operator]3
+[operator]4
+").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00700_Consumption_NotUsed_Class([CombinatorialValues("+=", "-=", "*=", "/=")] string op, bool fromMetadata)
+        {
+            var source1 = @"
+public interface I1
+{
+    public void operator" + op + @"(long x);
+    public void operator checked" + op + @"(long x);
+}
+
+public class C1 : I1
+{
+    public int _F;
+    public void operator" + op + @"(long x)
+    {
+        System.Console.Write(""[operator]"");
+        _F = _F + (int)x;
+    } 
+    public void operator checked" + op + @"(long x)
+    {
+        System.Console.Write(""[operator checked]"");
+        _F = _F + (int)x;
+    } 
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        C1[] x = [new C1()];
+        Test1(x);
+        System.Console.WriteLine(x[0]._F);
+        Test2(x);
+        System.Console.WriteLine(x[0]._F);
+        Test3(x);
+        System.Console.WriteLine(x[0]._F);
+        Test4(x);
+        System.Console.WriteLine(x[0]._F);
+        Test5(x);
+        System.Console.WriteLine(x[0]._F);
+        Test6(x);
+        System.Console.WriteLine(x[0]._F);
+    } 
+
+    static void Test1(C1[] x)
+    {
+        GetA(x)[Get0()]" + op + @" Get1();
+    } 
+
+    static void Test2(C1[] x)
+    {
+        checked
+        {
+            GetA(x)[Get0()]" + op + @" Get1();
+        }
+    } 
+
+    static void Test3<T>(T[] x) where T : class, I1
+    {
+        GetA(x)[Get0()]" + op + @" Get1();
+    } 
+
+    static void Test4<T>(T[] x) where T : class, I1
+    {
+        checked
+        {
+            GetA(x)[Get0()]" + op + @" Get1();
+        }
+    } 
+
+    static void Test5<T>(T[] x) where T : I1
+    {
+        GetA(x)[Get0()]" + op + @" Get1();
+    } 
+
+    static void Test6<T>(T[] x) where T : I1
+    {
+        checked
+        {
+            GetA(x)[Get0()]" + op + @" Get1();
+        }
+    } 
+
+    static T[] GetA<T>(T[] x)
+    {
+        System.Console.Write(""[GetA]"");
+        return x;
+    } 
+
+    static int Get0()
+    {
+        System.Console.Write(""[Get0]"");
+        return 0;
+    }
+
+    static int Get1()
+    {
+        System.Console.Write(""[Get1]"");
+        return 1;
+    }
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            const string expectedOutput = @"
+[GetA][Get0][Get1][operator]1
+[GetA][Get0][Get1][operator checked]2
+[GetA][Get0][Get1][operator]3
+[GetA][Get0][Get1][operator checked]4
+[GetA][Get0][Get1][operator]5
+[GetA][Get0][Get1][operator checked]6
+";
+            var verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var methodName = CompoundAssignmentOperatorName(op, isChecked: false);
+
+            verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       24 (0x18)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem.ref
+  IL_000c:  call       ""int Program.Get1()""
+  IL_0011:  conv.i8
+  IL_0012:  callvirt   ""void C1." + methodName + @"(long)""
+  IL_0017:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test3<T>(T[])",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem     ""T""
+  IL_0010:  box        ""T""
+  IL_0015:  call       ""int Program.Get1()""
+  IL_001a:  conv.i8
+  IL_001b:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_0020:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test5<T>(T[])",
+@"
+{
+  // Code size       60 (0x3c)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  readonly.
+  IL_000d:  ldelema    ""T""
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  initobj    ""T""
+  IL_001a:  ldloc.0
+  IL_001b:  box        ""T""
+  IL_0020:  brtrue.s   IL_002a
+  IL_0022:  ldobj      ""T""
+  IL_0027:  stloc.0
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  call       ""int Program.Get1()""
+  IL_002f:  conv.i8
+  IL_0030:  constrained. ""T""
+  IL_0036:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_003b:  ret
+}
+");
+
+            var tree = comp2.SyntaxTrees.Single();
+            var model = comp2.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().Where(n => n.OperatorToken.Text == op).First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("void C1." + methodName + "(System.Int64 x)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("C1", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            var typeInfo = model.GetTypeInfo(opNode.Left);
+            Assert.Equal("C1", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("C1", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.True(model.GetConversion(opNode.Left).IsIdentity);
+
+            typeInfo = model.GetTypeInfo(opNode.Right);
+            Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Int64", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.True(model.GetConversion(opNode.Right).IsNumeric);
+
+            var iOp = model.GetOperation(opNode);
+            VerifyOperationTree(comp2, iOp, @"
+ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @") (OperatorMethod: void C1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: C1) (Syntax: 'GetA(x)[Get0()]" + op + @" Get1()')
+  InConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Left:
+IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: C1) (Syntax: 'GetA(x)[Get0()]')
+  Array reference:
+    IInvocationOperation (C1[] Program.GetA<C1>(C1[] x)) (OperationKind.Invocation, Type: C1[]) (Syntax: 'GetA(x)')
+      Instance Receiver:
+        null
+      Arguments(1):
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'x')
+            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C1[]) (Syntax: 'x')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Indices(1):
+      IInvocationOperation (System.Int32 Program.Get0()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get0()')
+        Instance Receiver:
+          null
+        Arguments(0)
+  Right:
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'Get1()')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand:
+    IInvocationOperation (System.Int32 Program.Get1()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get1()')
+      Instance Receiver:
+        null
+      Arguments(0)
+");
+
+            methodName = CompoundAssignmentOperatorName(op, isChecked: true);
+
+            verifier.VerifyIL("Program.Test2",
+@"
+{
+  // Code size       24 (0x18)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem.ref
+  IL_000c:  call       ""int Program.Get1()""
+  IL_0011:  conv.i8
+  IL_0012:  callvirt   ""void C1." + methodName + @"(long)""
+  IL_0017:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test4<T>(T[])",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem     ""T""
+  IL_0010:  box        ""T""
+  IL_0015:  call       ""int Program.Get1()""
+  IL_001a:  conv.i8
+  IL_001b:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_0020:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test6<T>(T[])",
+@"
+{
+  // Code size       60 (0x3c)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  readonly.
+  IL_000d:  ldelema    ""T""
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  initobj    ""T""
+  IL_001a:  ldloc.0
+  IL_001b:  box        ""T""
+  IL_0020:  brtrue.s   IL_002a
+  IL_0022:  ldobj      ""T""
+  IL_0027:  stloc.0
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  call       ""int Program.Get1()""
+  IL_002f:  conv.i8
+  IL_0030:  constrained. ""T""
+  IL_0036:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_003b:  ret
+}
+");
+
+            opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().Where(n => n.OperatorToken.Text == op).Last();
+            symbolInfo = model.GetSymbolInfo(opNode);
+            Assert.Equal("void I1." + methodName + "(System.Int64 x)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("T", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            iOp = model.GetOperation(opNode);
+            VerifyOperationTree(comp2, iOp, @"
+ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @", Checked) (OperatorMethod: void I1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: T) (Syntax: 'GetA(x)[Get0()]" + op + @" Get1()')
+  InConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Left:
+    IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: T) (Syntax: 'GetA(x)[Get0()]')
+      Array reference:
+        IInvocationOperation (T[] Program.GetA<T>(T[] x)) (OperationKind.Invocation, Type: T[]) (Syntax: 'GetA(x)')
+          Instance Receiver:
+            null
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'x')
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T[]) (Syntax: 'x')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Indices(1):
+          IInvocationOperation (System.Int32 Program.Get0()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get0()')
+            Instance Receiver:
+              null
+            Arguments(0)
+  Right:
+    IConversionOperation (TryCast: False, Checked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'Get1()')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand:
+        IInvocationOperation (System.Int32 Program.Get1()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get1()')
+          Instance Receiver:
+            null
+          Arguments(0)
+");
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
+            var expectedErrors = new[] {
+                // (23,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //         GetA(x)[Get0()]+= Get1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" Get1()").WithArguments(op, "C1", "int").WithLocation(23, 9),
+                // (30,13): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //             GetA(x)[Get0()]+= Get1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" Get1()").WithArguments(op, "C1", "int").WithLocation(30, 13),
+                // (36,9): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //         GetA(x)[Get0()]+= Get1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" Get1()").WithArguments(op, "T", "int").WithLocation(36, 9),
+                // (43,13): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //             GetA(x)[Get0()]+= Get1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" Get1()").WithArguments(op, "T", "int").WithLocation(43, 13),
+                // (49,9): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //         GetA(x)[Get0()]+= Get1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" Get1()").WithArguments(op, "T", "int").WithLocation(49, 9),
+                // (56,13): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //             GetA(x)[Get0()]+= Get1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" Get1()").WithArguments(op, "T", "int").WithLocation(56, 13)
+                };
+            comp2.VerifyDiagnostics(expectedErrors);
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp2.VerifyDiagnostics(expectedErrors);
+        }
+
+        private static Operations.BinaryOperatorKind CompoundAssignmentOperatorToBinaryOperatorKind(string op)
+        {
+            switch (op)
+            {
+                case "*=": return Operations.BinaryOperatorKind.Multiply;
+                case "/=": return Operations.BinaryOperatorKind.Divide;
+                case "%=": return Operations.BinaryOperatorKind.Remainder;
+                case "+=": return Operations.BinaryOperatorKind.Add;
+                case "-=": return Operations.BinaryOperatorKind.Subtract;
+                case ">>=": return Operations.BinaryOperatorKind.RightShift;
+                case ">>>=": return Operations.BinaryOperatorKind.UnsignedRightShift;
+                case "<<=": return Operations.BinaryOperatorKind.LeftShift;
+                case "&=": return Operations.BinaryOperatorKind.And;
+                case "|=": return Operations.BinaryOperatorKind.Or;
+                case "^=": return Operations.BinaryOperatorKind.ExclusiveOr;
+                default: throw ExceptionUtilities.UnexpectedValue(op);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00701_Consumption_NotUsed_Class([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, bool fromMetadata)
+        {
+            var source1 = @"
+public interface I1
+{
+    public void operator" + op + @"(long x);
+}
+
+public class C1 : I1
+{
+    public int _F;
+    public void operator" + op + @"(long x)
+    {
+        System.Console.Write(""[operator]"");
+        _F = _F + (int)x;
+    } 
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        C1[] x = [new C1()];
+        Test1(x);
+        System.Console.WriteLine(x[0]._F);
+        Test2(x);
+        System.Console.WriteLine(x[0]._F);
+        Test3(x);
+        System.Console.WriteLine(x[0]._F);
+        Test4(x);
+        System.Console.WriteLine(x[0]._F);
+        Test5(x);
+        System.Console.WriteLine(x[0]._F);
+        Test6(x);
+        System.Console.WriteLine(x[0]._F);
+    } 
+
+    static void Test1(C1[] x)
+    {
+        GetA(x)[Get0()]" + op + @" G1();
+    } 
+
+    static void Test2(C1[] x)
+    {
+        checked
+        {
+            GetA(x)[Get0()]" + op + @" G1();
+        }
+    } 
+
+    static void Test3<T>(T[] x) where T : class, I1
+    {
+        GetA(x)[Get0()]" + op + @" G1();
+    } 
+
+    static void Test4<T>(T[] x) where T : class, I1
+    {
+        checked
+        {
+            GetA(x)[Get0()]" + op + @" G1();
+        }
+    } 
+
+    static void Test5<T>(T[] x) where T : I1
+    {
+        GetA(x)[Get0()]" + op + @" G1();
+    } 
+
+    static void Test6<T>(T[] x) where T : I1
+    {
+        checked
+        {
+            GetA(x)[Get0()]" + op + @" G1();
+        }
+    } 
+
+    static T[] GetA<T>(T[] x)
+    {
+        System.Console.Write(""[GetA]"");
+        return x;
+    } 
+
+    static int Get0()
+    {
+        System.Console.Write(""[Get0]"");
+        return 0;
+    }
+
+    static int G1()
+    {
+        System.Console.Write(""[Get1]"");
+        return 1;
+    }
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            const string expectedOutput = @"
+[GetA][Get0][Get1][operator]1
+[GetA][Get0][Get1][operator]2
+[GetA][Get0][Get1][operator]3
+[GetA][Get0][Get1][operator]4
+[GetA][Get0][Get1][operator]5
+[GetA][Get0][Get1][operator]6
+";
+            var verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var methodName = CompoundAssignmentOperatorName(op, isChecked: false);
+
+            verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       24 (0x18)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem.ref
+  IL_000c:  call       ""int Program.G1()""
+  IL_0011:  conv.i8
+  IL_0012:  callvirt   ""void C1." + methodName + @"(long)""
+  IL_0017:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test3<T>(T[])",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem     ""T""
+  IL_0010:  box        ""T""
+  IL_0015:  call       ""int Program.G1()""
+  IL_001a:  conv.i8
+  IL_001b:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_0020:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test5<T>(T[])",
+@"
+{
+  // Code size       60 (0x3c)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  readonly.
+  IL_000d:  ldelema    ""T""
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  initobj    ""T""
+  IL_001a:  ldloc.0
+  IL_001b:  box        ""T""
+  IL_0020:  brtrue.s   IL_002a
+  IL_0022:  ldobj      ""T""
+  IL_0027:  stloc.0
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  call       ""int Program.G1()""
+  IL_002f:  conv.i8
+  IL_0030:  constrained. ""T""
+  IL_0036:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_003b:  ret
+}
+");
+
+            var tree = comp2.SyntaxTrees.Single();
+            var model = comp2.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().Where(n => n.OperatorToken.Text == op).First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("void C1." + methodName + "(System.Int64 x)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("C1", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            var iOp = model.GetOperation(opNode);
+            VerifyOperationTree(comp2, iOp, @"
+ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @") (OperatorMethod: void C1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: C1) (Syntax: 'GetA(x)[Get0()]" + op + @" G1()')
+  InConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Left:
+IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: C1) (Syntax: 'GetA(x)[Get0()]')
+  Array reference:
+    IInvocationOperation (C1[] Program.GetA<C1>(C1[] x)) (OperationKind.Invocation, Type: C1[]) (Syntax: 'GetA(x)')
+      Instance Receiver:
+        null
+      Arguments(1):
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'x')
+            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C1[]) (Syntax: 'x')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Indices(1):
+      IInvocationOperation (System.Int32 Program.Get0()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get0()')
+        Instance Receiver:
+          null
+        Arguments(0)
+  Right:
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'G1()')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand:
+    IInvocationOperation (System.Int32 Program.G1()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'G1()')
+      Instance Receiver:
+        null
+      Arguments(0)
+");
+
+            verifier.VerifyIL("Program.Test2",
+@"
+{
+  // Code size       24 (0x18)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem.ref
+  IL_000c:  call       ""int Program.G1()""
+  IL_0011:  conv.i8
+  IL_0012:  callvirt   ""void C1." + methodName + @"(long)""
+  IL_0017:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test4<T>(T[])",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem     ""T""
+  IL_0010:  box        ""T""
+  IL_0015:  call       ""int Program.G1()""
+  IL_001a:  conv.i8
+  IL_001b:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_0020:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test6<T>(T[])",
+@"
+{
+  // Code size       60 (0x3c)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  readonly.
+  IL_000d:  ldelema    ""T""
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  initobj    ""T""
+  IL_001a:  ldloc.0
+  IL_001b:  box        ""T""
+  IL_0020:  brtrue.s   IL_002a
+  IL_0022:  ldobj      ""T""
+  IL_0027:  stloc.0
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  call       ""int Program.G1()""
+  IL_002f:  conv.i8
+  IL_0030:  constrained. ""T""
+  IL_0036:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_003b:  ret
+}
+");
+
+            opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().Where(n => n.OperatorToken.Text == op).Last();
+            symbolInfo = model.GetSymbolInfo(opNode);
+            Assert.Equal("void I1." + methodName + "(System.Int64 x)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("T", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            iOp = model.GetOperation(opNode);
+            VerifyOperationTree(comp2, iOp, @"
+ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @") (OperatorMethod: void I1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: T) (Syntax: 'GetA(x)[Get0()]" + op + @" G1()')
+  InConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Left:
+    IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: T) (Syntax: 'GetA(x)[Get0()]')
+      Array reference:
+        IInvocationOperation (T[] Program.GetA<T>(T[] x)) (OperationKind.Invocation, Type: T[]) (Syntax: 'GetA(x)')
+          Instance Receiver:
+            null
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'x')
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T[]) (Syntax: 'x')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Indices(1):
+          IInvocationOperation (System.Int32 Program.Get0()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get0()')
+            Instance Receiver:
+              null
+            Arguments(0)
+  Right:
+    IConversionOperation (TryCast: False, Checked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'G1()')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand:
+        IInvocationOperation (System.Int32 Program.G1()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'G1()')
+          Instance Receiver:
+            null
+          Arguments(0)
+");
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
+            var expectedErrors = new[] {
+                // (23,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //         GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "C1", "int").WithLocation(23, 9),
+                // (30,13): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //             GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "C1", "int").WithLocation(30, 13),
+                // (36,9): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //         GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "T", "int").WithLocation(36, 9),
+                // (43,13): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //             GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "T", "int").WithLocation(43, 13),
+                // (49,9): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //         GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "T", "int").WithLocation(49, 9),
+                // (56,13): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //             GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "T", "int").WithLocation(56, 13)
+                };
+            comp2.VerifyDiagnostics(expectedErrors);
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp2.VerifyDiagnostics(expectedErrors);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00710_Consumption_NotUsed_Struct([CombinatorialValues("+=", "-=", "*=", "/=")] string op, bool fromMetadata)
+        {
+            var source1 = @"
+public interface I1
+{
+    public void operator" + op + @"(long x);
+    public void operator checked" + op + @"(long x);
+}
+
+public struct C1 : I1
+{
+    public int _F;
+    public void operator" + op + @"(long x)
+    {
+        System.Console.Write(""[operator]"");
+        _F = _F + (int)x;
+    } 
+    public void operator checked" + op + @"(long x)
+    {
+        System.Console.Write(""[operator checked]"");
+        _F = _F + (int)x;
+    } 
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        C1[] x = [new C1()];
+        Test1(x);
+        System.Console.WriteLine(x[0]._F);
+        Test2(x);
+        System.Console.WriteLine(x[0]._F);
+        Test3(x);
+        System.Console.WriteLine(x[0]._F);
+        Test4(x);
+        System.Console.WriteLine(x[0]._F);
+        Test5(x);
+        System.Console.WriteLine(x[0]._F);
+        Test6(x);
+        System.Console.WriteLine(x[0]._F);
+    } 
+
+    static void Test1(C1[] x)
+    {
+        GetA(x)[Get0()]" + op + @" Get1();
+    } 
+
+    static void Test2(C1[] x)
+    {
+        checked
+        {
+            GetA(x)[Get0()]" + op + @" Get1();
+        }
+    } 
+
+    static void Test3<T>(T[] x) where T : struct, I1
+    {
+        GetA(x)[Get0()]" + op + @" Get1();
+    } 
+
+    static void Test4<T>(T[] x) where T : struct, I1
+    {
+        checked
+        {
+            GetA(x)[Get0()]" + op + @" Get1();
+        }
+    } 
+
+    static void Test5<T>(T[] x) where T : I1
+    {
+        GetA(x)[Get0()]" + op + @" Get1();
+    } 
+
+    static void Test6<T>(T[] x) where T : I1
+    {
+        checked
+        {
+            GetA(x)[Get0()]" + op + @" Get1();
+        }
+    } 
+
+    static T[] GetA<T>(T[] x)
+    {
+        System.Console.Write(""[GetA]"");
+        return x;
+    } 
+
+    static int Get0()
+    {
+        System.Console.Write(""[Get0]"");
+        return 0;
+    }
+
+    static int Get1()
+    {
+        System.Console.Write(""[Get1]"");
+        return 1;
+    }
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            const string expectedOutput = @"
+[GetA][Get0][Get1][operator]1
+[GetA][Get0][Get1][operator checked]2
+[GetA][Get0][Get1][operator]3
+[GetA][Get0][Get1][operator checked]4
+[GetA][Get0][Get1][operator]5
+[GetA][Get0][Get1][operator checked]6
+";
+            var verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var methodName = CompoundAssignmentOperatorName(op, isChecked: false);
+
+            verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelema    ""C1""
+  IL_0010:  call       ""int Program.Get1()""
+  IL_0015:  conv.i8
+  IL_0016:  call       ""void C1." + methodName + @"(long)""
+  IL_001b:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test3<T>(T[])",
+@"
+{
+  // Code size       36 (0x24)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  readonly.
+  IL_000d:  ldelema    ""T""
+  IL_0012:  call       ""int Program.Get1()""
+  IL_0017:  conv.i8
+  IL_0018:  constrained. ""T""
+  IL_001e:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_0023:  ret
+}
+");
+
+            var tree = comp2.SyntaxTrees.Single();
+            var model = comp2.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().Where(n => n.OperatorToken.Text == op).First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("void C1." + methodName + "(System.Int64 x)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("C1", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            var iOp = model.GetOperation(opNode);
+            VerifyOperationTree(comp2, iOp, @"
+ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @") (OperatorMethod: void C1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: C1) (Syntax: 'GetA(x)[Get0()]" + op + @" Get1()')
+  InConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Left:
+IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: C1) (Syntax: 'GetA(x)[Get0()]')
+  Array reference:
+    IInvocationOperation (C1[] Program.GetA<C1>(C1[] x)) (OperationKind.Invocation, Type: C1[]) (Syntax: 'GetA(x)')
+      Instance Receiver:
+        null
+      Arguments(1):
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'x')
+            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C1[]) (Syntax: 'x')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Indices(1):
+      IInvocationOperation (System.Int32 Program.Get0()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get0()')
+        Instance Receiver:
+          null
+        Arguments(0)
+  Right:
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'Get1()')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand:
+    IInvocationOperation (System.Int32 Program.Get1()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get1()')
+      Instance Receiver:
+        null
+      Arguments(0)
+");
+
+            methodName = CompoundAssignmentOperatorName(op, isChecked: true);
+
+            verifier.VerifyIL("Program.Test2",
+@"
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelema    ""C1""
+  IL_0010:  call       ""int Program.Get1()""
+  IL_0015:  conv.i8
+  IL_0016:  call       ""void C1." + methodName + @"(long)""
+  IL_001b:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test4<T>(T[])",
+@"
+{
+  // Code size       36 (0x24)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  readonly.
+  IL_000d:  ldelema    ""T""
+  IL_0012:  call       ""int Program.Get1()""
+  IL_0017:  conv.i8
+  IL_0018:  constrained. ""T""
+  IL_001e:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_0023:  ret
+}
+");
+
+            opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().Where(n => n.OperatorToken.Text == op).Last();
+            symbolInfo = model.GetSymbolInfo(opNode);
+            Assert.Equal("void I1." + methodName + "(System.Int64 x)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("T", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            iOp = model.GetOperation(opNode);
+            VerifyOperationTree(comp2, iOp, @"
+ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @", Checked) (OperatorMethod: void I1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: T) (Syntax: 'GetA(x)[Get0()]" + op + @" Get1()')
+  InConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Left:
+    IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: T) (Syntax: 'GetA(x)[Get0()]')
+      Array reference:
+        IInvocationOperation (T[] Program.GetA<T>(T[] x)) (OperationKind.Invocation, Type: T[]) (Syntax: 'GetA(x)')
+          Instance Receiver:
+            null
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'x')
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T[]) (Syntax: 'x')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Indices(1):
+          IInvocationOperation (System.Int32 Program.Get0()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get0()')
+            Instance Receiver:
+              null
+            Arguments(0)
+  Right:
+    IConversionOperation (TryCast: False, Checked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'Get1()')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand:
+        IInvocationOperation (System.Int32 Program.Get1()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get1()')
+          Instance Receiver:
+            null
+          Arguments(0)
+");
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
+            var expectedErrors = new[] {
+                // (23,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //         GetA(x)[Get0()]+= Get1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" Get1()").WithArguments(op, "C1", "int").WithLocation(23, 9),
+                // (30,13): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //             GetA(x)[Get0()]+= Get1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" Get1()").WithArguments(op, "C1", "int").WithLocation(30, 13),
+                // (36,9): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //         GetA(x)[Get0()]+= Get1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" Get1()").WithArguments(op, "T", "int").WithLocation(36, 9),
+                // (43,13): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //             GetA(x)[Get0()]+= Get1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" Get1()").WithArguments(op, "T", "int").WithLocation(43, 13),
+                // (49,9): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //         GetA(x)[Get0()]+= Get1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" Get1()").WithArguments(op, "T", "int").WithLocation(49, 9),
+                // (56,13): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //             GetA(x)[Get0()]+= Get1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" Get1()").WithArguments(op, "T", "int").WithLocation(56, 13)
+                };
+            comp2.VerifyDiagnostics(expectedErrors);
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp2.VerifyDiagnostics(expectedErrors);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00711_Consumption_NotUsed_Struct([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, bool fromMetadata)
+        {
+            var source1 = @"
+public interface I1
+{
+    public void operator" + op + @"(long x);
+}
+
+public struct C1 : I1
+{
+    public int _F;
+    public void operator" + op + @"(long x)
+    {
+        System.Console.Write(""[operator]"");
+        _F = _F + (int)x;
+    } 
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        C1[] x = [new C1()];
+        Test1(x);
+        System.Console.WriteLine(x[0]._F);
+        Test2(x);
+        System.Console.WriteLine(x[0]._F);
+        Test3(x);
+        System.Console.WriteLine(x[0]._F);
+        Test4(x);
+        System.Console.WriteLine(x[0]._F);
+        Test5(x);
+        System.Console.WriteLine(x[0]._F);
+        Test6(x);
+        System.Console.WriteLine(x[0]._F);
+    } 
+
+    static void Test1(C1[] x)
+    {
+        GetA(x)[Get0()]" + op + @" G1();
+    } 
+
+    static void Test2(C1[] x)
+    {
+        checked
+        {
+            GetA(x)[Get0()]" + op + @" G1();
+        }
+    } 
+
+    static void Test3<T>(T[] x) where T : struct, I1
+    {
+        GetA(x)[Get0()]" + op + @" G1();
+    } 
+
+    static void Test4<T>(T[] x) where T : struct, I1
+    {
+        checked
+        {
+            GetA(x)[Get0()]" + op + @" G1();
+        }
+    } 
+
+    static void Test5<T>(T[] x) where T : I1
+    {
+        GetA(x)[Get0()]" + op + @" G1();
+    } 
+
+    static void Test6<T>(T[] x) where T : I1
+    {
+        checked
+        {
+            GetA(x)[Get0()]" + op + @" G1();
+        }
+    } 
+
+    static T[] GetA<T>(T[] x)
+    {
+        System.Console.Write(""[GetA]"");
+        return x;
+    } 
+
+    static int Get0()
+    {
+        System.Console.Write(""[Get0]"");
+        return 0;
+    }
+
+    static int G1()
+    {
+        System.Console.Write(""[Get1]"");
+        return 1;
+    }
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            const string expectedOutput = @"
+[GetA][Get0][Get1][operator]1
+[GetA][Get0][Get1][operator]2
+[GetA][Get0][Get1][operator]3
+[GetA][Get0][Get1][operator]4
+[GetA][Get0][Get1][operator]5
+[GetA][Get0][Get1][operator]6
+";
+            var verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var methodName = CompoundAssignmentOperatorName(op, isChecked: false);
+
+            verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelema    ""C1""
+  IL_0010:  call       ""int Program.G1()""
+  IL_0015:  conv.i8
+  IL_0016:  call       ""void C1." + methodName + @"(long)""
+  IL_001b:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test3<T>(T[])",
+@"
+{
+  // Code size       36 (0x24)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  readonly.
+  IL_000d:  ldelema    ""T""
+  IL_0012:  call       ""int Program.G1()""
+  IL_0017:  conv.i8
+  IL_0018:  constrained. ""T""
+  IL_001e:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_0023:  ret
+}
+");
+
+            var tree = comp2.SyntaxTrees.Single();
+            var model = comp2.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().Where(n => n.OperatorToken.Text == op).First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("void C1." + methodName + "(System.Int64 x)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("C1", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            var iOp = model.GetOperation(opNode);
+            VerifyOperationTree(comp2, iOp, @"
+ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @") (OperatorMethod: void C1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: C1) (Syntax: 'GetA(x)[Get0()]" + op + @" G1()')
+  InConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Left:
+IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: C1) (Syntax: 'GetA(x)[Get0()]')
+  Array reference:
+    IInvocationOperation (C1[] Program.GetA<C1>(C1[] x)) (OperationKind.Invocation, Type: C1[]) (Syntax: 'GetA(x)')
+      Instance Receiver:
+        null
+      Arguments(1):
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'x')
+            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C1[]) (Syntax: 'x')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Indices(1):
+      IInvocationOperation (System.Int32 Program.Get0()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get0()')
+        Instance Receiver:
+          null
+        Arguments(0)
+  Right:
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'G1()')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand:
+    IInvocationOperation (System.Int32 Program.G1()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'G1()')
+      Instance Receiver:
+        null
+      Arguments(0)
+");
+
+            verifier.VerifyIL("Program.Test2",
+@"
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelema    ""C1""
+  IL_0010:  call       ""int Program.G1()""
+  IL_0015:  conv.i8
+  IL_0016:  call       ""void C1." + methodName + @"(long)""
+  IL_001b:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test4<T>(T[])",
+@"
+{
+  // Code size       36 (0x24)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  readonly.
+  IL_000d:  ldelema    ""T""
+  IL_0012:  call       ""int Program.G1()""
+  IL_0017:  conv.i8
+  IL_0018:  constrained. ""T""
+  IL_001e:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_0023:  ret
+}
+");
+
+            opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().Where(n => n.OperatorToken.Text == op).Last();
+            symbolInfo = model.GetSymbolInfo(opNode);
+            Assert.Equal("void I1." + methodName + "(System.Int64 x)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("T", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            iOp = model.GetOperation(opNode);
+            VerifyOperationTree(comp2, iOp, @"
+ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @") (OperatorMethod: void I1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: T) (Syntax: 'GetA(x)[Get0()]" + op + @" G1()')
+  InConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Left:
+    IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: T) (Syntax: 'GetA(x)[Get0()]')
+      Array reference:
+        IInvocationOperation (T[] Program.GetA<T>(T[] x)) (OperationKind.Invocation, Type: T[]) (Syntax: 'GetA(x)')
+          Instance Receiver:
+            null
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'x')
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T[]) (Syntax: 'x')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Indices(1):
+          IInvocationOperation (System.Int32 Program.Get0()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get0()')
+            Instance Receiver:
+              null
+            Arguments(0)
+  Right:
+    IConversionOperation (TryCast: False, Checked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'G1()')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand:
+        IInvocationOperation (System.Int32 Program.G1()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'G1()')
+          Instance Receiver:
+            null
+          Arguments(0)
+");
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
+            var expectedErrors = new[] {
+                // (23,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //         GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "C1", "int").WithLocation(23, 9),
+                // (30,13): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //             GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "C1", "int").WithLocation(30, 13),
+                // (36,9): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //         GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "T", "int").WithLocation(36, 9),
+                // (43,13): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //             GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "T", "int").WithLocation(43, 13),
+                // (49,9): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //         GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "T", "int").WithLocation(49, 9),
+                // (56,13): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //             GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "T", "int").WithLocation(56, 13)
+                };
+            comp2.VerifyDiagnostics(expectedErrors);
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp2.VerifyDiagnostics(expectedErrors);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00720_Consumption_Used_Class([CombinatorialValues("+=", "-=", "*=", "/=")] string op, bool fromMetadata)
+        {
+            var source1 = @"
+public interface I1
+{
+    public void operator" + op + @"(long x);
+    public void operator checked" + op + @"(long x);
+}
+
+public class C1 : I1
+{
+    public int _F;
+    public void operator" + op + @"(long x)
+    {
+        System.Console.Write(""[operator]"");
+        _F = _F + (int)x;
+    } 
+    public void operator checked" + op + @"(long x)
+    {
+        System.Console.Write(""[operator checked]"");
+        _F = _F + (int)x;
+    } 
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class Program
+{
+    static C1[] x = [null];
+
+    static void Main()
+    {
+        var val = new C1();
+        x[0] = val;
+        C1 y = Test1(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine((object)val == y && x[0] is null);
+        x[0] = val;
+        y = Test2(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine((object)val == y && x[0] is null);
+        x[0] = val;
+        y = Test3(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine((object)val == y && x[0] is null);
+        x[0] = val;
+        y = Test4(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine((object)val == y && x[0] is null);
+        x[0] = val;
+        y = Test5(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine((object)val == y && x[0] is null);
+        x[0] = val;
+        y = Test6(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine((object)val == y && x[0] is null);
+    } 
+
+    static C1 Test1(C1[] x)
+    {
+#line 23
+        return GetA(x)[Get0()]" + op + @" G1();
+    } 
+
+    static C1 Test2(C1[] x)
+    {
+        checked
+        {
+            return GetA(x)[Get0()]" + op + @" G1();
+        }
+    } 
+
+    static T Test3<T>(T[] x) where T : class, I1
+    {
+        return GetA(x)[Get0()]" + op + @" G1();
+    } 
+
+    static T Test4<T>(T[] x) where T : class, I1
+    {
+        checked
+        {
+            return GetA(x)[Get0()]" + op + @" G1();
+        }
+    } 
+
+    static T Test5<T>(T[] x) where T : I1
+    {
+        return GetA(x)[Get0()]" + op + @" G1();
+    } 
+
+    static T Test6<T>(T[] x) where T : I1
+    {
+        checked
+        {
+            return GetA(x)[Get0()]" + op + @" G1();
+        }
+    } 
+
+    static T[] GetA<T>(T[] x)
+    {
+        System.Console.Write(""[GetA]"");
+        return x;
+    } 
+
+    static int Get0()
+    {
+        System.Console.Write(""[Get0]"");
+        return 0;
+    }
+
+    static int G1()
+    {
+        System.Console.Write(""[G1]"");
+        x[0] = null;
+        return 1;
+    }
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            const string expectedOutput = @"
+[GetA][Get0][G1][operator]1True
+[GetA][Get0][G1][operator checked]2True
+[GetA][Get0][G1][operator]3True
+[GetA][Get0][G1][operator checked]4True
+[GetA][Get0][G1][operator]5True
+[GetA][Get0][G1][operator checked]6True
+";
+            var verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var methodName = CompoundAssignmentOperatorName(op, isChecked: false);
+
+            verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       25 (0x19)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem.ref
+  IL_000c:  dup
+  IL_000d:  call       ""int Program.G1()""
+  IL_0012:  conv.i8
+  IL_0013:  callvirt   ""void C1." + methodName + @"(long)""
+  IL_0018:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test3<T>(T[])",
+@"
+{
+  // Code size       34 (0x22)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem     ""T""
+  IL_0010:  dup
+  IL_0011:  box        ""T""
+  IL_0016:  call       ""int Program.G1()""
+  IL_001b:  conv.i8
+  IL_001c:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_0021:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test5<T>(T[])",
+@"
+{
+  // Code size       85 (0x55)
+  .maxstack  3
+  .locals init (T[] V_0,
+                int V_1,
+                T V_2,
+                long V_3,
+                T V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""int Program.Get0()""
+  IL_000c:  stloc.1
+  IL_000d:  ldloc.0
+  IL_000e:  ldloc.1
+  IL_000f:  ldelem     ""T""
+  IL_0014:  stloc.2
+  IL_0015:  call       ""int Program.G1()""
+  IL_001a:  conv.i8
+  IL_001b:  stloc.3
+  IL_001c:  ldloca.s   V_4
+  IL_001e:  initobj    ""T""
+  IL_0024:  ldloc.s    V_4
+  IL_0026:  box        ""T""
+  IL_002b:  brtrue.s   IL_003d
+  IL_002d:  ldloca.s   V_2
+  IL_002f:  ldloc.3
+  IL_0030:  constrained. ""T""
+  IL_0036:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_003b:  br.s       IL_0053
+  IL_003d:  ldloca.s   V_2
+  IL_003f:  ldloc.3
+  IL_0040:  constrained. ""T""
+  IL_0046:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_004b:  ldloc.0
+  IL_004c:  ldloc.1
+  IL_004d:  ldloc.2
+  IL_004e:  stelem     ""T""
+  IL_0053:  ldloc.2
+  IL_0054:  ret
+}
+");
+
+            var tree = comp2.SyntaxTrees.Single();
+            var model = comp2.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().Where(n => n.OperatorToken.Text == op).First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("void C1." + methodName + "(System.Int64 x)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("C1", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            var iOp = model.GetOperation(opNode);
+            VerifyOperationTree(comp2, iOp, @"
+ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @") (OperatorMethod: void C1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: C1) (Syntax: 'GetA(x)[Get0()]" + op + @" G1()')
+  InConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Left:
+IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: C1) (Syntax: 'GetA(x)[Get0()]')
+  Array reference:
+    IInvocationOperation (C1[] Program.GetA<C1>(C1[] x)) (OperationKind.Invocation, Type: C1[]) (Syntax: 'GetA(x)')
+      Instance Receiver:
+        null
+      Arguments(1):
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'x')
+            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C1[]) (Syntax: 'x')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Indices(1):
+      IInvocationOperation (System.Int32 Program.Get0()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get0()')
+        Instance Receiver:
+          null
+        Arguments(0)
+  Right:
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'G1()')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand:
+    IInvocationOperation (System.Int32 Program.G1()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'G1()')
+      Instance Receiver:
+        null
+      Arguments(0)
+");
+
+            methodName = CompoundAssignmentOperatorName(op, isChecked: true);
+
+            verifier.VerifyIL("Program.Test2",
+@"
+{
+  // Code size       25 (0x19)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem.ref
+  IL_000c:  dup
+  IL_000d:  call       ""int Program.G1()""
+  IL_0012:  conv.i8
+  IL_0013:  callvirt   ""void C1." + methodName + @"(long)""
+  IL_0018:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test4<T>(T[])",
+@"
+{
+  // Code size       34 (0x22)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem     ""T""
+  IL_0010:  dup
+  IL_0011:  box        ""T""
+  IL_0016:  call       ""int Program.G1()""
+  IL_001b:  conv.i8
+  IL_001c:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_0021:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test6<T>(T[])",
+@"
+{
+  // Code size       85 (0x55)
+  .maxstack  3
+  .locals init (T[] V_0,
+                int V_1,
+                T V_2,
+                long V_3,
+                T V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""int Program.Get0()""
+  IL_000c:  stloc.1
+  IL_000d:  ldloc.0
+  IL_000e:  ldloc.1
+  IL_000f:  ldelem     ""T""
+  IL_0014:  stloc.2
+  IL_0015:  call       ""int Program.G1()""
+  IL_001a:  conv.i8
+  IL_001b:  stloc.3
+  IL_001c:  ldloca.s   V_4
+  IL_001e:  initobj    ""T""
+  IL_0024:  ldloc.s    V_4
+  IL_0026:  box        ""T""
+  IL_002b:  brtrue.s   IL_003d
+  IL_002d:  ldloca.s   V_2
+  IL_002f:  ldloc.3
+  IL_0030:  constrained. ""T""
+  IL_0036:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_003b:  br.s       IL_0053
+  IL_003d:  ldloca.s   V_2
+  IL_003f:  ldloc.3
+  IL_0040:  constrained. ""T""
+  IL_0046:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_004b:  ldloc.0
+  IL_004c:  ldloc.1
+  IL_004d:  ldloc.2
+  IL_004e:  stelem     ""T""
+  IL_0053:  ldloc.2
+  IL_0054:  ret
+}
+");
+
+            opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().Where(n => n.OperatorToken.Text == op).Last();
+            symbolInfo = model.GetSymbolInfo(opNode);
+            Assert.Equal("void I1." + methodName + "(System.Int64 x)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("T", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            iOp = model.GetOperation(opNode);
+            VerifyOperationTree(comp2, iOp, @"
+ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @", Checked) (OperatorMethod: void I1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: T) (Syntax: 'GetA(x)[Get0()]" + op + @" G1()')
+  InConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Left:
+    IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: T) (Syntax: 'GetA(x)[Get0()]')
+      Array reference:
+        IInvocationOperation (T[] Program.GetA<T>(T[] x)) (OperationKind.Invocation, Type: T[]) (Syntax: 'GetA(x)')
+          Instance Receiver:
+            null
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'x')
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T[]) (Syntax: 'x')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Indices(1):
+          IInvocationOperation (System.Int32 Program.Get0()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get0()')
+            Instance Receiver:
+              null
+            Arguments(0)
+  Right:
+    IConversionOperation (TryCast: False, Checked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'G1()')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand:
+        IInvocationOperation (System.Int32 Program.G1()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'G1()')
+          Instance Receiver:
+            null
+          Arguments(0)
+");
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
+            var expectedErrors = new[] {
+                // (23,16): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //         return GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "C1", "int").WithLocation(23, 16),
+                // (30,20): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //             return GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "C1", "int").WithLocation(30, 20),
+                // (36,16): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //         return GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "T", "int").WithLocation(36, 16),
+                // (43,20): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //             return GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "T", "int").WithLocation(43, 20),
+                // (49,16): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //         return GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "T", "int").WithLocation(49, 16),
+                // (56,20): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //             return GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "T", "int").WithLocation(56, 20)
+                };
+            comp2.VerifyDiagnostics(expectedErrors);
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp2.VerifyDiagnostics(expectedErrors);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00721_Consumption_Used_Class([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, bool fromMetadata)
+        {
+            var source1 = @"
+public interface I1
+{
+    public void operator" + op + @"(long x);
+}
+
+public class C1 : I1
+{
+    public int _F;
+    public void operator" + op + @"(long x)
+    {
+        System.Console.Write(""[operator]"");
+        _F = _F + (int)x;
+    } 
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class Program
+{
+    static C1[] x = [null];
+
+    static void Main()
+    {
+        var val = new C1();
+        x[0] = val;
+        C1 y = Test1(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine((object)val == y && x[0] is null);
+        x[0] = val;
+        y = Test2(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine((object)val == y && x[0] is null);
+        x[0] = val;
+        y = Test3(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine((object)val == y && x[0] is null);
+        x[0] = val;
+        y = Test4(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine((object)val == y && x[0] is null);
+        x[0] = val;
+        y = Test5(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine((object)val == y && x[0] is null);
+        x[0] = val;
+        y = Test6(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine((object)val == y && x[0] is null);
+    } 
+
+    static C1 Test1(C1[] x)
+    {
+#line 23
+        return GetA(x)[Get0()]" + op + @" G1();
+    } 
+
+    static C1 Test2(C1[] x)
+    {
+        checked
+        {
+            return GetA(x)[Get0()]" + op + @" G1();
+        }
+    } 
+
+    static T Test3<T>(T[] x) where T : class, I1
+    {
+        return GetA(x)[Get0()]" + op + @" G1();
+    } 
+
+    static T Test4<T>(T[] x) where T : class, I1
+    {
+        checked
+        {
+            return GetA(x)[Get0()]" + op + @" G1();
+        }
+    } 
+
+    static T Test5<T>(T[] x) where T : I1
+    {
+        return GetA(x)[Get0()]" + op + @" G1();
+    } 
+
+    static T Test6<T>(T[] x) where T : I1
+    {
+        checked
+        {
+            return GetA(x)[Get0()]" + op + @" G1();
+        }
+    } 
+
+    static T[] GetA<T>(T[] x)
+    {
+        System.Console.Write(""[GetA]"");
+        return x;
+    } 
+
+    static int Get0()
+    {
+        System.Console.Write(""[Get0]"");
+        return 0;
+    }
+
+    static int G1()
+    {
+        System.Console.Write(""[G1]"");
+        x[0] = null;
+        return 1;
+    }
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            const string expectedOutput = @"
+[GetA][Get0][G1][operator]1True
+[GetA][Get0][G1][operator]2True
+[GetA][Get0][G1][operator]3True
+[GetA][Get0][G1][operator]4True
+[GetA][Get0][G1][operator]5True
+[GetA][Get0][G1][operator]6True
+";
+            var verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var methodName = CompoundAssignmentOperatorName(op, isChecked: false);
+
+            verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       25 (0x19)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem.ref
+  IL_000c:  dup
+  IL_000d:  call       ""int Program.G1()""
+  IL_0012:  conv.i8
+  IL_0013:  callvirt   ""void C1." + methodName + @"(long)""
+  IL_0018:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test3<T>(T[])",
+@"
+{
+  // Code size       34 (0x22)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem     ""T""
+  IL_0010:  dup
+  IL_0011:  box        ""T""
+  IL_0016:  call       ""int Program.G1()""
+  IL_001b:  conv.i8
+  IL_001c:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_0021:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test5<T>(T[])",
+@"
+{
+  // Code size       85 (0x55)
+  .maxstack  3
+  .locals init (T[] V_0,
+                int V_1,
+                T V_2,
+                long V_3,
+                T V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""int Program.Get0()""
+  IL_000c:  stloc.1
+  IL_000d:  ldloc.0
+  IL_000e:  ldloc.1
+  IL_000f:  ldelem     ""T""
+  IL_0014:  stloc.2
+  IL_0015:  call       ""int Program.G1()""
+  IL_001a:  conv.i8
+  IL_001b:  stloc.3
+  IL_001c:  ldloca.s   V_4
+  IL_001e:  initobj    ""T""
+  IL_0024:  ldloc.s    V_4
+  IL_0026:  box        ""T""
+  IL_002b:  brtrue.s   IL_003d
+  IL_002d:  ldloca.s   V_2
+  IL_002f:  ldloc.3
+  IL_0030:  constrained. ""T""
+  IL_0036:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_003b:  br.s       IL_0053
+  IL_003d:  ldloca.s   V_2
+  IL_003f:  ldloc.3
+  IL_0040:  constrained. ""T""
+  IL_0046:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_004b:  ldloc.0
+  IL_004c:  ldloc.1
+  IL_004d:  ldloc.2
+  IL_004e:  stelem     ""T""
+  IL_0053:  ldloc.2
+  IL_0054:  ret
+}
+");
+
+            var tree = comp2.SyntaxTrees.Single();
+            var model = comp2.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().Where(n => n.OperatorToken.Text == op).First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("void C1." + methodName + "(System.Int64 x)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("C1", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            var iOp = model.GetOperation(opNode);
+            VerifyOperationTree(comp2, iOp, @"
+ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @") (OperatorMethod: void C1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: C1) (Syntax: 'GetA(x)[Get0()]" + op + @" G1()')
+  InConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Left:
+IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: C1) (Syntax: 'GetA(x)[Get0()]')
+  Array reference:
+    IInvocationOperation (C1[] Program.GetA<C1>(C1[] x)) (OperationKind.Invocation, Type: C1[]) (Syntax: 'GetA(x)')
+      Instance Receiver:
+        null
+      Arguments(1):
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'x')
+            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C1[]) (Syntax: 'x')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Indices(1):
+      IInvocationOperation (System.Int32 Program.Get0()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get0()')
+        Instance Receiver:
+          null
+        Arguments(0)
+  Right:
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'G1()')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand:
+    IInvocationOperation (System.Int32 Program.G1()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'G1()')
+      Instance Receiver:
+        null
+      Arguments(0)
+");
+
+            verifier.VerifyIL("Program.Test2",
+@"
+{
+  // Code size       25 (0x19)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem.ref
+  IL_000c:  dup
+  IL_000d:  call       ""int Program.G1()""
+  IL_0012:  conv.i8
+  IL_0013:  callvirt   ""void C1." + methodName + @"(long)""
+  IL_0018:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test4<T>(T[])",
+@"
+{
+  // Code size       34 (0x22)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem     ""T""
+  IL_0010:  dup
+  IL_0011:  box        ""T""
+  IL_0016:  call       ""int Program.G1()""
+  IL_001b:  conv.i8
+  IL_001c:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_0021:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test6<T>(T[])",
+@"
+{
+  // Code size       85 (0x55)
+  .maxstack  3
+  .locals init (T[] V_0,
+                int V_1,
+                T V_2,
+                long V_3,
+                T V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""int Program.Get0()""
+  IL_000c:  stloc.1
+  IL_000d:  ldloc.0
+  IL_000e:  ldloc.1
+  IL_000f:  ldelem     ""T""
+  IL_0014:  stloc.2
+  IL_0015:  call       ""int Program.G1()""
+  IL_001a:  conv.i8
+  IL_001b:  stloc.3
+  IL_001c:  ldloca.s   V_4
+  IL_001e:  initobj    ""T""
+  IL_0024:  ldloc.s    V_4
+  IL_0026:  box        ""T""
+  IL_002b:  brtrue.s   IL_003d
+  IL_002d:  ldloca.s   V_2
+  IL_002f:  ldloc.3
+  IL_0030:  constrained. ""T""
+  IL_0036:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_003b:  br.s       IL_0053
+  IL_003d:  ldloca.s   V_2
+  IL_003f:  ldloc.3
+  IL_0040:  constrained. ""T""
+  IL_0046:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_004b:  ldloc.0
+  IL_004c:  ldloc.1
+  IL_004d:  ldloc.2
+  IL_004e:  stelem     ""T""
+  IL_0053:  ldloc.2
+  IL_0054:  ret
+}
+");
+
+            opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().Where(n => n.OperatorToken.Text == op).Last();
+            symbolInfo = model.GetSymbolInfo(opNode);
+            Assert.Equal("void I1." + methodName + "(System.Int64 x)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("T", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            iOp = model.GetOperation(opNode);
+            VerifyOperationTree(comp2, iOp, @"
+ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @") (OperatorMethod: void I1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: T) (Syntax: 'GetA(x)[Get0()]" + op + @" G1()')
+  InConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Left:
+    IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: T) (Syntax: 'GetA(x)[Get0()]')
+      Array reference:
+        IInvocationOperation (T[] Program.GetA<T>(T[] x)) (OperationKind.Invocation, Type: T[]) (Syntax: 'GetA(x)')
+          Instance Receiver:
+            null
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'x')
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T[]) (Syntax: 'x')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Indices(1):
+          IInvocationOperation (System.Int32 Program.Get0()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get0()')
+            Instance Receiver:
+              null
+            Arguments(0)
+  Right:
+    IConversionOperation (TryCast: False, Checked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'G1()')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand:
+        IInvocationOperation (System.Int32 Program.G1()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'G1()')
+          Instance Receiver:
+            null
+          Arguments(0)
+");
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
+            var expectedErrors = new[] {
+                // (23,16): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //         return GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "C1", "int").WithLocation(23, 16),
+                // (30,20): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //             return GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "C1", "int").WithLocation(30, 20),
+                // (36,16): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //         return GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "T", "int").WithLocation(36, 16),
+                // (43,20): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //             return GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "T", "int").WithLocation(43, 20),
+                // (49,16): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //         return GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "T", "int").WithLocation(49, 16),
+                // (56,20): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //             return GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "T", "int").WithLocation(56, 20)
+                };
+            comp2.VerifyDiagnostics(expectedErrors);
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp2.VerifyDiagnostics(expectedErrors);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00730_Consumption_Used_Struct([CombinatorialValues("+=", "-=", "*=", "/=")] string op, bool fromMetadata)
+        {
+            var source1 = @"
+public interface I1
+{
+    public void operator" + op + @"(long x);
+    public void operator checked" + op + @"(long x);
+}
+
+public struct C1 : I1
+{
+    public int _F;
+    public void operator" + op + @"(long x)
+    {
+        System.Console.Write(""[operator]"");
+        _F = _F + (int)x;
+    } 
+    public void operator checked" + op + @"(long x)
+    {
+        System.Console.Write(""[operator checked]"");
+        _F = _F + (int)x;
+    } 
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class Program
+{
+    static C1[] x = [new C1()];
+
+    static void Main()
+    {
+        C1 y = Test1(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine(x[0]._F);
+        y = Test2(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine(x[0]._F);
+        y = Test3(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine(x[0]._F);
+        y = Test4(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine(x[0]._F);
+        y = Test5(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine(x[0]._F);
+        y = Test6(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine(x[0]._F);
+    } 
+
+    static C1 Test1(C1[] x)
+    {
+#line 23
+        return GetA(x)[Get0()]" + op + @" G1();
+    } 
+
+    static C1 Test2(C1[] x)
+    {
+        checked
+        {
+            return GetA(x)[Get0()]" + op + @" G1();
+        }
+    } 
+
+    static T Test3<T>(T[] x) where T : struct, I1
+    {
+        return GetA(x)[Get0()]" + op + @" G1();
+    } 
+
+    static T Test4<T>(T[] x) where T : struct, I1
+    {
+        checked
+        {
+            return GetA(x)[Get0()]" + op + @" G1();
+        }
+    } 
+
+    static T Test5<T>(T[] x) where T : I1
+    {
+        return GetA(x)[Get0()]" + op + @" G1();
+    } 
+
+    static T Test6<T>(T[] x) where T : I1
+    {
+        checked
+        {
+            return GetA(x)[Get0()]" + op + @" G1();
+        }
+    } 
+
+    static T[] GetA<T>(T[] x)
+    {
+        System.Console.Write(""[GetA]"");
+        return x;
+    } 
+
+    static int Get0()
+    {
+        System.Console.Write(""[Get0]"");
+        return 0;
+    }
+
+    static int G1()
+    {
+        System.Console.Write(""[G1]"");
+        x[0] = new C1() { _F = -1 };
+        return 1;
+    }
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            const string expectedOutput = @"
+[GetA][Get0][G1][operator]11
+[GetA][Get0][G1][operator checked]22
+[GetA][Get0][G1][operator]33
+[GetA][Get0][G1][operator checked]44
+[GetA][Get0][G1][operator]55
+[GetA][Get0][G1][operator checked]66
+";
+            var verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var methodName = CompoundAssignmentOperatorName(op, isChecked: false);
+
+            verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       44 (0x2c)
+  .maxstack  3
+  .locals init (C1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelema    ""C1""
+  IL_0010:  dup
+  IL_0011:  ldobj      ""C1""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""int Program.G1()""
+  IL_001e:  conv.i8
+  IL_001f:  call       ""void C1." + methodName + @"(long)""
+  IL_0024:  ldloc.0
+  IL_0025:  stobj      ""C1""
+  IL_002a:  ldloc.0
+  IL_002b:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test3<T>(T[])",
+@"
+{
+  // Code size       48 (0x30)
+  .maxstack  3
+  .locals init (int V_0,
+                T V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  stloc.0
+  IL_000c:  dup
+  IL_000d:  ldloc.0
+  IL_000e:  ldelem     ""T""
+  IL_0013:  stloc.1
+  IL_0014:  ldloca.s   V_1
+  IL_0016:  call       ""int Program.G1()""
+  IL_001b:  conv.i8
+  IL_001c:  constrained. ""T""
+  IL_0022:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_0027:  ldloc.0
+  IL_0028:  ldloc.1
+  IL_0029:  stelem     ""T""
+  IL_002e:  ldloc.1
+  IL_002f:  ret
+}
+");
+
+            var tree = comp2.SyntaxTrees.Single();
+            var model = comp2.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().Where(n => n.OperatorToken.Text == op).First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("void C1." + methodName + "(System.Int64 x)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("C1", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            var iOp = model.GetOperation(opNode);
+            VerifyOperationTree(comp2, iOp, @"
+ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @") (OperatorMethod: void C1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: C1) (Syntax: 'GetA(x)[Get0()]" + op + @" G1()')
+  InConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Left:
+IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: C1) (Syntax: 'GetA(x)[Get0()]')
+  Array reference:
+    IInvocationOperation (C1[] Program.GetA<C1>(C1[] x)) (OperationKind.Invocation, Type: C1[]) (Syntax: 'GetA(x)')
+      Instance Receiver:
+        null
+      Arguments(1):
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'x')
+            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C1[]) (Syntax: 'x')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Indices(1):
+      IInvocationOperation (System.Int32 Program.Get0()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get0()')
+        Instance Receiver:
+          null
+        Arguments(0)
+  Right:
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'G1()')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand:
+    IInvocationOperation (System.Int32 Program.G1()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'G1()')
+      Instance Receiver:
+        null
+      Arguments(0)
+");
+
+            methodName = CompoundAssignmentOperatorName(op, isChecked: true);
+
+            verifier.VerifyIL("Program.Test2",
+@"
+{
+  // Code size       44 (0x2c)
+  .maxstack  3
+  .locals init (C1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelema    ""C1""
+  IL_0010:  dup
+  IL_0011:  ldobj      ""C1""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""int Program.G1()""
+  IL_001e:  conv.i8
+  IL_001f:  call       ""void C1." + methodName + @"(long)""
+  IL_0024:  ldloc.0
+  IL_0025:  stobj      ""C1""
+  IL_002a:  ldloc.0
+  IL_002b:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test4<T>(T[])",
+@"
+{
+  // Code size       48 (0x30)
+  .maxstack  3
+  .locals init (int V_0,
+                T V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  stloc.0
+  IL_000c:  dup
+  IL_000d:  ldloc.0
+  IL_000e:  ldelem     ""T""
+  IL_0013:  stloc.1
+  IL_0014:  ldloca.s   V_1
+  IL_0016:  call       ""int Program.G1()""
+  IL_001b:  conv.i8
+  IL_001c:  constrained. ""T""
+  IL_0022:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_0027:  ldloc.0
+  IL_0028:  ldloc.1
+  IL_0029:  stelem     ""T""
+  IL_002e:  ldloc.1
+  IL_002f:  ret
+}
+");
+
+            opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().Where(n => n.OperatorToken.Text == op).Last();
+            symbolInfo = model.GetSymbolInfo(opNode);
+            Assert.Equal("void I1." + methodName + "(System.Int64 x)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("T", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            iOp = model.GetOperation(opNode);
+            VerifyOperationTree(comp2, iOp, @"
+ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @", Checked) (OperatorMethod: void I1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: T) (Syntax: 'GetA(x)[Get0()]" + op + @" G1()')
+  InConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Left:
+    IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: T) (Syntax: 'GetA(x)[Get0()]')
+      Array reference:
+        IInvocationOperation (T[] Program.GetA<T>(T[] x)) (OperationKind.Invocation, Type: T[]) (Syntax: 'GetA(x)')
+          Instance Receiver:
+            null
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'x')
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T[]) (Syntax: 'x')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Indices(1):
+          IInvocationOperation (System.Int32 Program.Get0()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get0()')
+            Instance Receiver:
+              null
+            Arguments(0)
+  Right:
+    IConversionOperation (TryCast: False, Checked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'G1()')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand:
+        IInvocationOperation (System.Int32 Program.G1()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'G1()')
+          Instance Receiver:
+            null
+          Arguments(0)
+");
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
+            var expectedErrors = new[] {
+                // (23,16): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //         return GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "C1", "int").WithLocation(23, 16),
+                // (30,20): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //             return GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "C1", "int").WithLocation(30, 20),
+                // (36,16): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //         return GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "T", "int").WithLocation(36, 16),
+                // (43,20): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //             return GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "T", "int").WithLocation(43, 20),
+                // (49,16): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //         return GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "T", "int").WithLocation(49, 16),
+                // (56,20): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //             return GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "T", "int").WithLocation(56, 20)
+                };
+            comp2.VerifyDiagnostics(expectedErrors);
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp2.VerifyDiagnostics(expectedErrors);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00731_Consumption_Used_Struct([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, bool fromMetadata)
+        {
+            var source1 = @"
+public interface I1
+{
+    public void operator" + op + @"(long x);
+}
+
+public struct C1 : I1
+{
+    public int _F;
+    public void operator" + op + @"(long x)
+    {
+        System.Console.Write(""[operator]"");
+        _F = _F + (int)x;
+    } 
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class Program
+{
+    static C1[] x = [new C1()];
+
+    static void Main()
+    {
+        C1 y = Test1(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine(x[0]._F);
+        y = Test2(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine(x[0]._F);
+        y = Test3(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine(x[0]._F);
+        y = Test4(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine(x[0]._F);
+        y = Test5(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine(x[0]._F);
+        y = Test6(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine(x[0]._F);
+    } 
+
+    static C1 Test1(C1[] x)
+    {
+#line 23
+        return GetA(x)[Get0()]" + op + @" G1();
+    } 
+
+    static C1 Test2(C1[] x)
+    {
+        checked
+        {
+            return GetA(x)[Get0()]" + op + @" G1();
+        }
+    } 
+
+    static T Test3<T>(T[] x) where T : struct, I1
+    {
+        return GetA(x)[Get0()]" + op + @" G1();
+    } 
+
+    static T Test4<T>(T[] x) where T : struct, I1
+    {
+        checked
+        {
+            return GetA(x)[Get0()]" + op + @" G1();
+        }
+    } 
+
+    static T Test5<T>(T[] x) where T : I1
+    {
+        return GetA(x)[Get0()]" + op + @" G1();
+    } 
+
+    static T Test6<T>(T[] x) where T : I1
+    {
+        checked
+        {
+            return GetA(x)[Get0()]" + op + @" G1();
+        }
+    } 
+
+    static T[] GetA<T>(T[] x)
+    {
+        System.Console.Write(""[GetA]"");
+        return x;
+    } 
+
+    static int Get0()
+    {
+        System.Console.Write(""[Get0]"");
+        return 0;
+    }
+
+    static int G1()
+    {
+        System.Console.Write(""[G1]"");
+        x[0] = new C1() { _F = -1 };
+        return 1;
+    }
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            const string expectedOutput = @"
+[GetA][Get0][G1][operator]11
+[GetA][Get0][G1][operator]22
+[GetA][Get0][G1][operator]33
+[GetA][Get0][G1][operator]44
+[GetA][Get0][G1][operator]55
+[GetA][Get0][G1][operator]66
+";
+            var verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var methodName = CompoundAssignmentOperatorName(op, isChecked: false);
+
+            verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       44 (0x2c)
+  .maxstack  3
+  .locals init (C1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelema    ""C1""
+  IL_0010:  dup
+  IL_0011:  ldobj      ""C1""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""int Program.G1()""
+  IL_001e:  conv.i8
+  IL_001f:  call       ""void C1." + methodName + @"(long)""
+  IL_0024:  ldloc.0
+  IL_0025:  stobj      ""C1""
+  IL_002a:  ldloc.0
+  IL_002b:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test3<T>(T[])",
+@"
+{
+  // Code size       48 (0x30)
+  .maxstack  3
+  .locals init (int V_0,
+                T V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  stloc.0
+  IL_000c:  dup
+  IL_000d:  ldloc.0
+  IL_000e:  ldelem     ""T""
+  IL_0013:  stloc.1
+  IL_0014:  ldloca.s   V_1
+  IL_0016:  call       ""int Program.G1()""
+  IL_001b:  conv.i8
+  IL_001c:  constrained. ""T""
+  IL_0022:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_0027:  ldloc.0
+  IL_0028:  ldloc.1
+  IL_0029:  stelem     ""T""
+  IL_002e:  ldloc.1
+  IL_002f:  ret
+}
+");
+
+            var tree = comp2.SyntaxTrees.Single();
+            var model = comp2.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().Where(n => n.OperatorToken.Text == op).First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("void C1." + methodName + "(System.Int64 x)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("C1", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            var iOp = model.GetOperation(opNode);
+            VerifyOperationTree(comp2, iOp, @"
+ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @") (OperatorMethod: void C1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: C1) (Syntax: 'GetA(x)[Get0()]" + op + @" G1()')
+  InConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Left:
+IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: C1) (Syntax: 'GetA(x)[Get0()]')
+  Array reference:
+    IInvocationOperation (C1[] Program.GetA<C1>(C1[] x)) (OperationKind.Invocation, Type: C1[]) (Syntax: 'GetA(x)')
+      Instance Receiver:
+        null
+      Arguments(1):
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'x')
+            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C1[]) (Syntax: 'x')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Indices(1):
+      IInvocationOperation (System.Int32 Program.Get0()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get0()')
+        Instance Receiver:
+          null
+        Arguments(0)
+  Right:
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'G1()')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand:
+    IInvocationOperation (System.Int32 Program.G1()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'G1()')
+      Instance Receiver:
+        null
+      Arguments(0)
+");
+
+            verifier.VerifyIL("Program.Test2",
+@"
+{
+  // Code size       44 (0x2c)
+  .maxstack  3
+  .locals init (C1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelema    ""C1""
+  IL_0010:  dup
+  IL_0011:  ldobj      ""C1""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""int Program.G1()""
+  IL_001e:  conv.i8
+  IL_001f:  call       ""void C1." + methodName + @"(long)""
+  IL_0024:  ldloc.0
+  IL_0025:  stobj      ""C1""
+  IL_002a:  ldloc.0
+  IL_002b:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test4<T>(T[])",
+@"
+{
+  // Code size       48 (0x30)
+  .maxstack  3
+  .locals init (int V_0,
+                T V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  stloc.0
+  IL_000c:  dup
+  IL_000d:  ldloc.0
+  IL_000e:  ldelem     ""T""
+  IL_0013:  stloc.1
+  IL_0014:  ldloca.s   V_1
+  IL_0016:  call       ""int Program.G1()""
+  IL_001b:  conv.i8
+  IL_001c:  constrained. ""T""
+  IL_0022:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_0027:  ldloc.0
+  IL_0028:  ldloc.1
+  IL_0029:  stelem     ""T""
+  IL_002e:  ldloc.1
+  IL_002f:  ret
+}
+");
+
+            opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().Where(n => n.OperatorToken.Text == op).Last();
+            symbolInfo = model.GetSymbolInfo(opNode);
+            Assert.Equal("void I1." + methodName + "(System.Int64 x)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("T", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            iOp = model.GetOperation(opNode);
+            VerifyOperationTree(comp2, iOp, @"
+ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @") (OperatorMethod: void I1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: T) (Syntax: 'GetA(x)[Get0()]" + op + @" G1()')
+  InConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Left:
+    IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: T) (Syntax: 'GetA(x)[Get0()]')
+      Array reference:
+        IInvocationOperation (T[] Program.GetA<T>(T[] x)) (OperationKind.Invocation, Type: T[]) (Syntax: 'GetA(x)')
+          Instance Receiver:
+            null
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'x')
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T[]) (Syntax: 'x')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Indices(1):
+          IInvocationOperation (System.Int32 Program.Get0()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get0()')
+            Instance Receiver:
+              null
+            Arguments(0)
+  Right:
+    IConversionOperation (TryCast: False, Checked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'G1()')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand:
+        IInvocationOperation (System.Int32 Program.G1()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'G1()')
+          Instance Receiver:
+            null
+          Arguments(0)
+");
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
+            var expectedErrors = new[] {
+                // (23,16): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //         return GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "C1", "int").WithLocation(23, 16),
+                // (30,20): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //             return GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "C1", "int").WithLocation(30, 20),
+                // (36,16): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //         return GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "T", "int").WithLocation(36, 16),
+                // (43,20): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //             return GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "T", "int").WithLocation(43, 20),
+                // (49,16): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //         return GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "T", "int").WithLocation(49, 16),
+                // (56,20): error CS0019: Operator '+=' cannot be applied to operands of type 'T' and 'int'
+                //             return GetA(x)[Get0()]+= G1();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()]" + op + @" G1()").WithArguments(op, "T", "int").WithLocation(56, 20)
+                };
+            comp2.VerifyDiagnostics(expectedErrors);
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp2.VerifyDiagnostics(expectedErrors);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00800_Consumption_CheckedVersionInRegularContext([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source1 = @"
+public class C1
+{
+    public int _F;
+    public void operator checked " + op + @"(int x)
+    {
+        System.Console.Write(""[operator]"");
+        _F+=x;
+    } 
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        C1[] x = [new C1()];
+        Test1(x);
+        System.Console.WriteLine(x[0]._F);
+    } 
+
+    static void Test1(C1[] x)
+    {
+        GetA(x)[Get0()] " + op + @" 1;
+    } 
+
+    static T[] GetA<T>(T[] x)
+    {
+        System.Console.Write(""[GetA]"");
+        return x;
+    } 
+
+    static int Get0()
+    {
+        System.Console.Write(""[Get0]"");
+        return 0;
+    }
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            comp2.VerifyDiagnostics(
+                // (13,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //         GetA(x)[Get0()] += 1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "GetA(x)[Get0()] " + op + @" 1").WithArguments(op, "C1", "int").WithLocation(13, 9)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00810_Consumption_Shadowing([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            string checkedForm = null;
+
+            if (CompoundAssignmentOperatorHasCheckedForm(op))
+            {
+                checkedForm = @"
+    public void operator checked" + op + @"(int x) => throw null;
+";
+            }
+
+            var source1 = @"
+public class C1
+{
+    public void operator" + op + @"(int x) => throw null;
+" + checkedForm + @"
+}
+
+public class C2 : C1
+{
+    public new void operator" + op + @"(int x)
+    {
+        System.Console.Write(""[operator]"");
+    } 
+}
+
+public class Program
+{
+    static void Main()
+    {
+        var x = new C2();
+        x " + op + @" 1;
+        checked
+        {
+            x " + op + @" 1;
+        }
+    } 
+}
+";
+
+            var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "[operator][operator]").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_082_Consumption_Shadowing([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source1_1 = @"
+public class C1
+{
+    public void operator" + op + @"(int x) => throw null;
+    public void operator checked" + op + @"(int x) => throw null;
+}
+
+public class C2 : C1
+{
+    public new void operator checked " + op + @"(int x) => throw null;
+}
+";
+
+            var comp1_1 = CreateCompilation(source1_1, assemblyName: "C");
+
+            var source2 = @"
+public class Test
+{
+    public static void Main()
+    {
+        var x = new C2();
+        x " + op + @" 1;
+        checked
+        {
+            x " + op + @" 1;
+        }
+    } 
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [comp1_1.ToMetadataReference()]);
+            comp2.VerifyDiagnostics();
+
+            var source1_2 = @"
+public class C1
+{
+    public void operator" + op + @"(int x)
+    {
+        System.Console.Write(""[operator]"");
+    } 
+
+    public void operator checked" + op + @"(int x) => throw null;
+}
+
+public class C2 : C1
+{
+    public new void operator checked " + op + @"(int x)
+    {
+        System.Console.Write(""[checked operator]"");
+    } 
+
+    public new void operator " + op + @"(int x) => throw null;
+}
+";
+
+            var source3 = @"
+public class Program
+{
+    static void Main()
+    {
+        Test.Main();
+    } 
+}
+";
+            var comp1_2 = CreateCompilation(source1_2, assemblyName: "C");
+
+            var comp3 = CreateCompilation(source3, references: [comp1_2.EmitToImageReference(), comp2.EmitToImageReference()], options: TestOptions.DebugExe);
+            CompileAndVerify(comp3, expectedOutput: "[operator][checked operator]").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00830_Consumption_Shadowing([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source1 = @"
+public abstract class C1
+{
+    public abstract void operator" + op + @"(int x);
+    public void operator checked" + op + @"(int x) => throw null;
+}
+
+public class C2 : C1
+{
+    public new void operator checked " + op + @"(int x)
+    {
+        System.Console.Write(""[checked operator]"");
+    } 
+
+    public override void operator " + op + @"(int x)
+    {
+        System.Console.Write(""[operator]"");
+    } 
+}
+
+public class Program
+{
+    static void Main()
+    {
+        var x = new C2();
+        x " + op + @" 1;
+        checked
+        {
+            x " + op + @" 1;
+        }
+    } 
+}
+";
+
+            var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "[operator][checked operator]").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00840_Consumption_Overriding([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source1 = @"
+public abstract class C1
+{
+    public abstract void operator" + op + @"(int x);
+    public abstract void operator checked" + op + @"(int x);
+}
+
+public abstract class C2 : C1
+{
+    public override void operator checked " + op + @"(int x)
+    {
+        System.Console.Write(""[checked operator]"");
+    } 
+}
+
+public class C3 : C2
+{
+    public override void operator " + op + @"(int x)
+    {
+        System.Console.Write(""[operator]"");
+    } 
+}
+
+public class Program
+{
+    static void Main()
+    {
+        var x = new C3();
+        x " + op + @" 1;
+        checked
+        {
+            x " + op + @" 1;
+        }
+    } 
+}
+";
+
+            var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "[operator][checked operator]").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CompoundAssignment_00850_Consumption_Ambiguity()
+        {
+            var source1 = @"
+public interface I1
+{
+    public void operator +=(int x);
+}
+
+public interface I2<T> where T : I2<T>
+{
+    public void operator +=(int x);
+    public abstract static T operator +(T x, int y);
+    public abstract static T operator -(T x, int y);
+}
+
+public class Program
+{
+    static void Test5<T>(T x) where T : I1, I2<T>
+    {
+        x += 1;
+        x -= 1;
+    } 
+}
+";
+
+            var comp1 = CreateCompilation(source1, targetFramework: TargetFramework.Net90);
+            comp1.VerifyDiagnostics(
+                // (18,11): error CS0121: The call is ambiguous between the following methods or properties: 'I1.operator +=(int)' and 'I2<T>.operator +=(int)'
+                //         x += 1;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "+=").WithArguments("I1.operator +=(int)", "I2<T>.operator +=(int)").WithLocation(18, 11)
+                );
+
+            var tree = comp1.SyntaxTrees.Single();
+            var model = comp1.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+            Assert.Equal(2, symbolInfo.CandidateSymbols.Length);
+            Assert.Equal("void I1.op_AdditionAssignment(System.Int32 x)", symbolInfo.CandidateSymbols[0].ToTestDisplayString());
+            Assert.Equal("void I2<T>.op_AdditionAssignment(System.Int32 x)", symbolInfo.CandidateSymbols[1].ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().Last();
+            symbolInfo = model.GetSymbolInfo(opNode);
+            Assert.Equal("T I2<T>.op_Subtraction(T x, System.Int32 y)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+
+            group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+        }
+
+        [Fact]
+        public void CompoundAssignment_00860_Consumption_UseStaticOperatorsInOldVersion()
+        {
+            var source1 = @"
+public class C1
+{
+    public int _F;
+
+    public void operator +=(int x)
+    {
+        System.Console.Write(""[instance operator]"");
+        _F+=x;
+    } 
+
+    public void operator checked +=(int x)
+    {
+        System.Console.Write(""[instance operator checked]"");
+        checked
+        {
+            _F+=x;
+        }
+    } 
+
+    public static C1 operator +(C1 x, int y)
+    {
+        System.Console.Write(""[static operator]"");
+        return new C1() { _F = x._F + y };
+    } 
+    public static C1 operator checked +(C1 x, int y)
+    {
+        System.Console.Write(""[static operator checked]"");
+        checked
+        {
+            return new C1() { _F = x._F + y };
+        }
+    } 
+}
+";
+            var comp1Ref = CreateCompilation(source1).EmitToImageReference();
+
+            var source2 = @"
+public class Program
+{
+    static C1 P = new C1();
+
+    static void Main()
+    {
+        C1 x;
+
+        P += 1;
+        System.Console.WriteLine(P._F);
+        x = P += 1;
+        System.Console.WriteLine(P._F);
+
+        checked
+        {
+            P += 1;
+            System.Console.WriteLine(P._F);
+            x = P += 1;
+            System.Console.WriteLine(P._F);
+        }
+    } 
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [comp1Ref], options: TestOptions.DebugExe);
+            CompileAndVerify(comp2, expectedOutput: @"
+[instance operator]1
+[instance operator]2
+[instance operator checked]3
+[instance operator checked]4
+").VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            CompileAndVerify(comp2, expectedOutput: @"
+[static operator]1
+[static operator]2
+[static operator checked]3
+[static operator checked]4
+").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CompoundAssignment_00870_Consumption_Obsolete()
+        {
+            var source1 = @"
+public class C1
+{
+    [System.Obsolete(""Test"")]
+    public void operator +=(int x) {}
+}
+
+public class Program
+{
+    static void Main()
+    {
+        var x = new C1();
+        x += 1;
+    } 
+}
+";
+
+            var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe);
+            CompileAndVerify(comp1).VerifyDiagnostics(
+                // (13,9): warning CS0618: 'C1.operator +=(int)' is obsolete: 'Test'
+                //         x += 1;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "x += 1").WithArguments("C1.operator +=(int)", "Test").WithLocation(13, 9)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_00880_Consumption_UnmanagedCallersOnly()
+        {
+            var source1 = @"
+public class C1
+{
+    [System.Runtime.InteropServices.UnmanagedCallersOnly]
+    public void operator +=(int x) {}
+}
+
+public class Program
+{
+    static void Main()
+    {
+        var x = new C1();
+        x += 1;
+    } 
+}
+";
+
+            var comp1 = CreateCompilation(source1, targetFramework: TargetFramework.Net90, options: TestOptions.DebugExe);
+            comp1.VerifyDiagnostics(
+                // (4,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
+                //     [System.Runtime.InteropServices.UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "System.Runtime.InteropServices.UnmanagedCallersOnly").WithLocation(4, 6),
+                // (13,9): error CS8901: 'C1.operator +=(int)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         x += 1;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "x += 1").WithArguments("C1.operator +=(int)").WithLocation(13, 9)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_00890_Consumption_NullableAnalysis()
+        {
+            var source1 = @"
+public class C1
+{
+    public void operator +=(int x) {}
+}
+
+#nullable enable
+
+public class Program
+{
+    static void Main()
+    {
+        C1? x = null;
+
+        try
+        {
+            x += 1;
+            System.Console.Write(""unreachable"");
+            x.ToString();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.Write(""in catch"");
+        }
+
+        C1? y = new C1();
+        y += 1;
+    } 
+}
+";
+
+            var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "in catch").VerifyDiagnostics(
+                // (17,13): warning CS8602: Dereference of a possibly null reference.
+                //             x += 1;
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(17, 13)
+                );
+
+            var source2 = @"
+public class C1
+{
+    public void operator +=(int x) {}
+}
+
+#nullable enable
+
+public class Program
+{
+    static void Main()
+    {
+        C1? x = null;
+
+        if (false)
+        {
+            x += 1;
+            System.Console.Write(""unreachable"");
+            x.ToString();
+        }
+
+        System.Console.Write(""Done"");
+    } 
+}
+";
+
+            var comp2 = CreateCompilation(source2, options: TestOptions.DebugExe);
+            CompileAndVerify(comp2, expectedOutput: "Done").VerifyDiagnostics(
+                // (17,13): warning CS0162: Unreachable code detected
+                //             x += 1;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "x").WithLocation(17, 13)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_00891_Consumption_NullableAnalysis()
+        {
+            var source1 = @"
+public class C1<T>
+{
+    public void operator +=(T x) {}
+}
+
+#nullable enable
+
+public class Program
+{
+    static C1<T> GetC1<T>(T x) => new C1<T>();
+
+    static void Main()
+    {
+        string? x = null;
+        var c1 = GetC1(new object());
+
+        c1 += x;
+        x.ToString();
+
+        var c2 = GetC1((object?)null);
+        c2 += null;
+        c2 += (string?)null;
+    } 
+}
+";
+
+            var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe);
+            comp1.VerifyDiagnostics(
+                // (18,15): warning CS8604: Possible null reference argument for parameter 'x' in 'void C1<object>.operator +=(object x)'.
+                //         c1 += x;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "void C1<object>.operator +=(object x)").WithLocation(18, 15)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_00900_Consumption_BadOperator()
+        {
+            var source1 = @"
+public class C1
+{
+    public void operator +=(int a, int x = 0) {}
+}
+";
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        var x = new C1();
+        x += 1;
+    } 
+}
+";
+
+            CSharpCompilation comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics(
+                // (4,26): error CS1020: Overloadable binary operator expected
+                //     public void operator +=(int a, int x = 0) {}
+                Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, "+=").WithLocation(4, 26),
+                // (4,40): warning CS1066: The default value specified for parameter 'x' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+                //     public void operator +=(int a, int x = 0) {}
+                Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "x").WithArguments("x").WithLocation(4, 40)
+                );
+
+            var comp2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            comp2.VerifyDiagnostics(
+                // (7,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //         x += 1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x += 1").WithArguments("+=", "C1", "int").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_00910_Consumption_BadOperator()
+        {
+            var source1 = @"
+public class C1
+{
+    public void operator +=(params int[] x) {}
+}
+";
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        var x = new C1();
+        x += 1;
+    } 
+}
+";
+
+            CSharpCompilation comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics(
+                // (4,29): error CS1670: params is not valid in this context
+                //     public void operator +=(params int[] x) {}
+                Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(4, 29)
+                );
+
+            var comp2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            comp2.VerifyDiagnostics(
+                // (7,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //         x += 1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x += 1").WithArguments("+=", "C1", "int").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_00911_Consumption_BadOperator()
+        {
+            var source1 = @"
+public class C1
+{
+    [System.Runtime.CompilerServices.SpecialName]
+    public void " + WellKnownMemberNames.AdditionAssignmentOperatorName + @"(params int[] x) {}
+
+    [System.Runtime.CompilerServices.SpecialName]
+    public void " + WellKnownMemberNames.AdditionAssignmentOperatorName + @"(string x) {}
+
+    [System.Runtime.CompilerServices.SpecialName]
+    public void " + WellKnownMemberNames.AdditionAssignmentOperatorName + @"(string[] x) {}
+}
+";
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        var x = new C1();
+        x += 1;
+        x += [2];
+        x += ""3"";
+        x += [""4""];
+    } 
+}
+";
+
+            CSharpCompilation comp1 = CreateCompilation(source1);
+            comp1.VerifyEmitDiagnostics();
+
+            var comp2 = CreateCompilation(source2, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+            comp2.VerifyDiagnostics(
+                // (7,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //         x += 1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x += 1").WithArguments("+=", "C1", "int").WithLocation(7, 9),
+                // (8,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'collection expressions'
+                //         x += [2];
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x += [2]").WithArguments("+=", "C1", "collection expressions").WithLocation(8, 9)
+                );
+        }
+
+        // PROTOTYPE: Disable ORPA during overload resolution? 
     }
 }
