@@ -98,11 +98,9 @@ internal sealed class TupleConstructionSignatureHelpProvider : AbstractCSharpSig
         return result != null;
     }
 
-    public override Boolean IsRetriggerCharacter(Char ch)
-        => ch == ')';
+    public override ImmutableArray<char> TriggerCharacters => ['(', ','];
 
-    public override Boolean IsTriggerCharacter(Char ch)
-        => ch is '(' or ',';
+    public override ImmutableArray<char> RetriggerCharacters => [')'];
 
     protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options, CancellationToken cancellationToken)
     {
@@ -207,7 +205,7 @@ internal sealed class TupleConstructionSignatureHelpProvider : AbstractCSharpSig
     }
 
     private bool IsTupleExpressionTriggerToken(SyntaxToken token)
-        => SignatureHelpUtilities.IsTriggerParenOrComma<TupleExpressionSyntax>(token, IsTriggerCharacter);
+        => SignatureHelpUtilities.IsTriggerParenOrComma<TupleExpressionSyntax>(token, TriggerCharacters);
 
     private static bool IsTupleArgumentListToken(TupleExpressionSyntax? tupleExpression, SyntaxToken token)
     {

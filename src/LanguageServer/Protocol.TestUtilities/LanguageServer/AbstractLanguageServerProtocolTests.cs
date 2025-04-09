@@ -571,6 +571,8 @@ public abstract partial class AbstractLanguageServerProtocolTests
         private readonly InitializationOptions _initializationOptions;
         private readonly Lazy<RoslynLanguageServer> _languageServer;
 
+        private LSP.InitializeResult? _initializeResult;
+
         public LSP.ClientCapabilities ClientCapabilities { get; }
 
         public AbstractTestLspServer(
@@ -629,7 +631,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
             if (_initializationOptions.CallInitialize)
             {
-                await this.ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(LSP.Methods.InitializeName, new LSP.InitializeParams
+                _initializeResult = await this.ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(LSP.Methods.InitializeName, new LSP.InitializeParams
                 {
                     Capabilities = _initializationOptions.ClientCapabilities,
                     Locale = _initializationOptions.Locale,
@@ -793,6 +795,12 @@ public abstract partial class AbstractLanguageServerProtocolTests
         public Dictionary<string, IList<LSP.Location>> GetLocations() => _locations;
 
         public Solution GetCurrentSolution() => TestWorkspace.CurrentSolution;
+
+        public LSP.ServerCapabilities GetServerCapabilities()
+        {
+            Contract.ThrowIfNull(_initializeResult, "Initialize has not been called");
+            return _initializeResult.Capabilities;
+        }
 
         public async Task AssertServerShuttingDownAsync()
         {
