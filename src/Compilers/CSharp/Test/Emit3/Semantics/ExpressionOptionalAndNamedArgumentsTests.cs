@@ -235,6 +235,108 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
+        public void OptionalParameter_Overloads_01(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            bool useExpression,
+            bool useCompilationReference)
+        {
+            string sourceA = $$"""
+                public static class A
+                {
+                    public static (int, int, int) GetArgs(int x, int y = -2, params int[] z) => (x, y, z.Length);
+                    public static object GetArgs(object x) => x;
+                }
+                """;
+            var comp = CreateCompilation(sourceA);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = $$"""
+                class Program
+                {
+                    static void Main()
+                    {
+                        Utils.Report(() => A.GetArgs(10, 20));
+                        Utils.Report(() => A.GetArgs(10));
+                    }
+                }
+                """;
+            comp = CreateCompilation(
+                [sourceB, GetUtilities(useExpression)],
+                references: [refA],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe);
+            if (languageVersion == LanguageVersion.CSharp13 && useExpression)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (6,28): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
+                    //         Utils.Report(() => A.GetArgs(10));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "A.GetArgs(10)").WithLocation(6, 28));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(
+                    comp,
+                    expectedOutput: IncludeExpression(useExpression, """
+                        () => GetArgs(10, 20, new [] {}): (10, 20, 0)
+                        () => GetArgs(10, -2, new [] {}): (10, -2, 0)
+                        """));
+                verifier.VerifyDiagnostics();
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void OptionalParameter_Overloads_02(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            bool useExpression,
+            bool useCompilationReference)
+        {
+            string sourceA = $$"""
+                public static class A
+                {
+                    public static (int, int, int) GetArgs(int x, int y, int z = -3) => (x, y, z);
+                    public static (int, int) GetArgs(int x, params int[] y) => (x, y.Length);
+                }
+                """;
+            var comp = CreateCompilation(sourceA);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = $$"""
+                class Program
+                {
+                    static void Main()
+                    {
+                        Utils.Report(() => A.GetArgs(10, 20, 30));
+                        Utils.Report(() => A.GetArgs(10, 20));
+                    }
+                }
+                """;
+            comp = CreateCompilation(
+                [sourceB, GetUtilities(useExpression)],
+                references: [refA],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe);
+            if (languageVersion == LanguageVersion.CSharp13 && useExpression)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (6,28): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
+                    //         Utils.Report(() => A.GetArgs(10, 20));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "A.GetArgs(10, 20)").WithLocation(6, 28));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(
+                    comp,
+                    expectedOutput: IncludeExpression(useExpression, """
+                        () => GetArgs(10, 20, 30): (10, 20, 30)
+                        () => GetArgs(10, 20, -3): (10, 20, -3)
+                        """));
+                verifier.VerifyDiagnostics();
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void OptionalParameter_Constructor(
             [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
             bool useExpression)
