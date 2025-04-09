@@ -1027,6 +1027,8 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitTaskT_T:
                     case WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitValueTask:
                     case WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitValueTaskT_T:
+                    case WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitAwaiterFromRuntimeAsync_TAwaiter:
+                    case WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TAwaiter:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:

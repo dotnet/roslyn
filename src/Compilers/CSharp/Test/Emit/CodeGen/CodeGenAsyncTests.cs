@@ -1211,7 +1211,7 @@ class Test
             var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], targetFramework: TargetFramework.Net90, parseOptions: WithRuntimeAsync(TestOptions.RegularPreview));
             comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
 
-            var verifier = CompileAndVerify(comp);
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("MyTask<T>.Run<U>", $$"""
@@ -3052,7 +3052,7 @@ class Driver
             var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], parseOptions: WithRuntimeAsync(TestOptions.RegularPreview), targetFramework: TargetFramework.NetCoreApp);
             comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
 
-            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("0", isRuntimeAsync: true));
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("0", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyIL("MyTask.Run", """
                 {
                   // Code size       80 (0x50)
@@ -3179,7 +3179,7 @@ class Driver
             var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], parseOptions: WithRuntimeAsync(TestOptions.RegularPreview), targetFramework: TargetFramework.NetCoreApp);
             comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
 
-            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("0", isRuntimeAsync: true));
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("0", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyIL("MyTask.Run", """
                 {
                   // Code size       80 (0x50)
