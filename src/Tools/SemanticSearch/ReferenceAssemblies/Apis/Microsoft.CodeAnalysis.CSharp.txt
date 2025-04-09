@@ -3986,7 +3986,6 @@ Microsoft.CodeAnalysis.CSharp.Syntax.SelectOrGroupClauseSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor)
 Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax.Accept``1(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor{``0})
-Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.SyntaxToken,System.Boolean)
 Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.SyntaxToken,System.Boolean)
 Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax.WithContent(Microsoft.CodeAnalysis.SyntaxToken)
 Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax.WithEndOfDirectiveToken(Microsoft.CodeAnalysis.SyntaxToken)
@@ -5375,7 +5374,6 @@ Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SeparatedList``1(Microsoft.CodeAnaly
 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SeparatedList``1(System.Collections.Generic.IEnumerable{Microsoft.CodeAnalysis.SyntaxNodeOrToken})
 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SeparatedList``1(System.Collections.Generic.IEnumerable{``0})
 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SeparatedList``1(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{Microsoft.CodeAnalysis.SyntaxToken})
-Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ShebangDirectiveTrivia(Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.SyntaxToken,System.Boolean)
 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ShebangDirectiveTrivia(Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.SyntaxToken,System.Boolean)
 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ShebangDirectiveTrivia(System.Boolean)
 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SimpleBaseType(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax)
