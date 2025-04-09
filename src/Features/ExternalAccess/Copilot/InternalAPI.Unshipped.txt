@@ -1,6 +1,9 @@
 #nullable enable
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.CodeMapper.ICSharpCopilotMapCodeService
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.CodeMapper.ICSharpCopilotMapCodeService.MapCodeAsync(Microsoft.CodeAnalysis.Document! document, System.Collections.Immutable.ImmutableArray<string!> contents, System.Collections.Immutable.ImmutableArray<(Microsoft.CodeAnalysis.Document! document, Microsoft.CodeAnalysis.Text.TextSpan textSpan)> prioritizedFocusLocations, System.Collections.Generic.Dictionary<string!, object!>! options, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextChange>?>!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.ContextProviders.ICopilotOverrideImplementationService
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.ContextProviders.ICopilotOverrideImplementationService.FindOverrideImplementationsAsync(Microsoft.CodeAnalysis.Document! document, Microsoft.CodeAnalysis.ISymbol! member, System.Func<Microsoft.CodeAnalysis.Document!, Microsoft.CodeAnalysis.Text.TextSpan, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask>! reporter, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.ContextProviders.ICopilotOverrideImplementationService.GetPotentialOverridesAsync(Microsoft.CodeAnalysis.Document! document, int position, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISymbol!>>!
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotChecksumWrapper
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotChecksumWrapper.Equals(Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotChecksumWrapper? other) -> bool
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentProposalWrapper
