@@ -542,7 +542,7 @@ internal sealed class EditSession
 
         foreach (var newDocument in changedOrAddedDocuments)
         {
-            var (oldDocument, oldDocumentState) = await DebuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(newDocument.Id, newDocument, cancellationToken, reloadOutOfSyncDocument: true).ConfigureAwait(false);
+            var (oldDocument, oldDocumentState) = await DebuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(newDocument, cancellationToken, reloadOutOfSyncDocument: true).ConfigureAwait(false);
             switch (oldDocumentState)
             {
                 case CommittedSolution.DocumentState.DesignTimeOnly:

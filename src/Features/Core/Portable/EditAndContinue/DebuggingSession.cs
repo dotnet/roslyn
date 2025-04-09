@@ -455,7 +455,7 @@ internal sealed class DebuggingSession : IDisposable
                 return [];
             }
 
-            var (oldDocument, oldDocumentState) = await LastCommittedSolution.GetDocumentAndStateAsync(document.Id, document, cancellationToken).ConfigureAwait(false);
+            var (oldDocument, oldDocumentState) = await LastCommittedSolution.GetDocumentAndStateAsync(document, cancellationToken).ConfigureAwait(false);
             if (oldDocumentState is CommittedSolution.DocumentState.OutOfSync or
                 CommittedSolution.DocumentState.Indeterminate or
                 CommittedSolution.DocumentState.DesignTimeOnly)
@@ -726,7 +726,7 @@ internal sealed class DebuggingSession : IDisposable
 
                     var newDocument = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
 
-                    var (oldDocument, _) = await LastCommittedSolution.GetDocumentAndStateAsync(newDocument.Id, newDocument, cancellationToken).ConfigureAwait(false);
+                    var (oldDocument, _) = await LastCommittedSolution.GetDocumentAndStateAsync(newDocument, cancellationToken).ConfigureAwait(false);
                     if (oldDocument == null)
                     {
                         // Document is out-of-sync, can't reason about its content with respect to the binaries loaded in the debuggee.
@@ -857,7 +857,7 @@ internal sealed class DebuggingSession : IDisposable
             {
                 var newUnmappedDocument = await newSolution.GetRequiredDocumentAsync(unmappedDocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
 
-                var (oldUnmappedDocument, _) = await LastCommittedSolution.GetDocumentAndStateAsync(newUnmappedDocument.Id, newUnmappedDocument, cancellationToken).ConfigureAwait(false);
+                var (oldUnmappedDocument, _) = await LastCommittedSolution.GetDocumentAndStateAsync(newUnmappedDocument, cancellationToken).ConfigureAwait(false);
                 if (oldUnmappedDocument == null)
                 {
                     // document out-of-date

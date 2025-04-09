@@ -941,7 +941,7 @@ class C1
 
         EnterBreakState(debuggingSession);
 
-        var (document, state) = await debuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(documentId, currentDocument: null, CancellationToken.None);
+        var (document, state) = await debuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(solution.GetRequiredDocument(documentId), CancellationToken.None);
         var text = await document.GetTextAsync();
         Assert.Same(encoding, text.Encoding);
         Assert.Equal(CommittedSolution.DocumentState.MatchesBuildOutput, state);
@@ -2318,11 +2318,11 @@ class G
         // undo:
         solution = solution.WithDocumentText(documentId, CreateText(source1));
 
-        var currentDocument = solution.GetDocument(documentId);
+        var currentDocument = solution.GetRequiredDocument(documentId);
 
         // save (note that this call will fail to match the content with the PDB since it uses the content prior to the actual file write)
         // TODO: await debuggingSession.OnSourceFileUpdatedAsync(currentDocument);
-        var (doc, state) = await debuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(documentId, currentDocument, CancellationToken.None);
+        var (doc, state) = await debuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(currentDocument, CancellationToken.None);
         Assert.Null(doc);
         Assert.Equal(CommittedSolution.DocumentState.OutOfSync, state);
         sourceFile.WriteAllText(source1, Encoding.UTF8);

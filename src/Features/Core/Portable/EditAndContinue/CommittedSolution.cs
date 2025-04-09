@@ -137,12 +137,11 @@ internal sealed class CommittedSolution
     /// 
     /// The result is cached and the next lookup uses the cached value, including failures unless <paramref name="reloadOutOfSyncDocument"/> is true.
     /// </summary>
-    public async Task<(Document? Document, DocumentState State)> GetDocumentAndStateAsync(DocumentId documentId, Document? currentDocument, CancellationToken cancellationToken, bool reloadOutOfSyncDocument = false)
+    public async Task<(Document? Document, DocumentState State)> GetDocumentAndStateAsync(Document currentDocument, CancellationToken cancellationToken, bool reloadOutOfSyncDocument = false)
     {
-        Contract.ThrowIfFalse(currentDocument == null || documentId == currentDocument.Id);
-
         Solution solution;
         var documentState = DocumentState.None;
+        var documentId = currentDocument.Id;
 
         lock (_guard)
         {
