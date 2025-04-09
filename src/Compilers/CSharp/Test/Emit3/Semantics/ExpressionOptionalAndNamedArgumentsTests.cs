@@ -716,7 +716,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public static string GetValue(
                         [Optional]
                         {{(includeDefaultParameterValue ? "[DefaultParameterValue(null)]" : "")}}
-                        params object[] args)
+                        params int[] args)
                     {
                         return (args is null) ? "null" : args.Length.ToString();
                     }
@@ -739,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 [sourceB, GetUtilities(useExpression)],
                 references: [refA],
                 expectedOutput: IncludeExpression(useExpression, """
-                    () => GetValue(new [] {Convert(1, Object), Convert(2, Object), Convert(3, Object)}): 3
+                    () => GetValue(new [] {1, 2, 3}): 3
                     () => GetValue(new [] {}): 0
                     """));
             verifier.VerifyDiagnostics();
@@ -885,13 +885,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     static void Main()
                     {
-                        Utils.Report(() => A.GetFirst<object>(first: 1, second: 2, third: 3));
-                        Utils.Report(() => A.GetFirst<object>(first: 1, 2, 3));
-                        Utils.Report(() => A.GetFirst<object>(first: 1, 2));
-                        Utils.Report(() => A.GetFirst<object>(first: 1));
-                        Utils.Report(() => A.GetFirst<object>(1, second: 2, 3));
-                        Utils.Report(() => A.GetFirst<object>(1, second: 2));
-                        Utils.Report(() => A.GetFirst<object>(1, 2, third: 3));
+                        Utils.Report(() => A.GetFirst(first: 1, second: 2, third: 3));
+                        Utils.Report(() => A.GetFirst(first: 1, 2, 3));
+                        Utils.Report(() => A.GetFirst(first: 1, 2));
+                        Utils.Report(() => A.GetFirst(first: 1));
+                        Utils.Report(() => A.GetFirst(1, second: 2, 3));
+                        Utils.Report(() => A.GetFirst(1, second: 2));
+                        Utils.Report(() => A.GetFirst(1, 2, third: 3));
                     }
                 }
                 """;
@@ -904,39 +904,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 comp.VerifyEmitDiagnostics(
                     // (5,28): error CS0853: An expression tree may not contain a named argument specification
-                    //         Utils.Report(() => A.GetFirst<object>(first: 1, second: 2, third: 3));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "A.GetFirst<object>(first: 1, second: 2, third: 3)").WithLocation(5, 28),
+                    //         Utils.Report(() => A.GetFirst(first: 1, second: 2, third: 3));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "A.GetFirst(first: 1, second: 2, third: 3)").WithLocation(5, 28),
                     // (6,28): error CS0853: An expression tree may not contain a named argument specification
-                    //         Utils.Report(() => A.GetFirst<object>(first: 1, 2, 3));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "A.GetFirst<object>(first: 1, 2, 3)").WithLocation(6, 28),
+                    //         Utils.Report(() => A.GetFirst(first: 1, 2, 3));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "A.GetFirst(first: 1, 2, 3)").WithLocation(6, 28),
                     // (7,28): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
-                    //         Utils.Report(() => A.GetFirst<object>(first: 1, 2));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "A.GetFirst<object>(first: 1, 2)").WithLocation(7, 28),
+                    //         Utils.Report(() => A.GetFirst(first: 1, 2));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "A.GetFirst(first: 1, 2)").WithLocation(7, 28),
                     // (8,28): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
-                    //         Utils.Report(() => A.GetFirst<object>(first: 1));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "A.GetFirst<object>(first: 1)").WithLocation(8, 28),
+                    //         Utils.Report(() => A.GetFirst(first: 1));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "A.GetFirst(first: 1)").WithLocation(8, 28),
                     // (9,28): error CS0853: An expression tree may not contain a named argument specification
-                    //         Utils.Report(() => A.GetFirst<object>(1, second: 2, 3));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "A.GetFirst<object>(1, second: 2, 3)").WithLocation(9, 28),
+                    //         Utils.Report(() => A.GetFirst(1, second: 2, 3));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "A.GetFirst(1, second: 2, 3)").WithLocation(9, 28),
                     // (10,28): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
-                    //         Utils.Report(() => A.GetFirst<object>(1, second: 2));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "A.GetFirst<object>(1, second: 2)").WithLocation(10, 28),
+                    //         Utils.Report(() => A.GetFirst(1, second: 2));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "A.GetFirst(1, second: 2)").WithLocation(10, 28),
                     // (11,28): error CS0853: An expression tree may not contain a named argument specification
-                    //         Utils.Report(() => A.GetFirst<object>(1, 2, third: 3));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "A.GetFirst<object>(1, 2, third: 3)").WithLocation(11, 28));
+                    //         Utils.Report(() => A.GetFirst(1, 2, third: 3));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "A.GetFirst(1, 2, third: 3)").WithLocation(11, 28));
             }
             else
             {
                 var verifier = CompileAndVerify(
                     comp,
                     expectedOutput: IncludeExpression(useExpression, """
-                        () => GetFirst(Convert(1, Object), Convert(2, Object), Convert(3, Object)): 1
-                        () => GetFirst(Convert(1, Object), Convert(2, Object), Convert(3, Object)): 1
-                        () => GetFirst(Convert(1, Object), Convert(2, Object), null): 1
-                        () => GetFirst(Convert(1, Object), null, null): 1
-                        () => GetFirst(Convert(1, Object), Convert(2, Object), Convert(3, Object)): 1
-                        () => GetFirst(Convert(1, Object), Convert(2, Object), null): 1
-                        () => GetFirst(Convert(1, Object), Convert(2, Object), Convert(3, Object)): 1
+                        () => GetFirst(1, 2, 3): 1
+                        () => GetFirst(1, 2, 3): 1
+                        () => GetFirst(1, 2, 0): 1
+                        () => GetFirst(1, 0, 0): 1
+                        () => GetFirst(1, 2, 3): 1
+                        () => GetFirst(1, 2, 0): 1
+                        () => GetFirst(1, 2, 3): 1
                         """));
                 verifier.VerifyDiagnostics();
             }
@@ -946,13 +946,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     static void Main()
                     {
-                        Utils.Report(() => A.GetFirst<object>(third:3, second: 2, first: 1));
-                        Utils.Report(() => A.GetFirst<object>(second:2, first: 1));
-                        Utils.Report(() => A.GetFirst<object>(second:2, third: 3));
-                        Utils.Report(() => A.GetFirst<object>(second:2));
-                        Utils.Report(() => A.GetFirst<object>(third:3, second: 2));
-                        Utils.Report(() => A.GetFirst<object>(third:3));
-                        Utils.Report(() => A.GetFirst<object>());
+                        Utils.Report(() => A.GetFirst(third:3, second: 2, first: 1));
+                        Utils.Report(() => A.GetFirst(second:2, first: 1));
+                        Utils.Report(() => A.GetFirst(second:2, third: 3));
+                        Utils.Report(() => A.GetFirst(second:2));
+                        Utils.Report(() => A.GetFirst(third:3, second: 2));
+                        Utils.Report(() => A.GetFirst(third:3));
+                        Utils.Report(() => A.GetFirst<int>());
                     }
                 }
                 """;
@@ -965,48 +965,48 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 comp.VerifyEmitDiagnostics(
                     // (5,28): error CS0853: An expression tree may not contain a named argument specification
-                    //         Utils.Report(() => A.GetFirst<object>(third:3, second: 2, first: 1));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "A.GetFirst<object>(third:3, second: 2, first: 1)").WithLocation(5, 28),
+                    //         Utils.Report(() => A.GetFirst(third:3, second: 2, first: 1));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "A.GetFirst(third:3, second: 2, first: 1)").WithLocation(5, 28),
                     // (6,28): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
-                    //         Utils.Report(() => A.GetFirst<object>(second:2, first: 1));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "A.GetFirst<object>(second:2, first: 1)").WithLocation(6, 28),
+                    //         Utils.Report(() => A.GetFirst(second:2, first: 1));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "A.GetFirst(second:2, first: 1)").WithLocation(6, 28),
                     // (7,28): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
-                    //         Utils.Report(() => A.GetFirst<object>(second:2, third: 3));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "A.GetFirst<object>(second:2, third: 3)").WithLocation(7, 28),
+                    //         Utils.Report(() => A.GetFirst(second:2, third: 3));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "A.GetFirst(second:2, third: 3)").WithLocation(7, 28),
                     // (8,28): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
-                    //         Utils.Report(() => A.GetFirst<object>(second:2));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "A.GetFirst<object>(second:2)").WithLocation(8, 28),
+                    //         Utils.Report(() => A.GetFirst(second:2));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "A.GetFirst(second:2)").WithLocation(8, 28),
                     // (9,28): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
-                    //         Utils.Report(() => A.GetFirst<object>(third:3, second: 2));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "A.GetFirst<object>(third:3, second: 2)").WithLocation(9, 28),
+                    //         Utils.Report(() => A.GetFirst(third:3, second: 2));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "A.GetFirst(third:3, second: 2)").WithLocation(9, 28),
                     // (10,28): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
-                    //         Utils.Report(() => A.GetFirst<object>(third:3));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "A.GetFirst<object>(third:3)").WithLocation(10, 28),
+                    //         Utils.Report(() => A.GetFirst(third:3));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "A.GetFirst(third:3)").WithLocation(10, 28),
                     // (11,28): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
-                    //         Utils.Report(() => A.GetFirst<object>());
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "A.GetFirst<object>()").WithLocation(11, 28));
+                    //         Utils.Report(() => A.GetFirst<int>());
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "A.GetFirst<int>()").WithLocation(11, 28));
             }
             else if (useExpression)
             {
                 comp.VerifyEmitDiagnostics(
                     // (5,28): error CS9307: An expression tree may not contain a named argument specification out of position
-                    //         Utils.Report(() => A.GetFirst<object>(third:3, second: 2, first: 1));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetFirst<object>(third:3, second: 2, first: 1)").WithLocation(5, 28),
+                    //         Utils.Report(() => A.GetFirst(third:3, second: 2, first: 1));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetFirst(third:3, second: 2, first: 1)").WithLocation(5, 28),
                     // (6,28): error CS9307: An expression tree may not contain a named argument specification out of position
-                    //         Utils.Report(() => A.GetFirst<object>(second:2, first: 1));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetFirst<object>(second:2, first: 1)").WithLocation(6, 28),
+                    //         Utils.Report(() => A.GetFirst(second:2, first: 1));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetFirst(second:2, first: 1)").WithLocation(6, 28),
                     // (7,28): error CS9307: An expression tree may not contain a named argument specification out of position
-                    //         Utils.Report(() => A.GetFirst<object>(second:2, third: 3));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetFirst<object>(second:2, third: 3)").WithLocation(7, 28),
+                    //         Utils.Report(() => A.GetFirst(second:2, third: 3));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetFirst(second:2, third: 3)").WithLocation(7, 28),
                     // (8,28): error CS9307: An expression tree may not contain a named argument specification out of position
-                    //         Utils.Report(() => A.GetFirst<object>(second:2));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetFirst<object>(second:2)").WithLocation(8, 28),
+                    //         Utils.Report(() => A.GetFirst(second:2));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetFirst(second:2)").WithLocation(8, 28),
                     // (9,28): error CS9307: An expression tree may not contain a named argument specification out of position
-                    //         Utils.Report(() => A.GetFirst<object>(third:3, second: 2));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetFirst<object>(third:3, second: 2)").WithLocation(9, 28),
+                    //         Utils.Report(() => A.GetFirst(third:3, second: 2));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetFirst(third:3, second: 2)").WithLocation(9, 28),
                     // (10,28): error CS9307: An expression tree may not contain a named argument specification out of position
-                    //         Utils.Report(() => A.GetFirst<object>(third:3));
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetFirst<object>(third:3)").WithLocation(10, 28));
+                    //         Utils.Report(() => A.GetFirst(third:3));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, "A.GetFirst(third:3)").WithLocation(10, 28));
             }
             else
             {
@@ -1015,11 +1015,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     expectedOutput: """
                         --: 1
                         --: 1
-                        --: null
-                        --: null
-                        --: null
-                        --: null
-                        --: null
+                        --: 0
+                        --: 0
+                        --: 0
+                        --: 0
+                        --: 0
                         """);
                 verifier.VerifyDiagnostics();
             }
