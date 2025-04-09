@@ -38,17 +38,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                    token.IsChildToken(Of CastExpressionSyntax)(Function(ce) ce.CommaToken)
         End Function
 
-        Public Overrides ReadOnly Property TriggerCharacters As ImmutableArray(Of Char)
-            Get
-                Return ImmutableArray.Create("("c, ","c)
-            End Get
-        End Property
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableArray(Of Char) = ImmutableArray.Create("("c, ","c)
 
-        Public Overrides ReadOnly Property RetriggerCharacters As ImmutableArray(Of Char)
-            Get
-                Return ImmutableArray.Create(")"c)
-            End Get
-        End Property
+        Public Overrides ReadOnly Property RetriggerCharacters As ImmutableArray(Of Char) = ImmutableArray.Create(")"c)
 
         Protected Overrides Function IsArgumentListToken(node As CastExpressionSyntax, token As SyntaxToken) As Boolean
             Return node.Span.Contains(token.SpanStart) AndAlso

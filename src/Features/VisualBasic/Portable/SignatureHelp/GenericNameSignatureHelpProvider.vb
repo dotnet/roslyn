@@ -23,17 +23,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Public Sub New()
         End Sub
 
-        Public Overrides ReadOnly Property TriggerCharacters As ImmutableArray(Of Char)
-            Get
-                Return ImmutableArray.Create(" "c, ","c)
-            End Get
-        End Property
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableArray(Of Char) = ImmutableArray.Create(" "c, ","c)
 
-        Public Overrides ReadOnly Property RetriggerCharacters As ImmutableArray(Of Char)
-            Get
-                Return ImmutableArray.Create(")"c)
-            End Get
-        End Property
+        Public Overrides ReadOnly Property RetriggerCharacters As ImmutableArray(Of Char) = ImmutableArray.Create(")"c)
 
         Private Shared Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState?
             Dim expression As GenericNameSyntax = Nothing

@@ -61,8 +61,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             ' Create a provider that will return an empty state when queried the second time
             Dim slowProvider = New Mock(Of ISignatureHelpProvider)(MockBehavior.Strict)
-            slowProvider.Setup(Function(p) p.TriggerCharacters.Contains(" "c)).Returns(True)
-            slowProvider.Setup(Function(p) p.RetriggerCharacters.Contains(" "c)).Returns(True)
+            slowProvider.Setup(Function(p) p.TriggerCharacters).Returns(ImmutableArray.Create(Of Char)(" "c))
+            slowProvider.Setup(Function(p) p.RetriggerCharacters).Returns(ImmutableArray.Create(Of Char)(" "c))
             slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), options, It.IsAny(Of CancellationToken))) _
                 .Returns(Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, semanticParameterIndex:=0, syntacticArgumentCount:=0, argumentName:=Nothing)))
             Dim controller = Await CreateController(CreateWorkspace(), provider:=slowProvider.Object, waitForPresentation:=True)

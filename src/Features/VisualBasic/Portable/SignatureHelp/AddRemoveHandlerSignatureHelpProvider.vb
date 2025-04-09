@@ -36,17 +36,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                    token.IsChildToken(Of AddRemoveHandlerStatementSyntax)(Function(ce) ce.CommaToken)
         End Function
 
-        Public Overrides ReadOnly Property TriggerCharacters As ImmutableArray(Of Char)
-            Get
-                Return ImmutableArray.Create(" "c, ","c)
-            End Get
-        End Property
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableArray(Of Char) = ImmutableArray.Create(" "c, ","c)
 
-        Public Overrides ReadOnly Property RetriggerCharacters As ImmutableArray(Of Char)
-            Get
-                Return ImmutableArray(Of Char).Empty
-            End Get
-        End Property
+        Public Overrides ReadOnly Property RetriggerCharacters As ImmutableArray(Of Char) = ImmutableArray(Of Char).Empty
 
         Protected Overrides Function IsArgumentListToken(node As AddRemoveHandlerStatementSyntax, token As SyntaxToken) As Boolean
             Return True

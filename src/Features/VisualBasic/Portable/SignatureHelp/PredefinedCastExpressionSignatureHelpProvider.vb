@@ -32,17 +32,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return token.IsChildToken(Of PredefinedCastExpressionSyntax)(Function(ce) ce.OpenParenToken)
         End Function
 
-        Public Overrides ReadOnly Property TriggerCharacters As ImmutableArray(Of Char)
-            Get
-                Return ImmutableArray.Create("("c, ","c)
-            End Get
-        End Property
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableArray(Of Char) = ImmutableArray.Create("("c, ","c)
 
-        Public Overrides ReadOnly Property RetriggerCharacters As ImmutableArray(Of Char)
-            Get
-                Return ImmutableArray.Create(")"c)
-            End Get
-        End Property
+        Public Overrides ReadOnly Property RetriggerCharacters As ImmutableArray(Of Char) = ImmutableArray.Create(")"c)
 
         Protected Overrides Function IsArgumentListToken(node As PredefinedCastExpressionSyntax, token As SyntaxToken) As Boolean
             Return node.Keyword <> token AndAlso

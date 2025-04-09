@@ -28,17 +28,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return token.IsChildToken(Of GetXmlNamespaceExpressionSyntax)(Function(ce) ce.OpenParenToken)
         End Function
 
-        Public Overrides ReadOnly Property TriggerCharacters As ImmutableArray(Of Char)
-            Get
-                Return ImmutableArray.Create("("c)
-            End Get
-        End Property
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableArray(Of Char) = ImmutableArray.Create("("c)
 
-        Public Overrides ReadOnly Property RetriggerCharacters As ImmutableArray(Of Char)
-            Get
-                Return ImmutableArray.Create(")"c)
-            End Get
-        End Property
+        Public Overrides ReadOnly Property RetriggerCharacters As ImmutableArray(Of Char) = ImmutableArray.Create(")"c)
 
         Protected Overrides Function IsArgumentListToken(node As GetXmlNamespaceExpressionSyntax, token As SyntaxToken) As Boolean
             Return node.GetXmlNamespaceKeyword <> token AndAlso
