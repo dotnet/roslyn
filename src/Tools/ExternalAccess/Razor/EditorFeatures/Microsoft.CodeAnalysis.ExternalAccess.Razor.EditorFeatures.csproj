@@ -7,7 +7,7 @@
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
-    <PackageId>Microsoft.CodeAnalysis.ExternalAccess.Razor</PackageId>
+    <PackageId>Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures</PackageId>
     <PackageDescription>
       A supporting package for Razor:
       https://github.com/dotnet/razor
@@ -46,6 +46,7 @@
     <ProjectReference Include="..\..\..\..\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
     <ProjectReference Include="..\..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
     <ProjectReference Include="..\..\..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
+    <ProjectReference Include="..\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -58,7 +59,5 @@
     <PublicAPI Include="InternalAPI.Shipped.txt" />
     <PublicAPI Include="InternalAPI.Unshipped.txt" />
   </ItemGroup>
-
-  <Import Project="..\Shared\Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared.projitems" Label="Shared" />
 
 </Project>
