@@ -34,6 +34,9 @@ internal sealed class ExtensionRegisterHandler()
         if (handlerNames.ExtensionException is not null)
             context.Logger.LogException(handlerNames.ExtensionException);
 
-        return new(handlerNames.WorkspaceMessageHandlers, handlerNames.DocumentMessageHandlers);
+        return new(
+            handlerNames.WorkspaceMessageHandlers,
+            handlerNames.DocumentMessageHandlers,
+            ExtensionException.FromException(handlerNames.ExtensionException));
     }
 }

@@ -239,7 +239,7 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         var solution = workspace.CurrentSolution;
 
-        var analyzerReference = new AnalyzerImageReference([new LeakDocumentAnalyzer(), new LeakProjectAnalyzer()]);
+        var analyzerReference = new AnalyzerImageReference([new LeakDocumentAnalyzer()]);
 
         var globalOptions = GetGlobalOptions(workspace);
         globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution);
@@ -891,10 +891,6 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         public override int Priority { get; }
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [];
-        public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
-            => Task.FromResult(ImmutableArray<Diagnostic>.Empty);
-        public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
-            => Task.FromResult(ImmutableArray<Diagnostic>.Empty);
     }
 
     private sealed class LeakDocumentAnalyzer : DocumentDiagnosticAnalyzer
@@ -903,21 +899,11 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [s_syntaxRule];
 
-        public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+        public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(TextDocument document, SyntaxTree tree, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return [Diagnostic.Create(s_syntaxRule, root.GetLocation())];
+            return Task.FromResult<ImmutableArray<Diagnostic>>(
+                [Diagnostic.Create(s_syntaxRule, tree.GetRoot(cancellationToken).GetLocation())]);
         }
-
-        public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
-            => SpecializedTasks.Default<ImmutableArray<Diagnostic>>();
-    }
-
-    private sealed class LeakProjectAnalyzer : ProjectDiagnosticAnalyzer
-    {
-        private static readonly DiagnosticDescriptor s_rule = new DiagnosticDescriptor("project", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [s_rule];
-        public override Task<ImmutableArray<Diagnostic>> AnalyzeProjectAsync(Project project, CancellationToken cancellationToken) => SpecializedTasks.Default<ImmutableArray<Diagnostic>>();
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]

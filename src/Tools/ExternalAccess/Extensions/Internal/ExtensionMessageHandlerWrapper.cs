@@ -6,6 +6,7 @@ using System;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ExternalAccess.Extensions;
 
 namespace Microsoft.CodeAnalysis.Extensions;
 
@@ -41,7 +42,7 @@ internal abstract class ExtensionHandlerWrapper<TArgument>
     {
         if ((message is null && MessageType.IsValueType) || (message is not null && !MessageType.IsAssignableFrom(message.GetType())))
         {
-            throw new InvalidOperationException($"The message type {message?.GetType().FullName ?? "null"} is not assignable to {MessageType.FullName}.");
+            throw new InvalidOperationException(string.Format(ExternalAccessExtensionsResources.The_message_type_0_is_not_assignable_to_1, message?.GetType().FullName ?? "null", MessageType.FullName));
         }
 
         var responseTask = ExecuteAsync(_executeAsyncMethod, _handler, message, argument, cancellationToken);
@@ -50,7 +51,7 @@ internal abstract class ExtensionHandlerWrapper<TArgument>
 
         if ((response is null && ResponseType.IsValueType) || (response is not null && !ResponseType.IsAssignableFrom(response.GetType())))
         {
-            throw new InvalidOperationException($"The message type {response?.GetType().FullName ?? "null"} is not assignable to {ResponseType.FullName}.");
+            throw new InvalidOperationException(string.Format(ExternalAccessExtensionsResources.The_message_type_0_is_not_assignable_to_1, response?.GetType().FullName ?? "null", ResponseType.FullName));
         }
 
         return response;

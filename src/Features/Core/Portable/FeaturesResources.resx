@@ -3205,4 +3205,25 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
     <value>Convert to 'field' property</value>
     <comment>{Locked="field"} "field" is C# keyword and should not be localized.</comment>
   </data>
+  <data name="Extension_0_is_already_registered" xml:space="preserve">
+    <value>Extension '{0}' is already registered.</value>
+  </data>
+  <data name="Extension_0_was_not_registered" xml:space="preserve">
+    <value>Extension '{0}' was not registered.</value>
+  </data>
+  <data name="Unable_to_get_the_directory_name_for_0" xml:space="preserve">
+    <value>Unable to get the directory name for {0}.</value>
+  </data>
+  <data name="No_extension_registered_as_0" xml:space="preserve">
+    <value>No extension registered as '{0}'.</value>
+  </data>
+  <data name="No_extensions_registered_at_0" xml:space="preserve">
+    <value>No extensions registered at '{0}'.</value>
+  </data>
+  <data name="No_handler_found_for_message_0" xml:space="preserve">
+    <value>No handler found for message {0}.</value>
+  </data>
+  <data name="Multiple_handlers_found_for_message_0" xml:space="preserve">
+    <value>Multiple handlers found for message {0}.</value>
+  </data>
 </root>

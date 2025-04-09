@@ -131,12 +131,12 @@ public abstract class AbstractSignatureHelpProviderTests<TWorkspaceFixture> : Te
 
         foreach (var expectedTriggerCharacter in expectedTriggerCharacters)
         {
-            Assert.True(signatureHelpProvider.IsTriggerCharacter(expectedTriggerCharacter), "Expected '" + expectedTriggerCharacter + "' to be a trigger character");
+            Assert.True(signatureHelpProvider.TriggerCharacters.Contains(expectedTriggerCharacter), "Expected '" + expectedTriggerCharacter + "' to be a trigger character");
         }
 
         foreach (var unexpectedTriggerCharacter in unexpectedTriggerCharacters)
         {
-            Assert.False(signatureHelpProvider.IsTriggerCharacter(unexpectedTriggerCharacter), "Expected '" + unexpectedTriggerCharacter + "' to NOT be a trigger character");
+            Assert.False(signatureHelpProvider.TriggerCharacters.Contains(unexpectedTriggerCharacter), "Expected '" + unexpectedTriggerCharacter + "' to NOT be a trigger character");
         }
     }
 
@@ -389,7 +389,7 @@ public abstract class AbstractSignatureHelpProviderTests<TWorkspaceFixture> : Te
                 SignatureHelpTriggerReason.TypeCharCommand,
                 code.ElementAt(cursorPosition - 1));
 
-            if (!signatureHelpProvider.IsTriggerCharacter(triggerInfo.TriggerCharacter.Value))
+            if (!signatureHelpProvider.TriggerCharacters.Contains(triggerInfo.TriggerCharacter.Value))
             {
                 return;
             }

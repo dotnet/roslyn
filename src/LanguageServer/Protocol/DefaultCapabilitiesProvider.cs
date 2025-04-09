@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
+using Microsoft.CodeAnalysis.SignatureHelp;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
@@ -21,13 +22,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 internal sealed class ExperimentalCapabilitiesProvider : ICapabilitiesProvider
 {
     private readonly ImmutableArray<Lazy<CompletionProvider, CompletionProviderMetadata>> _completionProviders;
+    private readonly ImmutableArray<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _signatureHelpProviders;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public ExperimentalCapabilitiesProvider(
-        [ImportMany] IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders)
+        [ImportMany] IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders,
+        [ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> signatureHelpProviders)
     {
         _completionProviders = [.. completionProviders.Where(lz => lz.Metadata.Language is LanguageNames.CSharp or LanguageNames.VisualBasic)];
+        _signatureHelpProviders = [.. signatureHelpProviders.Where(lz => lz.Metadata.Language is LanguageNames.CSharp or LanguageNames.VisualBasic)];
     }
 
     public void Initialize()
@@ -38,6 +42,10 @@ internal sealed class ExperimentalCapabilitiesProvider : ICapabilitiesProvider
         foreach (var completionProvider in _completionProviders)
         {
             _ = completionProvider.Value;
+        }
+        foreach (var signatureHelpProvider in _signatureHelpProviders)
+        {
+            _ = signatureHelpProvider.Value;
         }
     }
 
@@ -66,7 +74,12 @@ internal sealed class ExperimentalCapabilitiesProvider : ICapabilitiesProvider
             TriggerCharacters = triggerCharacters,
         };
 
-        capabilities.SignatureHelpProvider = new SignatureHelpOptions { TriggerCharacters = ["(", ","] };
+        var signatureHelpTriggerCharacters = _signatureHelpProviders.SelectMany(
+            lz => lz.Value.TriggerCharacters).Distinct().Select(c => c.ToString()).ToArray();
+        var signatureHelpRetriggerCharacters = _signatureHelpProviders.SelectMany(
+            lz => lz.Value.RetriggerCharacters).Distinct().Select(c => c.ToString()).ToArray();
+
+        capabilities.SignatureHelpProvider = new SignatureHelpOptions { TriggerCharacters = signatureHelpTriggerCharacters, RetriggerCharacters = signatureHelpRetriggerCharacters };
         capabilities.DocumentSymbolProvider = true;
         capabilities.WorkspaceSymbolProvider = true;
         capabilities.DocumentFormattingProvider = true;

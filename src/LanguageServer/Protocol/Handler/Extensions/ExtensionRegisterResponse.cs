@@ -12,6 +12,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Extensions;
 /// </summary>
 /// <param name="WorkspaceMessageHandlers">Names of the registered non-document-specific extension message handlers.</param>
 /// <param name="DocumentMessageHandlers">Names of the registered document-specific extension message handlers.</param>
-internal readonly record struct ExtensionRegisterResponse(
+/// <param name="ExtensionException">Details of any exceptions that occurred during extension registration.</param>
+internal sealed record class ExtensionRegisterResponse(
     [property: JsonPropertyName("workspaceMessageHandlers")] ImmutableArray<string> WorkspaceMessageHandlers,
-    [property: JsonPropertyName("documentMessageHandlers")] ImmutableArray<string> DocumentMessageHandlers);
+    [property: JsonPropertyName("documentMessageHandlers")] ImmutableArray<string> DocumentMessageHandlers,
+    [property: JsonPropertyName("extensionException"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        ExtensionException? ExtensionException);
