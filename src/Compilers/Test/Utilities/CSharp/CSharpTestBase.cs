@@ -1087,7 +1087,7 @@ namespace System.Diagnostics.CodeAnalysis
                 options,
                 parseOptions,
                 emitOptions,
-                TargetFramework.StandardAndCSharp,
+                TargetFramework.NetLatest,
                 verify);
 
         internal CompilationVerifier CompileAndVerify(
@@ -1106,7 +1106,7 @@ namespace System.Diagnostics.CodeAnalysis
             CSharpCompilationOptions? options = null,
             CSharpParseOptions? parseOptions = null,
             EmitOptions? emitOptions = null,
-            TargetFramework targetFramework = TargetFramework.Standard,
+            TargetFramework targetFramework = TargetFramework.NetLatest,
             Verification verify = default)
         {
             options = options ?? (expectedOutput != null ? TestOptions.ReleaseExe : CheckForTopLevelStatements(source.GetSyntaxTrees(parseOptions)));
@@ -1227,7 +1227,7 @@ namespace System.Diagnostics.CodeAnalysis
         public static CSharpCompilation CreateCompilationWithIL(
             CSharpTestSource source,
             string ilSource,
-            TargetFramework targetFramework = TargetFramework.Standard,
+            TargetFramework targetFramework = TargetFramework.NetLatest,
             IEnumerable<MetadataReference>? references = null,
             CSharpCompilationOptions? options = null,
             CSharpParseOptions? parseOptions = null,
@@ -1329,7 +1329,7 @@ namespace System.Diagnostics.CodeAnalysis
             CSharpCompilationOptions? options = null,
             CSharpParseOptions? parseOptions = null,
             string? assemblyName = null,
-            string sourceFileName = "") => CreateCompilation(source, references, options, parseOptions, TargetFramework.StandardAndCSharp, assemblyName, sourceFileName);
+            string sourceFileName = "") => CreateCompilation(source, references, options, parseOptions, TargetFramework.NetLatest, assemblyName, sourceFileName);
 
         public static CSharpCompilation CreateCompilationWithMscorlib40AndDocumentationComments(
             CSharpTestSource source,
@@ -1376,7 +1376,7 @@ namespace System.Diagnostics.CodeAnalysis
             IEnumerable<MetadataReference>? references = null,
             CSharpCompilationOptions? options = null,
             CSharpParseOptions? parseOptions = null,
-            TargetFramework targetFramework = TargetFramework.Standard,
+            TargetFramework targetFramework = TargetFramework.NetLatest,
             string? assemblyName = null,
             string sourceFileName = "",
             bool skipUsesIsNullable = false)
@@ -1604,7 +1604,7 @@ namespace System.Diagnostics.CodeAnalysis
             return createCompilationLambda();
         }
 
-        public CompilationVerifier CompileWithCustomILSource(string cSharpSource, string ilSource, Action<CSharpCompilation>? compilationVerifier = null, bool importInternals = true, string? expectedOutput = null, TargetFramework targetFramework = TargetFramework.Standard)
+        public CompilationVerifier CompileWithCustomILSource(string cSharpSource, string ilSource, Action<CSharpCompilation>? compilationVerifier = null, bool importInternals = true, string? expectedOutput = null, TargetFramework targetFramework = TargetFramework.NetLatest)
         {
             var compilationOptions = (expectedOutput != null) ? TestOptions.ReleaseExe : TestOptions.ReleaseDll;
 
