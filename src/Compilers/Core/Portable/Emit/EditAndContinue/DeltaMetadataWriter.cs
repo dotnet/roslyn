@@ -133,10 +133,14 @@ namespace Microsoft.CodeAnalysis.Emit
         private static MetadataBuilder MakeTablesBuilder(EmitBaseline previousGeneration)
         {
             return new MetadataBuilder(
-                previousGeneration.UserStringStreamLength,
-                previousGeneration.StringStreamLength,
-                previousGeneration.BlobStreamLength,
-                previousGeneration.GuidStreamLength);
+                // Any string on the #UserString heap must start at an offset less than 2^24 (limited by token size).
+                // The baseline #UserString heap size might exceed this limit as long as the last string it contains starts within the limit.
+                // If the limit is exceeded we can't add any more strings in the delta heap (they would start beyond the limit), but we still can emit deltas.
+                // The check in MetadataBuilder constructor is enforcing the limit, but it should really only throw when a new string is added.
+                userStringHeapStartOffset: Math.Min(EmitBaseline.UserStringHeapSizeLimit, previousGeneration.UserStringStreamLength),
+                stringHeapStartOffset: previousGeneration.StringStreamLength,
+                blobHeapStartOffset: previousGeneration.BlobStreamLength,
+                guidHeapStartOffset: previousGeneration.GuidStreamLength);
         }
 
         private ImmutableArray<int> GetDeltaTableSizes(ImmutableArray<int> rowCounts)

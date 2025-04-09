@@ -1337,6 +1337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PublicSignButNoKey = 8102,
         ERR_TooManyUserStrings = 8103,
         ERR_PeWritingFailure = 8104,
+
         #endregion diagnostics introduced in Roslyn (C# 6)
 
         #region diagnostics introduced in C# 6 updates
@@ -2398,6 +2399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ModifierOnUnnamedReceiverParameter = 9305,
         ERR_ExtensionTypeNameDisallowed = 9306,
         ERR_ExpressionTreeContainsNamedArgumentOutOfPosition = 9307,
+        ERR_TooManyUserStrings_RestartRequired = 9308,
 
         ERR_OperatorsMustBePublic = 9308,
         // available 9309,

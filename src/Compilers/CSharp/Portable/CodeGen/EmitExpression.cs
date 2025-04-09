@@ -11,6 +11,7 @@ using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -3491,27 +3492,51 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private bool TryEmitStringLiteralAsUtf8Encoded(ConstantValue constantValue, SyntaxNode syntaxNode)
         {
             // Emit long strings into data section so they don't overflow the UserString heap.
-            if (constantValue.IsString &&
-                constantValue.StringValue.Length > _module.Compilation.DataSectionStringLiteralThreshold)
+            if (!constantValue.IsString)
             {
-                if (Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_Text_Encoding__get_UTF8, _diagnostics, syntax: syntaxNode) == null |
-                    Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_Text_Encoding__GetString, _diagnostics, syntax: syntaxNode) == null)
+                return false;
+            }
+
+            bool utf8Required = _module.PreviousGeneration != null && _module.PreviousGeneration.UserStringStreamLength > EmitBaseline.UserStringHeapSizeLimit;
+            if (!utf8Required)
+            {
+                var threshold = _module.Compilation.DataSectionStringLiteralThreshold;
+                if (threshold == null || constantValue.StringValue.Length <= threshold)
                 {
                     return false;
                 }
+            }
 
-                Cci.IFieldReference field = _module.TryGetOrCreateFieldForStringValue(constantValue.StringValue, syntaxNode, _diagnostics.DiagnosticBag);
-                if (field == null)
-                {
-                    return false;
-                }
-
+            var field = tryGetOrCreateField();
+            if (field != null)
+            {
                 _builder.EmitOpCode(ILOpCode.Ldsfld);
                 _builder.EmitToken(field, syntaxNode, _diagnostics.DiagnosticBag);
                 return true;
             }
 
+            if (utf8Required)
+            {
+                _diagnostics.Add(ErrorCode.ERR_TooManyUserStrings_RestartRequired, syntaxNode);
+            }
+
             return false;
+
+            Cci.IFieldReference tryGetOrCreateField()
+            {
+                if (!_module.FieldRvaSupported)
+                {
+                    return null;
+                }
+
+                if (GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_Text_Encoding__get_UTF8, _diagnostics, syntax: syntaxNode) == null |
+                    GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_Text_Encoding__GetString, _diagnostics, syntax: syntaxNode) == null)
+                {
+                    return null;
+                }
+
+                return _module.TryGetOrCreateFieldForStringValue(constantValue.StringValue, syntaxNode, _diagnostics.DiagnosticBag);
+            }
         }
 
         private void EmitInitObj(TypeSymbol type, bool used, SyntaxNode syntaxNode)

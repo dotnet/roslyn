@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public DebugId MethodId => default;
 
-        public ImmutableArray<StateMachineHoistedLocalScope> StateMachineHoistedLocalScopes => ImmutableArray<StateMachineHoistedLocalScope>.Empty;
+        public ImmutableArray<StateMachineHoistedLocalScope> StateMachineHoistedLocalScopes => default;
 
         public string StateMachineTypeName => null;
 

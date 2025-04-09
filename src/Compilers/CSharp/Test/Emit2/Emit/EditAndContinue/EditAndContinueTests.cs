@@ -19708,6 +19708,306 @@ file class C
                 .Verify();
         }
 
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
+        public void PrivateImplDetails_DataSectionStringLiterals_FieldRvaSupported()
+        {
+            var parseOptions = TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0");
+
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.Skipped, parseOptions: parseOptions)
+                .AddBaseline(
+                    source: """
+                        class C
+                        {
+                            string F() => "0123456789";
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C", "<PrivateImplementationDetails>", "__StaticArrayInitTypeSize=10", "<S>E353667619EC664B49655FC9692165FB");
+                        g.VerifyFieldDefNames("84D89877F0D4041EFB6BF91A16F0248F2FD573E6AF05C19F96BEDB9F882F7882", "s");
+                        g.VerifyMethodDefNames("F", ".ctor", "BytesToString", ".cctor");
+                    })
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            string F() => "0123456789X";
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "__StaticArrayInitTypeSize=11", "<S>6D2201523542AEFFB91657B2AEBDC84B");
+                        g.VerifyFieldDefNames("ACE59E7D984CCEB2D860A056A3386344236CE5C42C978E26ECE3F35956DAC3AD", "s");
+                        g.VerifyMethodDefNames("F", "BytesToString", ".cctor");
+
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(4, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(3, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(4, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.ClassLayout, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.FieldRva, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.NestedClass, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.NestedClass, EditAndContinueOperation.Default)
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(6, TableIndex.TypeDef),
+                            Handle(7, TableIndex.TypeDef),
+                            Handle(8, TableIndex.TypeDef),
+                            Handle(3, TableIndex.Field),
+                            Handle(4, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(5, TableIndex.MethodDef),
+                            Handle(6, TableIndex.MethodDef),
+                            Handle(3, TableIndex.Param),
+                            Handle(4, TableIndex.Param),
+                            Handle(6, TableIndex.CustomAttribute),
+                            Handle(2, TableIndex.ClassLayout),
+                            Handle(2, TableIndex.FieldRva),
+                            Handle(3, TableIndex.NestedClass),
+                            Handle(4, TableIndex.NestedClass)
+                        ]);
+
+                        g.VerifyIL("C.F", """
+                        {
+                          // Code size        6 (0x6)
+                          .maxstack  1
+                          IL_0000:  ldsfld     "string <PrivateImplementationDetails>#1.<S>6D2201523542AEFFB91657B2AEBDC84B.s"
+                          IL_0005:  ret
+                        }
+                        """);
+
+                        // TODO: better test would be to specify FieldDef -> data.
+                        // Trailing zero for alignment.
+                        g.VerifyEncFieldRvaData([.. Encoding.UTF8.GetBytes("0123456789X"), 0x00]);
+                    },
+                    options: new EmitDifferenceOptions() { EmitFieldRva = true })
+                .Verify();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
+        public void PrivateImplDetails_DataSectionStringLiterals_FieldRvaNotSupported()
+        {
+            var parseOptions = TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0");
+
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.Skipped, parseOptions: parseOptions)
+                .AddBaseline(
+                    source: """
+                        class C
+                        {
+                            string F() => "0123456789";
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C", "<PrivateImplementationDetails>", "__StaticArrayInitTypeSize=10", "<S>E353667619EC664B49655FC9692165FB");
+                        g.VerifyFieldDefNames("84D89877F0D4041EFB6BF91A16F0248F2FD573E6AF05C19F96BEDB9F882F7882", "s");
+                        g.VerifyMethodDefNames("F", ".ctor", "BytesToString", ".cctor");
+                    })
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            string F() => "0123456789X";
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyFieldDefNames();
+                        g.VerifyMethodDefNames("F");
+
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(1, TableIndex.MethodDef)
+                        ]);
+
+                        g.VerifyIL("C.F", """
+                        {
+                          // Code size        6 (0x6)
+                          .maxstack  1
+                          IL_0000:  ldstr      "0123456789X"
+                          IL_0005:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
+        public void PrivateImplDetails_DataSectionStringLiterals_HeapOverflow_FieldRvaSupported()
+        {
+            // The max number of bytes that can fit into #US the heap is 2^29 - 1,
+            // but each string also needs to have an offset < 0x1000000 (2^24) to be addressable by a token.
+            // If the string is larger than that the next string can't be emitted.
+            var baseString = new string('x', 1 << 24);
+
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            string F() => "{{baseString}}";
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyFieldDefNames();
+                        g.VerifyMethodDefNames("F", ".ctor");
+                    })
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            string F() => "0123456789";
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "__StaticArrayInitTypeSize=10", "<S>E353667619EC664B49655FC9692165FB");
+                        g.VerifyFieldDefNames("84D89877F0D4041EFB6BF91A16F0248F2FD573E6AF05C19F96BEDB9F882F7882", "s");
+                        g.VerifyMethodDefNames("F", "BytesToString", ".cctor");
+
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.ClassLayout, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.FieldRva, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.NestedClass, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.NestedClass, EditAndContinueOperation.Default)
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(3, TableIndex.TypeDef),
+                            Handle(4, TableIndex.TypeDef),
+                            Handle(5, TableIndex.TypeDef),
+                            Handle(1, TableIndex.Field),
+                            Handle(2, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(3, TableIndex.MethodDef),
+                            Handle(4, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                            Handle(2, TableIndex.Param),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.ClassLayout),
+                            Handle(1, TableIndex.FieldRva),
+                            Handle(1, TableIndex.NestedClass),
+                            Handle(2, TableIndex.NestedClass)
+                        ]);
+
+                        g.VerifyIL("C.F", """
+                        {
+                          // Code size        6 (0x6)
+                          .maxstack  1
+                          IL_0000:  ldsfld     "string <PrivateImplementationDetails>#1.<S>E353667619EC664B49655FC9692165FB.s"
+                          IL_0005:  ret
+                        }
+                        """);
+
+                        // TODO: better test would be to specify FieldDef -> data.
+                        // Trailing zero for alignment.
+                        g.VerifyEncFieldRvaData([.. Encoding.UTF8.GetBytes("0123456789"), 0x00, 0x00]);
+                    },
+                    options: new EmitDifferenceOptions() { EmitFieldRva = true })
+                .Verify();
+        }
+
+        [Fact]
+        public void PrivateImplDetails_DataSectionStringLiterals_HeapOverflow_FieldRvaNotSupported()
+        {
+            // The max number of bytes that can fit into #US the heap is 2^29 - 1,
+            // but each string also needs to have an offset < 0x1000000 (2^24) to be addressable by a token.
+            // If the string is larger than that the next string can't be emitted.
+            var baseString = new string('x', 1 << 24);
+
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            string F() => "{{baseString}}";
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyFieldDefNames();
+                        g.VerifyMethodDefNames("F", ".ctor");
+                    })
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            string F() => "new string that doesn't fit";
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    ],
+                    expectedErrors:
+                    [
+                        // (3,19): error CS9307: Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.
+                        //     string F() => "new string that doesn't fit";
+                        Diagnostic(ErrorCode.ERR_TooManyUserStrings_RestartRequired, @"""new string that doesn't fit""").WithLocation(3, 19)
+                    ])
+                .Verify();
+        }
+
         [Theory]
         [InlineData("ComputeStringHash", "string")]
         [InlineData("ComputeSpanHash", "Span<char>")]

@@ -793,7 +793,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public override IEnumerable<Cci.IMethodDefinition> GetMethods(EmitContext context) => _methods;
         public override bool IsBeforeFieldInit => true;
 
-        private sealed class DataSectionStringField(
+        internal sealed class DataSectionStringField(
             string name, Cci.INamedTypeDefinition containingType)
             : SynthesizedStaticFieldBase(name, containingType)
         {
@@ -1154,7 +1154,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// }
     /// </code>
     /// </remarks>
-    file sealed class BytesToStringHelper : Cci.MethodDefinitionBase
+    internal sealed class BytesToStringHelper : Cci.MethodDefinitionBase
     {
         private readonly ImmutableArray<Cci.IParameterDefinition> _parameters;
 
