@@ -170,6 +170,28 @@ extends:
             artifactName: 'NGen Logs'
             publishLocation: Container
 
+          # Publish an artifact that the RoslynInsertionTool is able to find by its name.
+          - output: pipelineArtifact
+            displayName: 'Publish Artifact VSSetup'
+            condition: succeeded()
+            targetPath: 'artifacts\VSSetup\$(BuildConfiguration)'
+            artifactName: 'VSSetup'
+
+          # Publish our NuPkgs as an artifact. The name of this artifact must be PackageArtifacts as the
+          # arcade templates depend on the name.
+          - output: pipelineArtifact
+            displayName: 'Publish Artifact Packages'
+            condition: succeeded()
+            targetPath: 'artifacts\packages\$(BuildConfiguration)'
+            ArtifactName: 'PackageArtifacts'
+
+          # Publish Asset Manifests for Build Asset Registry job
+          - output: pipelineArtifact
+            displayName: 'Publish Asset Manifests'
+            condition: succeeded()
+            targetPath: '$(Build.SourcesDirectory)/artifacts/log/$(BuildConfiguration)/AssetManifest'
+            ArtifactName: AssetManifests
+
           # Publishes setup VSIXes to a drop.
           # Note: The insertion tool looks for the display name of this task in the logs.
           - output: microBuildVstsDrop
@@ -189,28 +211,6 @@ extends:
             allowPackageConflicts: true
             nuGetFeedType: external
             publishFeedCredentials: 'DevDiv - VS package feed'
-
-          # Publish an artifact that the RoslynInsertionTool is able to find by its name.
-          - output: pipelineArtifact
-            displayName: 'Publish Artifact VSSetup'
-            condition: succeeded()
-            targetPath: 'artifacts\VSSetup\$(BuildConfiguration)'
-            artifactName: 'VSSetup'
-
-          # Publish our NuPkgs as an artifact. The name of this artifact must be PackageArtifacts as the
-          # arcade templates depend on the name.
-          - output: buildArtifacts
-            displayName: 'Publish Artifact Packages'
-            condition: succeeded()
-            PathtoPublish: 'artifacts\packages\$(BuildConfiguration)'
-            ArtifactName: 'PackageArtifacts'
-
-          # Publish Asset Manifests for Build Asset Registry job
-          - output: buildArtifacts
-            displayName: 'Publish Asset Manifests'
-            condition: succeeded()
-            PathtoPublish: '$(Build.SourcesDirectory)/artifacts/log/$(BuildConfiguration)/AssetManifest'
-            ArtifactName: AssetManifests
 
         steps:
         - pwsh: Set-MpPreference -DisableRealtimeMonitoring $true
