@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public static void Report<T>(Expression<Func<T>> f)
                     {
                         object value = Run(f);
-                        Console.WriteLine(value is null ? "null" : value.ToString());
+                        Console.WriteLine("{0}: {1}", f, value is null ? "null" : value.ToString());
                     }
                     public static T Run<T>(Expression<Func<T>> e)
                     {
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public static void Report<T>(Func<T> f)
                     {
                         object value = Run(f);
-                        Console.WriteLine(value is null ? "null" : value.ToString());
+                        Console.WriteLine("--: {0}", value is null ? "null" : value.ToString());
                     }
                     public static T Run<T>(Func<T> f)
                     {
@@ -45,6 +47,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
+        }
+
+        private static string IncludeExpression(bool useExpression, string expectedOutput)
+        {
+            if (useExpression)
+            {
+                return expectedOutput;
+            }
+            var builder = new System.Text.StringBuilder();
+            using var reader = new System.IO.StringReader(expectedOutput);
+            while (reader.ReadLine() is { } line)
+            {
+                int index = line.IndexOf(':');
+                if (index >= 0)
+                {
+                    builder.Append("--");
+                    builder.AppendLine(line.Substring(index));
+                }
+                else
+                {
+                    builder.AppendLine(line);
+                }
+            }
+            return builder.ToString();
         }
 
         [Theory]
@@ -100,11 +126,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 var verifier = CompileAndVerify(
                     comp,
-                    expectedOutput: """
-                    0
-                    null
-                    S
-                    """);
+                    expectedOutput: IncludeExpression(useExpression, """
+                        () => GetValue(0): 0
+                        () => GetValue(null): null
+                        () => GetValue(value(S)): S
+                        """));
                 if (useCompilationReference && refKind == "ref readonly")
                 {
                     verifier.VerifyDiagnostics(
@@ -151,11 +177,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var verifier = CompileAndVerify(
                 [sourceB, GetUtilities(useExpression)],
                 references: [refA],
-                expectedOutput: """
-                    10
-                    default
-                    null
-                    """);
+                expectedOutput: IncludeExpression(useExpression, """
+                    () => GetIntValue(10): 10
+                    () => GetStringValue("default"): default
+                    () => GetObjectValue(null): null
+                    """));
             if (useCompilationReference && refKind == "ref readonly")
             {
                 verifier.VerifyDiagnostics(
@@ -207,10 +233,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var verifier = CompileAndVerify(
                 [sourceB, GetUtilities(useExpression)],
                 references: [refA],
-                expectedOutput: """
-                    0
-                    3
-                    """);
+                expectedOutput: IncludeExpression(useExpression, """
+                    () => GetValue(1, 0, new [] {}): 0
+                    () => GetValue(2, 3, new [] {4}): 3
+                    """));
             if (refKind == "ref readonly")
             {
                 if (useCompilationReference)
@@ -296,10 +322,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 var verifier = CompileAndVerify(
                     comp,
-                    expectedOutput: """
-                    (str, 10)
-                    (default, 10)
-                    """);
+                    expectedOutput: IncludeExpression(useExpression, """
+                        () => new A("str", 10): (str, 10)
+                        () => new A("default", 10): (default, 10)
+                        """));
                 verifier.VerifyDiagnostics();
             }
         }
@@ -346,10 +372,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 var verifier = CompileAndVerify(
                     comp,
-                    expectedOutput: """
-                    2
-                    10
-                    """);
+                    expectedOutput: IncludeExpression(useExpression, """
+                        () => value(Program+<>c__DisplayClass0_0).a.get_Item(1, 2): 2
+                        () => value(Program+<>c__DisplayClass0_0).a.get_Item(3, 10): 10
+                        """));
                 verifier.VerifyDiagnostics();
             }
         }
@@ -394,10 +420,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 var verifier = CompileAndVerify(
                     comp,
-                    expectedOutput: """
-                    2
-                    10
-                    """);
+                    expectedOutput: IncludeExpression(useExpression, """
+                        () => Invoke(value(Program+<>c__DisplayClass0_0).d, 1, 2): 2
+                        () => Invoke(value(Program+<>c__DisplayClass0_0).d, 3, 10): 10
+                        """));
                 verifier.VerifyDiagnostics();
             }
         }
@@ -461,7 +487,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 var verifier = CompileAndVerify(
                     comp,
-                    expectedOutput: "(one, 1), (two, 0)");
+                    expectedOutput: IncludeExpression(useExpression, """
+                        () => new MyCollection`2() {Void Add(System.String, Int32)("one", 1), Void Add(System.String, Int32)("two", 0)}: (one, 1), (two, 0)
+                        """));
                 verifier.VerifyDiagnostics();
             }
         }
@@ -538,10 +566,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var verifier = CompileAndVerify(
                 [sourceB, GetUtilities(useExpression)],
                 references: [refA],
-                expectedOutput: """
-                    200
-                    100
-                    """);
+                expectedOutput: IncludeExpression(useExpression, """
+                    () => GetValue(200): 200
+                    () => GetValue(100): 100
+                    """));
             verifier.VerifyDiagnostics();
         }
 
@@ -577,10 +605,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var verifier = CompileAndVerify(
                 [sourceB, GetUtilities(useExpression)],
                 references: [refA],
-                expectedOutput: """
-                    200
-                    100
-                    """);
+                expectedOutput: IncludeExpression(useExpression, """
+                    () => GetValue(new DateTime(200)).Ticks: 200
+                    () => GetValue(new DateTime(100)).Ticks: 100
+                    """));
             verifier.VerifyDiagnostics();
         }
 
@@ -656,12 +684,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 options: TestOptions.ReleaseExe);
             if (includeOptional)
             {
+                string parameterValue = includeDefaultParameterValue ? "100" : "0";
                 var verifier = CompileAndVerify(
                     comp,
-                    expectedOutput: $$"""
-                        200
-                        {{(includeDefaultParameterValue ? "100" : "0")}}
-                        """);
+                    expectedOutput: IncludeExpression(useExpression, $$"""
+                        () => GetValue(200): 200
+                        () => GetValue({{parameterValue}}): {{parameterValue}}
+                        """));
                 verifier.VerifyDiagnostics();
             }
             else
@@ -709,10 +738,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var verifier = CompileAndVerify(
                 [sourceB, GetUtilities(useExpression)],
                 references: [refA],
-                expectedOutput: """
-                    3
-                    0
-                    """);
+                expectedOutput: IncludeExpression(useExpression, """
+                    () => GetValue(new [] {Convert(1, Object), Convert(2, Object), Convert(3, Object)}): 3
+                    () => GetValue(new [] {}): 0
+                    """));
             verifier.VerifyDiagnostics();
         }
 
@@ -765,11 +794,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 var verifier = CompileAndVerify(
                     comp,
-                    expectedOutput: """
-                        1
-                        1
-                        1
-                        """);
+                    expectedOutput: IncludeExpression(useExpression, """
+                        () => GetFirst(1, 2): 1
+                        () => GetFirst(1, 2): 1
+                        () => GetFirst(1, 2): 1
+                        """));
                 verifier.VerifyDiagnostics();
             }
 
@@ -806,7 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var verifier = CompileAndVerify(
                     comp,
                     expectedOutput: """
-                        1
+                        --: 1
                         """);
                 verifier.VerifyDiagnostics();
             }
@@ -900,15 +929,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 var verifier = CompileAndVerify(
                     comp,
-                    expectedOutput: """
-                        1
-                        1
-                        1
-                        1
-                        1
-                        1
-                        1
-                        """);
+                    expectedOutput: IncludeExpression(useExpression, """
+                        () => GetFirst(Convert(1, Object), Convert(2, Object), Convert(3, Object)): 1
+                        () => GetFirst(Convert(1, Object), Convert(2, Object), Convert(3, Object)): 1
+                        () => GetFirst(Convert(1, Object), Convert(2, Object), null): 1
+                        () => GetFirst(Convert(1, Object), null, null): 1
+                        () => GetFirst(Convert(1, Object), Convert(2, Object), Convert(3, Object)): 1
+                        () => GetFirst(Convert(1, Object), Convert(2, Object), null): 1
+                        () => GetFirst(Convert(1, Object), Convert(2, Object), Convert(3, Object)): 1
+                        """));
                 verifier.VerifyDiagnostics();
             }
 
@@ -984,13 +1013,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var verifier = CompileAndVerify(
                     comp,
                     expectedOutput: """
-                        1
-                        1
-                        null
-                        null
-                        null
-                        null
-                        null
+                        --: 1
+                        --: 1
+                        --: null
+                        --: null
+                        --: null
+                        --: null
+                        --: null
                         """);
                 verifier.VerifyDiagnostics();
             }
@@ -1057,14 +1086,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 var verifier = CompileAndVerify(
                     comp,
-                    expectedOutput: """
-                        (1, 0)
-                        (1, 1)
-                        (1, 2)
-                        (1, )
-                        (1, 2)
-                        (1, )
-                        """);
+                    expectedOutput: IncludeExpression(useExpression, """
+                        () => GetFirstAndParamsLength(1, new [] {}): (1, 0)
+                        () => GetFirstAndParamsLength(1, new [] {2}): (1, 1)
+                        () => GetFirstAndParamsLength(1, new [] {2, 3}): (1, 2)
+                        () => GetFirstAndParamsLength(1, null): (1, )
+                        () => GetFirstAndParamsLength(1, new [] {2, 3}): (1, 2)
+                        () => GetFirstAndParamsLength(1, null): (1, )
+                        """));
                 verifier.VerifyDiagnostics();
             }
 
@@ -1101,7 +1130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var verifier = CompileAndVerify(
                     comp,
                     expectedOutput: """
-                        (1, )
+                        --: (1, )
                         """);
                 verifier.VerifyDiagnostics();
             }
@@ -1223,20 +1252,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 var verifier = CompileAndVerify(
                     comp,
-                    expectedOutput: """
-                        (, 0)
-                        (0, 0)
-                        (2, 0)
-                        (2, 2)
-                        (2, 0)
-                        (2, )
-                        (2, 1)
-                        (0, 0)
-                        (2, 0)
-                        (2, 2)
-                        (2, )
-                        (2, )
-                        """);
+                    expectedOutput: IncludeExpression(useExpression, """
+                        () => GetSecondAndParamsLength(null, null, new [] {}): (, 0)
+                        () => GetSecondAndParamsLength(1, 0, new [] {}): (0, 0)
+                        () => GetSecondAndParamsLength(1, 2, new [] {}): (2, 0)
+                        () => GetSecondAndParamsLength(1, 2, new [] {3, 4}): (2, 2)
+                        () => GetSecondAndParamsLength(1, 2, new [] {}): (2, 0)
+                        () => GetSecondAndParamsLength(1, 2, null): (2, )
+                        () => GetSecondAndParamsLength(1, 2, new [] {3}): (2, 1)
+                        () => GetSecondAndParamsLength(1, 0, new [] {}): (0, 0)
+                        () => GetSecondAndParamsLength(1, 2, new [] {}): (2, 0)
+                        () => GetSecondAndParamsLength(1, 2, new [] {3, 4}): (2, 2)
+                        () => GetSecondAndParamsLength(1, 2, null): (2, )
+                        () => GetSecondAndParamsLength(1, 2, null): (2, )
+                        """));
                 verifier.VerifyDiagnostics();
             }
 
@@ -1319,14 +1348,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var verifier = CompileAndVerify(
                     comp,
                     expectedOutput: """
-                        (2, 2)
-                        (2, )
-                        (0, )
-                        (2, 0)
-                        (2, 0)
-                        (2, )
-                        (0, 2)
-                        (2, 2)
+                        --: (2, 2)
+                        --: (2, )
+                        --: (0, )
+                        --: (2, 0)
+                        --: (2, 0)
+                        --: (2, )
+                        --: (0, 2)
+                        --: (2, 2)
                         """);
                 verifier.VerifyDiagnostics();
             }
@@ -1413,10 +1442,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 var verifier = CompileAndVerify(
                     comp,
-                    expectedOutput: """
-                        1
-                        one
-                        """);
+                    expectedOutput: IncludeExpression(useExpression, """
+                        () => GetFirst(1, 2): 1
+                        () => GetFirst("two", "one"): one
+                        """));
                 verifier.VerifyDiagnostics();
             }
 
@@ -1460,8 +1489,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var verifier = CompileAndVerify(
                     comp,
                     expectedOutput: """
-                        1
-                        one
+                        --: 1
+                        --: one
                         """);
                 verifier.VerifyDiagnostics();
             }
@@ -1508,10 +1537,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var verifier = CompileAndVerify(
                     comp,
                     expectedOutput: """
-                        0
-                        null
-                        0
-                        null
+                        --: 0
+                        --: null
+                        --: 0
+                        --: null
                         """);
                 verifier.VerifyDiagnostics();
             }
@@ -1594,11 +1623,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 var verifier = CompileAndVerify(
                     comp,
-                    expectedOutput: """
-                    (one, 1)
-                    (two, 2)
-                    (three, 3)
-                    """);
+                    expectedOutput: IncludeExpression(useExpression, """
+                        () => new A("one", value(Program+<>c__DisplayClass0_0).y): (one, 1)
+                        () => new A("two", value(Program+<>c__DisplayClass0_0).y): (two, 2)
+                        () => new A("three", value(Program+<>c__DisplayClass0_0).y): (three, 3)
+                        """));
                 verifier.VerifyDiagnostics();
             }
 
@@ -1636,8 +1665,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var verifier = CompileAndVerify(
                     comp,
                     expectedOutput: """
-                    (one, 1)
-                    """);
+                        --: (one, 1)
+                        """);
                 verifier.VerifyDiagnostics();
             }
         }
@@ -1693,11 +1722,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 var verifier = CompileAndVerify(
                     comp,
-                    expectedOutput: """
-                        one
-                        two
-                        three
-                        """);
+                    expectedOutput: IncludeExpression(useExpression, """
+                        () => value(Program+<>c__DisplayClass0_0).a.get_Item(1, value(Program+<>c__DisplayClass0_0).y): one
+                        () => value(Program+<>c__DisplayClass0_0).a.get_Item(2, "two"): two
+                        () => value(Program+<>c__DisplayClass0_0).a.get_Item(2, value(Program+<>c__DisplayClass0_0).y): three
+                        """));
                 verifier.VerifyDiagnostics();
             }
 
@@ -1743,8 +1772,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var verifier = CompileAndVerify(
                     comp,
                     expectedOutput: """
-                        one
-                        two
+                        --: one
+                        --: two
                         """);
                 verifier.VerifyDiagnostics();
             }
@@ -1797,11 +1826,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 var verifier = CompileAndVerify(
                     comp,
-                    expectedOutput: """
-                        (1, one)
-                        (2, two)
-                        (3, three)
-                        """);
+                    expectedOutput: IncludeExpression(useExpression, """
+                        () => Invoke(value(Program+<>c__DisplayClass0_0).d, 1, "one"): (1, one)
+                        () => Invoke(value(Program+<>c__DisplayClass0_0).d, 2, "two"): (2, two)
+                        () => Invoke(value(Program+<>c__DisplayClass0_0).d, 3, "three"): (3, three)
+                        """));
                 verifier.VerifyDiagnostics();
             }
 
@@ -1840,7 +1869,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var verifier = CompileAndVerify(
                     comp,
                     expectedOutput: """
-                        (1, one)
+                        --: (1, one)
                         """);
                 verifier.VerifyDiagnostics();
             }
