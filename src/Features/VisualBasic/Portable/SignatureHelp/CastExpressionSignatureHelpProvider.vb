@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -37,13 +38,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                    token.IsChildToken(Of CastExpressionSyntax)(Function(ce) ce.CommaToken)
         End Function
 
-        Public Overrides Function IsTriggerCharacter(ch As Char) As Boolean
-            Return ch = "("c OrElse ch = ","c
-        End Function
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableArray(Of Char)
+            Get
+                Return ImmutableArray.Create("("c, ","c)
+            End Get
+        End Property
 
-        Public Overrides Function IsRetriggerCharacter(ch As Char) As Boolean
-            Return ch = ")"c
-        End Function
+        Public Overrides ReadOnly Property RetriggerCharacters As ImmutableArray(Of Char)
+            Get
+                Return ImmutableArray.Create(")"c)
+            End Get
+        End Property
 
         Protected Overrides Function IsArgumentListToken(node As CastExpressionSyntax, token As SyntaxToken) As Boolean
             Return node.Span.Contains(token.SpanStart) AndAlso

@@ -4,11 +4,13 @@
 
 #nullable disable
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp;
 
+[Obsolete("Use Microsoft.CodeAnalysis.SignatureHelp.IFSharpSignatureHelpProvider instead.")]
 internal interface IFSharpSignatureHelpProvider
 {
     /// <summary>

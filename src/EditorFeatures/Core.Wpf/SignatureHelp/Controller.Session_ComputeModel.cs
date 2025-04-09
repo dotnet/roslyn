@@ -75,7 +75,7 @@ internal sealed partial class Controller
                         }
 
                         if (triggerInfo.TriggerCharacter.HasValue &&
-                            !currentModel.Provider.IsRetriggerCharacter(triggerInfo.TriggerCharacter.Value))
+                            !currentModel.Provider.RetriggerCharacters.Contains(triggerInfo.TriggerCharacter.Value))
                         {
                             return currentModel;
                         }
