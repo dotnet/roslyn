@@ -13460,6 +13460,724 @@ public class Program
                 );
         }
 
+        [Fact]
+        public void CompoundAssignment_00920_ConflictWithRegular()
+        {
+            var source1 = @"
+public class C1
+{
+    public void operator +=(int x) {}
+
+#line 1000
+    public void op_AdditionAssignment(int x) {}
+}
+
+public class C2
+{
+    public void op_AdditionAssignment(int x) {}
+
+#line 2000
+    public void operator +=(int x) {}
+}
+
+public class C3
+{
+    public void operator +=(int x) {}
+
+    public void op_AdditionAssignment(long x) {}
+}
+
+public class C4
+{
+    public void op_AdditionAssignment(int x) {}
+
+    public void operator +=(long x) {}
+}
+";
+
+            CSharpCompilation comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics(
+                // (1000,17): error CS0111: Type 'C1' already defines a member called 'op_AdditionAssignment' with the same parameter types
+                //     public void op_AdditionAssignment(int x) {}
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "op_AdditionAssignment").WithArguments("op_AdditionAssignment", "C1").WithLocation(1000, 17),
+                // (2000,26): error CS0111: Type 'C2' already defines a member called 'op_AdditionAssignment' with the same parameter types
+                //     public void operator +=(int x) {}
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "+=").WithArguments("op_AdditionAssignment", "C2").WithLocation(2000, 26)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00930_Consumption_RegularVsOperator(bool fromMetadata)
+        {
+            var source1 = @"
+public class C1
+{
+    public void op_AdditionAssignment(int x) {}
+}
+
+public class C2
+{
+    public void operator+=(int x) {}
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        C1 x = new C1();
+        x += 1;
+        C2 y = new C2();
+        y.op_AdditionAssignment(1);
+    } 
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            comp2.VerifyDiagnostics(
+                // (7,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //         x += 1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x += 1").WithArguments("+=", "C1", "int").WithLocation(7, 9),
+                // (9,11): error CS0571: 'C2.operator +=(int)': cannot explicitly call operator or accessor
+                //         y.op_AdditionAssignment(1);
+                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "op_AdditionAssignment").WithArguments("C2.operator +=(int)").WithLocation(9, 11)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00940_Override_RegularVsOperatorMismatch(bool fromMetadata)
+        {
+            var source1 = @"
+abstract public class C1
+{
+    public abstract void op_AdditionAssignment(int x);
+}
+
+abstract public class C3
+{
+    public abstract void operator +=(int x);
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class C2 : C1
+{
+    public override void operator +=(int x) {}
+}
+
+public class C4 : C3
+{
+    public override void op_AdditionAssignment(int x) {}
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()]);
+
+            comp2.VerifyDiagnostics(
+                // (4,35): error CS9505: 'C2.operator +=(int)': cannot override inherited member 'C1.op_AdditionAssignment(int)' because one of them is not an operator.
+                //     public override void operator +=(int x) {}
+                Diagnostic(ErrorCode.ERR_OperatorMismatchOnOverride, "+=").WithArguments("C2.operator +=(int)", "C1.op_AdditionAssignment(int)").WithLocation(4, 35),
+                // (9,26): error CS9505: 'C4.op_AdditionAssignment(int)': cannot override inherited member 'C3.operator +=(int)' because one of them is not an operator.
+                //     public override void op_AdditionAssignment(int x) {}
+                Diagnostic(ErrorCode.ERR_OperatorMismatchOnOverride, "op_AdditionAssignment").WithArguments("C4.op_AdditionAssignment(int)", "C3.operator +=(int)").WithLocation(9, 26)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00950_Implement_RegularVsOperatorMismatch(bool fromMetadata)
+        {
+            var source1 = @"
+public interface I1
+{
+    void op_AdditionAssignment(int x);
+}
+
+public interface I2
+{
+    void operator +=(int x);
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class C1 : I1
+{
+    public void operator +=(int x) {}
+}
+
+public class C2 : I2
+{
+    public void op_AdditionAssignment(int x) {}
+}
+
+public class C3 : I1
+{
+    void I1.operator +=(int x) {}
+}
+
+public class C4 : I2
+{
+    void I2.op_AdditionAssignment(int x) {}
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()]);
+            comp2.VerifyDiagnostics(
+                // (2,19): error CS9504: 'C1' does not implement interface member 'I1.op_AdditionAssignment(int)'. 'C1.operator +=(int)' cannot implement 'I1.op_AdditionAssignment(int)' because one of them is not an operator.
+                // public class C1 : I1
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C1", "I1.op_AdditionAssignment(int)", "C1.operator +=(int)").WithLocation(2, 19),
+                // (7,19): error CS9504: 'C2' does not implement interface member 'I2.operator +=(int)'. 'C2.op_AdditionAssignment(int)' cannot implement 'I2.operator +=(int)' because one of them is not an operator.
+                // public class C2 : I2
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I2").WithArguments("C2", "I2.operator +=(int)", "C2.op_AdditionAssignment(int)").WithLocation(7, 19),
+                // (12,19): error CS0535: 'C3' does not implement interface member 'I1.op_AdditionAssignment(int)'
+                // public class C3 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C3", "I1.op_AdditionAssignment(int)").WithLocation(12, 19),
+                // (14,22): error CS0539: 'C3.operator +=(int)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I1.operator +=(int x) {}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "+=").WithArguments("C3.operator +=(int)").WithLocation(14, 22),
+                // (17,19): error CS0535: 'C4' does not implement interface member 'I2.operator +=(int)'
+                // public class C4 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("C4", "I2.operator +=(int)").WithLocation(17, 19),
+                // (19,13): error CS0539: 'C4.op_AdditionAssignment(int)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I2.op_AdditionAssignment(int x) {}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "op_AdditionAssignment").WithArguments("C4.op_AdditionAssignment(int)").WithLocation(19, 13)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00960_Implement_RegularVsOperatorMismatch(bool fromMetadata)
+        {
+            var source1 = @"
+public interface I1
+{
+    void op_AdditionAssignment(int x);
+}
+
+public interface I2
+{
+    void operator +=(int x);
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class C11
+{
+    public void operator +=(int x) {}
+}
+
+public class C12 : C11, I1
+{
+}
+
+public class C21
+{
+    public void op_AdditionAssignment(int x) {}
+}
+
+public class C22 : C21, I2
+{
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()]);
+            comp2.VerifyDiagnostics(
+                // (7,25): error CS9504: 'C12' does not implement interface member 'I1.op_AdditionAssignment(int)'. 'C11.operator +=(int)' cannot implement 'I1.op_AdditionAssignment(int)' because one of them is not an operator.
+                // public class C12 : C11, I1
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C12", "I1.op_AdditionAssignment(int)", "C11.operator +=(int)").WithLocation(7, 25),
+                // (16,25): error CS9504: 'C22' does not implement interface member 'I2.operator +=(int)'. 'C21.op_AdditionAssignment(int)' cannot implement 'I2.operator +=(int)' because one of them is not an operator.
+                // public class C22 : C21, I2
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I2").WithArguments("C22", "I2.operator +=(int)", "C21.op_AdditionAssignment(int)").WithLocation(16, 25)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_00970_Implement_RegularVsOperatorMismatch()
+        {
+            var source = @"
+public interface I1
+{
+    public void operator +=(int x)
+    {
+        System.Console.Write(""[I1.operator]"");
+    } 
+}
+
+public class C1 : I1
+{
+    public virtual void op_AdditionAssignment(int x)
+    {
+        System.Console.Write(""[C1.op_AdditionAssignment]"");
+    } 
+}
+
+public class C2
+{
+    public virtual void op_AdditionAssignment(int x)
+    {
+        System.Console.Write(""[C2.op_AdditionAssignment]"");
+    } 
+}
+
+public class C3 : C2, I1
+{
+}
+
+public class Program
+{
+    static void Main()
+    {
+        I1 x = new C1();
+        x += 1;
+        x = new C3();
+        x += 1;
+    } 
+}
+";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (10,19): error CS9504: 'C1' does not implement interface member 'I1.operator +=(int)'. 'C1.op_AdditionAssignment(int)' cannot implement 'I1.operator +=(int)' because one of them is not an operator.
+                // public class C1 : I1
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C1", "I1.operator +=(int)", "C1.op_AdditionAssignment(int)").WithLocation(10, 19),
+                // (26,23): error CS9504: 'C3' does not implement interface member 'I1.operator +=(int)'. 'C2.op_AdditionAssignment(int)' cannot implement 'I1.operator +=(int)' because one of them is not an operator.
+                // public class C3 : C2, I1
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C3", "I1.operator +=(int)", "C2.op_AdditionAssignment(int)").WithLocation(26, 23)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_00980_Implement_RegularVsOperatorMismatch()
+        {
+            var source = @"
+public interface I1
+{
+    public void op_AdditionAssignment(int x)
+    {
+        System.Console.Write(""[I1.operator]"");
+    } 
+}
+
+public class C1 : I1
+{
+    public virtual void operator +=(int x)
+    {
+        System.Console.Write(""[C1.operator]"");
+    } 
+}
+
+public class C2
+{
+    public virtual void operator +=(int x)
+    {
+        System.Console.Write(""[C2.operator]"");
+    } 
+}
+
+public class C3 : C2, I1
+{
+}
+
+public class Program
+{
+    static void Main()
+    {
+        I1 x = new C1();
+        x.op_AdditionAssignment(1);
+        x = new C3();
+        x.op_AdditionAssignment(1);
+    } 
+}
+";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (10,19): error CS9504: 'C1' does not implement interface member 'I1.op_AdditionAssignment(int)'. 'C1.operator +=(int)' cannot implement 'I1.op_AdditionAssignment(int)' because one of them is not an operator.
+                // public class C1 : I1
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C1", "I1.op_AdditionAssignment(int)", "C1.operator +=(int)").WithLocation(10, 19),
+                // (26,23): error CS9504: 'C3' does not implement interface member 'I1.op_AdditionAssignment(int)'. 'C2.operator +=(int)' cannot implement 'I1.op_AdditionAssignment(int)' because one of them is not an operator.
+                // public class C3 : C2, I1
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C3", "I1.op_AdditionAssignment(int)", "C2.operator +=(int)").WithLocation(26, 23)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_00990_Implement_RegularVsOperatorMismatch()
+        {
+            var source = @"
+public interface I1
+{
+    public void operator +=(int x);
+}
+
+public class C2 : I1
+{
+    void I1.operator +=(int x)
+    {
+        System.Console.Write(""[C2.operator]"");
+    } 
+}
+
+public class C3 : C2, I1
+{
+    public virtual void op_AdditionAssignment(int x)
+    {
+        System.Console.Write(""[C3.op_Increment]"");
+    } 
+}
+
+public class Program
+{
+    static void Main()
+    {
+        I1 x = new C3();
+        x += 1;
+    } 
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (15,23): error CS9504: 'C3' does not implement interface member 'I1.operator +=(int)'. 'C3.op_AdditionAssignment(int)' cannot implement 'I1.operator +=(int)' because one of them is not an operator.
+                // public class C3 : C2, I1
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C3", "I1.operator +=(int)", "C3.op_AdditionAssignment(int)").WithLocation(15, 23)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_01000_Implement_RegularVsOperatorMismatch()
+        {
+            var source = @"
+public interface I1
+{
+    public void op_AdditionAssignment(int x);
+}
+
+public class C2 : I1
+{
+    void I1.op_AdditionAssignment(int x)
+    {
+        System.Console.Write(""[C2.op_Increment]"");
+    } 
+}
+
+public class C3 : C2, I1
+{
+    public virtual void operator +=(int x)
+    {
+        System.Console.Write(""[C3.operator]"");
+    } 
+}
+
+public class Program
+{
+    static void Main()
+    {
+        I1 x = new C3();
+        x.op_AdditionAssignment(1);
+    } 
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (15,23): error CS9504: 'C3' does not implement interface member 'I1.op_AdditionAssignment(int)'. 'C3.operator +=(int)' cannot implement 'I1.op_AdditionAssignment(int)' because one of them is not an operator.
+                // public class C3 : C2, I1
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C3", "I1.op_AdditionAssignment(int)", "C3.operator +=(int)").WithLocation(15, 23)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_01010_Implement_RegularVsOperatorMismatch()
+        {
+            /*
+                public interface I1
+                {
+                    public void operator+=(int x);
+                }
+
+                public class C1 : I1
+                {
+                    public virtual void op_AdditionAssignment(int x)
+                    {
+                        System.Console.Write(1);
+                    }
+                }
+            */
+            var ilSource = @"
+.class interface public auto ansi abstract beforefieldinit I1
+{
+    .method public hidebysig newslot abstract virtual specialname
+        instance void op_AdditionAssignment (int32 x) cil managed 
+    {
+    }
+}
+
+.class public auto ansi beforefieldinit C1
+    extends [mscorlib]System.Object
+    implements I1
+{
+    .method public hidebysig newslot virtual 
+        instance void op_AdditionAssignment (int32 x) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldc.i4.1
+        IL_0001: call void [mscorlib]System.Console::Write(int32)
+        IL_0006: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            var source1 =
+@"
+public class C2 : C1, I1
+{
+}
+";
+            var compilation1 = CreateCompilationWithIL(source1, ilSource);
+
+            compilation1.VerifyDiagnostics(
+                // (2,23): error CS9504: 'C2' does not implement interface member 'I1.operator +=(int)'. 'C1.op_AdditionAssignment(int)' cannot implement 'I1.operator +=(int)' because one of them is not an operator.
+                // public class C2 : C1, I1
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C2", "I1.operator +=(int)", "C1.op_AdditionAssignment(int)").WithLocation(2, 23)
+                );
+
+            var source2 =
+@"
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1();
+        c1.op_AdditionAssignment(1);
+        I1 x = c1;
+        x += 1;
+    }
+}
+";
+            var compilation2 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation2, expectedOutput: "11", verify: Verification.Skipped).VerifyDiagnostics();
+
+            var i1M1 = compilation1.GetTypeByMetadataName("I1").GetMembers().Single();
+            var c1 = compilation1.GetTypeByMetadataName("C1");
+
+            AssertEx.Equal("C1.op_AdditionAssignment(int)", c1.FindImplementationForInterfaceMember(i1M1).ToDisplayString());
+        }
+
+        [Fact]
+        public void CompoundAssignment_01020_Implement_RegularVsOperatorMismatch()
+        {
+            /*
+                public interface I1
+                {
+                    public void op_AdditionAssignment(int x);
+                }
+
+                public class C1 : I1
+                {
+                    public virtual void operator+=(int x)
+                    {
+                        System.Console.Write(1);
+                    }
+                }
+            */
+            var ilSource = @"
+.class interface public auto ansi abstract beforefieldinit I1
+{
+    .method public hidebysig newslot abstract virtual 
+        instance void op_AdditionAssignment (int32 x) cil managed 
+    {
+    }
+}
+
+.class public auto ansi beforefieldinit C1
+    extends [mscorlib]System.Object
+    implements I1
+{
+    .method public hidebysig newslot virtual specialname
+        instance void op_AdditionAssignment (int32 x) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldc.i4.1
+        IL_0001: call void [mscorlib]System.Console::Write(int32)
+        IL_0006: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            var source1 =
+@"
+public class C2 : C1, I1
+{
+}
+";
+            var compilation1 = CreateCompilationWithIL(source1, ilSource);
+
+            compilation1.VerifyDiagnostics(
+                // (2,23): error CS9504: 'C2' does not implement interface member 'I1.op_AdditionAssignment(int)'. 'C1.operator +=(int)' cannot implement 'I1.op_AdditionAssignment(int)' because one of them is not an operator.
+                // public class C2 : C1, I1
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C2", "I1.op_AdditionAssignment(int)", "C1.operator +=(int)").WithLocation(2, 23)
+                );
+
+            var source2 =
+@"
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1();
+        c1 += 1;
+        I1 x = c1;
+        x.op_AdditionAssignment(1);
+    }
+}
+";
+            var compilation2 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation2, expectedOutput: "11", verify: Verification.Skipped).VerifyDiagnostics();
+
+            var i1M1 = compilation1.GetTypeByMetadataName("I1").GetMembers().Single();
+            var c1 = compilation1.GetTypeByMetadataName("C1");
+
+            AssertEx.Equal("C1.operator +=(int)", c1.FindImplementationForInterfaceMember(i1M1).ToDisplayString());
+        }
+
+        [Fact]
+        public void CompoundAssignment_01030_Consumption_Implementation()
+        {
+            var source = @"
+public interface I1
+{
+    public void operator +=(int x);
+}
+
+public class C1 : I1
+{
+    public void operator +=(int x)
+    {
+        System.Console.Write(""[C1.operator]"");
+    } 
+}
+
+public class C2 : I1
+{
+    void I1.operator +=(int x)
+    {
+        System.Console.Write(""[C2.operator]"");
+    } 
+}
+
+public class Program
+{
+    static void Main()
+    {
+        I1 x = new C1();
+        x += 1;
+        x = new C2();
+        x += 1;
+    } 
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "[C1.operator][C2.operator]").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CompoundAssignment_01040_Consumption_Overriding()
+        {
+            var source = @"
+public abstract class C1
+{
+    public abstract void operator +=(int x);
+}
+
+public class C2 : C1
+{
+    public override void operator +=(int x)
+    {
+        System.Console.Write(""[C2.operator]"");
+    } 
+}
+
+public class Program
+{
+    static void Main()
+    {
+        C1 x = new C2();
+        x += 1;
+    } 
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "[C2.operator]").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CompoundAssignment_01050_Shadow_RegularVsOperatorMismatch()
+        {
+            var source = @"
+public class C1
+{
+    public void operator +=(int x){}
+}
+
+public class C2 : C1
+{
+    public void op_AdditionAssignment(int x){}
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void CompoundAssignment_01060_Shadow_RegularVsOperatorMismatch()
+        {
+            var source = @"
+public class C2
+{
+    public void op_AdditionAssignment(int x){}
+}
+
+public class C1 : C2
+{
+    public void operator +=(int x){}
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
         // PROTOTYPE: Disable ORPA during overload resolution? 
     }
 }
