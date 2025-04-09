@@ -82,6 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             bool useCompilationReference)
         {
             string sourceA = $$"""
+                #pragma warning disable 9200 // default value is specified for 'ref readonly' parameter
                 public static class A
                 {
                     public static T GetValue<T>({{refKind}} T t = default) => t;
@@ -131,17 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         () => GetValue(null): null
                         () => GetValue(value(S)): S
                         """));
-                if (useCompilationReference && refKind == "ref readonly")
-                {
-                    verifier.VerifyDiagnostics(
-                        // (3,52): warning CS9200: A default value is specified for 'ref readonly' parameter 't', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
-                        //     public static T GetValue<T>(ref readonly T t = default) => t;
-                        Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "default").WithArguments("t").WithLocation(3, 52));
-                }
-                else
-                {
-                    verifier.VerifyDiagnostics();
-                }
+                verifier.VerifyDiagnostics();
             }
         }
 
@@ -153,6 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             bool useCompilationReference)
         {
             string sourceA = $$"""
+                #pragma warning disable 9200 // default value is specified for 'ref readonly' parameter
                 public static class A
                 {
                     public static int GetIntValue({{refKind}} int i = 10) => i;
@@ -182,23 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     () => GetStringValue("default"): default
                     () => GetObjectValue(null): null
                     """));
-            if (useCompilationReference && refKind == "ref readonly")
-            {
-                verifier.VerifyDiagnostics(
-                    // (3,56): warning CS9200: A default value is specified for 'ref readonly' parameter 'i', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
-                    //     public static int GetIntValue(ref readonly int i = 10) => i;
-                    Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "10").WithArguments("i").WithLocation(3, 56),
-                    // (4,65): warning CS9200: A default value is specified for 'ref readonly' parameter 's', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
-                    //     public static string GetStringValue(ref readonly string s = "default") => s;
-                    Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, @"""default""").WithArguments("s").WithLocation(4, 65),
-                    // (5,65): warning CS9200: A default value is specified for 'ref readonly' parameter 'o', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
-                    //     public static object GetObjectValue(ref readonly object o = null) => o;
-                    Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "null").WithArguments("o").WithLocation(5, 65));
-            }
-            else
-            {
-                verifier.VerifyDiagnostics();
-            }
+            verifier.VerifyDiagnostics();
         }
 
         [Theory]
@@ -209,6 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             bool useCompilationReference)
         {
             string sourceA = $$"""
+                #pragma warning disable 9200 // default value is specified for 'ref readonly' parameter
                 public static class A
                 {
                     public static T GetValue<T>({{refKind}} T x, {{refKind}} T y = default, params T[] args) => y;
@@ -239,35 +216,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     """));
             if (refKind == "ref readonly")
             {
-                if (useCompilationReference)
-                {
-                    verifier.VerifyDiagnostics(
-                        // (3,70): warning CS9200: A default value is specified for 'ref readonly' parameter 'y', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
-                        //     public static T GetValue<T>(ref readonly T x, ref readonly T y = default, params T[] args) => y;
-                        Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "default").WithArguments("y").WithLocation(3, 70),
-                        // (8,44): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
-                        //         Utils.Report(() => A.GetValue<int>(1));
-                        Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "1").WithArguments("1").WithLocation(8, 44),
-                        // (9,44): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
-                        //         Utils.Report(() => A.GetValue<int>(2, 3, 4));
-                        Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "2").WithArguments("1").WithLocation(9, 44),
-                        // (9,47): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter
-                        //         Utils.Report(() => A.GetValue<int>(2, 3, 4));
-                        Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "3").WithArguments("2").WithLocation(9, 47));
-                }
-                else
-                {
-                    verifier.VerifyDiagnostics(
-                        // (8,44): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
-                        //         Utils.Report(() => A.GetValue<int>(1));
-                        Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "1").WithArguments("1").WithLocation(8, 44),
-                        // (9,44): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
-                        //         Utils.Report(() => A.GetValue<int>(2, 3, 4));
-                        Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "2").WithArguments("1").WithLocation(9, 44),
-                        // (9,47): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter
-                        //         Utils.Report(() => A.GetValue<int>(2, 3, 4));
-                        Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "3").WithArguments("2").WithLocation(9, 47));
-                }
+                verifier.VerifyDiagnostics(
+                    // (8,44): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+                    //         Utils.Report(() => A.GetValue<int>(1));
+                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "1").WithArguments("1").WithLocation(8, 44),
+                    // (9,44): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+                    //         Utils.Report(() => A.GetValue<int>(2, 3, 4));
+                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "2").WithArguments("1").WithLocation(9, 44),
+                    // (9,47): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter
+                    //         Utils.Report(() => A.GetValue<int>(2, 3, 4));
+                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "3").WithArguments("2").WithLocation(9, 47));
             }
             else
             {
@@ -432,11 +390,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CombinatorialData]
         public void OptionalParameter_CollectionInitializer(
             [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
-            bool useExpression,
-            bool useIn)
+            [CombinatorialValues("", "in", "ref readonly")] string refKind,
+            bool useExpression)
         {
-            string refKind = useIn ? "in" : "";
             string sourceA = $$"""
+                #pragma warning disable 9200 // default value is specified for 'ref readonly' parameter
                 using System.Collections;
                 using System.Collections.Generic;
                 using System.Text;
@@ -459,6 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             string sourceB = """
+                #pragma warning disable 9193 // Argument should be a variable because it is passed to a 'ref readonly' parameter
                 class Program
                 {
                     static void Main()
@@ -474,11 +433,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion == LanguageVersion.CSharp13 && useExpression)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (5,76): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
+                    // (6,76): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
                     //         Utils.Report(() => new MyCollection<string, int>() { { "one", 1 }, { "two" } });
-                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, @"{ ""two"" }").WithLocation(5, 76));
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, @"{ ""two"" }").WithLocation(6, 76));
             }
-            else if (useIn)
+            else if (refKind != "")
             {
                 // Expression does not support initializers with ref parameters at runtime.
                 comp.VerifyEmitDiagnostics();
