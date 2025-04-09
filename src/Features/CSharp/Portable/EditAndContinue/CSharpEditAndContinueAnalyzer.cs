@@ -939,7 +939,7 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
         if (declaration is VariableDeclaratorSyntax { Initializer: not null })
         {
             return declaration.Parent?.Parent is not FieldDeclarationSyntax fieldDeclaration ||
-                   !fieldDeclaration.Modifiers.Any(static m => m.IsKind(SyntaxKind.ConstKeyword));
+                   !fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword);
         }
 
         return false;
