@@ -44,7 +44,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp;
 using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
 [Shared]
-[Export(typeof(ISemanticSearchWorkspaceHost))]
 [Export(typeof(SemanticSearchToolWindowImpl))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -62,7 +61,7 @@ internal sealed partial class SemanticSearchToolWindowImpl(
     ITextUndoHistoryRegistry undoHistoryRegistry,
     ISemanticSearchCopilotService copilotService,
     Lazy<ISemanticSearchCopilotUIProvider> copilotUIProvider, // lazy to avoid loading Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot
-    IVsService<SVsUIShell, IVsUIShell> vsUIShellProvider) : ISemanticSearchWorkspaceHost, IDisposable
+    IVsService<SVsUIShell, IVsUIShell> vsUIShellProvider) : IDisposable
 {
     private const int ToolBarHeight = 26;
     private const int ToolBarButtonSize = 20;
@@ -205,8 +204,6 @@ internal sealed partial class SemanticSearchToolWindowImpl(
 
         return toolWindowGrid;
     }
-
-    SemanticSearchWorkspace ISemanticSearchWorkspaceHost.Workspace => _semanticSearchWorkspace.Value;
 
     private CopilotUI? CreateCopilotUI()
     {
