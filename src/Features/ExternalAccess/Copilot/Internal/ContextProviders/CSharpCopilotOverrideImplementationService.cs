@@ -61,7 +61,7 @@ internal class CSharpCopilotOverrideImplementationService() : ICopilotOverrideIm
             return [];
         }
 
-        var overrideableMembers = containingType.GetOverridableMembers(cancellationToken);
-        return overrideableMembers;
+        var overridableMembers = containingType.GetOverridableMembers(cancellationToken);
+        return overridableMembers;
     }
 }
