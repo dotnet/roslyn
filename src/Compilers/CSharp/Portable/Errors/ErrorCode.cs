@@ -1337,7 +1337,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PublicSignButNoKey = 8102,
         ERR_TooManyUserStrings = 8103,
         ERR_PeWritingFailure = 8104,
-
         #endregion diagnostics introduced in Roslyn (C# 6)
 
         #region diagnostics introduced in C# 6 updates
