@@ -37,7 +37,7 @@ public class InterceptorsTests : CSharpTestBase
 
     private static readonly SyntaxTree s_attributesTree = CSharpTestSource.Parse(s_attributesSource.text, s_attributesSource.path, RegularWithInterceptors);
 
-    private static ImmutableArray<InterceptableLocation?> GetInterceptableLocations(CSharpTestSource source)
+    private ImmutableArray<InterceptableLocation?> GetInterceptableLocations(CSharpTestSource source)
     {
         var comp = CreateCompilation(source);
         var tree = comp.SyntaxTrees.Single();

@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
     {
         #region Helpers
 
-        private static CSharpCompilation CreateDummyCompilation(string assemblyName)
+        private CSharpCompilation CreateDummyCompilation(string assemblyName)
         {
-            return CreateCompilation(
+            return base.CreateCompilation(
                 "public class C { }",
                 assemblyName: assemblyName,
                 options: TestOptions.DebugDll);

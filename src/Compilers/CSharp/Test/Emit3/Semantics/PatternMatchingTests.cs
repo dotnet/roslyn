@@ -4930,7 +4930,7 @@ public class Program738490379
             Task.WaitAll(tasks.ToArray());
         }
 
-        private static void PatternMatchingFuzz(int dt)
+        private void PatternMatchingFuzz(int dt)
         {
             Random r = new Random(dt);
 

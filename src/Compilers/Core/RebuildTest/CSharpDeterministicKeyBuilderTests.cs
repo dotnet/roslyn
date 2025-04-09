@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 @"System.Console.WriteLine(""Hello World"");",
                 filename: path,
                 checksumAlgorithm: SourceHashAlgorithm.Sha1);
-            var compilation = CSharpTestBase.CreateCompilation(source);
+            var compilation = CSharpTestBase.CreateCompilationWithNetLatest(source);
             var key = compilation.GetDeterministicKey(options: options);
             var expected = @$"
 ""syntaxTrees"": [
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var additionalText = new TestAdditionalText(content, Encoding.UTF8, path: "file.txt", HashAlgorithm);
             var contentChecksum = GetChecksum(additionalText.GetText()!);
 
-            var compilation = CSharpTestBase.CreateCompilation(syntaxTree);
+            var compilation = CSharpTestBase.CreateCompilationWithNetLatest(syntaxTree);
             var key = compilation.GetDeterministicKey(additionalTexts: ImmutableArray.Create<AdditionalText>(additionalText));
             var expected = @$"
 ""additionalTexts"": [

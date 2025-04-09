@@ -902,7 +902,7 @@ public class C {}
         {
             string s = @"[assembly: System.Reflection.AssemblyFlags(12345)] public class C {} ";
 
-            var comp = CreateCompilation(s, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(s, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Standard);
             // Both native & Roslyn PEVerifier fail: [MD]: Error: Invalid Assembly flags (0x3038). [token:0x20000001]
             VerifyAssemblyTable(comp, r => { Assert.Equal((uint)(12345 - 1), (uint)r.Flags); });
 
@@ -917,7 +917,7 @@ public class C {}
         {
             string s = @"[assembly: System.Reflection.AssemblyFlags(12345U)] public class C {} ";
 
-            var comp = CreateCompilation(s, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(s, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Standard);
             // Both native & Roslyn PEVerifier fail: [MD]: Error: Invalid Assembly flags (0x3038). [token:0x20000001]
             VerifyAssemblyTable(comp, r => { Assert.Equal((uint)(12345 - 1), (uint)r.Flags); });
 

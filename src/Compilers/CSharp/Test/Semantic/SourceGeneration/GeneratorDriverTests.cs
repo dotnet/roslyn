@@ -1341,7 +1341,7 @@ class C { }
                 new[] { (gen001, "int") },
                 Diagnostic("GEN001", "int", isSuppressed: true).WithLocation(2, 9));
 
-            static void verify(string source, IReadOnlyList<(Diagnostic Diagnostic, string Location)> reportDiagnostics, params DiagnosticDescription[] expected)
+            void verify(string source, IReadOnlyList<(Diagnostic Diagnostic, string Location)> reportDiagnostics, params DiagnosticDescription[] expected)
             {
                 var parseOptions = TestOptions.RegularPreview;
                 source = source.Replace(Environment.NewLine, "\r\n");

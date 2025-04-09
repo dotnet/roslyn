@@ -923,7 +923,7 @@ val: -2
       IL_0001:  ret
     } // end of method C::AllNullNamesMethod
 } // end of class C
-", targetFramework: TargetFramework.Mscorlib40, references: s_valueTupleRefs);
+", references: s_valueTupleRefs);
 
             var c = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
@@ -21292,7 +21292,6 @@ public class C : Base2
 }";
 
             var compMatching = CreateCompilationWithILAndMscorlib40(sourceWithMatchingNames, ilSource,
-                targetFramework: TargetFramework.Mscorlib46Extended,
                 options: TestOptions.DebugDll);
 
             compMatching.VerifyEmitDiagnostics();
@@ -21304,7 +21303,6 @@ public class C : Base2
 }";
 
             var compDifferent1 = CreateCompilationWithILAndMscorlib40(sourceWithDifferentNames1, ilSource,
-                targetFramework: TargetFramework.Mscorlib46Extended,
                 options: TestOptions.DebugDll);
 
             compDifferent1.VerifyDiagnostics(
@@ -21320,7 +21318,6 @@ public class C : Base2
 }";
 
             var compDifferent2 = CreateCompilationWithILAndMscorlib40(sourceWithDifferentNames2, ilSource,
-                targetFramework: TargetFramework.Mscorlib46Extended,
                 options: TestOptions.DebugDll);
 
             compDifferent2.VerifyDiagnostics();
@@ -22702,7 +22699,7 @@ class Program
         }
 
         [Fact, WorkItem(13705, "https://github.com/dotnet/roslyn/issues/13705")]
-        public static void TupleCoVariance()
+        public void TupleCoVariance()
         {
             var source = @"
 public interface I<out T>
@@ -22719,7 +22716,7 @@ public interface I<out T>
         }
 
         [Fact, WorkItem(13705, "https://github.com/dotnet/roslyn/issues/13705")]
-        public static void TupleCoVariance2()
+        public void TupleCoVariance2()
         {
             var source = @"
 public interface I<out T>
@@ -22736,7 +22733,7 @@ public interface I<out T>
         }
 
         [Fact, WorkItem(13705, "https://github.com/dotnet/roslyn/issues/13705")]
-        public static void TupleContraVariance()
+        public void TupleContraVariance()
         {
             var source = @"
 public interface I<in T>
@@ -23385,7 +23382,7 @@ class C
         }
 
         [Fact]
-        public static void OperatorOverloadingWithDifferentTupleNames()
+        public void OperatorOverloadingWithDifferentTupleNames()
         {
             var source = @"
 public class B1

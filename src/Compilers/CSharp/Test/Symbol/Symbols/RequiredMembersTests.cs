@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols;
 public class RequiredMembersTests : CSharpTestBase
 {
     private static CSharpCompilation CreateCompilationWithRequiredMembers(CSharpTestSource source, IEnumerable<MetadataReference>? references = null, CSharpParseOptions? parseOptions = null, CSharpCompilationOptions? options = null, string? assemblyName = null, TargetFramework targetFramework = TargetFramework.Standard)
-        => CreateCompilation(new[] { source, RequiredMemberAttribute, SetsRequiredMembersAttribute, CompilerFeatureRequiredAttribute }, references, options: options, parseOptions: parseOptions, assemblyName: assemblyName, targetFramework: targetFramework);
+        => CreateCompilation(new[] { source, RequiredMemberAttribute, SetsRequiredMembersAttribute, CompilerFeatureRequiredAttribute }, references: references, options: options, parseOptions: parseOptions, assemblyName: assemblyName, targetFramework: targetFramework);
 
     private static Action<ModuleSymbol> ValidateRequiredMembersInModule(string[] memberPaths, string expectedAttributeLayout)
     {

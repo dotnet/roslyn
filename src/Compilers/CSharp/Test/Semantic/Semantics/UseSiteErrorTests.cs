@@ -2275,7 +2275,7 @@ namespace System
         /// First, compile the provided source with all assemblies and confirm that there are no errors.
         /// Then, compile the provided source again without the unavailable assembly and return the result.
         /// </summary>
-        private static CSharpCompilation CompileWithMissingReference(string source)
+        private CSharpCompilation CompileWithMissingReference(string source)
         {
             var unavailableAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.Unavailable;
             var csharpAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.CSharp;
@@ -2455,13 +2455,13 @@ class C : CSharpErrors.ClassMethods
             }
         }
 
-        private static readonly MetadataReference UnmanagedUseSiteError_Ref1 = CreateCompilation(@"
+        private static readonly MetadataReference UnmanagedUseSiteError_Ref1 = CreateCompilationWithStandard(@"
 public struct S1
 {
     public int i;
 }", assemblyName: "libS1").ToMetadataReference();
 
-        private static readonly MetadataReference UnmanagedUseSiteError_Ref2 = CreateCompilation(@"
+        private static readonly MetadataReference UnmanagedUseSiteError_Ref2 = CreateCompilationWithStandard(@"
 public struct S2
 {
     public S1 s1;

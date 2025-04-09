@@ -676,8 +676,8 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
-        protected static MetadataReference RefSafetyRulesAttributeLib =>
-            CreateCompilation(RefSafetyRulesAttributeDefinition).EmitToImageReference();
+        protected static MetadataReference RefSafetyRulesAttributeLib { get; } =
+            CreateCompilationWithNetStandard(RefSafetyRulesAttributeDefinition).EmitToImageReference();
 
         protected static readonly string RequiredMemberAttribute = @"
 namespace System.Runtime.CompilerServices
@@ -875,6 +875,30 @@ namespace System.Diagnostics.CodeAnalysis
                 }
             }
             """;
+
+        public TargetFramework DefaultTargetFramework { get; }
+
+        public CSharpTestBase()
+            : this(null)
+        {
+        }
+
+        public CSharpTestBase(TargetFramework? targetFramework)
+        {
+            DefaultTargetFramework = targetFramework ?? getTestAssemblyDefault();
+
+            // This method allows us to port test assemblies one at a time to the new NetLatest
+            // setting. This makes the PRs smaller and easier to review. Once the port is fully
+            // done this method will be deleted
+            //
+            // https://github.com/dotnet/roslyn/issues/78238
+            TargetFramework getTestAssemblyDefault() => this.GetType().Assembly.GetName().Name switch
+            {
+                "Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests" => TargetFramework.NetLatest,
+                _ => TargetFramework.StandardAndCSharp
+            };
+        }
+
 
         protected static T GetSyntax<T>(SyntaxTree tree, string text)
             where T : notnull
@@ -1094,6 +1118,114 @@ namespace System.Diagnostics.CodeAnalysis
                 TargetFramework.StandardAndCSharp,
                 verify);
 
+        internal CompilationVerifier CompileAndVerifyWithStandard(
+            CSharpTestSource source,
+            IEnumerable<MetadataReference>? references = null,
+            IEnumerable<ResourceDescription>? manifestResources = null,
+            IEnumerable<ModuleData>? dependencies = null,
+            Action<ModuleSymbol>? sourceSymbolValidator = null,
+            Action<PEAssembly>? assemblyValidator = null,
+            Action<ModuleSymbol>? symbolValidator = null,
+            SignatureDescription[]? expectedSignatures = null,
+            string? expectedOutput = null,
+            bool trimOutput = true,
+            int? expectedReturnCode = null,
+            string[]? args = null,
+            CSharpCompilationOptions? options = null,
+            CSharpParseOptions? parseOptions = null,
+            EmitOptions? emitOptions = null,
+            Verification verify = default) =>
+            CompileAndVerify(
+                source,
+                references,
+                manifestResources,
+                dependencies,
+                sourceSymbolValidator,
+                assemblyValidator,
+                symbolValidator,
+                expectedSignatures,
+                expectedOutput,
+                trimOutput,
+                expectedReturnCode,
+                args,
+                options,
+                parseOptions,
+                emitOptions,
+                TargetFramework.Standard,
+                verify);
+
+        internal CompilationVerifier CompileAndVerifyWithNetStandard(
+            CSharpTestSource source,
+            IEnumerable<MetadataReference>? references = null,
+            IEnumerable<ResourceDescription>? manifestResources = null,
+            IEnumerable<ModuleData>? dependencies = null,
+            Action<ModuleSymbol>? sourceSymbolValidator = null,
+            Action<PEAssembly>? assemblyValidator = null,
+            Action<ModuleSymbol>? symbolValidator = null,
+            SignatureDescription[]? expectedSignatures = null,
+            string? expectedOutput = null,
+            bool trimOutput = true,
+            int? expectedReturnCode = null,
+            string[]? args = null,
+            CSharpCompilationOptions? options = null,
+            CSharpParseOptions? parseOptions = null,
+            EmitOptions? emitOptions = null,
+            Verification verify = default) =>
+            CompileAndVerify(
+                source,
+                references,
+                manifestResources,
+                dependencies,
+                sourceSymbolValidator,
+                assemblyValidator,
+                symbolValidator,
+                expectedSignatures,
+                expectedOutput,
+                trimOutput,
+                expectedReturnCode,
+                args,
+                options,
+                parseOptions,
+                emitOptions,
+                TargetFramework.NetStandard20,
+                verify);
+
+        internal CompilationVerifier CompileAndVerifyWithNetCoreApp(
+            CSharpTestSource source,
+            IEnumerable<MetadataReference>? references = null,
+            IEnumerable<ResourceDescription>? manifestResources = null,
+            IEnumerable<ModuleData>? dependencies = null,
+            Action<ModuleSymbol>? sourceSymbolValidator = null,
+            Action<PEAssembly>? assemblyValidator = null,
+            Action<ModuleSymbol>? symbolValidator = null,
+            SignatureDescription[]? expectedSignatures = null,
+            string? expectedOutput = null,
+            bool trimOutput = true,
+            int? expectedReturnCode = null,
+            string[]? args = null,
+            CSharpCompilationOptions? options = null,
+            CSharpParseOptions? parseOptions = null,
+            EmitOptions? emitOptions = null,
+            Verification verify = default) =>
+            CompileAndVerify(
+                source,
+                references,
+                manifestResources,
+                dependencies,
+                sourceSymbolValidator,
+                assemblyValidator,
+                symbolValidator,
+                expectedSignatures,
+                expectedOutput,
+                trimOutput,
+                expectedReturnCode,
+                args,
+                options,
+                parseOptions,
+                emitOptions,
+                TargetFramework.NetCoreApp,
+                verify);
+
         internal CompilationVerifier CompileAndVerify(
             CSharpTestSource source,
             IEnumerable<MetadataReference>? references = null,
@@ -1110,7 +1242,7 @@ namespace System.Diagnostics.CodeAnalysis
             CSharpCompilationOptions? options = null,
             CSharpParseOptions? parseOptions = null,
             EmitOptions? emitOptions = null,
-            TargetFramework targetFramework = TargetFramework.Standard,
+            TargetFramework? targetFramework = null,
             Verification verify = default)
         {
             options = options ?? (expectedOutput != null ? TestOptions.ReleaseExe : CheckForTopLevelStatements(source.GetSyntaxTrees(parseOptions)));
@@ -1228,19 +1360,75 @@ namespace System.Diagnostics.CodeAnalysis
 
         #region Compilation Factories
 
-        public static CSharpCompilation CreateCompilationWithIL(
+        public static CSharpCompilation CreateCompilationWithILAndMscorlib461(
             CSharpTestSource source,
             string ilSource,
-            TargetFramework targetFramework = TargetFramework.Standard,
             IEnumerable<MetadataReference>? references = null,
             CSharpCompilationOptions? options = null,
             CSharpParseOptions? parseOptions = null,
-            bool appendDefaultHeader = true) => CreateCompilationWithILAndMscorlib40(source, ilSource, targetFramework, references, options, parseOptions, appendDefaultHeader);
+            bool appendDefaultHeader = true) =>
+            CreateCompilationWithIL(
+                source,
+                ilSource,
+                TargetFramework.Mscorlib461,
+                references,
+                options,
+                parseOptions,
+                appendDefaultHeader);
 
         public static CSharpCompilation CreateCompilationWithILAndMscorlib40(
             CSharpTestSource source,
             string ilSource,
-            TargetFramework targetFramework = TargetFramework.Mscorlib40,
+            IEnumerable<MetadataReference>? references = null,
+            CSharpCompilationOptions? options = null,
+            CSharpParseOptions? parseOptions = null,
+            bool appendDefaultHeader = true) =>
+            CreateCompilationWithIL(
+                source,
+                ilSource,
+                TargetFramework.Mscorlib40,
+                references,
+                options,
+                parseOptions,
+                appendDefaultHeader);
+
+        public static CSharpCompilation CreateCompilationWithILAndStandard(
+            CSharpTestSource source,
+            string ilSource,
+            IEnumerable<MetadataReference>? references = null,
+            CSharpCompilationOptions? options = null,
+            CSharpParseOptions? parseOptions = null,
+            bool appendDefaultHeader = true) =>
+            CreateCompilationWithIL(
+                source,
+                ilSource,
+                TargetFramework.Standard,
+                references,
+                options,
+                parseOptions,
+                appendDefaultHeader);
+
+        public CSharpCompilation CreateCompilationWithIL(
+            CSharpTestSource source,
+            string ilSource,
+            TargetFramework? targetFramework = null,
+            IEnumerable<MetadataReference>? references = null,
+            CSharpCompilationOptions? options = null,
+            CSharpParseOptions? parseOptions = null,
+            bool appendDefaultHeader = true) =>
+            CreateCompilationWithIL(
+                source,
+                ilSource,
+                targetFramework ?? DefaultTargetFramework,
+                references,
+                options,
+                parseOptions,
+                appendDefaultHeader);
+
+        public static CSharpCompilation CreateCompilationWithIL(
+            CSharpTestSource source,
+            string ilSource,
+            TargetFramework targetFramework,
             IEnumerable<MetadataReference>? references = null,
             CSharpCompilationOptions? options = null,
             CSharpParseOptions? parseOptions = null,
@@ -1257,7 +1445,7 @@ namespace System.Diagnostics.CodeAnalysis
             CSharpCompilationOptions? options = null,
             CSharpParseOptions? parseOptions = null,
             string? assemblyName = null,
-            string sourceFileName = "") => CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib40, assemblyName, sourceFileName);
+            string sourceFileName = "") => CreateCompilation(source, TargetFramework.Mscorlib40, references, options, parseOptions, assemblyName, sourceFileName);
 
         public static CSharpCompilation CreateCompilationWithMscorlib461(
             CSharpTestSource source,
@@ -1266,16 +1454,7 @@ namespace System.Diagnostics.CodeAnalysis
             CSharpParseOptions? parseOptions = null,
             string? assemblyName = null,
             string sourceFileName = "",
-            bool skipUsesIsNullable = false) => CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib461, assemblyName, sourceFileName, skipUsesIsNullable);
-
-        public static CSharpCompilation CreateCompilationWithMscorlib461(
-            string[] source,
-            IEnumerable<MetadataReference>? references = null,
-            CSharpCompilationOptions? options = null,
-            CSharpParseOptions? parseOptions = null,
-            string? assemblyName = null,
-            string sourceFileName = "",
-            bool skipUsesIsNullable = false) => CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib461, assemblyName, sourceFileName, skipUsesIsNullable);
+            bool skipUsesIsNullable = false) => CreateCompilation(source, TargetFramework.Mscorlib461, references, options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable);
 
         public static CSharpCompilation CreateCompilationWithMscorlib46(
             CSharpTestSource source,
@@ -1283,9 +1462,9 @@ namespace System.Diagnostics.CodeAnalysis
             CSharpCompilationOptions? options = null,
             CSharpParseOptions? parseOptions = null,
             string? assemblyName = null,
-            string sourceFileName = "") => CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib46, assemblyName, sourceFileName);
+            string sourceFileName = "") => CreateCompilation(source, TargetFramework.Mscorlib46, references, options, parseOptions, assemblyName, sourceFileName);
 
-        internal static CSharpCompilation CreateExperimentalCompilationWithMscorlib461(
+        internal CSharpCompilation CreateExperimentalCompilationWithMscorlib461(
             CSharpTestSource source,
             MessageID feature,
             IEnumerable<MetadataReference>? references = null,
@@ -1293,7 +1472,7 @@ namespace System.Diagnostics.CodeAnalysis
             CSharpParseOptions? parseOptions = null,
             string? assemblyName = null,
             string sourceFileName = "",
-            bool skipUsesIsNullable = false) => CreateCompilationCore(source, TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib461, references), options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable, experimentalFeature: feature);
+            bool skipUsesIsNullable = false) => CreateEmptyCompilation(source, TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib461, references), options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable, experimentalFeature: feature);
 
         public static CSharpCompilation CreateCompilationWithWinRT(
             CSharpTestSource source,
@@ -1301,7 +1480,7 @@ namespace System.Diagnostics.CodeAnalysis
             CSharpCompilationOptions? options = null,
             CSharpParseOptions? parseOptions = null,
             string? assemblyName = null,
-            string sourceFileName = "") => CreateCompilation(source, references, options, parseOptions, TargetFramework.WinRT, assemblyName, sourceFileName);
+            string sourceFileName = "") => CreateCompilation(source, TargetFramework.WinRT, references, options, parseOptions, assemblyName, sourceFileName);
 
         public static CSharpCompilation CreateCompilationWithMscorlib461AndCSharp(
             CSharpTestSource source,
@@ -1309,7 +1488,7 @@ namespace System.Diagnostics.CodeAnalysis
             CSharpCompilationOptions? options = null,
             CSharpParseOptions? parseOptions = null,
             string? assemblyName = null,
-            string sourceFileName = "") => CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib461AndCSharp, assemblyName, sourceFileName);
+            string sourceFileName = "") => CreateCompilation(source, TargetFramework.Mscorlib461AndCSharp, references, options, parseOptions, assemblyName, sourceFileName);
 
         public static CSharpCompilation CreateCompilationWithMscorlib40AndSystemCore(
             CSharpTestSource source,
@@ -1317,23 +1496,7 @@ namespace System.Diagnostics.CodeAnalysis
             CSharpCompilationOptions? options = null,
             CSharpParseOptions? parseOptions = null,
             string? assemblyName = null,
-            string sourceFileName = "") => CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib40AndSystemCore, assemblyName, sourceFileName);
-
-        public static CSharpCompilation CreateCompilationWithMscorlib40AndSystemCore(
-            string[] source,
-            IEnumerable<MetadataReference>? references = null,
-            CSharpCompilationOptions? options = null,
-            CSharpParseOptions? parseOptions = null,
-            string? assemblyName = null,
-            string sourceFileName = "") => CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib40AndSystemCore, assemblyName, sourceFileName);
-
-        public static CSharpCompilation CreateCompilationWithCSharp(
-            CSharpTestSource source,
-            IEnumerable<MetadataReference>? references = null,
-            CSharpCompilationOptions? options = null,
-            CSharpParseOptions? parseOptions = null,
-            string? assemblyName = null,
-            string sourceFileName = "") => CreateCompilation(source, references, options, parseOptions, TargetFramework.StandardAndCSharp, assemblyName, sourceFileName);
+            string sourceFileName = "") => CreateCompilation(source, TargetFramework.Mscorlib40AndSystemCore, references, options, parseOptions, assemblyName, sourceFileName);
 
         public static CSharpCompilation CreateCompilationWithMscorlib40AndDocumentationComments(
             CSharpTestSource source,
@@ -1345,7 +1508,7 @@ namespace System.Diagnostics.CodeAnalysis
         {
             parseOptions = parseOptions != null ? parseOptions.WithDocumentationMode(DocumentationMode.Diagnose) : TestOptions.RegularPreviewWithDocumentationComments;
             options = (options ?? TestOptions.ReleaseDll).WithXmlReferenceResolver(XmlFileResolver.Default);
-            return CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib40, assemblyName, sourceFileName);
+            return CreateCompilation(source, TargetFramework.Mscorlib40, references, options, parseOptions, assemblyName, sourceFileName);
         }
 
         public static CSharpCompilation CreateCompilationWithTasksExtensions(
@@ -1372,20 +1535,81 @@ namespace System.Diagnostics.CodeAnalysis
                 allReferences = allReferences.Concat(references);
             }
 
-            return CreateCompilation(source, allReferences, options, parseOptions, TargetFramework.Empty, assemblyName, sourceFileName);
+            return CreateEmptyCompilation(source, allReferences, options, parseOptions, assemblyName, sourceFileName);
         }
 
-        public static CSharpCompilation CreateCompilation(
+        public static CSharpCompilation CreateCompilationWithCSharp(
             CSharpTestSource source,
             IEnumerable<MetadataReference>? references = null,
             CSharpCompilationOptions? options = null,
             CSharpParseOptions? parseOptions = null,
-            TargetFramework targetFramework = TargetFramework.Standard,
+            string assemblyName = "") =>
+            CreateCompilation(source, TargetFramework.StandardAndCSharp, references, options, parseOptions, assemblyName);
+
+        public static CSharpCompilation CreateCompilationWithStandard(
+            CSharpTestSource source,
+            IEnumerable<MetadataReference>? references = null,
+            CSharpCompilationOptions? options = null,
+            CSharpParseOptions? parseOptions = null,
+            string assemblyName = "") =>
+            CreateCompilation(source, TargetFramework.NetStandard20, references, options, parseOptions, assemblyName);
+
+        public static CSharpCompilation CreateCompilationWithNetFramework(
+            CSharpTestSource source,
+            IEnumerable<MetadataReference>? references = null,
+            CSharpCompilationOptions? options = null,
+            CSharpParseOptions? parseOptions = null,
+            string assemblyName = "") =>
+            CreateCompilation(source, TargetFramework.NetFramework, references, options, parseOptions, assemblyName);
+
+        public static CSharpCompilation CreateCompilationWithNetStandard(
+            CSharpTestSource source,
+            IEnumerable<MetadataReference>? references = null,
+            CSharpCompilationOptions? options = null,
+            CSharpParseOptions? parseOptions = null,
+            string assemblyName = "") =>
+            CreateCompilation(source, TargetFramework.NetStandard20, references, options, parseOptions, assemblyName);
+
+        public static CSharpCompilation CreateCompilationWithNetLatest(
+            CSharpTestSource source,
+            IEnumerable<MetadataReference>? references = null,
+            CSharpCompilationOptions? options = null,
+            CSharpParseOptions? parseOptions = null,
+            string assemblyName = "") =>
+            CreateCompilation(source, TargetFramework.NetLatest, references, options, parseOptions, assemblyName);
+
+        public static CSharpCompilation CreateCompilationWithNetCoreApp(
+            CSharpTestSource source,
+            IEnumerable<MetadataReference>? references = null,
+            CSharpCompilationOptions? options = null,
+            CSharpParseOptions? parseOptions = null,
+            string assemblyName = "") =>
+            CreateCompilation(source, TargetFramework.NetCoreApp, references, options, parseOptions, assemblyName);
+
+        public static CSharpCompilation CreateCompilation(
+            CSharpTestSource source,
+            TargetFramework targetFramework,
+            IEnumerable<MetadataReference>? references = null,
+            CSharpCompilationOptions? options = null,
+            CSharpParseOptions? parseOptions = null,
             string? assemblyName = null,
             string sourceFileName = "",
             bool skipUsesIsNullable = false)
         {
             return CreateEmptyCompilation(source, TargetFrameworkUtil.GetReferences(targetFramework, references), options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable);
+        }
+
+        public CSharpCompilation CreateCompilation(
+            CSharpTestSource source,
+            IEnumerable<MetadataReference>? references = null,
+            CSharpCompilationOptions? options = null,
+            CSharpParseOptions? parseOptions = null,
+            TargetFramework? targetFramework = null,
+            string? assemblyName = null,
+            string sourceFileName = "",
+            bool skipUsesIsNullable = false)
+        {
+            return CreateEmptyCompilation(source, TargetFrameworkUtil.GetReferences(targetFramework ?? DefaultTargetFramework, references), options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable);
         }
 
         public static CSharpCompilation CreateEmptyCompilation(
@@ -1396,9 +1620,9 @@ namespace System.Diagnostics.CodeAnalysis
             string? assemblyName = null,
             string sourceFileName = "",
             bool skipUsesIsNullable = false,
-            bool skipExtraValidation = false) => CreateCompilationCore(source, references, options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable, experimentalFeature: null, skipExtraValidation: skipExtraValidation);
+            bool skipExtraValidation = false) => CreateEmptyCompilation(source, references, options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable, experimentalFeature: null, skipExtraValidation: skipExtraValidation);
 
-        private static CSharpCompilation CreateCompilationCore(
+        private static CSharpCompilation CreateEmptyCompilation(
             CSharpTestSource source,
             IEnumerable<MetadataReference>? references,
             CSharpCompilationOptions? options,
@@ -1608,7 +1832,7 @@ namespace System.Diagnostics.CodeAnalysis
             return createCompilationLambda();
         }
 
-        public CompilationVerifier CompileWithCustomILSource(string cSharpSource, string ilSource, Action<CSharpCompilation>? compilationVerifier = null, bool importInternals = true, string? expectedOutput = null, TargetFramework targetFramework = TargetFramework.Standard)
+        public CompilationVerifier CompileWithCustomILSource(string cSharpSource, string ilSource, Action<CSharpCompilation>? compilationVerifier = null, bool importInternals = true, string? expectedOutput = null, TargetFramework? targetFramework = null)
         {
             var compilationOptions = (expectedOutput != null) ? TestOptions.ReleaseExe : TestOptions.ReleaseDll;
 
@@ -2211,7 +2435,7 @@ namespace System.Diagnostics.CodeAnalysis
             where TSyntaxNode : SyntaxNode
         {
             var targetFramework = useLatestFrameworkReferences ? TargetFramework.Mscorlib46Extended : TargetFramework.Standard;
-            var compilation = CreateCompilation(testSrc, targetFramework: targetFramework, options: compilationOptions ?? TestOptions.ReleaseDll, parseOptions: parseOptions);
+            var compilation = CreateCompilation(testSrc, targetFramework, options: compilationOptions ?? TestOptions.ReleaseDll, parseOptions: parseOptions);
             return GetOperationTreeForTest<TSyntaxNode>(compilation);
         }
 
@@ -2289,7 +2513,7 @@ namespace System.Diagnostics.CodeAnalysis
             VerifyFlowGraphForTest<TSyntaxNode>(compilation, expectedFlowGraph);
         }
 
-        protected static void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(
+        protected void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(
             CSharpTestSource testSrc,
             string expectedOperationTree,
             DiagnosticDescription[] expectedDiagnostics,
@@ -2297,7 +2521,7 @@ namespace System.Diagnostics.CodeAnalysis
             CSharpParseOptions? parseOptions = null,
             MetadataReference[]? references = null,
             Action<IOperation?, Compilation, SyntaxNode?>? additionalOperationTreeVerifier = null,
-            TargetFramework targetFramework = TargetFramework.Standard)
+            TargetFramework? targetFramework = null)
             where TSyntaxNode : SyntaxNode =>
             VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(
                 testSrc,
@@ -2309,10 +2533,10 @@ namespace System.Diagnostics.CodeAnalysis
                 references,
                 additionalOperationTreeVerifier);
 
-        protected static void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(
+        protected void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(
             CSharpTestSource testSrc,
             string expectedOperationTree,
-            TargetFramework targetFramework,
+            TargetFramework? targetFramework,
             DiagnosticDescription[] expectedDiagnostics,
             CSharpCompilationOptions? compilationOptions = null,
             CSharpParseOptions? parseOptions = null,
@@ -2341,9 +2565,9 @@ namespace System.Diagnostics.CodeAnalysis
         {
             var compilation = CreateCompilation(
                 testSyntaxes,
+                useLatestFrameworkReferences ? TargetFramework.Mscorlib46Extended : TargetFramework.Standard,
                 references,
-                options: compilationOptions,
-                targetFramework: useLatestFrameworkReferences ? TargetFramework.Mscorlib46Extended : TargetFramework.Standard);
+                options: compilationOptions);
             VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier);
         }
 
@@ -2379,26 +2603,27 @@ namespace System.Diagnostics.CodeAnalysis
         {
             var compilation = CreateCompilation(
                 testSrc,
+                targetFramework,
                 references,
                 parseOptions: parseOptions,
-                options: compilationOptions,
-                targetFramework: targetFramework);
+                options: compilationOptions);
             VerifyFlowGraphAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedFlowGraph, expectedDiagnostics);
         }
 
-        protected static MetadataReference VerifyOperationTreeAndDiagnosticsForTestWithIL<TSyntaxNode>(string testSrc,
+        protected MetadataReference VerifyOperationTreeAndDiagnosticsForTestWithIL<TSyntaxNode>(
+            string testSrc,
             string ilSource,
             string expectedOperationTree,
             DiagnosticDescription[] expectedDiagnostics,
             CSharpCompilationOptions? compilationOptions = null,
             CSharpParseOptions? parseOptions = null,
-            MetadataReference[]? references = null,
             Action<IOperation?, Compilation, SyntaxNode?>? additionalOperationTreeVerifier = null,
-            TargetFramework targetFramework = TargetFramework.Standard)
+            TargetFramework? targetFramework = null)
             where TSyntaxNode : SyntaxNode
         {
             var ilReference = CreateMetadataReferenceFromIlSource(ilSource);
-            VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(testSrc, expectedOperationTree, expectedDiagnostics, compilationOptions, parseOptions, new[] { ilReference }, additionalOperationTreeVerifier, targetFramework);
+            var compilation = CreateCompilation(testSrc, targetFramework ?? DefaultTargetFramework, [ilReference], compilationOptions, parseOptions);
+            VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier);
             return ilReference;
         }
 
@@ -2408,19 +2633,26 @@ namespace System.Diagnostics.CodeAnalysis
 
         protected static CSharpCompilation CreateCompilationWithSpan(CSharpTestSource tree, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null)
         {
-            var reference = CreateCompilation(
-                TestSources.Span,
-                options: TestOptions.UnsafeReleaseDll);
+            if (RuntimeUtilities.IsCoreClrRuntime)
+            {
+                return CreateCompilationWithNetCoreApp(tree, options: options, parseOptions: parseOptions);
+            }
+            else
+            {
+                var reference = CreateCompilationWithNetFramework(
+                    TestSources.Span,
+                    options: TestOptions.UnsafeReleaseDll);
 
-            reference.VerifyDiagnostics();
+                reference.VerifyDiagnostics();
 
-            var comp = CreateCompilation(
-                tree,
-                references: new[] { reference.EmitToImageReference() },
-                options: options,
-                parseOptions: parseOptions);
+                var comp = CreateCompilationWithNetFramework(
+                    tree,
+                    references: [reference.EmitToImageReference()],
+                    options: options,
+                    parseOptions: parseOptions);
 
-            return comp;
+                return comp;
+            }
         }
 
         protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(CSharpTestSource text, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null)
@@ -2455,35 +2687,36 @@ namespace System.Diagnostics.CodeAnalysis
         #endregion
 
         #region Index and Range
+
         protected static CSharpCompilation CreateCompilationWithIndex(CSharpTestSource text, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null)
         {
-            var reference = CreateCompilation(TestSources.Index).VerifyDiagnostics();
+            var reference = CreateCompilationWithNetStandard(TestSources.Index).VerifyDiagnostics();
 
-            return CreateCompilation(
+            return CreateCompilationWithNetStandard(
                 text,
-                references: new List<MetadataReference>() { reference.EmitToImageReference() },
+                references: [reference.EmitToImageReference()],
                 options: options,
                 parseOptions: parseOptions);
         }
 
         protected static CSharpCompilation CreateCompilationWithIndexAndRange(CSharpTestSource text, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null)
         {
-            var reference = CreateCompilation(new[] { TestSources.Index, TestSources.Range }).VerifyDiagnostics();
+            var reference = CreateCompilationWithNetStandard([TestSources.Index, TestSources.Range]).VerifyDiagnostics();
 
-            return CreateCompilation(
+            return CreateCompilationWithNetStandard(
                 text,
-                references: new List<MetadataReference>() { reference.EmitToImageReference() },
+                references: [reference.EmitToImageReference()],
                 options: options,
                 parseOptions: parseOptions);
         }
 
         protected static CSharpCompilation CreateCompilationWithIndexAndRangeAndSpan(CSharpTestSource text, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null)
         {
-            var reference = CreateCompilation(new[] { TestSources.Index, TestSources.Range, TestSources.Span }, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            var reference = CreateCompilationWithNetStandard([TestSources.Index, TestSources.Range, TestSources.Span], options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
 
-            return CreateCompilation(
+            return CreateCompilationWithNetStandard(
                 text,
-                references: new List<MetadataReference>() { reference.EmitToImageReference() },
+                references: [reference.EmitToImageReference()],
                 options: options,
                 parseOptions: parseOptions);
         }
@@ -2492,15 +2725,19 @@ namespace System.Diagnostics.CodeAnalysis
         {
             if (ExecutionConditionUtil.IsCoreClr)
             {
-                return CreateCompilation(text, targetFramework: targetFramework, options: options, parseOptions: parseOptions);
+                return CreateCompilation(text, targetFramework, options: options, parseOptions: parseOptions);
             }
             else
             {
-                var reference = CreateCompilation(new[] { TestSources.Span, TestSources.MemoryExtensions }, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+                var reference = CreateCompilation(
+                    [TestSources.Span, TestSources.MemoryExtensions],
+                    TargetFramework.NetFramework,
+                    options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
 
                 return CreateCompilation(
                     text,
-                    references: new List<MetadataReference>() { reference.EmitToImageReference() },
+                    TargetFramework.NetFramework,
+                    [reference.EmitToImageReference()],
                     options: options,
                     parseOptions: parseOptions);
             }
@@ -2510,15 +2747,19 @@ namespace System.Diagnostics.CodeAnalysis
         {
             if (ExecutionConditionUtil.IsCoreClr)
             {
-                return CreateCompilation(text, targetFramework: targetFramework, options: options, parseOptions: parseOptions);
+                return CreateCompilation(text, targetFramework, options: options, parseOptions: parseOptions);
             }
             else
             {
-                var reference = CreateCompilation(new[] { TestSources.Index, TestSources.Range, TestSources.Span, TestSources.MemoryExtensions }, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+                var reference = CreateCompilation(
+                    [TestSources.Index, TestSources.Range, TestSources.Span, TestSources.MemoryExtensions],
+                    TargetFramework.NetFramework,
+                    options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
 
                 return CreateCompilation(
                     text,
-                    references: new List<MetadataReference>() { reference.EmitToImageReference() },
+                    TargetFramework.NetFramework,
+                    [reference.EmitToImageReference()],
                     options: options,
                     parseOptions: parseOptions);
             }

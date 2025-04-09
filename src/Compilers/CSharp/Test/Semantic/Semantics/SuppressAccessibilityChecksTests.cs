@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class SuppressAccessibilityChecksTests : CSharpTestBase
     {
-        private static SemanticModel GetSemanticModelWithIgnoreAccessibility()
+        private SemanticModel GetSemanticModelWithIgnoreAccessibility()
         {
             var compilationA = CreateCompilation(@"
 namespace N

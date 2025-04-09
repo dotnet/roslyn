@@ -926,7 +926,7 @@ class C1<T>
                 }
             }
 
-            static (AssemblySymbol retargetedAssembly1, AssemblySymbol retargetedAssembly2, AssemblySymbol consistentAssembly, CSharpCompilation originalComp, CSharpCompilation retargetedComp)
+            (AssemblySymbol retargetedAssembly1, AssemblySymbol retargetedAssembly2, AssemblySymbol consistentAssembly, CSharpCompilation originalComp, CSharpCompilation retargetedComp)
                 getFunctionPointerRetargetingDefinitions(string mIlSignature, string mOverriddenSignature)
             {
                 var retargetedSource = @"public class R {{}}";

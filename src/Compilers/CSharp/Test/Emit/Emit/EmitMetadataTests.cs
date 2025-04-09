@@ -3657,7 +3657,7 @@ public class Child : Parent, IParent
 
             CompileAndVerify(comp).VerifyDiagnostics();
 
-            static void verify(Stream stream)
+            void verify(Stream stream)
             {
                 stream.Position = 0;
                 Assert.NotEqual(0, new PEHeaders(stream).CorHeader.EntryPointTokenOrRelativeVirtualAddress);
@@ -3699,7 +3699,7 @@ public class Child : Parent, IParent
 
             CompileAndVerify(comp).VerifyDiagnostics();
 
-            static void verify(Stream stream)
+            void verify(Stream stream)
             {
                 stream.Position = 0;
                 Assert.NotEqual(0, new PEHeaders(stream).CorHeader.EntryPointTokenOrRelativeVirtualAddress);

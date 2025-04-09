@@ -1038,7 +1038,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithCSharp(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");

@@ -1234,12 +1234,12 @@ System.Collections.Generic.List`1[System.Int32]
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("D"));
         }
 
-        private static void TestConditional(string conditionalExpression, string? expectedType, params DiagnosticDescription[] expectedDiagnostics)
+        private void TestConditional(string conditionalExpression, string? expectedType, params DiagnosticDescription[] expectedDiagnostics)
         {
             TestConditional(conditionalExpression, expectedType, null, expectedDiagnostics);
         }
 
-        private static void TestConditional(string conditionalExpression, string? expectedType, CSharpParseOptions? parseOptions, params DiagnosticDescription[] expectedDiagnostics)
+        private void TestConditional(string conditionalExpression, string? expectedType, CSharpParseOptions? parseOptions, params DiagnosticDescription[] expectedDiagnostics)
         {
             if (parseOptions is null)
             {
@@ -1252,7 +1252,7 @@ System.Collections.Generic.List`1[System.Int32]
             }
         }
 
-        private static void TestConditionalCore(string conditionalExpression, string? expectedType, CSharpParseOptions parseOptions, params DiagnosticDescription[] expectedDiagnostics)
+        private void TestConditionalCore(string conditionalExpression, string? expectedType, CSharpParseOptions parseOptions, params DiagnosticDescription[] expectedDiagnostics)
         {
             string source = $@"
 class C

@@ -2288,7 +2288,7 @@ D.M").VerifyDiagnostics(); // No errors
         /// Compile libSource into a dll and then compile exeSource with that DLL as a reference.
         /// Assert that neither compilation has errors.  Return the exe compilation.
         /// </summary>
-        private static CSharpCompilation CreateCompilationWithMscorlibAndReference(string libSource, string exeSource)
+        private CSharpCompilation CreateCompilationWithMscorlibAndReference(string libSource, string exeSource)
         {
             var libComp = CreateCompilation(libSource, options: TestOptions.ReleaseDll, assemblyName: "OtherAssembly");
             libComp.VerifyDiagnostics();

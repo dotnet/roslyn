@@ -531,7 +531,7 @@ class Program
             AnalyzeMethodsInEnabledContextOnly_01_Execute(projectContext, classDirectives, methodDirectives);
         }
 
-        private static void AnalyzeMethodsInEnabledContextOnly_01_Execute(NullableContextOptions? projectContext, NullableDirectives classDirectives, NullableDirectives methodDirectives)
+        private void AnalyzeMethodsInEnabledContextOnly_01_Execute(NullableContextOptions? projectContext, NullableDirectives classDirectives, NullableDirectives methodDirectives)
         {
             var sourceA =
 @"#nullable enable
@@ -580,7 +580,7 @@ static class B
             verifyContextState(tree, syntaxNodes.OfType<ClassDeclarationSyntax>().Single(), classDirectives.ExpectedWarningsState, classDirectives.ExpectedAnnotationsState);
             verifyContextState(tree, syntaxNodes.OfType<MethodDeclarationSyntax>().Single(), expectedWarningsStateForMethod, expectedAnnotationsStateForMethod);
 
-            static void verifyContextState(CSharpSyntaxTree tree, CSharpSyntaxNode syntax, NullableContextState.State expectedWarningsState, NullableContextState.State expectedAnnotationsState)
+            void verifyContextState(CSharpSyntaxTree tree, CSharpSyntaxNode syntax, NullableContextState.State expectedWarningsState, NullableContextState.State expectedAnnotationsState)
             {
                 var actualState = tree.GetNullableContextState(syntax.SpanStart);
                 Assert.Equal(expectedWarningsState, actualState.WarningsState);
@@ -718,7 +718,7 @@ static class Program
 }";
             verify(source, expectedAnalyzedKeys: new[] { "M8" });
 
-            static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
+            void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {
                 var comp = CreateCompilation(source);
                 comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
@@ -978,7 +978,7 @@ struct S
 }";
             verify(source, expectedAnalyzedKeys: new string[0]);
 
-            static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
+            void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {
                 var comp = CreateCompilation(source);
                 comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
@@ -1059,7 +1059,7 @@ partial class Program
                 //     object F4 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 17));
 
-            static void verify(string[] source, CSharpCompilationOptions options, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
+            void verify(string[] source, CSharpCompilationOptions options, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {
                 var comp = CreateCompilation(source, options: options);
                 comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
@@ -1143,7 +1143,7 @@ class Program
                 //     event D E1;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E1").WithArguments("event", "E1").WithLocation(6, 13));
 
-            static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
+            void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {
                 var comp = CreateCompilation(source);
                 comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
@@ -1202,7 +1202,7 @@ class Program
                 //         F = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 13));
 
-            static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
+            void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {
                 var comp = CreateCompilation(source);
                 comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
@@ -1293,7 +1293,7 @@ class Program
                 //         remove => _f = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(21, 24));
 
-            static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
+            void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {
                 var comp = CreateCompilation(source);
                 comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
@@ -1350,7 +1350,7 @@ class B
                 //     public static C operator~(C c) => null;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(4, 39));
 
-            static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
+            void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {
                 var comp = CreateCompilation(source);
                 comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
@@ -1445,7 +1445,7 @@ record B2() : A(
                 //     F(null));
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(12, 7));
 
-            static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
+            void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {
                 var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
                 comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
@@ -1730,7 +1730,7 @@ _ = x.ToString();
 ";
             verify(new[] { sourceA, sourceB }, projectContext: null, expectedAnalyzedKeys: new[] { "F" });
 
-            static void verify(string[] source, NullableContextOptions? projectContext, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
+            void verify(string[] source, NullableContextOptions? projectContext, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {
                 var options = TestOptions.ReleaseExe;
                 if (projectContext != null) options = options.WithNullableContextOptions(projectContext.GetValueOrDefault());
@@ -1831,7 +1831,7 @@ _ = x.ToString();
 }";
             verify(source, Microsoft.CodeAnalysis.NullableFlowState.MaybeNull, ".ctor");
 
-            static void verify(string source, Microsoft.CodeAnalysis.NullableFlowState expectedFlowState, params string[] expectedAnalyzedKeys)
+            void verify(string source, Microsoft.CodeAnalysis.NullableFlowState expectedFlowState, params string[] expectedAnalyzedKeys)
             {
                 var comp = CreateCompilation(source);
                 comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
@@ -2189,7 +2189,7 @@ class Program
             AnalyzeMethodsInEnabledContextOnly_SpeculativeSemanticModel_Execute(projectContext, sourceDirectives, speculativeDirectives);
         }
 
-        private static void AnalyzeMethodsInEnabledContextOnly_SpeculativeSemanticModel_Execute(NullableContextOptions? projectContext, NullableDirectives sourceDirectives, NullableDirectives speculativeDirectives)
+        private void AnalyzeMethodsInEnabledContextOnly_SpeculativeSemanticModel_Execute(NullableContextOptions? projectContext, NullableDirectives sourceDirectives, NullableDirectives speculativeDirectives)
         {
             // https://github.com/dotnet/roslyn/issues/50234: SyntaxTreeSemanticModel.IsNullableAnalysisEnabledAtSpeculativePosition()
             // does not handle '#nullable restore'.
@@ -2218,7 +2218,7 @@ string";
             VerifySpeculativeSemanticModel(source, projectContext, typeName, expectedAnnotation);
         }
 
-        private static void VerifySpeculativeSemanticModel(string source, NullableContextOptions? projectContext, string typeName, Microsoft.CodeAnalysis.NullableAnnotation expectedAnnotation)
+        private void VerifySpeculativeSemanticModel(string source, NullableContextOptions? projectContext, string typeName, Microsoft.CodeAnalysis.NullableAnnotation expectedAnnotation)
         {
             var options = TestOptions.ReleaseDll;
             if (projectContext != null) options = options.WithNullableContextOptions(projectContext.GetValueOrDefault());

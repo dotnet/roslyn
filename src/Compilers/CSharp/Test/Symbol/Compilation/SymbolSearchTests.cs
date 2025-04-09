@@ -190,7 +190,7 @@ class Implicit : I
             Test(compilation, n => n.IndexOf("M", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace: false, includeType: false, includeMember: true, count: 3);
         }
 
-        private static CSharpCompilation GetTestCompilation()
+        private CSharpCompilation GetTestCompilation()
         {
             const string source = @"
 namespace System
