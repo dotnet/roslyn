@@ -64,29 +64,49 @@ internal sealed class SemanticSearchQueryExecutor(
 
         ExecuteQueryResult result = default;
         var canceled = false;
+        var emitTime = TimeSpan.Zero;
+
         try
         {
+            var compileResult = await RemoteSemanticSearchServiceProxy.CompileQueryAsync(
+                solution.Services,
+                query,
+                language: LanguageNames.CSharp,
+                SemanticSearchUtilities.ReferenceAssembliesDirectory,
+                cancellationToken).ConfigureAwait(false);
+
+            if (compileResult == null)
+            {
+                result = new ExecuteQueryResult(FeaturesResources.Semantic_search_only_supported_on_net_core);
+                return;
+            }
+
+            emitTime = compileResult.Value.EmitTime;
+
+            if (!compileResult.Value.CompilationErrors.IsEmpty)
+            {
+                foreach (var error in compileResult.Value.CompilationErrors)
+                {
+                    await presenterContext.OnDefinitionFoundAsync(new SearchCompilationFailureDefinitionItem(error, queryDocument), cancellationToken).ConfigureAwait(false);
+                }
+
+                return;
+            }
+
             result = await RemoteSemanticSearchServiceProxy.ExecuteQueryAsync(
                 solution,
-                LanguageNames.CSharp,
-                query,
-                SemanticSearchUtilities.ReferenceAssembliesDirectory,
+                compileResult.Value.QueryId,
                 resultsObserver,
                 _classificationOptionsProvider,
                 cancellationToken).ConfigureAwait(false);
-
-            foreach (var error in result.compilationErrors)
-            {
-                await presenterContext.OnDefinitionFoundAsync(new SearchCompilationFailureDefinitionItem(error, queryDocument), cancellationToken).ConfigureAwait(false);
-            }
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
         {
-            result = new ExecuteQueryResult(compilationErrors: [], e.Message);
+            result = new ExecuteQueryResult(e.Message);
         }
         catch (OperationCanceledException)
         {
-            result = new ExecuteQueryResult(compilationErrors: [], ServicesVSResources.Search_cancelled);
+            result = new ExecuteQueryResult(ServicesVSResources.Search_cancelled);
             canceled = true;
         }
         finally
@@ -110,11 +130,11 @@ internal sealed class SemanticSearchQueryExecutor(
             // Notify the presenter even if the search has been cancelled.
             await presenterContext.OnCompletedAsync(CancellationToken.None).ConfigureAwait(false);
 
-            ReportTelemetry(query, result, canceled);
+            ReportTelemetry(query, result, emitTime, canceled);
         }
     }
 
-    private static void ReportTelemetry(string queryString, ExecuteQueryResult result, bool canceled)
+    private static void ReportTelemetry(string queryString, ExecuteQueryResult result, TimeSpan emitTime, bool canceled)
     {
         Logger.Log(FunctionId.SemanticSearch_QueryExecution, KeyValueLogMessage.Create(map =>
         {
@@ -135,7 +155,7 @@ internal sealed class SemanticSearchQueryExecutor(
             }
 
             map["ExecutionTimeMilliseconds"] = (long)result.ExecutionTime.TotalMilliseconds;
-            map["EmitTime"] = (long)result.EmitTime.TotalMilliseconds;
+            map["EmitTime"] = (long)emitTime.TotalMilliseconds;
         }));
     }
 }

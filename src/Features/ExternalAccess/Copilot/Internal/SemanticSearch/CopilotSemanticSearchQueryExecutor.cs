@@ -78,11 +78,38 @@ internal sealed class CopilotSemanticSearchQueryExecutor(IHostWorkspaceProvider 
 
         try
         {
-            var result = await RemoteSemanticSearchServiceProxy.ExecuteQueryAsync(
-                _workspace.CurrentSolution,
-                LanguageNames.CSharp,
+            var compileResult = await RemoteSemanticSearchServiceProxy.CompileQueryAsync(
+                _workspace.CurrentSolution.Services,
                 query,
+                language: LanguageNames.CSharp,
                 SemanticSearchUtilities.ReferenceAssembliesDirectory,
+                cancellationSource.Token).ConfigureAwait(false);
+
+            if (compileResult == null)
+            {
+                return new CopilotSemanticSearchQueryResults()
+                {
+                    Symbols = observer.Results,
+                    CompilationErrors = [],
+                    Error = FeaturesResources.Semantic_search_only_supported_on_net_core,
+                    LimitReached = false,
+                };
+            }
+
+            if (!compileResult.Value.CompilationErrors.IsEmpty)
+            {
+                return new CopilotSemanticSearchQueryResults()
+                {
+                    Symbols = observer.Results,
+                    CompilationErrors = compileResult.Value.CompilationErrors.SelectAsArray(e => (e.Id, e.Message)),
+                    Error = null,
+                    LimitReached = false,
+                };
+            }
+
+            var executeResult = await RemoteSemanticSearchServiceProxy.ExecuteQueryAsync(
+                _workspace.CurrentSolution,
+                compileResult.Value.QueryId,
                 observer,
                 DefaultClassificationOptionsProvider.Instance,
                 cancellationSource.Token).ConfigureAwait(false);
@@ -90,8 +117,8 @@ internal sealed class CopilotSemanticSearchQueryExecutor(IHostWorkspaceProvider 
             return new CopilotSemanticSearchQueryResults()
             {
                 Symbols = observer.Results,
-                CompilationErrors = result.compilationErrors.SelectAsArray(e => (e.Id, e.Message)),
-                Error = (result.ErrorMessage != null) ? string.Format(result.ErrorMessage, result.ErrorMessageArgs ?? []) : null,
+                CompilationErrors = [],
+                Error = (executeResult.ErrorMessage != null) ? string.Format(executeResult.ErrorMessage, executeResult.ErrorMessageArgs ?? []) : null,
                 LimitReached = false,
             };
         }
