@@ -57,6 +57,7 @@ public sealed class DocumentSymbolsTests : AbstractLanguageServerProtocolTests
         LSP.DocumentSymbol[] expected = [classSymbol];
 
         var results = await RunGetDocumentSymbolsAsync<LSP.DocumentSymbol[]>(testLspServer);
+        Assert.NotNull(results);
         Assert.Equal(expected.Length, results.Length);
         for (var i = 0; i < results.Length; i++)
         {
@@ -113,6 +114,7 @@ public sealed class DocumentSymbolsTests : AbstractLanguageServerProtocolTests
             """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
         var results = await RunGetDocumentSymbolsAsync<LSP.SymbolInformation[]>(testLspServer).ConfigureAwait(false);
+        Assert.NotNull(results);
         Assert.Equal(3, results.Length);
     }
 
@@ -128,6 +130,7 @@ public sealed class DocumentSymbolsTests : AbstractLanguageServerProtocolTests
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
         var results = await RunGetDocumentSymbolsAsync<LSP.SymbolInformation[]>(testLspServer).ConfigureAwait(false);
+        Assert.NotNull(results);
 #pragma warning disable CS0618 // Type or member is obsolete
         Assert.Equal(".", results.First().Name);
 #pragma warning restore CS0618
@@ -156,8 +159,8 @@ public sealed class DocumentSymbolsTests : AbstractLanguageServerProtocolTests
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
 
         var results = await RunGetDocumentSymbolsAsync<LSP.SymbolInformation[]>(testLspServer).ConfigureAwait(false);
+        Assert.NotNull(results);
 #pragma warning disable CS0618 // Type or member is obsolete
-
         Assert.Equal(".", results.First().Name);
 #pragma warning restore CS0618
     }
@@ -168,10 +171,11 @@ public sealed class DocumentSymbolsTests : AbstractLanguageServerProtocolTests
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
 
         var results = await RunGetDocumentSymbolsAsync<LSP.SymbolInformation[]>(testLspServer);
+        Assert.NotNull(results);
         Assert.Empty(results);
     }
 
-    private static async Task<TReturn> RunGetDocumentSymbolsAsync<TReturn>(TestLspServer testLspServer)
+    private static async Task<TReturn?> RunGetDocumentSymbolsAsync<TReturn>(TestLspServer testLspServer)
     {
         var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
         var request = new LSP.DocumentSymbolParams
@@ -189,15 +193,18 @@ public sealed class DocumentSymbolsTests : AbstractLanguageServerProtocolTests
         Assert.Equal(expected.Name, actual.Name);
         Assert.Equal(expected.Detail, actual.Detail);
         Assert.Equal(expected.Range, actual.Range);
-        Assert.Equal(expected.Children.Length, actual.Children.Length);
-        for (var i = 0; i < actual.Children.Length; i++)
+        Assert.Equal(expected.Children?.Length, actual.Children?.Length);
+        if (expected.Children is not null)
         {
-            AssertDocumentSymbolEquals(expected.Children[i], actual.Children[i]);
+            for (var i = 0; i < actual.Children!.Length; i++)
+            {
+                AssertDocumentSymbolEquals(expected.Children[i], actual.Children[i]);
+            }
         }
     }
 
     private static LSP.DocumentSymbol CreateDocumentSymbol(LSP.SymbolKind kind, string name, string detail,
-        LSP.Location location, LSP.Location selection, LSP.DocumentSymbol parent = null)
+        LSP.Location location, LSP.Location selection, LSP.DocumentSymbol? parent = null)
     {
         var documentSymbol = new LSP.DocumentSymbol()
         {
@@ -214,7 +221,7 @@ public sealed class DocumentSymbolsTests : AbstractLanguageServerProtocolTests
 
         if (parent != null)
         {
-            var children = parent.Children.ToList();
+            var children = parent.Children?.ToList() ?? [];
             children.Add(documentSymbol);
             parent.Children = [.. children];
         }
