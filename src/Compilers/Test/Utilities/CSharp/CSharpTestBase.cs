@@ -2296,7 +2296,8 @@ namespace System.Diagnostics.CodeAnalysis
                 tree,
                 references: new[] { reference.EmitToImageReference() },
                 options: options,
-                parseOptions: parseOptions);
+                parseOptions: parseOptions,
+                targetFramework: TargetFramework.Standard);
 
             return comp;
         }
@@ -2380,7 +2381,8 @@ namespace System.Diagnostics.CodeAnalysis
                     text,
                     references: new List<MetadataReference>() { reference.EmitToImageReference() },
                     options: options,
-                    parseOptions: parseOptions);
+                    parseOptions: parseOptions,
+                    targetFramework: TargetFramework.NetFramework);
             }
         }
 
