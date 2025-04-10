@@ -296,11 +296,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
                     break;
 
-                case BoundKind.LoweredConditionalSideEffect:
-                    Debug.Assert(!used);
-                    EmitLoweredConditionalSideEffect((BoundLoweredConditionalSideEffect)expression);
-                    break;
-
                 case BoundKind.ConditionalOperator:
                     EmitConditionalOperator((BoundConditionalOperator)expression, used);
                     break;
@@ -3852,23 +3847,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             _builder.MarkLabel(doneLabel);
-        }
-
-        /// <summary>
-        /// Emit code for a conditional side effect
-        /// </summary>
-        /// <remarks>
-        /// if (expr) sideeffect becomes
-        ///   if !expr goto AFTER
-        ///   sideeffect
-        ///   AFTER:
-        /// </remarks>
-        private void EmitLoweredConditionalSideEffect(BoundLoweredConditionalSideEffect boundLoweredIfSideEffect)
-        {
-            object afterLabel = new object();
-            EmitCondBranch(boundLoweredIfSideEffect.Condition, ref afterLabel, sense: false);
-            EmitExpression(boundLoweredIfSideEffect.SideEffect, used: false);
-            _builder.MarkLabel(afterLabel);
         }
 
         /// <summary>
