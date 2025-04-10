@@ -295,7 +295,7 @@ internal sealed partial class ProjectSystemProject
             }
         }
 
-        bool GetReportCompilationThrownAway(T newValue, T? oldValue)
+        bool ShouldReportCompilationWillBeThrownAway(T newValue, T? oldValue)
         {
             // This method can be called for both AssemblyName (type string) and ParseOptions (type ParseOptions) changes.
 
