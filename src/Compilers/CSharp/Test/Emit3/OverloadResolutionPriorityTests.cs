@@ -788,14 +788,14 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
             }
             """;
 
-        var comp2 = CreateCompilation([source2, OverloadResolutionPriorityAttributeDefinition], references: [comp1_1.ToMetadataReference()]);
+        var comp2 = CreateCompilation([source2, OverloadResolutionPriorityAttributeDefinition], references: [comp1_1.ToMetadataReference()], targetFramework: TargetFramework.Standard);
         comp2.VerifyDiagnostics();
 
         var source3 = """
             var c = new Derived("test");
             """;
 
-        var comp3 = CreateCompilation(source3, references: [comp2.ToMetadataReference(), comp1_2.ToMetadataReference()]);
+        var comp3 = CreateCompilation(source3, references: [comp2.ToMetadataReference(), comp1_2.ToMetadataReference()], targetFramework: TargetFramework.Standard);
         comp3.VerifyDiagnostics();
 
         var derived = comp3.GetTypeByMetadataName("Derived")!;
@@ -2115,7 +2115,7 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
             Handler h = $"test {1}";
             """;
 
-        var verifier = CompileAndVerify([handler, executable, OverloadResolutionPriorityAttributeDefinition, InterpolatedStringHandlerAttribute], expectedOutput: "12").VerifyDiagnostics();
+        var verifier = CompileAndVerify([handler, executable, OverloadResolutionPriorityAttributeDefinition, InterpolatedStringHandlerAttribute], expectedOutput: "12", targetFramework: TargetFramework.Standard).VerifyDiagnostics();
 
         verifier.VerifyIL("<top-level-statements-entry-point>", """
             {
@@ -2138,8 +2138,8 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
             }
             """);
 
-        var comp = CreateCompilation([handler, OverloadResolutionPriorityAttributeDefinition, InterpolatedStringHandlerAttribute]);
-        CompileAndVerify(executable, references: [AsReference(comp, useMetadataReference)], expectedOutput: "12").VerifyDiagnostics();
+        var comp = CreateCompilation([handler, OverloadResolutionPriorityAttributeDefinition, InterpolatedStringHandlerAttribute], targetFramework: TargetFramework.Standard);
+        CompileAndVerify(executable, references: [AsReference(comp, useMetadataReference)], expectedOutput: "12", targetFramework: TargetFramework.Standard).VerifyDiagnostics();
     }
 
     [Theory]

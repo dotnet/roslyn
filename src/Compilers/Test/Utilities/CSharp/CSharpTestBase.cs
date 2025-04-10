@@ -1371,6 +1371,22 @@ namespace System.Diagnostics.CodeAnalysis
             return CreateCompilation(source, allReferences, options, parseOptions, TargetFramework.Empty, assemblyName, sourceFileName);
         }
 
+        public static CSharpCompilation CreateCompilationNetStandard(
+            CSharpTestSource source,
+            IEnumerable<MetadataReference> references = null,
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
+            string assemblyName = "") =>
+            CreateCompilationNetStandard([source], references, options, parseOptions, assemblyName);
+
+        public static CSharpCompilation CreateCompilationNetStandard(
+            CSharpTestSource[] source,
+            IEnumerable<MetadataReference> references = null,
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
+            string assemblyName = "") =>
+            CreateCompilation(source, references, options, parseOptions, TargetFramework.NetStandard20, assemblyName);
+
         public static CSharpCompilation CreateCompilation(
             CSharpTestSource source,
             IEnumerable<MetadataReference>? references = null,
