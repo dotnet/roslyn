@@ -1391,11 +1391,15 @@ public partial class Solution
         return WithCompilationState(CompilationState.WithDocumentSyntaxRoots(syntaxRoots, mode));
     }
 
-    internal Solution WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState, bool forceEvenIfTreesWouldDiffer)
-        => WithCompilationState(CompilationState.WithDocumentContentsFrom([(documentId, documentState)], forceEvenIfTreesWouldDiffer));
+    internal Solution WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState)
+        => WithDocumentContentsFrom([(documentId, documentState)]);
 
-    internal Solution WithDocumentContentsFrom(ImmutableArray<(DocumentId documentId, DocumentState documentState)> documentIdsAndStates, bool forceEvenIfTreesWouldDiffer)
-        => WithCompilationState(CompilationState.WithDocumentContentsFrom(documentIdsAndStates, forceEvenIfTreesWouldDiffer));
+    internal Solution WithDocumentContentsFrom(ImmutableArray<(DocumentId documentId, DocumentState documentState)> documentIdsAndStates)
+        // This code path is all about updating linked files to match the contents of the document they are linked to.
+        // We always want to try to allow the linked files to reuse the root from the linked document if possible, or
+        // reparse if it is not.  Hence why we pass `forceEvenIfTreesWouldDiffer: false` as we don't want reuse in the
+        // cases like when PP directives change and the docs contain a #if directive.
+        => WithCompilationState(CompilationState.WithDocumentContentsFrom(documentIdsAndStates, forceEvenIfTreesWouldDiffer: false));
 
     /// <summary>
     /// Creates a new solution instance with the document specified updated to have the source
