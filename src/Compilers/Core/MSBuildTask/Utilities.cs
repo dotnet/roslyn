@@ -171,19 +171,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Generate the full path to the tool that is deployed with our build tasks.
         /// </summary>
-        internal static string GenerateFullPathToTool(string toolFileName, string? toolsDirectory)
+        internal static string GenerateFullPathToTool(string toolFileName, RoslynCompilerType compilerType)
         {
             var buildTask = typeof(Utilities).GetTypeInfo().Assembly;
             var assemblyPath = buildTask.Location;
             var assemblyDirectory = Path.GetDirectoryName(assemblyPath)!;
 
-            if (!string.IsNullOrWhiteSpace(toolsDirectory))
-            {
-                return Path.Combine(assemblyDirectory, toolsDirectory, toolFileName);
-            }
-
             return RuntimeHostInfo.IsDesktopRuntime
-                ? Path.Combine(assemblyDirectory, toolFileName)
+                ? Path.Combine(assemblyDirectory, compilerType is RoslynCompilerType.Core ? "../bincore" : "", toolFileName)
                 : Path.Combine(assemblyDirectory, "bincore", toolFileName);
         }
     }
