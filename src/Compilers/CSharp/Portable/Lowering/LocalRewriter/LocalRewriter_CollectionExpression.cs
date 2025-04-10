@@ -68,8 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(elementType is { });
                         return VisitArrayOrSpanCollectionExpression(node, collectionTypeKind, node.Type, TypeWithAnnotations.Create(elementType));
                     case CollectionExpressionTypeKind.CollectionBuilder:
-                        Debug.Assert(Binder.GetCollectionBuilderMethod(node) is { Parameters: [var parameter] });
-
                         // A few special cases when a collection type is an ImmutableArray<T>
                         if (ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Immutable_ImmutableArray_T, out var arrayElementType))
                         {
@@ -142,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             static bool usesSingleParameterBuilderMethod(CSharpCompilation compilation, BoundCollectionExpression node, TypeWithAnnotations elementType)
             {
                 var method = Binder.GetCollectionBuilderMethod(node);
-                Debug.Assert(method is { Parameters: [var parameter] } &&
+                Debug.Assert(method is { Parameters: [var parameter, ..] } &&
                     parameter.Type.Equals(compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T).Construct([elementType]), TypeCompareKind.AllIgnoreOptions));
                 return method is { Parameters.Length: 1 };
             }
@@ -236,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             spreadExpression = null;
 
             if (node.Elements is [BoundCollectionExpressionSpreadElement { Expression: { Type: NamedTypeSymbol spreadType } expr }] &&
-                Binder.GetCollectionBuilderMethod(node) is { Parameters: [var parameter] } builder &&
+                Binder.GetCollectionBuilderMethod(node) is { Parameters: [var parameter, ..] } builder &&
                 ConversionsBase.HasIdentityConversion(parameter.Type, spreadType) &&
                 (!builder.ReturnType.IsRefLikeType || parameter.EffectiveScope == ScopedKind.ScopedValue))
             {
