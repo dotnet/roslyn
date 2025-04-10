@@ -153,10 +153,8 @@ internal sealed partial class CPSProjectFactory : IWorkspaceProjectContextFactor
         var values = data.GetItemValues(itemName);
         if (values.Length != 1)
         {
-            // TODO: Throw once we update integration tests to the latest VS (https://github.com/dotnet/roslyn/issues/65439)
-            // var joinedValues = string.Join(";", values);
-            // throw new InvalidProjectDataException(itemName, joinedValues, $"Item group '{itemName}' is required to specify a single value: '{joinedValues}'.");
-            return null;
+            var joinedValues = string.Join(";", values);
+            throw new InvalidProjectDataException(itemName, joinedValues, $"Item group '{itemName}' is required to specify a single value: '{joinedValues}'.");
         }
 
         var path = values[0];
