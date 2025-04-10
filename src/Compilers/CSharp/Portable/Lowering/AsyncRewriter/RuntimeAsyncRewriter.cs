@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp;
@@ -23,7 +24,8 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         }
 
         var rewriter = new RuntimeAsyncRewriter(compilationState.Compilation, new SyntheticBoundNodeFactory(method, node.Syntax, compilationState, diagnostics));
-        return (BoundStatement)rewriter.Visit(node);
+        var result = (BoundStatement)rewriter.Visit(node);
+        return SpillSequenceSpiller.Rewrite(result, method, compilationState, diagnostics);
     }
 
     private readonly CSharpCompilation _compilation;
@@ -124,20 +126,21 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         // var _tmp = expr.GetAwaiter();
         // if (!_tmp.IsCompleted)
         //    UnsafeAwaitAwaiterFromRuntimeAsync(_tmp) OR AwaitAwaiterFromRuntimeAsync(_tmp);
-        // _tmp.GetResult();
+        // _tmp.GetResult()
 
         // PROTOTYPE: await dynamic will need runtime checks, see AsyncMethodToStateMachine.GenerateAwaitOnCompletedDynamic
 
         var expr = VisitExpression(node.Expression);
 
-        var awaitablePlaceholder = node.AwaitableInfo.AwaitableInstancePlaceholder;
+        var awaitableInfo = node.AwaitableInfo;
+        var awaitablePlaceholder = awaitableInfo.AwaitableInstancePlaceholder;
         if (awaitablePlaceholder is not null)
         {
             _placeholderMap.Add(awaitablePlaceholder, expr);
         }
 
         // expr.GetAwaiter()
-        var getAwaiter = VisitExpression(node.AwaitableInfo.GetAwaiter);
+        var getAwaiter = VisitExpression(awaitableInfo.GetAwaiter);
         Debug.Assert(getAwaiter is not null);
 
         if (awaitablePlaceholder is not null)
@@ -149,7 +152,8 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         var tmp = _factory.StoreToTemp(getAwaiter, out BoundAssignmentOperator store, kind: SynthesizedLocalKind.Awaiter);
 
         // _tmp.IsCompleted
-        var isCompletedMethod = node.AwaitableInfo.IsCompleted!.GetMethod;
+        Debug.Assert(awaitableInfo.IsCompleted is not null);
+        var isCompletedMethod = awaitableInfo.IsCompleted.GetMethod;
         Debug.Assert(isCompletedMethod is not null);
         var isCompletedCall = _factory.Call(tmp, isCompletedMethod);
 
@@ -173,20 +177,17 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
             tmp);
 
         // if (!_tmp.IsCompleted) awaitCall
-        var ifNotCompleted = new BoundLoweredConditionalSideEffect(
-            node.Syntax,
-            condition: _factory.Not(isCompletedCall),
-            sideEffect: awaitCall);
+        var ifNotCompleted = _factory.If(_factory.Not(isCompletedCall), _factory.ExpressionStatement(awaitCall));
 
         // _tmp.GetResult()
-        var getResultMethod = node.AwaitableInfo.GetResult;
+        var getResultMethod = awaitableInfo.GetResult;
         Debug.Assert(getResultMethod is not null);
         var getResultCall = _factory.Call(tmp, getResultMethod);
 
         // final sequence
-        return _factory.Sequence(
+        return _factory.SpillSequence(
             locals: [tmp.LocalSymbol],
-            sideEffects: [store, ifNotCompleted],
+            sideEffects: [_factory.ExpressionStatement(store), ifNotCompleted],
             result: getResultCall);
     }
 
