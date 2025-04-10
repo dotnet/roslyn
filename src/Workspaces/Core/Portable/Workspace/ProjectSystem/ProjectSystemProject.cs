@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 
 internal sealed partial class ProjectSystemProject
 {
-    private static readonly char[] s_directorySeparator = [Path.DirectorySeparatorChar];
     private static readonly ImmutableArray<MetadataReferenceProperties> s_defaultMetadataReferenceProperties = [default(MetadataReferenceProperties)];
 
     private readonly ProjectSystemProjectFactory _projectSystemProjectFactory;
@@ -1121,11 +1120,11 @@ internal sealed partial class ProjectSystemProject
             return OneOrMany<string>.Empty;
         }
 
-        if (IsSdkRazorSourceGenerator(fullPath))
+        if (IsAnyRazorAnalyzerFilePath(fullPath))
         {
             // Map all files in the SDK directory that contains the Razor source generator to source generator files loaded from VSIX.
             // Include the generator and all its dependencies shipped in VSIX, discard the generator and all dependencies in the SDK
-            return GetMappedRazorSourceGenerator(fullPath);
+            return GetMappedRazorAnalyzerFilePath(fullPath);
         }
 
         if (TryRedirectAnalyzerAssembly(fullPath) is { } redirectedPath)
@@ -1176,36 +1175,63 @@ internal sealed partial class ProjectSystemProject
     };
 
     internal const string RazorVsixExtensionId = "Microsoft.VisualStudio.RazorExtension";
-    private static readonly string s_razorSourceGeneratorSdkDirectory = CreateDirectoryPathFragment("Sdks", "Microsoft.NET.Sdk.Razor", "source-generators");
-    private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyNames =
-    [
-        "Microsoft.NET.Sdk.Razor.SourceGenerators",
-        "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators",
-        "Microsoft.CodeAnalysis.Razor.Compiler",
-    ];
-    private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyRootedFileNames = s_razorSourceGeneratorAssemblyNames.SelectAsArray(
-        assemblyName => PathUtilities.DirectorySeparatorStr + assemblyName + ".dll");
+    internal const string RazorSourceGenaratorDllName = "Microsoft.CodeAnalysis.Razor.Compiler.dll";
 
-    private static bool IsSdkRazorSourceGenerator(string fullPath) => DirectoryNameEndsWith(fullPath, s_razorSourceGeneratorSdkDirectory);
-
-    private OneOrMany<string> GetMappedRazorSourceGenerator(string fullPath)
+    /// <summary>
+    /// Is this analyzer considered part of the closure of the Razor compiler?
+    /// </summary>
+    /// <remarks>
+    /// This component needs to consider non-standard configurations like:
+    ///
+    ///  - Customers who have checked in the Razor compiler to their build system
+    ///  - Customers who are using SDKs where the set of DLLs that comprise Razor have changed over time.
+    ///
+    /// To have a robust definition any analyzer that is present in a directory that also contains the 
+    /// Razor compiler is considered part of the Razor analyzer closure.
+    /// </remarks>
+    internal static bool IsAnyRazorAnalyzerFilePath(string fullPath)
     {
-        var vsixRazorAnalyzers = _hostInfo.HostDiagnosticAnalyzerProvider.GetAnalyzerReferencesInExtensions().SelectAsArray(
-            predicate: item => item.extensionId == RazorVsixExtensionId,
-            selector: item => item.reference.FullPath);
+        var dir = Path.GetDirectoryName(fullPath)!;
+        Debug.Assert(dir is not null);
+        var razorGeneratorFullPath = Path.Combine(dir, RazorSourceGenaratorDllName);
+        return File.Exists(razorGeneratorFullPath);
+    }
 
-        if (!vsixRazorAnalyzers.IsEmpty)
+    /// <summary>
+    /// Get the mapped set of paths for this analyzer in the Razor closure.
+    /// </summary>
+    /// <remarks>
+    /// For <see cref="RazorSourceGenaratorDllName"/> this will return all registered analyzers in the 
+    /// Razor extension. For everything else it will return an empty set.
+    /// </remarks>
+    private OneOrMany<string> GetMappedRazorAnalyzerFilePath(string fullPath)
+    {
+        Debug.Assert(IsAnyRazorAnalyzerFilePath(fullPath));
+
+        var razorGeneratorFullPaths = _hostInfo.HostDiagnosticAnalyzerProvider
+            .GetAnalyzerReferencesInExtensions()
+            .SelectAsArray(
+                predicate: item => item.extensionId == RazorVsixExtensionId,
+                selector: item => item.reference.FullPath);
+        Debug.Assert(razorGeneratorFullPaths.IsDefaultOrEmpty || razorGeneratorFullPaths.All(IsAnyRazorAnalyzerFilePath));
+
+        return (razorGeneratorFullPaths.IsEmpty, IsFileName(fullPath, RazorSourceGenaratorDllName)) switch
         {
-            if (s_razorSourceGeneratorAssemblyRootedFileNames.Any(
-                static (fileName, fullPath) => fullPath.EndsWith(fileName, StringComparison.OrdinalIgnoreCase), fullPath))
-            {
-                return OneOrMany.Create(vsixRazorAnalyzers);
-            }
+            (true, _) => OneOrMany.Create(fullPath),
+            (false, true) => OneOrMany.Create(razorGeneratorFullPaths),
+            (false, false) => OneOrMany<string>.Empty,
+        };
 
-            return OneOrMany<string>.Empty;
+        static bool IsFileName(string filePath, string fileName)
+        {
+#if NET
+            var n = Path.GetFileName(filePath.AsSpan());
+            return n.Equals(fileName, StringComparison.OrdinalIgnoreCase);
+#else
+            var n = Path.GetFileName(filePath);
+            return StringComparer.OrdinalIgnoreCase.Equals(n, fileName);
+#endif
         }
-
-        return OneOrMany.Create(fullPath);
     }
 
     private static string CreateDirectoryPathFragment(params string[] paths) => Path.Combine([" ", .. paths, " "]).Trim();
