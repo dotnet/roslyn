@@ -1034,7 +1034,7 @@ namespace System.Diagnostics.CodeAnalysis
         {
             options = options ?? (expectedOutput != null ? TestOptions.ReleaseExe : CheckForTopLevelStatements(source.GetSyntaxTrees(parseOptions)));
             var compilation = CreateCompilation(source, references, options, parseOptions, targetFramework, assemblyName: GetUniqueName());
-            return CompileAndVerifyCore(
+            return CompileAndVerify(
                 compilation,
                 manifestResources,
                 dependencies,
@@ -1062,7 +1062,7 @@ namespace System.Diagnostics.CodeAnalysis
             string[]? args = null,
             EmitOptions? emitOptions = null,
             Verification verify = default) =>
-            CompileAndVerifyCore(
+            CompileAndVerify(
                 compilation,
                 manifestResources,
                 dependencies,
@@ -1075,18 +1075,19 @@ namespace System.Diagnostics.CodeAnalysis
                 emitOptions,
                 verify);
 
-        internal CompilationVerifier CompileAndVerifyCore(
+
+        internal CompilationVerifier CompileAndVerify(
             Compilation compilation,
-            IEnumerable<ResourceDescription>? manifestResources = null,
-            IEnumerable<ModuleData>? dependencies = null,
-            Action<ModuleSymbol>? sourceSymbolValidator = null,
-            Action<PEAssembly>? validator = null,
-            Action<ModuleSymbol>? symbolValidator = null,
-            string[]? args = null,
-            Action<int, string, string>? executionValidator = null,
-            SignatureDescription[]? expectedSignatures = null,
-            EmitOptions? emitOptions = null,
-            Verification verify = default)
+            IEnumerable<ResourceDescription>? manifestResources,
+            IEnumerable<ModuleData>? dependencies,
+            Action<ModuleSymbol>? sourceSymbolValidator,
+            Action<PEAssembly>? validator,
+            Action<ModuleSymbol>? symbolValidator,
+            string[]? args,
+            Action<int, string, string>? executionValidator,
+            SignatureDescription[]? expectedSignatures,
+            EmitOptions? emitOptions,
+            Verification verify)
         {
             Action<IModuleSymbol>? translate(Action<ModuleSymbol>? action)
             {
