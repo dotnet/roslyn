@@ -284,7 +284,29 @@ internal sealed partial class ProjectSystemProject
 
                     if (!isFullyLoaded)
                     {
-                        TryReportCompilationThrownAway(_projectSystemProjectFactory.Workspace.CurrentSolution, Id);
+                        var currentSolution = _projectSystemProjectFactory.Workspace.CurrentSolution;
+                        var reportCompilationThrownAway = true;
+
+                        // Preprocessor directive only ParseOptions changes have special handling in DocumentState.UpdateParseOptionsAndSourceCodeKind.
+                        // We don't want to report telemetry for those changes or for the initial evaluation result.
+                        if (newValue is ParseOptions newParseOption)
+                        {
+                            if (oldValue is ParseOptions oldParseOptions)
+                            {
+                                var projectState = currentSolution.SolutionState.GetRequiredProjectState(Id);
+                                var syntaxTreeFactoryService = projectState.LanguageServices.GetRequiredService<ISyntaxTreeFactoryService>();
+
+                                if (syntaxTreeFactoryService.OptionsDifferOnlyByPreprocessorDirectives(oldParseOptions, newParseOption))
+                                    reportCompilationThrownAway = false;
+                            }
+                            else
+                            {
+                                reportCompilationThrownAway = false;
+                            }
+                        }
+
+                        if (reportCompilationThrownAway)
+                            TryReportCompilationThrownAway(currentSolution, Id);
                     }
                 }
             }
@@ -361,7 +383,7 @@ internal sealed partial class ProjectSystemProject
     public CompilationOptions? CompilationOptions
     {
         get => _compilationOptions;
-        set => ChangeProjectProperty(ref _compilationOptions, value, s => s.WithProjectCompilationOptions(Id, value), logThrowAwayTelemetry: true);
+        set => ChangeProjectProperty(ref _compilationOptions, value, s => s.WithProjectCompilationOptions(Id, value));
     }
 
     // The property could be null if this is a non-C#/VB language and we don't have one for it. But we disallow assigning null, because C#/VB cannot end up null
