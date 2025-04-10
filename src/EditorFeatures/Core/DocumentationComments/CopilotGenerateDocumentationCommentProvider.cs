@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             ITextSnapshot oldSnapshot, string? indentText, CancellationToken cancellationToken)
         {
             var list = new List<ProposedEdit>();
-            var documentationCommentResults = await copilotService.GetDocumentationCommentAsync(proposal, cancellationToken).ConfigureAwait(false);
+            var documentationCommentResults = await copilotService.GetDocumentationCommentAsync([proposal], cancellationToken).ConfigureAwait(false);
 
             Dictionary<string, string>? documentationCommentDictionary = null;
             var isQuotaExceeded = false;

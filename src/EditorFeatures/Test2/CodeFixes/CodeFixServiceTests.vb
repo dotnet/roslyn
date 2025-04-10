@@ -363,7 +363,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Return Task.FromResult(False)
             End Function
 
-            Public Function GetDocumentationCommentAsync(proposal As DocumentationCommentProposal, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (responseDictionary As Dictionary(Of String, String), isQuotaExceeded As Boolean))) Implements ICopilotCodeAnalysisService.GetDocumentationCommentAsync
+            Public Function GetDocumentationCommentAsync(proposals As ImmutableArray(Of DocumentationCommentProposal), cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (responseDictionary As Dictionary(Of String, String), isQuotaExceeded As Boolean))) Implements ICopilotCodeAnalysisService.GetDocumentationCommentAsync
                 Return Task.FromResult(ImmutableArray.Create((New Dictionary(Of String, String), False)))
             End Function
 
