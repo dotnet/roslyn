@@ -305,7 +305,7 @@ internal sealed class CommittedSolution
         }
     }
 
-    private async ValueTask<(Optional<SourceText?> matchingSourceText, bool? hasDocument)> TryGetMatchingSourceTextAsync(Document document, SourceText sourceText, Document? currentDocument, CancellationToken cancellationToken)
+    private async ValueTask<(Optional<SourceText?> matchingSourceText, bool? hasDocument)> TryGetMatchingSourceTextAsync(Document document, SourceText sourceText, Document currentDocument, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(document.FilePath);
 

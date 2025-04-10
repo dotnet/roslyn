@@ -259,7 +259,7 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
         Assert.True(workspace.SetCurrentSolution(_ => solution, WorkspaceChangeKind.SolutionAdded));
         solution = workspace.CurrentSolution;
 
-        var moduleId = EmitAndLoadLibraryToDebuggee(source1, sourceFilePath: sourceFile.Path);
+        var moduleId = EmitAndLoadLibraryToDebuggee(projectId, source1, sourceFilePath: sourceFile.Path);
 
         // hydrate document text and overwrite file content:
         var document1 = solution.GetRequiredDocument(documentId);

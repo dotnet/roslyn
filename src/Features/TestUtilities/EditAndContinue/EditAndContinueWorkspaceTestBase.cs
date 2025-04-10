@@ -42,7 +42,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
 
     private protected const TargetFramework DefaultTargetFramework = TargetFramework.NetStandard20;
 
-    private protected Func<Project, CompilationOutputs> _mockCompilationOutputsProvider = _ => new MockCompilationOutputs(Guid.NewGuid());
+    private protected readonly Dictionary<ProjectId, CompilationOutputs> _mockCompilationOutputs = [];
     private protected readonly List<string> _telemetryLog = [];
     private protected int _telemetryId;
 
@@ -148,7 +148,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     {
         var service = (EditAndContinueService)workspace.GetService<IEditAndContinueService>();
         var accessor = service.GetTestAccessor();
-        accessor.SetOutputProvider(project => _mockCompilationOutputsProvider(project));
+        accessor.SetOutputProvider(project => _mockCompilationOutputs[project.Id]);
         return service;
     }
 
@@ -229,9 +229,15 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         return metadataReader.GetGuid(mvidHandle);
     }
 
-    internal Guid EmitAndLoadLibraryToDebuggee(string source, string? sourceFilePath = null, Encoding? encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default, string assemblyName = "")
+    internal Guid EmitAndLoadLibraryToDebuggee(
+        ProjectId projectId,
+        string source,
+        string? sourceFilePath = null,
+        Encoding? encoding = null,
+        SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default,
+        string assemblyName = "")
     {
-        var moduleId = EmitLibrary(source, sourceFilePath, encoding, checksumAlgorithm, assemblyName);
+        var moduleId = EmitLibrary(projectId, source, sourceFilePath, encoding, checksumAlgorithm, assemblyName);
         LoadLibraryToDebuggee(moduleId);
         return moduleId;
     }
@@ -242,6 +248,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     }
 
     internal Guid EmitLibrary(
+        ProjectId projectId,
         string source,
         string? sourceFilePath = null,
         Encoding? encoding = null,
@@ -253,10 +260,11 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         IEnumerable<(string, string)>? analyzerOptions = null)
     {
         var sources = new[] { (source, sourceFilePath ?? Path.Combine(TempRoot.Root, "test1.cs")) };
-        return EmitLibrary(sources, encoding, checksumAlgorithm, assemblyName, pdbFormat, generatorProject, additionalFileText, analyzerOptions);
+        return EmitLibrary(projectId, sources, encoding, checksumAlgorithm, assemblyName, pdbFormat, generatorProject, additionalFileText, analyzerOptions);
     }
 
     internal Guid EmitLibrary(
+        ProjectId projectId,
         (string content, string filePath)[] sources,
         Encoding? encoding = null,
         SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default,
@@ -296,10 +304,10 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
             compilation = outputCompilation;
         }
 
-        return EmitLibrary(compilation, pdbFormat);
+        return EmitLibrary(projectId, compilation, pdbFormat);
     }
 
-    internal Guid EmitLibrary(Compilation compilation, DebugInformationFormat pdbFormat = DebugInformationFormat.PortablePdb)
+    internal Guid EmitLibrary(ProjectId projectId, Compilation compilation, DebugInformationFormat pdbFormat = DebugInformationFormat.PortablePdb)
     {
         var (peImage, pdbImage) = compilation.EmitToArrays(new EmitOptions(debugInformationFormat: pdbFormat));
         var symReader = SymReaderTestHelpers.OpenDummySymReader(pdbImage);
@@ -307,9 +315,11 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         var moduleMetadata = ModuleMetadata.CreateFromImage(peImage);
         var moduleId = moduleMetadata.GetModuleVersionId();
 
-        // associate the binaries with the project (assumes a single project)
+        // Associate the binaries with the project.
+        // Note that in some scenarios the projectId may have already been associated with a moduleId,
+        // and the assembly file was overwritten with a new one.
 
-        _mockCompilationOutputsProvider = _ => new MockCompilationOutputs(moduleId)
+        _mockCompilationOutputs[projectId] = new MockCompilationOutputs(moduleId)
         {
             OpenAssemblyStreamImpl = () =>
             {
