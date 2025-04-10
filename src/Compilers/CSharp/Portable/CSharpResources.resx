@@ -4172,6 +4172,9 @@ You should consider suppressing the warning only if you're sure that you don't w
   <data name="ERR_ExpressionTreeContainsNamedArgument" xml:space="preserve">
     <value>An expression tree may not contain a named argument specification</value>
   </data>
+  <data name="ERR_ExpressionTreeContainsNamedArgumentOutOfPosition" xml:space="preserve">
+    <value>An expression tree may not contain a named argument specification out of position</value>
+  </data>
   <data name="ERR_ExpressionTreeContainsOptionalArgument" xml:space="preserve">
     <value>An expression tree may not contain a call or invocation that uses optional arguments</value>
   </data>
