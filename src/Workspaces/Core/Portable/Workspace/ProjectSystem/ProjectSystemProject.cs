@@ -298,7 +298,9 @@ internal sealed partial class ProjectSystemProject
 
         bool GetReportCompilationThrownAway(T newValue, T? oldValue)
         {
-            // We only want to report telemetry for ParseOptions changes that match the special handling in DocumentState.UpdateParseOptionsAndSourceCodeKind
+            // This method can be called for both AssemblyName (type string) and ParseOptions (type ParseOptions) changes.
+
+            // We report telementry for AssemblyName changes.
             if (newValue is not ParseOptions newParseOption)
                 return true;
 
@@ -306,6 +308,7 @@ internal sealed partial class ProjectSystemProject
             if (oldValue is not ParseOptions oldParseOptions)
                 return false;
 
+            // ParseOptions should be reported if they differ by more than just preprocessor directives. (See DocumentState.UpdateParseOptionsAndSourceCodeKind)
             var syntaxTreeFactoryService = _projectSystemProjectFactory.SolutionServices.GetRequiredLanguageService<ISyntaxTreeFactoryService>(Language);
 
             return !syntaxTreeFactoryService.OptionsDifferOnlyByPreprocessorDirectives(oldParseOptions, newParseOption);
