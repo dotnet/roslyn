@@ -287,30 +287,28 @@ internal sealed partial class ProjectSystemProject
 
                     if (!isFullyLoaded)
                     {
-                        var reportCompilationThrownAway = true;
-
-                        // Preprocessor directive only ParseOptions changes have special handling in DocumentState.UpdateParseOptionsAndSourceCodeKind.
-                        // We don't want to report telemetry for those changes or for the initial evaluation result.
-                        if (newValue is ParseOptions newParseOption)
-                        {
-                            if (oldValue is ParseOptions oldParseOptions)
-                            {
-                                var syntaxTreeFactoryService = _projectSystemProjectFactory.SolutionServices.GetRequiredLanguageService<ISyntaxTreeFactoryService>(Language);
-
-                                if (syntaxTreeFactoryService.OptionsDifferOnlyByPreprocessorDirectives(oldParseOptions, newParseOption))
-                                    reportCompilationThrownAway = false;
-                            }
-                            else
-                            {
-                                reportCompilationThrownAway = false;
-                            }
-                        }
+                        var reportCompilationThrownAway = GetReportCompilationThrownAway(newValue, oldValue);
 
                         if (reportCompilationThrownAway)
                             TryReportCompilationThrownAway(_projectSystemProjectFactory.Workspace.CurrentSolution, Id);
                     }
                 }
             }
+        }
+
+        bool GetReportCompilationThrownAway(T newValue, T? oldValue)
+        {
+            // Preprocessor directive only ParseOptions changes have special handling in DocumentState.UpdateParseOptionsAndSourceCodeKind.
+            // We don't want to report telemetry for those changes or for the initial evaluation result.
+            if (newValue is not ParseOptions newParseOption)
+                return true;
+
+            if (oldValue is not ParseOptions oldParseOptions)
+                return false;
+
+            var syntaxTreeFactoryService = _projectSystemProjectFactory.SolutionServices.GetRequiredLanguageService<ISyntaxTreeFactoryService>(Language);
+
+            return !syntaxTreeFactoryService.OptionsDifferOnlyByPreprocessorDirectives(oldParseOptions, newParseOption);
         }
     }
 
