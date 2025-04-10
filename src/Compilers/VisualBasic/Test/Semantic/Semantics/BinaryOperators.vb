@@ -489,7 +489,7 @@ End Module
 ]]>
 
                 Dim compilation = CompilationUtils.CreateCompilation(compilationDef, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe.WithOverflowChecks(overflowChecks))
-                CompileAndVerify(compilation, expectedOutput:=expected)
+                CompileAndVerify(compilation, CreateExecutionValidator(expected, ExecutionValidators.NormalizeOutputFlags.All))
 
             Finally
                 System.Threading.Thread.CurrentThread.CurrentCulture = currCulture
