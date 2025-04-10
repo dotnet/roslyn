@@ -40,11 +40,18 @@ internal abstract class EditAndContinueTestVerifier
         EditAndContinueCapabilities.ChangeCustomAttributes |
         EditAndContinueCapabilities.UpdateParameters;
 
-    public const EditAndContinueCapabilities AllRuntimeCapabilities =
+    public const EditAndContinueCapabilities Net8RuntimeCapabilities =
         Net6RuntimeCapabilities |
         EditAndContinueCapabilities.GenericAddMethodToExistingType |
         EditAndContinueCapabilities.GenericUpdateMethod |
         EditAndContinueCapabilities.GenericAddFieldToExistingType;
+
+    public const EditAndContinueCapabilities Net10RuntimeCapabilities =
+        Net8RuntimeCapabilities |
+        EditAndContinueCapabilities.AddFieldRva;
+
+    public const EditAndContinueCapabilities AllRuntimeCapabilities =
+        Net10RuntimeCapabilities;
 
     public AbstractEditAndContinueAnalyzer Analyzer { get; }
 

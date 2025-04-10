@@ -2603,6 +2603,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             metadataStream As Stream,
             ilStream As Stream,
             pdbStream As Stream,
+            options As EmitDifferenceOptions,
             testData As CompilationTestData,
             cancellationToken As CancellationToken) As EmitDifferenceResult
 
@@ -2614,6 +2615,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 metadataStream,
                 ilStream,
                 pdbStream,
+                options,
                 testData,
                 cancellationToken)
         End Function

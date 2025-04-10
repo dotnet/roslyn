@@ -245,10 +245,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private ArrayInitializerStyle ShouldEmitBlockInitializer(TypeSymbol elementType, ImmutableArray<BoundExpression> inits)
         {
-            if (_module.IsEncDelta)
+            if (!_module.FieldRvaSupported)
             {
-                // Avoid using FieldRva table. Can be allowed if tested on all supported runtimes.
-                // Consider removing: https://github.com/dotnet/roslyn/issues/69480
+                // Avoid using FieldRva table when not supported by the runtime.
                 return ArrayInitializerStyle.Element;
             }
 
@@ -449,10 +448,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return true;
             }
 
-            if (_module.IsEncDelta)
+            if (!_module.FieldRvaSupported)
             {
-                // Avoid using FieldRva table. Can be allowed if tested on all supported runtimes.
-                // Consider removing: https://github.com/dotnet/roslyn/issues/69480
+                // Avoid using FieldRva table when not supported by the runtime.
                 return false;
             }
 

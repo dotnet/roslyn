@@ -188,9 +188,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Function
 
         Private Function ShouldEmitBlockInitializer(elementType As TypeSymbol, inits As ImmutableArray(Of BoundExpression)) As ArrayInitializerStyle
-            If _module.IsEncDelta Then
-                ' Avoid using FieldRva table. Can be allowed if tested on all supported runtimes.
-                ' Consider removing: https://github.com/dotnet/roslyn/issues/69480
+            If Not _module.FieldRvaSupported Then
+                ' Avoid using FieldRva table if the runtime does not support it.
                 Return ArrayInitializerStyle.Element
             End If
 

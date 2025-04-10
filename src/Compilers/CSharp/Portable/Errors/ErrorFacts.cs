@@ -1726,6 +1726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_InvalidPathMap
                 or ErrorCode.ERR_PublicSignButNoKey
                 or ErrorCode.ERR_TooManyUserStrings
+                or ErrorCode.ERR_TooManyUserStrings_RestartRequired
                 or ErrorCode.ERR_PeWritingFailure
                 or ErrorCode.WRN_AttributeIgnoredWhenPublicSigning
                 or ErrorCode.ERR_OptionMustBeAbsolutePath

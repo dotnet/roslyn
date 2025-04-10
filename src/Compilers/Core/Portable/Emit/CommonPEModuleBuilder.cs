@@ -76,6 +76,11 @@ namespace Microsoft.CodeAnalysis.Emit
         public abstract SymbolChanges? EncSymbolChanges { get; }
 
         /// <summary>
+        /// True if FieldRVA table is supported by the runtime.
+        /// </summary>
+        public abstract bool FieldRvaSupported { get; }
+
+        /// <summary>
         /// Previous EnC generation baseline, or null if this is not EnC delta.
         /// </summary>
         public abstract EmitBaseline? PreviousGeneration { get; }

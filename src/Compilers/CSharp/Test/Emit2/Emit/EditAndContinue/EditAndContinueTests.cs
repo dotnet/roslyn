@@ -11,6 +11,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -12192,8 +12194,9 @@ class C
                     badStream,
                     ilStream,
                     pdbStream,
+                    EmitDifferenceOptions.Default,
                     new CompilationTestData(),
-                    default);
+                    CancellationToken.None);
                 Assert.False(result.Success);
                 result.Diagnostics.Verify(
                     // error CS8104: An error occurred while writing the output file: System.IO.IOException: I/O error occurred.
@@ -12207,8 +12210,9 @@ class C
                     mdStream,
                     badStream,
                     pdbStream,
+                    EmitDifferenceOptions.Default,
                     new CompilationTestData(),
-                    default);
+                    CancellationToken.None);
                 Assert.False(result.Success);
                 result.Diagnostics.Verify(
                     // error CS8104: An error occurred while writing the output file: System.IO.IOException: I/O error occurred.
@@ -12222,8 +12226,9 @@ class C
                     mdStream,
                     ilStream,
                     badStream,
+                    EmitDifferenceOptions.Default,
                     new CompilationTestData(),
-                    default);
+                    CancellationToken.None);
                 Assert.False(result.Success);
                 result.Diagnostics.Verify(
                     // error CS0041: Unexpected error writing debug information -- 'I/O error occurred.'
@@ -12277,8 +12282,9 @@ class C
                     mdStream,
                     ilStream,
                     badStream,
+                    EmitDifferenceOptions.Default,
                     new CompilationTestData(),
-                    default);
+                    CancellationToken.None);
                 Assert.False(result.Success);
                 result.Diagnostics.Verify(
                     // error CS0041: Unexpected error writing debug information -- 'I/O error occurred.'
@@ -18874,7 +18880,7 @@ file class C
 
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
-        public void PrivateImplDetails_DataFields_Arrays()
+        public void PrivateImplDetails_DataFields_Arrays_FieldRvaNotSupported()
         {
             using var _ = new EditAndContinueTest()
                 .AddBaseline(
@@ -18978,7 +18984,94 @@ file class C
 
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
-        public void PrivateImplDetails_DataFields_StackAlloc()
+        public void PrivateImplDetails_DataFields_Arrays_FieldRvaSupported()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            byte[] b = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C", "<PrivateImplementationDetails>", "__StaticArrayInitTypeSize=10");
+                        g.VerifyFieldDefNames("b", "1F825AA2F0020EF7CF91DFA30DA4668D791C5D4824FC8E41354B89EC05795AB3");
+                        g.VerifyMethodDefNames(".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            byte[] b = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+                        }
+                        """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetParameterlessConstructor("C")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "__StaticArrayInitTypeSize=11");
+                        g.VerifyFieldDefNames("78A6273103D17C39A0B6126E226CEC70E33337F4BC6A38067401B54A33E78EAD");
+                        g.VerifyMethodDefNames(".ctor");
+
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.ClassLayout, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.FieldRva, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.NestedClass, EditAndContinueOperation.Default)
+                        });
+
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(5, TableIndex.TypeDef),
+                            Handle(6, TableIndex.TypeDef),
+                            Handle(3, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(5, TableIndex.CustomAttribute),
+                            Handle(2, TableIndex.ClassLayout),
+                            Handle(2, TableIndex.FieldRva),
+                            Handle(2, TableIndex.NestedClass)
+                        });
+
+                        g.VerifyIL("C..ctor", """
+                        {
+                          // Code size       32 (0x20)
+                          .maxstack  4
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldc.i4.s   11
+                          IL_0003:  newarr     "byte"
+                          IL_0008:  dup
+                          IL_0009:  ldtoken    "<PrivateImplementationDetails>#1.__StaticArrayInitTypeSize=11 <PrivateImplementationDetails>#1.78A6273103D17C39A0B6126E226CEC70E33337F4BC6A38067401B54A33E78EAD"
+                          IL_000e:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
+                          IL_0013:  stfld      "byte[] C.b"
+                          IL_0018:  ldarg.0
+                          IL_0019:  call       "object..ctor()"
+                          IL_001e:  nop
+                          IL_001f:  ret
+                        }
+                        """);
+
+                        // TODO: better test would be to specify FieldDef -> data.
+                        // trailing zeros for alignment:
+                        g.VerifyEncFieldRvaData([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0, 0]);
+                    },
+                    options: new EmitDifferenceOptions() { EmitFieldRva = true })
+                .Verify();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
+        public void PrivateImplDetails_DataFields_StackAlloc_FieldRvaNotSupported()
         {
             using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net80, verification: Verification.Skipped)
                 .AddBaseline(
@@ -19087,7 +19180,96 @@ file class C
 
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
-        public void PrivateImplDetails_DataFields_Utf8()
+        public void PrivateImplDetails_DataFields_StackAlloc_FieldRvaSupported()
+        {
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net80, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            void F() { System.ReadOnlySpan<byte> b = stackalloc byte[] { 0, 1, 2, 3, 4, 5, 6 }; }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C", "<PrivateImplementationDetails>", "__StaticArrayInitTypeSize=7");
+                        g.VerifyFieldDefNames("57355AC3303C148F11AEF7CB179456B9232CDE33A818DFDA2C2FCB9325749A6B");
+                        g.VerifyMethodDefNames("F", ".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            void F() { System.ReadOnlySpan<byte> b = stackalloc byte[] { 0, 1, 2, 3, 4, 5, 6, 7 }; }
+                        }
+                        """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1");
+                        g.VerifyFieldDefNames("8A851FF82EE7048AD09EC3847F1DDF44944104D2CBD17EF4E3DB22C6785A0D45");
+                        g.VerifyMethodDefNames("F");
+
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.FieldRva, EditAndContinueOperation.Default)
+                        });
+
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(5, TableIndex.TypeDef),
+                            Handle(2, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(5, TableIndex.CustomAttribute),
+                            Handle(2, TableIndex.StandAloneSig),
+                            Handle(2, TableIndex.FieldRva)
+                        });
+
+                        g.VerifyIL("C.F", """
+                        {
+                          // Code size       32 (0x20)
+                          .maxstack  4
+                          .locals init (System.ReadOnlySpan<byte> V_0, //b
+                                        System.Span<byte> V_1)
+                          IL_0000:  nop
+                          IL_0001:  ldc.i4.8
+                          IL_0002:  conv.u
+                          IL_0003:  localloc
+                          IL_0005:  dup
+                          IL_0006:  ldsflda    "long <PrivateImplementationDetails>#1.8A851FF82EE7048AD09EC3847F1DDF44944104D2CBD17EF4E3DB22C6785A0D45"
+                          IL_000b:  ldc.i4.8
+                          IL_000c:  unaligned. 1
+                          IL_000f:  cpblk
+                          IL_0011:  ldc.i4.8
+                          IL_0012:  newobj     "System.Span<byte>..ctor(void*, int)"
+                          IL_0017:  stloc.1
+                          IL_0018:  ldloc.1
+                          IL_0019:  call       "System.ReadOnlySpan<byte> System.Span<byte>.op_Implicit(System.Span<byte>)"
+                          IL_001e:  stloc.0
+                          IL_001f:  ret
+                        }
+                        """);
+
+                        // TODO: better test would be to specify FieldDef -> data.
+                        g.VerifyEncFieldRvaData([0, 1, 2, 3, 4, 5, 6, 7]);
+                    },
+                    options: new EmitDifferenceOptions() { EmitFieldRva = true })
+                .Verify();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
+        public void PrivateImplDetails_DataFields_Utf8_FieldRvaNotSupported()
         {
             using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net80, verification: Verification.Skipped)
                 .AddBaseline(
@@ -19188,6 +19370,386 @@ file class C
                         }
                         """);
                     })
+                .Verify();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
+        public void PrivateImplDetails_DataFields_Utf8_FieldRvaSupported()
+        {
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net80, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: """
+                        class C
+                        {
+                            System.ReadOnlySpan<byte> F() => "0123456789"u8;
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C", "<PrivateImplementationDetails>", "__StaticArrayInitTypeSize=11");
+                        g.VerifyFieldDefNames("BEB0DBD1C6FAC1140DD817514F2FBDF501E246BF16C8E877E71187E9EB008189");
+                        g.VerifyMethodDefNames("F", ".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            System.ReadOnlySpan<byte> F() => "0123456789X"u8;
+                        }
+                        """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "__StaticArrayInitTypeSize=12");
+                        g.VerifyFieldDefNames("AFB1C33C5229BFF7EF739BA44DA795A2B68A49E06001C07C5B026CAA6C6322BB");
+                        g.VerifyMethodDefNames("F");
+
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.ClassLayout, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.FieldRva, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.NestedClass, EditAndContinueOperation.Default)
+                        });
+
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(5, TableIndex.TypeDef),
+                            Handle(6, TableIndex.TypeDef),
+                            Handle(2, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(5, TableIndex.CustomAttribute),
+                            Handle(2, TableIndex.ClassLayout),
+                            Handle(2, TableIndex.FieldRva),
+                            Handle(2, TableIndex.NestedClass)
+                        });
+
+                        g.VerifyIL("C.F", """
+                        {
+                          // Code size       13 (0xd)
+                          .maxstack  2
+                          IL_0000:  ldsflda    "<PrivateImplementationDetails>#1.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>#1.AFB1C33C5229BFF7EF739BA44DA795A2B68A49E06001C07C5B026CAA6C6322BB"
+                          IL_0005:  ldc.i4.s   11
+                          IL_0007:  newobj     "System.ReadOnlySpan<byte>..ctor(void*, int)"
+                          IL_000c:  ret
+                        }
+                        """);
+
+                        // TODO: better test would be to specify FieldDef -> data.
+                        // Trailing zeros for alignment.
+                        g.VerifyEncFieldRvaData([.. Encoding.UTF8.GetBytes("0123456789X"), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+                    },
+                    options: new EmitDifferenceOptions() { EmitFieldRva = true })
+                .Verify();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
+        public void PrivateImplDetails_DataSectionStringLiterals_FieldRvaSupported()
+        {
+            var parseOptions = TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0");
+
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.Skipped, parseOptions: parseOptions)
+                .AddBaseline(
+                    source: """
+                        class C
+                        {
+                            string F() => "0123456789";
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C", "<PrivateImplementationDetails>", "__StaticArrayInitTypeSize=10", "<S>E353667619EC664B49655FC9692165FB");
+                        g.VerifyFieldDefNames("84D89877F0D4041EFB6BF91A16F0248F2FD573E6AF05C19F96BEDB9F882F7882", "s");
+                        g.VerifyMethodDefNames("F", ".ctor", "BytesToString", ".cctor");
+                    })
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            string F() => "0123456789X";
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "__StaticArrayInitTypeSize=11", "<S>6D2201523542AEFFB91657B2AEBDC84B");
+                        g.VerifyFieldDefNames("ACE59E7D984CCEB2D860A056A3386344236CE5C42C978E26ECE3F35956DAC3AD", "s");
+                        g.VerifyMethodDefNames("F", "BytesToString", ".cctor");
+
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(4, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(3, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(4, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.ClassLayout, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.FieldRva, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.NestedClass, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.NestedClass, EditAndContinueOperation.Default)
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(6, TableIndex.TypeDef),
+                            Handle(7, TableIndex.TypeDef),
+                            Handle(8, TableIndex.TypeDef),
+                            Handle(3, TableIndex.Field),
+                            Handle(4, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(5, TableIndex.MethodDef),
+                            Handle(6, TableIndex.MethodDef),
+                            Handle(3, TableIndex.Param),
+                            Handle(4, TableIndex.Param),
+                            Handle(6, TableIndex.CustomAttribute),
+                            Handle(2, TableIndex.ClassLayout),
+                            Handle(2, TableIndex.FieldRva),
+                            Handle(3, TableIndex.NestedClass),
+                            Handle(4, TableIndex.NestedClass)
+                        ]);
+
+                        g.VerifyIL("C.F", """
+                        {
+                          // Code size        6 (0x6)
+                          .maxstack  1
+                          IL_0000:  ldsfld     "string <PrivateImplementationDetails>#1.<S>6D2201523542AEFFB91657B2AEBDC84B.s"
+                          IL_0005:  ret
+                        }
+                        """);
+
+                        // TODO: better test would be to specify FieldDef -> data.
+                        // Trailing zero for alignment.
+                        g.VerifyEncFieldRvaData([.. Encoding.UTF8.GetBytes("0123456789X"), 0x00]);
+                    },
+                    options: new EmitDifferenceOptions() { EmitFieldRva = true })
+                .Verify();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
+        public void PrivateImplDetails_DataSectionStringLiterals_FieldRvaNotSupported()
+        {
+            var parseOptions = TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0");
+
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.Skipped, parseOptions: parseOptions)
+                .AddBaseline(
+                    source: """
+                        class C
+                        {
+                            string F() => "0123456789";
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C", "<PrivateImplementationDetails>", "__StaticArrayInitTypeSize=10", "<S>E353667619EC664B49655FC9692165FB");
+                        g.VerifyFieldDefNames("84D89877F0D4041EFB6BF91A16F0248F2FD573E6AF05C19F96BEDB9F882F7882", "s");
+                        g.VerifyMethodDefNames("F", ".ctor", "BytesToString", ".cctor");
+                    })
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            string F() => "0123456789X";
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyFieldDefNames();
+                        g.VerifyMethodDefNames("F");
+
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(1, TableIndex.MethodDef)
+                        ]);
+
+                        g.VerifyIL("C.F", """
+                        {
+                          // Code size        6 (0x6)
+                          .maxstack  1
+                          IL_0000:  ldstr      "0123456789X"
+                          IL_0005:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
+        public void PrivateImplDetails_DataSectionStringLiterals_HeapOverflow_FieldRvaSupported()
+        {
+            // The max number of bytes that can fit into #US the heap is 2^29 - 1,
+            // but each string also needs to have an offset < 0x1000000 (2^24) to be addressable by a token.
+            // If the string is larger than that the next string can't be emitted.
+            var baseString = new string('x', 1 << 23);
+
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            string F() => "{{baseString}}";
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyFieldDefNames();
+                        g.VerifyMethodDefNames("F", ".ctor");
+                    })
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            string F() => "0123456789";
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "__StaticArrayInitTypeSize=10", "<S>E353667619EC664B49655FC9692165FB");
+                        g.VerifyFieldDefNames("84D89877F0D4041EFB6BF91A16F0248F2FD573E6AF05C19F96BEDB9F882F7882", "s");
+                        g.VerifyMethodDefNames("F", "BytesToString", ".cctor");
+
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.ClassLayout, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.FieldRva, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.NestedClass, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.NestedClass, EditAndContinueOperation.Default)
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(3, TableIndex.TypeDef),
+                            Handle(4, TableIndex.TypeDef),
+                            Handle(5, TableIndex.TypeDef),
+                            Handle(1, TableIndex.Field),
+                            Handle(2, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(3, TableIndex.MethodDef),
+                            Handle(4, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                            Handle(2, TableIndex.Param),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.ClassLayout),
+                            Handle(1, TableIndex.FieldRva),
+                            Handle(1, TableIndex.NestedClass),
+                            Handle(2, TableIndex.NestedClass)
+                        ]);
+
+                        g.VerifyIL("C.F", """
+                        {
+                          // Code size        6 (0x6)
+                          .maxstack  1
+                          IL_0000:  ldsfld     "string <PrivateImplementationDetails>#1.<S>E353667619EC664B49655FC9692165FB.s"
+                          IL_0005:  ret
+                        }
+                        """);
+
+                        // TODO: better test would be to specify FieldDef -> data.
+                        // Trailing zero for alignment.
+                        g.VerifyEncFieldRvaData([.. Encoding.UTF8.GetBytes("0123456789"), 0x00, 0x00]);
+                    },
+                    options: new EmitDifferenceOptions() { EmitFieldRva = true })
+                .Verify();
+        }
+
+        [Fact]
+        public void PrivateImplDetails_DataSectionStringLiterals_HeapOverflow_FieldRvaNotSupported()
+        {
+            // The max number of bytes that can fit into #US the heap is 2^29 - 1,
+            // but each string also needs to have an offset < 0x1000000 (2^24) to be addressable by a token.
+            // If the string is larger than that the next string can't be emitted.
+            var baseString = new string('x', 1 << 23);
+
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            string F() => "{{baseString}}";
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyFieldDefNames();
+                        g.VerifyMethodDefNames("F", ".ctor");
+                    })
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            string F() => "new string that doesn't fit";
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    ],
+                    expectedErrors:
+                    [
+                        // (3,19): error CS9307: Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.
+                        //     string F() => "new string that doesn't fit";
+                        Diagnostic(ErrorCode.ERR_TooManyUserStrings_RestartRequired, @"""new string that doesn't fit""").WithLocation(3, 19)
+                    ])
                 .Verify();
         }
 

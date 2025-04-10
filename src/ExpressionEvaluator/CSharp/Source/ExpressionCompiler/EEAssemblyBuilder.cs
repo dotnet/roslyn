@@ -67,6 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override bool IgnoreAccessibility => true;
         public override EmitBaseline? PreviousGeneration => null;
         public override SymbolChanges? EncSymbolChanges => null;
+        public override bool FieldRvaSupported => true;
 
         public override INamedTypeSymbolInternal? TryGetOrCreateSynthesizedHotReloadExceptionType()
             => null;
