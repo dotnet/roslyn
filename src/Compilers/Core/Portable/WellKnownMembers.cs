@@ -1067,6 +1067,22 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_Tasks_ValueTask_T - WellKnownType.ExtSentinel), 1,
                     (byte)SignatureTypeCode.GenericMethodParameter, 0,
 
+                // System_Runtime_CompilerServices_RuntimeHelpers__AwaitAwaiterFromRuntimeAsync_TAwaiter
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Runtime_CompilerServices_RuntimeHelpers,                                         // DeclaringTypeId
+                1,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                    (byte)SignatureTypeCode.GenericMethodParameter, 0,
+
+                // System_Runtime_CompilerServices_RuntimeHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TAwaiter
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Runtime_CompilerServices_RuntimeHelpers,                                         // DeclaringTypeId
+                1,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                    (byte)SignatureTypeCode.GenericMethodParameter, 0,
+
                 // System_Runtime_CompilerServices_Unsafe__Add_T
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_Unsafe - WellKnownType.ExtSentinel), // DeclaringTypeId
@@ -5363,6 +5379,8 @@ namespace Microsoft.CodeAnalysis
                 "Await",                                    // System_Runtime_CompilerServices_RuntimeHelpers__AwaitTaskT_T
                 "Await",                                    // System_Runtime_CompilerServices_RuntimeHelpers__AwaitValueTask
                 "Await",                                    // System_Runtime_CompilerServices_RuntimeHelpers__AwaitValueTaskT_T
+                "AwaitAwaiterFromRuntimeAsync",             // System_Runtime_CompilerServices_RuntimeHelpers__AwaitAwaiterFromRuntimeAsync_TAwaiter
+                "UnsafeAwaitAwaiterFromRuntimeAsync",       // System_Runtime_CompilerServices_RuntimeHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TAwaiter
                 "Add",                                      // System_Runtime_CompilerServices_Unsafe__Add_T
                 "As",                                       // System_Runtime_CompilerServices_Unsafe__As_T,
                 "AsRef",                                    // System_Runtime_CompilerServices_Unsafe__AsRef_T,
