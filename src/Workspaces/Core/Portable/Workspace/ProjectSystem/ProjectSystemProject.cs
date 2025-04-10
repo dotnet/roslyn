@@ -298,11 +298,11 @@ internal sealed partial class ProjectSystemProject
 
         bool GetReportCompilationThrownAway(T newValue, T? oldValue)
         {
-            // Preprocessor directive only ParseOptions changes have special handling in DocumentState.UpdateParseOptionsAndSourceCodeKind.
-            // We don't want to report telemetry for those changes or for the initial evaluation result.
+            // We only want to report telemetry for ParseOptions changes that match the special handling in DocumentState.UpdateParseOptionsAndSourceCodeKind
             if (newValue is not ParseOptions newParseOption)
                 return true;
 
+            // We don't want to report telemetry for the initial evaluation result.
             if (oldValue is not ParseOptions oldParseOptions)
                 return false;
 
