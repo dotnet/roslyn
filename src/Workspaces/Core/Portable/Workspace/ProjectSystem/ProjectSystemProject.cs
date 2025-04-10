@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 
 internal sealed partial class ProjectSystemProject
 {
-    private static readonly char[] s_directorySeparator = [Path.DirectorySeparatorChar];
     private static readonly ImmutableArray<MetadataReferenceProperties> s_defaultMetadataReferenceProperties = [default(MetadataReferenceProperties)];
 
     private readonly ProjectSystemProjectFactory _projectSystemProjectFactory;
@@ -300,7 +299,7 @@ internal sealed partial class ProjectSystemProject
         {
             // This method can be called for both AssemblyName (type string) and ParseOptions (type ParseOptions) changes.
 
-            // We report telementry for AssemblyName changes.
+            // We report telemetry for AssemblyName changes.
             if (newValue is not ParseOptions newParseOption)
                 return true;
 
