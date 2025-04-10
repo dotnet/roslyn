@@ -174,6 +174,9 @@ namespace Roslyn.Test.Utilities
         public static ImmutableArray<MetadataReference> StandardAndCSharpReferences => StandardReferences.Add(StandardCSharpReference);
         public static ImmutableArray<MetadataReference> StandardAndVBRuntimeReferences => StandardReferences.Add(StandardVisualBasicReference);
 
+        public static bool IsNetLatestCore => RuntimeUtilities.IsCoreClrRuntime;
+        public static bool IsNetLatestFramework => RuntimeUtilities.IsCoreClrRuntime;
+
         /*
          * ⚠ Dev note ⚠: properties in TestBase are backed by Lazy<T>. Avoid changes to the following properties
          * which would force the initialization of these properties in the static constructor, since the stack traces

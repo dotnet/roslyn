@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -538,7 +539,7 @@ readonly ref struct B
     {
     }
 }";
-            var comp = CreateCompilation(sourceB, references: new[] { refA, CSharpRef });
+            var comp = CreateCompilationNetStandard([sourceB], references: [refA, CSharpRef]);
             var refB = comp.EmitToImageReference();
 
             comp = CreateCompilation("", new[] { refB });
@@ -2436,7 +2437,7 @@ class Program
         r2.F = ref r1;
     }
 }";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var comp = CreateCompilation([source], targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
                 // (8,12): error CS9050: A ref field cannot refer to a ref struct.
                 //     public ref R1<T> F;
@@ -4453,7 +4454,7 @@ class Program
     }
 }";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationNetStandard([source], parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilation(source);
@@ -4498,7 +4499,7 @@ class Program
     }
 }";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationNetStandard([source], parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilation(source);
@@ -4690,7 +4691,7 @@ class Program
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilation([source], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (14,9): error CS8350: This combination of arguments to 'Program.F0(ref R, ref int)' is disallowed because it may expose variables referenced by parameter 'i0' outside of their declaration scope
                 //         F0(ref x1, ref i1); // 1
@@ -4760,7 +4761,7 @@ class Program
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilation([source], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (14,9): error CS8350: This combination of arguments to 'Program.F0(ref R, in int)' is disallowed because it may expose variables referenced by parameter 'i0' outside of their declaration scope
                 //         F0(ref x1, in i1); // 1
@@ -4812,7 +4813,7 @@ class Program
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilation([source], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (17,9): error CS8350: This combination of arguments to 'Program.F2(ref R, ref int)' is disallowed because it may expose variables referenced by parameter 'i2' outside of their declaration scope
                 //         F2(ref x, ref y.FB()); // 1
@@ -4851,7 +4852,7 @@ class Program
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilation([source], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (17,9): error CS8350: This combination of arguments to 'Program.F2(ref R, in int)' is disallowed because it may expose variables referenced by parameter 'i2' outside of their declaration scope
                 //         F2(ref x, y.FB()); // 1
@@ -4896,7 +4897,7 @@ class Program
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilation([source], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (17,9): error CS8350: This combination of arguments to 'Program.F2(ref R, in int)' is disallowed because it may expose variables referenced by parameter 'i2' outside of their declaration scope
                 //         F2(ref x, y.FB()); // 1
@@ -5176,7 +5177,7 @@ class Program
         return x2;
     }
 }";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilation([source], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -9466,7 +9467,7 @@ class Program
         return y4;
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilationNetStandard([source], parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             if (languageVersion == LanguageVersion.CSharp10)
             {
                 comp.VerifyEmitDiagnostics();
@@ -9518,7 +9519,7 @@ static class Program
     }
     static void Deconstruct(this Span<int> s, out int x, out Span<byte> y) => throw null;
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics(
                 // (8,16): error CS8352: Cannot use variable 'y1' in this context because it may expose referenced variables outside of their declaration scope
                 //         return y1; // 1
@@ -9566,7 +9567,7 @@ static class Program
     }
     static void Deconstruct(this Span<int> s, out R x, out R y) => throw null;
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics(
                 // (21,20): error CS8352: Cannot use variable 'y1' in this context because it may expose referenced variables outside of their declaration scope
                 //             return y1; // 1
@@ -9618,7 +9619,7 @@ static class Program
     }
     static void Deconstruct(this Span<int> s, out R x, out R y) => throw null;
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics(
                 // (11,9): error CS8352: Cannot use variable '(x1, y1) = span' in this context because it may expose referenced variables outside of their declaration scope
                 //         (x1, y1) = span; // 1
@@ -9657,7 +9658,7 @@ static class Program
     }
     static void Deconstruct(this Span<int> s, out R x, out R y) => throw null;
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -9743,7 +9744,7 @@ class Program
     }
 }";
 
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition], parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             if (languageVersion == LanguageVersion.CSharp10)
             {
                 comp.VerifyEmitDiagnostics(
@@ -9791,7 +9792,7 @@ class Program
     }
 }";
 
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition], parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyEmitDiagnostics();
         }
 
@@ -9861,7 +9862,7 @@ class Program
         s.P2 = ref x;
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source ,targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics(
                 // (4,18): error CS8145: Auto-implemented properties cannot return by reference
                 //     public ref T P0 { get; }
@@ -9875,9 +9876,6 @@ class Program
                 // (6,18): error CS8145: Auto-implemented properties cannot return by reference
                 //     public ref T P2 { get; init; }
                 Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P2").WithLocation(6, 18),
-                // (6,28): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
-                //     public ref T P2 { get; init; }
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "init").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(6, 28),
                 // (6,28): error CS8147: Properties which return by reference cannot have set accessors
                 //     public ref T P2 { get; init; }
                 Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "init").WithLocation(6, 28),
@@ -9932,7 +9930,7 @@ class Program
         s.P2 = ref x;
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics(
                 // (4,27): error CS8145: Auto-implemented properties cannot return by reference
                 //     public ref readonly T P0 { get; }
@@ -9946,9 +9944,6 @@ class Program
                 // (6,27): error CS8145: Auto-implemented properties cannot return by reference
                 //     public ref readonly T P2 { get; init; }
                 Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P2").WithLocation(6, 27),
-                // (6,37): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
-                //     public ref readonly T P2 { get; init; }
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "init").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(6, 37),
                 // (6,37): error CS8147: Properties which return by reference cannot have set accessors
                 //     public ref readonly T P2 { get; init; }
                 Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "init").WithLocation(6, 37),
@@ -10131,7 +10126,7 @@ class Program
         return ref s2[1];
     }
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics(
                 // (7,20): error CS8352: Cannot use variable 's1' in this context because it may expose referenced variables outside of their declaration scope
                 //         return ref s1[1]; // 1
@@ -10154,7 +10149,7 @@ class Program
         public static implicit operator Span<T>(T[] a) => throw null;
     }
 }";
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular10, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilationNetStandard([sourceA], parseOptions: TestOptions.Regular10, options: TestOptions.UnsafeReleaseDll);
             var refA = comp.EmitToImageReference();
 
             var sourceB =
@@ -10172,7 +10167,7 @@ class Program
         return ref s2[1];
     }
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp = CreateCompilationNetStandard([sourceB], references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyEmitDiagnostics(
                 // (7,20): error CS8352: Cannot use variable 's1' in this context because it may expose referenced variables outside of their declaration scope
                 //         return ref s1[1]; // 1
@@ -10415,7 +10410,8 @@ class Program
 }}";
             var comp = CreateCompilation(source,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
-                options: (useUnsafe ? TestOptions.UnsafeReleaseExe : null));
+                options: (useUnsafe ? TestOptions.UnsafeReleaseExe : null),
+                targetFramework: TargetFramework.Standard);
             if (languageVersion == LanguageVersion.CSharp10)
             {
                 comp.VerifyEmitDiagnostics();
@@ -10467,7 +10463,7 @@ class Program
         r2 = local;
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilationNetStandard([source], parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             if (languageVersion == LanguageVersion.CSharp10)
             {
                 comp.VerifyEmitDiagnostics();
@@ -10594,10 +10590,10 @@ class Program
     }
 }";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.NetStandard20);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(source);
+            comp = CreateCompilation(source, targetFramework: TargetFramework.NetStandard20);
             comp.VerifyDiagnostics(
                 // (6,20): error CS9075: Cannot return a parameter by reference 't' because it is scoped to the current method
                 //         return ref t;
@@ -10681,7 +10677,7 @@ public class A
     public static R MayCaptureArg(ref int i) => new R();
     public static R MayCaptureDefaultArg(in int i = 0) => new R();
 }";
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA));
+            var comp = CreateCompilationNetStandard([sourceA], parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA));
             comp.VerifyEmitDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
 
@@ -10698,7 +10694,7 @@ public class A
         return MayCaptureDefaultArg();
     }
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
+            comp = CreateCompilationNetStandard([sourceB], references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
             if (languageVersionA == LanguageVersion.CSharp10)
             {
                 comp.VerifyEmitDiagnostics();
@@ -10740,7 +10736,7 @@ public readonly ref struct R2
 {
     public R2(in object o) { }
 }";
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA));
+            var comp = CreateCompilationNetStandard([sourceA], parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA));
             comp.VerifyEmitDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
 
@@ -10757,7 +10753,7 @@ public readonly ref struct R2
         return new R2(new object());
     }
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
+            comp = CreateCompilationNetStandard([sourceB], references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
             if (languageVersionA == LanguageVersion.CSharp10)
             {
                 comp.VerifyEmitDiagnostics();
@@ -10796,7 +10792,7 @@ unsafe public class A
     private static R _MayCaptureArg(ref int i) => new R();
     public static delegate*<ref int, R> MayCaptureArg = &_MayCaptureArg;
 }";
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA), options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilationNetStandard([sourceA], parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA), options: TestOptions.UnsafeReleaseDll);
             comp.VerifyEmitDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
 
@@ -10809,7 +10805,7 @@ unsafe public class A
         return MayCaptureArg(ref i);
     }
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB), options: TestOptions.UnsafeReleaseDll);
+            comp = CreateCompilationNetStandard([sourceB], references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB), options: TestOptions.UnsafeReleaseDll);
             if (languageVersionA == LanguageVersion.CSharp10)
             {
                 comp.VerifyEmitDiagnostics();
@@ -10871,7 +10867,7 @@ public static class A
     public static void F3(in R x3, scoped in R y3) { }
     public static void F4(out R x4, scoped out R y4) { x4 = default; y4 = default; }
 }";
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationNetStandard([sourceA], parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
                 // (7,33): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public static void F1(R x1, scoped R y1) { }
@@ -10946,7 +10942,7 @@ public static class A
 struct B<T>
 {
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationNetStandard([source], parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
                 // (3,7): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     A(scoped ref T t) { }
@@ -10989,7 +10985,7 @@ class Program
         static void L7(out R x7, scoped out R y7) { x7 = default; y7 = default; }
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationNetStandard([source], parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
                 // (7,30): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         static void L1(R x1, scoped R y1) { }
@@ -11014,7 +11010,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(13, 34));
             verify(comp, useUpdatedEscapeRules: false);
 
-            comp = CreateCompilation(source);
+            comp = CreateCompilationNetStandard([source]);
             comp.VerifyEmitDiagnostics();
             verify(comp, useUpdatedEscapeRules: true);
 
@@ -11060,7 +11056,7 @@ class Program
         var f7 = (out R x7, scoped out R y7) => { x7 = default; y7 = default; };
     }
 }";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition], parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
                 // (6,25): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         var f1 = (R x1, scoped R y1) => { };
@@ -11088,7 +11084,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(12, 29));
             verify(comp, useUpdatedEscapeRules: false);
 
-            comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp = CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]);
             comp.VerifyEmitDiagnostics();
             verify(comp, useUpdatedEscapeRules: true);
 
@@ -11139,7 +11135,7 @@ class Program
 delegate void D1(scoped R r1);
 delegate void D2(scoped ref R r2);
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationNetStandard([source], parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
                 // (2,18): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // delegate void D1(scoped R r1);
@@ -11177,7 +11173,7 @@ class Program
         delegate*<ref R, ref R> f3 = &F3;
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, options: TestOptions.UnsafeReleaseExe);
+            var comp = CreateCompilationNetStandard([source], parseOptions: TestOptions.Regular10, options: TestOptions.UnsafeReleaseExe);
             comp.VerifyEmitDiagnostics(
                 // (4,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     static void F1(scoped R r1) { }
@@ -11548,7 +11544,7 @@ readonly ref struct R2
     void F1() { }
     readonly void F2() { }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilationNetStandard([source], parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyEmitDiagnostics();
 
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("C..ctor").ThisParameter, "C this", RefKind.None, ScopedKind.None);
@@ -12032,7 +12028,7 @@ class Program
         scoped ref readonly var r51 = ref r;
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationNetStandard([source], parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
                 // (7,9): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         scoped R r1 = default;
@@ -12179,7 +12175,7 @@ class Program
         for (scoped ref readonly R r5 = ref r;;) break;
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationNetStandard([source], parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
                 // (7,14): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         for (scoped R r1 = default;;) break;
@@ -12264,7 +12260,7 @@ class RR
     public void Deconstruct(out R x, out int y) => throw null;
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationNetStandard([source], parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
                 // (7,10): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         (scoped R r1, var a) = r;
@@ -12660,7 +12656,7 @@ class Program
 
     static void M1(out R r) => throw null;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationNetStandard([source], parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
                 // (7,16): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         M1(out scoped R r1);
@@ -13124,7 +13120,7 @@ scoped ref scoped s5 = ref s1; // 3
 scoped ref @scoped s6 = ref s1; // 4
 ref struct @scoped { } // 5
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationNetStandard([source], parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
                 // (4,1): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // scoped scoped s4 = default; // 2
@@ -13179,7 +13175,7 @@ ref struct @scoped { } // 5
 
 ref struct @scoped { } // 5
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationNetStandard([source], parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
                 // (4,10): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     for (scoped scoped s4 = default;;) {break;} // 2
@@ -13241,7 +13237,7 @@ class RR
     public void Deconstruct(out @scoped x, out int y) => throw null;
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationNetStandard([source], parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
                 // (5,2): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // (scoped scoped s4, var c) = r;
@@ -13291,7 +13287,7 @@ void M(out scoped x) => throw null;
 
 ref struct @scoped { }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationNetStandard([source], parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
                 // (4,7): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // M(out scoped scoped s4);
@@ -14340,7 +14336,7 @@ class Program
         scoped ref R r2 = ref r, r5 = ref r;
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationNetStandard([source], parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
                 // (7,9): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         scoped ref R r2 = ref r, r5 = ref r;
@@ -14382,7 +14378,7 @@ class Program
         for (scoped ref R r2 = ref r, r5 = ref r;;) break;
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationNetStandard([source], parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
                 // (7,14): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         for (scoped ref R r2 = ref r, r5 = ref r;;) break;
@@ -14577,7 +14573,7 @@ class Enumerator2
     public bool MoveNext() => false;
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationNetStandard([source], parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
                 // (7,18): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         foreach (scoped R r1 in new Enumerable1()) break;
@@ -14729,7 +14725,7 @@ class Enumerator2
     public bool MoveNext() => false;
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationNetStandard([source], parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
                 // (7,19): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         foreach ((scoped R r1, scoped var _) in new Enumerable1()) break;
@@ -15031,7 +15027,7 @@ class Enumerator2
     public bool MoveNext() => false;
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationNetStandard([source], parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
                 // (4,14): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     foreach (scoped scoped s4 in new Enumerable1()) {break;} // 2
@@ -16204,7 +16200,7 @@ class Program
     }
     static ref int F() => throw null;
 }";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilation([source], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (13,22): error CS8986: The 'scoped' modifier of parameter 'r' doesn't match target 'D1<int>'.
                 //         D1<int> d1 = (ref R<int> r) => ref F(); // 1
@@ -16330,7 +16326,7 @@ class Program
         D5<int> d5 = (R<int> r) => new R<int>(); // 4
     }
 }";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilation([source], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (16,22): error CS8986: The 'scoped' modifier of parameter 'i' doesn't match target 'D2<int>'.
                 //         D2<int> d2 = (ref int i) => new R<int>(); // 1
@@ -16373,7 +16369,7 @@ class Program
         D5<int> d5 = (R<int> r) => ref F(); // 4
     }}
 }}";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilation([source], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (16,22): error CS8986: The 'scoped' modifier of parameter 'i' doesn't match target 'D2<int>'.
                 //         D2<int> d2 = (ref int i) => ref F(); // 1
@@ -16444,7 +16440,7 @@ class Program
         D5<T> d5 = s2.F5;
     }}
 }}";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilation([source], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics();
         }
 
@@ -16913,7 +16909,7 @@ class C
                     }
                 }
                 """;
-            var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (18,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M(D1)' and 'Program.M(D2)'
                 //         M(x =>
@@ -17205,13 +17201,13 @@ partial class C
             // Attributes are combined across partial parts so there is essentially
             // no difference between the parts in these cases.
 
-            var comp = CreateCompilation(new[] { sourceA, sourceB1, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationNetStandard([sourceA, sourceB1, UnscopedRefAttributeDefinition]);
             comp.VerifyEmitDiagnostics();
 
-            comp = CreateCompilation(new[] { sourceA, sourceB2, UnscopedRefAttributeDefinition });
+            comp = CreateCompilationNetStandard([sourceA, sourceB2, UnscopedRefAttributeDefinition]);
             comp.VerifyEmitDiagnostics();
 
-            comp = CreateCompilation(new[] { sourceB2, sourceA, UnscopedRefAttributeDefinition });
+            comp = CreateCompilationNetStandard([sourceB2, sourceA, UnscopedRefAttributeDefinition]);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -20162,7 +20158,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationNetStandard([source], parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(source);
@@ -20200,7 +20196,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationNetStandard([source], parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(source);
@@ -20371,7 +20367,7 @@ _ = r3 with { field = ref x }; // 3
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "field").WithArguments("ref fields", "11.0").WithLocation(7, 15)
                 );
 
-            comp = CreateCompilation(source, references: new[] { lib.EmitToImageReference() }, parseOptions: TestOptions.Regular10);
+            comp = CreateCompilation(source, references: new[] { lib.EmitToImageReference() }, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.NetStandard20);
             comp.VerifyDiagnostics(
                 // (3,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // var r1 = new R() { field = ref x }; // 1
@@ -21915,7 +21911,7 @@ public ref struct R
 {
     ref scoped R Property { get => throw null; }
 }";
-            comp = CreateCompilation(source);
+            comp = CreateCompilationNetStandard([source]);
             comp.VerifyDiagnostics(
                 // (3,9): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
                 //     ref scoped R Property { get => throw null; }
@@ -21956,7 +21952,7 @@ public ref struct R
     {
     }
 }";
-            comp = CreateCompilation(source);
+            comp = CreateCompilationNetStandard([source]);
             comp.VerifyDiagnostics(
                 // (3,16): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
                 //     void M(ref scoped R parameter)
@@ -22103,7 +22099,7 @@ public ref struct R
 {
     ref scoped R M() => throw null;
 }";
-            comp = CreateCompilation(source);
+            comp = CreateCompilationNetStandard([source]);
             comp.VerifyDiagnostics(
                 // (3,9): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
                 //     ref scoped R M() => throw null;
@@ -22132,7 +22128,7 @@ public ref struct R
 delegate void M(ref scoped R parameter);
 ref struct R { }
 ";
-            comp = CreateCompilation(source);
+            comp = CreateCompilationNetStandard([source]);
             comp.VerifyDiagnostics(
                 // (2,21): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
                 // delegate void M(ref scoped R parameter);
@@ -22157,7 +22153,7 @@ ref struct R
     }
 }
 ";
-            comp = CreateCompilation(source);
+            comp = CreateCompilationNetStandard([source]);
             comp.VerifyDiagnostics(
                 // (6,9): error CS8183: Cannot infer the type of implicitly-typed discard.
                 //         _ = void (ref scoped R parameter) => throw null;
@@ -22184,7 +22180,7 @@ ref struct R
             var source = $$"""
 {{typeKind}} scoped { }
 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationNetStandard([source], parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (1,8): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // struct scoped { }
@@ -22205,7 +22201,7 @@ ref struct R
             var source = """
 class @scoped { }
 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationNetStandard([source], parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
@@ -22240,7 +22236,7 @@ class D2
     void M2<@scoped>() { }
 }
 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationNetStandard([source], parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (1,9): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // class C<scoped> { } // 1
@@ -22273,7 +22269,7 @@ class D2
             var source = """
 using scoped = System.Int32;
 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationNetStandard([source], parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (1,1): hidden CS8019: Unnecessary using directive.
                 // using scoped = System.Int32;
@@ -22300,7 +22296,7 @@ using scoped = System.Int32;
             var source = """
 using @scoped = System.Int32;
 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationNetStandard([source], parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (1,1): hidden CS8019: Unnecessary using directive.
                 // using @scoped = System.Int32;
@@ -22327,8 +22323,7 @@ using @scoped = System.Int32;
                     [UnscopedRef] public ref int Ref() => ref F;
                 }
                 """;
-            CreateCompilation([source, UnscopedRefAttributeDefinition],
-                parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+            CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition], parseOptions: TestOptions.Regular10).VerifyDiagnostics(
                 // (6,6): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
                 //     [UnscopedRef] public ref int Ref() => ref F;
                 Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(6, 6),
@@ -22339,9 +22334,9 @@ using @scoped = System.Int32;
             CreateCompilation(source,
                 parseOptions: TestOptions.Regular10,
                 targetFramework: TargetFramework.Net70).VerifyDiagnostics();
-            CreateCompilation([source, UnscopedRefAttributeDefinition],
+            CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition],
                 parseOptions: TestOptions.Regular11).VerifyDiagnostics();
-            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+            CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75828")]
@@ -22356,7 +22351,7 @@ using @scoped = System.Int32;
                     [UnscopedRef] public ref int Ref => ref F;
                 }
                 """;
-            CreateCompilation([source, UnscopedRefAttributeDefinition],
+            CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition],
                 parseOptions: TestOptions.Regular10).VerifyDiagnostics(
                 // (6,6): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
                 //     [UnscopedRef] public ref int Ref => ref F;
@@ -22365,12 +22360,9 @@ using @scoped = System.Int32;
                 //     [UnscopedRef] public ref int Ref => ref F;
                 Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F").WithLocation(6, 45));
 
-            CreateCompilation(source,
-                parseOptions: TestOptions.Regular10,
-                targetFramework: TargetFramework.Net70).VerifyDiagnostics();
-            CreateCompilation([source, UnscopedRefAttributeDefinition],
-                parseOptions: TestOptions.Regular11).VerifyDiagnostics();
-            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+            CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition], parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+            CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75828")]
@@ -22387,8 +22379,7 @@ using @scoped = System.Int32;
                     }
                 }
                 """;
-            CreateCompilation([source, UnscopedRefAttributeDefinition],
-                parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+            CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition], parseOptions: TestOptions.Regular10).VerifyDiagnostics(
                 // (4,13): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
                 //     void M([UnscopedRef] ref int x, out int y)
                 Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(4, 13));
@@ -22403,9 +22394,9 @@ using @scoped = System.Int32;
             CreateCompilation(source,
                 parseOptions: TestOptions.Regular10,
                 targetFramework: TargetFramework.Net70).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation([source, UnscopedRefAttributeDefinition],
+            CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition],
                 parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75828")]
@@ -22424,7 +22415,7 @@ using @scoped = System.Int32;
                     }
                 }
                 """;
-            CreateCompilation([source, UnscopedRefAttributeDefinition],
+            CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition],
                 parseOptions: TestOptions.Regular10).VerifyDiagnostics(
                 // (6,32): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
                 //     public static ref int Ref([UnscopedRef] out S s)
@@ -22432,9 +22423,9 @@ using @scoped = System.Int32;
             CreateCompilation(source,
                 parseOptions: TestOptions.Regular10,
                 targetFramework: TargetFramework.Net70).VerifyDiagnostics();
-            CreateCompilation([source, UnscopedRefAttributeDefinition],
+            CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition],
                 parseOptions: TestOptions.Regular11).VerifyDiagnostics();
-            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+            CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75828")]
@@ -22449,8 +22440,7 @@ using @scoped = System.Int32;
                     public static ref int Ref([UnscopedRef] scoped ref S s) => ref s.F;
                 }
                 """;
-            CreateCompilation([source, UnscopedRefAttributeDefinition],
-                parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+            CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition], parseOptions: TestOptions.Regular10).VerifyDiagnostics(
                 // (6,32): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
                 //     public static ref int Ref([UnscopedRef] scoped ref S s) => ref s.F;
                 Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(6, 32),
@@ -22464,9 +22454,7 @@ using @scoped = System.Int32;
                 //     public static ref int Ref([UnscopedRef] scoped ref S s) => ref s.F;
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter2, "s").WithArguments("s").WithLocation(6, 68));
 
-            CreateCompilation(source,
-                parseOptions: TestOptions.Regular10,
-                targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
                 // (6,32): error CS9066: UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.
                 //     public static ref int Ref([UnscopedRef] scoped ref S s) => ref s.F;
                 Diagnostic(ErrorCode.ERR_UnscopedScoped, "UnscopedRef").WithLocation(6, 32),
@@ -22481,9 +22469,9 @@ using @scoped = System.Int32;
                 Diagnostic(ErrorCode.ERR_UnscopedScoped, "UnscopedRef").WithLocation(6, 32)
             };
 
-            CreateCompilation([source, UnscopedRefAttributeDefinition],
+            CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition],
                 parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75828")]
@@ -22496,7 +22484,7 @@ using @scoped = System.Int32;
                     [UnscopedRef] public ref int Ref() => throw null;
                 }
                 """;
-            var ref1a = CreateCompilation([source1, UnscopedRefAttributeDefinition],
+            var ref1a = CreateCompilationNetStandard([source1, UnscopedRefAttributeDefinition],
                 parseOptions: TestOptions.Regular10).VerifyDiagnostics(
                 // (4,6): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
                 //     [UnscopedRef] public ref int Ref() => throw null;
@@ -22504,9 +22492,9 @@ using @scoped = System.Int32;
             var ref1b = CreateCompilation(source1,
                 parseOptions: TestOptions.Regular10,
                 targetFramework: TargetFramework.Net70).VerifyDiagnostics().EmitToImageReference();
-            var ref1c = CreateCompilation([source1, UnscopedRefAttributeDefinition],
+            var ref1c = CreateCompilationNetStandard([source1, UnscopedRefAttributeDefinition],
                 parseOptions: TestOptions.Regular11).VerifyDiagnostics().EmitToImageReference();
-            var ref1d = CreateCompilation([source1, UnscopedRefAttributeDefinition]).VerifyDiagnostics().EmitToImageReference();
+            var ref1d = CreateCompilationNetStandard([source1, UnscopedRefAttributeDefinition]).VerifyDiagnostics().EmitToImageReference();
 
             var source2 = """
                 static class C
@@ -22549,7 +22537,7 @@ using @scoped = System.Int32;
                     [UnscopedRef] public ref int Ref => throw null;
                 }
                 """;
-            var ref1a = CreateCompilation([source1, UnscopedRefAttributeDefinition],
+            var ref1a = CreateCompilationNetStandard([source1, UnscopedRefAttributeDefinition],
                 parseOptions: TestOptions.Regular10).VerifyDiagnostics(
                 // (4,6): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
                 //     [UnscopedRef] public ref int Ref => throw null;
@@ -22557,9 +22545,9 @@ using @scoped = System.Int32;
             var ref1b = CreateCompilation(source1,
                 parseOptions: TestOptions.Regular10,
                 targetFramework: TargetFramework.Net70).VerifyDiagnostics().EmitToImageReference();
-            var ref1c = CreateCompilation([source1, UnscopedRefAttributeDefinition],
+            var ref1c = CreateCompilationNetStandard([source1, UnscopedRefAttributeDefinition],
                 parseOptions: TestOptions.Regular11).VerifyDiagnostics().EmitToImageReference();
-            var ref1d = CreateCompilation([source1, UnscopedRefAttributeDefinition]).VerifyDiagnostics().EmitToImageReference();
+            var ref1d = CreateCompilationNetStandard([source1, UnscopedRefAttributeDefinition]).VerifyDiagnostics().EmitToImageReference();
 
             var source2 = """
                 static class C
@@ -22602,7 +22590,7 @@ using @scoped = System.Int32;
                     public static void M([UnscopedRef] ref int x) { }
                 }
                 """;
-            var ref1 = CreateCompilation([source1, UnscopedRefAttributeDefinition])
+            var ref1 = CreateCompilationNetStandard([source1, UnscopedRefAttributeDefinition])
                 .VerifyDiagnostics().EmitToImageReference();
 
             var source2 = """
@@ -22617,10 +22605,12 @@ using @scoped = System.Int32;
             CompileAndVerify(source2, [ref1],
                 parseOptions: TestOptions.Regular10,
                 symbolValidator: validate,
+                targetFramework: TargetFramework.Standard,
                 expectedOutput: expectedOutput).VerifyDiagnostics();
 
             CompileAndVerify(source2, [ref1],
                 symbolValidator: validate,
+                targetFramework: TargetFramework.Standard,
                 expectedOutput: expectedOutput).VerifyDiagnostics();
 
             static void validate(ModuleSymbol module)
@@ -22642,7 +22632,7 @@ using @scoped = System.Int32;
                     public static void M([UnscopedRef] ref int x) { }
                 }
                 """;
-            var ref1 = CreateCompilation([source1, UnscopedRefAttributeDefinition],
+            var ref1 = CreateCompilationNetStandard([source1, UnscopedRefAttributeDefinition],
                 parseOptions: TestOptions.Regular10)
                 .VerifyDiagnostics(
                     // (4,27): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
@@ -22662,10 +22652,12 @@ using @scoped = System.Int32;
             CompileAndVerify(source2, [ref1],
                 parseOptions: TestOptions.Regular10,
                 symbolValidator: validate,
+                targetFramework: TargetFramework.Standard,
                 expectedOutput: expectedOutput).VerifyDiagnostics();
 
             CompileAndVerify(source2, [ref1],
                 symbolValidator: validate,
+                targetFramework: TargetFramework.Standard,
                 expectedOutput: expectedOutput).VerifyDiagnostics();
 
             static void validate(ModuleSymbol module)
@@ -22706,7 +22698,7 @@ using @scoped = System.Int32;
                 d(ref x, ref r);
                 """;
             // Should the delegate invocation be an error as well? https://github.com/dotnet/roslyn/issues/76087
-            CreateCompilation([source2, UnscopedRefAttributeDefinition], [ref1],
+            CreateCompilationNetStandard([source2, UnscopedRefAttributeDefinition], [ref1],
                 parseOptions: TestOptions.Regular10).VerifyDiagnostics(
                 // (3,1): error CS8350: This combination of arguments to 'C.M(ref int, ref R)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 // C.M(ref x, ref r);
@@ -22729,7 +22721,7 @@ using @scoped = System.Int32;
                 ref struct R<T> { }
                 """;
 
-            CreateCompilation([source, UnscopedRefAttributeDefinition],
+            CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition],
                 parseOptions: TestOptions.Regular10).VerifyDiagnostics(
                 // (4,18): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
                 //     ref T F1<T>([UnscopedRef] R<T> r) => throw null;
@@ -22757,9 +22749,9 @@ using @scoped = System.Int32;
             CreateCompilation(source,
                 parseOptions: TestOptions.Regular10,
                 targetFramework: TargetFramework.Net70).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation([source, UnscopedRefAttributeDefinition],
+            CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition],
                 parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75828")]
@@ -22773,7 +22765,7 @@ using @scoped = System.Int32;
                 }
                 """;
 
-            CreateCompilation([source, UnscopedRefAttributeDefinition],
+            CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition],
                 parseOptions: TestOptions.Regular10).VerifyDiagnostics(
                 // (4,6): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
                 //     [UnscopedRef] object F() => null;
@@ -22792,9 +22784,9 @@ using @scoped = System.Int32;
             CreateCompilation(source,
                 parseOptions: TestOptions.Regular10,
                 targetFramework: TargetFramework.Net70).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation([source, UnscopedRefAttributeDefinition],
+            CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition],
                 parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75828")]
@@ -22808,7 +22800,7 @@ using @scoped = System.Int32;
                 }
                 """;
 
-            CreateCompilation([source, UnscopedRefAttributeDefinition, IsExternalInitTypeDefinition],
+            CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition, IsExternalInitTypeDefinition],
                 parseOptions: TestOptions.Regular10).VerifyDiagnostics(
                 // (4,6): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
                 //     [UnscopedRef] object P { get; init; }
@@ -22827,9 +22819,9 @@ using @scoped = System.Int32;
             CreateCompilation(source,
                 parseOptions: TestOptions.Regular10,
                 targetFramework: TargetFramework.Net70).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation([source, UnscopedRefAttributeDefinition, IsExternalInitTypeDefinition],
+            CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition, IsExternalInitTypeDefinition],
                 parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation([source, UnscopedRefAttributeDefinition, IsExternalInitTypeDefinition]).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition, IsExternalInitTypeDefinition]).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76087")]
@@ -22859,7 +22851,7 @@ using @scoped = System.Int32;
                 }
                 """;
             // Should the delegate invocation be an error as well? https://github.com/dotnet/roslyn/issues/76087
-            CreateCompilation(source2, [ref1], parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+            CreateCompilation(source2, [ref1], parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.Standard).VerifyDiagnostics(
                 // (4,9): error CS8347: Cannot use a result of 'C.M(ref int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //     r = C.M(ref x);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "C.M(ref x)").WithArguments("C.M(ref int)", "x").WithLocation(4, 9),
@@ -22881,7 +22873,7 @@ $@"using System.Diagnostics.CodeAnalysis;
     public ref int GetField1() => ref _field; // 1
     [UnscopedRef] public ref int GetField2() => ref _field;
 }}";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]);
             comp.VerifyDiagnostics(
                 // (5,39): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     public ref int GetField1() => ref _field; // 1
@@ -22908,7 +22900,7 @@ $@"using System.Diagnostics.CodeAnalysis;
         return ref s2;
     }}
 }}";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]);
             comp.VerifyDiagnostics(
                 // (7,20): error CS8157: Cannot return 's1' by reference because it was initialized to a value that cannot be returned by reference
                 //         return ref s1;
@@ -22927,7 +22919,7 @@ public struct S<T>
     public ref T F1() => throw null;
     [UnscopedRef] public ref T F2() => ref _t;
 }";
-            var comp = CreateCompilation(new[] { sourceA, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationNetStandard([sourceA, UnscopedRefAttributeDefinition]);
             comp.VerifyEmitDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
 
@@ -22945,7 +22937,7 @@ public struct S<T>
         return ref s.F2(); // 1
     }
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp = CreateCompilationNetStandard([sourceB], references: new[] { refA });
             comp.VerifyEmitDiagnostics(
                 // (11,20): error CS8168: Cannot return local 's' by reference because it is not a ref local
                 //         return ref s.F2(); // 1
@@ -22987,7 +22979,7 @@ readonly {type} S2
     }}
 }}
 ";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]);
             comp.VerifyDiagnostics(
                 // (11,14): error CS8347: Cannot use a result of 'R.R(ref S1)' in this context because it may expose variables referenced by parameter 's1' outside of their declaration scope
                 //         r1 = new R(ref this); // 1
@@ -23026,7 +23018,7 @@ struct S1
     public ref int Property1 => ref _field; // 1
     [UnscopedRef] public ref int Property2 => ref _field;
 }";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]);
             comp.VerifyDiagnostics(
                 // (5,37): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     public ref int Property1 => ref _field; // 1
@@ -23045,7 +23037,7 @@ public struct S<T>
     public ref T P1 => throw null;
     [UnscopedRef] public ref T P2 => ref _t;
 }";
-            var comp = CreateCompilation(new[] { sourceA, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationNetStandard([sourceA, UnscopedRefAttributeDefinition]);
             comp.VerifyEmitDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
 
@@ -23063,7 +23055,7 @@ public struct S<T>
         return ref s.P2; // 1
     }
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp = CreateCompilationNetStandard([sourceB], references: new[] { refA });
             comp.VerifyEmitDiagnostics(
                 // (11,20): error CS8168: Cannot return local 's' by reference because it is not a ref local
                 //         return ref s.P2; // 1
@@ -23091,7 +23083,7 @@ struct S
         [UnscopedRef] init; // 2
     }
 }";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition, IsExternalInitTypeDefinition });
+            var comp = CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition, IsExternalInitTypeDefinition]);
             comp.VerifyDiagnostics(
                 // (6,6): error CS9101: UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.
                 //     [UnscopedRef] object P3 { get; init; } // 1
@@ -23122,7 +23114,7 @@ $@"using System.Diagnostics.CodeAnalysis;
         get => ref _t;
     }}
 }}";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, targetFramework: TargetFramework.Standard);
             comp.VerifyDiagnostics(
                 // (7,20): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //         get => ref _t; // 1
@@ -23311,7 +23303,7 @@ $@"using System.Diagnostics.CodeAnalysis;
     }}
 }}
 ";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]);
             comp.VerifyDiagnostics(
                 // (6,18): error CS9101: UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.
                 //         var d = [UnscopedRef] (ref int i) => ref i;
@@ -23341,7 +23333,7 @@ public ref struct R2<T>
     [UnscopedRef] public ref T Get() => ref this[0];
     [UnscopedRef] public ref T this[int index] => ref _t;
 }";
-            var comp = CreateCompilation(new[] { sourceA, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationNetStandard([sourceA, UnscopedRefAttributeDefinition]);
             comp.VerifyEmitDiagnostics();
 
             var refA = AsReference(comp, useCompilationReference);
@@ -23362,7 +23354,7 @@ public ref struct R2<T>
         return ref r2[0]; // 2
     }
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp = CreateCompilationNetStandard([sourceB], references: [refA]);
             comp.VerifyDiagnostics(
                 // (12,27): error CS8168: Cannot return local 'r2' by reference because it is not a ref local
                 //         if (b) return ref r2.Get(); // 1
@@ -23406,7 +23398,7 @@ public ref struct R2<T>
     [UnscopedRef] public ref readonly T Get() => ref this[0];
     [UnscopedRef] public ref readonly T this[int index] => ref _t;
 }";
-            var comp = CreateCompilation(new[] { sourceA, UnscopedRefAttributeDefinition }, targetFramework: TargetFramework.Mscorlib40);
+            var comp = CreateCompilation([sourceA, UnscopedRefAttributeDefinition], targetFramework: TargetFramework.Mscorlib40);
             comp.VerifyDiagnostics(
                 // (7,50): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     public ref readonly T this[int index] => ref _t; // 1
@@ -23494,14 +23486,14 @@ struct B
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r.F = ref this").WithArguments("F", "this").WithLocation(18, 9));
 
             // With UnscopedRefAttribute definition that allows use on constructors.
-            comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            comp = CreateCompilation([source, UnscopedRefAttributeDefinition], targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
                 // (10,9): error CS8374: Cannot ref-assign 'this' to 'F' because 'this' has a narrower escape scope than 'F'.
                 //         r.F = ref this; // 1
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r.F = ref this").WithArguments("F", "this").WithLocation(10, 9),
                 // (15,6): warning CS0436: The type 'UnscopedRefAttribute' in '1.cs' conflicts with the imported type 'UnscopedRefAttribute' in 'System.Runtime, Version=7.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
                 //     [UnscopedRef]
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "UnscopedRef").WithArguments("1.cs", "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute", "System.Runtime, Version=7.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute").WithLocation(15, 6),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "UnscopedRef").WithArguments("", "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute", "System.Runtime, Version=7.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute").WithLocation(15, 6),
                 // (15,6): error CS9101: UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.
                 //     [UnscopedRef]
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(15, 6),
@@ -23519,7 +23511,7 @@ class C
 {
     [UnscopedRef] ~C() { }
 }";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]);
             comp.VerifyDiagnostics(
                 // (4,6): error CS9101: UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.
                 //     [UnscopedRef] ~C() { }
@@ -23537,7 +23529,7 @@ struct S
     [UnscopedRef] static object F() => null; // 2
     [UnscopedRef] static object P => null; // 3
 }";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]);
             comp.VerifyDiagnostics(
                 // (4,6): error CS9101: UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.
                 //     [UnscopedRef] static S() { } // 1
@@ -23567,7 +23559,7 @@ record struct S
 {
     [UnscopedRef] object F3() => null;
 }";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]);
             comp.VerifyDiagnostics(
                 // (4,6): error CS9101: UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.
                 //     [UnscopedRef] object F1() => null; // 1
@@ -23881,7 +23873,7 @@ class Program
             return ref y;
     }
 }";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]);
             comp.VerifyDiagnostics(
                 // (9,24): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //             return ref x; // 1
@@ -23914,7 +23906,7 @@ public class A<T>
         return ref t3;
     }
 }";
-            var comp = CreateCompilation(new[] { sourceA, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationNetStandard([sourceA, UnscopedRefAttributeDefinition]);
             comp.VerifyEmitDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
 
@@ -23937,7 +23929,7 @@ public class A<T>
         return ref F3A(out i); // 1
     }
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp = CreateCompilationNetStandard([sourceB], references: new[] { refA });
             comp.VerifyEmitDiagnostics(
                 // (16,20): error CS8347: Cannot use a result of 'A<int>.F3A(out int)' in this context because it may expose variables referenced by parameter 't3' outside of their declaration scope
                 //         return ref F3A(out i); // 1
@@ -23987,7 +23979,7 @@ class B : A<int>
         return ref F4A(ref i); // 3
     }
 }";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]);
             comp.VerifyEmitDiagnostics(
                 // (7,23): error CS9066: UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.
                 //     public ref T F4A([UnscopedRef] scoped ref T t4) => ref t4;
@@ -24053,7 +24045,7 @@ class B : A<int>
         return ref F4A(in i); // 3
     }
 }";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]);
             comp.VerifyEmitDiagnostics(
                 // (7,32): error CS9066: UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.
                 //     public ref readonly T F4A([UnscopedRef] scoped in T t4) => ref t4;
@@ -24223,7 +24215,7 @@ class B2 : A<int>
     internal override ref int F2(out int i) => throw null;
 }
 ";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]);
             comp.VerifyDiagnostics(
                 // (14,31): error CS8987: The 'scoped' modifier of parameter 'i' doesn't match overridden or implemented member.
                 //     internal override ref int F1([UnscopedRef] out int i) => throw null; // 1
@@ -24251,7 +24243,7 @@ class B2 : A<int>
     internal override ref int F2(ref int i) => throw null;
 }
 ";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]);
             comp.VerifyDiagnostics(
                 // (14,31): error CS8987: The 'scoped' modifier of parameter 'i' doesn't match overridden or implemented member.
                 //     internal override ref int F1([UnscopedRef] ref int i) => throw null; // 1
@@ -24282,7 +24274,7 @@ class B2 : A<int>
     internal override ref int F2(ref R<int> r) => throw null;
 }
 ";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]);
             comp.VerifyDiagnostics(
                 // (17,31): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
                 //     internal override ref int F1([UnscopedRef] ref R<int> r) => throw null; // 1
@@ -24320,7 +24312,7 @@ class C4 : I<object>
     ref readonly object I<object>.F2(out object o) => throw null;
 }
 ";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]);
             comp.VerifyDiagnostics(
                 // (14,29): error CS8987: The 'scoped' modifier of parameter 'i' doesn't match overridden or implemented member.
                 //     public ref readonly int F1([UnscopedRef] out int i) => throw null; // 1
@@ -24361,7 +24353,7 @@ class C4 : I<object>
     ref readonly object I<object>.F2(ref object o) => throw null;
 }
 ";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]);
             comp.VerifyDiagnostics(
                 // (14,29): error CS8987: The 'scoped' modifier of parameter 'i' doesn't match overridden or implemented member.
                 //     public ref readonly int F1([UnscopedRef] ref int i) => throw null; // 1
@@ -24405,7 +24397,7 @@ class C4 : I<object>
     ref readonly object I<object>.F2(scoped ref R<object> r) => throw null;
 }
 ";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]);
             comp.VerifyDiagnostics(
                 // (17,29): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
                 //     public ref readonly int F1(ref R<int> r) => throw null; // 1
@@ -24435,7 +24427,7 @@ class Program
     }
     static ref T F<T>() => throw null;
 }";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]);
             comp.VerifyDiagnostics(
                 // (10,14): error CS8986: The 'scoped' modifier of parameter 'i2' doesn't match target 'D1<int>'.
                 //         d1 = ([UnscopedRef] out int i2) => { i2 = 2; return ref F<int>(); }; // 1
@@ -24471,7 +24463,7 @@ class Program
     }
     static ref T F<T>() => throw null;
 }";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]);
             comp.VerifyDiagnostics(
                 // (10,14): error CS8986: The 'scoped' modifier of parameter 'i2' doesn't match target 'D1<int>'.
                 //         d1 = ([UnscopedRef] ref int i2) => ref F<int>();
@@ -24560,7 +24552,7 @@ ref struct R
         this = new R(in i6); // 4
     }
 }";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]);
             comp.VerifyDiagnostics(
                 // (7,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
                 //         this = new R(in i1); // 1
@@ -24685,7 +24677,7 @@ public class A<T>
         return ref t6;
     }
 }";
-            var comp = CreateCompilation(new[] { sourceA, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationNetStandard([sourceA, UnscopedRefAttributeDefinition]);
             comp.VerifyEmitDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
 
@@ -24723,7 +24715,7 @@ public class A<T>
         return ref UnscopedOut(out i6); // 3
     }
 }";
-            comp = CreateCompilation(new[] { sourceB, UnscopedRefAttributeDefinition }, references: new[] { refA });
+            comp = CreateCompilationNetStandard([sourceB, UnscopedRefAttributeDefinition], references: [refA]);
             comp.VerifyEmitDiagnostics(
                 // (11,9): error CS8350: This combination of arguments to 'A<int>.UnscopedRef(ref int, ref R1<int>)' is disallowed because it may expose variables referenced by parameter 't2' outside of their declaration scope
                 //         UnscopedRef(ref i2, ref r2); // 1
@@ -24756,7 +24748,7 @@ public class A<T>
         public UnscopedRefAttribute([UnscopedRef] out int i) { i = 0; }
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Standard);
             comp.VerifyDiagnostics(
                 // (5,38): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'UnscopedRefAttribute.UnscopedRefAttribute(out int)'
                 //         public UnscopedRefAttribute([UnscopedRef] out int i) { i = 0; }
@@ -24799,7 +24791,7 @@ class Program
         return ref F2(out i4);
     }
 }";
-            var comp = CreateCompilation(new[] { sourceA, sourceB });
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Standard);
             comp.VerifyDiagnostics(
                 // (4,24): error CS7036: There is no argument given that corresponds to the required parameter 'b' of 'UnscopedRefAttribute.UnscopedRefAttribute(bool)'
                 //     static ref int F1([UnscopedRef] out int i1)
@@ -24840,7 +24832,7 @@ class Program
         return ref i;
     }
 }";
-            var comp = CreateCompilation(new[] { sourceA, sourceB });
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Standard);
             comp.VerifyDiagnostics(
                 // (8,36): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     static ref int F2([UnscopedRef(F1())] out int i)
@@ -25205,7 +25197,7 @@ class A
     static void F4(ref R r4) { }
     static void F5(in R r5) { }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), targetFramework: TargetFramework.Standard);
             comp.VerifyDiagnostics();
 
             bool useUpdatedRules = languageVersion == LanguageVersion.CSharp11;
@@ -25242,13 +25234,13 @@ public class A
     public static void F4(ref R r4) { }
     public static void F5(in R r5) { }
 }";
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA));
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA), targetFramework: TargetFramework.Standard);
             comp.VerifyDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
 
             var sourceB =
 @"";
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB), targetFramework: TargetFramework.Standard);
             comp.VerifyDiagnostics();
 
             bool useUpdatedRules = languageVersionA == LanguageVersion.CSharp11;
@@ -25278,7 +25270,7 @@ class Program
         var f5 = (out R r5) => { r5 = default; };
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -25326,13 +25318,13 @@ unsafe public class A
     public delegate*<in R, void> F4 = null;
     public delegate*<out R, void> F5 = null;
 }";
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA), options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA), options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Standard);
             comp.VerifyDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
 
             var sourceB =
 @"";
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB), targetFramework: TargetFramework.Standard);
             comp.VerifyDiagnostics();
 
             bool useUpdatedRules = languageVersionA == LanguageVersion.CSharp11;
@@ -25368,7 +25360,7 @@ class Program
     static void F4([UnscopedRef] in R r4) { }
     static void F5([UnscopedRef] out R r5) { }
 }";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition], parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
 
             if (languageVersion == LanguageVersion.CSharp11)
             {
@@ -25435,7 +25427,7 @@ public abstract class A<T>
     public abstract ref T F4(in R<T> r4);
     public abstract ref T F5(out R<T> r5);
 }";
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA));
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA), targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
 
@@ -25448,7 +25440,7 @@ public abstract class A<T>
     public override ref int F4(in R<int> r4) => throw null;
     public override ref int F5(out R<int> r5) => throw null; // 2
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB), targetFramework: TargetFramework.Standard);
 
             if (languageVersionA == LanguageVersion.CSharp11 &&
                 languageVersionB == LanguageVersion.CSharp10)
@@ -25486,7 +25478,7 @@ public interface I<T>
     ref readonly T F4(in R<T> r4);
     ref readonly T F5(out R<T> r5);
 }";
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA));
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA), targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
 
@@ -25507,7 +25499,7 @@ class B2 : I<object>
     ref readonly object I<object>.F4(in R<object> r4) => throw null;
     ref readonly object I<object>.F5(out R<object> r5) => throw null; // 4
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB), targetFramework: TargetFramework.Standard);
 
             if (languageVersionA == LanguageVersion.CSharp11 &&
                 languageVersionB == LanguageVersion.CSharp10)
@@ -25545,7 +25537,7 @@ public abstract class A<T>
     public abstract void F2(ref R<T> r2);
     public abstract void F3(in R<T> r3);
 }";
-            var comp = CreateCompilation(new[] { sourceA, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationNetStandard([sourceA, UnscopedRefAttributeDefinition]);
             comp.VerifyEmitDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
 
@@ -25556,7 +25548,7 @@ public abstract class A<T>
     public override void F2(scoped ref R<int> r3) { }
     public override void F3(scoped in R<int> r4) { }
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp = CreateCompilationNetStandard([sourceB], references: [refA]);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -25575,7 +25567,7 @@ public interface I<T>
     void F2(ref R<T> r2);
     void F3(in R<T> r3);
 }";
-            var comp = CreateCompilation(new[] { sourceA, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationNetStandard([sourceA, UnscopedRefAttributeDefinition]);
             comp.VerifyEmitDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
 
@@ -25592,7 +25584,7 @@ class B2 : I<object>
     void I<object>.F2(ref R<object> r2) { }
     void I<object>.F3(in R<object> r3) { }
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
+            comp = CreateCompilationNetStandard([sourceB], references: [refA], parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
             comp.VerifyEmitDiagnostics();
         }
 
@@ -25613,7 +25605,7 @@ public delegate ref T D3<T>(ref R<T> r3);
 public delegate ref T D4<T>(in R<T> r4);
 public delegate ref T D5<T>(out R<T> r5);
 ";
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA));
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA), targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
 
@@ -25634,7 +25626,7 @@ public delegate ref T D5<T>(out R<T> r5);
         D5<int> d5 = F5; // 2
     }
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB), targetFramework: TargetFramework.Standard);
 
             if (languageVersionA == LanguageVersion.CSharp11 &&
                 languageVersionB == LanguageVersion.CSharp10)
@@ -25672,7 +25664,7 @@ public interface I<T>
 }
 public delegate ref T D3<T>(out T t);
 ";
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular, targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
 
@@ -25690,7 +25682,7 @@ class Program
         D3<object> d3 = F3; // 3
     }
 }";
-            comp = CreateCompilation(sourceB1, references: new[] { refA }, parseOptions: TestOptions.Regular10);
+            comp = CreateCompilation(sourceB1, references: new[] { refA }, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics(
                 // (3,38): warning CS9074: The 'scoped' modifier of parameter 'i' doesn't match overridden or implemented member.
                 //     public override ref readonly int F1(out int i) => throw null; // 1
@@ -25717,7 +25709,7 @@ class Program
         D3<object> d3 = F3; // 3
     }
 }";
-            comp = CreateCompilation(new[] { sourceB2, UnscopedRefAttributeDefinition }, references: new[] { refA }, parseOptions: TestOptions.Regular);
+            comp = CreateCompilationNetStandard([sourceB2, UnscopedRefAttributeDefinition], references: [refA], parseOptions: TestOptions.Regular);
             comp.VerifyEmitDiagnostics(
                 // (4,38): error CS8987: The 'scoped' modifier of parameter 'i' doesn't match overridden or implemented member.
                 //     public override ref readonly int F1([UnscopedRef] out int i) => throw null; // 1
@@ -25750,7 +25742,7 @@ public interface I<T>
 }
 public delegate ref T D3<T>(scoped R<T> r);
 ";
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular, targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
 
@@ -25768,7 +25760,7 @@ class Program
         D3<object> d3 = F3; // 3
     }
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB), targetFramework: TargetFramework.Standard);
 
             if (languageVersionB == LanguageVersion.CSharp10)
             {
@@ -25821,7 +25813,7 @@ public delegate ref T D2<T>(ref T t);
 public delegate ref T D3<T>(in T t);
 public delegate ref T D4<T>(out T t);
 ";
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA));
+            var comp = CreateCompilationNetStandard([sourceA], parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA));
             comp.VerifyEmitDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
 
@@ -25848,7 +25840,7 @@ class Program
         D4<object> d3 = F3; // 9
     }
 }";
-            comp = CreateCompilation(new[] { sourceB, UnscopedRefAttributeDefinition }, references: new[] { refA });
+            comp = CreateCompilationNetStandard([sourceB, UnscopedRefAttributeDefinition], references: [refA]);
             if (languageVersionA == LanguageVersion.CSharp10)
             {
                 comp.VerifyEmitDiagnostics(
@@ -25937,7 +25929,7 @@ public delegate ref T D2<T>([UnscopedRef] ref T t);
 public delegate ref T D3<T>([UnscopedRef] in T t);
 public delegate ref T D4<T>([UnscopedRef] out T t);
 ";
-            var comp = CreateCompilation(new[] { sourceA, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationNetStandard([sourceA, UnscopedRefAttributeDefinition], parseOptions: TestOptions.Regular);
             comp.VerifyEmitDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
 
@@ -25963,7 +25955,7 @@ class Program
         D4<object> d3 = F3;
     }
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
+            comp = CreateCompilationNetStandard([sourceB], references: [refA], parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
             comp.VerifyEmitDiagnostics();
         }
 
@@ -25984,7 +25976,7 @@ public class A
     public static void F4([UnscopedRef] in R x, ref R y) { }
 }
 ";
-            var comp = CreateCompilation(new[] { sourceA, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationNetStandard([sourceA, UnscopedRefAttributeDefinition]);
             comp.VerifyEmitDiagnostics();
             verifyParameters(comp.GetMember<NamedTypeSymbol>("A"));
             var refA = AsReference(comp, useCompilationReference);
@@ -26009,7 +26001,7 @@ public class A
         A.F4(in x, ref y); // 2
     }
 }";
-            comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
+            comp = CreateCompilationNetStandard([sourceB], [refA], parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
             comp.VerifyEmitDiagnostics(
                 // (9,9): error CS8350: This combination of arguments to 'A.F2(ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         A.F2(ref x, ref y); // 1
@@ -26376,7 +26368,7 @@ public class A
                     [UnscopedRef] event D<object> I<object>.E { add { } remove { } } // 6
                 }
                 """;
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]);
             comp.VerifyEmitDiagnostics(
                 // (10,6): error CS9101: UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.
                 //     [UnscopedRef] public event D<int> E; // 1
@@ -26515,7 +26507,7 @@ public class A
                     [UnscopedRef] event D<object> I<object>.E { add { } remove { } } // 3
                 }
                 """;
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]);
             comp.VerifyEmitDiagnostics(
                 // (6,6): error CS9101: UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.
                 //     [UnscopedRef] event D<T> E; // 1
@@ -26707,7 +26699,7 @@ public class A
                     [UnscopedRef] public ref int Value{{csharp(secondIsMethod)}} => ref value;
                 }
                 """;
-            var verifier = CompileAndVerify(new[] { source, UnscopedRefAttributeDefinition }, expectedOutput: "12", verify: Verification.Fails);
+            var verifier = CompileAndVerify(new[] { source, UnscopedRefAttributeDefinition }, expectedOutput: "12", verify: Verification.Fails, targetFramework: TargetFramework.Standard);
             verifier.VerifyDiagnostics();
             verifier.VerifyMethodBody("C.Value", $$"""
                 {
@@ -26750,7 +26742,7 @@ public class A
                     [UnscopedRef] public ref int Value => ref value;
                 }
                 """;
-            CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }).VerifyDiagnostics(
+            CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
                 // 0.cs(6,35): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //     public ref int Value() => ref s1.S2.Value;
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s1.S2").WithLocation(6, 35),
@@ -26783,7 +26775,7 @@ public class A
                     [UnscopedRef] public ref int Value => ref value;
                 }
                 """;
-            CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }).VerifyDiagnostics(
+            CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
                 // 0.cs(6,35): error CS0154: The property or indexer 'S1.S2' cannot be used in this context because it lacks the get accessor
                 //     public ref int Value() => ref s1.S2.Value;
                 Diagnostic(ErrorCode.ERR_PropertyLacksGet, "s1.S2").WithArguments("S1.S2").WithLocation(6, 35),
@@ -26817,7 +26809,7 @@ public class A
                     [UnscopedRef] public ref int Value{{op2}} => ref value;
                 }
                 """;
-            CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }).VerifyDiagnostics(
+            CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
                 // 0.cs(6,35): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //     public ref int Value() => ref s1.S2.Value;
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, $"s1.S2{op1}").WithLocation(6, 35));
@@ -26851,7 +26843,7 @@ public class A
                     [UnscopedRef] public ref int Value => ref value;
                 }
                 """;
-            var verifier = CompileAndVerify(new[] { source, UnscopedRefAttributeDefinition }, expectedOutput: "12", verify: Verification.Fails);
+            var verifier = CompileAndVerify(new[] { source, UnscopedRefAttributeDefinition }, expectedOutput: "12", verify: Verification.Fails, targetFramework: TargetFramework.Standard);
             verifier.VerifyDiagnostics();
             verifier.VerifyMethodBody("C.Value", """
                 {
@@ -26892,7 +26884,7 @@ public class A
                     [UnscopedRef] public ref int Value => ref value;
                 }
                 """;
-            CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }).VerifyDiagnostics(
+            CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
                 // 0.cs(6,40): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //     public ref int Value(int i) => ref s1[i].Value;
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s1[i]").WithLocation(6, 40),
@@ -26925,7 +26917,7 @@ public class A
                     [UnscopedRef] public ref int this[int i] => ref value;
                 }
                 """;
-            CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }).VerifyDiagnostics(
+            CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
                 // 0.cs(6,40): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //     public ref int Value(int i) => ref s1[i].Value;
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s1[i]").WithLocation(6, 40));
@@ -27333,7 +27325,7 @@ public class C
   }
 }
 ";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition], options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -27385,7 +27377,7 @@ public class C
   }
 }
 ";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition], options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -27437,7 +27429,7 @@ public class C1
   void C([UnscopedRef] out RefStruct s) { }
 }
 ";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilationNetStandard([source, UnscopedRefAttributeDefinition], options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -30315,7 +30307,7 @@ Block[B2] - Exit
                     B(ref Span<int> s, int i) : base(ref s, stackalloc int[2]) { } // 2
                 }
                 """;
-            var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (6,31): error CS8350: This combination of arguments to 'A.A(ref Span<int>, Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
                 //     A(ref Span<int> s, int i) : this(ref s, stackalloc int[1]) { } // 1
@@ -30371,7 +30363,7 @@ Block[B2] - Exit
                     }
                 }
                 """;
-            var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (11,18): warning CS9081: A result of a stackalloc expression of type 'Span<int>' in this context may be exposed outside of the containing method
                 //         f(ref s, stackalloc int[1]); // 1
@@ -30403,7 +30395,7 @@ Block[B2] - Exit
                     }
                 }
                 """;
-            var comp = CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (18,19): warning CS9087: This returns a parameter by reference 'i2' but it is not a ref parameter
                 //         f(out r1, i2); // 1
@@ -30571,7 +30563,7 @@ Block[B2] - Exit
                     }
                 }
                 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.Standard);
             comp.VerifyDiagnostics(
                 // (5,20): error CS8347: Cannot use a result of 'Program.F2(out int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
                 //         return ref F2(out _);
@@ -30599,7 +30591,7 @@ Block[B2] - Exit
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (6,20): error CS8347: Cannot use a result of 'Program.F2(out int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
                 //         return ref F2(out _);
@@ -30663,7 +30655,7 @@ Block[B2] - Exit
                     }
                 }
                 """;
-            var comp = CreateCompilationWithSpan(source);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (10,32): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //             Span<int> inner => inner
@@ -30689,7 +30681,7 @@ Block[B2] - Exit
                     }
                 }
                 """;
-            var comp = CreateCompilationWithSpan(source);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (12,13): error CS8347: Cannot use a result of 'Program.F(Span<int>, Span<int>)' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
                 //         x = F(x, y switch { Span<int> inner => inner });
@@ -30716,7 +30708,7 @@ Block[B2] - Exit
                     }
                 }
                 """;
-            var comp = CreateCompilationWithSpan(source);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (9,32): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //             Span<int> inner => inner
@@ -30741,7 +30733,7 @@ Block[B2] - Exit
                     }
                 }
                 """;
-            var comp = CreateCompilationWithSpan(source);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics();
         }
 
@@ -30758,7 +30750,7 @@ Block[B2] - Exit
                         })[0];
                 }
                 """;
-            var comp = CreateCompilationWithSpan(source);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics();
         }
 

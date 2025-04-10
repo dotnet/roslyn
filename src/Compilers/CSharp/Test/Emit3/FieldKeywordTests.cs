@@ -6054,7 +6054,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, MaybeNullAttributeDefinition]);
+            var comp = CreateCompilation([source, MaybeNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics(
                 // (9,16): warning CS8603: Possible null reference return.
                 //         get => field; // 1
@@ -6083,7 +6083,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, MaybeNullAttributeDefinition]);
+            var comp = CreateCompilation([source, MaybeNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics(
                 // (9,16): warning CS8603: Possible null reference return.
                 //         get => field; // 1
@@ -6115,7 +6115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, MaybeNullAttributeDefinition]);
+            var comp = CreateCompilation([source, MaybeNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -6141,7 +6141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, MaybeNullAttributeDefinition, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation([source, MaybeNullAttributeDefinition, AllowNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics(
                 // (9,16): warning CS8603: Possible null reference return.
                 //         get => field;
@@ -6170,7 +6170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, MaybeNullAttributeDefinition, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation([source, MaybeNullAttributeDefinition, AllowNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics(
                 // (9,16): warning CS8603: Possible null reference return.
                 //         get => field; // 1
@@ -6199,7 +6199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, MaybeNullAttributeDefinition, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation([source, MaybeNullAttributeDefinition, AllowNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -6226,7 +6226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation([source, AllowNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics(
                 // (10,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //         set => field = null; // 1
@@ -6259,7 +6259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation([source, AllowNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics(
                 // (10,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //         set => field = null; // 1
@@ -6288,7 +6288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation([source, AllowNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics(
                 // (10,24): warning CS8601: Possible null reference assignment.
                 //         set => field = value; // 1
@@ -6320,7 +6320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation([source, AllowNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics(
                 // (11,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public C()
@@ -6348,7 +6348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation([source, AllowNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics(
                 // (11,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public C() // 1
@@ -6381,7 +6381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation([source, AllowNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics(
                 // (11,9): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //     } = null; // 1
@@ -6412,7 +6412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation([source, AllowNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics(
                 // (10,24): warning CS8601: Possible null reference assignment.
                 //         set => field = value; // 1
@@ -6444,7 +6444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, MaybeNullAttributeDefinition, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation([source, MaybeNullAttributeDefinition, AllowNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics(
                 // (10,24): warning CS8601: Possible null reference assignment.
                 //         set => field = value; // 1
@@ -6476,7 +6476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation([source, AllowNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -6505,7 +6505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, MaybeNullAttributeDefinition, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation([source, MaybeNullAttributeDefinition, AllowNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics(
                 // (12,16): warning CS8603: Possible null reference return.
                 //         get => field; // 1
@@ -6527,7 +6527,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, NotNullAttributeDefinition]);
+            var comp = CreateCompilation([source, NotNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics(
                 // (7,28): warning CS8603: Possible null reference return.
                 //     public string? Prop => field; // 1
@@ -6551,7 +6551,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, NotNullAttributeDefinition]);
+            var comp = CreateCompilation([source, NotNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -6570,7 +6570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, NotNullAttributeDefinition, DisallowNullAttributeDefinition]);
+            var comp = CreateCompilation([source, NotNullAttributeDefinition, DisallowNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics(
                 // (7,28): warning CS8603: Possible null reference return.
                 //     public string? Prop => field; // 1
@@ -6592,7 +6592,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, NotNullAttributeDefinition]);
+            var comp = CreateCompilation([source, NotNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -6611,7 +6611,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, NotNullAttributeDefinition]);
+            var comp = CreateCompilation([source, NotNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics(
                 // (7,20): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public string? Prop { get; set => field = value; }
@@ -6633,7 +6633,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, NotNullAttributeDefinition]);
+            var comp = CreateCompilation([source, NotNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics(
                 // (7,20): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public string? Prop { get; set => field = value; }
@@ -6656,7 +6656,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, NotNullAttributeDefinition]);
+            var comp = CreateCompilation([source, NotNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -6675,7 +6675,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, NotNullAttributeDefinition]);
+            var comp = CreateCompilation([source, NotNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -6700,7 +6700,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, NotNullAttributeDefinition]);
+            var comp = CreateCompilation([source, NotNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -6725,7 +6725,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, NotNullAttributeDefinition]);
+            var comp = CreateCompilation([source, NotNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -6744,7 +6744,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, DisallowNullAttributeDefinition]);
+            var comp = CreateCompilation([source, DisallowNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -6767,7 +6767,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, DisallowNullAttributeDefinition]);
+            var comp = CreateCompilation([source, DisallowNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics(
                 // (10,24): warning CS8601: Possible null reference assignment.
                 //         set => field = value; // 1
@@ -6794,7 +6794,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation([source, AllowNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -6813,7 +6813,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation([source, AllowNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics(
                 // (7,19): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
                 //     public string Prop { get; set; }
@@ -6843,7 +6843,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation([source, AllowNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics(
                 // (13,20): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //             Prop = null
@@ -6874,7 +6874,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation([source, AllowNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics(
                 // (14,20): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //             Prop = null
@@ -6898,7 +6898,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, DisallowNullAttributeDefinition]);
+            var comp = CreateCompilation([source, DisallowNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics(
                 // (7,45): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //     public string? Prop { get => field; } = null; // 1
@@ -6922,7 +6922,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, DisallowNullAttributeDefinition]);
+            var comp = CreateCompilation([source, DisallowNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -6945,7 +6945,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, RequiredMemberAttribute, CompilerFeatureRequiredAttribute, SetsRequiredMembersAttribute]);
+            var comp = CreateCompilation([source, RequiredMemberAttribute, CompilerFeatureRequiredAttribute, SetsRequiredMembersAttribute], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics(
                 // (9,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public C()
@@ -6976,7 +6976,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, RequiredMemberAttribute, CompilerFeatureRequiredAttribute, SetsRequiredMembersAttribute, MaybeNullAttributeDefinition, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation([source, RequiredMemberAttribute, CompilerFeatureRequiredAttribute, SetsRequiredMembersAttribute, MaybeNullAttributeDefinition, AllowNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics(
                     // (9,16): warning CS8603: Possible null reference return.
                     //         get => field;
@@ -7006,7 +7006,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, RequiredMemberAttribute, CompilerFeatureRequiredAttribute, SetsRequiredMembersAttribute, MaybeNullAttributeDefinition, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation([source, RequiredMemberAttribute, CompilerFeatureRequiredAttribute, SetsRequiredMembersAttribute, MaybeNullAttributeDefinition, AllowNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics(
                 // (14,9): warning CS8602: Dereference of a possibly null reference.
                 //         Prop.ToString();
@@ -7038,7 +7038,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, RequiredMemberAttribute, CompilerFeatureRequiredAttribute, SetsRequiredMembersAttribute, MaybeNullAttributeDefinition, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation([source, RequiredMemberAttribute, CompilerFeatureRequiredAttribute, SetsRequiredMembersAttribute, MaybeNullAttributeDefinition, AllowNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics(
                     // (9,16): warning CS8603: Possible null reference return.
                     //         get => field;
@@ -7182,7 +7182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation([source, MaybeNullAttributeDefinition, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation([source, MaybeNullAttributeDefinition, AllowNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -7210,7 +7210,7 @@ public class C
     }
 }";
 
-            var comp = CreateCompilation(new[] { source, NotNullAttributeDefinition });
+            var comp = CreateCompilation(new[] { source, NotNullAttributeDefinition }, targetFramework: TargetFramework.Standard);
             comp.VerifyDiagnostics(
                 // 0.cs(9,16): warning CS8603: Possible null reference return.
                 //         get => field; // 1
@@ -7252,7 +7252,7 @@ public class CClass<TClass> where TClass : class
         set => field = value; // 6
     } = null; // 7
 }";
-            var comp = CreateCompilation(new[] { source, AllowNullAttributeDefinition, NotNullAttributeDefinition, MaybeNullAttributeDefinition });
+            var comp = CreateCompilation(new[] { source, AllowNullAttributeDefinition, NotNullAttributeDefinition, MaybeNullAttributeDefinition }, targetFramework: TargetFramework.Standard);
             comp.VerifyDiagnostics(
                 // 0.cs(8,16): warning CS8607: A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]
                 //         get => field; // 1
@@ -7310,7 +7310,7 @@ class Program
     }
     void Deconstruct(out C? x, out C? y) => throw null!;
 }";
-            var comp = CreateCompilation(new[] { source, AllowNullAttributeDefinition });
+            var comp = CreateCompilation(new[] { source, AllowNullAttributeDefinition }, targetFramework: TargetFramework.Standard);
             comp.VerifyDiagnostics(
                 // 0.cs(8,24): warning CS8601: Possible null reference assignment.
                 //         set => field = value; // 1
@@ -7378,7 +7378,7 @@ class C<T>
         P6 = t;
     }
 }";
-            var comp = CreateCompilation(new[] { source, AllowNullAttributeDefinition, MaybeNullAttributeDefinition });
+            var comp = CreateCompilation(new[] { source, AllowNullAttributeDefinition, MaybeNullAttributeDefinition }, targetFramework: TargetFramework.Standard);
             comp.VerifyDiagnostics(
                 // 0.cs(15,9): warning CS8601: Possible null reference assignment.
                 //     } = default; // 1
@@ -11034,7 +11034,7 @@ class C<T>
                 }
                 """;
 
-            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation([source, AllowNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics();
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
@@ -11111,7 +11111,7 @@ class C<T>
                 }
                 """;
 
-            var comp = CreateCompilation([source, NotNullAttributeDefinition]);
+            var comp = CreateCompilation([source, NotNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics();
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
@@ -11137,7 +11137,7 @@ class C<T>
                 }
                 """;
 
-            var comp = CreateCompilation([source, NotNullAttributeDefinition]);
+            var comp = CreateCompilation([source, NotNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics();
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
@@ -11163,7 +11163,7 @@ class C<T>
                 }
                 """;
 
-            var comp = CreateCompilation([source, NotNullAttributeDefinition]);
+            var comp = CreateCompilation([source, NotNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics(
                 // (9,16): warning CS8607: A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]
                 //         get => field ??= fallback;
@@ -11407,7 +11407,7 @@ class C<T>
                 }
                 """;
 
-            var comp = CreateCompilation([source, MaybeNullAttributeDefinition]);
+            var comp = CreateCompilation([source, MaybeNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics(
                 // (9,9): warning CS8602: Dereference of a possibly null reference.
                 //         Prop.ToString(); // 1
@@ -11565,7 +11565,7 @@ class C<T>
                 }
                 """;
 
-            var comp0 = CreateCompilation([source, DisallowNullAttributeDefinition]);
+            var comp0 = CreateCompilation([source, DisallowNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp0.VerifyEmitDiagnostics(
                 // (8,16): warning CS8607: A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]
                 //         Prop = null; // 1
@@ -11791,7 +11791,7 @@ class C<T>
                 }
                 """;
 
-            var comp0 = CreateCompilation([source, NotNullAttributeDefinition]);
+            var comp0 = CreateCompilation([source, NotNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp0.VerifyEmitDiagnostics();
 
             var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
@@ -11828,7 +11828,7 @@ class C<T>
                     }
                 }
                 """;
-            var comp0 = CreateCompilation([source, MaybeNullAttributeDefinition]);
+            var comp0 = CreateCompilation([source, MaybeNullAttributeDefinition], targetFramework: TargetFramework.Standard);
             comp0.VerifyEmitDiagnostics(
                 // (11,19): warning CS8601: Possible null reference assignment.
                 //             M(ref field); // 1
