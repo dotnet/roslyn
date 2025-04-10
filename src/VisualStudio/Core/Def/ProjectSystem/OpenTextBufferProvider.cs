@@ -101,8 +101,6 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
 
     private async Task CheckForExistingOpenDocumentsAsync()
     {
-        _threadingContext.ThrowIfNotOnBackgroundThread();
-
         /* 
          * NOTE: UNCOMMENT ONCE https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2441480 IS FIXED
          *       AND REMOVE THE THREAD CHECK FROM THE INITIALIZATION OF _runningDocumentTable

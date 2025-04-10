@@ -286,10 +286,6 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
     /// </summary>
     private ProjectInfo CreateProjectInfoForDocument(string filePath)
     {
-        // Potential calculation of _metadataReferences requires being on the main thread
-        // TODO: Determine if main thread affinity can be removed: https://github.com/dotnet/roslyn/issues/77791
-        _threadingContext.ThrowIfNotOnUIThread();
-
         // This should always succeed since we only got here if we already confirmed the moniker is acceptable
         var languageInformation = TryGetLanguageInformation(filePath);
         Contract.ThrowIfNull(languageInformation);
