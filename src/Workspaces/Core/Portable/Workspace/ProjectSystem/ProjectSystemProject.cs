@@ -264,6 +264,9 @@ internal sealed partial class ProjectSystemProject
 
             field = newValue;
 
+            _projectPropertyModificationsInBatch.Add(
+                (solutionChanges, projectUpdateState) => updateSolution(solutionChanges, projectUpdateState, oldValue));
+
             if (logThrowAwayTelemetry)
             {
                 var telemetryService = _projectSystemProjectFactory.SolutionServices.GetService<IWorkspaceTelemetryService>();
@@ -284,7 +287,6 @@ internal sealed partial class ProjectSystemProject
 
                     if (!isFullyLoaded)
                     {
-                        var currentSolution = _projectSystemProjectFactory.Workspace.CurrentSolution;
                         var reportCompilationThrownAway = true;
 
                         // Preprocessor directive only ParseOptions changes have special handling in DocumentState.UpdateParseOptionsAndSourceCodeKind.
@@ -293,8 +295,7 @@ internal sealed partial class ProjectSystemProject
                         {
                             if (oldValue is ParseOptions oldParseOptions)
                             {
-                                var projectState = currentSolution.SolutionState.GetRequiredProjectState(Id);
-                                var syntaxTreeFactoryService = projectState.LanguageServices.GetRequiredService<ISyntaxTreeFactoryService>();
+                                var syntaxTreeFactoryService = _projectSystemProjectFactory.SolutionServices.GetRequiredLanguageService<ISyntaxTreeFactoryService>(Language);
 
                                 if (syntaxTreeFactoryService.OptionsDifferOnlyByPreprocessorDirectives(oldParseOptions, newParseOption))
                                     reportCompilationThrownAway = false;
@@ -306,13 +307,10 @@ internal sealed partial class ProjectSystemProject
                         }
 
                         if (reportCompilationThrownAway)
-                            TryReportCompilationThrownAway(currentSolution, Id);
+                            TryReportCompilationThrownAway(_projectSystemProjectFactory.Workspace.CurrentSolution, Id);
                     }
                 }
             }
-
-            _projectPropertyModificationsInBatch.Add(
-                (solutionChanges, projectUpdateState) => updateSolution(solutionChanges, projectUpdateState, oldValue));
         }
     }
 
