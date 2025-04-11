@@ -28,7 +28,20 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </remarks>
         protected bool IsManagedTool => string.IsNullOrEmpty(ToolPath) && ToolExe == ToolName;
 
-        internal string PathToManagedTool => Utilities.GenerateFullPathToTool(ToolName);
+        /// <summary>
+        /// Used to determine the directory where the tools (like csc) are located.
+        /// See <see cref="Utilities.GenerateFullPathToTool"/>.
+        /// </summary>
+        protected virtual RoslynCompilerType GetCompilerType() => DefaultCompilerType;
+
+        protected const RoslynCompilerType DefaultCompilerType
+#if NET
+            = RoslynCompilerType.Core;
+#else
+            = RoslynCompilerType.Framework;
+#endif
+
+        internal string PathToManagedTool => Utilities.GenerateFullPathToTool(ToolName, GetCompilerType());
 
         private string PathToManagedToolWithoutExtension
         {
