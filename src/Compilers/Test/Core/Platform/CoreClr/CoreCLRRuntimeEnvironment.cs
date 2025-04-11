@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
@@ -35,16 +36,11 @@ namespace Roslyn.Test.Utilities.CoreClr
             return LoadContext.GetMemberSignaturesFromMetadata(fullyQualifiedTypeName, memberName, Modules.Select(x => x.Id));
         }
 
-        public void Verify(Verification verification)
-        {
+        public void Verify(Verification verification) =>
+            CompilationVerifier.ILVerify(verification, MainModule, Modules);
 
-        }
-
-        public string[] VerifyModules(string[] modulesToVerify)
-        {
-            // TODO(https://github.com/dotnet/coreclr/issues/295): Implement peverify
-            return [];
-        }
+        public string[] VerifyModules(string[] modulesToVerify) =>
+            throw new NotSupportedException();
 
         public void Dispose()
         {

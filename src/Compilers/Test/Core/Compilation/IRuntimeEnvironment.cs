@@ -183,11 +183,11 @@ namespace Roslyn.Test.Utilities
 
         internal static EmitOutput? EmitCompilation(
             Compilation compilation,
-            IEnumerable<ResourceDescription> manifestResources,
+            IEnumerable<ResourceDescription>? manifestResources,
             List<ModuleData> dependencies,
             DiagnosticBag diagnostics,
-            CompilationTestData testData,
-            EmitOptions emitOptions)
+            CompilationTestData? testData,
+            EmitOptions? emitOptions)
         {
             var corLibIdentity = compilation.GetSpecialType(SpecialType.System_Object).ContainingAssembly.Identity;
 
@@ -228,7 +228,7 @@ namespace Roslyn.Test.Utilities
             IEnumerable<ResourceDescription>? manifestResources,
             DiagnosticBag diagnostics,
             CompilationTestData? testData,
-            EmitOptions emitOptions)
+            EmitOptions? emitOptions)
         {
             emitOptions ??= EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded);
 
