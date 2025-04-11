@@ -6029,11 +6029,7 @@ End Interface
             EditAndContinueValidation.VerifySemantics(
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
                 {
-                    DocumentResults(
-                        semanticEdits:=
-                        {
-                            SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember(Of MethodSymbol)("C.F").PartialImplementationPart, deletedSymbolContainerProvider:=Function(c) c.GetMember("C"), partialType:="C")
-                        }),
+                    DocumentResults(),
                     DocumentResults(
                         semanticEdits:=
                         {
@@ -6296,7 +6292,8 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Public Sub New()", GetResource("shared constructor")))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Public Sub New()", GetResource("shared constructor")),
+                Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Public Sub New()", GetResource("shared constructor")))
         End Sub
 
         <Fact>
@@ -7546,25 +7543,17 @@ End Class
         <Theory>
         <InlineData("Shared")>
         <InlineData("Const")>
-        Public Sub Field_Modifiers_Update(oldModifiers As String, Optional newModifiers As String = "")
-            If oldModifiers <> "" Then
-                oldModifiers &= " "
-            End If
-
-            If newModifiers <> "" Then
-                newModifiers &= " "
-            End If
-
-            Dim src1 = "Class C : " & oldModifiers & "Dim F As Integer = 0 : End Class"
-            Dim src2 = "Class C : " & newModifiers & "Dim F As Integer = 0 : End Class"
+        Public Sub Field_Modifiers_Update(oldModifiers As String)
+            Dim src1 = "Class C : " & oldModifiers & " Dim F As Integer = 0 : End Class"
+            Dim src2 = "Class C : Dim F As Integer = 0 : End Class"
 
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [" & oldModifiers & "Dim F As Integer = 0]@10 -> [" & newModifiers & "Dim F As Integer = 0]@10")
+                "Update [" & oldModifiers & " Dim F As Integer = 0]@10 -> [Dim F As Integer = 0]@10")
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, newModifiers + "Dim F As Integer = 0",
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Dim F As Integer = 0",
                            GetResource(If(oldModifiers.Contains("Const"), "const field", "field"))))
         End Sub
 
@@ -9394,7 +9383,12 @@ End Class
                 "Delete [()]@47")
 
             edits.VerifySemantics(
-                semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)},
+                {
+                    Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "a", GetResource("field")),
+                    Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Class C", GetResource("shared constructor", "New()"))
+                })
         End Sub
 
         <Fact>
@@ -9409,8 +9403,13 @@ End Class
                 "Delete [Shared Sub New()]@37",
                 "Delete [()]@51")
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)},
+                {
+                    Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "a", GetResource("field")),
+                    Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Structure C", GetResource("Shared constructor", "New()"))
+                })
         End Sub
 
         <Fact>
@@ -9425,8 +9424,13 @@ End Class
                 "Delete [Sub New()]@31",
                 "Delete [()]@38")
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)},
+                {
+                    Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "a", GetResource("field")),
+                    Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Module C", GetResource("shared constructor", "New()"))
+                })
         End Sub
 
         <Fact>
@@ -9441,8 +9445,13 @@ End Class
                 "Delete [Shared Sub New()]@42",
                 "Delete [()]@56")
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)},
+                {
+                    Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Shared Property a", GetResource("auto-property")),
+                    Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Class C", GetResource("shared constructor", "New()"))
+                })
         End Sub
 
         <Fact>
@@ -9457,8 +9466,13 @@ End Class
                 "Delete [Sub New()]@36",
                 "Delete [()]@43")
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)},
+                {
+                    Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Property a", GetResource("auto-property")),
+                    Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Module C", GetResource("shared constructor", "New()"))
+                })
         End Sub
 
         <Fact>
@@ -9510,8 +9524,10 @@ End Class
             edits.VerifyEdits(
                 "Update [a As Integer]@17 -> [a As Integer = 0]@17")
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)},
+                {Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "a", GetResource("field"))})
         End Sub
 
         <Fact>
@@ -9523,8 +9539,10 @@ End Class
             edits.VerifyEdits(
                 "Update [a As Integer]@15 -> [a As Integer = 0]@15")
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)},
+                {Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "a", GetResource("field"))})
         End Sub
 
         <Fact>
@@ -9533,8 +9551,10 @@ End Class
             Dim src2 = "Class C : Shared Property a As Integer = 0 : " & vbLf & "Shared Sub New() : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)},
+                {Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Shared Property a", GetResource("auto-property"))})
         End Sub
 
         <Fact>
@@ -9543,8 +9563,10 @@ End Class
             Dim src2 = "Module C : Property a As Integer = 0 : " & vbLf & "Sub New() : End Sub : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)},
+                {Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Property a", GetResource("auto-property"))})
         End Sub
 
         <Fact>
@@ -9697,8 +9719,10 @@ End Class
             Dim src2 = "Class C : Shared a As Integer = 0 : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())})
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())},
+                {Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "a", GetResource("field"))})
         End Sub
 
         <Fact>
@@ -9707,8 +9731,10 @@ End Class
             Dim src2 = "Module C : Dim a As Integer = 0 : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())})
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())},
+                {Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "a", GetResource("field"))})
         End Sub
 
         <Fact>
@@ -9717,8 +9743,10 @@ End Class
             Dim src2 = "Class C : Shared Property a As Integer = 0 : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())})
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())},
+                {Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Shared Property a", GetResource("auto-property"))})
         End Sub
 
         <Fact>
@@ -9727,8 +9755,10 @@ End Class
             Dim src2 = "Module C : Property a As Integer = 0 : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())})
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())},
+                {Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Property a", GetResource("auto-property"))})
         End Sub
 
         <Fact>
@@ -9740,6 +9770,7 @@ End Class
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
                 {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())},
+                {Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "a", GetResource("field"))},
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
@@ -9752,6 +9783,7 @@ End Class
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
                 {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())},
+                {Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "a", GetResource("field"))},
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
@@ -9764,6 +9796,7 @@ End Class
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
                 {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())},
+                {Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Shared Property a", GetResource("auto-property"))},
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
@@ -9776,6 +9809,7 @@ End Class
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
                 {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())},
+                {Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Property a", GetResource("auto-property"))},
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 

@@ -6,59 +6,58 @@ using System;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.TestSourceGenerator
-{
-    [Generator]
+namespace Microsoft.CodeAnalysis.TestSourceGenerator;
+
+[Generator]
 #pragma warning disable RS1042 // Do not implement
-    public sealed class HelloWorldGenerator : ISourceGenerator
+public sealed class HelloWorldGenerator : ISourceGenerator
 #pragma warning restore RS1042 // Do not implement
+{
+    public const string GeneratedEnglishClassName = "HelloWorld";
+    public const string GeneratedSpanishClassName = "HolaMundo";
+    public const string GeneratedFolderName = "Folder";
+    public const string GeneratedFolderClassName = "HelloFolder";
+
+    public void Initialize(GeneratorInitializationContext context)
     {
-        public const string GeneratedEnglishClassName = "HelloWorld";
-        public const string GeneratedSpanishClassName = "HolaMundo";
-        public const string GeneratedFolderName = "Folder";
-        public const string GeneratedFolderClassName = "HelloFolder";
+    }
 
-        public void Initialize(GeneratorInitializationContext context)
-        {
-        }
-
-        public void Execute(GeneratorExecutionContext context)
-        {
-            context.AddSource(GeneratedEnglishClassName, SourceText.From($$"""
-                /// <summary><see cref="{{GeneratedEnglishClassName}}" /> is a simple class to fetch the classic message.</summary>
-                internal class {{GeneratedEnglishClassName}}
+    public void Execute(GeneratorExecutionContext context)
+    {
+        context.AddSource(GeneratedEnglishClassName, SourceText.From($$"""
+            /// <summary><see cref="{{GeneratedEnglishClassName}}" /> is a simple class to fetch the classic message.</summary>
+            internal class {{GeneratedEnglishClassName}}
+            {
+                public static string GetMessage()
                 {
-                    public static string GetMessage()
-                    {
-                        return "Hello, World!";
-                    }
+                    return "Hello, World!";
                 }
-                """, encoding: Encoding.UTF8));
+            }
+            """, encoding: Encoding.UTF8));
 
-            context.AddSource(GeneratedSpanishClassName, SourceText.From($$"""
-                internal class {{GeneratedSpanishClassName}}
+        context.AddSource(GeneratedSpanishClassName, SourceText.From($$"""
+            internal class {{GeneratedSpanishClassName}}
+            {
+                public static string GetMessage()
                 {
-                    public static string GetMessage()
-                    {
-                        return "Hola, Mundo!";
-                    }
+                    return "Hola, Mundo!";
                 }
-                """, encoding: Encoding.UTF8));
+            }
+            """, encoding: Encoding.UTF8));
 
-            context.AddSource(GeneratedEnglishClassName + "WithTime", SourceText.From($$"""
-                /// <summary><see cref="{{GeneratedEnglishClassName}}WithTime" /> is a simple class to fetch the classic message.</summary>
-                internal class {{GeneratedEnglishClassName}}WithTime
+        context.AddSource(GeneratedEnglishClassName + "WithTime", SourceText.From($$"""
+            /// <summary><see cref="{{GeneratedEnglishClassName}}WithTime" /> is a simple class to fetch the classic message.</summary>
+            internal class {{GeneratedEnglishClassName}}WithTime
+            {
+                public static string GetMessage()
                 {
-                    public static string GetMessage()
-                    {
-                        return "Hello, World @ {{DateTime.UtcNow.ToLocalTime().ToLongTimeString()}}";
-                    }
+                    return "Hello, World @ {{DateTime.UtcNow.ToLocalTime().ToLongTimeString()}}";
                 }
-                """, encoding: Encoding.UTF8));
+            }
+            """, encoding: Encoding.UTF8));
 
-            context.AddSource($"{GeneratedFolderName}/{GeneratedFolderClassName}", $$"""
-                class {{GeneratedFolderClassName}} { }
-                """);
-        }
+        context.AddSource($"{GeneratedFolderName}/{GeneratedFolderClassName}", $$"""
+            class {{GeneratedFolderClassName}} { }
+            """);
     }
 }

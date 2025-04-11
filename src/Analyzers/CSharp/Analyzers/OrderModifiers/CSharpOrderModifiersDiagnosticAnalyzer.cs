@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.OrderModifiers;
 namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpOrderModifiersDiagnosticAnalyzer : AbstractOrderModifiersDiagnosticAnalyzer
+internal sealed class CSharpOrderModifiersDiagnosticAnalyzer : AbstractOrderModifiersDiagnosticAnalyzer
 {
     public CSharpOrderModifiersDiagnosticAnalyzer()
         : base(CSharpSyntaxFacts.Instance,

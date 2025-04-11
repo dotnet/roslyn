@@ -6,20 +6,19 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 
-namespace Microsoft.CodeAnalysis.LanguageServer
+namespace Microsoft.CodeAnalysis.LanguageServer;
+
+/// <summary>
+/// Looks up Roslyn language information for a given document path or language ID from LSP client.
+/// </summary>
+internal interface ILanguageInfoProvider : ILspService
 {
     /// <summary>
-    /// Looks up Roslyn language information for a given document path or language ID from LSP client.
+    /// Gets the Roslyn language information for a given document path or language ID from LSP client.
     /// </summary>
-    internal interface ILanguageInfoProvider : ILspService
-    {
-        /// <summary>
-        /// Gets the Roslyn language information for a given document path or language ID from LSP client.
-        /// </summary>
-        /// <remarks>
-        /// It is totally possible to not find language based on the file path (e.g. a newly created file that hasn't been saved to disk).
-        /// In that case, we use the language Id that the LSP client gave us.
-        /// </remarks>
-        bool TryGetLanguageInformation(Uri uri, string? lspLanguageId, [NotNullWhen(true)] out LanguageInformation? languageInformation);
-    }
+    /// <remarks>
+    /// It is totally possible to not find language based on the file path (e.g. a newly created file that hasn't been saved to disk).
+    /// In that case, we use the language Id that the LSP client gave us.
+    /// </remarks>
+    bool TryGetLanguageInformation(Uri uri, string? lspLanguageId, [NotNullWhen(true)] out LanguageInformation? languageInformation);
 }

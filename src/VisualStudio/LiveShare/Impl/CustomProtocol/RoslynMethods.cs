@@ -4,11 +4,10 @@
 
 #nullable disable
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol
+namespace Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
+
+internal static class RoslynMethods
 {
-    internal static class RoslynMethods
-    {
-        public const string ProjectsName = "roslyn/projects";
-        public const string ClassificationsName = "roslyn/classifications";
-    }
+    public const string ProjectsName = "roslyn/projects";
+    public const string ClassificationsName = "roslyn/classifications";
 }

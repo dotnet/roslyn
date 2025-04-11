@@ -11,6 +11,6 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.6</remarks>
-internal class ReferenceClientCapabilities : DynamicRegistrationSetting
+internal sealed class ReferenceClientCapabilities : DynamicRegistrationSetting
 {
 }

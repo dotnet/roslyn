@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             var directory = Temp.CreateDirectory();
             _ = directory.CopyFile(TestFixture.Alpha);
-            var assemblyLoader = DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(directory.CreateDirectory("shadow").Path);
+            var assemblyLoader = AnalyzerAssemblyLoader.CreateNonLockingLoader(directory.CreateDirectory("shadow").Path);
 
             var analyzerReferences = ImmutableArray.Create(new CommandLineAnalyzerReference("Alpha.dll"));
             var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, assemblyLoader, Logger);
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public void LoadLibraryAll()
         {
             var directory = Temp.CreateDirectory();
-            var assemblyLoader = DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(directory.CreateDirectory("shadow").Path);
+            var assemblyLoader = AnalyzerAssemblyLoader.CreateNonLockingLoader(directory.CreateDirectory("shadow").Path);
             var analyzerReferences = ImmutableArray.Create(
                 new CommandLineAnalyzerReference("Alpha.dll"),
                 new CommandLineAnalyzerReference("Beta.dll"),
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public void DifferingMvidsDifferentDirectory()
         {
             var directory = Temp.CreateDirectory();
-            var assemblyLoader = DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(directory.CreateDirectory("shadow").Path);
+            var assemblyLoader = AnalyzerAssemblyLoader.CreateNonLockingLoader(directory.CreateDirectory("shadow").Path);
 
             var key = NetStandard20.References.netstandard.GetAssemblyIdentity().PublicKey;
             var mvidAlpha1 = CreateNetStandardDll(directory.CreateDirectory("mvid1"), "MvidAlpha", "1.0.0.0", key, "class C { }");
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public void DifferingMvidsSameDirectory()
         {
             var directory = Temp.CreateDirectory();
-            var assemblyLoader = DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(directory.CreateDirectory("shadow").Path);
+            var assemblyLoader = AnalyzerAssemblyLoader.CreateNonLockingLoader(directory.CreateDirectory("shadow").Path);
 
             var key = NetStandard20.References.netstandard.GetAssemblyIdentity().PublicKey;
             var mvidAlpha1 = CreateNetStandardDll(directory, "MvidAlpha", "1.0.0.0", key, "class C { }");
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             // This test must use the DefaultAnalyzerAssemblyLoader as we want assembly binding redirects
             // to take affect here.
-            var assemblyLoader = new DefaultAnalyzerAssemblyLoader();
+            var assemblyLoader = new AnalyzerAssemblyLoader();
             var analyzerReferences = ImmutableArray.Create(
                 new CommandLineAnalyzerReference("System.Memory.dll"));
 
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             // This test must use the DefaultAnalyzerAssemblyLoader as we want assembly binding redirects
             // to take affect here.
-            var assemblyLoader = new DefaultAnalyzerAssemblyLoader();
+            var assemblyLoader = new AnalyzerAssemblyLoader();
             var analyzerReferences = ImmutableArray.Create(
                 new CommandLineAnalyzerReference("System.Core.dll"));
 
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             var analyzerReferences = ImmutableArray.Create(new CommandLineAnalyzerReference(compFile.Path));
 
-            var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, new DefaultAnalyzerAssemblyLoader(), Logger);
+            var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, new AnalyzerAssemblyLoader(), Logger);
 
             Assert.True(result);
         }

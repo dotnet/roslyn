@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-internal class SuppressFormattingRule : BaseFormattingRule
+internal sealed class SuppressFormattingRule : BaseFormattingRule
 {
     internal const string Name = "CSharp Suppress Formatting Rule";
 

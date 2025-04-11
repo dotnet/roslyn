@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ColorSchemes;
 
 internal partial class ColorSchemeApplier
 {
-    private class ColorSchemeSettings
+    private sealed class ColorSchemeSettings
     {
         private const string ColorSchemeApplierKey = @"Roslyn\ColorSchemeApplier";
         private const string AppliedColorSchemeName = "AppliedColorScheme";

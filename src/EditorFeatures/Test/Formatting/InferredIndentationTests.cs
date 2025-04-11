@@ -16,7 +16,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting;
 
 [UseExportProvider]
-public class InferredIndentationTests
+public sealed class InferredIndentationTests
 {
     [Fact]
     public async Task BlankFileMatchesWorkspaceSettings()

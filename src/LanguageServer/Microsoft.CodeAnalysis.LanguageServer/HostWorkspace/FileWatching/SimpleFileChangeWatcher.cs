@@ -89,7 +89,7 @@ internal sealed class SimpleFileChangeWatcher : IFileChangeWatcher
                 directoryWatcher.Dispose();
         }
 
-        private class IndividualWatchedFile : IWatchedFile
+        private sealed class IndividualWatchedFile : IWatchedFile
         {
             private readonly FileChangeContext _context;
             private readonly FileSystemWatcher? _watcher;

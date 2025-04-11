@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.UseIsNullCheck;
 namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpUseIsNullCheckForCastAndEqualityOperatorDiagnosticAnalyzer
+internal sealed class CSharpUseIsNullCheckForCastAndEqualityOperatorDiagnosticAnalyzer
     : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
     private static readonly ImmutableDictionary<string, string?> s_properties =

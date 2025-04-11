@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Accessor of a <see cref="SourceFieldLikeEventSymbol"/> which is a partial definition.
         /// </summary>
-        private sealed class SourceEventDefinitionAccessorSymbol : SourceEventAccessorSymbol
+        internal sealed class SourceEventDefinitionAccessorSymbol : SourceEventAccessorSymbol
         {
             internal SourceEventDefinitionAccessorSymbol(
                 SourceFieldLikeEventSymbol ev,
@@ -312,24 +312,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     default:
                         Debug.Assert(false);
                         return OneOrMany<SyntaxList<AttributeListSyntax>>.Empty;
-                }
-            }
-
-            internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-            {
-                Debug.Assert(IsPartialDefinition);
-
-                if (PartialImplementationPart is { } implementationPart)
-                {
-                    implementationPart.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-                }
-                else
-                {
-                    // This could happen in error scenarios (when the implementation part of a partial event is missing),
-                    // but then we should not get to the emit stage and call this method.
-                    Debug.Assert(false);
-
-                    base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
                 }
             }
 

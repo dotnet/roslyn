@@ -6,7 +6,7 @@ using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste;
 
-public class PasteKnownSourceIntoSingleLineRawStringTests : StringCopyPasteCommandHandlerKnownSourceTests
+public sealed class PasteKnownSourceIntoSingleLineRawStringTests : StringCopyPasteCommandHandlerKnownSourceTests
 {
     #region Normal Copy/Paste tests
 

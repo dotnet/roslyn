@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 
-internal class UseExpressionBodyForConstructorsHelper :
+internal sealed class UseExpressionBodyForConstructorsHelper :
     UseExpressionBodyHelper<ConstructorDeclarationSyntax>
 {
     public static readonly UseExpressionBodyForConstructorsHelper Instance = new();

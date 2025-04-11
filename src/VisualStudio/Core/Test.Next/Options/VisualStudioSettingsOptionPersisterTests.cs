@@ -22,9 +22,9 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests;
 
 [UseExportProvider]
-public class VisualStudioSettingsOptionPersisterTests
+public sealed class VisualStudioSettingsOptionPersisterTests
 {
-    private class MockSettingsSubset : ISettingsSubset
+    private sealed class MockSettingsSubset : ISettingsSubset
     {
         public event PropertyChangedAsyncEventHandler? SettingChangedAsync;
 
@@ -32,7 +32,7 @@ public class VisualStudioSettingsOptionPersisterTests
             => SettingChangedAsync?.Invoke(this, new PropertyChangedEventArgs(storageName));
     }
 
-    private class MockSettingsManager : ISettingsManager
+    private sealed class MockSettingsManager : ISettingsManager
     {
         public Func<string, Type, (GetValueResult, object?)>? GetValueImpl;
         public Action<string, object?>? SetValueImpl;
