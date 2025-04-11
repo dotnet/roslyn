@@ -371,13 +371,12 @@ namespace Roslyn.Test.Utilities.Desktop
 
         public int Execute(string moduleName, string[] mainArgs, int? expectedOutputLength, out string output, out string errorOutput)
         {
-            mainArgs ??= [];
             ImmutableArray<byte> bytes = GetModuleBytesByName(moduleName);
             Assembly assembly = DesktopRuntimeUtil.LoadAsAssembly(moduleName, bytes);
             MethodInfo entryPoint = assembly.EntryPoint;
-            Debug.Assert(entryPoint is not null, "Attempting to execute an assembly that has no entrypoint; is your test trying to execute a DLL?");
+            Debug.Assert(entryPoint != null, "Attempting to execute an assembly that has no entrypoint; is your test trying to execute a DLL?");
 
-            int exitCode = 0;
+            object result = null;
             DesktopRuntimeEnvironment.Capture(() =>
             {
                 var count = entryPoint.GetParameters().Length;
@@ -395,9 +394,8 @@ namespace Roslyn.Test.Utilities.Desktop
                     throw new Exception("Unrecognized entry point");
                 }
 
-                var result = entryPoint.Invoke(null, args);
-                exitCode = result is int i ? i : 0;
-            }, maxOutputLength, out var stdOut, out var stdErr);
+                result = entryPoint.Invoke(null, args);
+            }, expectedOutputLength ?? 0, out var stdOut, out var stdErr);
 
             output = stdOut;
             errorOutput = stdErr;

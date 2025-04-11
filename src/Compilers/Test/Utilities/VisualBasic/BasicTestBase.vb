@@ -99,9 +99,9 @@ End Namespace
             Translate(sourceSymbolValidator),
             validator,
             Translate(symbolValidator),
+            ExecutionValidators.TryCreate(expectedReturnCode, expectedOutput, trimOutput),
             expectedSignatures,
             args,
-            ExecutionValidators.TryCreate(expectedReturnCode, expectedOutput, trimOutput),
             emitOptions,
             verify)
     End Function
@@ -209,9 +209,9 @@ End Namespace
             Translate(sourceSymbolValidator),
             validator,
             Translate(symbolValidator),
+            ExecutionValidators.TryCreate(expectedReturnCode, expectedOutput, trimOutput),
             expectedSignatures,
             args,
-            ExecutionValidators.TryCreate(expectedReturnCode, expectedOutput, trimOutput),
             emitOptions,
             verify)
     End Function
@@ -248,9 +248,9 @@ End Namespace
             Translate(sourceSymbolValidator),
             validator,
             Translate(symbolValidator),
+            executionValidator,
             expectedSignatures,
             args,
-            executionValidator,
             emitOptions,
             verify)
     End Function
@@ -275,9 +275,9 @@ End Namespace
             Translate(sourceSymbolValidator),
             validator,
             Translate(symbolValidator),
+            executionValidator,
             expectedSignatures,
             args,
-            executionValidator,
             emitOptions,
             verify)
     End Function
@@ -409,9 +409,9 @@ End Namespace
             Translate(sourceSymbolValidator),
             validator,
             Translate(symbolValidator),
+            ExecutionValidators.TryCreate(expectedReturnCode, expectedOutput, trimOutput),
             expectedSignatures,
             args,
-            ExecutionValidators.TryCreate(expectedReturnCode, expectedOutput, trimOutput),
             emitOptions,
             verify)
     End Function

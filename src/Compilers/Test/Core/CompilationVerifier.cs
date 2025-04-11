@@ -330,8 +330,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 #nullable enable
 
         public void Emit(
+            EmitOptions? emitOptions,
             IEnumerable<ResourceDescription>? manifestResources,
-            EmitOptions emitOptions,
             Verification peVerify,
             SignatureDescription[]? expectedSignatures,
             string[]? args,
@@ -369,8 +369,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 executionValidator(exitCode, output, errorOutput);
             }
         }
-
-#nullable disable
 
         private sealed class Resolver : ILVerify.IResolver
         {
