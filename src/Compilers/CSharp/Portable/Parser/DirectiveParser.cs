@@ -702,7 +702,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredFollowsIf);
             }
 
-            return SyntaxFactory.IgnoredDirectiveTrivia(hash, colon, this.ParseEndOfDirectiveWithOptionalPreprocessingMessage(), isActive);
+            SyntaxToken endOfDirective = this.lexer.LexEndOfDirectiveWithOptionalContent(out SyntaxToken content);
+            return SyntaxFactory.IgnoredDirectiveTrivia(hash, colon, content, endOfDirective, isActive);
         }
 
         private SyntaxToken ParseEndOfDirectiveWithOptionalPreprocessingMessage()
