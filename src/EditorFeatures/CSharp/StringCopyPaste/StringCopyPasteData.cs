@@ -42,6 +42,8 @@ internal sealed class StringCopyPasteData(ImmutableArray<StringCopyPasteContent>
         if (string.IsNullOrWhiteSpace(json))
             return null;
 
+        Contract.ThrowIfNull(json);
+
         try
         {
             var value = JsonSerializer.Deserialize(JsonDocument.Parse(json), typeof(StringCopyPasteData));

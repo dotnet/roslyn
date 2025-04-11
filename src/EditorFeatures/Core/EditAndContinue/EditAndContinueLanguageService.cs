@@ -175,7 +175,7 @@ internal sealed class EditAndContinueLanguageService(
                 // The tracking session is cancelled when we exit the break state.
 
                 Debug.Assert(solution != null);
-                GetActiveStatementTrackingService().StartTracking(solution, session);
+                GetActiveStatementTrackingService().StartTracking(solution!, session);
             }
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))

@@ -33,7 +33,9 @@ internal sealed class BufferedFindUsagesContext : IFindUsagesContext, IStreaming
     /// <summary>
     /// Lock which controls access to all members below.
     /// </summary>
+#pragma warning disable RS0030 // Do not use banned APIs
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
+#pragma warning restore RS0030 // Do not use banned APIs
 
     /// <summary>
     /// The underlying presenter context to forward messages to once the presenter is opened.  Prior to having 
@@ -53,7 +55,9 @@ internal sealed class BufferedFindUsagesContext : IFindUsagesContext, IStreaming
     {
         get
         {
+#pragma warning disable RS0030 // Do not use banned APIs
             Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+#pragma warning restore RS0030 // Do not use banned APIs
             return _streamingPresenterContext != null;
         }
     }
