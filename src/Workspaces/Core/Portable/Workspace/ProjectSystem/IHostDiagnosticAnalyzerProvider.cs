@@ -14,4 +14,6 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 internal interface IHostDiagnosticAnalyzerProvider
 {
     ImmutableArray<(AnalyzerFileReference reference, string extensionId)> GetAnalyzerReferencesInExtensions();
+
+    ImmutableArray<(string path, string extensionId)> GetRazorReferencesInExtensions();
 }
