@@ -151,10 +151,14 @@ internal sealed partial class CPSProjectFactory : IWorkspaceProjectContextFactor
         const string itemName = BuildPropertyNames.IntermediateAssembly;
 
         var values = data.GetItemValues(itemName);
-        if (values.Length != 1)
+        if (values.Length > 1)
         {
             var joinedValues = string.Join(";", values);
             throw new InvalidProjectDataException(itemName, joinedValues, $"Item group '{itemName}' is required to specify a single value: '{joinedValues}'.");
+        }
+        else if (values.Length == 0)
+        {
+            return null;
         }
 
         var path = values[0];
