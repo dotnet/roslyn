@@ -1,0 +1,38 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
+using Roslyn.Utilities;
+
+namespace Microsoft.CodeAnalysis.Remote;
+
+internal sealed class RemoteInitializationService(
+    BrokeredServiceBase.ServiceConstructionArguments arguments)
+    : BrokeredServiceBase(arguments), IRemoteInitializationService
+{
+    internal sealed class Factory : FactoryBase<IRemoteInitializationService>
+    {
+        protected override IRemoteInitializationService CreateService(in ServiceConstructionArguments arguments)
+            => new RemoteInitializationService(arguments);
+    }
+
+    /// <summary>
+    /// Remote API.
+    /// </summary>
+    public async ValueTask<int> InitializeAsync(WorkspaceConfigurationOptions options, string localSettingsDirectory, CancellationToken cancellationToken)
+    {
+        await RemoteExportProvider.InitializeAsync(localSettingsDirectory, cancellationToken).ConfigureAwait(false);
+
+        return await RunServiceAsync(cancellationToken =>
+        {
+            var service = (RemoteWorkspaceConfigurationService)GetWorkspaceServices().GetRequiredService<IWorkspaceConfigurationService>();
+            service.InitializeOptions(options);
+
+            return ValueTaskFactory.FromResult(Process.GetCurrentProcess().Id);
+        }, cancellationToken).ConfigureAwait(false);
+    }
+}

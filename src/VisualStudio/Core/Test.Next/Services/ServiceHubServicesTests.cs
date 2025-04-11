@@ -738,8 +738,8 @@ public sealed partial class ServiceHubServicesTests
 
         var workspaceConfigurationService = workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
 
-        var remoteProcessId = await client.TryInvokeAsync<IRemoteProcessTelemetryService, int>(
-            (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, cancellationToken),
+        var remoteProcessId = await client.TryInvokeAsync<IRemoteInitializationService, int>(
+            (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, TempRoot.Root, cancellationToken),
             CancellationToken.None).ConfigureAwait(false);
 
         var solution = workspace.CurrentSolution;
@@ -822,8 +822,8 @@ public sealed partial class ServiceHubServicesTests
 
         var workspaceConfigurationService = workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
 
-        var remoteProcessId = await client.TryInvokeAsync<IRemoteProcessTelemetryService, int>(
-            (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, cancellationToken),
+        var remoteProcessId = await client.TryInvokeAsync<IRemoteInitializationService, int>(
+            (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, TempRoot.Root, cancellationToken),
             CancellationToken.None).ConfigureAwait(false);
 
         var solution = workspace.CurrentSolution;
@@ -877,8 +877,8 @@ public sealed partial class ServiceHubServicesTests
 
         var workspaceConfigurationService = workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
 
-        var remoteProcessId = await client.TryInvokeAsync<IRemoteProcessTelemetryService, int>(
-            (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, cancellationToken),
+        var remoteProcessId = await client.TryInvokeAsync<IRemoteInitializationService, int>(
+            (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, TempRoot.Root, cancellationToken),
             CancellationToken.None).ConfigureAwait(false);
 
         var solution = workspace.CurrentSolution;

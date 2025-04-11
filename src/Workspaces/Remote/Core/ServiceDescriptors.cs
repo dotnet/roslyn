@@ -75,6 +75,7 @@ internal sealed class ServiceDescriptors
         (typeof(IRemoteNavigateToSearchService), typeof(IRemoteNavigateToSearchService.ICallback)),
         (typeof(IRemoteNavigationBarItemService), null),
         (typeof(IRemoteProcessTelemetryService), null),
+        (typeof(IRemoteInitializationService), null),
         (typeof(IRemoteRelatedDocumentsService), typeof(IRemoteRelatedDocumentsService.ICallback)),
         (typeof(IRemoteRenamerService), null),
         (typeof(IRemoteSemanticClassificationService), null),

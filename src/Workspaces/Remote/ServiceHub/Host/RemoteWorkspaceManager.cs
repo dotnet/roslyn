@@ -3,16 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Extensions;
-using Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLanguages;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.ServiceHub.Framework;
-using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -23,14 +17,6 @@ namespace Microsoft.CodeAnalysis.Remote;
 /// </summary>
 internal class RemoteWorkspaceManager
 {
-    internal static readonly ImmutableArray<Assembly> RemoteHostAssemblies =
-        MefHostServices.DefaultAssemblies
-            .Add(typeof(AspNetCoreEmbeddedLanguageClassifier).Assembly)
-            .Add(typeof(BrokeredServiceBase).Assembly)
-            .Add(typeof(IRazorLanguageServerTarget).Assembly)
-            .Add(typeof(RemoteWorkspacesResources).Assembly)
-            .Add(typeof(IExtensionWorkspaceMessageHandler<,>).Assembly);
-
     /// <summary>
     /// Default workspace manager used by the product. Tests may specify a custom <see
     /// cref="RemoteWorkspaceManager"/> in order to override workspace services.
@@ -78,27 +64,9 @@ internal class RemoteWorkspaceManager
         SolutionAssetCache = createAssetCache(workspace);
     }
 
-    private static ComposableCatalog CreateCatalog(ImmutableArray<Assembly> assemblies)
-    {
-        var resolver = new Resolver(SimpleAssemblyLoader.Instance);
-        var discovery = new AttributedPartDiscovery(resolver, isNonPublicSupported: true);
-        var parts = Task.Run(async () => await discovery.CreatePartsAsync(assemblies).ConfigureAwait(false)).GetAwaiter().GetResult();
-        return ComposableCatalog.Create(resolver).AddParts(parts);
-    }
-
-    private static IExportProviderFactory CreateExportProviderFactory(ComposableCatalog catalog)
-    {
-        var configuration = CompositionConfiguration.Create(catalog);
-        var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
-        return runtimeComposition.CreateExportProviderFactory();
-    }
-
     private static RemoteWorkspace CreatePrimaryWorkspace()
     {
-        var catalog = CreateCatalog(RemoteHostAssemblies);
-        var exportProviderFactory = CreateExportProviderFactory(catalog);
-        var exportProvider = exportProviderFactory.CreateExportProvider();
-
+        var exportProvider = RemoteExportProvider.ExportProvider;
         return new RemoteWorkspace(VisualStudioMefHostServices.Create(exportProvider));
     }
 
@@ -142,26 +110,5 @@ internal class RemoteWorkspaceManager
             cancellationToken).ConfigureAwait(false);
 
         return result;
-    }
-
-    private sealed class SimpleAssemblyLoader : IAssemblyLoader
-    {
-        public static readonly IAssemblyLoader Instance = new SimpleAssemblyLoader();
-
-        public Assembly LoadAssembly(AssemblyName assemblyName)
-            => Assembly.Load(assemblyName);
-
-        public Assembly LoadAssembly(string assemblyFullName, string? codeBasePath)
-        {
-            var assemblyName = new AssemblyName(assemblyFullName);
-            if (!string.IsNullOrEmpty(codeBasePath))
-            {
-#pragma warning disable SYSLIB0044 // https://github.com/dotnet/roslyn/issues/71510
-                assemblyName.CodeBase = codeBasePath;
-#pragma warning restore SYSLIB0044
-            }
-
-            return LoadAssembly(assemblyName);
-        }
     }
 }

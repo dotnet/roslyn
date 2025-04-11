@@ -5,12 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Telemetry;
@@ -101,19 +99,5 @@ internal sealed partial class RemoteProcessTelemetryService(
         {
             RoslynLogger.SetLogger(AggregateLogger.Remove(RoslynLogger.GetLogger(), l => l is T));
         }
-    }
-
-    /// <summary>
-    /// Remote API.
-    /// </summary>
-    public ValueTask<int> InitializeAsync(WorkspaceConfigurationOptions options, CancellationToken cancellationToken)
-    {
-        return RunServiceAsync(cancellationToken =>
-        {
-            var service = (RemoteWorkspaceConfigurationService)GetWorkspaceServices().GetRequiredService<IWorkspaceConfigurationService>();
-            service.InitializeOptions(options);
-
-            return ValueTaskFactory.FromResult(Process.GetCurrentProcess().Id);
-        }, cancellationToken);
     }
 }

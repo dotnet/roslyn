@@ -87,6 +87,11 @@
         <target state="translated">상속 여백</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_Initialization">
+        <source>Initialization</source>
+        <target state="new">Initialization</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_KeepAlive">
         <source>Keep alive service</source>
         <target state="translated">서비스 연결 유지</target>
