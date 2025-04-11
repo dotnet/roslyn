@@ -4389,16 +4389,33 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (compound.Operator.Method is { } compoundMethod)
                     {
-                        return GetInvocationEscapeScope(
-                            MethodInfo.Create(compoundMethod),
-                            receiver: null,
-                            receiverIsSubjectToCloning: ThreeState.Unknown,
-                            compoundMethod.Parameters,
-                            argsOpt: [compound.Left, compound.Right],
-                            argRefKindsOpt: default,
-                            argsToParamsOpt: default,
-                            localScopeDepth: localScopeDepth,
-                            isRefEscape: false);
+                        if (compoundMethod.IsStatic)
+                        {
+                            return GetInvocationEscapeScope(
+                                MethodInfo.Create(compoundMethod),
+                                receiver: null,
+                                receiverIsSubjectToCloning: ThreeState.Unknown,
+                                compoundMethod.Parameters,
+                                argsOpt: [compound.Left, compound.Right],
+                                argRefKindsOpt: default,
+                                argsToParamsOpt: default,
+                                localScopeDepth: localScopeDepth,
+                                isRefEscape: false);
+                        }
+                        else
+                        {
+                            // PROTOTYPE: Follow-up and test this code path
+                            return GetInvocationEscapeScope(
+                                MethodInfo.Create(compoundMethod),
+                                receiver: compound.Left,
+                                receiverIsSubjectToCloning: ThreeState.False,
+                                compoundMethod.Parameters,
+                                argsOpt: [compound.Right],
+                                argRefKindsOpt: default,
+                                argsToParamsOpt: default,
+                                localScopeDepth: localScopeDepth,
+                                isRefEscape: false);
+                        }
                     }
 
                     return GetValEscape(compound.Left, localScopeDepth)
@@ -5176,20 +5193,41 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (compound.Operator.Method is { } compoundMethod)
                     {
-                        return CheckInvocationEscape(
-                            compound.Syntax,
-                            MethodInfo.Create(compoundMethod),
-                            receiver: null,
-                            receiverIsSubjectToCloning: ThreeState.Unknown,
-                            compoundMethod.Parameters,
-                            argsOpt: [compound.Left, compound.Right],
-                            argRefKindsOpt: default,
-                            argsToParamsOpt: default,
-                            checkingReceiver: checkingReceiver,
-                            escapeFrom: escapeFrom,
-                            escapeTo: escapeTo,
-                            diagnostics,
-                            isRefEscape: false);
+                        if (compoundMethod.IsStatic)
+                        {
+                            return CheckInvocationEscape(
+                                compound.Syntax,
+                                MethodInfo.Create(compoundMethod),
+                                receiver: null,
+                                receiverIsSubjectToCloning: ThreeState.Unknown,
+                                compoundMethod.Parameters,
+                                argsOpt: [compound.Left, compound.Right],
+                                argRefKindsOpt: default,
+                                argsToParamsOpt: default,
+                                checkingReceiver: checkingReceiver,
+                                escapeFrom: escapeFrom,
+                                escapeTo: escapeTo,
+                                diagnostics,
+                                isRefEscape: false);
+                        }
+                        else
+                        {
+                            // PROTOTYPE: Follow-up and test this code path
+                            return CheckInvocationEscape(
+                                compound.Syntax,
+                                MethodInfo.Create(compoundMethod),
+                                receiver: compound.Left,
+                                receiverIsSubjectToCloning: ThreeState.Unknown,
+                                compoundMethod.Parameters,
+                                argsOpt: [compound.Right],
+                                argRefKindsOpt: default,
+                                argsToParamsOpt: default,
+                                checkingReceiver: checkingReceiver,
+                                escapeFrom: escapeFrom,
+                                escapeTo: escapeTo,
+                                diagnostics,
+                                isRefEscape: false);
+                        }
                     }
 
                     return CheckValEscape(compound.Left.Syntax, compound.Left, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics) &&
