@@ -2568,8 +2568,8 @@
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressions">
-        <source>collection expressions</source>
-        <target state="translated">wyrażenia kolekcji</target>
+        <source>collection expression</source>
+        <target state="needs-review-translation">wyrażenia kolekcji</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
