@@ -7,6 +7,7 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             _suggestionManager ??= await suggestionServiceBase.TryRegisterProviderAsync(this, textView, "AmbientAIDocumentationComments", cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task GenerateDocumentationProposalAsync(DocumentationCommentSnippet snippet,
+        public async Task GenerateDocumentationProposalAsync(Document document, DocumentationCommentSnippet snippet,
             ITextSnapshot oldSnapshot, VirtualSnapshotPoint oldCaret, CancellationToken cancellationToken)
         {
             // Checks to see if the feature is enabled and if the suggestionManager is available
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             await TaskScheduler.Default;
 
             // MemberNode is not null at this point, checked when determining if the file is excluded.
-            var snippetProposal = GetSnippetProposal(snippet.SnippetText, snippet.MemberNode!, snippet.Position, snippet.CaretOffset);
+            var snippetProposal = GetSnippetProposal(document, snippet.SnippetText, snippet.MemberNode!, snippet.Position, snippet.CaretOffset);
 
             if (snippetProposal is null)
             {
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         /// <summary>
         /// Traverses the documentation comment shell and retrieves the pieces that are needed to generate the documentation comment.
         /// </summary>
-        private static DocumentationCommentProposal? GetSnippetProposal(string comments, SyntaxNode memberNode, int? position, int caret)
+        private static DocumentationCommentProposal? GetSnippetProposal(Document document, string comments, SyntaxNode memberNode, int? position, int caret)
         {
             if (position is null)
             {
@@ -175,7 +176,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 index = exceptionEndTag + "</exception>".Length;
             }
 
-            return new DocumentationCommentProposal(memberNode.ToFullString(), proposedEdits.ToImmutableArray());
+            return new DocumentationCommentProposal(document, memberNode, proposedEdits.ToImmutableArray());
         }
 
         /// <summary>
@@ -186,7 +187,9 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             ITextSnapshot oldSnapshot, string? indentText, CancellationToken cancellationToken)
         {
             var list = new List<ProposedEdit>();
-            var (documentationCommentDictionary, isQuotaExceeded) = await copilotService.GetDocumentationCommentAsync(proposal, cancellationToken).ConfigureAwait(false);
+            var documentationCommentResults = await copilotService.GetDocumentationCommentAsync([proposal], cancellationToken).ConfigureAwait(false);
+
+            var (documentationCommentDictionary, isQuotaExceeded) = documentationCommentResults.FirstOrDefault();
 
             // Quietly fail if the quota has been exceeded.
             if (isQuotaExceeded)

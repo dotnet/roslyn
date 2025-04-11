@@ -666,7 +666,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         public Task StartRefinementSessionAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
-        Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> ICopilotCodeAnalysisService.GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken)
+        Task<ImmutableArray<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)>> ICopilotCodeAnalysisService.GetDocumentationCommentAsync(ImmutableArray<DocumentationCommentProposal> proposals, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
         public Task<ImmutableDictionary<SyntaxNode, ImplementationDetails>> ImplementNotImplementedExceptionsAsync(

@@ -19,7 +19,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot
 
         }
 
-        public string SymbolToAnalyze => _documentationCommentProposal.SymbolToAnalyze;
+        public Document Document => _documentationCommentProposal.Document;
+        public SyntaxNode MemberNode => _documentationCommentProposal.MemberNode;
         public ImmutableArray<CopilotDocumentationCommentProposedEditWrapper> ProposedEdits => _wrappedProposedEdits;
     }
 }

@@ -83,10 +83,10 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     Task<bool> IsFileExcludedAsync(string filePath, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Method to retrieve the documentation comment for a given <paramref name="proposal"/>
+    /// Method to retrieve the documentation comment for given <paramref name="proposals"/>
     /// </summary>
-    /// <param name="proposal">The documentation comment that has been broken down into its individual pieces.</param>
-    Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken);
+    /// <param name="proposals">The documentation comments that have been broken down into its individual pieces.</param>
+    Task<ImmutableArray<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)>> GetDocumentationCommentAsync(ImmutableArray<DocumentationCommentProposal> proposals, CancellationToken cancellationToken);
 
     /// <summary>
     /// Checks if the feature for implementing <see cref="System.NotImplementedException"/> is available.
