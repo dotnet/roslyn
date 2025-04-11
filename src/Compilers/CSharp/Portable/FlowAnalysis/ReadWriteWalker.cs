@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (p.RefKind != RefKind.None) _readOutside.Add(p);
                     }
 
-                    if (TryGetInstanceExtensionParameter(out ParameterSymbol extensionParameter) && extensionParameter.RefKind != RefKind.None)
+                    if (_symbol.TryGetInstanceExtensionParameter(out ParameterSymbol extensionParameter) && extensionParameter.RefKind != RefKind.None)
                     {
                         _readOutside.Add(extensionParameter);
                     }

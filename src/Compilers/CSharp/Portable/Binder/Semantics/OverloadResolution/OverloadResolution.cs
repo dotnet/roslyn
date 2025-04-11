@@ -4278,7 +4278,7 @@ outerDefault:
                     {
                         // infer generic type arguments:
                         MemberAnalysisResult inferenceError;
-                        ImmutableArray<TypeParameterSymbol> typeParameters = GetTypeParametersIncludingExtension(leastOverriddenMember);
+                        ImmutableArray<TypeParameterSymbol> typeParameters = leastOverriddenMember.GetTypeParametersIncludingExtension();
 
                         typeArguments = InferMethodTypeArguments(member,
                                             typeParameters,
@@ -4339,7 +4339,8 @@ outerDefault:
                     ignoreOpenTypes = false;
                 }
 
-                var map = new TypeMap(GetTypeParametersIncludingExtension(isNewExtensionMember ? leastOverriddenMember.OriginalDefinition : leastOverriddenMember), typeArguments, allowAlpha: true);
+                var methodForTypeParameters = isNewExtensionMember ? leastOverriddenMember.OriginalDefinition : leastOverriddenMember;
+                var map = new TypeMap(methodForTypeParameters.GetTypeParametersIncludingExtension(), typeArguments, allowAlpha: true);
 
                 constructedEffectiveParameters = new EffectiveParameters(
                     map.SubstituteTypes(constructedFromEffectiveParameters.ParameterTypes),
@@ -4388,24 +4389,6 @@ outerDefault:
             }
         }
 
-        internal static ImmutableArray<TypeParameterSymbol> GetTypeParametersIncludingExtension<TMember>(TMember member) where TMember : Symbol
-        {
-            if (member is MethodSymbol method)
-            {
-                return method.GetIsNewExtensionMember()
-                    ? method.ContainingType.TypeParameters.Concat(method.TypeParameters)
-                    : method.ConstructedFrom.TypeParameters;
-            }
-
-            if (member is PropertySymbol property)
-            {
-                Debug.Assert(property.GetIsNewExtensionMember());
-                return property.ContainingType.TypeParameters;
-            }
-
-            throw ExceptionUtilities.UnexpectedValue(member);
-        }
-
         private ImmutableArray<TypeWithAnnotations> InferMethodTypeArguments<TMember>(
             TMember member,
             ImmutableArray<TypeParameterSymbol> originalTypeParameters,
@@ -4423,7 +4406,7 @@ outerDefault:
             // a possibly constructed generic type, is exceedingly subtle. See the comments
             // in "Infer" for details.
 
-            PooledDictionary<TypeParameterSymbol, int> ordinals = makeOrdinalsIfNeeded(member, originalTypeParameters);
+            PooledDictionary<TypeParameterSymbol, int> ordinals = member.MakeOrdinalsIfNeeded(originalTypeParameters);
 
             var inferenceResult = MethodTypeInferrer.Infer(
                 _binder,
@@ -4482,38 +4465,7 @@ outerDefault:
             hasTypeArgumentsInferredFromFunctionType = false;
             error = MemberAnalysisResult.TypeInferenceFailed();
             return default(ImmutableArray<TypeWithAnnotations>);
-
-#nullable enable
-            static PooledDictionary<TypeParameterSymbol, int>? makeOrdinalsIfNeeded(TMember member, ImmutableArray<TypeParameterSymbol> originalTypeParameters)
-            {
-                if (member is MethodSymbol method)
-                {
-                    PooledDictionary<TypeParameterSymbol, int>? ordinals = null;
-                    if (method.GetIsNewExtensionMember() && method.Arity > 0 && method.ContainingType.Arity > 0)
-                    {
-                        Debug.Assert(originalTypeParameters.Length == method.Arity + method.ContainingType.Arity);
-
-                        // Since we're concatenating type parameters from the extension and from the method together
-                        // we need to control the ordinals that are used
-                        ordinals = PooledDictionary<TypeParameterSymbol, int>.GetInstance();
-                        for (int i = 0; i < originalTypeParameters.Length; i++)
-                        {
-                            ordinals.Add(originalTypeParameters[i], i);
-                        }
-                    }
-
-                    return ordinals;
-                }
-
-                if (member is PropertySymbol)
-                {
-                    return null;
-                }
-
-                throw ExceptionUtilities.UnexpectedValue(member);
-            }
         }
-#nullable disable
 
         private MemberAnalysisResult IsApplicable(
             Symbol candidate, // method or property

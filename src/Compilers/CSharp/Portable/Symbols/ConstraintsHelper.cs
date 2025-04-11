@@ -803,14 +803,22 @@ hasRelatedInterfaces:
             this MethodSymbol method,
             in CheckConstraintsArgs args)
         {
-            if (!RequiresChecking(method))
+            Debug.Assert(!method.GetIsNewExtensionMember()); // Tracked by https://github.com/dotnet/roslyn/issues/76130: Review all remaining callers with regards to new extensions
+            return CheckConstraintsIncludingExtension(method, in args);
+        }
+
+        public static bool CheckConstraintsIncludingExtension(
+            this MethodSymbol method,
+            in CheckConstraintsArgs args)
+        {
+            if (!RequiresCheckingIncludingExtension(method))
             {
                 return true;
             }
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = CheckMethodConstraints(
+            var result = CheckMethodConstraintsIncludingExtension(
                 method,
                 in args,
                 diagnosticsBuilder,
@@ -862,12 +870,46 @@ hasRelatedInterfaces:
                 method,
                 in args,
                 method.TypeSubstitution,
-                ((MethodSymbol)method.OriginalDefinition).TypeParameters,
+                method.OriginalDefinition.TypeParameters,
                 method.TypeArgumentsWithAnnotations,
                 diagnosticsBuilder,
                 nullabilityDiagnosticsBuilderOpt,
                 ref useSiteDiagnosticsBuilder,
                 skipParameters);
+        }
+
+        public static bool CheckMethodConstraintsIncludingExtension(
+            MethodSymbol method,
+            in CheckConstraintsArgs args,
+            ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
+            ArrayBuilder<TypeParameterDiagnosticInfo> nullabilityDiagnosticsBuilderOpt,
+            ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder,
+            BitVector skipParameters = default(BitVector))
+        {
+            bool constraintsSatisfied = true;
+            if (method.Arity > 0 && method.TypeSubstitution is not null)
+            {
+                constraintsSatisfied &= CheckConstraints(
+                     method,
+                     in args,
+                     method.TypeSubstitution,
+                     method.OriginalDefinition.TypeParameters,
+                     method.TypeArgumentsWithAnnotations,
+                     diagnosticsBuilder,
+                     nullabilityDiagnosticsBuilderOpt,
+                     ref useSiteDiagnosticsBuilder,
+                     skipParameters);
+            }
+
+            if (method.GetIsNewExtensionMember() && method.ContainingType is { Arity: > 0 } extension
+                && extension.TypeSubstitution is not null)
+            {
+                constraintsSatisfied &= CheckConstraints(extension, in args,
+                    extension.TypeSubstitution, extension.TypeParameters, extension.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics,
+                    diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt, ref useSiteDiagnosticsBuilder);
+            }
+
+            return constraintsSatisfied;
         }
 
         /// <summary>
@@ -1568,9 +1610,9 @@ hasRelatedInterfaces:
             return true;
         }
 
-        public static bool RequiresChecking(MethodSymbol method)
+        public static bool RequiresCheckingIncludingExtension(MethodSymbol method)
         {
-            if (!method.IsGenericMethod)
+            if (method.GetMemberArityIncludingExtension() == 0)
             {
                 return false;
             }
@@ -1586,7 +1628,8 @@ hasRelatedInterfaces:
                 return false;
             }
 
-            Debug.Assert(method.ConstructedFrom != method);
+            Debug.Assert(method.ConstructedFrom != method
+                || (method.GetIsNewExtensionMember() && !method.ContainingType.IsDefinition));
             return true;
         }
 
