@@ -577,7 +577,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var testData = new CompilationTestData();
             var diagnostics = DiagnosticBag.GetInstance();
             var dependencyList = new List<ModuleData>();
-            var emitOutput = RuntimeEnvironmentUtilities.EmitCompilation(
+            var emitOutput = EmitCompilation(
                 _compilation,
                 manifestResources,
                 dependencyList,
@@ -872,5 +872,212 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 .ToList();
             AssertEx.SetEqual(expectedFields, members);
         }
+
+        /// <summary>
+        /// Emit all of the references which are not directly or indirectly a <see cref="Compilation"/> value.
+        /// </summary>
+        internal static void EmitReferences(Compilation compilation, HashSet<string> fullNameSet, List<ModuleData> dependencies, AssemblyIdentity corLibIdentity)
+        {
+            // NOTE: specifically don't need to consider previous submissions since they will always be compilations.
+            foreach (var metadataReference in compilation.References)
+            {
+                if (metadataReference is CompilationReference)
+                {
+                    continue;
+                }
+
+                var peRef = (PortableExecutableReference)metadataReference;
+                var metadata = peRef.GetMetadataNoCopy();
+                var isManifestModule = peRef.Properties.Kind == MetadataImageKind.Assembly;
+                var identity = isManifestModule
+                    ? ((AssemblyMetadata)metadata).GetAssembly()!.Identity
+                    : null;
+
+                // If this is an indirect reference to a Compilation then it is already been emitted 
+                // so no more work to be done.
+                if (isManifestModule && fullNameSet.Contains(identity!.GetDisplayName()))
+                {
+                    continue;
+                }
+
+                var isCorLib = isManifestModule && corLibIdentity == identity;
+                foreach (var module in enumerateModules(metadata))
+                {
+                    ImmutableArray<byte> bytes = module.Module.PEReaderOpt.GetEntireImage().GetContent();
+                    ModuleData moduleData;
+                    if (isManifestModule)
+                    {
+                        fullNameSet.Add(identity!.GetDisplayName());
+                        moduleData = new ModuleData(identity,
+                                                    OutputKind.DynamicallyLinkedLibrary,
+                                                    bytes,
+                                                    pdb: default(ImmutableArray<byte>),
+                                                    inMemoryModule: true,
+                                                    isCorLib);
+                    }
+                    else
+                    {
+                        moduleData = new ModuleData(module.Name,
+                                                    bytes,
+                                                    pdb: default(ImmutableArray<byte>),
+                                                    inMemoryModule: true,
+                                                    isCorLib: false);
+                    }
+
+                    dependencies.Add(moduleData);
+                    isManifestModule = false;
+                }
+            }
+
+            static IEnumerable<ModuleMetadata> enumerateModules(Metadata metadata)
+            {
+                return (metadata.Kind == MetadataImageKind.Assembly) ? ((AssemblyMetadata)metadata).GetModules().AsEnumerable() : SpecializedCollections.SingletonEnumerable((ModuleMetadata)metadata);
+            }
+        }
+
+        internal static EmitOutput? EmitCompilation(
+            Compilation compilation,
+            IEnumerable<ResourceDescription>? manifestResources,
+            List<ModuleData> dependencies,
+            DiagnosticBag diagnostics,
+            CompilationTestData? testData,
+            EmitOptions? emitOptions)
+        {
+            var corLibIdentity = compilation.GetSpecialType(SpecialType.System_Object).ContainingAssembly.Identity;
+
+            // A Compilation can appear multiple times in a dependency graph as both a Compilation and as a MetadataReference
+            // value.  Iterate the Compilations eagerly so they are always emitted directly and later references can re-use 
+            // the value.  This gives better, and consistent, diagnostic information.
+            var referencedCompilations = findReferencedCompilations(compilation);
+            var fullNameSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var referencedCompilation in referencedCompilations)
+            {
+                var emitData = emitCompilationCore(referencedCompilation, null, diagnostics, null, emitOptions);
+                if (emitData.HasValue)
+                {
+                    var identity = referencedCompilation.Assembly.Identity;
+                    var moduleData = new ModuleData(identity,
+                                                    OutputKind.DynamicallyLinkedLibrary,
+                                                    emitData.Value.Assembly,
+                                                    pdb: default(ImmutableArray<byte>),
+                                                    inMemoryModule: true,
+                                                    isCorLib: corLibIdentity == identity);
+                    fullNameSet.Add(moduleData.Id.FullName);
+                    dependencies.Add(moduleData);
+                }
+            }
+
+            // Now that the Compilation values have been emitted, emit the non-compilation references
+            foreach (var current in (new[] { compilation }).Concat(referencedCompilations))
+            {
+                EmitReferences(current, fullNameSet, dependencies, corLibIdentity);
+            }
+
+            return emitCompilationCore(compilation, manifestResources, diagnostics, testData, emitOptions);
+
+            // Find all of the <see cref="Compilation"/> values reachable from this instance.
+            static List<Compilation> findReferencedCompilations(Compilation original)
+            {
+                var list = new List<Compilation>();
+                var toVisit = new Queue<Compilation>(findDirectReferencedCompilations(original));
+
+                while (toVisit.Count > 0)
+                {
+                    var current = toVisit.Dequeue();
+                    if (list.Contains(current))
+                    {
+                        continue;
+                    }
+
+                    list.Add(current);
+
+                    foreach (var other in findDirectReferencedCompilations(current))
+                    {
+                        toVisit.Enqueue(other);
+                    }
+                }
+
+                return list;
+            }
+
+            static List<Compilation> findDirectReferencedCompilations(Compilation compilation)
+            {
+                var list = new List<Compilation>();
+                var previousCompilation = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
+                if (previousCompilation != null)
+                {
+                    list.Add(previousCompilation);
+                }
+
+                foreach (var reference in compilation.References.OfType<CompilationReference>())
+                {
+                    list.Add(reference.Compilation);
+                }
+
+                return list;
+            }
+
+            static EmitOutput? emitCompilationCore(
+                Compilation compilation,
+                IEnumerable<ResourceDescription>? manifestResources,
+                DiagnosticBag diagnostics,
+                CompilationTestData? testData,
+                EmitOptions? emitOptions)
+            {
+                emitOptions ??= EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded);
+
+                using var executableStream = new MemoryStream();
+
+                var pdb = default(ImmutableArray<byte>);
+                var assembly = default(ImmutableArray<byte>);
+                var pdbStream = (emitOptions.DebugInformationFormat != DebugInformationFormat.Embedded) ? new MemoryStream() : null;
+
+                // Note: don't forget to name the source inputs to get them embedded for debugging
+                var embeddedTexts = compilation.SyntaxTrees
+                    .Select(t => (filePath: t.FilePath, text: t.GetText()))
+                    .Where(t => t.text.CanBeEmbedded && !string.IsNullOrEmpty(t.filePath))
+                    .Select(t => EmbeddedText.FromSource(t.filePath, t.text))
+                    .ToImmutableArray();
+
+                EmitResult result;
+                try
+                {
+                    result = compilation.Emit(
+                        executableStream,
+                        metadataPEStream: null,
+                        pdbStream: pdbStream,
+                        xmlDocumentationStream: null,
+                        win32Resources: null,
+                        manifestResources: manifestResources,
+                        options: emitOptions,
+                        debugEntryPoint: null,
+                        sourceLinkStream: null,
+                        embeddedTexts,
+                        rebuildData: null,
+                        testData: testData,
+                        cancellationToken: default);
+                }
+                finally
+                {
+                    if (pdbStream != null)
+                    {
+                        pdb = pdbStream.ToImmutable();
+                        pdbStream.Dispose();
+                    }
+                }
+
+                diagnostics.AddRange(result.Diagnostics);
+                assembly = executableStream.ToImmutable();
+
+                if (result.Success)
+                {
+                    return new EmitOutput(assembly, pdb);
+                }
+
+                return null;
+            }
+        }
+
     }
 }
