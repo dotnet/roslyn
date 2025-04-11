@@ -1771,7 +1771,7 @@ public class Buffer<T>
 
             item = newItem;
             empty = false;
-            Console.Error.WriteLine(""{0} wrote {1}"", Thread.CurrentThread.Name, newItem);
+            Console.WriteLine(""{0} wrote {1}"", Thread.CurrentThread.Name, newItem);
             Monitor.PulseAll(bufferLock);
         }
     }
@@ -1784,7 +1784,7 @@ public class Buffer<T>
 
             empty = true;
             T result = item;
-            Console.Error.WriteLine(""{0} read {1}"", Thread.CurrentThread.Name, result);
+            Console.WriteLine(""{0} read {1}"", Thread.CurrentThread.Name, result);
             Monitor.PulseAll(bufferLock);
             return result;
         }
