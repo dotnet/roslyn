@@ -22,11 +22,6 @@ namespace Roslyn.Test.Utilities.CoreClr
         public ImmutableArray<ModuleData> Modules { get; } = modules;
         internal TestExecutionLoadContext LoadContext { get; } = new TestExecutionLoadContext(modules);
 
-        static CoreCLRRuntimeEnvironment()
-        {
-            SharedConsole.OverrideConsole();
-        }
-
         public (int ExitCode, string Output, string ErrorOutput) Execute(string[] args, int? expectedLength) =>
             LoadContext.Execute(MainModule, args, expectedLength);
 
