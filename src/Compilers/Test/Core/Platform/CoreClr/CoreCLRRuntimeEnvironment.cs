@@ -31,10 +31,8 @@ namespace Roslyn.Test.Utilities.CoreClr
         public (int ExitCode, string Output, string ErrorOutput) Execute(string[] args, int? expectedLength) =>
             LoadContext.Execute(MainModule, args, expectedLength);
 
-        public SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName)
-        {
-            return LoadContext.GetMemberSignaturesFromMetadata(fullyQualifiedTypeName, memberName, Modules.Select(x => x.Id));
-        }
+        public SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName) =>
+            LoadContext.GetMemberSignaturesFromMetadata(fullyQualifiedTypeName, memberName, Modules.Select(x => x.Id));
 
         public void Verify(Verification verification) =>
             CompilationVerifier.ILVerify(verification, MainModule, Modules);
