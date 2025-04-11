@@ -1,11 +1,3 @@
-Microsoft.CodeAnalysis.Extensions.DocumentLinePosition
-Microsoft.CodeAnalysis.Extensions.DocumentLinePosition.Character.get -> int
-Microsoft.CodeAnalysis.Extensions.DocumentLinePosition.DocumentLinePosition() -> void
-Microsoft.CodeAnalysis.Extensions.DocumentLinePosition.DocumentLinePosition(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.LinePosition linePosition) -> void
-Microsoft.CodeAnalysis.Extensions.DocumentLinePosition.DocumentLinePosition(string filePath, int line, int character) -> void
-Microsoft.CodeAnalysis.Extensions.DocumentLinePosition.FilePath.get -> string
-Microsoft.CodeAnalysis.Extensions.DocumentLinePosition.Line.get -> int
-Microsoft.CodeAnalysis.Extensions.DocumentLinePosition.ToLinePosition() -> Microsoft.CodeAnalysis.Text.LinePosition
 Microsoft.CodeAnalysis.Extensions.ExtensionMessageContext
 Microsoft.CodeAnalysis.Extensions.ExtensionMessageContext.Solution.get -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Extensions.IExtensionDocumentMessageHandler<TMessage, TResponse>
