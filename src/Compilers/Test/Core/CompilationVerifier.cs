@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -25,61 +24,54 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.DiaSymReader.Tools;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public sealed class CompilationVerifier
+    public sealed partial class CompilationVerifier
     {
         private readonly Compilation _compilation;
-        private CompilationTestData _testData;
-        private readonly IEnumerable<ModuleData> _dependencies;
-        private IModuleSymbol _lazyModuleSymbol;
-        private IList<ModuleData> _allModuleData;
+        private readonly IEnumerable<ModuleData>? _dependencies;
+        private IModuleSymbol? _lazyModuleSymbol;
+        private EmitData? _emitData;
+        private readonly Func<IModuleSymbol, CompilationTestData.MethodData, IReadOnlyDictionary<int, string>?, bool, string>? _visualizeRealIL;
 
-        public ImmutableArray<Diagnostic> Diagnostics;
-        public ImmutableArray<byte> EmittedAssemblyData;
-        public ImmutableArray<byte> EmittedAssemblyPdb;
+        public Compilation Compilation => _compilation;
+        public ImmutableArray<byte> EmittedAssemblyData => GetEmitData().EmittedAssemblyData;
+        public ImmutableArray<byte> EmittedAssemblyPdb => GetEmitData().EmittedAssemblyPdb;
+        public ImmutableArray<Diagnostic> Diagnostics => GetEmitData().Diagnostics;
+        internal CompilationTestData TestData => GetEmitData().TestData;
 
-        private readonly Func<IModuleSymbol, CompilationTestData.MethodData, IReadOnlyDictionary<int, string>, bool, string> _visualizeRealIL;
 
         internal CompilationVerifier(
             Compilation compilation,
-            Func<IModuleSymbol, CompilationTestData.MethodData, IReadOnlyDictionary<int, string>, bool, string> visualizeRealIL = null,
-            IEnumerable<ModuleData> dependencies = null)
+            Func<IModuleSymbol, CompilationTestData.MethodData, IReadOnlyDictionary<int, string>?, bool, string>? visualizeRealIL = null,
+            IEnumerable<ModuleData>? dependencies = null)
         {
             _compilation = compilation;
             _dependencies = dependencies;
             _visualizeRealIL = visualizeRealIL;
         }
 
-        internal CompilationTestData TestData => _testData;
-        public Compilation Compilation => _compilation;
+        private EmitData GetEmitData() => _emitData ?? throw new InvalidOperationException("Must call Emit first");
 
         internal Metadata GetMetadata()
         {
-            if (EmittedAssemblyData == null)
-            {
-                throw new InvalidOperationException("You must call Emit before calling GetAllModuleMetadata.");
-            }
-
+            var emitData = GetEmitData();
             if (_compilation.Options.OutputKind.IsNetModule())
             {
-                var metadata = ModuleMetadata.CreateFromImage(EmittedAssemblyData);
+                var metadata = ModuleMetadata.CreateFromImage(emitData.EmittedAssemblyData);
                 metadata.Module.PretendThereArentNoPiaLocalTypes();
                 return metadata;
             }
             else
             {
-                var images = new List<ImmutableArray<byte>>
-                {
-                    EmittedAssemblyData
-                };
-
-                if (_allModuleData != null)
-                {
-                    images.AddRange(_allModuleData.Where(m => m.Kind == OutputKind.NetModule).Select(m => m.Image));
-                }
+                List<ImmutableArray<byte>> images =
+                [
+                    emitData.EmittedAssemblyData,
+                    .. emitData.Modules.Where(m => m.Kind == OutputKind.NetModule).Select(m => m.Image)
+                ];
 
                 return AssemblyMetadata.Create(images.Select(image =>
                 {
@@ -90,13 +82,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public string Dump(string methodName = null)
+        public string Dump(string? methodName = null)
         {
-            var (mainModule, modules) = Emit(manifestResources: null, EmitOptions.Default);
-            RuntimeEnvironmentUtilities.DumpAssemblyData(modules, out var dumpDir);
+            var emitData = Emit(manifestResources: null, EmitOptions.Default);
+            RuntimeEnvironmentUtilities.DumpAssemblyData(emitData.Modules, out var dumpDir);
+            Debug.Assert(dumpDir is not null);
 
-            string extension = mainModule.Kind == OutputKind.ConsoleApplication ? ".exe" : ".dll";
-            string modulePath = Path.Combine(dumpDir, mainModule.SimpleName + extension);
+            string extension = emitData.EmittedModule.Kind == OutputKind.ConsoleApplication ? ".exe" : ".dll";
+            string modulePath = Path.Combine(dumpDir, emitData.EmittedModule.SimpleName + extension);
 
             var decompiler = new ICSharpCode.Decompiler.CSharp.CSharpDecompiler(modulePath,
                 new ICSharpCode.Decompiler.DecompilerSettings() { AsyncAwait = false });
@@ -160,9 +153,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public string DumpIL()
         {
             var output = new ICSharpCode.Decompiler.PlainTextOutput();
-            var (mainModule, _) = Emit(manifestResources: null, EmitOptions.Default);
-            using var moduleMetadata = ModuleMetadata.CreateFromImage(mainModule.Image);
-            var peFile = new PEFile(mainModule.Id.FullName, moduleMetadata.Module.PEReaderOpt);
+            var emitData = Emit(manifestResources: null, EmitOptions.Default);
+            using var moduleMetadata = ModuleMetadata.CreateFromImage(emitData.EmittedAssemblyData);
+            var peFile = new PEFile(emitData.EmittedModule.Id.FullName, moduleMetadata.Module.PEReaderOpt);
             var disassembler = new ICSharpCode.Decompiler.Disassembler.ReflectionDisassembler(output, default);
             disassembler.WriteModuleContents(peFile);
             return output.ToString();
@@ -219,10 +212,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public void VerifyTypeIL(string typeName, Action<string> validateExpected)
         {
             var output = new ICSharpCode.Decompiler.PlainTextOutput() { IndentationString = "    " };
-            var (mainModule, _) = Emit(manifestResources: null, EmitOptions.Default);
-            using (var moduleMetadata = ModuleMetadata.CreateFromImage(mainModule.Image))
+            var emitData = Emit(manifestResources: null, EmitOptions.Default);
+            using (var moduleMetadata = ModuleMetadata.CreateFromImage(emitData.EmittedAssemblyData))
             {
-                var peFile = new PEFile(mainModule.Id.FullName, moduleMetadata.Module.PEReaderOpt);
+                var peFile = new PEFile(emitData.EmittedModule.Id.FullName, moduleMetadata.Module.PEReaderOpt);
                 var metadataReader = moduleMetadata.GetMetadataReader();
 
                 bool found = false;
@@ -244,25 +237,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         public void Emit(
-            string expectedOutput,
+            string? expectedOutput,
             bool trimOutput,
             int? expectedReturnCode,
-            string[] args,
-            IEnumerable<ResourceDescription> manifestResources,
-            EmitOptions emitOptions,
+            string[]? args,
+            IEnumerable<ResourceDescription>? manifestResources,
+            EmitOptions? emitOptions,
             Verification peVerify,
-            SignatureDescription[] expectedSignatures)
+            SignatureDescription[]? expectedSignatures)
         {
-            var (mainModule, modules) = Emit(manifestResources, emitOptions);
-            _allModuleData = modules;
+            var emitData = Emit(manifestResources, emitOptions);
 
-            using var testEnvironment = RuntimeEnvironmentFactory.Create(mainModule, modules);
+            using var testEnvironment = CreateRuntimeEnvironment(emitData.EmittedModule, emitData.Modules);
             try
             {
                 testEnvironment.Verify(peVerify);
-#if NET
-                ILVerify(peVerify);
-#endif
             }
             catch (Exception) when (peVerify.Status.HasFlag(VerificationStatus.PassesOrFailFast))
             {
@@ -279,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (expectedOutput != null || expectedReturnCode != null)
             {
-                var (exitCode, output, errorOutput) = testEnvironment.Execute(args, expectedOutput?.Length);
+                var (exitCode, output, errorOutput) = testEnvironment.Execute(args ?? [], expectedOutput?.Length);
                 if (expectedReturnCode.HasValue)
                 {
                     Assert.Equal(expectedReturnCode.Value, exitCode);
@@ -310,6 +299,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             public PEReader ResolveAssembly(AssemblyName assemblyName)
             {
+                Debug.Assert(assemblyName.Name is not null);
                 return Resolve(assemblyName.Name);
             }
 
@@ -329,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        private void ILVerify(Verification verification)
+        internal static void ILVerify(Verification verification, ModuleData mainModule, ImmutableArray<ModuleData> modules)
         {
             if (verification.Status.HasFlag(VerificationStatus.Skipped))
             {
@@ -337,7 +327,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             var readersByName = new Dictionary<string, PEReader>(StringComparer.OrdinalIgnoreCase);
-            foreach (var module in _allModuleData)
+            foreach (var module in modules)
             {
                 string name = module.SimpleName;
                 if (readersByName.ContainsKey(name))
@@ -354,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             var resolver = new Resolver(readersByName);
             var verifier = new ILVerify.Verifier(resolver);
-            var mscorlibModule = _allModuleData.SingleOrDefault(m => m.IsCorLib);
+            var mscorlibModule = modules.SingleOrDefault(m => m.IsCorLib);
             if (mscorlibModule is null)
             {
                 if (verification.Status.HasFlag(VerificationStatus.FailsILVerify) && verification.ILVerifyMessage is null)
@@ -366,7 +356,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             // Main module is the first one
-            var mainModuleReader = resolver.Resolve(_allModuleData[0].SimpleName);
+            var mainModuleReader = resolver.Resolve(mainModule.SimpleName);
 
             var (actualSuccess, actualMessage) = verify(verifier, mscorlibModule.FullName, mainModuleReader);
             var expectedSuccess = !verification.Status.HasFlag(VerificationStatus.FailsILVerify);
@@ -392,7 +382,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             static (bool, string) verify(ILVerify.Verifier verifier, string corlibName, PEReader mainModule)
             {
-                IEnumerable<ILVerify.VerificationResult> result = null;
+                IEnumerable<ILVerify.VerificationResult>? result = null;
                 int errorCount = 0;
                 try
                 {
@@ -459,13 +449,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 var name = errorArgument.Name;
 
-                string value;
+                string? value;
                 if (name == "Offset" && errorArgument.Value is int i)
                 {
                     value = "0x" + Convert.ToString(i, 16);
                 }
                 else
                 {
+                    Debug.Assert(errorArgument.Value != null);
                     value = errorArgument.Value.ToString();
                 }
 
@@ -477,15 +468,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         // Replace bool verify parameter with string[] expectedPeVerifyOutput. If null, no verification. If empty verify have to succeed. Otherwise compare errors.
         public void EmitAndVerify(params string[] expectedPeVerifyOutput)
         {
-            var (mainModule, modules) = Emit(null, null);
-            using var testEnvironment = RuntimeEnvironmentFactory.Create(mainModule, modules);
-            string[] actualOutput = testEnvironment.VerifyModules([mainModule.FullName]);
+            var emitData = Emit(null, null);
+            using var testEnvironment = CreateRuntimeEnvironment(emitData.EmittedModule, emitData.Modules);
+            string[] actualOutput = testEnvironment.VerifyModules([emitData.EmittedModule.FullName]);
             Assert.Equal(expectedPeVerifyOutput, actualOutput);
         }
 
-        private (ModuleData MainModule, ImmutableArray<ModuleData> Modules) Emit(IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions)
+        private EmitData Emit(IEnumerable<ResourceDescription>? manifestResources, EmitOptions? emitOptions)
         {
-            _testData = new CompilationTestData();
+            var testData = new CompilationTestData();
             var diagnostics = DiagnosticBag.GetInstance();
             var dependencyList = new List<ModuleData>();
             var emitOutput = RuntimeEnvironmentUtilities.EmitCompilation(
@@ -493,37 +484,49 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 manifestResources,
                 dependencyList,
                 diagnostics,
-                _testData,
+                testData,
                 emitOptions);
 
-            Diagnostics = diagnostics.ToReadOnlyAndFree();
             if (emitOutput is { } e)
             {
-                var mainImage = e.Assembly;
-                var mainPdb = e.Pdb;
                 var corLibIdentity = _compilation.GetSpecialType(SpecialType.System_Object).ContainingAssembly.Identity;
                 var identity = _compilation.Assembly.Identity;
-                var mainModuleData = new ModuleData(
+                var moduleData = new ModuleData(
                     identity,
                     _compilation.Options.OutputKind,
-                    mainImage,
-                    pdb: default,
+                    e.Assembly,
+                    pdb: e.Pdb,
                     inMemoryModule: true,
                     isCorLib: corLibIdentity == identity);
 
                 // We need to add the main module so that it gets checked against already loaded assembly names.
                 // If an assembly is loaded directly via PEVerify(image) another assembly of the same full name
                 // can't be loaded as a dependency (via Assembly.ReflectionOnlyLoad) in the same domain.
-                dependencyList.Insert(0, mainModuleData);
+                dependencyList.Insert(0, moduleData);
 
-                return (mainModuleData, dependencyList.ToImmutableArray());
+                _emitData = new EmitData(
+                    moduleData,
+                    dependencyList.ToImmutableArray(),
+                    diagnostics.ToReadOnlyAndFree(),
+                    testData);
+                return _emitData;
             }
             else
             {
                 RuntimeEnvironmentUtilities.DumpAssemblyData(dependencyList, out var dumpDir);
-                var message = ExceptionHelper.GetMessageFromResult(Diagnostics, dumpDir);
+                var message = ExceptionHelper.GetMessageFromResult(diagnostics.ToReadOnlyAndFree(), dumpDir);
                 throw new Exception(message);
             }
+        }
+
+        private IRuntimeEnvironment CreateRuntimeEnvironment(ModuleData mainModule, ImmutableArray<ModuleData> modules)
+        {
+            if (_dependencies is not null)
+            {
+                modules = [.. modules, .. _dependencies];
+            }
+
+            return RuntimeEnvironmentFactory.Create(mainModule, modules);
         }
 
         /// <summary>
@@ -533,8 +536,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string qualifiedMethodName,
             XCData expectedIL,
             bool realIL = false,
-            string sequencePoints = null,
-            [CallerFilePath] string callerPath = null,
+            string? sequencePoints = null,
+            [CallerFilePath] string? callerPath = null,
             [CallerLineNumber] int callerLine = 0)
         {
             return VerifyILImpl(qualifiedMethodName, expectedIL.Value, realIL, sequencePoints: sequencePoints != null, sequencePointsSource: false, callerPath, callerLine, escapeQuotes: false);
@@ -547,10 +550,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string qualifiedMethodName,
             string expectedIL,
             bool realIL = false,
-            string sequencePoints = null,
-            [CallerFilePath] string callerPath = null,
+            string? sequencePoints = null,
+            [CallerFilePath] string? callerPath = null,
             [CallerLineNumber] int callerLine = 0,
-            string source = null)
+            string? source = null)
         {
             return VerifyILImpl(qualifiedMethodName, expectedIL, realIL, sequencePoints: sequencePoints != null, sequencePointsSource: source != null, callerPath, callerLine, escapeQuotes: false);
         }
@@ -559,7 +562,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string qualifiedMethodName,
             string expectedILWithSequencePoints,
             bool realIL = false,
-            [CallerFilePath] string callerPath = null,
+            [CallerFilePath] string? callerPath = null,
             [CallerLineNumber] int callerLine = 0)
         {
             return VerifyILImpl(qualifiedMethodName, expectedILWithSequencePoints, realIL, sequencePoints: true, sequencePointsSource: true, callerPath, callerLine, escapeQuotes: false);
@@ -594,7 +597,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public CompilationVerifier VerifyMissing(
             string qualifiedMethodName)
         {
-            Assert.False(_testData.TryGetMethodData(qualifiedMethodName, out _));
+            Assert.False(GetEmitData().TestData.TryGetMethodData(qualifiedMethodName, out _));
             return this;
         }
 
@@ -602,9 +605,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string qualifiedMethodName,
             string expectedSignature,
             [CallerLineNumber] int callerLine = 0,
-            [CallerFilePath] string callerPath = null)
+            [CallerFilePath] string? callerPath = null)
         {
-            var ilBuilder = _testData.GetMethodData(qualifiedMethodName).ILBuilder;
+            var ilBuilder = GetEmitData().TestData.GetMethodData(qualifiedMethodName).ILBuilder;
             string actualSignature = ILBuilderVisualizer.LocalSignatureToString(ilBuilder);
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedSignature, actualSignature, escapeQuotes: true, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
         }
@@ -619,37 +622,28 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             bool realIL,
             bool sequencePoints,
             bool sequencePointsSource,
-            string callerPath,
+            string? callerPath,
             int callerLine,
             bool escapeQuotes)
         {
-            string actualIL = VisualizeIL(qualifiedMethodName, realIL, sequencePoints, sequencePointsSource);
+            string? actualIL = VisualizeIL(qualifiedMethodName, realIL, sequencePoints, sequencePointsSource);
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, message: null, escapeQuotes, callerPath, callerLine);
             return this;
         }
 
         public string VisualizeIL(string qualifiedMethodName, bool realIL = false, bool sequencePoints = false, bool sequencePointsSource = true)
-            => VisualizeIL(_testData.GetMethodData(qualifiedMethodName), realIL, sequencePoints, sequencePointsSource);
+            => VisualizeIL(GetEmitData().TestData.GetMethodData(qualifiedMethodName), realIL, sequencePoints, sequencePointsSource);
 
         internal string VisualizeIL(CompilationTestData.MethodData methodData, bool realIL = false, bool sequencePoints = false, bool sequencePointsSource = true)
         {
-            Dictionary<int, string> markers = null;
+            Dictionary<int, string>? markers = null;
 
+            var emitData = GetEmitData();
             if (sequencePoints)
             {
-                if (EmittedAssemblyPdb == null)
-                {
-                    throw new InvalidOperationException($"{nameof(EmittedAssemblyPdb)} is not set");
-                }
-
-                if (EmittedAssemblyData == null)
-                {
-                    throw new InvalidOperationException($"{nameof(EmittedAssemblyData)} is not set");
-                }
-
                 var actualPdbXml = PdbToXmlConverter.ToXml(
-                    pdbStream: new MemoryStream(EmittedAssemblyPdb.ToArray()),
-                    peStream: new MemoryStream(EmittedAssemblyData.ToArray()),
+                    pdbStream: new MemoryStream(emitData.EmittedAssemblyPdb.ToArray()),
+                    peStream: new MemoryStream(emitData.EmittedAssemblyData.ToArray()),
                     options: PdbToXmlOptions.ResolveTokens |
                              PdbToXmlOptions.ThrowOnError |
                              PdbToXmlOptions.ExcludeCustomDebugInformation |
@@ -663,7 +657,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 var method = methodData.Method.PartialDefinitionPart ?? methodData.Method;
                 var methodDef = (Cci.IMethodDefinition)method.GetCciAdapter();
-                var methodToken = MetadataTokens.GetToken(_testData.MetadataWriter.GetMethodDefinitionOrReferenceHandle(methodDef));
+                var methodToken = MetadataTokens.GetToken(emitData.TestData.MetadataWriter!.GetMethodDefinitionOrReferenceHandle(methodDef));
                 var xmlDocument = XElement.Parse(actualPdbXml);
                 var xmlMethod = ILValidation.GetMethodElement(xmlDocument, methodToken);
 
@@ -685,7 +679,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (_lazyModuleSymbol == null)
             {
-                var targetReference = LoadTestEmittedExecutableForSymbolValidation(EmittedAssemblyData, _compilation.Options.OutputKind, display: _compilation.AssemblyName);
+                var targetReference = LoadTestEmittedExecutableForSymbolValidation(emitData.EmittedAssemblyData, _compilation.Options.OutputKind, display: _compilation.AssemblyName);
                 _lazyModuleSymbol = GetSymbolFromMetadata(targetReference, MetadataImportOptions.All);
             }
 
@@ -696,21 +690,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     throw new InvalidOperationException("IL visualization function is not set");
                 }
 
-                return _visualizeRealIL(_lazyModuleSymbol, methodData, markers, _testData.Module.GetMethodBody(methodData.Method).AreLocalsZeroed);
+                return _visualizeRealIL(_lazyModuleSymbol, methodData, markers, emitData.TestData.Module!.GetMethodBody(methodData.Method)!.AreLocalsZeroed);
             }
 
-            return null;
+            return "";
         }
 
         public CompilationVerifier VerifyMemberInIL(string methodName, bool expected)
         {
-            Assert.Equal(expected, _testData.GetMethodsByName().ContainsKey(methodName));
+            Assert.Equal(expected, GetEmitData().TestData.GetMethodsByName().ContainsKey(methodName));
             return this;
         }
 
         public CompilationVerifier VerifyDiagnostics(params DiagnosticDescription[] expected)
         {
-            Diagnostics.Verify(expected);
+            GetEmitData().Diagnostics.Verify(expected);
             return this;
         }
 
@@ -723,6 +717,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 .WithOptions(_compilation.Options.WithMetadataImportOptions(importOptions));
 
             var symbol = dummy.GetAssemblyOrModuleSymbol(metadataReference);
+            Debug.Assert(symbol is not null);
 
             if (metadataReference.Properties.Kind == MetadataImageKind.Assembly)
             {
@@ -737,7 +732,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         internal static MetadataReference LoadTestEmittedExecutableForSymbolValidation(
             ImmutableArray<byte> image,
             OutputKind outputKind,
-            string display = null)
+            string? display = null)
         {
             var moduleMetadata = ModuleMetadata.CreateFromImage(image);
             moduleMetadata.Module.PretendThereArentNoPiaLocalTypes();
@@ -767,9 +762,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         public void VerifySynthesizedFields(string containingTypeName, params string[] expectedFields)
         {
-            var types = TestData.Module.GetAllSynthesizedMembers();
+            var testData = GetEmitData().TestData;
+            var types = testData.Module!.GetAllSynthesizedMembers();
             Assert.Contains(types.Keys, t => containingTypeName == t.ToString());
-            var members = TestData.Module.GetAllSynthesizedMembers()
+            var members = testData.Module.GetAllSynthesizedMembers()
                 .Where(e => e.Key.ToString() == containingTypeName)
                 .Single()
                 .Value
