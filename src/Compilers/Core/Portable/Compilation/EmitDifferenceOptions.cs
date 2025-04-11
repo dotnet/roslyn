@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.Emit;
 
-public readonly struct EmitDifferenceOptions
+public readonly struct EmitDifferenceOptions()
 {
     public static readonly EmitDifferenceOptions Default = new();
 
@@ -12,8 +12,4 @@ public readonly struct EmitDifferenceOptions
     /// True to emit FieldRva table entries. The runtime must support this feature.
     /// </summary>
     public bool EmitFieldRva { get; init; }
-
-    public EmitDifferenceOptions()
-    {
-    }
 }

@@ -743,14 +743,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             var stringField = new DataSectionStringField("s", this);
 
-            var staticConstructor = synthesizeStaticConstructor((ITokenDeferral)containingType.ModuleBuilder, containingType, dataField, stringField, bytesToStringHelper, diagnostics);
+            var staticConstructor = synthesizeStaticConstructor((ITokenDeferral)containingType.ModuleBuilder, this, dataField, stringField, bytesToStringHelper, diagnostics);
 
             _fields = [stringField];
             _methods = [staticConstructor];
 
             static Cci.IMethodDefinition synthesizeStaticConstructor(
                 ITokenDeferral module,
-                Cci.INamespaceTypeDefinition containingType,
+                Cci.ITypeDefinition containingType,
                 MappedField dataField,
                 DataSectionStringField stringField,
                 Cci.IMethodDefinition bytesToStringHelper,
