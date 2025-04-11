@@ -28,6 +28,13 @@ namespace Microsoft.CodeAnalysis
                 _slotData = new SlotData(node);
             }
 
+            internal Enumerator(SyntaxNode node, int count, int initialIndex)
+            {
+                _node = node;
+                _count = count;
+                _childIndex = initialIndex;
+            }
+
             // PERF: Initialize an Enumerator directly from a SyntaxNode without going
             // via ChildNodesAndTokens. This saves constructing an intermediate ChildSyntaxList
             internal void InitializeFrom(SyntaxNode node)
@@ -44,7 +51,7 @@ namespace Microsoft.CodeAnalysis
             public bool MoveNext()
             {
                 var newIndex = _childIndex + 1;
-                if (newIndex < _count)
+                if (unchecked((uint)newIndex < (uint)_count))
                 {
                     _childIndex = newIndex;
                     Debug.Assert(_node != null);
