@@ -80,7 +80,7 @@ Note: the compiler should remain resilient to missing well-known types/members.
 
 # Interface partial methods
 
-Interface partial methods are implicitly private and non-virtual,
+Interface partial methods are implicitly non-virtual,
 unlike non-partial interface methods and other interface partial member kinds,
 see [a related breaking change](./Compiler%20Breaking%20Changes%20-%20DotNet%2010.md#partial-properties-and-events-are-now-implicitly-virtual-and-public)
 and [LDM 2025-04-07](https://github.com/dotnet/csharplang/blob/main/meetings/2025/LDM-2025-04-07.md#breaking-change-discussion-making-partial-members-in-interfaces-virtual-andor-public).
