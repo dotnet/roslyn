@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     isTrailing: false,
                     indentAfterLineBreak: NeedsIndentAfterLineBreak(token),
                     mustHaveSeparator: false,
-                    lineBreaksAfter: 0));
+                    lineBreaksAfter: lineBreaksAfterLeading(token)));
 
                 var nextToken = this.GetNextRelevantToken(token);
 
@@ -118,6 +118,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     lineBreaksAfter: lineBreaksAfter));
 
                 return tk;
+
+                static int lineBreaksAfterLeading(SyntaxToken syntaxToken)
+                {
+                    if (syntaxToken.LeadingTrivia.Count < 2)
+                    {
+                        return 0;
+                    }
+
+                    if (syntaxToken.LeadingTrivia[^2].IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia) &&
+                        syntaxToken.LeadingTrivia[^1].IsKind(SyntaxKind.EndOfLineTrivia))
+                    {
+                        return 1;
+                    }
+
+                    return 0;
+                }
             }
             finally
             {
@@ -1247,7 +1263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
                 else
                 {
-                    return IsLineBreak(node.GetLastToken());
+                    return !node.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia) && IsLineBreak(node.GetLastToken());
                 }
             }
 

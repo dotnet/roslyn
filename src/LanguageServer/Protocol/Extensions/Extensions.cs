@@ -308,14 +308,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public static ContainerElement ToLSPElement(this QuickInfoContainerElement element)
             => new((ContainerElementStyle)element.Style, element.Elements.Select(ToLSPElement));
 
-        private static object? ToLSPElement(QuickInfoElement value)
+        private static object ToLSPElement(QuickInfoElement value)
         {
             return value switch
             {
                 QuickInfoGlyphElement element => element.ToLSPElement(),
                 QuickInfoContainerElement element => element.ToLSPElement(),
                 QuickInfoClassifiedTextElement element => element.ToLSPElement(),
-
                 _ => value
             };
         }

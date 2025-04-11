@@ -26,6 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         ITypeSymbol ITypeSymbol.WithNullableAnnotation(CodeAnalysis.NullableAnnotation nullableAnnotation)
         {
+            if (UnderlyingTypeSymbol.IsExtension)
+            {
+                throw new System.NotSupportedException();
+            }
+
             if (NullableAnnotation == nullableAnnotation)
             {
                 return this;
@@ -143,6 +148,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         bool ITypeSymbol.IsTupleType => UnderlyingTypeSymbol.IsTupleType;
 
         bool ITypeSymbol.IsNativeIntegerType => UnderlyingTypeSymbol.IsNativeIntegerType;
+
+#nullable enable
+        bool ITypeSymbol.IsExtension => UnderlyingTypeSymbol.IsExtension;
+
+        IParameterSymbol? ITypeSymbol.ExtensionParameter => UnderlyingTypeSymbol.ExtensionParameter?.GetPublicSymbol();
+#nullable disable
 
         string ITypeSymbol.ToDisplayString(CodeAnalysis.NullableFlowState topLevelNullability, SymbolDisplayFormat format)
         {

@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
@@ -50,7 +49,9 @@ public class DiagnosticAnalyzerDriverTests
             SyntaxKind.RecordDeclaration,
             SyntaxKind.CollectionExpression,
             SyntaxKind.ExpressionElement,
-            SyntaxKind.SpreadElement
+            SyntaxKind.SpreadElement,
+            // Tracked by https://github.com/dotnet/roslyn/issues/76130 Add to all-in-one
+            SyntaxKind.ExtensionDeclaration,
         };
 
         var analyzer = new CSharpTrackingDiagnosticAnalyzer();

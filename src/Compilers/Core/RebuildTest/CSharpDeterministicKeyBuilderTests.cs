@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         public void VerifyUpToDate()
         {
             verifyCount<ParseOptions>(11);
-            verifyCount<CSharpParseOptions>(12);
+            verifyCount<CSharpParseOptions>(13);
             verifyCount<CompilationOptions>(63);
             verifyCount<CSharpCompilationOptions>(9);
 

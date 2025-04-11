@@ -641,6 +641,10 @@ internal enum FunctionId
     Copilot_Generate_Documentation_Accepted = 823,
     Copilot_Generate_Documentation_Canceled = 824,
 
+    Copilot_Implement_NotImplementedException_Fix_Registered = 830,
+    Copilot_Implement_NotImplementedException_Failed = 831,
+    Copilot_Implement_NotImplementedException_Completed = 832,
+
     Copilot_Rename = 851,
 
     VSCode_LanguageServer_Started = 860,

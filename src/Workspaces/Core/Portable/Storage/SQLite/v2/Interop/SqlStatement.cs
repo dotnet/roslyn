@@ -5,7 +5,6 @@
 using System;
 using System.Text;
 using Microsoft.CodeAnalysis.SQLite.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2.Interop;
 

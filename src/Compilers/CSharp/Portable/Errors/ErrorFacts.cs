@@ -2487,6 +2487,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_PartialMemberDuplicateImplementation
                 or ErrorCode.ERR_PartialEventInitializer
                 or ErrorCode.ERR_PartialConstructorInitializer
+                or ErrorCode.ERR_ExtensionDisallowsName
+                or ErrorCode.ERR_ExtensionDisallowsMember
+                or ErrorCode.ERR_BadExtensionContainingType
+                or ErrorCode.ERR_ExtensionParameterDisallowsDefaultValue
+                or ErrorCode.ERR_ReceiverParameterOnlyOne
+                or ErrorCode.ERR_ExtensionResolutionFailed
+                or ErrorCode.ERR_ReceiverParameterSameNameAsTypeParameter
+                or ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter
+                or ErrorCode.ERR_TypeParameterSameNameAsExtensionTypeParameter
+                or ErrorCode.ERR_LocalSameNameAsExtensionParameter
+                or ErrorCode.ERR_ValueParameterSameNameAsExtensionParameter
+                or ErrorCode.ERR_TypeParameterSameNameAsExtensionParameter
+                or ErrorCode.ERR_InvalidExtensionParameterReference
+                or ErrorCode.ERR_ValueParameterSameNameAsExtensionTypeParameter
+                or ErrorCode.ERR_UnderspecifiedExtension
+                or ErrorCode.ERR_ExpressionTreeContainsExtensionPropertyAccess
+                or ErrorCode.ERR_PPIgnoredFollowsToken
+                or ErrorCode.ERR_PPIgnoredNeedsFileBasedProgram
+                or ErrorCode.ERR_PPIgnoredFollowsIf
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal abstract class SynthesizedImplementationMethod : SynthesizedInstanceMethodSymbol
+    internal abstract class SynthesizedImplementationMethod : SynthesizedMethodSymbol
     {
         //inputs
         protected readonly MethodSymbol _interfaceMethod;

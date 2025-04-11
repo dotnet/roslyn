@@ -5,7 +5,6 @@
 using System;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.FileHeaders;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.FileHeaders;
 

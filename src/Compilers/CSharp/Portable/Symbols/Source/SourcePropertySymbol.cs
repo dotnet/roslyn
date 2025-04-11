@@ -576,9 +576,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add((this.IsIndexer ? ErrorCode.ERR_BadVisIndexerReturn : ErrorCode.ERR_BadVisPropertyType), Location, this, type.Type);
             }
 
-            if (type.Type.HasFileLocalTypes() && !ContainingType.HasFileLocalTypes())
+            if (type.Type.HasFileLocalTypes())
             {
-                diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, Location, type.Type, ContainingType);
+                NamedTypeSymbol containingType = ContainingType;
+                if (containingType is { IsExtension: true, ContainingType: { } enclosing })
+                {
+                    containingType = enclosing;
+                }
+
+                if (!containingType.HasFileLocalTypes())
+                {
+                    diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, Location, type.Type, containingType);
+                }
             }
 
             diagnostics.Add(Location, useSiteInfo);
@@ -652,20 +661,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
 
+            var containingTypeForFileTypeCheck = this.ContainingType;
+            if (containingTypeForFileTypeCheck is { IsExtension: true, ContainingType: { } enclosing })
+            {
+                containingTypeForFileTypeCheck = enclosing;
+            }
+
             foreach (ParameterSymbol param in Parameters)
             {
                 if (!IsExplicitInterfaceImplementation && !this.IsNoMoreVisibleThan(param.Type, ref useSiteInfo))
                 {
                     diagnostics.Add(ErrorCode.ERR_BadVisIndexerParam, Location, this, param.Type);
                 }
-                else if (param.Type.HasFileLocalTypes() && !this.ContainingType.HasFileLocalTypes())
+                else if (param.Type.HasFileLocalTypes() && !containingTypeForFileTypeCheck.HasFileLocalTypes())
                 {
-                    diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, Location, param.Type, this.ContainingType);
+                    diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, Location, param.Type, containingTypeForFileTypeCheck);
                 }
                 else if (SetMethod is object && param.Name == ParameterSymbol.ValueParameterName)
                 {
                     diagnostics.Add(ErrorCode.ERR_DuplicateGeneratedName, param.TryGetFirstLocation() ?? Location, param.Name);
                 }
+            }
+
+            if (SetMethod is { } setter && this.GetIsNewExtensionMember())
+            {
+                if (ContainingType.TypeParameters.Any(static tp => tp.Name == ParameterSymbol.ValueParameterName))
+                {
+                    diagnostics.Add(ErrorCode.ERR_ValueParameterSameNameAsExtensionTypeParameter, setter.GetFirstLocationOrNone());
+                }
+
+                if (ContainingType.ExtensionParameter is { Name: ParameterSymbol.ValueParameterName })
+                {
+                    diagnostics.Add(ErrorCode.ERR_ValueParameterSameNameAsExtensionParameter, setter.GetFirstLocationOrNone());
+                }
+            }
+
+            if (!IsStatic && this.GetIsNewExtensionMember() && ContainingType.ExtensionParameter is { } extensionParameter &&
+                !this.IsNoMoreVisibleThan(extensionParameter.Type, ref useSiteInfo))
+            {
+                diagnostics.Add(ErrorCode.ERR_BadVisIndexerParam, Location, this, extensionParameter.Type);
             }
 
             diagnostics.Add(Location, useSiteInfo);

@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -526,19 +525,34 @@ public partial class CodeGenerationTests
             CancellationToken.None);
     }
 
-    internal static async Task TestAddAttributeAsync(
+    internal static Task TestAddAttributeAsync(
         string initial,
         string expected,
         Type attributeClass,
         SyntaxToken? target = null)
     {
+        return TestAddAttributeAsync(initial, expected, (testContext) =>
+        {
+            var attr = CodeGenerationSymbolFactory.CreateAttributeData(GetTypeSymbol(attributeClass)(testContext.SemanticModel));
+            return attr;
+        }, target);
+    }
+
+    internal static async Task TestAddAttributeAsync(
+        string initial,
+        string expected,
+        Func<TestContext, AttributeData> attributeToGenerate,
+        SyntaxToken? target = null)
+    {
         using var testContext = await TestContext.CreateAsync(initial, expected);
-        var attr = CodeGenerationSymbolFactory.CreateAttributeData(GetTypeSymbol(attributeClass)(testContext.SemanticModel));
+
+        var attributeData = attributeToGenerate(testContext);
+
         var oldNode = testContext.GetDestinationNode();
         var codeGenerator = testContext.Document.GetRequiredLanguageService<ICodeGenerationService>();
         var options = await testContext.Document.GetCodeGenerationOptionsAsync(CancellationToken.None);
         var info = codeGenerator.GetInfo(CodeGenerationContext.Default, options, oldNode.SyntaxTree.Options);
-        var newNode = codeGenerator.AddAttributes(oldNode, [attr], target, info, CancellationToken.None)
+        var newNode = codeGenerator.AddAttributes(oldNode, [attributeData], target, info, CancellationToken.None)
                                    .WithAdditionalAnnotations(Formatter.Annotation);
         testContext.Result = testContext.Document.WithSyntaxRoot(testContext.SemanticModel.SyntaxTree.GetRoot().ReplaceNode(oldNode, newNode));
     }

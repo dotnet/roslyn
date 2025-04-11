@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -15,7 +13,7 @@ internal abstract partial class AbstractTypeInferenceService : ITypeInferenceSer
     protected abstract AbstractTypeInferrer CreateTypeInferrer(SemanticModel semanticModel, CancellationToken cancellationToken);
 
     private static ImmutableArray<ITypeSymbol> InferTypeBasedOnNameIfEmpty(
-        SemanticModel semanticModel, ImmutableArray<ITypeSymbol> result, string nameOpt)
+        SemanticModel semanticModel, ImmutableArray<ITypeSymbol> result, string? nameOpt)
     {
         if (result.IsEmpty && nameOpt != null)
         {
@@ -26,7 +24,7 @@ internal abstract partial class AbstractTypeInferenceService : ITypeInferenceSer
     }
 
     private static ImmutableArray<TypeInferenceInfo> InferTypeBasedOnNameIfEmpty(
-        SemanticModel semanticModel, ImmutableArray<TypeInferenceInfo> result, string nameOpt)
+        SemanticModel semanticModel, ImmutableArray<TypeInferenceInfo> result, string? nameOpt)
     {
         if (result.IsEmpty && nameOpt != null)
         {
@@ -80,7 +78,7 @@ internal abstract partial class AbstractTypeInferenceService : ITypeInferenceSer
 
     public ImmutableArray<ITypeSymbol> InferTypes(
         SemanticModel semanticModel, int position,
-        string nameOpt, CancellationToken cancellationToken)
+        string? nameOpt, CancellationToken cancellationToken)
     {
         var result = CreateTypeInferrer(semanticModel, cancellationToken)
             .InferTypes(position)
@@ -92,7 +90,7 @@ internal abstract partial class AbstractTypeInferenceService : ITypeInferenceSer
 
     public ImmutableArray<ITypeSymbol> InferTypes(
         SemanticModel semanticModel, SyntaxNode expression,
-        string nameOpt, CancellationToken cancellationToken)
+        string? nameOpt, CancellationToken cancellationToken)
     {
         var result = CreateTypeInferrer(semanticModel, cancellationToken)
             .InferTypes(expression)
@@ -104,7 +102,7 @@ internal abstract partial class AbstractTypeInferenceService : ITypeInferenceSer
 
     public ImmutableArray<TypeInferenceInfo> GetTypeInferenceInfo(
         SemanticModel semanticModel, int position,
-        string nameOpt, CancellationToken cancellationToken)
+        string? nameOpt, CancellationToken cancellationToken)
     {
         var result = CreateTypeInferrer(semanticModel, cancellationToken).InferTypes(position);
         return InferTypeBasedOnNameIfEmpty(semanticModel, result, nameOpt);
@@ -112,7 +110,7 @@ internal abstract partial class AbstractTypeInferenceService : ITypeInferenceSer
 
     public ImmutableArray<TypeInferenceInfo> GetTypeInferenceInfo(
         SemanticModel semanticModel, SyntaxNode expression,
-        string nameOpt, CancellationToken cancellationToken)
+        string? nameOpt, CancellationToken cancellationToken)
     {
         var result = CreateTypeInferrer(semanticModel, cancellationToken).InferTypes(expression);
         return InferTypeBasedOnNameIfEmpty(semanticModel, result, nameOpt);

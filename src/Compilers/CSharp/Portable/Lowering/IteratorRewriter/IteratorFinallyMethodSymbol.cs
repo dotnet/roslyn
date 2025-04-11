@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// NOTE: Finally is a private void nonvirtual instance method with no parameters. 
     ///       It is a valid JIT inlining target as long as JIT may consider inlining profitable.
     /// </summary>
-    internal sealed class IteratorFinallyMethodSymbol : SynthesizedInstanceMethodSymbol, ISynthesizedMethodBodyImplementationSymbol
+    internal sealed class IteratorFinallyMethodSymbol : SynthesizedMethodSymbol, ISynthesizedMethodBodyImplementationSymbol
     {
         private readonly IteratorStateMachine _stateMachineType;
         private readonly string _name;

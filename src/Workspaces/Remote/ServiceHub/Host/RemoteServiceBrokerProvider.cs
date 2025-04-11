@@ -8,7 +8,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.ServiceHub.Framework;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote.Host;
 

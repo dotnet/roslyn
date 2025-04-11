@@ -34,10 +34,11 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
         // See https://github.com/dotnet/sdk/blob/main/src/BuiltInTools/dotnet-watch/HotReload/CompilationHandler.cs#L125
 
         var source1 = "class C { void M() { System.Console.WriteLine(1); } }";
-        var source2 = "class C { void M() { System.Console.WriteLine(2); } }";
-        var source3 = "class C { void M<T>() { System.Console.WriteLine(2); } }";
-        var source4 = "class C { void M() { System.Console.WriteLine(2)/* missing semicolon */ }";
-        var source5 = "class C { void M() { Unknown(); } }";
+        var source2 = "class C { void M() { System.Console.WriteLine(2); /*2*/} }";
+        var source3 = "class C { void M() { System.Console.WriteLine(2); /*3*/} }";
+        var source4 = "class C { void M<T>() { System.Console.WriteLine(2); } }";
+        var source5 = "class C { void M() { System.Console.WriteLine(2)/* missing semicolon */ }";
+        var source6 = "class C { void M() { Unknown(); } }";
 
         var dir = Temp.CreateDirectory();
         var sourceFileA = dir.CreateFile("A.cs").WriteAllText(source1, Encoding.UTF8);
@@ -79,8 +80,28 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
         Assert.Equal(1, result.ProjectUpdates.Length);
         AssertEx.Equal([0x02000002], result.ProjectUpdates[0].UpdatedTypes);
 
-        // Rude edit:
+        // Insignificant change:
         solution = solution.WithDocumentText(documentIdA, CreateText(source3));
+
+        result = await hotReload.GetUpdatesAsync(solution, runningProjects: [], CancellationToken.None);
+        Assert.Empty(result.Diagnostics);
+        Assert.Empty(result.Diagnostics);
+        Assert.Empty(result.ProjectUpdates);
+        Assert.Equal(ModuleUpdateStatus.None, result.Status);
+
+        var updatedText = await ((EditAndContinueService)hotReload.GetTestAccessor().EncService)
+            .GetTestAccessor()
+            .GetActiveDebuggingSessions()
+            .Single()
+            .LastCommittedSolution
+            .GetRequiredProject(documentIdA.ProjectId)
+            .GetRequiredDocument(documentIdA)
+            .GetTextAsync();
+
+        Assert.Equal(source3, updatedText.ToString());
+
+        // Rude edit:
+        solution = solution.WithDocumentText(documentIdA, CreateText(source4));
 
         result = await hotReload.GetUpdatesAsync(solution, runningProjects: solution.ProjectIds.ToImmutableHashSet(), CancellationToken.None);
         AssertEx.Equal(
@@ -91,7 +112,7 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
         AssertEx.SetEqual(["P"], result.ProjectIdsToRebuild.Select(p => solution.GetRequiredProject(p).Name));
 
         // Syntax error:
-        solution = solution.WithDocumentText(documentIdA, CreateText(source4));
+        solution = solution.WithDocumentText(documentIdA, CreateText(source5));
 
         result = await hotReload.GetUpdatesAsync(solution, runningProjects: solution.ProjectIds.ToImmutableHashSet(), CancellationToken.None);
         AssertEx.Equal(
@@ -102,7 +123,7 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
         Assert.Empty(result.ProjectIdsToRebuild);
 
         // Semantic error:
-        solution = solution.WithDocumentText(documentIdA, CreateText(source5));
+        solution = solution.WithDocumentText(documentIdA, CreateText(source6));
 
         result = await hotReload.GetUpdatesAsync(solution, runningProjects: solution.ProjectIds.ToImmutableHashSet(), CancellationToken.None);
         AssertEx.Equal(

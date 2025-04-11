@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 
 namespace Roslyn.LanguageServer.Protocol;

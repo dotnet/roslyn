@@ -7,7 +7,6 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Windows.Controls;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 

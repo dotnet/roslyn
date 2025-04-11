@@ -2090,5 +2090,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             return _translatedImportsMap.GetOrAdd(chain, imports);
         }
+
+        public override void AddSynthesizedDefinition(NamedTypeSymbol container, Cci.INestedTypeDefinition nestedType)
+        {
+            Debug.Assert(container is not NamedTypeSymbol { IsExtension: true } || nestedType.GetInternalSymbol() is FixedFieldImplementationType);
+            base.AddSynthesizedDefinition(container, nestedType);
+        }
+
+        public override void AddSynthesizedDefinition(NamedTypeSymbol container, Cci.IFieldDefinition field)
+        {
+            Debug.Assert(container is not NamedTypeSymbol { IsExtension: true });
+            base.AddSynthesizedDefinition(container, field);
+        }
+
+        public override void AddSynthesizedDefinition(NamedTypeSymbol container, Cci.IMethodDefinition method)
+        {
+            Debug.Assert(container is not NamedTypeSymbol { IsExtension: true });
+            base.AddSynthesizedDefinition(container, method);
+        }
+
+        public override void AddSynthesizedDefinition(NamedTypeSymbol container, Cci.IPropertyDefinition property)
+        {
+            Debug.Assert(container is not NamedTypeSymbol { IsExtension: true });
+            base.AddSynthesizedDefinition(container, property);
+        }
     }
 }

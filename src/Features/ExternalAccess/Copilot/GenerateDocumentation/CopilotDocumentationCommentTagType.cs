@@ -9,9 +9,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot
     internal enum CopilotDocumentationCommentTagType
     {
         Summary = DocumentationCommentTagType.Summary,
+        Remarks = DocumentationCommentTagType.Remarks,
         TypeParam = DocumentationCommentTagType.TypeParam,
         Param = DocumentationCommentTagType.Param,
         Returns = DocumentationCommentTagType.Returns,
+        Value = DocumentationCommentTagType.Value,
         Exception = DocumentationCommentTagType.Exception,
     }
 }

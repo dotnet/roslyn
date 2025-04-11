@@ -7,15 +7,6 @@
   </PropertyGroup>
 
   <Target Name="Pack">
-    <!--
-        We have to run restore first with the PublishReadyToRun flag set to true to ensure that the correct crossgen packages get restored.
-        See https://github.com/dotnet/sdk/issues/20701
-
-        We also pass the RestoreUseStaticGraphEvaluation=false flag to workaround a long path issue when calling the restore target.
-        See https://github.com/NuGet/Home/issues/11968
-    -->
-    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Restore" Properties="PublishReadyToRun=$(_RoslynPublishReadyToRun);RestoreUseStaticGraphEvaluation=false" />
-
     <ItemGroup>
       <!-- Transform RuntimeIdentifiers property to item -->
       <RuntimeIdentifierForPack Include="$(RuntimeIdentifiers)" />
@@ -27,7 +18,19 @@
       </ProjectToPublish>
     </ItemGroup>
 
-    <MSBuild Projects="@(ProjectToPublish)" Targets="Pack" BuildInParallel="true" />
+    <!--
+      We have to run restore first with the PublishReadyToRun flag set to true to ensure that the correct crossgen packages get restored.
+      See https://github.com/dotnet/sdk/issues/20701
+
+      We also pass the RestoreUseStaticGraphEvaluation=false flag to workaround a long path issue when calling the restore target.
+      See https://github.com/NuGet/Home/issues/11968
+
+      We also pass the EnableRuntimePackDownload/EnableAppHostPackDownload flags to indicate we wish for this restore/pack to download
+      the required runtime/apphost packages as those will be needed during the pack.
+    -->
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Restore" Properties="EnableRuntimePackDownload=true;EnableAppHostPackDownload=true;PublishReadyToRun=$(_RoslynPublishReadyToRun);RestoreUseStaticGraphEvaluation=false" />
+
+    <MSBuild Projects="@(ProjectToPublish)" Targets="Pack" Properties="EnableRuntimePackDownload=true;EnableAppHostPackDownload=true" BuildInParallel="true" />
   </Target>
 
   <!--

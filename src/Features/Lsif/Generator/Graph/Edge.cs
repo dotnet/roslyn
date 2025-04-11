@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using Newtonsoft.Json;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
 {

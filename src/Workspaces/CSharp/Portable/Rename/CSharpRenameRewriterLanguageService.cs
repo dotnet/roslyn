@@ -399,17 +399,16 @@ internal sealed class CSharpRenameConflictLanguageService() : AbstractRenameRewr
 
                 var isMemberGroupReference = _semanticFactsService.IsInsideNameOfExpression(_semanticModel, token.Parent, _cancellationToken);
 
-                var renameAnnotation =
-                        new RenameActionAnnotation(
-                            token.Span,
-                            isRenameLocation,
-                            prefix,
-                            suffix,
-                            renameDeclarationLocations: renameDeclarationLocations,
-                            isOriginalTextLocation: isOldText,
-                            isNamespaceDeclarationReference: isNamespaceDeclarationReference,
-                            isInvocationExpression: false,
-                            isMemberGroupReference: isMemberGroupReference);
+                var renameAnnotation = new RenameActionAnnotation(
+                    token.Span,
+                    isRenameLocation,
+                    prefix,
+                    suffix,
+                    renameDeclarationLocations: renameDeclarationLocations,
+                    isOriginalTextLocation: isOldText,
+                    isNamespaceDeclarationReference: isNamespaceDeclarationReference,
+                    isInvocationExpression: false,
+                    isMemberGroupReference: isMemberGroupReference);
 
                 newToken = _renameAnnotations.WithAdditionalAnnotations(newToken, renameAnnotation, new RenameTokenSimplificationAnnotation() { OriginalTextSpan = token.Span });
 

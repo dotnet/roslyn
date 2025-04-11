@@ -724,7 +724,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 #nullable disable
 
-        public sealed override bool IsImplicitlyDeclared
+        public override bool IsImplicitlyDeclared
         {
             get
             {
@@ -801,33 +801,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((annotations & FlowAnalysisAnnotations.NotNull) != 0)
             {
                 AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(_property.NotNullAttributeIfExists));
-            }
-        }
-
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-
-            if (_isAutoPropertyAccessor)
-            {
-                var compilation = this.DeclaringCompilation;
-                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
-            }
-
-            if (!NotNullMembers.IsEmpty)
-            {
-                foreach (var attributeData in _property.MemberNotNullAttributeIfExists)
-                {
-                    AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(attributeData));
-                }
-            }
-
-            if (!NotNullWhenTrueMembers.IsEmpty || !NotNullWhenFalseMembers.IsEmpty)
-            {
-                foreach (var attributeData in _property.MemberNotNullWhenAttributeIfExists)
-                {
-                    AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(attributeData));
-                }
             }
         }
 

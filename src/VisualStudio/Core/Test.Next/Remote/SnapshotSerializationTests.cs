@@ -701,12 +701,13 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             return new AnalyzerFileReference(original, new MockShadowCopyAnalyzerAssemblyLoader(ImmutableDictionary<string, string>.Empty.Add(original, shadow.Path)));
         }
 
-        private class MissingAnalyzerLoader() : AnalyzerAssemblyLoader([])
+        private class MissingAnalyzerLoader() : IAnalyzerAssemblyLoader
         {
-            protected override string PreparePathToLoad(string fullPath)
-                => throw new FileNotFoundException(fullPath);
+            public void AddDependencyLocation(string fullPath)
+            {
+            }
 
-            protected override string PrepareSatelliteAssemblyToLoad(string fullPath, string cultureName)
+            public Assembly LoadFromPath(string fullPath)
                 => throw new FileNotFoundException(fullPath);
         }
 

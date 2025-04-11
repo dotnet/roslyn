@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod;
 
@@ -51,15 +50,15 @@ internal abstract class CSharpGenerateParameterizedMemberService<TService> : Abs
 
         protected override ImmutableArray<ITypeParameterSymbol> GetCapturedTypeParameters(CancellationToken cancellationToken)
         {
-            var result = new List<ITypeParameterSymbol>();
+            using var _ = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var result);
             var semanticModel = Document.SemanticModel;
             foreach (var argument in _invocationExpression.ArgumentList.Arguments)
             {
                 var type = argument.DetermineParameterType(semanticModel, cancellationToken);
-                type.GetReferencedTypeParameters(result);
+                type.AddReferencedTypeParameters(result);
             }
 
-            return [.. result];
+            return result.ToImmutableAndClear();
         }
 
         protected override ImmutableArray<ITypeParameterSymbol> GenerateTypeParameters(CancellationToken cancellationToken)

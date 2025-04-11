@@ -100,6 +100,7 @@ internal interface ISyntaxFacts
     bool SupportsIsNotTypeExpression(ParseOptions options);
     bool SupportsLocalFunctionDeclaration(ParseOptions options);
     bool SupportsNotPattern(ParseOptions options);
+    bool SupportsNullConditionalAssignment(ParseOptions options);
     bool SupportsRecord(ParseOptions options);
     bool SupportsRecordStruct(ParseOptions options);
     bool SupportsTargetTypedConditionalExpression(ParseOptions options);
@@ -419,8 +420,6 @@ internal interface ISyntaxFacts
 
     SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration);
 
-    // Violation.  This is a feature level API.
-    bool ContainsInMemberBody([NotNullWhen(true)] SyntaxNode? node, TextSpan span);
     // Violation.  This is a feature level API.
     TextSpan GetInactiveRegionSpanAroundPosition(SyntaxTree tree, int position, CancellationToken cancellationToken);
 

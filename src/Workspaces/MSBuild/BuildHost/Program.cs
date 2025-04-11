@@ -8,7 +8,6 @@ using System.CommandLine;
 using System.Globalization;
 using System.IO.Pipes;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 

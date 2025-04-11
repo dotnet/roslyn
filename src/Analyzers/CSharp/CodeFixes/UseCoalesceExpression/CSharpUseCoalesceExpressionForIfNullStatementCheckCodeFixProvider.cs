@@ -7,7 +7,6 @@ using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.UseCoalesceExpression;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCoalesceExpression;

@@ -75,7 +75,7 @@ internal static class IDocumentNavigationServiceExtensions
         // Navigation should not change the context of linked files and Shared Projects.
         documentId = workspace.GetDocumentIdInCurrentContext(documentId);
 
-        var document = workspace.CurrentSolution.GetDocument(documentId);
+        var document = workspace.CurrentSolution.GetTextDocument(documentId);
         if (document is null)
             return false;
 

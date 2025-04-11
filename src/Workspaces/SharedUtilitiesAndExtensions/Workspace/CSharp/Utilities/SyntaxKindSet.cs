@@ -85,6 +85,16 @@ internal class SyntaxKindSet
         SyntaxKind.RecordStructDeclaration,
     };
 
+    public static readonly ISet<SyntaxKind> NonEnumTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+    {
+        SyntaxKind.ClassDeclaration,
+        SyntaxKind.ExtensionDeclaration,
+        SyntaxKind.InterfaceDeclaration,
+        SyntaxKind.RecordDeclaration,
+        SyntaxKind.RecordStructDeclaration,
+        SyntaxKind.StructDeclaration,
+    };
+
     public static readonly ISet<SyntaxKind> ClassInterfaceRecordTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
     {
         SyntaxKind.InterfaceDeclaration,

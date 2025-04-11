@@ -616,6 +616,27 @@ public sealed class RawStringLiteralCommandHandlerTests
             """", withSpansOnly: true);
     }
 
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77724")]
+    public void TestGenerateWithInterpolatedString_TwoDollarSigns_InLocalFunction()
+    {
+        using var testState = RawStringLiteralTestState.CreateTestState(
+            """
+            void M()
+            {
+                var v = $$""[||]
+            }
+            """, withSpansOnly: true);
+
+        testState.SendTypeChar('"');
+        testState.AssertCodeIs(
+            """"
+            void M()
+            {
+                var v = $$"""[||]"""
+            }
+            """", withSpansOnly: true);
+    }
+
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/66538")]
     public void TestGenerateWithInterpolatedString_TwoDollarSigns_FourthDoubleQuote()
     {

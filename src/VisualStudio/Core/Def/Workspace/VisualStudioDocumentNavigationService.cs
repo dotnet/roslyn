@@ -189,35 +189,30 @@ internal sealed class VisualStudioDocumentNavigationService(
         documentId = workspace.GetDocumentIdInCurrentContext(documentId);
 
         var solution = workspace.CurrentSolution;
-        var document = solution.GetDocument(documentId);
-        if (document == null)
+        var textDocument = await solution.GetTextDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
+
+        if (textDocument is null)
         {
-            var project = solution.GetProject(documentId.ProjectId);
-            if (project is null)
-            {
-                // This is a source generated document shown in Solution Explorer, but is no longer valid since
-                // the configuration and/or platform changed since the last generation completed.
-                return null;
-            }
+            return null;
+        }
 
-            var generatedDocument = await project.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
-            if (generatedDocument == null)
-                return null;
-
+        if (textDocument is SourceGeneratedDocument generatedDocument)
+        {
             return _sourceGeneratedFileManager.Value.GetNavigationCallback(
                 generatedDocument,
                 await getTextSpanForMappingAsync(generatedDocument).ConfigureAwait(false));
         }
 
         // Before attempting to open the document, check if the location maps to a different file that should be opened instead.
-        var spanMappingService = document.DocumentServiceProvider.GetService<ISpanMappingService>();
-        if (spanMappingService != null)
+        if (textDocument is Document document &&
+            textDocument.DocumentServiceProvider.GetService<ISpanMappingService>() is ISpanMappingService spanMappingService)
         {
             var mappedSpanResult = await GetMappedSpanAsync(
                 spanMappingService,
                 document,
                 await getTextSpanForMappingAsync(document).ConfigureAwait(false),
                 cancellationToken).ConfigureAwait(false);
+
             if (mappedSpanResult is { IsDefault: false } mappedSpan)
             {
                 // Check if the mapped file matches one already in the workspace.

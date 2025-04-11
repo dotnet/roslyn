@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename;
 

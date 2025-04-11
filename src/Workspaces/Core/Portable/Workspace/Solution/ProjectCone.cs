@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Frozen;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 

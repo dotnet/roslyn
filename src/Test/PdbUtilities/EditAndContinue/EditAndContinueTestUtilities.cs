@@ -24,7 +24,7 @@ internal class EditAndContinueTestUtilities
             {
                 return module.Module.GetMethodBodyOrThrow(methodHandle)?.LocalSignature ?? default;
             }
-            catch (Exception e) when (e is BadImageFormatException || e is IOException)
+            catch (Exception e) when (e is BadImageFormatException or IOException)
             {
                 throw new InvalidDataException(e.Message, e);
             }

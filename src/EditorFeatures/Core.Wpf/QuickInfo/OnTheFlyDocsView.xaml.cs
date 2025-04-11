@@ -179,7 +179,8 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
 
         try
         {
-            var (responseString, isQuotaExceeded) = await copilotService.GetOnTheFlyDocsAsync(_onTheFlyDocsInfo.SymbolSignature, _onTheFlyDocsInfo.DeclarationCode, _onTheFlyDocsInfo.Language, cancellationToken).ConfigureAwait(false);
+            var prompt = await copilotService.GetOnTheFlyDocsPromptAsync(_onTheFlyDocsInfo, cancellationToken).ConfigureAwait(false);
+            var (responseString, isQuotaExceeded) = await copilotService.GetOnTheFlyDocsResponseAsync(prompt, cancellationToken).ConfigureAwait(false);
             var copilotRequestTime = stopwatch.Elapsed;
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

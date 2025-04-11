@@ -28,9 +28,9 @@ internal sealed partial class CSharpGenerateConversionService() :
     protected override bool IsImplicitConversionGeneration(SyntaxNode node)
     {
         return node is ExpressionSyntax &&
-                (node.Parent is AssignmentExpressionSyntax || node.Parent is EqualsValueClauseSyntax) &&
-                !(node is CastExpressionSyntax) &&
-                !(node is MemberAccessExpressionSyntax);
+                node.Parent is AssignmentExpressionSyntax or EqualsValueClauseSyntax &&
+                node is not CastExpressionSyntax &&
+                node is not MemberAccessExpressionSyntax;
     }
 
     protected override bool IsExplicitConversionGeneration(SyntaxNode node)

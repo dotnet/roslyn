@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.UseNullPropagation;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -20,7 +23,11 @@ using VerifyCS = CSharpCodeFixVerifier<
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
 public partial class UseNullPropagationTests
 {
-    private static async Task TestInRegularAndScript1Async(string testCode, string fixedCode, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
+    private static async Task TestInRegularAndScript1Async(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string testCode,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedCode,
+        OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary,
+        LanguageVersion languageVersion = LanguageVersion.CSharp9)
     {
         await new VerifyCS.Test
         {
@@ -30,7 +37,7 @@ public partial class UseNullPropagationTests
             // by just rewriting `x.Y` into `x?.Y`.  That is not correct.  the RHS of the `?` should `.Y()` not
             // `.Y`.
             CodeActionValidationMode = CodeActionValidationMode.None,
-            LanguageVersion = LanguageVersion.CSharp9,
+            LanguageVersion = languageVersion,
             TestState =
             {
                 OutputKind = outputKind,
@@ -38,7 +45,9 @@ public partial class UseNullPropagationTests
         }.RunAsync();
     }
 
-    private static async Task TestMissingInRegularAndScriptAsync(string testCode, LanguageVersion languageVersion = LanguageVersion.CSharp9)
+    private static async Task TestMissingInRegularAndScriptAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string testCode,
+        LanguageVersion languageVersion = LanguageVersion.CSharp9)
     {
         await new VerifyCS.Test
         {
@@ -2504,6 +2513,60 @@ public partial class UseNullPropagationTests
                 void M(byte? o)
                 {
                     object v = o;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNullConditionalAssignment1()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                int x;
+
+                void M(C c)
+                {
+                    [|if|] (c != null)
+                        c.x = 1;
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                int x;
+
+                void M(C c)
+                {
+                    c?.x = 1;
+                }
+            }
+            """,
+            languageVersion: LanguageVersionExtensions.CSharpNext);
+    }
+
+    [Fact]
+    public async Task TestNullConditionalAssignment2()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                int x;
+
+                void M(C c)
+                {
+                    if (c != null)
+                        c.x = 1;
                 }
             }
             """);

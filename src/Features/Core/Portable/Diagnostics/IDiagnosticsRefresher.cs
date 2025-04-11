@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
 /// <summary>
@@ -9,6 +11,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 /// </summary>
 internal interface IDiagnosticsRefresher
 {
+    event Action? WorkspaceRefreshRequested;
+
     /// <summary>
     /// Requests workspace diagnostics refresh.
     /// Any component that maintains state whose change may affect reported diagnostics should call <see cref="RequestWorkspaceRefresh"/> whenever that state changes.

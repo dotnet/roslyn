@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Roslyn.Utilities;
 using WindowsInput.Native;
 using Xunit;
 

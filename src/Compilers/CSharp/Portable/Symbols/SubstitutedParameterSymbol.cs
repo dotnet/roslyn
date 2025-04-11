@@ -24,6 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
         }
 
+        internal SubstitutedParameterSymbol(NamedTypeSymbol containingSymbol, TypeMap map, ParameterSymbol originalParameter) :
+            this((Symbol)containingSymbol, map, originalParameter)
+        {
+        }
+
         private SubstitutedParameterSymbol(Symbol containingSymbol, TypeMap map, ParameterSymbol originalParameter) :
             base(originalParameter)
         {

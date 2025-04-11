@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.SignatureHelp;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp;
 using Microsoft.CodeAnalysis.SignatureHelp;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests

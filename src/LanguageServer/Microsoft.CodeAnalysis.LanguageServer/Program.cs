@@ -181,7 +181,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     }
 }
 
-static CliRootCommand CreateCommandLineParser()
+static CliConfiguration CreateCommandLineParser()
 {
     var debugOption = new CliOption<bool>("--debug")
     {
@@ -277,6 +277,7 @@ static CliRootCommand CreateCommandLineParser()
         serverPipeNameOption,
         useStdIoOption
     };
+
     rootCommand.SetAction((parseResult, cancellationToken) =>
     {
         var launchDebugger = parseResult.GetValue(debugOption);
@@ -308,7 +309,16 @@ static CliRootCommand CreateCommandLineParser()
 
         return RunAsync(serverConfiguration, cancellationToken);
     });
-    return rootCommand;
+
+    var config = new CliConfiguration(rootCommand)
+    {
+        // By default, System.CommandLine will catch all exceptions, log them to the console, and return a non-zero exit code.
+        // Unfortunately this makes .NET's crash dump collection environment variables (e.g. 'DOTNET_DbgEnableMiniDump')
+        // entirely useless as it never detects an actual crash.  Disable this behavior so we can collect crash dumps when asked to.
+        EnableDefaultExceptionHandler = false
+    };
+
+    return config;
 }
 
 static (string clientPipe, string serverPipe) CreateNewPipeNames()

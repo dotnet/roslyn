@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         private NoOpLspLogger() { }
 
+        public override IDisposable? CreateContext(string context) => null;
+
         public override void LogDebug(string message, params object[] @params)
         {
         }
@@ -30,14 +32,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public override void LogError(string message, params object[] @params)
-        {
-        }
-
-        public override void LogStartContext(string message, params object[] @params)
-        {
-        }
-
-        public override void LogEndContext(string message, params object[] @params)
         {
         }
     }

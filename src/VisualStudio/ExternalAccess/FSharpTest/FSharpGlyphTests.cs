@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests

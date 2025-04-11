@@ -10258,6 +10258,17 @@ public class SubClass : BaseClass, IConflict
     }
 
     [Fact]
+    public void Method_Partial_DeleteDefinition()
+    {
+        var src1 = "partial class C { partial void F(); }";
+        var src2 = "partial class C { }";
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifySemantics();
+    }
+
+    [Fact]
     public void Method_Partial_DeleteBoth()
     {
         var srcA1 = "partial class C { partial void F(); }";
@@ -10269,8 +10280,7 @@ public class SubClass : BaseClass, IConflict
         EditAndContinueValidation.VerifySemantics(
             [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
             [
-                DocumentResults(
-                    semanticEdits: [SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C")]),
+                DocumentResults(),
                 DocumentResults(
                     semanticEdits: [SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C")]),
             ]);
@@ -11830,11 +11840,7 @@ record struct C(int x, int y)
                         SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                         SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
                     ]),
-                DocumentResults(
-                   semanticEdits:
-                   [
-                        SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C").PartialImplementationPart, deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C"),
-                   ]),
+                DocumentResults(),
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
     }
@@ -19301,12 +19307,7 @@ class C(int A, int B)
         EditAndContinueValidation.VerifySemantics(
             [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
             [
-                DocumentResults(
-                    semanticEdits:
-                    [
-                        SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IPropertySymbol>("C.P").PartialImplementationPart, deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C"),
-                        SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IMethodSymbol>("C.get_P").PartialImplementationPart, deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C")
-                    ]),
+                DocumentResults(),
                 DocumentResults(
                     semanticEdits:
                     [

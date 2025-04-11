@@ -14,7 +14,6 @@ using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using WindowsInput.Native;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;

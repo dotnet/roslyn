@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
@@ -21,13 +19,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 internal class MemberSelectionViewModel : AbstractNotifyPropertyChanged
 {
     private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
-    private readonly ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> _symbolToDependentsMap;
+    private readonly ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>>? _symbolToDependentsMap;
     private readonly ImmutableDictionary<ISymbol, MemberSymbolViewModel> _symbolToMemberViewMap;
 
     public MemberSelectionViewModel(
         IUIThreadOperationExecutor uiThreadOperationExecutor,
         ImmutableArray<MemberSymbolViewModel> members,
-        ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> dependentsMap,
+        ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>>? dependentsMap,
         TypeKind destinationTypeKind = TypeKind.Class,
         bool showDependentsButton = true,
         bool showPublicButton = true)
@@ -115,9 +113,10 @@ internal class MemberSelectionViewModel : AbstractNotifyPropertyChanged
                 showProgress: true,
                 context =>
                 {
-                    foreach (var member in Members)
+                    if (_symbolToDependentsMap != null)
                     {
-                        _symbolToDependentsMap[member.Symbol].Wait(context.UserCancellationToken);
+                        foreach (var member in Members)
+                            _symbolToDependentsMap[member.Symbol].Wait(context.UserCancellationToken);
                     }
                 });
 
@@ -180,11 +179,12 @@ internal class MemberSelectionViewModel : AbstractNotifyPropertyChanged
             var currentMember = queue.Dequeue();
             result.Add(currentMember);
             visited.Add(currentMember);
-            foreach (var dependent in _symbolToDependentsMap[currentMember].Result)
+            if (_symbolToDependentsMap != null)
             {
-                if (!visited.Contains(dependent))
+                foreach (var dependent in _symbolToDependentsMap[currentMember].Result)
                 {
-                    queue.Enqueue(dependent);
+                    if (!visited.Contains(dependent))
+                        queue.Enqueue(dependent);
                 }
             }
         }

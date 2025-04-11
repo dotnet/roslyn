@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -21,7 +19,7 @@ internal sealed class CSharpCommandLineParserService : ICommandLineParserService
     {
     }
 
-    public CommandLineArguments Parse(IEnumerable<string> arguments, string baseDirectory, bool isInteractive, string sdkDirectory)
+    public CommandLineArguments Parse(IEnumerable<string> arguments, string? baseDirectory, bool isInteractive, string? sdkDirectory)
     {
 #if SCRIPTING
         var parser = isInteractive ? CSharpCommandLineParser.Interactive : CSharpCommandLineParser.Default;

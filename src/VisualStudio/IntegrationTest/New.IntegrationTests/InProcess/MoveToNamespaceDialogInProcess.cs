@@ -14,7 +14,6 @@ using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 

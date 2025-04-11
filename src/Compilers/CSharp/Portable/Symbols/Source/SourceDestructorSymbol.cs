@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasBlockBody = syntax.Body != null;
             bool isExpressionBodied = IsExpressionBodied;
 
-            if (syntax.Identifier.ValueText != containingType.Name)
+            if (syntax.Identifier.ValueText != containingType.Name && !containingType.IsExtension)
             {
                 diagnostics.Add(ErrorCode.ERR_BadDestructorName, syntax.Identifier.GetLocation());
             }

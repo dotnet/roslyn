@@ -23,6 +23,11 @@ namespace Roslyn.Test.Utilities
 {
     public static class TestHelpers
     {
+        /// <summary>
+        /// A long timeout used to avoid hangs in tests, where a test failure manifests as an operation never occurring.
+        /// </summary>
+        public static readonly TimeSpan HangMitigatingTimeout = TimeSpan.FromMinutes(4);
+
         public static ImmutableDictionary<K, V> CreateImmutableDictionary<K, V>(
             IEqualityComparer<K> comparer,
             params (K, V)[] entries)

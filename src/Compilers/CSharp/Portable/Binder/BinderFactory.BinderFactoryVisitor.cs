@@ -781,6 +781,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 resultBinder = new WithClassTypeParametersBinder(typeSymbol, resultBinder);
                             }
+
+                            if (typeSymbol.IsExtension)
+                            {
+                                resultBinder = new WithExtensionParameterBinder(typeSymbol, resultBinder);
+                            }
                         }
                     }
 
@@ -808,6 +813,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public override Binder VisitRecordDeclaration(RecordDeclarationSyntax node)
+                => VisitTypeDeclarationCore(node);
+
+            public override Binder VisitExtensionDeclaration(ExtensionDeclarationSyntax node)
                 => VisitTypeDeclarationCore(node);
 
             public sealed override Binder VisitNamespaceDeclaration(NamespaceDeclarationSyntax parent)

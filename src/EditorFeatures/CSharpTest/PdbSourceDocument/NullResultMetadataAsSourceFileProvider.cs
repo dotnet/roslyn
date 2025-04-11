@@ -7,7 +7,6 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.PdbSourceDocument;
@@ -26,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument;
 internal class NullResultMetadataAsSourceFileProvider : IMetadataAsSourceFileProvider
 {
     // Represents a null result
-    public static MetadataAsSourceFile NullResult = new("", null, null, null);
+    public static MetadataAsSourceFile NullResult = new("", null!, null!, null!);
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

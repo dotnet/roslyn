@@ -30,7 +30,7 @@ namespace Roslyn.LanguageServer.Protocol
 
             set
             {
-                if (value is ImageElement || value is ContainerElement || value is ClassifiedTextElement || value is string)
+                if (value is ImageElement or ContainerElement or ClassifiedTextElement or string)
                 {
                     this.textValue = value;
                 }

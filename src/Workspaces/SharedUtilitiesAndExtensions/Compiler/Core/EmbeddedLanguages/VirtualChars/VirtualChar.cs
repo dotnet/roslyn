@@ -5,7 +5,6 @@
 using System;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 

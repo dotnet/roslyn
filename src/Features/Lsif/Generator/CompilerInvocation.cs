@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             var commandLineParserService = languageServices.GetRequiredService<ICommandLineParserService>();
             var parsedCommandLine = commandLineParserService.Parse(splitCommandLine, Path.GetDirectoryName(invocationInfo.ProjectFilePath), isInteractive: false, sdkDirectory: null);
 
-            var analyzerLoader = new DefaultAnalyzerAssemblyLoader();
+            var analyzerLoader = new AnalyzerAssemblyLoader();
 
             var projectId = ProjectId.CreateNewId(invocationInfo.ProjectFilePath);
 
