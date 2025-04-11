@@ -19,7 +19,7 @@ using VerifyCS = CSharpCodeRefactoringVerifier<CSharpAddParameterCheckCodeRefact
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-public class AddParameterCheckTests
+public sealed class AddParameterCheckTests
 {
     [Fact]
     public async Task TestEmptyFile()

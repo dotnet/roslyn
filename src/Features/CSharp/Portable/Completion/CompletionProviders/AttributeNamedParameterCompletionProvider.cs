@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 [ExportCompletionProvider(nameof(AttributeNamedParameterCompletionProvider), LanguageNames.CSharp)]
 [ExtensionOrder(After = nameof(FirstBuiltInCompletionProvider))]
 [Shared]
-internal class AttributeNamedParameterCompletionProvider : LSPCompletionProvider
+internal sealed class AttributeNamedParameterCompletionProvider : LSPCompletionProvider
 {
     private const string EqualsString = "=";
     private const string SpaceEqualsString = " =";

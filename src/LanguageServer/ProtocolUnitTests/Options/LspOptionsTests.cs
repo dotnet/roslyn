@@ -15,7 +15,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Options.UnitTests;
 
-public class LspOptionsTests(ITestOutputHelper? testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
+public sealed class LspOptionsTests(ITestOutputHelper? testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
     protected override TestComposition Composition => LspTestCompositions.LanguageServerProtocol
         .AddParts(typeof(TestDocumentTrackingService))

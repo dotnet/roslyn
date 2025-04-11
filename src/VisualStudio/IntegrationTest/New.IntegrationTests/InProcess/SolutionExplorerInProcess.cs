@@ -30,7 +30,7 @@ using VSProject3 = VSLangProj140.VSProject3;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing;
 
-internal partial class SolutionExplorerInProcess
+internal sealed partial class SolutionExplorerInProcess
 {
     public async Task CreateSolutionAsync(string solutionName, CancellationToken cancellationToken)
     {

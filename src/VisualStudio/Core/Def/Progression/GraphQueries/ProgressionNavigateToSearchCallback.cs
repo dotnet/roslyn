@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
 
 internal sealed partial class SearchGraphQuery
 {
-    private class ProgressionNavigateToSearchCallback : INavigateToSearchCallback
+    private sealed class ProgressionNavigateToSearchCallback : INavigateToSearchCallback
     {
         private readonly Solution _solution;
         private readonly IGraphContext _context;

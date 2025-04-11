@@ -8,11 +8,10 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.InteractiveWindow;
 
-namespace Microsoft.CodeAnalysis.Interactive
+namespace Microsoft.CodeAnalysis.Interactive;
+
+internal interface IResettableInteractiveEvaluator : IInteractiveEvaluator
 {
-    internal interface IResettableInteractiveEvaluator : IInteractiveEvaluator
-    {
-        InteractiveEvaluatorResetOptions ResetOptions { get; set; }
-        Task SetPathsAsync(ImmutableArray<string> referenceSearchPaths, ImmutableArray<string> sourceSearchPaths, string workingDirectory);
-    }
+    InteractiveEvaluatorResetOptions ResetOptions { get; set; }
+    Task SetPathsAsync(ImmutableArray<string> referenceSearchPaths, ImmutableArray<string> sourceSearchPaths, string workingDirectory);
 }

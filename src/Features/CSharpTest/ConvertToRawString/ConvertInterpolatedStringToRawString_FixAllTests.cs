@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertToRawString)]
 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-public class ConvertInterpolatedStringToRawString_FixAllTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class ConvertInterpolatedStringToRawString_FixAllTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new ConvertStringToRawStringCodeRefactoringProvider();

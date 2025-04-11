@@ -16,7 +16,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpForEachCastDiagnosticAnalyzer,
     CSharpForEachCastCodeFixProvider>;
 
-public class ForEachCastTests
+public sealed class ForEachCastTests
 {
     private static async Task TestWorkerAsync(
         string testCode, string fixedCode, string optionValue, ReferenceAssemblies? referenceAssemblies)

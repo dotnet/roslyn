@@ -111,7 +111,7 @@ internal sealed class HACK_TextUndoTransactionThatRollsBackProperly(ITextUndoTra
     public void Undo()
         => _innerTransaction.Undo();
 
-    private class RollbackDetectingUndoPrimitive : ITextUndoPrimitive
+    private sealed class RollbackDetectingUndoPrimitive : ITextUndoPrimitive
     {
         internal bool UndoCalled = false;
 

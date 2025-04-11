@@ -4,14 +4,15 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
@@ -147,6 +148,7 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
         {
             var service = GetService();
 
+            var firstProject = solution.GetProject(runningProjects.FirstOrDefault()) ?? solution.Projects.First();
             try
             {
                 return (await service.EmitSolutionUpdateAsync(sessionId, solution, runningProjects, CreateActiveStatementSpanProvider(callbackId), cancellationToken).ConfigureAwait(false)).Dehydrate();
@@ -156,7 +158,7 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
                 return new EmitSolutionUpdateResults.Data()
                 {
                     ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Blocked, []),
-                    Diagnostics = GetUnexpectedUpdateError(solution, e),
+                    Diagnostics = GetUnexpectedUpdateError(firstProject, e.Message),
                     RudeEdits = [],
                     SyntaxError = null,
                     ProjectsToRebuild = [],
@@ -164,13 +166,13 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
                 };
             }
         }, cancellationToken);
-    }
 
-    private static ImmutableArray<DiagnosticData> GetUnexpectedUpdateError(Solution solution, Exception e)
-    {
-        var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.CannotApplyChangesUnexpectedError);
-        var diagnostic = Diagnostic.Create(descriptor, Location.None, [e.Message]);
-        return [DiagnosticData.Create(solution, diagnostic, project: null)];
+        static ImmutableArray<DiagnosticData> GetUnexpectedUpdateError(Project project, string message)
+        {
+            var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.CannotApplyChangesUnexpectedError);
+            var diagnostic = Diagnostic.Create(descriptor, Location.None, [message]);
+            return [DiagnosticData.Create(diagnostic, project)];
+        }
     }
 
     /// <summary>

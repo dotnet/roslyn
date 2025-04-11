@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 [ContentType(ContentTypeNames.RoslynContentType)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class CommitManagerProvider(
+internal sealed class CommitManagerProvider(
     IThreadingContext threadingContext,
     RecentItemsManager recentItemsManager,
     IGlobalOptionService globalOptions,

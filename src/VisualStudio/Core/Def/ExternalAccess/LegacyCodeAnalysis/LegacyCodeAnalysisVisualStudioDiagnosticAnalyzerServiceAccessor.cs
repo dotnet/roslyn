@@ -12,21 +12,15 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis;
 
-[Export(typeof(ILegacyCodeAnalysisVisualStudioDiagnosticAnalyzerServiceAccessor))]
-[Shared]
-internal sealed class LegacyCodeAnalysisVisualStudioDiagnosticAnalyzerServiceAccessor
+[Export(typeof(ILegacyCodeAnalysisVisualStudioDiagnosticAnalyzerServiceAccessor)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class LegacyCodeAnalysisVisualStudioDiagnosticAnalyzerServiceAccessor(IVisualStudioDiagnosticAnalyzerService implementation)
     : ILegacyCodeAnalysisVisualStudioDiagnosticAnalyzerServiceAccessor
 {
-    private readonly IVisualStudioDiagnosticAnalyzerService _implementation;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public LegacyCodeAnalysisVisualStudioDiagnosticAnalyzerServiceAccessor(IVisualStudioDiagnosticAnalyzerService implementation)
-        => _implementation = implementation;
-
     public IReadOnlyDictionary<string, IEnumerable<DiagnosticDescriptor>> GetAllDiagnosticDescriptors(IVsHierarchy hierarchyOpt)
-        => _implementation.GetAllDiagnosticDescriptors(hierarchyOpt);
+        => implementation.GetAllDiagnosticDescriptors(hierarchyOpt);
 
     public void RunAnalyzers(IVsHierarchy hierarchyOpt)
-        => _implementation.RunAnalyzers(hierarchyOpt);
+        => implementation.RunAnalyzers(hierarchyOpt);
 }

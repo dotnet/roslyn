@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Notification;
 [Export(typeof(IGlobalOperationNotificationService)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class VisualStudioGlobalOperationNotificationService(
+internal sealed partial class VisualStudioGlobalOperationNotificationService(
     IThreadingContext threadingContext,
     IAsynchronousOperationListenerProvider listenerProvider)
     : AbstractGlobalOperationNotificationService(listenerProvider, threadingContext.DisposalToken);

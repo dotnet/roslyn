@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal class DidChangeNotebookDocumentParams
+internal sealed class DidChangeNotebookDocumentParams
 {
     /// <summary>
     /// The notebook document that did change. The version number points

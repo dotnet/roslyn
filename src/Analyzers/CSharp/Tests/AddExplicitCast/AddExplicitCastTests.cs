@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddExplicitCast;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
-public partial class AddExplicitCastTests(ITestOutputHelper logger)
+public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
     : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
     internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)

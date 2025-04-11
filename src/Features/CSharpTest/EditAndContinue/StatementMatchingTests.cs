@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
 
 [UseExportProvider]
-public class StatementMatchingTests : EditingTestBase
+public sealed class StatementMatchingTests : EditingTestBase
 {
     #region Known Matches
 

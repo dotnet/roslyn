@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics;
 /// should take care of that.
 /// </summary>
 /// <threadsafety static="false" instance="false"/>
-internal class PerformanceQueue
+internal sealed class PerformanceQueue
 {
     private readonly int _maxSampleSize, _minSampleSize;
     private readonly LinkedList<Snapshot> _snapshots;
@@ -122,7 +122,7 @@ internal class PerformanceQueue
         return (average, stddev / squareLength);
     }
 
-    private class Snapshot
+    private sealed class Snapshot
     {
         /// <summary>
         /// Raw performance data. 
@@ -184,7 +184,7 @@ internal class PerformanceQueue
     /// <summary>
     /// Assign unique number to diagnostic analyzers
     /// </summary>
-    private class AnalyzerNumberAssigner
+    private sealed class AnalyzerNumberAssigner
     {
         public static readonly AnalyzerNumberAssigner Instance = new AnalyzerNumberAssigner();
 

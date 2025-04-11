@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview;
 internal partial class PreviewUpdater
 {
     // internal for testing
-    internal class PreviewDialogWorkspace : PreviewWorkspace
+    internal sealed class PreviewDialogWorkspace : PreviewWorkspace
     {
         public PreviewDialogWorkspace(Solution solution) : base(solution)
         {

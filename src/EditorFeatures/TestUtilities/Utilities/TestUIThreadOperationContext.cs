@@ -4,13 +4,12 @@
 
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
+
+internal sealed class TestUIThreadOperationContext : AbstractUIThreadOperationContext
 {
-    internal class TestUIThreadOperationContext : AbstractUIThreadOperationContext
+    public TestUIThreadOperationContext()
+        : base(allowCancellation: false, defaultDescription: "")
     {
-        public TestUIThreadOperationContext()
-            : base(allowCancellation: false, defaultDescription: "")
-        {
-        }
     }
 }

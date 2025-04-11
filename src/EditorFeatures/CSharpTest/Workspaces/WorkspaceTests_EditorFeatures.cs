@@ -29,7 +29,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests.Workspaces;
 
 [UseExportProvider]
-public class WorkspaceTests_EditorFeatures : TestBase
+public sealed class WorkspaceTests_EditorFeatures : TestBase
 {
     private static EditorTestWorkspace CreateWorkspace(
         string workspaceKind = null,

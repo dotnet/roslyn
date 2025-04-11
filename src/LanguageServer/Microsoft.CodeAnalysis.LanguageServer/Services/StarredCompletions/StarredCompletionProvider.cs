@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 namespace Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
 
 [ExportCompletionProvider("CSharpStarredCompletionProvider", LanguageNames.CSharp), Shared]
-internal class StarredCompletionProvider : CompletionProvider
+internal sealed class StarredCompletionProvider : CompletionProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -17,7 +17,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.CompletionSetSources;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class GlobalAssemblyCacheCompletionHelperTests
+public sealed class GlobalAssemblyCacheCompletionHelperTests
 {
     [ConditionalFact(typeof(WindowsOnly))]
     public void ExistingReference()

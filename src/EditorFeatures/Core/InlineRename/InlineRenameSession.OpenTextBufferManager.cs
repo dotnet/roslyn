@@ -23,12 +23,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
-internal partial class InlineRenameSession
+internal sealed partial class InlineRenameSession
 {
     /// <summary>
     /// Manages state for open text buffers.
     /// </summary>
-    internal class OpenTextBufferManager
+    internal sealed class OpenTextBufferManager
     {
         private static readonly object s_propagateSpansEditTag = new();
         private static readonly object s_calculateMergedSpansEditTag = new();

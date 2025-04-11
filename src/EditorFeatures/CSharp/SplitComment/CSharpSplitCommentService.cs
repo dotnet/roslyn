@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment;
 
 [ExportLanguageService(typeof(ISplitCommentService), LanguageNames.CSharp), Shared]
-internal class CSharpSplitCommentService : ISplitCommentService
+internal sealed class CSharpSplitCommentService : ISplitCommentService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

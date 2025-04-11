@@ -294,12 +294,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureOverloadResolutionPriority = MessageBase + 12848,
 
         IDS_FeatureFirstClassSpan = MessageBase + 12849,
+
         IDS_FeatureUnboundGenericTypesInNameof = MessageBase + 12850,
         IDS_FeatureSimpleLambdaParameterModifiers = MessageBase + 12851,
 
         IDS_FeaturePartialEventsAndConstructors = MessageBase + 12852,
-
         IDS_FeatureExtensions = MessageBase + 12853,
+        IDS_FeatureNullConditionalAssignment = MessageBase + 12854,
+        IDS_FeatureExpressionOptionalAndNamedArguments = MessageBase + 12855,
 
         IDS_FeatureUserDefinedCompoundAssignmentOperators = MessageBase + 12901, // PROTOTYPE: Pack numbers
     }
@@ -488,6 +490,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureSimpleLambdaParameterModifiers:
                 case MessageID.IDS_FeaturePartialEventsAndConstructors:
                 case MessageID.IDS_FeatureExtensions:
+                case MessageID.IDS_FeatureNullConditionalAssignment:
+                case MessageID.IDS_FeatureExpressionOptionalAndNamedArguments:
                 case MessageID.IDS_FeatureUserDefinedCompoundAssignmentOperators:
                     return LanguageVersion.Preview;
 

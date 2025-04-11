@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
-public class InteractiveBraceHighlightingTests
+public sealed class InteractiveBraceHighlightingTests
 {
     private static IEnumerable<T> Enumerable<T>(params T[] array)
         => array;
