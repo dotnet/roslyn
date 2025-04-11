@@ -8,25 +8,24 @@ using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeFixes
+namespace Microsoft.CodeAnalysis.CodeFixes;
+
+internal sealed partial class CodeFixService
 {
-    internal partial class CodeFixService
+    private sealed class FixAllPredefinedDiagnosticProvider : FixAllContext.DiagnosticProvider
     {
-        private class FixAllPredefinedDiagnosticProvider : FixAllContext.DiagnosticProvider
-        {
-            private readonly ImmutableArray<Diagnostic> _diagnostics;
+        private readonly ImmutableArray<Diagnostic> _diagnostics;
 
-            public FixAllPredefinedDiagnosticProvider(ImmutableArray<Diagnostic> diagnostics)
-                => _diagnostics = diagnostics;
+        public FixAllPredefinedDiagnosticProvider(ImmutableArray<Diagnostic> diagnostics)
+            => _diagnostics = diagnostics;
 
-            public override Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken)
-                => Task.FromResult<IEnumerable<Diagnostic>>(_diagnostics);
+        public override Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken)
+            => Task.FromResult<IEnumerable<Diagnostic>>(_diagnostics);
 
-            public override Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
-                => Task.FromResult<IEnumerable<Diagnostic>>(_diagnostics);
+        public override Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
+            => Task.FromResult<IEnumerable<Diagnostic>>(_diagnostics);
 
-            public override Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project, CancellationToken cancellationToken)
-                => SpecializedTasks.EmptyEnumerable<Diagnostic>();
-        }
+        public override Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project, CancellationToken cancellationToken)
+            => SpecializedTasks.EmptyEnumerable<Diagnostic>();
     }
 }

@@ -123,9 +123,6 @@
   <data name="Automatic_insertion_of_Interface_and_MustOverride_members" xml:space="preserve">
     <value>Automatic _insertion of Interface and MustOverride members</value>
   </data>
-  <data name="Don_t_put_ByRef_on_custom_structure" xml:space="preserve">
-    <value>_Don't put ByRef on custom structure</value>
-  </data>
   <data name="A_utomatic_insertion_of_end_constructs" xml:space="preserve">
     <value>A_utomatic insertion of end constructs</value>
   </data>

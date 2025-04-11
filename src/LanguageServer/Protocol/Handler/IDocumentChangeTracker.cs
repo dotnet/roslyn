@@ -21,7 +21,7 @@ internal interface IDocumentChangeTracker
     ValueTask StopTrackingAsync(Uri documentUri, CancellationToken cancellationToken);
 }
 
-internal class NonMutatingDocumentChangeTracker : IDocumentChangeTracker
+internal sealed class NonMutatingDocumentChangeTracker : IDocumentChangeTracker
 {
     public ValueTask StartTrackingAsync(Uri documentUri, SourceText initialText, string languageId, CancellationToken cancellationToken)
     {

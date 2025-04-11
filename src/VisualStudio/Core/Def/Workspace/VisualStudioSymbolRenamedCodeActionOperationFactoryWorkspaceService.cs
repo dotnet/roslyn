@@ -40,7 +40,7 @@ internal sealed class VisualStudioSymbolRenamedCodeActionOperationFactoryWorkspa
             updatedSolution ?? throw new ArgumentNullException(nameof(updatedSolution)));
     }
 
-    private class RenameSymbolOperation : CodeActionOperation
+    private sealed class RenameSymbolOperation : CodeActionOperation
     {
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
         private readonly ISymbol _symbol;

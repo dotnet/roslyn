@@ -38,10 +38,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Get
         End Property
 
-        Public Overrides Function GetActiveTokens() As IEnumerable(Of SyntaxToken)
+        Public Overrides Function GetActiveTokens(getDescendantTokens As Func(Of SyntaxNode, IEnumerable(Of SyntaxToken))) As IEnumerable(Of SyntaxToken)
             ' Property: Attributes Modifiers [|Identifier$ Initializer|] ImplementsClause
             Return SpecializedCollections.SingletonEnumerable(PropertyStatement.Identifier).Concat(
-                    If(PropertyStatement.AsClause?.DescendantTokens(), Array.Empty(Of SyntaxToken))).Concat(PropertyStatement.Initializer.DescendantTokens())
+                    If(PropertyStatement.AsClause IsNot Nothing, getDescendantTokens(PropertyStatement.AsClause), Array.Empty(Of SyntaxToken))).
+                        Concat(getDescendantTokens(PropertyStatement.Initializer))
+        End Function
+
+        Public Overrides Function GetUserCodeTokens(getDescendantTokens As Func(Of SyntaxNode, IEnumerable(Of SyntaxToken))) As IEnumerable(Of SyntaxToken)
+            Return getDescendantTokens(PropertyStatement.Initializer.Value)
         End Function
     End Class
 End Namespace

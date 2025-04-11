@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -20,9 +21,9 @@ internal abstract partial class AbstractGenerateMethodService<TService, TSimpleN
 {
     protected abstract bool IsSimpleNameGeneration(SyntaxNode node);
     protected abstract bool IsExplicitInterfaceGeneration(SyntaxNode node);
-    protected abstract bool TryInitializeExplicitInterfaceState(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken, out SyntaxToken identifierToken, out IMethodSymbol methodSymbol, out INamedTypeSymbol typeToGenerateIn);
-    protected abstract bool TryInitializeSimpleNameState(SemanticDocument document, TSimpleNameSyntax simpleName, CancellationToken cancellationToken, out SyntaxToken identifierToken, out TExpressionSyntax simpleNameOrMemberAccessExpression, out TInvocationExpressionSyntax invocationExpressionOpt, out bool isInConditionalExpression);
-    protected abstract ITypeSymbol DetermineReturnTypeForSimpleNameOrMemberAccessExpression(ITypeInferenceService typeInferenceService, SemanticModel semanticModel, TExpressionSyntax expression, CancellationToken cancellationToken);
+    protected abstract bool TryInitializeExplicitInterfaceState(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken, out SyntaxToken identifierToken, [NotNullWhen(true)] out IMethodSymbol? methodSymbol, [NotNullWhen(true)] out INamedTypeSymbol? typeToGenerateIn);
+    protected abstract bool TryInitializeSimpleNameState(SemanticDocument document, TSimpleNameSyntax simpleName, CancellationToken cancellationToken, out SyntaxToken identifierToken, [NotNullWhen(true)] out TExpressionSyntax? simpleNameOrMemberAccessExpression, out TInvocationExpressionSyntax? invocationExpressionOpt, out bool isInConditionalExpression);
+    protected abstract ITypeSymbol? DetermineReturnTypeForSimpleNameOrMemberAccessExpression(ITypeInferenceService typeInferenceService, SemanticModel semanticModel, TExpressionSyntax expression, CancellationToken cancellationToken);
 
     public async Task<ImmutableArray<CodeAction>> GenerateMethodAsync(
         Document document,

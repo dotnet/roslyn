@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal class CallHierarchyRegistrationOptions : CallHierarchyOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
+internal sealed class CallHierarchyRegistrationOptions : CallHierarchyOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
 {
     /// <summary>
     /// A document selector to identify the scope of the registration. If set to

@@ -26604,6 +26604,114 @@ internal sealed partial class ShebangDirectiveTriviaSyntax : DirectiveTriviaSynt
         => new ShebangDirectiveTriviaSyntax(this.Kind, this.hashToken, this.exclamationToken, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
 }
 
+internal sealed partial class IgnoredDirectiveTriviaSyntax : DirectiveTriviaSyntax
+{
+    internal readonly SyntaxToken hashToken;
+    internal readonly SyntaxToken colonToken;
+    internal readonly SyntaxToken? content;
+    internal readonly SyntaxToken endOfDirectiveToken;
+    internal readonly bool isActive;
+
+    internal IgnoredDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken colonToken, SyntaxToken? content, SyntaxToken endOfDirectiveToken, bool isActive, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+      : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 4;
+        this.AdjustFlagsAndWidth(hashToken);
+        this.hashToken = hashToken;
+        this.AdjustFlagsAndWidth(colonToken);
+        this.colonToken = colonToken;
+        if (content != null)
+        {
+            this.AdjustFlagsAndWidth(content);
+            this.content = content;
+        }
+        this.AdjustFlagsAndWidth(endOfDirectiveToken);
+        this.endOfDirectiveToken = endOfDirectiveToken;
+        this.isActive = isActive;
+    }
+
+    internal IgnoredDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken colonToken, SyntaxToken? content, SyntaxToken endOfDirectiveToken, bool isActive, SyntaxFactoryContext context)
+      : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 4;
+        this.AdjustFlagsAndWidth(hashToken);
+        this.hashToken = hashToken;
+        this.AdjustFlagsAndWidth(colonToken);
+        this.colonToken = colonToken;
+        if (content != null)
+        {
+            this.AdjustFlagsAndWidth(content);
+            this.content = content;
+        }
+        this.AdjustFlagsAndWidth(endOfDirectiveToken);
+        this.endOfDirectiveToken = endOfDirectiveToken;
+        this.isActive = isActive;
+    }
+
+    internal IgnoredDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken colonToken, SyntaxToken? content, SyntaxToken endOfDirectiveToken, bool isActive)
+      : base(kind)
+    {
+        this.SlotCount = 4;
+        this.AdjustFlagsAndWidth(hashToken);
+        this.hashToken = hashToken;
+        this.AdjustFlagsAndWidth(colonToken);
+        this.colonToken = colonToken;
+        if (content != null)
+        {
+            this.AdjustFlagsAndWidth(content);
+            this.content = content;
+        }
+        this.AdjustFlagsAndWidth(endOfDirectiveToken);
+        this.endOfDirectiveToken = endOfDirectiveToken;
+        this.isActive = isActive;
+    }
+
+    public override SyntaxToken HashToken => this.hashToken;
+    public SyntaxToken ColonToken => this.colonToken;
+    public SyntaxToken? Content => this.content;
+    public override SyntaxToken EndOfDirectiveToken => this.endOfDirectiveToken;
+    public override bool IsActive => this.isActive;
+
+    internal override GreenNode? GetSlot(int index)
+        => index switch
+        {
+            0 => this.hashToken,
+            1 => this.colonToken,
+            2 => this.content,
+            3 => this.endOfDirectiveToken,
+            _ => null,
+        };
+
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.IgnoredDirectiveTriviaSyntax(this, parent, position);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIgnoredDirectiveTrivia(this);
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitIgnoredDirectiveTrivia(this);
+
+    public IgnoredDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken colonToken, SyntaxToken content, SyntaxToken endOfDirectiveToken, bool isActive)
+    {
+        if (hashToken != this.HashToken || colonToken != this.ColonToken || content != this.Content || endOfDirectiveToken != this.EndOfDirectiveToken)
+        {
+            var newNode = SyntaxFactory.IgnoredDirectiveTrivia(hashToken, colonToken, content, endOfDirectiveToken, isActive);
+            var diags = GetDiagnostics();
+            if (diags?.Length > 0)
+                newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = GetAnnotations();
+            if (annotations?.Length > 0)
+                newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+        => new IgnoredDirectiveTriviaSyntax(this.Kind, this.hashToken, this.colonToken, this.content, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+        => new IgnoredDirectiveTriviaSyntax(this.Kind, this.hashToken, this.colonToken, this.content, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
+}
+
 internal sealed partial class NullableDirectiveTriviaSyntax : DirectiveTriviaSyntax
 {
     internal readonly SyntaxToken hashToken;
@@ -26967,6 +27075,7 @@ internal partial class CSharpSyntaxVisitor<TResult>
     public virtual TResult VisitReferenceDirectiveTrivia(ReferenceDirectiveTriviaSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitLoadDirectiveTrivia(LoadDirectiveTriviaSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+    public virtual TResult VisitIgnoredDirectiveTrivia(IgnoredDirectiveTriviaSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 }
 
@@ -27216,6 +27325,7 @@ internal partial class CSharpSyntaxVisitor
     public virtual void VisitReferenceDirectiveTrivia(ReferenceDirectiveTriviaSyntax node) => this.DefaultVisit(node);
     public virtual void VisitLoadDirectiveTrivia(LoadDirectiveTriviaSyntax node) => this.DefaultVisit(node);
     public virtual void VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+    public virtual void VisitIgnoredDirectiveTrivia(IgnoredDirectiveTriviaSyntax node) => this.DefaultVisit(node);
     public virtual void VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 }
 
@@ -27952,6 +28062,9 @@ internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNo
 
     public override CSharpSyntaxNode VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node)
         => node.Update((SyntaxToken)Visit(node.HashToken), (SyntaxToken)Visit(node.ExclamationToken), (SyntaxToken)Visit(node.EndOfDirectiveToken), node.IsActive);
+
+    public override CSharpSyntaxNode VisitIgnoredDirectiveTrivia(IgnoredDirectiveTriviaSyntax node)
+        => node.Update((SyntaxToken)Visit(node.HashToken), (SyntaxToken)Visit(node.ColonToken), (SyntaxToken)Visit(node.Content), (SyntaxToken)Visit(node.EndOfDirectiveToken), node.IsActive);
 
     public override CSharpSyntaxNode VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node)
         => node.Update((SyntaxToken)Visit(node.HashToken), (SyntaxToken)Visit(node.NullableKeyword), (SyntaxToken)Visit(node.SettingToken), (SyntaxToken)Visit(node.TargetToken), (SyntaxToken)Visit(node.EndOfDirectiveToken), node.IsActive);
@@ -33257,6 +33370,29 @@ internal partial class ContextAwareSyntax
 #endif
 
         return new ShebangDirectiveTriviaSyntax(SyntaxKind.ShebangDirectiveTrivia, hashToken, exclamationToken, endOfDirectiveToken, isActive, this.context);
+    }
+
+    public IgnoredDirectiveTriviaSyntax IgnoredDirectiveTrivia(SyntaxToken hashToken, SyntaxToken colonToken, SyntaxToken? content, SyntaxToken endOfDirectiveToken, bool isActive)
+    {
+#if DEBUG
+        if (hashToken == null) throw new ArgumentNullException(nameof(hashToken));
+        if (hashToken.Kind != SyntaxKind.HashToken) throw new ArgumentException(nameof(hashToken));
+        if (colonToken == null) throw new ArgumentNullException(nameof(colonToken));
+        if (colonToken.Kind != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
+        if (content != null)
+        {
+            switch (content.Kind)
+            {
+                case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(content));
+            }
+        }
+        if (endOfDirectiveToken == null) throw new ArgumentNullException(nameof(endOfDirectiveToken));
+        if (endOfDirectiveToken.Kind != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
+#endif
+
+        return new IgnoredDirectiveTriviaSyntax(SyntaxKind.IgnoredDirectiveTrivia, hashToken, colonToken, content, endOfDirectiveToken, isActive, this.context);
     }
 
     public NullableDirectiveTriviaSyntax NullableDirectiveTrivia(SyntaxToken hashToken, SyntaxToken nullableKeyword, SyntaxToken settingToken, SyntaxToken? targetToken, SyntaxToken endOfDirectiveToken, bool isActive)
@@ -38587,6 +38723,29 @@ internal static partial class SyntaxFactory
 #endif
 
         return new ShebangDirectiveTriviaSyntax(SyntaxKind.ShebangDirectiveTrivia, hashToken, exclamationToken, endOfDirectiveToken, isActive);
+    }
+
+    public static IgnoredDirectiveTriviaSyntax IgnoredDirectiveTrivia(SyntaxToken hashToken, SyntaxToken colonToken, SyntaxToken? content, SyntaxToken endOfDirectiveToken, bool isActive)
+    {
+#if DEBUG
+        if (hashToken == null) throw new ArgumentNullException(nameof(hashToken));
+        if (hashToken.Kind != SyntaxKind.HashToken) throw new ArgumentException(nameof(hashToken));
+        if (colonToken == null) throw new ArgumentNullException(nameof(colonToken));
+        if (colonToken.Kind != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
+        if (content != null)
+        {
+            switch (content.Kind)
+            {
+                case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(content));
+            }
+        }
+        if (endOfDirectiveToken == null) throw new ArgumentNullException(nameof(endOfDirectiveToken));
+        if (endOfDirectiveToken.Kind != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
+#endif
+
+        return new IgnoredDirectiveTriviaSyntax(SyntaxKind.IgnoredDirectiveTrivia, hashToken, colonToken, content, endOfDirectiveToken, isActive);
     }
 
     public static NullableDirectiveTriviaSyntax NullableDirectiveTrivia(SyntaxToken hashToken, SyntaxToken nullableKeyword, SyntaxToken settingToken, SyntaxToken? targetToken, SyntaxToken endOfDirectiveToken, bool isActive)

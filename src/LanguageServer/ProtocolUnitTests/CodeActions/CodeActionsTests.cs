@@ -18,7 +18,7 @@ using System.Text.Json;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions;
 
-public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
+public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
     [Theory, CombinatorialData]
     public async Task TestCodeActionHandlerAsync(bool mutatingLspWorkspace)

@@ -19,7 +19,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 
 [UseExportProvider]
-public class IProjectionBufferFactoryServiceExtensionsTests
+public sealed class IProjectionBufferFactoryServiceExtensionsTests
 {
     [Fact]
     public void TestCreateElisionBufferWithoutIndentation()

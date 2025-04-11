@@ -7,17 +7,16 @@ using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
-{
-    internal abstract class GraphicsTag : BrushTag
-    {
-        protected GraphicsTag(IEditorFormatMap editorFormatMap) : base(editorFormatMap)
-        {
-        }
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
 
-        /// <summary>
-        /// This method allows corresponding adornment manager to ask for a graphical glyph.
-        /// </summary>
-        public abstract GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds, TextFormattingRunProperties format);
+internal abstract class GraphicsTag : BrushTag
+{
+    protected GraphicsTag(IEditorFormatMap editorFormatMap) : base(editorFormatMap)
+    {
     }
+
+    /// <summary>
+    /// This method allows corresponding adornment manager to ask for a graphical glyph.
+    /// </summary>
+    public abstract GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds, TextFormattingRunProperties format);
 }

@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 namespace Microsoft.CodeAnalysis.CSharp.LanguageService;
 
 [ExportLanguageServiceFactory(typeof(ISyntaxKindsService), LanguageNames.CSharp), Shared]
-internal class CSharpSyntaxKindsServiceFactory : ILanguageServiceFactory
+internal sealed class CSharpSyntaxKindsServiceFactory : ILanguageServiceFactory
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

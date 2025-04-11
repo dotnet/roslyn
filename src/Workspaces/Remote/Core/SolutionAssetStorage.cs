@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Remote;
 /// <summary>
 /// Stores solution snapshots available to remote services.
 /// </summary>
-internal partial class SolutionAssetStorage
+internal sealed partial class SolutionAssetStorage
 {
     /// <summary>
     /// Lock over <see cref="_checksumToScope"/>.  Note: We could consider making this a SemaphoreSlim if

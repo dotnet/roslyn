@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="pl" original="../ExternalAccessExtensionsResources.resx">
+    <body>
+      <trans-unit id="Cannot_create_0">
+        <source>Cannot create {0}.</source>
+        <target state="new">Cannot create {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Missing_document_file_path">
+        <source>Missing document file path</source>
+        <target state="new">Missing document file path</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_message_type_0_is_not_assignable_to_1">
+        <source>The message type {0} is not assignable to {1}.</source>
+        <target state="new">The message type {0} is not assignable to {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_0_implements_interface_1_more_than_once">
+        <source>Type {0} implements interface {1} more than once.</source>
+        <target state="new">Type {0} implements interface {1} more than once.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

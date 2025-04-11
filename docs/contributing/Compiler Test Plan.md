@@ -80,6 +80,7 @@ This document provides guidance for thinking about language interactions and tes
 - Readonly members on structs (methods, property/indexer accessors, custom event accessors)
 - SkipLocalsInit
 - Method override or explicit implementation with `where T : { class, struct, default }`
+- `extension` blocks
  
 # Code
 - Operators (see Eric's list below)

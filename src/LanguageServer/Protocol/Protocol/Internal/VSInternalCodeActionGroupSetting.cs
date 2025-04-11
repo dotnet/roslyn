@@ -2,23 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Roslyn.LanguageServer.Protocol
-{
-    using System.Text.Json.Serialization;
+namespace Roslyn.LanguageServer.Protocol;
 
+using System.Text.Json.Serialization;
+
+/// <summary>
+/// Class containing the set of code action default groups that are supported.
+/// </summary>
+internal sealed class VSInternalCodeActionGroupSetting
+{
     /// <summary>
-    /// Class containing the set of code action default groups that are supported.
+    /// Gets or sets the code actions default group names the client supports.
     /// </summary>
-    internal class VSInternalCodeActionGroupSetting
+    [JsonPropertyName("_vs_valueSet")]
+    public string[] ValueSet
     {
-        /// <summary>
-        /// Gets or sets the code actions default group names the client supports.
-        /// </summary>
-        [JsonPropertyName("_vs_valueSet")]
-        public string[] ValueSet
-        {
-            get;
-            set;
-        }
+        get;
+        set;
     }
 }

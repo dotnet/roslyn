@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 [ExportLspServiceFactory(typeof(IRazorClientLanguageServerManager), ProtocolConstants.RoslynLspLanguagesContract)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class RazorClientLanguageServerManagerFactory() : ILspServiceFactory
+internal sealed class RazorClientLanguageServerManagerFactory() : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {

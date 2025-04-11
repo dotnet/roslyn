@@ -179,7 +179,7 @@ internal sealed class SolutionAssetCache
             Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(out var stateChecksums));
             stateChecksums.AddAllTo(pinnedChecksums);
 
-            foreach (var (_, projectState) in solutionState.ProjectStates)
+            foreach (var projectState in solutionState.SortedProjectStates)
             {
                 Contract.ThrowIfFalse(projectState.TryGetStateChecksums(out var projectStateChecksums));
                 projectStateChecksums.AddAllTo(pinnedChecksums);

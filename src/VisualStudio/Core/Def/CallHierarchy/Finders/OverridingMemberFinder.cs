@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders;
 
-internal class OverridingMemberFinder : AbstractCallFinder
+internal sealed class OverridingMemberFinder : AbstractCallFinder
 {
     public OverridingMemberFinder(ISymbol symbol, ProjectId projectId, IAsynchronousOperationListener asyncListener, CallHierarchyProvider provider)
         : base(symbol, projectId, asyncListener, provider)

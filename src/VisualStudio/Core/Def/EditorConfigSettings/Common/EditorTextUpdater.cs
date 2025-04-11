@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 
-internal class EditorTextUpdater
+internal sealed class EditorTextUpdater
 {
     private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
     private readonly IVsTextLines _textLines;

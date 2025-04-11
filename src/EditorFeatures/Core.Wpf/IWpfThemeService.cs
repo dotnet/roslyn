@@ -6,11 +6,10 @@ using System.Windows;
 using System.Windows.Media;
 using Microsoft.VisualStudio.Shell;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal interface IWpfThemeService
 {
-    internal interface IWpfThemeService
-    {
-        void ApplyThemeToElement(FrameworkElement element);
-        Color GetThemeColor(ThemeResourceKey resourceKey);
-    }
+    void ApplyThemeToElement(FrameworkElement element);
+    Color GetThemeColor(ThemeResourceKey resourceKey);
 }

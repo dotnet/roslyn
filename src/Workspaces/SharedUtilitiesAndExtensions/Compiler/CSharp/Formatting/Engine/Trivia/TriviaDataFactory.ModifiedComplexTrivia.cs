@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-internal partial class TriviaDataFactory
+internal sealed partial class TriviaDataFactory
 {
     private sealed class ModifiedComplexTrivia : TriviaDataWithList
     {

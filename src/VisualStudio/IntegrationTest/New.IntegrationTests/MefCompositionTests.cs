@@ -15,7 +15,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests;
 
-public class MefCompositionTests : AbstractIntegrationTest
+public sealed class MefCompositionTests : AbstractIntegrationTest
 {
     [IdeFact]
     public async Task AssertNoCompositionFailures()

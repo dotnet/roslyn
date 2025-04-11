@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -88,30 +89,12 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
         public bool HasProjectBeenAnalyzed(ProjectId projectId)
             => _analyzedProjectToDiagnostics.ContainsKey(projectId);
 
-        public async Task RunAnalysisAsync(Solution solution, ProjectId? projectId, Action<Project> onAfterProjectAnalyzed, CancellationToken cancellationToken)
+        public async ValueTask RunAnalysisAsync(Project project, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(solution.Workspace == _workspace);
+            cancellationToken.ThrowIfCancellationRequested();
 
-            if (projectId != null)
-            {
-                var project = solution.GetProject(projectId);
-                if (project != null)
-                {
-                    await AnalyzeProjectCoreAsync(project, onAfterProjectAnalyzed, cancellationToken).ConfigureAwait(false);
-                }
-            }
-            else
-            {
-                // We run analysis for all the projects concurrently as this is a user invoked operation.
-                await RoslynParallel.ForEachAsync(
-                    source: solution.Projects,
-                    cancellationToken,
-                    (project, cancellationToken) => AnalyzeProjectCoreAsync(project, onAfterProjectAnalyzed, cancellationToken)).ConfigureAwait(false);
-            }
-        }
+            Contract.ThrowIfFalse(project.Solution.Workspace == _workspace);
 
-        private async ValueTask AnalyzeProjectCoreAsync(Project project, Action<Project> onAfterProjectAnalyzed, CancellationToken cancellationToken)
-        {
             // Execute force analysis for the project.
             var diagnostics = await _diagnosticAnalyzerService.ForceAnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
 
@@ -121,9 +104,6 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
 
             // Remove from the cleared list now that we've run a more recent "run code analysis" on this project.
             _clearedProjectIds.Remove(project.Id);
-
-            // Now raise the callback into our caller to indicate this project has been analyzed.
-            onAfterProjectAnalyzed(project);
 
             // Finally, invoke a workspace refresh request for LSP client to pull onto these diagnostics.
             //

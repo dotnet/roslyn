@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // errors relevant for extension methods
             if (IsExtensionMethod)
             {
-                // Tracked by https://github.com/dotnet/roslyn/issues/76130 : these validation rules should also be applied to extension declarations
+                // Note: SynthesizedExtensionMarker implements similar checks, which should be kept in sync.
                 var syntax = GetSyntax();
                 var parameter0Type = this.Parameters[0].TypeWithAnnotations;
                 var parameter0RefKind = this.Parameters[0].RefKind;
@@ -702,6 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static (DeclarationModifiers mods, bool hasExplicitAccessMod) MakeModifiers(MethodDeclarationSyntax syntax, NamedTypeSymbol containingType, MethodKind methodKind, bool hasBody, Location location, BindingDiagnosticBag diagnostics)
         {
             bool isInterface = containingType.IsInterface;
+            bool isExtension = containingType.IsExtension;
             bool isExplicitInterfaceImplementation = methodKind == MethodKind.ExplicitInterfaceImplementation;
 
             // This is needed to make sure we can detect 'public' modifier specified explicitly and
@@ -714,27 +715,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!isExplicitInterfaceImplementation)
             {
-                allowedModifiers |= DeclarationModifiers.New |
-                                    DeclarationModifiers.Sealed |
-                                    DeclarationModifiers.Abstract |
-                                    DeclarationModifiers.Static |
-                                    DeclarationModifiers.Virtual |
+                allowedModifiers |= DeclarationModifiers.Static |
                                     DeclarationModifiers.AccessibilityMask;
 
-                if (!isInterface)
+                if (!isExtension)
                 {
-                    allowedModifiers |= DeclarationModifiers.Override;
-                }
-                else
-                {
-                    defaultInterfaceImplementationModifiers |= DeclarationModifiers.Sealed |
-                                                               DeclarationModifiers.Abstract |
-                                                               DeclarationModifiers.Static |
-                                                               DeclarationModifiers.Virtual |
-                                                               DeclarationModifiers.Extern |
-                                                               DeclarationModifiers.Async |
-                                                               DeclarationModifiers.Partial |
-                                                               DeclarationModifiers.AccessibilityMask;
+                    allowedModifiers |= DeclarationModifiers.New |
+                                        DeclarationModifiers.Sealed |
+                                        DeclarationModifiers.Abstract |
+                                        DeclarationModifiers.Virtual;
+
+                    if (!isInterface)
+                    {
+                        allowedModifiers |= DeclarationModifiers.Override;
+                    }
+                    else
+                    {
+                        defaultInterfaceImplementationModifiers |= DeclarationModifiers.Sealed |
+                                                                   DeclarationModifiers.Abstract |
+                                                                   DeclarationModifiers.Static |
+                                                                   DeclarationModifiers.Virtual |
+                                                                   DeclarationModifiers.Extern |
+                                                                   DeclarationModifiers.Async |
+                                                                   DeclarationModifiers.Partial |
+                                                                   DeclarationModifiers.AccessibilityMask;
+                    }
                 }
             }
             else
@@ -749,7 +754,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowedModifiers |= DeclarationModifiers.Static;
             }
 
-            allowedModifiers |= DeclarationModifiers.Extern | DeclarationModifiers.Async;
+            allowedModifiers |= DeclarationModifiers.Async;
+
+            if (!isExtension)
+            {
+                allowedModifiers |= DeclarationModifiers.Extern;
+            }
 
             if (containingType.IsStructType())
             {
@@ -907,6 +917,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (ContainingType.IsSealed && this.DeclaredAccessibility.HasProtected() && !this.IsOverride)
             {
                 diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(ContainingType), location, this);
+            }
+            else if (ContainingType is { IsExtension: true, ExtensionParameter.Name: "" } && !IsStatic)
+            {
+                diagnostics.Add(ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter, location, Name);
             }
             else if (ContainingType.IsStatic && !IsStatic)
             {

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -14,7 +12,7 @@ using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeF
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddObsoleteAttribute;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
-public class AddObsoleteAttributeTests
+public sealed class AddObsoleteAttributeTests
 {
     [Fact]
     public async Task TestObsoleteClassNoMessage()

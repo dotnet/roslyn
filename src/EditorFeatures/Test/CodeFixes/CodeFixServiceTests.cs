@@ -30,7 +30,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes;
 
 [UseExportProvider]
-public class CodeFixServiceTests
+public sealed class CodeFixServiceTests
 {
     private static readonly TestComposition s_compositionWithMockDiagnosticUpdateSourceRegistrationService = EditorTestCompositions.EditorFeatures;
 
@@ -396,7 +396,7 @@ public class CodeFixServiceTests
     private static IEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> CreateFixers()
         => [new Lazy<CodeFixProvider, CodeChangeProviderMetadata>(() => new MockFixer(), new CodeChangeProviderMetadata("Test", languages: LanguageNames.CSharp))];
 
-    internal class MockFixer : CodeFixProvider
+    internal sealed class MockFixer : CodeFixProvider
     {
         public const string Id = "MyDiagnostic";
         private readonly string? _registerFixWithTitle;
@@ -430,7 +430,7 @@ public class CodeFixServiceTests
         }
     }
 
-    private class MockAnalyzerReference
+    private sealed class MockAnalyzerReference
         : AnalyzerReference, ICodeFixProviderFactory, SerializerService.TestAccessor.IAnalyzerReferenceWithGuid
     {
         public readonly ImmutableArray<CodeFixProvider> Fixers;
@@ -518,7 +518,7 @@ public class CodeFixServiceTests
             return builder.ToImmutableAndFree();
         }
 
-        public class MockDiagnosticAnalyzer : DiagnosticAnalyzer
+        public sealed class MockDiagnosticAnalyzer : DiagnosticAnalyzer
         {
             public MockDiagnosticAnalyzer(ImmutableArray<(string id, string category)> reportedDiagnosticIdsWithCategories)
                 => SupportedDiagnostics = CreateSupportedDiagnostics(reportedDiagnosticIdsWithCategories);
@@ -556,7 +556,7 @@ public class CodeFixServiceTests
             }
         }
 
-        public class MockDocumentDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
+        public sealed class MockDocumentDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
         {
             public MockDocumentDiagnosticAnalyzer(ImmutableArray<(string id, string category)> reportedDiagnosticIdsWithCategories)
                 => SupportedDiagnostics = CreateSupportedDiagnostics(reportedDiagnosticIdsWithCategories);
@@ -575,13 +575,13 @@ public class CodeFixServiceTests
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
-            public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+            public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(TextDocument document, SyntaxTree? tree, CancellationToken cancellationToken)
             {
                 ReceivedCallback = true;
                 return Task.FromResult(ImmutableArray<Diagnostic>.Empty);
             }
 
-            public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
+            public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(TextDocument document, SyntaxTree? tree, CancellationToken cancellationToken)
             {
                 ReceivedCallback = true;
                 return Task.FromResult(ImmutableArray<Diagnostic>.Empty);
@@ -589,7 +589,7 @@ public class CodeFixServiceTests
         }
 
 #pragma warning disable RS1042 // Do not implement
-        public class MockGenerator : ISourceGenerator
+        public sealed class MockGenerator : ISourceGenerator
 #pragma warning restore RS1042 // Do not implement
         {
             private readonly DiagnosticDescriptor s_descriptor = new(MockFixer.Id, "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
@@ -608,7 +608,7 @@ public class CodeFixServiceTests
         }
     }
 
-    internal class TestErrorLogger : IErrorLoggerService
+    internal sealed class TestErrorLogger : IErrorLoggerService
     {
         public Dictionary<string, string> Messages = [];
 

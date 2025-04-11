@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.Language.CallHierarchy;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders;
 
-internal class MethodCallFinder : AbstractCallFinder
+internal sealed class MethodCallFinder : AbstractCallFinder
 {
     public MethodCallFinder(ISymbol symbol, ProjectId projectId, IAsynchronousOperationListener asyncListener, CallHierarchyProvider provider)
         : base(symbol, projectId, asyncListener, provider)

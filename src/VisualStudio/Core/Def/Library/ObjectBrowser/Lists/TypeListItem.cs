@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
 
-internal class TypeListItem : SymbolListItem<INamedTypeSymbol>
+internal sealed class TypeListItem : SymbolListItem<INamedTypeSymbol>
 {
     internal TypeListItem(ProjectId projectId, INamedTypeSymbol typeSymbol, string displayText, string fullNameText, string searchText, bool isHidden)
         : base(projectId, typeSymbol, displayText, fullNameText, searchText, isHidden)

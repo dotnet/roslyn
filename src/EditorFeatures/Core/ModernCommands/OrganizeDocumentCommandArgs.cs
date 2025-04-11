@@ -13,6 +13,6 @@ namespace Microsoft.CodeAnalysis.Editor.Commanding.Commands;
 /// Arguments for the Organize Document command being invoked.
 /// </summary>
 [ExcludeFromCodeCoverage]
-internal class OrganizeDocumentCommandArgs(ITextView textView, ITextBuffer subjectBuffer) : EditorCommandArgs(textView, subjectBuffer)
+internal sealed class OrganizeDocumentCommandArgs(ITextView textView, ITextBuffer subjectBuffer) : EditorCommandArgs(textView, subjectBuffer)
 {
 }

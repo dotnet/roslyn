@@ -15,7 +15,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource;
 
 [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-public class DocCommentFormatterTests
+public sealed class DocCommentFormatterTests
 {
     private readonly CSharpDocumentationCommentFormattingService _csharpService = new CSharpDocumentationCommentFormattingService();
     private readonly VisualBasicDocumentationCommentFormattingService _vbService = new VisualBasicDocumentationCommentFormattingService();

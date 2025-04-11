@@ -78,6 +78,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (parameter is { })
                 {
                     checkUnderspecifiedGenericExtension(parameter, ContainingType.TypeParameters, diagnostics);
+
+                    TypeSymbol parameterType = parameter.TypeWithAnnotations.Type;
+                    RefKind parameterRefKind = parameter.RefKind;
+                    SyntaxNode? parameterTypeSyntax = parameterList.Parameters[0].Type;
+                    Debug.Assert(parameterTypeSyntax is not null);
+
+                    // Note: SourceOrdinaryMethodSymbol.ExtensionMethodChecks has similar checks, which should be kept in sync.
+                    if (!parameterType.IsValidExtensionParameterType())
+                    {
+                        diagnostics.Add(ErrorCode.ERR_BadTypeforThis, parameterTypeSyntax, parameterType);
+                    }
+                    else if (parameterRefKind == RefKind.Ref && !parameterType.IsValueType)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne, parameterTypeSyntax);
+                    }
+                    else if (parameterRefKind is RefKind.In or RefKind.RefReadOnlyParameter && parameterType.TypeKind != TypeKind.Struct)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_InExtensionParameterMustBeValueType, parameterTypeSyntax);
+                    }
+
+                    if (parameter.Name is "" && parameterRefKind != RefKind.None)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_ModifierOnUnnamedReceiverParameter, parameterTypeSyntax);
+                    }
                 }
 
                 if (parameter is { Name: var name } && name != "" &&

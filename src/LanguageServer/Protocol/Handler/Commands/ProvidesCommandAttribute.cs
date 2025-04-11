@@ -5,14 +5,13 @@
 using System;
 using System.Composition;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Commands
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
+
+[MetadataAttribute]
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+internal class CommandAttribute : MethodAttribute
 {
-    [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-    internal class CommandAttribute : MethodAttribute
+    public CommandAttribute(string command) : base(AbstractExecuteWorkspaceCommandHandler.GetRequestNameForCommandName(command))
     {
-        public CommandAttribute(string command) : base(AbstractExecuteWorkspaceCommandHandler.GetRequestNameForCommandName(command))
-        {
-        }
     }
 }

@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 /// An implementation of IVsEnumCodeBlocks used in the implementation of
 /// IVsContainedCode.EnumOriginalCodeBlocks for each language's Venus interop layer.
 /// </summary>
-internal class CodeBlockEnumerator : IVsEnumCodeBlocks
+internal sealed class CodeBlockEnumerator : IVsEnumCodeBlocks
 {
     private readonly IList<TextSpanAndCookie> _codeBlocks;
     private int _currentElement;

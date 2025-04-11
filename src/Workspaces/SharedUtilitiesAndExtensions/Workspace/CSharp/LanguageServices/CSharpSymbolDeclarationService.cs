@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 namespace Microsoft.CodeAnalysis.CSharp;
 
 [ExportLanguageService(typeof(ISymbolDeclarationService), LanguageNames.CSharp), Shared]
-internal class CSharpSymbolDeclarationService : ISymbolDeclarationService
+internal sealed class CSharpSymbolDeclarationService : ISymbolDeclarationService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

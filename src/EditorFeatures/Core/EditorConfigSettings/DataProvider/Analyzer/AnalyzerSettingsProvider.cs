@@ -72,7 +72,7 @@ internal sealed class AnalyzerSettingsProvider : SettingsProviderBase<AnalyzerSe
         }
     }
 
-    private class DiagnosticAnalyzerComparer : IEqualityComparer<DiagnosticAnalyzer>
+    private sealed class DiagnosticAnalyzerComparer : IEqualityComparer<DiagnosticAnalyzer>
     {
         public static readonly DiagnosticAnalyzerComparer Instance = new();
 

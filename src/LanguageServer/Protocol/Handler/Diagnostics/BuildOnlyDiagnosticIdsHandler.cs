@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-internal record class BuildOnlyDiagnosticIdsResult([property: JsonPropertyName("ids")] string[] Ids);
+internal sealed record class BuildOnlyDiagnosticIdsResult([property: JsonPropertyName("ids")] string[] Ids);
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(BuildOnlyDiagnosticIdsHandler)), Shared]
 [Method(BuildOnlyDiagnosticIdsMethodName)]

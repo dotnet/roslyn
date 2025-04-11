@@ -16,7 +16,7 @@ using StreamJsonRpc;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
 
-internal class TestExampleLanguageServer : ExampleLanguageServer
+internal sealed class TestExampleLanguageServer : ExampleLanguageServer
 {
     private readonly JsonRpc _clientRpc;
 
@@ -51,7 +51,7 @@ internal class TestExampleLanguageServer : ExampleLanguageServer
         return new TestLifeCycleManager(_shuttingDown, _exiting);
     }
 
-    private class TestLifeCycleManager : ILifeCycleManager
+    private sealed class TestLifeCycleManager : ILifeCycleManager
     {
         private readonly TaskCompletionSource<int> _shuttingDownSource;
         private readonly TaskCompletionSource<int> _exitingSource;

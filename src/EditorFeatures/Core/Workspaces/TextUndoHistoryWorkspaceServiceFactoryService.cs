@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces;
 [ExportWorkspaceServiceFactory(typeof(ITextUndoHistoryWorkspaceService), ServiceLayer.Default), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class TextUndoHistoryWorkspaceServiceFactoryService(ITextUndoHistoryRegistry textUndoHistoryRegistry) : IWorkspaceServiceFactory
+internal sealed class TextUndoHistoryWorkspaceServiceFactoryService(ITextUndoHistoryRegistry textUndoHistoryRegistry) : IWorkspaceServiceFactory
 {
     private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry = textUndoHistoryRegistry;
 
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         => new TextUndoHistoryWorkspaceService(_textUndoHistoryRegistry);
 
-    private class TextUndoHistoryWorkspaceService(ITextUndoHistoryRegistry textUndoHistoryRegistry) : ITextUndoHistoryWorkspaceService
+    private sealed class TextUndoHistoryWorkspaceService(ITextUndoHistoryRegistry textUndoHistoryRegistry) : ITextUndoHistoryWorkspaceService
     {
         private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry = textUndoHistoryRegistry;
 

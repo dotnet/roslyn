@@ -18,7 +18,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField;
 
 [UseExportProvider]
-public class EncapsulateFieldCommandHandlerTests
+public sealed class EncapsulateFieldCommandHandlerTests
 {
     [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
     public async Task EncapsulatePrivateField()

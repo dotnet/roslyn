@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CommentSelection;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.CommentSelection)]
-public class CSharpCommentSelectionTests
+public sealed class CSharpCommentSelectionTests
 {
     [WpfFact]
     public void UncommentAndFormat1()

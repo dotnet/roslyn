@@ -5,14 +5,13 @@
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Structure;
 
-namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
+namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator;
+
+internal readonly record struct GeneratorOptions(
+    SymbolDescriptionOptions SymbolDescriptionOptions,
+    BlockStructureOptions BlockStructureOptions)
 {
-    internal readonly record struct GeneratorOptions(
-        SymbolDescriptionOptions SymbolDescriptionOptions,
-        BlockStructureOptions BlockStructureOptions)
-    {
-        public static readonly GeneratorOptions Default =
-            new(SymbolDescriptionOptions.Default,
-                BlockStructureOptions.Default);
-    }
+    public static readonly GeneratorOptions Default =
+        new(SymbolDescriptionOptions.Default,
+            BlockStructureOptions.Default);
 }

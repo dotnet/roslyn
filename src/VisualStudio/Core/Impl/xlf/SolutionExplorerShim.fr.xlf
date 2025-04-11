@@ -102,11 +102,6 @@
         <target state="translated">Supprimé</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rule_Set">
-        <source>Rule Set</source>
-        <target state="translated">Ensemble de règles</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Checking_out_0_for_editing">
         <source>Checking out {0} for editing...</source>
         <target state="translated">Extraction de {0} pour l'édition...</target>

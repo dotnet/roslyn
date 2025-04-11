@@ -15,7 +15,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
 
 [UseExportProvider]
-public class ActiveStatementTests_Methods : EditingTestBase
+public sealed class ActiveStatementTests_Methods : EditingTestBase
 {
     #region Methods
 

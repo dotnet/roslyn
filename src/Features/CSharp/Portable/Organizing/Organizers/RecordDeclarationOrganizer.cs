@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Organizing.Organizers;
 namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers;
 
 [ExportSyntaxNodeOrganizer(LanguageNames.CSharp), Shared]
-internal class RecordDeclarationOrganizer : AbstractSyntaxNodeOrganizer<RecordDeclarationSyntax>
+internal sealed class RecordDeclarationOrganizer : AbstractSyntaxNodeOrganizer<RecordDeclarationSyntax>
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

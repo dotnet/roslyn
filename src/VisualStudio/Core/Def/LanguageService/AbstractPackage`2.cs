@@ -34,16 +34,21 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
     {
     }
 
-    protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+    protected override void RegisterInitializeAsyncWork(PackageLoadTasks packageInitializationTasks)
     {
-        await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
+        base.RegisterInitializeAsyncWork(packageInitializationTasks);
 
-        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        packageInitializationTasks.AddTask(isMainThreadTask: true, task: PackageInitializationMainThreadAsync);
+    }
+
+    private async Task PackageInitializationMainThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
+    {
+        // This code uses various main thread only services, so it must run completely on the main thread
+        // (thus the CA(true) usage throughout)
+        Contract.ThrowIfFalse(JoinableTaskFactory.Context.IsOnMainThread);
 
         var shell = (IVsShell7?)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
-        var solution = (IVsSolution?)await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
         Assumes.Present(shell);
-        Assumes.Present(solution);
 
         _shell = (IVsShell?)shell;
         Assumes.Present(_shell);
@@ -53,32 +58,56 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
             RegisterEditorFactory(editorFactory);
         }
 
-        RegisterLanguageService(typeof(TLanguageService), async cancellationToken =>
-        {
-            // Ensure we're on the BG when creating the language service.
-            await TaskScheduler.Default;
+        // Misc workspace has to be up and running by the time our package is usable so that it can track running
+        // doc events and appropriately map files to/from it and other relevant workspaces (like the
+        // metadata-as-source workspace).
+        var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
 
-            // Create the language service, tell it to set itself up, then store it in a field
-            // so we can notify it that it's time to clean up.
-            _languageService = CreateLanguageService();
-            await _languageService.SetupAsync(cancellationToken).ConfigureAwait(false);
-
-            return _languageService.ComAggregate!;
-        });
-
+        // awaiting an IVsTask guarantees to return on the captured context
         await shell.LoadPackageAsync(Guids.RoslynPackageId);
 
-        var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
-        RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
+        packageInitializationTasks.AddTask(
+             isMainThreadTask: false,
+             task: (PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken) =>
+             {
+                 RegisterLanguageService(typeof(TLanguageService), async cancellationToken =>
+                 {
+                     // Ensure we're on the BG when creating the language service.
+                     await TaskScheduler.Default;
 
-        if (!_shell.IsInCommandLineMode())
-        {
-            // not every derived package support object browser and for those languages
-            // this is a no op
-            RegisterObjectBrowserLibraryManager();
-        }
+                     // Create the language service, tell it to set itself up, then store it in a field
+                     // so we can notify it that it's time to clean up.
+                     _languageService = CreateLanguageService();
+                     await _languageService.SetupAsync(cancellationToken).ConfigureAwait(false);
 
-        LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
+                     return _languageService.ComAggregate!;
+                 });
+
+                 RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
+
+                 return Task.CompletedTask;
+             });
+    }
+
+    protected override void RegisterOnAfterPackageLoadedAsyncWork(PackageLoadTasks afterPackageLoadedTasks)
+    {
+        base.RegisterOnAfterPackageLoadedAsyncWork(afterPackageLoadedTasks);
+
+        afterPackageLoadedTasks.AddTask(
+            isMainThreadTask: true,
+            task: (packageLoadedTasks, cancellationToken) =>
+            {
+                if (_shell != null && !_shell.IsInCommandLineMode())
+                {
+                    // not every derived package support object browser and for those languages
+                    // this is a no op
+                    RegisterObjectBrowserLibraryManager();
+                }
+
+                LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
+
+                return Task.CompletedTask;
+            });
     }
 
     protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)

@@ -17,7 +17,7 @@ using Roslyn.Test.Utilities;
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
 [TestService]
-internal partial class AddParameterDialogInProcess
+internal sealed partial class AddParameterDialogInProcess
 {
     private async Task<AddParameterDialog?> TryGetDialogAsync(CancellationToken cancellationToken)
     {

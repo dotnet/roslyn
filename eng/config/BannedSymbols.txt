@@ -26,8 +26,6 @@ M:Microsoft.CodeAnalysis.Document.GetOptionsAsync(System.Threading.CancellationT
 T:Microsoft.CodeAnalysis.Options.DocumentOptionSet; Use AnalyzerConfigOptions instead
 M:Microsoft.VisualStudio.Shell.ServiceExtensions.GetService``2(System.IServiceProvider); Use RoslynServiceExtensions instead. This extension internally relies on ThreadHelper, which is incompatible with testing.
 M:Microsoft.VisualStudio.Shell.ServiceExtensions.GetService``2(System.IServiceProvider,System.Boolean); Use RoslynServiceExtensions instead. This extension internally relies on ThreadHelper, which is incompatible with testing
-M:Microsoft.VisualStudio.Shell.ServiceExtensions.GetServiceAsync``2(Microsoft.VisualStudio.Shell.IAsyncServiceProvider); Use RoslynServiceExtensions instead. This extension internally relies on ThreadHelper, which is incompatible with testing
-M:Microsoft.VisualStudio.Shell.ServiceExtensions.GetServiceAsync``2(Microsoft.VisualStudio.Shell.IAsyncServiceProvider,System.Boolean); Use RoslynServiceExtensions instead. This extension internally relies on ThreadHelper, which is incompatible with testing
 P:Microsoft.VisualStudio.Shell.ThreadHelper.JoinableTaskFactory; Use IThreadingContext.JoinableTaskFactory instead.
 M:Microsoft.CodeAnalysis.Formatting.Formatter.FormatAsync(Microsoft.CodeAnalysis.Document,Microsoft.CodeAnalysis.Options.OptionSet,System.Threading.CancellationToken); Use internal overload instead
 M:Microsoft.CodeAnalysis.Formatting.Formatter.FormatAsync(Microsoft.CodeAnalysis.Document,Microsoft.CodeAnalysis.Text.TextSpan,Microsoft.CodeAnalysis.Options.OptionSet,System.Threading.CancellationToken); Use overload with SyntaxFormattingOptions instead

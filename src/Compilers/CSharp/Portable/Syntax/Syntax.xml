@@ -5122,6 +5122,7 @@
     </Field>
     <Field Name="IsActive" Type="bool" Override="true"/>
   </Node>
+  <!-- The text following '!' up to end of line is attached as leading trivia of kind PreprocessingMessageTrivia on the EndOfDirectiveToken. -->
   <Node Name="ShebangDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
     <Kind Name="ShebangDirectiveTrivia"/>
     <Field Name="HashToken" Type="SyntaxToken" Override="true">
@@ -5129,6 +5130,22 @@
     </Field>
     <Field Name="ExclamationToken" Type="SyntaxToken">
       <Kind Name="ExclamationToken"/>
+    </Field>
+    <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
+      <Kind Name="EndOfDirectiveToken"/>
+    </Field>
+    <Field Name="IsActive" Type="bool" Override="true"/>
+  </Node>
+  <Node Name="IgnoredDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
+    <Kind Name="IgnoredDirectiveTrivia"/>
+    <Field Name="HashToken" Type="SyntaxToken" Override="true">
+      <Kind Name="HashToken"/>
+    </Field>
+    <Field Name="ColonToken" Type="SyntaxToken">
+      <Kind Name="ColonToken"/>
+    </Field>
+    <Field Name="Content" Type="SyntaxToken" Optional="true">
+      <Kind Name="StringLiteralToken"/>
     </Field>
     <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
       <Kind Name="EndOfDirectiveToken"/>

@@ -6,14 +6,13 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities
-{
-    internal static class IMefHostExportProviderExtensions
-    {
-        public static TExtension GetExportedValue<TExtension>(this IMefHostExportProvider provider)
-            => provider.GetExports<TExtension>().Single().Value;
+namespace Microsoft.CodeAnalysis.Test.Utilities;
 
-        public static IEnumerable<TExtension> GetExportedValues<TExtension>(this IMefHostExportProvider provider)
-            => provider.GetExports<TExtension>().Select(l => l.Value);
-    }
+internal static class IMefHostExportProviderExtensions
+{
+    public static TExtension GetExportedValue<TExtension>(this IMefHostExportProvider provider)
+        => provider.GetExports<TExtension>().Single().Value;
+
+    public static IEnumerable<TExtension> GetExportedValues<TExtension>(this IMefHostExportProvider provider)
+        => provider.GetExports<TExtension>().Select(l => l.Value);
 }

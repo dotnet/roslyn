@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.VisualStudio.LanguageServices.UnitTests;
 
 [UseExportProvider]
-public class VisualStudioStorageReadFallbackTests
+public sealed class VisualStudioStorageReadFallbackTests
 {
     [Fact]
     public void SpaceBetweenParentheses()

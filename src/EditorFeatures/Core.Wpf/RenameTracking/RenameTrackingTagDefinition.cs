@@ -12,21 +12,20 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
+namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
+
+[Export(typeof(EditorFormatDefinition))]
+[Name(RenameTrackingTag.TagId)]
+[UserVisible(true)]
+[ExcludeFromCodeCoverage]
+internal sealed class RenameTrackingTagDefinition : MarkerFormatDefinition
 {
-    [Export(typeof(EditorFormatDefinition))]
-    [Name(RenameTrackingTag.TagId)]
-    [UserVisible(true)]
-    [ExcludeFromCodeCoverage]
-    internal class RenameTrackingTagDefinition : MarkerFormatDefinition
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public RenameTrackingTagDefinition()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RenameTrackingTagDefinition()
-        {
-            this.Border = new Pen(Brushes.Black, thickness: 1.0) { DashStyle = new DashStyle(new[] { 0.5, 4.0 }, 1) };
-            this.DisplayName = EditorFeaturesResources.Rename_Tracking;
-            this.ZOrder = 1;
-        }
+        this.Border = new Pen(Brushes.Black, thickness: 1.0) { DashStyle = new DashStyle(new[] { 0.5, 4.0 }, 1) };
+        this.DisplayName = EditorFeaturesResources.Rename_Tracking;
+        this.ZOrder = 1;
     }
 }

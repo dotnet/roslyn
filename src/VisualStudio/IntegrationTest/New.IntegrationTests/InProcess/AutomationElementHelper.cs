@@ -61,7 +61,7 @@ public static class AutomationElementHelper
         return element;
     }
 
-    private class AutomationEventHandler : IUIAutomationEventHandler
+    private sealed class AutomationEventHandler : IUIAutomationEventHandler
     {
         private readonly Action<IUIAutomationElement, int> _action;
 

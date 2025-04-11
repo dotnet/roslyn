@@ -1132,6 +1132,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(ContainingType), location, this);
             }
+            else if (ContainingType is { IsExtension: true, ExtensionParameter.Name: "" } && !IsStatic)
+            {
+                diagnostics.Add(ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter, location, Name);
+            }
             else if (ContainingType.IsStatic && !IsStatic)
             {
                 ErrorCode errorCode = isIndexer ? ErrorCode.ERR_IndexerInStaticClass : ErrorCode.ERR_InstanceMemberInStaticClass;

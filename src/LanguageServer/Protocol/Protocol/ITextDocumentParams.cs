@@ -4,19 +4,18 @@
 
 using System.Text.Json.Serialization;
 
-namespace Roslyn.LanguageServer.Protocol
+namespace Roslyn.LanguageServer.Protocol;
+
+/// <summary>
+/// Interface for request/notification params that apply to a document
+/// </summary>
+internal interface ITextDocumentParams
 {
     /// <summary>
-    /// Interface for request/notification params that apply to a document
+    /// The identifier of the document.
     /// </summary>
-    internal interface ITextDocumentParams
-    {
-        /// <summary>
-        /// The identifier of the document.
-        /// </summary>
-        // NOTE: these JSON attributes are not inherited, they are here as a reference for implementations
-        [JsonPropertyName("textDocument")]
-        [JsonRequired]
-        public TextDocumentIdentifier TextDocument { get; }
-    }
+    // NOTE: these JSON attributes are not inherited, they are here as a reference for implementations
+    [JsonPropertyName("textDocument")]
+    [JsonRequired]
+    public TextDocumentIdentifier TextDocument { get; }
 }

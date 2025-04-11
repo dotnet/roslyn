@@ -12087,6 +12087,25 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67400")]
+    public async Task FileScopedNamespaceNewline()
+    {
+        await AssertFormatAsync(
+            expected: """
+            namespace Some.Namespace;
+
+            public class MyClass
+            {
+            }
+            """,
+            code: """
+            namespace Some.Namespace;
+            public class MyClass
+            {
+            }
+            """);
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56498")]
     public async Task NewInImplicitObjectCreation()
     {
@@ -12502,6 +12521,18 @@ public sealed class FormattingTests : CSharpFormattingTestBase
     public async Task TestNormalizeUsingAlias(string text, string expected)
     {
         await AssertFormatAsync(expected, text);
+    }
+
+    [Fact]
+    public async Task FormatNullConditionalAssignment()
+    {
+        await AssertFormatAsync(
+            expected: """
+            x?.y = z;
+            """,
+            code: """
+             x ? . y  =  z ;
+            """);
     }
 
     [Fact]

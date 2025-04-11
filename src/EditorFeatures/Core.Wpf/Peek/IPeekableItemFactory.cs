@@ -9,10 +9,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Language.Intellisense;
 
-namespace Microsoft.CodeAnalysis.Editor.Peek
+namespace Microsoft.CodeAnalysis.Editor.Peek;
+
+public interface IPeekableItemFactory
 {
-    public interface IPeekableItemFactory
-    {
-        Task<IEnumerable<IPeekableItem>> GetPeekableItemsAsync(ISymbol symbol, Project project, IPeekResultFactory peekResultFactory, CancellationToken cancellationToken);
-    }
+    Task<IEnumerable<IPeekableItem>> GetPeekableItemsAsync(ISymbol symbol, Project project, IPeekResultFactory peekResultFactory, CancellationToken cancellationToken);
 }

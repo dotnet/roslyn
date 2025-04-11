@@ -11,11 +11,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Formatting
+namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Formatting;
+
+internal interface IXamlFormattingService : ILanguageService
 {
-    internal interface IXamlFormattingService : ILanguageService
-    {
-        Task<IList<TextChange>> GetFormattingChangesAsync(TextDocument document, XamlFormattingOptions options, TextSpan? textSpan, CancellationToken cancellationToken);
-        Task<IList<TextChange>> GetFormattingChangesAsync(TextDocument document, XamlFormattingOptions options, char typedChar, int position, CancellationToken cancellationToken);
-    }
+    Task<IList<TextChange>> GetFormattingChangesAsync(TextDocument document, XamlFormattingOptions options, TextSpan? textSpan, CancellationToken cancellationToken);
+    Task<IList<TextChange>> GetFormattingChangesAsync(TextDocument document, XamlFormattingOptions options, char typedChar, int position, CancellationToken cancellationToken);
 }

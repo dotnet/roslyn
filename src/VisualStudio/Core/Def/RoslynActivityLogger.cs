@@ -44,7 +44,7 @@ internal static class RoslynActivityLogger
         }
     }
 
-    private class TraceSourceLogger : ILogger
+    private sealed class TraceSourceLogger : ILogger
     {
         private const int LogEventId = 0;
         private const int StartEventId = 1;

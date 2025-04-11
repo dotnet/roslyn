@@ -18,7 +18,7 @@ using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Commands;
-public class ExecuteWorkspaceCommandTests : AbstractLanguageServerProtocolTests
+public sealed class ExecuteWorkspaceCommandTests : AbstractLanguageServerProtocolTests
 {
     protected override TestComposition Composition => base.Composition.AddParts(
             typeof(TestWorkspaceCommandHandler));
@@ -45,7 +45,7 @@ public class ExecuteWorkspaceCommandTests : AbstractLanguageServerProtocolTests
 
     [ExportCSharpVisualBasicStatelessLspService(typeof(TestWorkspaceCommandHandler)), Shared, PartNotDiscoverable]
     [Command(CommandName)]
-    internal class TestWorkspaceCommandHandler : AbstractExecuteWorkspaceCommandHandler
+    internal sealed class TestWorkspaceCommandHandler : AbstractExecuteWorkspaceCommandHandler
     {
         internal const string CommandName = nameof(TestWorkspaceCommandHandler);
 

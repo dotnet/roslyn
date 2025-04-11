@@ -138,6 +138,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return _containingMethod._typeMap.SubstituteCustomModifiers(this._underlyingParameter.RefCustomModifiers);
                 }
             }
+
+            internal sealed override bool HasEnumeratorCancellationAttribute
+            {
+                get { return _underlyingParameter.HasEnumeratorCancellationAttribute; }
+            }
         }
     }
 }

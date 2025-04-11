@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
-internal class VsEnumDebugName : IVsEnumDebugName
+internal sealed class VsEnumDebugName : IVsEnumDebugName
 {
     private readonly IList<IVsDebugName> _values;
     private int _currentIndex;

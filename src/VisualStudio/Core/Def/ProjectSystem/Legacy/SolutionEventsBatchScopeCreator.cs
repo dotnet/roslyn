@@ -169,7 +169,7 @@ internal sealed class SolutionEventsBatchScopeCreator(IThreadingContext threadin
         _runningDocumentTableEventsCookie = null;
     }
 
-    private class SolutionEventsEventSink : IVsSolutionEvents, IVsSolutionLoadEvents
+    private sealed class SolutionEventsEventSink : IVsSolutionEvents, IVsSolutionLoadEvents
     {
         private readonly SolutionEventsBatchScopeCreator _scopeCreator;
 
@@ -247,7 +247,7 @@ internal sealed class SolutionEventsBatchScopeCreator(IThreadingContext threadin
         #endregion
     }
 
-    private class RunningDocumentTableEventSink : IVsRunningDocTableEvents
+    private sealed class RunningDocumentTableEventSink : IVsRunningDocTableEvents
     {
         private readonly SolutionEventsBatchScopeCreator _scopeCreator;
         private readonly IVsRunningDocumentTable4 _runningDocumentTable;

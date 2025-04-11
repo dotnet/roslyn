@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.SymbolKeyTests;
 
 [UseExportProvider]
-public class SymbolKeyCrossLanguageTests
+public sealed class SymbolKeyCrossLanguageTests
 {
     [Theory]
     [InlineData("dynamic")]

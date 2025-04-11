@@ -15,7 +15,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAnonymousType;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
-public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoEditor
 {
     private static readonly ParseOptions CSharp8 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
 

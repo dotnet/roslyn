@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpUseImplicitObjectCreationDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpUseImplicitObjectCreationDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
     public CSharpUseImplicitObjectCreationDiagnosticAnalyzer()
         : base(IDEDiagnosticIds.UseImplicitObjectCreationDiagnosticId,

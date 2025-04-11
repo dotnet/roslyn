@@ -28,7 +28,7 @@ using static SyntaxFactory;
 
 internal partial class CSharpSimplificationService
 {
-    private class Expander : CSharpSyntaxRewriter
+    private sealed class Expander : CSharpSyntaxRewriter
     {
         private static readonly SyntaxTrivia s_oneWhitespaceSeparator = SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " ");
 

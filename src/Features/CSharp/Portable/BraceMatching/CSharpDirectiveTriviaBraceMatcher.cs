@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.BraceMatching;
 
 [ExportBraceMatcher(LanguageNames.CSharp), Shared]
-internal class CSharpDirectiveTriviaBraceMatcher : AbstractDirectiveTriviaBraceMatcher<DirectiveTriviaSyntax,
+internal sealed class CSharpDirectiveTriviaBraceMatcher : AbstractDirectiveTriviaBraceMatcher<DirectiveTriviaSyntax,
     IfDirectiveTriviaSyntax, ElifDirectiveTriviaSyntax,
     ElseDirectiveTriviaSyntax, EndIfDirectiveTriviaSyntax,
     RegionDirectiveTriviaSyntax, EndRegionDirectiveTriviaSyntax>

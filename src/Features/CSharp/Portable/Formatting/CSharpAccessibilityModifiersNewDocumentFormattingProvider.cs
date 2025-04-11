@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.Formatting;
 
 [ExportNewDocumentFormattingProvider(LanguageNames.CSharp), Shared]
-internal class CSharpAccessibilityModifiersNewDocumentFormattingProvider : INewDocumentFormattingProvider
+internal sealed class CSharpAccessibilityModifiersNewDocumentFormattingProvider : INewDocumentFormattingProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

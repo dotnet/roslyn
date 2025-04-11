@@ -49,7 +49,7 @@ using static StringCopyPasteHelpers;
 [Order(After = PredefinedCommandHandlerNames.FormatDocument)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class StringCopyPasteCommandHandler(
+internal sealed partial class StringCopyPasteCommandHandler(
     IThreadingContext threadingContext,
     ITextUndoHistoryRegistry undoHistoryRegistry,
     IEditorOperationsFactoryService editorOperationsFactoryService,

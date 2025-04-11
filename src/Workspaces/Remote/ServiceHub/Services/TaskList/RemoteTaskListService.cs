@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.TaskList;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
-internal partial class RemoteTaskListService : BrokeredServiceBase, IRemoteTaskListService
+internal sealed partial class RemoteTaskListService : BrokeredServiceBase, IRemoteTaskListService
 {
     internal sealed class Factory : FactoryBase<IRemoteTaskListService>
     {

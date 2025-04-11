@@ -1438,23 +1438,25 @@ class TestClass
             var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
 
             compilation.VerifyDiagnostics(
-    // (10,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-    //         receiver?.test += Main;
-    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "receiver?.test").WithLocation(10, 9)
+                // (6,18): warning CS0067: The event 'TestClass.test' is never used
+                //     event Action test;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "test").WithArguments("TestClass.test").WithLocation(6, 18)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
             var memberBinding = tree.GetRoot().DescendantNodes().OfType<MemberBindingExpressionSyntax>().Single();
-            var access = (ConditionalAccessExpressionSyntax)memberBinding.Parent!;
+            var assignment = (AssignmentExpressionSyntax)memberBinding.Parent!;
+            var access = (ConditionalAccessExpressionSyntax)assignment.Parent!;
 
             Assert.Equal(".test", memberBinding.ToString());
-            Assert.Equal("receiver?.test", access.ToString());
+            Assert.Equal(".test += Main", assignment.ToString());
+            Assert.Equal("receiver?.test += Main", access.ToString());
 
             var model = compilation.GetSemanticModel(tree);
 
             Assert.Equal("event System.Action TestClass.test", model.GetSymbolInfo(memberBinding).Symbol.ToTestDisplayString());
             Assert.Equal("event System.Action TestClass.test", model.GetSymbolInfo(memberBinding.Name).Symbol.ToTestDisplayString());
-
+            Assert.Equal("void TestClass.test.add", model.GetSymbolInfo(assignment).Symbol.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(access).Symbol);
         }
 

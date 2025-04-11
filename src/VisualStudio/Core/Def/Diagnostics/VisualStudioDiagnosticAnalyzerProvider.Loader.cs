@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 
-internal partial class VisualStudioDiagnosticAnalyzerProvider
+internal sealed partial class VisualStudioDiagnosticAnalyzerProvider
 {
     private sealed class Loader : IAnalyzerAssemblyLoader
     {

@@ -7,11 +7,10 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Xaml;
 
-namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Extensions
+namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Extensions;
+
+internal static class SolutionExtensions
 {
-    internal static class SolutionExtensions
-    {
-        public static IEnumerable<Project> GetXamlProjects(this Solution solution)
-            => solution.Projects.Where(p => p.Language == StringConstants.XamlLanguageName);
-    }
+    public static IEnumerable<Project> GetXamlProjects(this Solution solution)
+        => solution.Projects.Where(p => p.Language == StringConstants.XamlLanguageName);
 }

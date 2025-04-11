@@ -2710,6 +2710,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!IsSlotMember(targetContainerSlot, member))
                 return;
 
+            if (member is SynthesizedBackingFieldSymbol backingField && !isUsable(backingField))
+                return;
+
             TypeWithAnnotations fieldOrPropertyType = GetTypeOrReturnTypeWithAnnotations(member);
 
             if (fieldOrPropertyType.Type.IsReferenceType ||
@@ -2753,6 +2756,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     InheritNullableStateOfTrackableStruct(fieldOrPropertyType.Type, targetMemberSlot, valueMemberSlot, isDefaultValue: isDefaultValue, skipSlot);
                 }
+            }
+
+            // Decide if the given 'backingField' can be used in the context of '_symbol'.
+            // Filtering on this basis helps us avoid cycles across nullable inference of backing fields.
+            bool isUsable(SynthesizedBackingFieldSymbol backingField)
+            {
+                if (_symbol is not MethodSymbol method)
+                    return false;
+
+                if (method.IsConstructor() && method.IsStatic == backingField.IsStatic)
+                    return true;
+
+                if (method is SourcePropertyAccessorSymbol { AssociatedSymbol: PropertySymbol prop } && (object)backingField.AssociatedSymbol == prop)
+                    return true;
+
+                return false;
             }
         }
 
@@ -2829,14 +2848,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NullableAnnotation nullableAnnotation;
                 if (_getterNullResilienceData is var (analyzedField, assumedNullableAnnotation))
                 {
-                    // If we find a usage of a different backing field, than the one we are currently doing a null resilience analysis on,
-                    // we should not proceed, in order to avoid cycles across inference of multiple fields.
                     if ((object)analyzedField != backingField)
-                        throw ExceptionUtilities.UnexpectedValue(backingField);
-
-                    // Currently in the process of inferring the nullable annotation for 'backingField'.
-                    // Therefore don't try to access the inferred nullable annotation, use a temporary assumedNullableAnnotation instead.
-                    nullableAnnotation = assumedNullableAnnotation;
+                    {
+                        // If we find a usage of a different backing field, than the one we are currently doing a null resilience analysis on,
+                        // we must not call 'GetInferredNullableAnnotation' on it. Doing that could cause a cycle across inference of multiple fields.
+                        // We generally don't want this code path to be hit. However, it's difficult to guarantee that it will never happen, and isn't worth crashing the retail compiler when it happens.
+                        // In retail builds, we should proceed by using the non-inferred property nullability associated with the field.
+                        Debug.Assert(false);
+                        nullableAnnotation = backingField.TypeWithAnnotations.NullableAnnotation;
+                    }
+                    else
+                    {
+                        // Currently in the process of inferring the nullable annotation for 'backingField'.
+                        // Therefore don't try to access the inferred nullable annotation, use a temporary assumedNullableAnnotation instead.
+                        nullableAnnotation = assumedNullableAnnotation;
+                    }
                 }
                 else
                 {

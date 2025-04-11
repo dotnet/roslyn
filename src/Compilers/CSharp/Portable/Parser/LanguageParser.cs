@@ -11213,7 +11213,7 @@ done:
                 // precedence level.  Examples include binary operator, assignment operators, range operators `..`, as
                 // well as `switch` and `with` clauses.
 
-                var (operatorTokenKind, operatorExpressionKind) = getOperatorTokenAndExpressionKind();
+                var (operatorTokenKind, operatorExpressionKind) = GetExpressionOperatorTokenKindAndExpressionKind();
 
                 if (operatorTokenKind == SyntaxKind.None)
                     return null;
@@ -11231,7 +11231,7 @@ done:
                     return null;
 
                 // Now consume the operator (including consuming multiple tokens in the case of merged operator tokens)
-                var operatorToken = eatOperatorToken(operatorTokenKind);
+                var operatorToken = EatExpressionOperatorToken(operatorTokenKind);
 
                 if (newPrecedence > GetPrecedence(leftOperand.Kind))
                 {
@@ -11278,131 +11278,12 @@ done:
                 }
 
                 if (IsExpectedAssignmentOperator(operatorToken.Kind))
-                {
-                    ExpressionSyntax rhs;
-
-                    if (operatorExpressionKind == SyntaxKind.SimpleAssignmentExpression && CurrentToken.Kind == SyntaxKind.RefKeyword &&
-                        // check for lambda expression with explicit ref return type: `ref int () => { ... }`
-                        !this.IsPossibleLambdaExpression(newPrecedence))
-                    {
-                        rhs = _syntaxFactory.RefExpression(
-                            this.EatToken(),
-                            this.ParseExpressionCore());
-                    }
-                    else
-                    {
-                        rhs = this.ParseSubExpression(newPrecedence);
-                    }
-
-                    return _syntaxFactory.AssignmentExpression(
-                        operatorExpressionKind, leftOperand, operatorToken, rhs);
-                }
+                    return ParseAssignmentExpression(operatorExpressionKind, leftOperand, operatorToken);
 
                 if (IsExpectedBinaryOperator(operatorToken.Kind))
                     return _syntaxFactory.BinaryExpression(operatorExpressionKind, leftOperand, operatorToken, this.ParseSubExpression(newPrecedence));
 
                 throw ExceptionUtilities.Unreachable();
-            }
-
-            (SyntaxKind operatorTokenKind, SyntaxKind operatorExpressionKind) getOperatorTokenAndExpressionKind()
-            {
-                // If the set of expression continuations is updated here, please review ParseStatementAttributeDeclarations
-                // to see if it may need a similar look-ahead check to determine if something is a collection expression versus
-                // an attribute.
-
-                var token1 = this.CurrentToken;
-                var token1Kind = token1.ContextualKind;
-
-                // Merge two consecutive dots into a DotDotToken
-                if (IsAtDotDotToken())
-                    return (SyntaxKind.DotDotToken, SyntaxKind.RangeExpression);
-
-                // check for >>, >>=, >>> or >>>=
-                //
-                // In all those cases, update token1Kind to be the merged token kind.  It will then be handled by the code below.
-                if (token1Kind == SyntaxKind.GreaterThanToken
-                    && this.PeekToken(1) is { Kind: SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken } token2
-                    && NoTriviaBetween(token1, token2)) // check to see if they really are adjacent
-                {
-                    if (token2.Kind == SyntaxKind.GreaterThanToken)
-                    {
-                        if (this.PeekToken(2) is { Kind: SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken } token3
-                            && NoTriviaBetween(token2, token3)) // check to see if they really are adjacent
-                        {
-                            // >>>  or  >>>=
-                            token1Kind = token3.Kind == SyntaxKind.GreaterThanToken
-                                ? SyntaxKind.GreaterThanGreaterThanGreaterThanToken
-                                : SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken;
-                        }
-                        else
-                        {
-                            // >>
-                            token1Kind = SyntaxKind.GreaterThanGreaterThanToken;
-                        }
-                    }
-                    else
-                    {
-                        // >>=
-                        token1Kind = SyntaxKind.GreaterThanGreaterThanEqualsToken;
-                    }
-                }
-
-                if (IsExpectedBinaryOperator(token1Kind))
-                    return (token1Kind, SyntaxFacts.GetBinaryExpression(token1Kind));
-
-                if (IsExpectedAssignmentOperator(token1Kind))
-                    return (token1Kind, SyntaxFacts.GetAssignmentExpression(token1Kind));
-
-                if (token1Kind == SyntaxKind.SwitchKeyword && this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
-                    return (token1Kind, SyntaxKind.SwitchExpression);
-
-                if (token1Kind == SyntaxKind.WithKeyword && this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
-                    return (token1Kind, SyntaxKind.WithExpression);
-
-                // Something that doesn't expand the current expression we're looking at.  Bail out and see if we
-                // can end with a conditional expression.
-                return (SyntaxKind.None, SyntaxKind.None);
-            }
-
-            SyntaxToken eatOperatorToken(SyntaxKind operatorTokenKind)
-            {
-                // Combine tokens into a single token if needed
-
-                if (operatorTokenKind is SyntaxKind.DotDotToken)
-                    return EatDotDotToken();
-
-                if (operatorTokenKind is SyntaxKind.GreaterThanGreaterThanToken or SyntaxKind.GreaterThanGreaterThanEqualsToken)
-                {
-                    // >> and >>=
-                    // Two tokens need to be consumed here.
-
-                    var token1 = EatToken();
-                    var token2 = EatToken();
-
-                    return SyntaxFactory.Token(
-                        token1.GetLeadingTrivia(),
-                        operatorTokenKind,
-                        token2.GetTrailingTrivia());
-                }
-                else if (operatorTokenKind is SyntaxKind.GreaterThanGreaterThanGreaterThanToken or SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)
-                {
-                    // >>> and >>>=
-                    // Three tokens need to be consumed here.
-
-                    var token1 = EatToken();
-                    _ = EatToken();
-                    var token3 = EatToken();
-
-                    return SyntaxFactory.Token(
-                        token1.GetLeadingTrivia(),
-                        operatorTokenKind,
-                        token3.GetTrailingTrivia());
-                }
-                else
-                {
-                    // Normal operator.  Eat as a single token, converting contextual words cases (like 'with') to a keyword.
-                    return this.EatContextualToken(operatorTokenKind);
-                }
             }
 
             ConditionalExpressionSyntax consumeConditionalExpression(ExpressionSyntax leftOperand)
@@ -11497,6 +11378,131 @@ done:
                 stack.Free();
                 return false;
             }
+        }
+
+        private (SyntaxKind operatorTokenKind, SyntaxKind operatorExpressionKind) GetExpressionOperatorTokenKindAndExpressionKind()
+        {
+            // If the set of expression continuations is updated here, please review ParseStatementAttributeDeclarations
+            // to see if it may need a similar look-ahead check to determine if something is a collection expression versus
+            // an attribute.
+
+            var token1 = this.CurrentToken;
+            var token1Kind = token1.ContextualKind;
+
+            // Merge two consecutive dots into a DotDotToken
+            if (IsAtDotDotToken())
+                return (SyntaxKind.DotDotToken, SyntaxKind.RangeExpression);
+
+            // check for >>, >>=, >>> or >>>=
+            //
+            // In all those cases, update token1Kind to be the merged token kind.  It will then be handled by the code below.
+            if (token1Kind == SyntaxKind.GreaterThanToken
+                && this.PeekToken(1) is { Kind: SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken } token2
+                && NoTriviaBetween(token1, token2)) // check to see if they really are adjacent
+            {
+                if (token2.Kind == SyntaxKind.GreaterThanToken)
+                {
+                    if (this.PeekToken(2) is { Kind: SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken } token3
+                        && NoTriviaBetween(token2, token3)) // check to see if they really are adjacent
+                    {
+                        // >>>  or  >>>=
+                        token1Kind = token3.Kind == SyntaxKind.GreaterThanToken
+                            ? SyntaxKind.GreaterThanGreaterThanGreaterThanToken
+                            : SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken;
+                    }
+                    else
+                    {
+                        // >>
+                        token1Kind = SyntaxKind.GreaterThanGreaterThanToken;
+                    }
+                }
+                else
+                {
+                    // >>=
+                    token1Kind = SyntaxKind.GreaterThanGreaterThanEqualsToken;
+                }
+            }
+
+            if (IsExpectedBinaryOperator(token1Kind))
+                return (token1Kind, SyntaxFacts.GetBinaryExpression(token1Kind));
+
+            if (IsExpectedAssignmentOperator(token1Kind))
+                return (token1Kind, SyntaxFacts.GetAssignmentExpression(token1Kind));
+
+            if (token1Kind == SyntaxKind.SwitchKeyword && this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
+                return (token1Kind, SyntaxKind.SwitchExpression);
+
+            if (token1Kind == SyntaxKind.WithKeyword && this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
+                return (token1Kind, SyntaxKind.WithExpression);
+
+            // Something that doesn't expand the current expression we're looking at.  Bail out and see if we
+            // can end with a conditional expression.
+            return (SyntaxKind.None, SyntaxKind.None);
+        }
+
+        private SyntaxToken EatExpressionOperatorToken(SyntaxKind operatorTokenKind)
+        {
+            // Combine tokens into a single token if needed
+
+            if (operatorTokenKind is SyntaxKind.DotDotToken)
+                return EatDotDotToken();
+
+            if (operatorTokenKind is SyntaxKind.GreaterThanGreaterThanToken or SyntaxKind.GreaterThanGreaterThanEqualsToken)
+            {
+                // >> and >>=
+                // Two tokens need to be consumed here.
+
+                var token1 = EatToken();
+                var token2 = EatToken();
+
+                return SyntaxFactory.Token(
+                    token1.GetLeadingTrivia(),
+                    operatorTokenKind,
+                    token2.GetTrailingTrivia());
+            }
+            else if (operatorTokenKind is SyntaxKind.GreaterThanGreaterThanGreaterThanToken or SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)
+            {
+                // >>> and >>>=
+                // Three tokens need to be consumed here.
+
+                var token1 = EatToken();
+                _ = EatToken();
+                var token3 = EatToken();
+
+                return SyntaxFactory.Token(
+                    token1.GetLeadingTrivia(),
+                    operatorTokenKind,
+                    token3.GetTrailingTrivia());
+            }
+            else
+            {
+                // Normal operator.  Eat as a single token, converting contextual words cases (like 'with') to a keyword.
+                return this.EatContextualToken(operatorTokenKind);
+            }
+        }
+
+        private AssignmentExpressionSyntax ParseAssignmentExpression(SyntaxKind operatorExpressionKind, ExpressionSyntax leftOperand, SyntaxToken operatorToken)
+        {
+            Debug.Assert(IsExpectedAssignmentOperator(operatorToken.Kind));
+            Debug.Assert(GetPrecedence(operatorExpressionKind) == Precedence.Assignment);
+
+            ExpressionSyntax rhs;
+
+            if (operatorExpressionKind == SyntaxKind.SimpleAssignmentExpression && CurrentToken.Kind == SyntaxKind.RefKeyword &&
+                // check for lambda expression with explicit ref return type: `ref int () => { ... }`
+                !this.IsPossibleLambdaExpression(Precedence.Assignment))
+            {
+                rhs = _syntaxFactory.RefExpression(
+                    this.EatToken(),
+                    this.ParseExpressionCore());
+            }
+            else
+            {
+                rhs = this.ParseSubExpression(Precedence.Assignment);
+            }
+
+            return _syntaxFactory.AssignmentExpression(
+                operatorExpressionKind, leftOperand, operatorToken, rhs);
         }
 
         /// <summary>Check if we're currently at a .. sequence that can then be parsed out as a <see cref="SyntaxKind.DotDotToken"/>.</summary>
@@ -11815,12 +11821,9 @@ done:
                             continue;
 
                         case SyntaxKind.QuestionToken:
-                            if (CanStartConsequenceExpression())
+                            if (TryParseConditionalAccessExpression(expr, out var conditionalAccess))
                             {
-                                expr = _syntaxFactory.ConditionalAccessExpression(
-                                    expr,
-                                    this.EatToken(),
-                                    ParseConsequenceSyntax());
+                                expr = conditionalAccess;
                                 continue;
                             }
 
@@ -11917,20 +11920,75 @@ done:
                 this.PeekToken(tokenIndex + 1).Kind != SyntaxKind.AsteriskToken;
         }
 
-        private bool CanStartConsequenceExpression()
+#nullable enable
+
+        /// <summary>
+        /// Called when we could be at a <c>?</c> that could start a <see cref="ConditionalAccessExpressionSyntax"/> or
+        /// a <see cref="ConditionalExpressionSyntax"/>.  Returns <see langword="true"/> if this succeeds at parsing the
+        /// former, and <see langword="null"/> if we're not at the start of a conditional access expression.
+        /// </summary>
+        private bool TryParseConditionalAccessExpression(
+            ExpressionSyntax primaryExpression,
+            [NotNullWhen(true)] out ConditionalAccessExpressionSyntax? conditionalAccessExpression)
         {
-            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.QuestionToken);
-            var nextToken = this.PeekToken(1);
-            var nextTokenKind = nextToken.Kind;
+            // From 
+            // https://github.com/dotnet/csharpstandard/blob/standard-v7/standard/expressions.md#1288-null-conditional-member-access
+            // https://github.com/dotnet/csharpstandard/blob/standard-v7/standard/expressions.md#12812-null-conditional-element-access
 
-            // ?.   is always the start of of a consequence expression.
+            // null_conditional_member_access
+            //      : primary_expression '?' '.' identifier type_argument_list? dependent_access*
+            //      ;
             //
-            // ?..  is a ternary with a range expression as it's 'whenTrue' clause.
-            if (nextTokenKind == SyntaxKind.DotToken && !IsAtDotDotToken(nextToken, this.PeekToken(2)))
-                return true;
+            // null_conditional_element_access
+            //      : primary_no_array_creation_expression '?' '[' argument_list ']' dependent_access*
+            //      ;
+            //
+            // dependent_access
+            //      : '.' identifier type_argument_list?    // member access
+            //      | '[' argument_list ']'                 // element access
+            //      | '(' argument_list ? ')'               // invocation
+            //      ;
 
-            if (nextTokenKind == SyntaxKind.OpenBracketToken)
+            // We get in here after parsing out the initial primary expression and seeing a `?` follow.
+
+            var (questionToken, bindingExpression) = tryEatQuestionAndBindingExpression();
+            if (questionToken is null || bindingExpression is null)
             {
+                conditionalAccessExpression = null;
+                return false;
+            }
+
+            conditionalAccessExpression = _syntaxFactory.ConditionalAccessExpression(
+                primaryExpression, questionToken, parseWhenNotNull(bindingExpression));
+            return true;
+
+            (SyntaxToken? questionToken, ExpressionSyntax? bindingExpression) tryEatQuestionAndBindingExpression()
+            {
+                if (this.CurrentToken.Kind == SyntaxKind.QuestionToken)
+                {
+                    var nextToken = this.PeekToken(1);
+                    var nextTokenKind = nextToken.Kind;
+
+                    // ?.   is always the start of of a consequence expression.
+                    //
+                    // ?..  is a ternary with a range expression as it's 'whenTrue' clause.
+                    if (nextTokenKind == SyntaxKind.DotToken && !IsAtDotDotToken(nextToken, this.PeekToken(2)))
+                        return (questionToken: EatToken(), _syntaxFactory.MemberBindingExpression(this.EatToken(), this.ParseSimpleName(NameOptions.InExpression)));
+
+                    if (isStartOfElementBindingExpression(nextTokenKind))
+                        return (questionToken: EatToken(), _syntaxFactory.ElementBindingExpression(this.ParseBracketedArgumentList()));
+                }
+
+                // Anything else is either not a `?` at all, or is just a `?` that starts a conditional expression (not
+                // a conditional access expression).
+                return default;
+            }
+
+            bool isStartOfElementBindingExpression(SyntaxKind nextTokenKind)
+            {
+                if (nextTokenKind != SyntaxKind.OpenBracketToken)
+                    return false;
+
                 // could simply be `x?[0]`, or could be `x ? [0] : [1]`.
 
                 // Caller only wants us to parse ?[ how it was originally parsed before collection expressions.
@@ -11948,70 +12006,65 @@ done:
                 return this.CurrentToken.Kind != SyntaxKind.ColonToken;
             }
 
-            // Anything else is just a normal ? and indicates the start of a ternary expression.
-            return false;
-        }
-
-        internal ExpressionSyntax ParseConsequenceSyntax()
-        {
-            Debug.Assert(this.CurrentToken.Kind is SyntaxKind.DotToken or SyntaxKind.OpenBracketToken);
-            ExpressionSyntax expr = this.CurrentToken.Kind switch
+            ExpressionSyntax parseWhenNotNull(ExpressionSyntax expr)
             {
-                SyntaxKind.DotToken => _syntaxFactory.MemberBindingExpression(this.EatToken(), this.ParseSimpleName(NameOptions.InExpression)),
-                SyntaxKind.OpenBracketToken => _syntaxFactory.ElementBindingExpression(this.ParseBracketedArgumentList()),
-                _ => throw ExceptionUtilities.Unreachable(),
-            };
-
-            while (true)
-            {
-                // Nullable suppression operators should only be consumed by a conditional access
-                // if there are further conditional operations performed after the suppression
-                if (isOptionalExclamationsFollowedByConditionalOperation())
+                while (true)
                 {
+                    // We should consume suppression '!'s which are in the middle of the 'whenNotNull', but not at the end.
+                    // For example, 'a?.b!.c' should be a cond-access whose RHS is '.b!.c',
+                    // while 'a?.b!' should be a suppression-expr containing a cond-access 'a?.b'.
+                    using var beforeSuppressionsResetPoint = GetDisposableResetPoint(resetOnDispose: false);
+                    var expressionBeforeSuppressions = expr;
+
                     while (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
                         expr = _syntaxFactory.PostfixUnaryExpression(SyntaxKind.SuppressNullableWarningExpression, expr, EatToken());
-                }
 
-                switch (this.CurrentToken.Kind)
+                    // Expand to consume the `dependent_access*` continuations.
+                    if (tryParseDependentAccess(expr) is ExpressionSyntax expandedExpression)
+                    {
+                        expr = expandedExpression;
+                        continue;
+                    }
+
+                    // A trailing cond-access or assignment is effectively the "end" of the current cond-access node.
+                    // Due to right-associativity, everything that follows will be included in the child node.
+                    // e.g. 'a?.b?.c' parses as '(a) ? (.b?.c)'
+                    // e.g. 'a?.b = c?.d = e?.f' parses as 'a?.b = (c?.d = e?.f)'
+
+                    // a?.b?.c
+                    // a?.b!?.c
+                    if (TryParseConditionalAccessExpression(expr, out var conditionalAccess))
+                        return conditionalAccess;
+
+                    // a?.b = c
+                    // a?.b! = c
+                    var (operatorTokenKind, operatorExpressionKind) = GetExpressionOperatorTokenKindAndExpressionKind();
+                    if (IsExpectedAssignmentOperator(operatorTokenKind))
+                    {
+                        return ParseAssignmentExpression(operatorExpressionKind, expr, EatExpressionOperatorToken(operatorTokenKind));
+                    }
+
+                    // End of the cond-access.
+                    // Any '!' suppressions which followed this are a parent of the cond-access, not a child of it.
+                    beforeSuppressionsResetPoint.Reset();
+                    return expressionBeforeSuppressions;
+                }
+            }
+
+            ExpressionSyntax? tryParseDependentAccess(ExpressionSyntax expr)
+                => this.CurrentToken.Kind switch
                 {
-                    case SyntaxKind.OpenParenToken:
-                        expr = _syntaxFactory.InvocationExpression(expr, this.ParseParenthesizedArgumentList());
-                        continue;
-
-                    case SyntaxKind.OpenBracketToken:
-                        expr = _syntaxFactory.ElementAccessExpression(expr, this.ParseBracketedArgumentList());
-                        continue;
-
-                    case SyntaxKind.DotToken:
-                        expr = _syntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expr, this.EatToken(), this.ParseSimpleName(NameOptions.InExpression));
-                        continue;
-
-                    case SyntaxKind.QuestionToken:
-                        return !CanStartConsequenceExpression()
-                            ? expr
-                            : _syntaxFactory.ConditionalAccessExpression(
-                                expr,
-                                operatorToken: this.EatToken(),
-                                ParseConsequenceSyntax());
-
-                    default:
-                        return expr;
-                }
-            }
-
-            bool isOptionalExclamationsFollowedByConditionalOperation()
-            {
-                var index = 0;
-                while (this.PeekToken(index).Kind == SyntaxKind.ExclamationToken)
-                    index++;
-
-                return this.PeekToken(index).Kind
-                    is SyntaxKind.OpenParenToken
-                    or SyntaxKind.OpenBracketToken
-                    or SyntaxKind.DotToken
-                    or SyntaxKind.QuestionToken;
-            }
+                    SyntaxKind.OpenParenToken
+                        => _syntaxFactory.InvocationExpression(expr, this.ParseParenthesizedArgumentList()),
+                    SyntaxKind.OpenBracketToken
+                        => _syntaxFactory.ElementAccessExpression(expr, this.ParseBracketedArgumentList()),
+                    SyntaxKind.DotToken
+                        => _syntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expr, this.EatToken(), this.ParseSimpleName(NameOptions.InExpression)),
+                    _ => null,
+                };
         }
+
+#nullable disable
 
         internal ArgumentListSyntax ParseParenthesizedArgumentList()
         {

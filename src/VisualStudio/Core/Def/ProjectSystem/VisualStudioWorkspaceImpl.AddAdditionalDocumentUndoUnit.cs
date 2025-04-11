@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 internal partial class VisualStudioWorkspaceImpl
 {
 
-    private class AddAdditionalDocumentUndoUnit : AbstractAddDocumentUndoUnit
+    private sealed class AddAdditionalDocumentUndoUnit : AbstractAddDocumentUndoUnit
     {
         public AddAdditionalDocumentUndoUnit(
             VisualStudioWorkspaceImpl workspace,

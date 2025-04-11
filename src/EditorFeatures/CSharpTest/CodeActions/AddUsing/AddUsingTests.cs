@@ -19,7 +19,7 @@ using Basic.Reference.Assemblies;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-public partial class AddUsingTests : AbstractAddUsingTests
+public sealed partial class AddUsingTests : AbstractAddUsingTests
 {
     public AddUsingTests(ITestOutputHelper logger)
         : base(logger)

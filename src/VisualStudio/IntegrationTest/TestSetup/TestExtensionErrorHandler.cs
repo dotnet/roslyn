@@ -8,28 +8,27 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.IntegrationTest.Setup
+namespace Microsoft.VisualStudio.IntegrationTest.Setup;
+
+/// <summary>This class causes a crash if an exception is encountered by the editor.</summary>
+[Shared, Export(typeof(IExtensionErrorHandler)), Export(typeof(TestExtensionErrorHandler))]
+public sealed class TestExtensionErrorHandler : IExtensionErrorHandler
 {
-    /// <summary>This class causes a crash if an exception is encountered by the editor.</summary>
-    [Shared, Export(typeof(IExtensionErrorHandler)), Export(typeof(TestExtensionErrorHandler))]
-    public class TestExtensionErrorHandler : IExtensionErrorHandler
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public TestExtensionErrorHandler()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TestExtensionErrorHandler()
+    }
+
+    public void HandleError(object sender, Exception exception)
+    {
+        if (exception.Message == "RemotePartyTerminated" && new System.Diagnostics.StackTrace().ToString().Contains("CodeLens") ||
+            exception.Message == "Cannot access a disposed object.\r\nObject name: 'CodeLensHubClient'.")
         {
+            return;
         }
 
-        public void HandleError(object sender, Exception exception)
-        {
-            if (exception.Message == "RemotePartyTerminated" && new System.Diagnostics.StackTrace().ToString().Contains("CodeLens") ||
-                exception.Message == "Cannot access a disposed object.\r\nObject name: 'CodeLensHubClient'.")
-            {
-                return;
-            }
-
-            FatalError.ReportAndPropagate(exception);
-            TestTraceListener.Instance.AddException(exception);
-        }
+        FatalError.ReportAndPropagate(exception);
+        TestTraceListener.Instance.AddException(exception);
     }
 }

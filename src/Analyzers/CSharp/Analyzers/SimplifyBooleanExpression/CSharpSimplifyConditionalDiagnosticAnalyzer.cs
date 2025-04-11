@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.SimplifyBooleanExpression;
 namespace Microsoft.CodeAnalysis.CSharp.SimplifyBooleanExpression;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpSimplifyConditionalDiagnosticAnalyzer :
+internal sealed class CSharpSimplifyConditionalDiagnosticAnalyzer :
     AbstractSimplifyConditionalDiagnosticAnalyzer<
         SyntaxKind,
         ExpressionSyntax,

@@ -219,7 +219,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         => actual.Select(InspectDiagnostic);
 
     internal static string InspectDiagnostic(DiagnosticData diagnostic)
-        => $"{(string.IsNullOrWhiteSpace(diagnostic.DataLocation.MappedFileSpan.Path) ? diagnostic.ProjectId!.ToString() : diagnostic.DataLocation.MappedFileSpan.ToString())}: {diagnostic.Severity} {diagnostic.Id}: {diagnostic.Message}";
+        => $"{(string.IsNullOrWhiteSpace(diagnostic.DataLocation.MappedFileSpan.Path) ? diagnostic.ProjectId.ToString() : diagnostic.DataLocation.MappedFileSpan.ToString())}: {diagnostic.Severity} {diagnostic.Id}: {diagnostic.Message}";
 
     internal static Guid ReadModuleVersionId(Stream stream)
     {

@@ -10,18 +10,17 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion;
+
+internal abstract class FSharpCommonCompletionProviderBase
 {
-    internal abstract class FSharpCommonCompletionProviderBase
-    {
-        public abstract Task ProvideCompletionsAsync(CompletionContext context);
+    public abstract Task ProvideCompletionsAsync(CompletionContext context);
 
-        public abstract bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition);
+    public abstract bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition);
 
-        public abstract Task<TextChange?> GetTextChangeAsync(
-            Func<CompletionItem, char?, CancellationToken, Task<TextChange?>> baseGetTextChangeAsync,
-            CompletionItem selectedItem,
-            char? ch,
-            CancellationToken cancellationToken);
-    }
+    public abstract Task<TextChange?> GetTextChangeAsync(
+        Func<CompletionItem, char?, CancellationToken, Task<TextChange?>> baseGetTextChangeAsync,
+        CompletionItem selectedItem,
+        char? ch,
+        CancellationToken cancellationToken);
 }

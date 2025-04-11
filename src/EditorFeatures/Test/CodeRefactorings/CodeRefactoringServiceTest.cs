@@ -24,7 +24,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService;
 
 [UseExportProvider]
-public class CodeRefactoringServiceTest
+public sealed class CodeRefactoringServiceTest
 {
     [Fact]
     public async Task TestExceptionInComputeRefactorings()
@@ -113,7 +113,7 @@ public class CodeRefactoringServiceTest
         Assert.True(errorReported);
     }
 
-    internal class StubRefactoring : CodeRefactoringProvider
+    internal sealed class StubRefactoring : CodeRefactoringProvider
     {
         public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -126,7 +126,7 @@ public class CodeRefactoringServiceTest
         }
     }
 
-    private class StubAnalyzerReference : AnalyzerReference, ICodeRefactoringProviderFactory
+    private sealed class StubAnalyzerReference : AnalyzerReference, ICodeRefactoringProviderFactory
     {
         private readonly ImmutableArray<CodeRefactoringProvider> _refactorings;
 

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
@@ -26,8 +27,11 @@ internal abstract class AbstractSimpleMemberBody(SyntaxNode node) : MemberBody
     public sealed override SyntaxNode EncompassingAncestor
         => node;
 
-    public sealed override IEnumerable<SyntaxToken>? GetActiveTokens()
-        => node.DescendantTokens();
+    public sealed override IEnumerable<SyntaxToken>? GetActiveTokens(Func<SyntaxNode, IEnumerable<SyntaxToken>> getDescendantTokens)
+        => getDescendantTokens(node);
+
+    public override IEnumerable<SyntaxToken> GetUserCodeTokens(Func<SyntaxNode, IEnumerable<SyntaxToken>> getDescendantTokens)
+        => getDescendantTokens(node);
 
     public override ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model)
         => model.AnalyzeDataFlow(Node).CapturedInside;

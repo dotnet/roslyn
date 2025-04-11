@@ -5848,7 +5848,7 @@ class C
                 Dim textBuffer = testDocument.GetTextBuffer()
 
                 Dim snapshotBeforeCommit = textBuffer.CurrentSnapshot
-                provider.SetInfo(snapshotBeforeCommit.GetText(), testDocument.CursorPosition.Value)
+                provider.SetInfo(testDocument.CursorPosition.Value)
 
                 ' First send a space to trigger out special completionImplementation provider.
                 state.SendInvokeCompletionList()
@@ -5916,7 +5916,7 @@ class C
                 Dim textBuffer = testDocument.GetTextBuffer()
 
                 Dim snapshotBeforeCommit = textBuffer.CurrentSnapshot
-                provider.SetInfo(snapshotBeforeCommit.GetText(), testDocument.CursorPosition.Value)
+                provider.SetInfo(testDocument.CursorPosition.Value)
 
                 ' First send a space to trigger out special completionImplementation provider.
                 state.SendInvokeCompletionList()
@@ -8203,7 +8203,6 @@ namespace NS
         Private Class MultipleChangeCompletionProvider
             Inherits CompletionProvider
 
-            Private _text As String
             Private _caretPosition As Integer
 
             <ImportingConstructor>
@@ -8211,8 +8210,7 @@ namespace NS
             Public Sub New()
             End Sub
 
-            Public Sub SetInfo(text As String, caretPosition As Integer)
-                _text = text
+            Public Sub SetInfo(caretPosition As Integer)
                 _caretPosition = caretPosition
             End Sub
 
@@ -12819,6 +12817,58 @@ internal class Program
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain("C", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function NullConditionalAssignment1(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+public class Class1
+{
+    private string s;
+
+    public void M(Class1 c)
+    { 
+        c?.s = new$$
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersionExtensions.CSharpNext)
+
+                state.SendTypeChars(" "c)
+                Await state.AssertCompletionSession()
+
+                Await state.AssertSelectedCompletionItem("string", isHardSelected:=True)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function NullConditionalAssignment2(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+enum E
+{
+    Red,
+    Green,
+}
+
+public class Class1
+{
+    private E e;
+
+    public void M(Class1 c)
+    { 
+        c?.e =$$
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersionExtensions.CSharpNext)
+
+                state.SendTypeChars(" "c)
+                Await state.AssertCompletionSession()
+
+                Await state.AssertSelectedCompletionItem("E", isHardSelected:=True)
             End Using
         End Function
 

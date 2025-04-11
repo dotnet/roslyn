@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging;
 
 [Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-public partial class ProximityExpressionsGetterTests
+public sealed partial class ProximityExpressionsGetterTests
 {
     [Fact]
     public void TestAtStartOfLine_1()

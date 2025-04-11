@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices;
 
 [ExportLanguageService(typeof(IStructuralTypeDisplayService), LanguageNames.CSharp), Shared]
-internal class CSharpStructuralTypeDisplayService : AbstractStructuralTypeDisplayService
+internal sealed class CSharpStructuralTypeDisplayService : AbstractStructuralTypeDisplayService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

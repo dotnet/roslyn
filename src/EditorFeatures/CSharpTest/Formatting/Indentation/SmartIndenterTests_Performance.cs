@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation;
 
-public partial class SmartIndenterTests
+public sealed partial class SmartIndenterTests
 {
     // TODO: Author this as a performance test.
     [WpfFact]

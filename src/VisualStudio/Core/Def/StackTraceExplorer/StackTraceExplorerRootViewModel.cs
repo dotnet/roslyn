@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 
-internal class StackTraceExplorerRootViewModel : ViewModelBase
+internal sealed class StackTraceExplorerRootViewModel : ViewModelBase
 {
     private readonly VisualStudioWorkspace _workspace;
     private readonly IClassificationFormatMap _formatMap;

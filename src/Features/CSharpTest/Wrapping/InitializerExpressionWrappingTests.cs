@@ -10,7 +10,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-public class InitializerExpressionWrappingTests : AbstractWrappingTests
+public sealed class InitializerExpressionWrappingTests : AbstractWrappingTests
 {
     [Fact]
     public async Task TestNoWrappingSuggestions()

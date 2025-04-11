@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview;
 
-internal partial class ChangeList : IVsPreviewChangesList, IVsLiteTreeList
+internal sealed partial class ChangeList : IVsPreviewChangesList, IVsLiteTreeList
 {
     public static readonly ChangeList Empty = new([]);
 

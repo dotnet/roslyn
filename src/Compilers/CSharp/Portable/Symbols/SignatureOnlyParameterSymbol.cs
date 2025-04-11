@@ -41,6 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers { get { return _refCustomModifiers; } }
 
+        internal override bool HasEnumeratorCancellationAttribute { get { throw ExceptionUtilities.Unreachable(); } }
+
         public override bool IsParamsArray { get { return _isParamsArray; } }
 
         public override bool IsParamsCollection { get { return _isParamsCollection; } }

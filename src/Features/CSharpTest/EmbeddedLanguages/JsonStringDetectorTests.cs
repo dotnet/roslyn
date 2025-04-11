@@ -16,7 +16,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpJsonDetectionCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsDetectJsonString)]
-public class JsonStringDetectorTests
+public sealed class JsonStringDetectorTests
 {
     [Fact]
     public async Task TestStrict()

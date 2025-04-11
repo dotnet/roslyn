@@ -268,7 +268,7 @@ internal abstract class AbstractToggleBlockCommentBase :
         }
     }
 
-    private class BlockCommentSelectionHelper
+    private sealed class BlockCommentSelectionHelper
     {
         /// <summary>
         /// Trimmed text of the selection.

@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 using Roslyn.Text.Adornments;
 
 namespace Roslyn.LanguageServer.Protocol;
-internal class ClassifiedTextElementConverter : JsonConverter<ClassifiedTextElement>
+internal sealed class ClassifiedTextElementConverter : JsonConverter<ClassifiedTextElement>
 {
     public static readonly ClassifiedTextElementConverter Instance = new();
 

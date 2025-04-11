@@ -28,7 +28,10 @@ internal sealed class CSharpNavigationBarItemService() : AbstractNavigationBarIt
     private static readonly SymbolDisplayFormat s_typeFormat =
         SymbolDisplayFormat.CSharpErrorMessageFormat.AddGenericsOptions(SymbolDisplayGenericsOptions.IncludeVariance);
 
-    private static readonly SymbolDisplayFormat s_memberFormat =
+    private static readonly SymbolDisplayFormat s_memberNameFormat =
+        new(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly);
+
+    private static readonly SymbolDisplayFormat s_memberDetailsFormat =
         new(genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
             memberOptions: SymbolDisplayMemberOptions.IncludeParameters |
                            SymbolDisplayMemberOptions.IncludeExplicitInterface,
@@ -186,8 +189,8 @@ internal sealed class CSharpNavigationBarItemService() : AbstractNavigationBarIt
             return null;
 
         return new SymbolItem(
-            member.Name,
-            member.ToDisplayString(s_memberFormat),
+            member.ToDisplayString(s_memberNameFormat),
+            member.ToDisplayString(s_memberDetailsFormat),
             member.GetGlyph(),
             member.IsObsolete(),
             location.Value);

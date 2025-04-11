@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-internal class AnchorIndentationFormattingRule : BaseFormattingRule
+internal sealed class AnchorIndentationFormattingRule : BaseFormattingRule
 {
     internal const string Name = "CSharp Anchor Indentation Formatting Rule";
 

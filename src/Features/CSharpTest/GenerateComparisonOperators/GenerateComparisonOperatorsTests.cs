@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateComparisonOpera
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)]
-public class GenerateComparisonOperatorsTests
+public sealed class GenerateComparisonOperatorsTests
 {
     [Fact]
     public async Task TestClass()

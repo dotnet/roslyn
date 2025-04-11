@@ -554,6 +554,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Static member '{0}' cannot be marked 'readonly'.
                 diagnostics.Add(ErrorCode.ERR_StaticMemberCantBeReadOnly, location, this);
             }
+            else if (ContainingType.IsExtension && IsInitOnly)
+            {
+                diagnostics.Add(ErrorCode.ERR_InitInExtension, location, _property);
+            }
             else if (LocalDeclaredReadOnly && IsInitOnly)
             {
                 // 'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.

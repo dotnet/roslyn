@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 diagnostics.Add(ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter, GetLocation(p), name);
                             }
                         }
-                        else if (p.ContainingSymbol is NamedTypeSymbol { IsExtension: true })
+                        else if (p.IsExtensionParameter())
                         {
                             diagnostics.Add(ErrorCode.ERR_TypeParameterSameNameAsExtensionParameter, tp.GetFirstLocationOrNone(), name);
                         }

@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 
-internal class IgnoredFrameViewModel : FrameViewModel
+internal sealed class IgnoredFrameViewModel : FrameViewModel
 {
     private readonly IgnoredFrame _frame;
 

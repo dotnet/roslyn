@@ -14,7 +14,7 @@ using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics;
-public class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTestsBase
+public sealed class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTestsBase
 {
     public WorkspaceProjectDiagnosticsTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
@@ -67,7 +67,7 @@ public class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTestsBase
         => new(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty.Add(LanguageNames.CSharp, [DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp), new MockProjectDiagnosticAnalyzer()]));
 
     [DiagnosticAnalyzer(LanguageNames.CSharp), PartNotDiscoverable]
-    private class MockProjectDiagnosticAnalyzer : DiagnosticAnalyzer
+    private sealed class MockProjectDiagnosticAnalyzer : DiagnosticAnalyzer
     {
         public const string Id = "MockProjectDiagnostic";
         private readonly DiagnosticDescriptor _descriptor = new(Id, "MockProjectDiagnostic", "MockProjectDiagnostic", "InternalCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: "https://github.com/dotnet/roslyn");

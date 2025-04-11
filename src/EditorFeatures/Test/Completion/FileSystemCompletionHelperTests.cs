@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion;
 
-public class FileSystemCompletionHelperTests
+public sealed class FileSystemCompletionHelperTests
 {
     private static void AssertItemsEqual(ImmutableArray<CompletionItem> actual, params string[] expected)
     {

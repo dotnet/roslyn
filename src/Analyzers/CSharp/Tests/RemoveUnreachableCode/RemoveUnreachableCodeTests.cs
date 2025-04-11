@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnreachableCode;
 using VerifyCS = CSharpCodeFixVerifier<CSharpRemoveUnreachableCodeDiagnosticAnalyzer, CSharpRemoveUnreachableCodeCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
-public class RemoveUnreachableCodeTests
+public sealed class RemoveUnreachableCodeTests
 {
     [Fact]
     public async Task TestSingleUnreachableStatement()

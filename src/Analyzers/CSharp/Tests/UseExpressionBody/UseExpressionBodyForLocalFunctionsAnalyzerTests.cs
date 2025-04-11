@@ -20,7 +20,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     UseExpressionBodyCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-public class UseExpressionBodyForLocalFunctionsAnalyzerTests
+public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
 {
     private static async Task TestWithUseExpressionBody(string code, string fixedCode)
     {

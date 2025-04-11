@@ -52,11 +52,6 @@
         <target state="translated">'New' ifadeleri için ipuçlarını göster</target>
         <note />
       </trans-unit>
-      <trans-unit id="Don_t_put_ByRef_on_custom_structure">
-        <source>_Don't put ByRef on custom structure</source>
-        <target state="translated">Özel yapıya ByRef _yerleştirme</target>
-        <note />
-      </trans-unit>
       <trans-unit id="A_utomatic_insertion_of_end_constructs">
         <source>A_utomatic insertion of end constructs</source>
         <target state="translated">Bitiş yapılarını o_tomatik ekle</target>

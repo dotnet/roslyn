@@ -15,7 +15,7 @@ using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics;
-public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
+public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
 {
     public AdditionalFileDiagnosticsTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
@@ -118,7 +118,7 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
         => new(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty.Add(LanguageNames.CSharp, [DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp), new MockAdditionalFileDiagnosticAnalyzer()]));
 
     [DiagnosticAnalyzer(LanguageNames.CSharp), PartNotDiscoverable]
-    private class MockAdditionalFileDiagnosticAnalyzer : DiagnosticAnalyzer
+    private sealed class MockAdditionalFileDiagnosticAnalyzer : DiagnosticAnalyzer
     {
         public const string Id = "MockAdditionalDiagnostic";
         private readonly DiagnosticDescriptor _descriptor = new(Id, "MockAdditionalDiagnostic", "MockAdditionalDiagnostic", "InternalCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: "https://github.com/dotnet/roslyn");

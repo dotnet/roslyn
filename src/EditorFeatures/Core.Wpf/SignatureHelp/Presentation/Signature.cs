@@ -15,216 +15,215 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp.Presentation
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp.Presentation;
+
+internal sealed class Signature : ISignature
 {
-    internal class Signature : ISignature
+    private const int MaxParamColumnCount = 100;
+
+    private readonly SignatureHelpItem _signatureHelpItem;
+
+    public Signature(ITrackingSpan applicableToSpan, SignatureHelpItem signatureHelpItem, int selectedParameterIndex)
     {
-        private const int MaxParamColumnCount = 100;
-
-        private readonly SignatureHelpItem _signatureHelpItem;
-
-        public Signature(ITrackingSpan applicableToSpan, SignatureHelpItem signatureHelpItem, int selectedParameterIndex)
+        if (selectedParameterIndex < -1 || selectedParameterIndex >= signatureHelpItem.Parameters.Length)
         {
-            if (selectedParameterIndex < -1 || selectedParameterIndex >= signatureHelpItem.Parameters.Length)
-            {
-                throw new ArgumentOutOfRangeException(nameof(selectedParameterIndex));
-            }
-
-            this.ApplicableToSpan = applicableToSpan;
-            _signatureHelpItem = signatureHelpItem;
-            _parameterIndex = selectedParameterIndex;
+            throw new ArgumentOutOfRangeException(nameof(selectedParameterIndex));
         }
 
-        private bool _isInitialized;
-        private void EnsureInitialized()
+        this.ApplicableToSpan = applicableToSpan;
+        _signatureHelpItem = signatureHelpItem;
+        _parameterIndex = selectedParameterIndex;
+    }
+
+    private bool _isInitialized;
+    private void EnsureInitialized()
+    {
+        if (!_isInitialized)
         {
-            if (!_isInitialized)
-            {
-                _isInitialized = true;
-                Initialize();
-            }
+            _isInitialized = true;
+            Initialize();
         }
+    }
 
-        private Signature InitializedThis
+    private Signature InitializedThis
+    {
+        get
         {
-            get
-            {
-                EnsureInitialized();
-                return this;
-            }
+            EnsureInitialized();
+            return this;
         }
+    }
 
-        private IList<TaggedText> _displayParts;
-        internal IList<TaggedText> DisplayParts => InitializedThis._displayParts;
+    private IList<TaggedText> _displayParts;
+    internal IList<TaggedText> DisplayParts => InitializedThis._displayParts;
 
-        public ITrackingSpan ApplicableToSpan { get; }
+    public ITrackingSpan ApplicableToSpan { get; }
 
-        private string _content;
-        public string Content => InitializedThis._content;
+    private string _content;
+    public string Content => InitializedThis._content;
 
-        private readonly int _parameterIndex = -1;
-        public IParameter CurrentParameter
+    private readonly int _parameterIndex = -1;
+    public IParameter CurrentParameter
+    {
+        get
         {
-            get
-            {
-                EnsureInitialized();
-                return _parameterIndex >= 0 && _parameters != null ? _parameters[_parameterIndex] : null;
-            }
+            EnsureInitialized();
+            return _parameterIndex >= 0 && _parameters != null ? _parameters[_parameterIndex] : null;
         }
+    }
 
-        /// <remarks>
-        /// The documentation is included in <see cref="Content"/> so that it will be classified.
-        /// </remarks>
-        public string Documentation => null;
+    /// <remarks>
+    /// The documentation is included in <see cref="Content"/> so that it will be classified.
+    /// </remarks>
+    public string Documentation => null;
 
-        private ReadOnlyCollection<IParameter> _parameters;
-        public ReadOnlyCollection<IParameter> Parameters => InitializedThis._parameters;
+    private ReadOnlyCollection<IParameter> _parameters;
+    public ReadOnlyCollection<IParameter> Parameters => InitializedThis._parameters;
 
-        private string _prettyPrintedContent;
-        public string PrettyPrintedContent => InitializedThis._prettyPrintedContent;
+    private string _prettyPrintedContent;
+    public string PrettyPrintedContent => InitializedThis._prettyPrintedContent;
 
-        // This event is required by the ISignature interface but it's not actually used
-        // (once created the CurrentParameter property cannot change)
-        public event EventHandler<CurrentParameterChangedEventArgs> CurrentParameterChanged
+    // This event is required by the ISignature interface but it's not actually used
+    // (once created the CurrentParameter property cannot change)
+    public event EventHandler<CurrentParameterChangedEventArgs> CurrentParameterChanged
+    {
+        add
         {
-            add
-            {
-            }
-            remove
-            {
-            }
         }
-
-        private IList<TaggedText> _prettyPrintedDisplayParts;
-        internal IList<TaggedText> PrettyPrintedDisplayParts => InitializedThis._prettyPrintedDisplayParts;
-
-        private void Initialize()
+        remove
         {
-            var content = new StringBuilder();
-            var prettyPrintedContent = new StringBuilder();
+        }
+    }
 
-            var parts = new List<TaggedText>();
-            var prettyPrintedParts = new List<TaggedText>();
+    private IList<TaggedText> _prettyPrintedDisplayParts;
+    internal IList<TaggedText> PrettyPrintedDisplayParts => InitializedThis._prettyPrintedDisplayParts;
 
-            var parameters = new List<IParameter>();
+    private void Initialize()
+    {
+        var content = new StringBuilder();
+        var prettyPrintedContent = new StringBuilder();
 
-            var signaturePrefixParts = _signatureHelpItem.PrefixDisplayParts;
-            var signaturePrefixContent = _signatureHelpItem.PrefixDisplayParts.GetFullText();
+        var parts = new List<TaggedText>();
+        var prettyPrintedParts = new List<TaggedText>();
 
-            AddRange(signaturePrefixParts, parts, prettyPrintedParts);
-            Append(signaturePrefixContent, content, prettyPrintedContent);
+        var parameters = new List<IParameter>();
 
-            var separatorParts = _signatureHelpItem.SeparatorDisplayParts;
-            var separatorContent = separatorParts.GetFullText();
+        var signaturePrefixParts = _signatureHelpItem.PrefixDisplayParts;
+        var signaturePrefixContent = _signatureHelpItem.PrefixDisplayParts.GetFullText();
 
-            var newLinePart = new TaggedText(TextTags.LineBreak, "\r\n");
-            var newLineContent = newLinePart.ToString();
-            var spacerPart = new TaggedText(TextTags.Space, new string(' ', signaturePrefixContent.Length));
-            var spacerContent = spacerPart.ToString();
+        AddRange(signaturePrefixParts, parts, prettyPrintedParts);
+        Append(signaturePrefixContent, content, prettyPrintedContent);
 
-            var paramColumnCount = 0;
+        var separatorParts = _signatureHelpItem.SeparatorDisplayParts;
+        var separatorContent = separatorParts.GetFullText();
 
-            for (var i = 0; i < _signatureHelpItem.Parameters.Length; i++)
+        var newLinePart = new TaggedText(TextTags.LineBreak, "\r\n");
+        var newLineContent = newLinePart.ToString();
+        var spacerPart = new TaggedText(TextTags.Space, new string(' ', signaturePrefixContent.Length));
+        var spacerContent = spacerPart.ToString();
+
+        var paramColumnCount = 0;
+
+        for (var i = 0; i < _signatureHelpItem.Parameters.Length; i++)
+        {
+            var sigHelpParameter = _signatureHelpItem.Parameters[i];
+
+            var parameterPrefixParts = sigHelpParameter.PrefixDisplayParts;
+            var parameterPrefixContext = sigHelpParameter.PrefixDisplayParts.GetFullText();
+
+            var parameterParts = AddOptionalBrackets(
+                sigHelpParameter.IsOptional, sigHelpParameter.DisplayParts);
+            var parameterContent = parameterParts.GetFullText();
+
+            var parameterSuffixParts = sigHelpParameter.SuffixDisplayParts;
+            var parameterSuffixContext = sigHelpParameter.SuffixDisplayParts.GetFullText();
+
+            paramColumnCount += separatorContent.Length + parameterPrefixContext.Length + parameterContent.Length + parameterSuffixContext.Length;
+
+            if (i > 0)
             {
-                var sigHelpParameter = _signatureHelpItem.Parameters[i];
+                AddRange(separatorParts, parts, prettyPrintedParts);
+                Append(separatorContent, content, prettyPrintedContent);
 
-                var parameterPrefixParts = sigHelpParameter.PrefixDisplayParts;
-                var parameterPrefixContext = sigHelpParameter.PrefixDisplayParts.GetFullText();
-
-                var parameterParts = AddOptionalBrackets(
-                    sigHelpParameter.IsOptional, sigHelpParameter.DisplayParts);
-                var parameterContent = parameterParts.GetFullText();
-
-                var parameterSuffixParts = sigHelpParameter.SuffixDisplayParts;
-                var parameterSuffixContext = sigHelpParameter.SuffixDisplayParts.GetFullText();
-
-                paramColumnCount += separatorContent.Length + parameterPrefixContext.Length + parameterContent.Length + parameterSuffixContext.Length;
-
-                if (i > 0)
+                if (paramColumnCount > MaxParamColumnCount)
                 {
-                    AddRange(separatorParts, parts, prettyPrintedParts);
-                    Append(separatorContent, content, prettyPrintedContent);
+                    prettyPrintedParts.Add(newLinePart);
+                    prettyPrintedParts.Add(spacerPart);
+                    prettyPrintedContent.Append(newLineContent);
+                    prettyPrintedContent.Append(spacerContent);
 
-                    if (paramColumnCount > MaxParamColumnCount)
-                    {
-                        prettyPrintedParts.Add(newLinePart);
-                        prettyPrintedParts.Add(spacerPart);
-                        prettyPrintedContent.Append(newLineContent);
-                        prettyPrintedContent.Append(spacerContent);
-
-                        paramColumnCount = 0;
-                    }
+                    paramColumnCount = 0;
                 }
-
-                AddRange(parameterPrefixParts, parts, prettyPrintedParts);
-                Append(parameterPrefixContext, content, prettyPrintedContent);
-
-                parameters.Add(new Parameter(this, sigHelpParameter, parameterContent, content.Length, prettyPrintedContent.Length));
-
-                AddRange(parameterParts, parts, prettyPrintedParts);
-                Append(parameterContent, content, prettyPrintedContent);
-
-                AddRange(parameterSuffixParts, parts, prettyPrintedParts);
-                Append(parameterSuffixContext, content, prettyPrintedContent);
             }
 
-            AddRange(_signatureHelpItem.SuffixDisplayParts, parts, prettyPrintedParts);
-            Append(_signatureHelpItem.SuffixDisplayParts.GetFullText(), content, prettyPrintedContent);
+            AddRange(parameterPrefixParts, parts, prettyPrintedParts);
+            Append(parameterPrefixContext, content, prettyPrintedContent);
 
-            if (_parameterIndex >= 0)
-            {
-                var sigHelpParameter = _signatureHelpItem.Parameters[_parameterIndex];
+            parameters.Add(new Parameter(this, sigHelpParameter, parameterContent, content.Length, prettyPrintedContent.Length));
 
-                AddRange(sigHelpParameter.SelectedDisplayParts, parts, prettyPrintedParts);
-                Append(sigHelpParameter.SelectedDisplayParts.GetFullText(), content, prettyPrintedContent);
-            }
+            AddRange(parameterParts, parts, prettyPrintedParts);
+            Append(parameterContent, content, prettyPrintedContent);
 
-            AddRange(_signatureHelpItem.DescriptionParts, parts, prettyPrintedParts);
-            Append(_signatureHelpItem.DescriptionParts.GetFullText(), content, prettyPrintedContent);
-
-            var documentation = _signatureHelpItem.DocumentationFactory(CancellationToken.None).ToList();
-            if (documentation.Count > 0)
-            {
-                AddRange(new[] { newLinePart }, parts, prettyPrintedParts);
-                Append(newLineContent, content, prettyPrintedContent);
-
-                AddRange(documentation, parts, prettyPrintedParts);
-                Append(documentation.GetFullText(), content, prettyPrintedContent);
-            }
-
-            _content = content.ToString();
-            _prettyPrintedContent = prettyPrintedContent.ToString();
-            _displayParts = parts.ToImmutableArrayOrEmpty();
-            _prettyPrintedDisplayParts = prettyPrintedParts.ToImmutableArrayOrEmpty();
-            _parameters = parameters.ToReadOnlyCollection();
+            AddRange(parameterSuffixParts, parts, prettyPrintedParts);
+            Append(parameterSuffixContext, content, prettyPrintedContent);
         }
 
-        private static void AddRange(IList<TaggedText> values, List<TaggedText> parts, List<TaggedText> prettyPrintedParts)
+        AddRange(_signatureHelpItem.SuffixDisplayParts, parts, prettyPrintedParts);
+        Append(_signatureHelpItem.SuffixDisplayParts.GetFullText(), content, prettyPrintedContent);
+
+        if (_parameterIndex >= 0)
         {
-            parts.AddRange(values);
-            prettyPrintedParts.AddRange(values);
+            var sigHelpParameter = _signatureHelpItem.Parameters[_parameterIndex];
+
+            AddRange(sigHelpParameter.SelectedDisplayParts, parts, prettyPrintedParts);
+            Append(sigHelpParameter.SelectedDisplayParts.GetFullText(), content, prettyPrintedContent);
         }
 
-        private static void Append(string text, StringBuilder content, StringBuilder prettyPrintedContent)
+        AddRange(_signatureHelpItem.DescriptionParts, parts, prettyPrintedParts);
+        Append(_signatureHelpItem.DescriptionParts.GetFullText(), content, prettyPrintedContent);
+
+        var documentation = _signatureHelpItem.DocumentationFactory(CancellationToken.None).ToList();
+        if (documentation.Count > 0)
         {
-            content.Append(text);
-            prettyPrintedContent.Append(text);
+            AddRange(new[] { newLinePart }, parts, prettyPrintedParts);
+            Append(newLineContent, content, prettyPrintedContent);
+
+            AddRange(documentation, parts, prettyPrintedParts);
+            Append(documentation.GetFullText(), content, prettyPrintedContent);
         }
 
-        private static IList<TaggedText> AddOptionalBrackets(bool isOptional, IList<TaggedText> list)
+        _content = content.ToString();
+        _prettyPrintedContent = prettyPrintedContent.ToString();
+        _displayParts = parts.ToImmutableArrayOrEmpty();
+        _prettyPrintedDisplayParts = prettyPrintedParts.ToImmutableArrayOrEmpty();
+        _parameters = parameters.ToReadOnlyCollection();
+    }
+
+    private static void AddRange(IList<TaggedText> values, List<TaggedText> parts, List<TaggedText> prettyPrintedParts)
+    {
+        parts.AddRange(values);
+        prettyPrintedParts.AddRange(values);
+    }
+
+    private static void Append(string text, StringBuilder content, StringBuilder prettyPrintedContent)
+    {
+        content.Append(text);
+        prettyPrintedContent.Append(text);
+    }
+
+    private static IList<TaggedText> AddOptionalBrackets(bool isOptional, IList<TaggedText> list)
+    {
+        if (isOptional)
         {
-            if (isOptional)
+            var result = new List<TaggedText>
             {
-                var result = new List<TaggedText>
-                {
-                    new TaggedText(TextTags.Punctuation, "[")
-                };
-                result.AddRange(list);
-                result.Add(new TaggedText(TextTags.Punctuation, "]"));
-                return result;
-            }
-
-            return list;
+                new TaggedText(TextTags.Punctuation, "[")
+            };
+            result.AddRange(list);
+            result.Add(new TaggedText(TextTags.Punctuation, "]"));
+            return result;
         }
+
+        return list;
     }
 }

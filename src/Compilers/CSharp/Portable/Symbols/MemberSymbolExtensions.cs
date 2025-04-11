@@ -111,6 +111,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return member.GetMemberArity();
         }
 
+        internal static ImmutableArray<ParameterSymbol> GetParametersIncludingExtensionParameter(this Symbol symbol)
+        {
+            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider optimizing
+            if (symbol.GetIsNewExtensionMember() && symbol.ContainingType.ExtensionParameter is { } extensionParameter)
+            {
+                return [extensionParameter, .. symbol.GetParameters()];
+            }
+
+            return symbol.GetParameters();
+        }
+
         /// <summary>
         /// For an extension member, we distribute the type arguments between the extension declaration and the member.
         /// Otherwise, we just construct the member with the type arguments.

@@ -4,14 +4,13 @@
 
 using Microsoft.CodeAnalysis.CodeFixes;
 
-namespace Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions
+namespace Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions;
+
+/// <summary>
+/// Common interface used by both local Roslyn and LSP to implement
+/// their specific versions of CodeFixSuggestedAction.
+/// </summary>
+internal interface ICodeFixSuggestedAction
 {
-    /// <summary>
-    /// Common interface used by both local Roslyn and LSP to implement
-    /// their specific versions of CodeFixSuggestedAction.
-    /// </summary>
-    internal interface ICodeFixSuggestedAction
-    {
-        CodeFix CodeFix { get; }
-    }
+    CodeFix CodeFix { get; }
 }

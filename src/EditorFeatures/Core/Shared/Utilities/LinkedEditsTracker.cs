@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
-internal class LinkedEditsTracker
+internal sealed class LinkedEditsTracker
 {
     private static readonly object s_propagateSpansEditTag = new();
 

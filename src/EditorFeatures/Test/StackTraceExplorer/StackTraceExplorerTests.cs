@@ -17,7 +17,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests.StackTraceExplorer;
 
 [UseExportProvider]
-public class StackTraceExplorerTests
+public sealed class StackTraceExplorerTests
 {
     private static async Task TestSymbolFoundAsync(string inputLine, string code)
     {

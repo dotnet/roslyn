@@ -5,35 +5,34 @@
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
+namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
+
+/// <summary>
+/// Represents a Range for serialization. See https://github.com/Microsoft/language-server-protocol/blob/master/indexFormat/specification.md#ranges for further details.
+/// </summary>
+internal sealed class Range : Vertex
 {
-    /// <summary>
-    /// Represents a Range for serialization. See https://github.com/Microsoft/language-server-protocol/blob/master/indexFormat/specification.md#ranges for further details.
-    /// </summary>
-    internal sealed class Range : Vertex
+    public Position Start { get; }
+    public Position End { get; }
+    public RangeTag? Tag { get; }
+
+    public Range(Position start, Position end, RangeTag? tag, IdFactory idFactory)
+        : base(label: "range", idFactory)
     {
-        public Position Start { get; }
-        public Position End { get; }
-        public RangeTag? Tag { get; }
+        Start = start;
+        End = end;
+        Tag = tag;
+    }
 
-        public Range(Position start, Position end, RangeTag? tag, IdFactory idFactory)
-            : base(label: "range", idFactory)
-        {
-            Start = start;
-            End = end;
-            Tag = tag;
-        }
+    public static Range FromTextSpan(TextSpan textSpan, SourceText sourceText, RangeTag? tag, IdFactory idFactory)
+    {
+        var linePositionSpan = sourceText.Lines.GetLinePositionSpan(textSpan);
 
-        public static Range FromTextSpan(TextSpan textSpan, SourceText sourceText, RangeTag? tag, IdFactory idFactory)
-        {
-            var linePositionSpan = sourceText.Lines.GetLinePositionSpan(textSpan);
+        return new Range(start: ConvertLinePositionToPosition(linePositionSpan.Start), end: ConvertLinePositionToPosition(linePositionSpan.End), tag, idFactory);
+    }
 
-            return new Range(start: ConvertLinePositionToPosition(linePositionSpan.Start), end: ConvertLinePositionToPosition(linePositionSpan.End), tag, idFactory);
-        }
-
-        internal static Position ConvertLinePositionToPosition(LinePosition linePosition)
-        {
-            return new Position { Line = linePosition.Line, Character = linePosition.Character };
-        }
+    internal static Position ConvertLinePositionToPosition(LinePosition linePosition)
+    {
+        return new Position { Line = linePosition.Line, Character = linePosition.Character };
     }
 }

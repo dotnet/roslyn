@@ -18,7 +18,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor;
 
 [UseExportProvider]
-public class OpenDocumentTests
+public sealed class OpenDocumentTests
 {
     [WpfFact, Trait(Traits.Feature, Traits.Features.Workspace)]
     public void LinkedFiles()

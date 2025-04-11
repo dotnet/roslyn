@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
-internal class VsEnumBSTR : IVsEnumBSTR
+internal sealed class VsEnumBSTR : IVsEnumBSTR
 {
     private readonly IList<string> _values;
     private int _currentIndex;

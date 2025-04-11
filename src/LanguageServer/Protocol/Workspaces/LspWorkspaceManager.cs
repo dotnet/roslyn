@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// </remarks>
 internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 {
-    private class LspUriComparer : IEqualityComparer<Uri>
+    private sealed class LspUriComparer : IEqualityComparer<Uri>
     {
         public static readonly LspUriComparer Instance = new();
         public bool Equals(Uri? x, Uri? y)

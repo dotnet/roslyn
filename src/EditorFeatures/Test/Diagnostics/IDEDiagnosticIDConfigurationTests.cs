@@ -20,7 +20,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityLevel;
 
 [UseExportProvider]
-public class IDEDiagnosticIDConfigurationTests
+public sealed class IDEDiagnosticIDConfigurationTests
 {
     private static ImmutableArray<(string diagnosticId, ImmutableHashSet<IOption2> codeStyleOptions)> GetIDEDiagnosticIdsAndOptions(
         string languageName)

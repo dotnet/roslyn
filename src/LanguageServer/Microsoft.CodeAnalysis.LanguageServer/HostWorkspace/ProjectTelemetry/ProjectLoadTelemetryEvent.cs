@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 /// except for SdkVersion, which is unused by the client in the O# version.
 /// </summary>
 
-internal record ProjectLoadTelemetryEvent(
+internal sealed record ProjectLoadTelemetryEvent(
     // The project guid (if it came from a solution), or a hash representing the file path and contents.
     [property: JsonPropertyName("ProjectId")] string ProjectId,
     [property: JsonPropertyName("SessionId")] string SessionId,

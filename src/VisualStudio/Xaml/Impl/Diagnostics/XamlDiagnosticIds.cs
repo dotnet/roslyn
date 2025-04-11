@@ -4,11 +4,10 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.Editor.Xaml.Diagnostics
+namespace Microsoft.CodeAnalysis.Editor.Xaml.Diagnostics;
+
+internal static class XamlDiagnosticIds
 {
-    internal static class XamlDiagnosticIds
-    {
-        public const string UnnecessaryNamespacesId = "XAML1103";
-        public const string MissingNamespaceId = "XAML0002";
-    }
+    public const string UnnecessaryNamespacesId = "XAML1103";
+    public const string MissingNamespaceId = "XAML0002";
 }

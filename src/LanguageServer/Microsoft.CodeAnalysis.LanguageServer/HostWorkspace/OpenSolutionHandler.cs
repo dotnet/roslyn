@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(OpenSolutionHandler)), Shared]
 [Method(OpenSolutionName)]
-internal class OpenSolutionHandler : ILspServiceNotificationHandler<OpenSolutionHandler.NotificationParams>
+internal sealed class OpenSolutionHandler : ILspServiceNotificationHandler<OpenSolutionHandler.NotificationParams>
 {
     internal const string OpenSolutionName = "solution/open";
 
@@ -33,7 +33,7 @@ internal class OpenSolutionHandler : ILspServiceNotificationHandler<OpenSolution
         return _projectSystem.OpenSolutionAsync(request.Solution.LocalPath);
     }
 
-    private class NotificationParams
+    private sealed class NotificationParams
     {
         [JsonPropertyName("solution")]
         public required Uri Solution { get; set; }

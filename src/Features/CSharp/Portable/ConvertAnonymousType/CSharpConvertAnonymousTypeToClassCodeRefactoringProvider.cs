@@ -16,7 +16,7 @@ using static CSharpSyntaxTokens;
 
 [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertAnonymousTypeToClass), Shared]
-internal class CSharpConvertAnonymousTypeToClassCodeRefactoringProvider :
+internal sealed class CSharpConvertAnonymousTypeToClassCodeRefactoringProvider :
     AbstractConvertAnonymousTypeToClassCodeRefactoringProvider<
         ExpressionSyntax,
         NameSyntax,

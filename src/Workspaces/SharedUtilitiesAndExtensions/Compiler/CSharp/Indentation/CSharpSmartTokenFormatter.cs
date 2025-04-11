@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Indentation;
 
-internal class CSharpSmartTokenFormatter : ISmartTokenFormatter
+internal sealed class CSharpSmartTokenFormatter : ISmartTokenFormatter
 {
     private readonly IndentationOptions _options;
     private readonly ImmutableArray<AbstractFormattingRule> _formattingRules;
@@ -143,7 +143,7 @@ internal class CSharpSmartTokenFormatter : ISmartTokenFormatter
         }
     }
 
-    private class SmartTokenFormattingRule : NoLineChangeFormattingRule
+    private sealed class SmartTokenFormattingRule : NoLineChangeFormattingRule
     {
         public override void AddSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
         {

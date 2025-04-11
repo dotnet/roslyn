@@ -10,7 +10,7 @@ using Roslyn.Test.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SpellCheck;
 
 [UseExportProvider]
-public class SpellCheckFixerProviderTests : AbstractSpellCheckFixerProviderTests
+public sealed class SpellCheckFixerProviderTests : AbstractSpellCheckFixerProviderTests
 {
     protected override EditorTestWorkspace CreateWorkspace(string content)
         => EditorTestWorkspace.CreateCSharp(content);

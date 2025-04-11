@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification;
 
-internal partial class CSharpExtensionMethodReducer : AbstractCSharpReducer
+internal sealed partial class CSharpExtensionMethodReducer : AbstractCSharpReducer
 {
     private static readonly ObjectPool<IReductionRewriter> s_pool = new(
         () => new Rewriter(s_pool));

@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Wrapping.BinaryExpression;
 
 namespace Microsoft.CodeAnalysis.CSharp.Wrapping.BinaryExpression;
 
-internal class CSharpBinaryExpressionWrapper : AbstractBinaryExpressionWrapper<BinaryExpressionSyntax>
+internal sealed class CSharpBinaryExpressionWrapper : AbstractBinaryExpressionWrapper<BinaryExpressionSyntax>
 {
     public CSharpBinaryExpressionWrapper()
         : base(CSharpIndentationService.Instance, CSharpSyntaxFacts.Instance, CSharpExpressionPrecedenceService.Instance)

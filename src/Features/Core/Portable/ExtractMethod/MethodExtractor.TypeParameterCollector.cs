@@ -15,7 +15,7 @@ internal abstract partial class AbstractExtractMethodService<
 {
     internal abstract partial class MethodExtractor
     {
-        protected class TypeParameterCollector : SymbolVisitor
+        protected sealed class TypeParameterCollector : SymbolVisitor
         {
             private readonly List<ITypeParameterSymbol> _typeParameters = [];
 

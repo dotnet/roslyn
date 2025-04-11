@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-internal class CSharpFormatEngine : AbstractFormatEngine
+internal sealed class CSharpFormatEngine : AbstractFormatEngine
 {
     public CSharpFormatEngine(
         SyntaxNode node,

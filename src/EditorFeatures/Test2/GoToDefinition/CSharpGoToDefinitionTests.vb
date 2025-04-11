@@ -4425,6 +4425,29 @@ public partial class Program
         End Function
 
         <WpfFact>
+        Public Async Function TestCSharpGotoDefinitionNullConditionalAwait() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            partial class Test
+            {
+                string [|s|];
+
+                public void M(Test t)
+                {
+                    t?.$$s = "";
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+#Enable Warning RSEXPERIMENTAL002 ' Type is for evaluation purposes only and is subject to change or removal in future updates.
+        <WpfFact>
         Public Async Function TestCSharpGoToExtensionMethod1() As Task
             Dim workspace =
 <Workspace>

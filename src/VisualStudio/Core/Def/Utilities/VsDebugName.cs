@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
-internal class VsDebugName : IVsDebugName
+internal sealed class VsDebugName : IVsDebugName
 {
     private readonly string? _name;
     private readonly string _document;

@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Precedence;
 
-internal class CSharpPatternPrecedenceService : AbstractCSharpPrecedenceService<PatternSyntax>
+internal sealed class CSharpPatternPrecedenceService : AbstractCSharpPrecedenceService<PatternSyntax>
 {
     public static readonly CSharpPatternPrecedenceService Instance = new();
 

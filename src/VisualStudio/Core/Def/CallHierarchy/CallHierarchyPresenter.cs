@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.Shell;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CallHierarchy;
 
 [Export(typeof(ICallHierarchyPresenter))]
-internal class CallHierarchyPresenter : ICallHierarchyPresenter
+internal sealed class CallHierarchyPresenter : ICallHierarchyPresenter
 {
     private readonly IServiceProvider _serviceProvider;
 

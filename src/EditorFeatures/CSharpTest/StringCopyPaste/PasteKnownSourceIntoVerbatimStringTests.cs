@@ -6,7 +6,7 @@ using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste;
 
-public class PasteKnownSourceIntoVerbatimStringTests : StringCopyPasteCommandHandlerKnownSourceTests
+public sealed class PasteKnownSourceIntoVerbatimStringTests : StringCopyPasteCommandHandlerKnownSourceTests
 {
     [WpfFact]
     public void TestPasteSimpleNormalLiteralContent()

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
     [Shared]
     [ExportMetadata("Extensions", new string[] { "cshtml", "razor", })]
     [Export(typeof(IDynamicFileInfoProvider))]
-    internal sealed class RazorDynamicFileInfoProviderWrapper : IDynamicFileInfoProvider
+    internal class RazorDynamicFileInfoProviderWrapper : IDynamicFileInfoProvider
     {
         private readonly Lazy<IRazorDynamicFileInfoProvider> _innerDynamicFileInfoProvider;
         private readonly object _attachLock = new object();

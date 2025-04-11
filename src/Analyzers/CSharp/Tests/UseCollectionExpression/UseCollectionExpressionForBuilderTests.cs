@@ -18,7 +18,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseCollectionExpressionForBuilderCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
-public partial class UseCollectionExpressionForBuilderTests
+public sealed partial class UseCollectionExpressionForBuilderTests
 {
     private const string s_arrayBuilderApi = """
 

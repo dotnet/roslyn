@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-public partial class CSharpAsAndNullCheckTests
+public sealed partial class CSharpAsAndNullCheckTests
 {
     [Fact]
     public async Task FixAllInDocument1()

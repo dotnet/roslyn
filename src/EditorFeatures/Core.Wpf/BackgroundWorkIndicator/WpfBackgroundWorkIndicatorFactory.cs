@@ -12,58 +12,57 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
 
-namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
+namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
+
+[Export(typeof(WpfBackgroundWorkIndicatorFactory))]
+[ExportWorkspaceService(typeof(IBackgroundWorkIndicatorFactory), ServiceLayer.Editor), Shared]
+internal sealed partial class WpfBackgroundWorkIndicatorFactory : IBackgroundWorkIndicatorFactory
 {
-    [Export(typeof(WpfBackgroundWorkIndicatorFactory))]
-    [ExportWorkspaceService(typeof(IBackgroundWorkIndicatorFactory), ServiceLayer.Editor), Shared]
-    internal sealed partial class WpfBackgroundWorkIndicatorFactory : IBackgroundWorkIndicatorFactory
+    private readonly IThreadingContext _threadingContext;
+    private readonly IToolTipPresenterFactory _toolTipPresenterFactory;
+    private readonly IAsynchronousOperationListener _listener;
+
+    private BackgroundWorkIndicatorContext? _currentContext;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public WpfBackgroundWorkIndicatorFactory(
+        IThreadingContext threadingContext,
+        IToolTipPresenterFactory toolTipPresenterFactory,
+        IAsynchronousOperationListenerProvider listenerProvider)
     {
-        private readonly IThreadingContext _threadingContext;
-        private readonly IToolTipPresenterFactory _toolTipPresenterFactory;
-        private readonly IAsynchronousOperationListener _listener;
+        _threadingContext = threadingContext;
+        _toolTipPresenterFactory = toolTipPresenterFactory;
+        _listener = listenerProvider.GetListener(FeatureAttribute.QuickInfo);
+    }
 
-        private BackgroundWorkIndicatorContext? _currentContext;
+    IBackgroundWorkIndicatorContext IBackgroundWorkIndicatorFactory.Create(
+        ITextView textView,
+        SnapshotSpan applicableToSpan,
+        string description,
+        bool cancelOnEdit,
+        bool cancelOnFocusLost)
+    {
+        _threadingContext.ThrowIfNotOnUIThread();
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public WpfBackgroundWorkIndicatorFactory(
-            IThreadingContext threadingContext,
-            IToolTipPresenterFactory toolTipPresenterFactory,
-            IAsynchronousOperationListenerProvider listenerProvider)
-        {
-            _threadingContext = threadingContext;
-            _toolTipPresenterFactory = toolTipPresenterFactory;
-            _listener = listenerProvider.GetListener(FeatureAttribute.QuickInfo);
-        }
+        // If we have an outstanding context in flight, cancel it and create a new one to show the user.
+        _currentContext?.CancelAndDispose();
 
-        IBackgroundWorkIndicatorContext IBackgroundWorkIndicatorFactory.Create(
-            ITextView textView,
-            SnapshotSpan applicableToSpan,
-            string description,
-            bool cancelOnEdit,
-            bool cancelOnFocusLost)
-        {
-            _threadingContext.ThrowIfNotOnUIThread();
+        // Create the indicator in its default/empty state.
+        _currentContext = new BackgroundWorkIndicatorContext(
+            this, textView, applicableToSpan, description,
+            cancelOnEdit, cancelOnFocusLost);
 
-            // If we have an outstanding context in flight, cancel it and create a new one to show the user.
-            _currentContext?.CancelAndDispose();
+        // Then add a single scope representing the how the UI should look initially.
+        _currentContext.AddScope(allowCancellation: true, description);
+        return _currentContext;
+    }
 
-            // Create the indicator in its default/empty state.
-            _currentContext = new BackgroundWorkIndicatorContext(
-                this, textView, applicableToSpan, description,
-                cancelOnEdit, cancelOnFocusLost);
+    private void OnContextDisposed(BackgroundWorkIndicatorContext context)
+    {
+        _threadingContext.ThrowIfNotOnUIThread();
 
-            // Then add a single scope representing the how the UI should look initially.
-            _currentContext.AddScope(allowCancellation: true, description);
-            return _currentContext;
-        }
-
-        private void OnContextDisposed(BackgroundWorkIndicatorContext context)
-        {
-            _threadingContext.ThrowIfNotOnUIThread();
-
-            if (_currentContext == context)
-                _currentContext = null;
-        }
+        if (_currentContext == context)
+            _currentContext = null;
     }
 }

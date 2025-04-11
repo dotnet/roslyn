@@ -13,7 +13,7 @@ using static Microsoft.CodeAnalysis.RoslynAssemblyHelper;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Log;
 
 [ExportWorkspaceService(typeof(IErrorLoggerService), ServiceLayer.Host), Export(typeof(IErrorLoggerService)), Shared]
-internal class VisualStudioErrorLogger : IErrorLoggerService
+internal sealed class VisualStudioErrorLogger : IErrorLoggerService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

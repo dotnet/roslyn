@@ -145,6 +145,15 @@ namespace Microsoft.CodeAnalysis
             CheckIfDisposed();
 
             CompilerPathUtilities.RequireAbsolutePath(originalPath, nameof(originalPath));
+
+            lock (_guard)
+            {
+                if (_originalPathInfoMap.ContainsKey(originalPath))
+                {
+                    return;
+                }
+            }
+
             var simpleName = PathUtilities.GetFileName(originalPath, includeExtension: false);
             string resolvedPath = originalPath;
             IAnalyzerPathResolver? resolver = null;

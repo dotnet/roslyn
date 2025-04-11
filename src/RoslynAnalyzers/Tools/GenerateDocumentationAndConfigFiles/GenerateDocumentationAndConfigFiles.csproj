@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>$(NetRoslyn)</TargetFramework>
+    <NonShipping>true</NonShipping>
+    <UseAppHost>false</UseAppHost>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <MicrosoftCodeAnalysisVersion Condition="'$(MicrosoftCodeAnalysisVersion)' == ''">$(MicrosoftCodeAnalysisVersionForExecution)</MicrosoftCodeAnalysisVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Microsoft.CodeAnalysis.Analyzers\Core\MetaAnalyzers\ReleaseTrackingHelper.cs" Link="ReleaseTrackingHelper.cs" />
+    <Compile Include="..\..\Utilities\Compiler\Debug.cs" Link="Debug.cs" />
+    <Compile Include="..\..\Utilities\Compiler\Extensions\PooledHashSetExtensions.cs" Link="PooledHashSetExtensions.cs" />
+    <Compile Include="..\..\Utilities\Compiler\Extensions\WellKnownDiagnosticTagsExtensions.cs" Link="WellKnownDiagnosticTagsExtensions.cs" />
+    <Compile Include="..\..\Utilities\Compiler\FxCopWellKnownDiagnosticTags.cs" Link="FxCopWellKnownDiagnosticTags.cs" />
+    <Compile Include="..\..\Utilities\Compiler\Options\MSBuildItemOptionNames.cs" Link="MSBuildItemOptionNames.cs" />
+    <Compile Include="..\..\Utilities\Compiler\Options\MSBuildPropertyOptionNames.cs" Link="MSBuildPropertyOptionNames.cs" />
+    <Compile Include="..\..\Utilities\Compiler\PooledObjects\ArrayBuilder.cs" Link="ArrayBuilder.cs" />
+    <Compile Include="..\..\Utilities\Compiler\PooledObjects\ArrayBuilder.Enumerator.cs" Link="ArrayBuilder.Enumerator.cs" />
+    <Compile Include="..\..\Utilities\Compiler\PooledObjects\ObjectPool.cs" Link="ObjectPool.cs" />
+    <Compile Include="..\..\Utilities\Compiler\PooledObjects\PooledHashSet.cs" Link="PooledHashSet.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
+  </ItemGroup>
+</Project>

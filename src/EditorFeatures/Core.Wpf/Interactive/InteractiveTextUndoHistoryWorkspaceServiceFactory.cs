@@ -12,39 +12,38 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
 
-namespace Microsoft.CodeAnalysis.Interactive
+namespace Microsoft.CodeAnalysis.Interactive;
+
+[ExportWorkspaceServiceFactory(typeof(ITextUndoHistoryWorkspaceService), [WorkspaceKind.Interactive]), Shared]
+internal sealed class InteractiveTextUndoHistoryWorkspaceServiceFactory : IWorkspaceServiceFactory
 {
-    [ExportWorkspaceServiceFactory(typeof(ITextUndoHistoryWorkspaceService), [WorkspaceKind.Interactive]), Shared]
-    internal sealed class InteractiveTextUndoHistoryWorkspaceServiceFactory : IWorkspaceServiceFactory
+    private readonly TextUndoHistoryWorkspaceService _serviceSingleton;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public InteractiveTextUndoHistoryWorkspaceServiceFactory(ITextUndoHistoryRegistry textUndoHistoryRegistry)
+        => _serviceSingleton = new TextUndoHistoryWorkspaceService(textUndoHistoryRegistry);
+
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        => _serviceSingleton;
+
+    private sealed class TextUndoHistoryWorkspaceService : ITextUndoHistoryWorkspaceService
     {
-        private readonly TextUndoHistoryWorkspaceService _serviceSingleton;
+        private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InteractiveTextUndoHistoryWorkspaceServiceFactory(ITextUndoHistoryRegistry textUndoHistoryRegistry)
-            => _serviceSingleton = new TextUndoHistoryWorkspaceService(textUndoHistoryRegistry);
+        public TextUndoHistoryWorkspaceService(ITextUndoHistoryRegistry textUndoHistoryRegistry)
+            => _textUndoHistoryRegistry = textUndoHistoryRegistry;
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => _serviceSingleton;
-
-        private class TextUndoHistoryWorkspaceService : ITextUndoHistoryWorkspaceService
+        public bool TryGetTextUndoHistory(Workspace editorWorkspace, ITextBuffer textBuffer, out ITextUndoHistory undoHistory)
         {
-            private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
+            undoHistory = null;
 
-            public TextUndoHistoryWorkspaceService(ITextUndoHistoryRegistry textUndoHistoryRegistry)
-                => _textUndoHistoryRegistry = textUndoHistoryRegistry;
-
-            public bool TryGetTextUndoHistory(Workspace editorWorkspace, ITextBuffer textBuffer, out ITextUndoHistory undoHistory)
+            if (editorWorkspace is not InteractiveWindowWorkspace)
             {
-                undoHistory = null;
-
-                if (editorWorkspace is not InteractiveWindowWorkspace)
-                {
-                    return false;
-                }
-
-                return _textUndoHistoryRegistry.TryGetHistory(textBuffer, out undoHistory);
+                return false;
             }
+
+            return _textUndoHistoryRegistry.TryGetHistory(textBuffer, out undoHistory);
         }
     }
 }

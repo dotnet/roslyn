@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 
-public class ITextExtensionsTests
+public sealed class ITextExtensionsTests
 {
     [Fact]
     public void GetLeadingWhitespaceOfLineAtPosition_EmptyLineReturnsEmptyString()

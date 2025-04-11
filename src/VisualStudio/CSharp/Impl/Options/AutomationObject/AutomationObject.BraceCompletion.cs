@@ -4,14 +4,13 @@
 
 using Microsoft.CodeAnalysis.Formatting;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options;
+
+public partial class AutomationObject
 {
-    public partial class AutomationObject
+    public int Formatting_TriggerOnBlockCompletion
     {
-        public int Formatting_TriggerOnBlockCompletion
-        {
-            get { return GetBooleanOption(AutoFormattingOptionsStorage.FormatOnCloseBrace); }
-            set { SetBooleanOption(AutoFormattingOptionsStorage.FormatOnCloseBrace, value); }
-        }
+        get { return GetBooleanOption(AutoFormattingOptionsStorage.FormatOnCloseBrace); }
+        set { SetBooleanOption(AutoFormattingOptionsStorage.FormatOnCloseBrace, value); }
     }
 }

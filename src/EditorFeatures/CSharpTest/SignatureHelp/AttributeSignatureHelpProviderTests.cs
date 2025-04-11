@@ -16,7 +16,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp;
 
 [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-public class AttributeSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
+public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
 {
     internal override Type GetSignatureHelpProviderType()
         => typeof(AttributeSignatureHelpProvider);

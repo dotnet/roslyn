@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 /// An implementation of the brokered service <see cref="IWorkspaceProjectFactoryService"/> that just maps calls to the underlying project system.
 /// </summary>
 [ExportBrokeredService("Microsoft.VisualStudio.LanguageServices.WorkspaceProjectFactoryService", null, Audience = ServiceAudience.Local)]
-internal class WorkspaceProjectFactoryService : IWorkspaceProjectFactoryService, IExportedBrokeredService
+internal sealed class WorkspaceProjectFactoryService : IWorkspaceProjectFactoryService, IExportedBrokeredService
 {
     private readonly LanguageServerWorkspaceFactory _workspaceFactory;
     private readonly ProjectInitializationHandler _projectInitializationHandler;

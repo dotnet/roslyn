@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 
 using Workspace = Microsoft.CodeAnalysis.Workspace;
 
-internal partial class GlobalUndoServiceFactory
+internal sealed partial class GlobalUndoServiceFactory
 {
     private sealed class WorkspaceUndoTransaction : IWorkspaceGlobalUndoTransaction
     {

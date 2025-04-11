@@ -15,7 +15,7 @@ using Verify = CSharpCodeFixVerifier<
     ArrowExpressionClausePlacementDiagnosticAnalyzer,
     ArrowExpressionClausePlacementCodeFixProvider>;
 
-public class ArrowExpressionClausePlacementTests
+public sealed class ArrowExpressionClausePlacementTests
 {
     [Fact]
     public async Task TestNotWithOptionOff()

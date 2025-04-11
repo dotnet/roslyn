@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 
 [ExportCSharpVisualBasicLspServiceFactory(typeof(CompletionListCache)), Shared]
-internal class CompletionListCacheFactory : ILspServiceFactory
+internal sealed class CompletionListCacheFactory : ILspServiceFactory
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

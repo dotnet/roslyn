@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.Language.Intellisense;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
 
-internal class FolderListItem : ObjectListItem
+internal sealed class FolderListItem : ObjectListItem
 {
     private readonly string _displayText;
 

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTupleToStruct;
 [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
 [ExportLanguageService(typeof(IConvertTupleToStructCodeRefactoringProvider), LanguageNames.CSharp)]
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertTupleToStruct), Shared]
-internal class CSharpConvertTupleToStructCodeRefactoringProvider :
+internal sealed class CSharpConvertTupleToStructCodeRefactoringProvider :
     AbstractConvertTupleToStructCodeRefactoringProvider<
         ExpressionSyntax,
         NameSyntax,

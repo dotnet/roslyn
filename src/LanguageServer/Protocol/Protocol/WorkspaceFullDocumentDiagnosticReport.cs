@@ -15,7 +15,7 @@ using System.Text.Json.Serialization;
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
 [Kind(DocumentDiagnosticReportKind.Full)]
-internal class WorkspaceFullDocumentDiagnosticReport : FullDocumentDiagnosticReport
+internal sealed class WorkspaceFullDocumentDiagnosticReport : FullDocumentDiagnosticReport
 {
     /// <summary>
     /// Gets or sets the URI associated with this diagnostic report.

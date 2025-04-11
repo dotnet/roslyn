@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal partial class DiagnosticAnalyzerService
+internal sealed partial class DiagnosticAnalyzerService
 {
     private DiagnosticIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
     {

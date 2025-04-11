@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>Describes a workspace folder</summary>
 /// <remarks>Since LSP 3.6</remarks>
-internal class WorkspaceFolder
+internal sealed class WorkspaceFolder
 {
     /// <summary>
     /// The URI for this workspace folder.

@@ -10,7 +10,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration;
 
 [Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-public class ExpressionGenerationTests : AbstractCodeGenerationTests
+public sealed class ExpressionGenerationTests : AbstractCodeGenerationTests
 {
     [Fact]
     public void TestFalseExpression()

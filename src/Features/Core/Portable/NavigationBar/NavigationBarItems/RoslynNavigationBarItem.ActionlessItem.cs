@@ -13,7 +13,7 @@ internal abstract partial class RoslynNavigationBarItem
     /// An item that is displayed and can be chosen but which has no action.
     /// </summary>
     // We suppress this as this type *does* override ComputeAdditionalHashCodeParts
-    public class ActionlessItem(
+    public sealed class ActionlessItem(
         string text,
         Glyph glyph,
         ImmutableArray<RoslynNavigationBarItem> childItems = default,

@@ -1534,7 +1534,7 @@ public sealed class ConvertToExtensionTests
             
                 static class C
                 {
-                    extension(dynamic i)
+                    extension({|CS1103:dynamic|} i)
                     {
                         public void M() { }
                         public void N() { }
@@ -1570,7 +1570,7 @@ public sealed class ConvertToExtensionTests
             
                 static class C
                 {
-                    extension(dynamic i)
+                    extension({|CS1103:dynamic|} i)
                     {
                         public void M() { }
                     }

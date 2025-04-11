@@ -18,7 +18,7 @@ using Xunit;
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess;
 
 [TestService]
-internal partial class EditorVerifierInProcess : ITextViewWindowVerifierInProcess
+internal sealed partial class EditorVerifierInProcess : ITextViewWindowVerifierInProcess
 {
     TestServices ITextViewWindowVerifierInProcess.TestServices => TestServices;
 

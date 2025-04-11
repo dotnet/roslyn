@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
 [ExportSignatureHelpProvider("GenericNamePartiallyWrittenSignatureHelpProvider", LanguageNames.CSharp), Shared]
-internal class GenericNamePartiallyWrittenSignatureHelpProvider : GenericNameSignatureHelpProvider
+internal sealed class GenericNamePartiallyWrittenSignatureHelpProvider : GenericNameSignatureHelpProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

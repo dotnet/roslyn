@@ -53,7 +53,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)VisualBasicCompilerExtensionsResources.resx" GenerateSource="true" Link="VisualBasicCompilerExtensionsResources.resx" />
-    <None Include="$(MSBuildThisFileDirectory)VisualBasicCompilerExtensionsResources.resx" />
+    <None Include="$(MSBuildThisFileDirectory)VisualBasicCompilerExtensionsResources.resx">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />

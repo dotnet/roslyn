@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
-public partial class SettingsUpdaterTests : TestBase
+public sealed partial class SettingsUpdaterTests : TestBase
 {
     private const string EditorconfigPath = "/a/b/config";
 
@@ -587,7 +587,7 @@ dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').T
 dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}.capitalization = pascal_case
 ";
 
-    private class TestViewModel : ISettingsEditorViewModel
+    private sealed class TestViewModel : ISettingsEditorViewModel
     {
         public void NotifyOfUpdate() { }
 

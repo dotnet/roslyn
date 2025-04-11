@@ -4,20 +4,19 @@
 
 using Microsoft.CodeAnalysis.SymbolSearch;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
-{
-    public partial class AutomationObject
-    {
-        public int AddImport_SuggestForTypesInReferenceAssemblies
-        {
-            get { return GetBooleanOption(SymbolSearchOptionsStorage.SearchReferenceAssemblies); }
-            set { SetBooleanOption(SymbolSearchOptionsStorage.SearchReferenceAssemblies, value); }
-        }
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options;
 
-        public int AddImport_SuggestForTypesInNuGetPackages
-        {
-            get { return GetBooleanOption(SymbolSearchOptionsStorage.SearchNuGetPackages); }
-            set { SetBooleanOption(SymbolSearchOptionsStorage.SearchNuGetPackages, value); }
-        }
+public partial class AutomationObject
+{
+    public int AddImport_SuggestForTypesInReferenceAssemblies
+    {
+        get { return GetBooleanOption(SymbolSearchOptionsStorage.SearchReferenceAssemblies); }
+        set { SetBooleanOption(SymbolSearchOptionsStorage.SearchReferenceAssemblies, value); }
+    }
+
+    public int AddImport_SuggestForTypesInNuGetPackages
+    {
+        get { return GetBooleanOption(SymbolSearchOptionsStorage.SearchNuGetPackages); }
+        set { SetBooleanOption(SymbolSearchOptionsStorage.SearchNuGetPackages, value); }
     }
 }

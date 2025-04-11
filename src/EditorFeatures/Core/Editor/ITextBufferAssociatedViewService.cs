@@ -18,7 +18,7 @@ internal interface ITextBufferAssociatedViewService
     event EventHandler<SubjectBuffersConnectedEventArgs> SubjectBuffersDisconnected;
 }
 
-internal class SubjectBuffersConnectedEventArgs(ITextView textView, ReadOnlyCollection<ITextBuffer> subjectBuffers)
+internal sealed class SubjectBuffersConnectedEventArgs(ITextView textView, ReadOnlyCollection<ITextBuffer> subjectBuffers)
 {
     public ReadOnlyCollection<ITextBuffer> SubjectBuffers { get; } = subjectBuffers;
     public ITextView TextView { get; } = textView;

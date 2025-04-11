@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIsNullCheck;
 using VerifyCS = CSharpCodeFixVerifier<CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzer, CSharpUseNullCheckOverTypeCheckCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
-public class CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzerTests
+public sealed class CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzerTests
 {
     private static async Task VerifyAsync(string source, string fixedSource, LanguageVersion languageVersion)
     {

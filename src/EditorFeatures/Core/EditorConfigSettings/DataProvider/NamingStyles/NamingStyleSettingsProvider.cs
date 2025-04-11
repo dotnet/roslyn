@@ -15,7 +15,7 @@ using RoslynEnumerableExtensions = Microsoft.CodeAnalysis.Editor.EditorConfigSet
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.NamingStyles;
 
-internal class NamingStyleSettingsProvider : SettingsProviderBase<NamingStyleSetting, NamingStyleSettingsUpdater, (Action<(object, object?)>, NamingStyleSetting), object>
+internal sealed class NamingStyleSettingsProvider : SettingsProviderBase<NamingStyleSetting, NamingStyleSettingsUpdater, (Action<(object, object?)>, NamingStyleSetting), object>
 {
     public NamingStyleSettingsProvider(string fileName, NamingStyleSettingsUpdater settingsUpdater, Workspace workspace, IGlobalOptionService globalOptions)
         : base(fileName, settingsUpdater, workspace, globalOptions)

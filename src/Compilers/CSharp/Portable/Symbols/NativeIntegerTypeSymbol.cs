@@ -436,6 +436,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasInterpolatedStringHandlerArgumentError => _underlyingParameter.HasInterpolatedStringHandlerArgumentError;
 
+        internal override bool HasEnumeratorCancellationAttribute => _underlyingParameter.HasEnumeratorCancellationAttribute;
+
         public override bool Equals(Symbol? other, TypeCompareKind comparison) => NativeIntegerTypeSymbol.EqualsHelper(this, other, comparison, symbol => symbol._underlyingParameter);
 
         public override int GetHashCode() => _underlyingParameter.GetHashCode();

@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 
-internal class DocCommentConverter : CSharpSyntaxRewriter
+internal sealed class DocCommentConverter : CSharpSyntaxRewriter
 {
     private readonly IDocumentationCommentFormattingService _formattingService;
     private readonly CancellationToken _cancellationToken;

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 /// 
 /// it will cache some commonly used trivia to reduce memory footprint and heap allocation
 /// </summary>
-internal partial class TriviaDataFactory : AbstractTriviaDataFactory
+internal sealed partial class TriviaDataFactory : AbstractTriviaDataFactory
 {
     public TriviaDataFactory(TreeData treeInfo, LineFormattingOptions options)
         : base(treeInfo, options)
