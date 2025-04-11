@@ -245,17 +245,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 #nullable disable
 
-        internal static DeclarationModifiers AdjustModifiersForAnInterfaceMember(DeclarationModifiers mods, bool hasBody, bool isExplicitInterfaceImplementation, bool forMethod, CSharpSyntaxNode syntaxNode)
+        internal static DeclarationModifiers AdjustModifiersForAnInterfaceMember(DeclarationModifiers mods, bool hasBody, bool isExplicitInterfaceImplementation, bool forMethod)
         {
-            // In C# 13 and earlier, interface extended partial members were not implicitly public and virtual and that is fixed only in C# 14 and later to avoid a breaking change.
-            bool notPartialOrNewPartialBehavior = (mods & DeclarationModifiers.Partial) == 0 || ((CSharpParseOptions)syntaxNode.SyntaxTree.Options).LanguageVersion > LanguageVersion.CSharp13;
+            // Interface partial non-method members are implicitly public and virtual just like their non-partial counterparts.
+            // Interface partial methods are implicitly private and not virtual (this is a spec violation but being preserved to avoid breaks).
+            bool notPartialOrNewPartialBehavior = (mods & DeclarationModifiers.Partial) == 0 || !forMethod;
 
             if ((mods & DeclarationModifiers.AccessibilityMask) == 0)
             {
-                // Partial methods without accessibility modifiers (i.e., not the "extended partial methods") are implicitly private and not virtual.
-                var plainPartialMethod = forMethod && (mods & DeclarationModifiers.Partial) != 0;
-
-                if (!plainPartialMethod && !isExplicitInterfaceImplementation && notPartialOrNewPartialBehavior)
+                if (!isExplicitInterfaceImplementation && notPartialOrNewPartialBehavior)
                 {
                     mods |= DeclarationModifiers.Public;
                 }

@@ -2023,8 +2023,6 @@ partial class C : I
 
             bool expectedPrivate = access is "" or "private";
 
-            bool nonVirtualByDefault = expectedPrivate || langVersion == LanguageVersion.CSharp13;
-
             var expectedAccessibility = access switch
             {
                 _ when expectedPrivate => Accessibility.Private,
@@ -2036,13 +2034,11 @@ partial class C : I
                 _ => throw ExceptionUtilities.UnexpectedValue(access),
             };
 
-            bool expectedVirtual = langVersion == LanguageVersion.CSharp13 || expectedPrivate
-                ? virt == "virtual"
-                : virt != "sealed";
+            bool expectedVirtual = virt == "virtual";
 
-            bool expectedSealed = nonVirtualByDefault && virt == "sealed";
+            bool expectedSealed = virt == "sealed";
 
-            bool executable = expectedVirtual && !expectedPrivate;
+            bool executable = !expectedPrivate && virt == "virtual";
 
             DiagnosticDescription[] expectedDiagnostics = [];
 
@@ -2058,7 +2054,7 @@ partial class C : I
                     Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M").WithArguments("I.M()").WithLocation(8, 18)
                 ];
             }
-            else if (virt == "sealed" && nonVirtualByDefault)
+            else if (virt == "sealed")
             {
                 expectedDiagnostics =
                 [
@@ -2070,7 +2066,7 @@ partial class C : I
                     Diagnostic(ErrorCode.ERR_SealedNonOverride, "M").WithArguments("I.M()").WithLocation(8, 18)
                 ];
             }
-            else if (expectedPrivate && expectedVirtual)
+            else if (expectedPrivate && virt == "virtual")
             {
                 expectedDiagnostics =
                 [

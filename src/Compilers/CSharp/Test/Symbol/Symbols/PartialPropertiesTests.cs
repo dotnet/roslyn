@@ -2596,14 +2596,10 @@ public partial class C
                 }
                 """;
 
-            bool nonVirtualByDefault = access == "private" || langVersion == LanguageVersion.CSharp13;
-
-            bool expectedPrivate = access == "private" || (access == "" && langVersion == LanguageVersion.CSharp13);
-
             var expectedAccessibility = access switch
             {
-                _ when expectedPrivate => Accessibility.Private,
                 "" or "public" => Accessibility.Public,
+                "private" => Accessibility.Private,
                 "protected" => Accessibility.Protected,
                 "internal" => Accessibility.Internal,
                 "protected internal" => Accessibility.ProtectedOrInternal,
@@ -2611,17 +2607,17 @@ public partial class C
                 _ => throw ExceptionUtilities.UnexpectedValue(access),
             };
 
-            bool expectedVirtual = langVersion == LanguageVersion.CSharp13 || access == "private"
+            bool expectedVirtual = access == "private"
                 ? virt == "virtual"
                 : virt != "sealed";
 
-            bool expectedSealed = nonVirtualByDefault && virt == "sealed";
+            bool expectedSealed = access == "private" && virt == "sealed";
 
-            bool executable = expectedVirtual && !expectedPrivate;
+            bool executable = access != "private" && virt != "sealed";
 
             DiagnosticDescription[] expectedDiagnostics = [];
 
-            if (virt == "sealed" && nonVirtualByDefault)
+            if (virt == "sealed" && access == "private")
             {
                 expectedDiagnostics =
                 [
@@ -2630,7 +2626,7 @@ public partial class C
                     Diagnostic(ErrorCode.ERR_SealedNonOverride, "P").WithArguments("I.P").WithLocation(6, 17)
                 ];
             }
-            else if (expectedPrivate && expectedVirtual)
+            else if (access == "private" && expectedVirtual)
             {
                 expectedDiagnostics =
                 [
@@ -2748,12 +2744,10 @@ public partial class C
                 }
                 """;
 
-            bool expectedPrivate = access == "private" || (access == "" && langVersion == LanguageVersion.CSharp13);
-
             var expectedAccessibility = access switch
             {
-                _ when expectedPrivate => Accessibility.Private,
                 "" or "public" => Accessibility.Public,
+                "private" => Accessibility.Private,
                 "protected" => Accessibility.Protected,
                 "internal" => Accessibility.Internal,
                 "protected internal" => Accessibility.ProtectedOrInternal,
@@ -2763,11 +2757,11 @@ public partial class C
 
             bool expectedVirtual = virt == "virtual";
 
-            bool executable = virt == "virtual" && !expectedPrivate;
+            bool executable = virt == "virtual" && access != "private";
 
             DiagnosticDescription[] expectedDiagnostics = [];
 
-            if (expectedPrivate && virt == "virtual")
+            if (access == "private" && virt == "virtual")
             {
                 expectedDiagnostics =
                 [
