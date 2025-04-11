@@ -147,7 +147,10 @@ internal sealed class ExportProviderBuilder
                 {
                     // Delete any existing cached files.
                     foreach (var fileInfo in directoryInfo.EnumerateFiles($"*{CatalogSuffix}"))
+                    {
                         fileInfo.Delete();
+                        cancellationToken.ThrowIfCancellationRequested();
+                    }
                 }
             }
 
