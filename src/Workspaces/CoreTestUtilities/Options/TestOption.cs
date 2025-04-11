@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 
-internal class TestOption : IOption
+internal sealed class TestOption : IOption
 {
     public string Feature { get; set; } = "test";
     public string Name { get; set; } = "test";
@@ -20,7 +20,7 @@ internal class TestOption : IOption
 
 #pragma warning disable RS0030 // Do not used banned APIs
 
-internal class TestOption<T> : Option<T>
+internal sealed class TestOption<T> : Option<T>
 {
     public TestOption(string feature = "test", string name = "test", T? defaultValue = default, OptionStorageLocation[]? storageLocations = null)
         : base(feature, name, defaultValue!, storageLocations ?? [])
@@ -28,7 +28,7 @@ internal class TestOption<T> : Option<T>
     }
 }
 
-internal class PerLanguageTestOption<T> : PerLanguageOption<T>
+internal sealed class PerLanguageTestOption<T> : PerLanguageOption<T>
 {
     public PerLanguageTestOption(string feature = "test", string name = "test", T? defaultValue = default, OptionStorageLocation[]? storageLocations = null)
         : base(feature, name, defaultValue!, storageLocations ?? [])

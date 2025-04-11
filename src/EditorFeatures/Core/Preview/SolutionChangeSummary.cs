@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Editor;
 
-internal class SolutionChangeSummary
+internal sealed class SolutionChangeSummary
 {
     public readonly Solution OldSolution;
     public readonly Solution NewSolution;

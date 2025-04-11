@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly ArrayBuilder<BoundExpression> Arguments;
         public readonly ArrayBuilder<(string Name, Location Location)?> Names;
         public readonly ArrayBuilder<RefKind> RefKinds;
-        public bool IsExtensionMethodInvocation;
+        public bool IncludesReceiverAsArgument;
         private ThreeState _lazyHasDynamicArgument;
 
         internal AnalyzedArguments()
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Arguments.Clear();
             this.Names.Clear();
             this.RefKinds.Clear();
-            this.IsExtensionMethodInvocation = false;
+            this.IncludesReceiverAsArgument = false;
             _lazyHasDynamicArgument = ThreeState.Unknown;
         }
 
@@ -78,9 +78,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return RefKinds.Count > 0 ? RefKinds[i] : Microsoft.CodeAnalysis.RefKind.None;
         }
 
-        public bool IsExtensionMethodThisArgument(int i)
+        public bool IsExtensionMethodReceiverArgument(int i)
         {
-            return (i == 0) && this.IsExtensionMethodInvocation;
+            return (i == 0) && this.IncludesReceiverAsArgument;
         }
 
         public bool HasDynamicArgument
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             instance.Arguments.AddRange(original.Arguments);
             instance.Names.AddRange(original.Names);
             instance.RefKinds.AddRange(original.RefKinds);
-            instance.IsExtensionMethodInvocation = original.IsExtensionMethodInvocation;
+            instance.IncludesReceiverAsArgument = original.IncludesReceiverAsArgument;
             instance._lazyHasDynamicArgument = original._lazyHasDynamicArgument;
             return instance;
         }

@@ -10,22 +10,21 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
+
+[ExportCSharpVisualBasicStatelessLspService(typeof(FormatDocumentRangeHandler)), Shared]
+[Method(Methods.TextDocumentRangeFormattingName)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class FormatDocumentRangeHandler(IGlobalOptionService globalOptions) : AbstractFormatDocumentHandlerBase<DocumentRangeFormattingParams, TextEdit[]?>
 {
-    [ExportCSharpVisualBasicStatelessLspService(typeof(FormatDocumentRangeHandler)), Shared]
-    [Method(Methods.TextDocumentRangeFormattingName)]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class FormatDocumentRangeHandler(IGlobalOptionService globalOptions) : AbstractFormatDocumentHandlerBase<DocumentRangeFormattingParams, TextEdit[]?>
-    {
-        private readonly IGlobalOptionService _globalOptions = globalOptions;
+    private readonly IGlobalOptionService _globalOptions = globalOptions;
 
-        public override TextDocumentIdentifier GetTextDocumentIdentifier(DocumentRangeFormattingParams request) => request.TextDocument;
+    public override TextDocumentIdentifier GetTextDocumentIdentifier(DocumentRangeFormattingParams request) => request.TextDocument;
 
-        public override Task<TextEdit[]?> HandleRequestAsync(
-            DocumentRangeFormattingParams request,
-            RequestContext context,
-            CancellationToken cancellationToken)
-            => GetTextEditsAsync(context, request.Options, _globalOptions, cancellationToken, range: request.Range);
-    }
+    public override Task<TextEdit[]?> HandleRequestAsync(
+        DocumentRangeFormattingParams request,
+        RequestContext context,
+        CancellationToken cancellationToken)
+        => GetTextEditsAsync(context, request.Options, _globalOptions, cancellationToken, range: request.Range);
 }

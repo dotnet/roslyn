@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.ViewModel;
 
-internal class CodeStyleSeverityViewModel
+internal sealed class CodeStyleSeverityViewModel
 {
     // NOTE: 'ServicesVSResources.Disabled' severity is not supported for code style settings.
     //       Code styles can instead be disabled by setting the option value that turns off the style.

@@ -77,8 +77,7 @@ internal sealed class VisualStudioWorkspaceStatusServiceFactory(
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _threadingContext.DisposalToken);
 
                 // Make sure the HubClient package is loaded, since we rely on it for proffered OOP services
-                var shell = await _serviceProvider.GetServiceAsync<SVsShell, IVsShell7>(_threadingContext.JoinableTaskFactory).ConfigureAwait(true);
-                Assumes.Present(shell);
+                var shell = await _serviceProvider.GetServiceAsync<SVsShell, IVsShell7>(_threadingContext.DisposalToken).ConfigureAwait(true);
 
                 await shell.LoadPackageAsync(Guids.GlobalHubClientPackageGuid);
             });
@@ -90,7 +89,7 @@ internal sealed class VisualStudioWorkspaceStatusServiceFactory(
                 using var asyncToken = listener.BeginAsyncOperation("StatusChanged_EventSubscription");
 
                 await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _threadingContext.DisposalToken);
-                var service = await serviceProvider.GetServiceAsync<SVsOperationProgress, IVsOperationProgressStatusService>(_threadingContext.JoinableTaskFactory, throwOnFailure: false).ConfigureAwait(true);
+                var service = await serviceProvider.GetServiceAsync<SVsOperationProgress, IVsOperationProgressStatusService>(throwOnFailure: false, _threadingContext.DisposalToken).ConfigureAwait(true);
                 if (service is null)
                     return null;
 

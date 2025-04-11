@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLinq;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
-public class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery.CSharpConvertForEachToLinqQueryProvider();

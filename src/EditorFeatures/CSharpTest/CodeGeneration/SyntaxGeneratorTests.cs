@@ -15,7 +15,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeGeneration;
 
 [UseExportProvider]
-public class SyntaxGeneratorTests
+public sealed class SyntaxGeneratorTests
 {
     [Fact]
     public async Task TestNameOfBindsWithoutErrors()

@@ -14,6 +14,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Copilot;
+using Microsoft.CodeAnalysis.Editor.Copilot;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -198,7 +199,7 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
                         // https://dev.azure.com/devdiv/DevDiv/_wiki/wikis/DevDiv.wiki/45121/Free-SKU-Handling-Guidance-and-Recommendations
                         var uiShell = _serviceProvider.GetServiceOnMainThread<SVsUIShell, IVsUIShell>();
                         uiShell.PostExecCommand(
-                            new Guid("39B0DEDE-D931-4A92-9AA2-3447BC4998DC"),
+                            CopilotConstants.CopilotQuotaExceededGuid,
                             0x3901,
                             nCmdexecopt: 0,
                             pvaIn: null);

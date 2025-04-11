@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-internal class ElasticTriviaFormattingRule : BaseFormattingRule
+internal sealed class ElasticTriviaFormattingRule : BaseFormattingRule
 {
     internal const string Name = "CSharp Elastic trivia Formatting Rule";
 

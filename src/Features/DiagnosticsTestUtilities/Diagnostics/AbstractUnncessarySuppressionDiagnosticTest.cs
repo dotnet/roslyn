@@ -16,50 +16,49 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
+
+public abstract class AbstractUnncessarySuppressionDiagnosticTest : AbstractUserDiagnosticTest_NoEditor
 {
-    public abstract class AbstractUnncessarySuppressionDiagnosticTest : AbstractUserDiagnosticTest_NoEditor
+    protected AbstractUnncessarySuppressionDiagnosticTest(ITestOutputHelper logger)
+        : base(logger)
     {
-        protected AbstractUnncessarySuppressionDiagnosticTest(ITestOutputHelper logger)
-            : base(logger)
-        {
-        }
+    }
 
-        internal abstract CodeFixProvider CodeFixProvider { get; }
-        internal abstract AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAnalyzer SuppressionAnalyzer { get; }
-        internal abstract ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers { get; }
+    internal abstract CodeFixProvider CodeFixProvider { get; }
+    internal abstract AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAnalyzer SuppressionAnalyzer { get; }
+    internal abstract ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers { get; }
 
-        private void AddAnalyzersToWorkspace(TestWorkspace workspace)
-        {
-            var analyzerReference = new AnalyzerImageReference(OtherAnalyzers.Add(SuppressionAnalyzer));
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
-        }
+    private void AddAnalyzersToWorkspace(TestWorkspace workspace)
+    {
+        var analyzerReference = new AnalyzerImageReference(OtherAnalyzers.Add(SuppressionAnalyzer));
+        workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
+    }
 
-        internal override async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
-            TestWorkspace workspace, TestParameters parameters)
-        {
-            AddAnalyzersToWorkspace(workspace);
-            var document = GetDocumentAndSelectSpan(workspace, out var span);
-            return await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, span, includeNonLocalDocumentDiagnostics: parameters.includeNonLocalDocumentDiagnostics);
-        }
+    internal override async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
+        TestWorkspace workspace, TestParameters parameters)
+    {
+        AddAnalyzersToWorkspace(workspace);
+        var document = GetDocumentAndSelectSpan(workspace, out var span);
+        return await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, span, includeNonLocalDocumentDiagnostics: parameters.includeNonLocalDocumentDiagnostics);
+    }
 
-        internal override async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
-            TestWorkspace workspace, TestParameters parameters)
-        {
-            AddAnalyzersToWorkspace(workspace);
+    internal override async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
+        TestWorkspace workspace, TestParameters parameters)
+    {
+        AddAnalyzersToWorkspace(workspace);
 
-            GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out var annotation);
+        GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out var annotation);
 
-            // Include suppressed diagnostics as they are needed by unnecessary suppressions analyzer.
-            var testDriver = new TestDiagnosticAnalyzerDriver(workspace, includeSuppressedDiagnostics: true, parameters.includeNonLocalDocumentDiagnostics);
-            var diagnostics = await testDriver.GetAllDiagnosticsAsync(document, span);
+        // Include suppressed diagnostics as they are needed by unnecessary suppressions analyzer.
+        var testDriver = new TestDiagnosticAnalyzerDriver(workspace, includeSuppressedDiagnostics: true, parameters.includeNonLocalDocumentDiagnostics);
+        var diagnostics = await testDriver.GetAllDiagnosticsAsync(document, span);
 
-            // Filter out suppressed diagnostics before invoking code fix.
-            diagnostics = diagnostics.Where(d => !d.IsSuppressed);
+        // Filter out suppressed diagnostics before invoking code fix.
+        diagnostics = diagnostics.Where(d => !d.IsSuppressed);
 
-            return await GetDiagnosticAndFixesAsync(
-                diagnostics, CodeFixProvider, testDriver, document,
-                span, annotation, parameters.index);
-        }
+        return await GetDiagnosticAndFixesAsync(
+            diagnostics, CodeFixProvider, testDriver, document,
+            span, annotation, parameters.index);
     }
 }

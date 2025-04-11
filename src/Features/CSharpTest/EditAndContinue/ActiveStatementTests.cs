@@ -19,7 +19,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
 
 [UseExportProvider]
-public class ActiveStatementTests : EditingTestBase
+public sealed class ActiveStatementTests : EditingTestBase
 {
     #region Update
 
@@ -839,7 +839,7 @@ namespace N
         // Even if we emitted trampoline we would not be able to remap to the exact instruction the active statement is at in the old version.
 
         edits.VerifySemanticDiagnostics(active,
-            diagnostics: [Diagnostic(RudeEditKind.ChangingNameOrSignatureOfActiveMember, "int F(byte a)", GetResource("method"))],
+            diagnostics: [Diagnostic(RudeEditKind.ChangingNameOrSignatureOfActiveMember, "byte a", GetResource("method"))],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
     }
 
@@ -1634,7 +1634,67 @@ class C
 
         edits.VerifySemanticDiagnostics(
             active,
-            diagnostics: [Diagnostic(RudeEditKind.ChangingNameOrSignatureOfActiveMember, "C(byte P)", GetResource("constructor"))],
+            diagnostics: [Diagnostic(RudeEditKind.ChangingNameOrSignatureOfActiveMember, "byte P", GetResource("constructor"))],
+            capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+    }
+
+    [Fact]
+    public void Constructor_Instance_ImplicitInitializer_ParameterChange_WithActiveFieldInitializer_Unchanged()
+    {
+        var src1 = "class C { C(int  P) {} <AS:0>int x = 1;</AS:0> }";
+        var src2 = "class C { C(byte P) {} <AS:0>int x = 1;</AS:0> }";
+
+        var edits = GetTopEdits(src1, src2);
+        var active = GetActiveStatements(src1, src2);
+
+        edits.VerifySemanticDiagnostics(
+            active,
+            diagnostics: [Diagnostic(RudeEditKind.ChangingNameOrSignatureOfActiveMember, "byte P", GetResource("constructor"))],
+            capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+    }
+
+    [Fact]
+    public void Constructor_Instance_ImplicitInitializer_ParameterChange_WithActiveFieldInitializer_Unchanged_Multiple()
+    {
+        var src1 = "class C { C(int  P) {} static int s; int x = s switch { 1 => <AS:0>1</AS:0>, _ => <AS:1>2</AS:1> }; }";
+        var src2 = "class C { C(byte P) {} static int s; int x = s switch { 1 => <AS:0>1</AS:0>, _ => <AS:1>2</AS:1> }; }";
+
+        var edits = GetTopEdits(src1, src2);
+        var active = GetActiveStatements(src1, src2);
+
+        edits.VerifySemanticDiagnostics(
+            active,
+            diagnostics: [Diagnostic(RudeEditKind.ChangingNameOrSignatureOfActiveMember, "byte P", GetResource("constructor"))],
+            capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+    }
+
+    [Fact]
+    public void Constructor_Instance_ImplicitInitializer_ParameterChange_WithActiveFieldInitializer_Changed()
+    {
+        var src1 = "class C { C(int  P) {} <AS:0>int x = 1;</AS:0> }";
+        var src2 = "class C { C(byte P) {} <AS:0>int x = 2;</AS:0> }";
+
+        var edits = GetTopEdits(src1, src2);
+        var active = GetActiveStatements(src1, src2);
+
+        edits.VerifySemanticDiagnostics(
+            active,
+            diagnostics: [Diagnostic(RudeEditKind.ChangingNameOrSignatureOfActiveMember, "byte P", GetResource("constructor"))],
+            capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+    }
+
+    [Fact]
+    public void Constructor_Instance_ImplicitInitializer_ParameterChange_WithActiveLambdaInFieldInitializer()
+    {
+        var src1 = "class C { C(int  P) {} System.Action x = () => <AS:0>{</AS:0>}; }";
+        var src2 = "class C { C(byte P) {} System.Action x = () => <AS:0>{</AS:0>}; }";
+
+        var edits = GetTopEdits(src1, src2);
+        var active = GetActiveStatements(src1, src2);
+
+        edits.VerifySemanticDiagnostics(
+            active,
+            diagnostics: [],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
     }
 
@@ -1652,7 +1712,7 @@ class C
 
         edits.VerifySemanticDiagnostics(
             active,
-            diagnostics: [Diagnostic(RudeEditKind.ChangingNameOrSignatureOfActiveMember, "(byte P)", GetResource("constructor"))],
+            diagnostics: [Diagnostic(RudeEditKind.ChangingNameOrSignatureOfActiveMember, "byte P", GetResource("constructor"))],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
     }
 
@@ -2080,10 +2140,35 @@ class C
             active,
             diagnostics:
             [
-                Diagnostic(RudeEditKind.ChangingNameOrSignatureOfActiveMember, "get", GetResource("property getter")),
-                Diagnostic(RudeEditKind.ChangingNameOrSignatureOfActiveMember, "set", GetResource("property setter"))
+                Diagnostic(RudeEditKind.ChangingNameOrSignatureOfActiveMember, "public long P", GetResource("property getter")),
+                Diagnostic(RudeEditKind.ChangingNameOrSignatureOfActiveMember, "public long P", GetResource("property setter"))
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+    }
+
+    [Fact]
+    public void Property_Update_Type_ActiveInitializer()
+    {
+        // only type is changed, no changes to the accessors (not even whitespace)
+        var src1 = @"
+class C
+{
+    public byte P { get; } = <AS:0>1</AS:0>;
+}
+";
+        var src2 = @"
+class C
+{
+    public long P { get; } = <AS:0>1</AS:0>;
+}
+";
+        var edits = GetTopEdits(src1, src2);
+        var active = GetActiveStatements(src1, src2);
+
+        edits.VerifySemanticDiagnostics(
+            active,
+            diagnostics: [],
+            capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
     }
 
     [Fact]
@@ -2108,8 +2193,8 @@ class C
             active,
             diagnostics:
             [
-                Diagnostic(RudeEditKind.ChangingNameOrSignatureOfActiveMember, "get", GetResource("property getter")),
-                Diagnostic(RudeEditKind.ChangingNameOrSignatureOfActiveMember, "set", GetResource("property setter"))
+                Diagnostic(RudeEditKind.ChangingNameOrSignatureOfActiveMember, "public int Q", GetResource("property getter")),
+                Diagnostic(RudeEditKind.ChangingNameOrSignatureOfActiveMember, "public int Q", GetResource("property setter"))
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
     }
@@ -10245,6 +10330,263 @@ class C
     }
 
     [Fact]
+    public void Lambdas_RestartRequired_ActiveStatementInLambda()
+    {
+        var src1 = RestartRequiredOnMetadataUpdateAttributeSrc + """
+            public class C
+            {
+                public int F([RestartRequiredOnMetadataUpdateAttribute] System.Func<int> f)
+                    => f();
+
+                public void G()
+                {
+                    F(() => <AS:0>1</AS:0>);
+                }
+            }
+        
+            """;
+
+        var src2 = RestartRequiredOnMetadataUpdateAttributeSrc + """
+            
+            public class C
+            {
+                public int F([RestartRequiredOnMetadataUpdateAttribute] System.Func<int> f)
+                    => f();
+
+                public void G()
+                {
+                    F(() => <AS:0>2</AS:0>);
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        var active = GetActiveStatements(src1, src2);
+
+        edits.VerifySemantics(
+            active,
+            [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.G"), preserveLocalVariables: true)]);
+    }
+
+    [Fact]
+    public void Lambdas_RestartRequired_ActiveStatementInContainingMemberBody()
+    {
+        var src1 = RestartRequiredOnMetadataUpdateAttributeSrc + """
+            public class C
+            {
+                public int F([RestartRequiredOnMetadataUpdateAttribute] System.Func<int> f)
+                    => f();
+
+                public void G()
+                <AS:0>{</AS:0>
+                    F(() => 1);
+                }
+            }
+        
+            """;
+
+        var src2 = RestartRequiredOnMetadataUpdateAttributeSrc + """
+            
+            public class C
+            {
+                public int F([RestartRequiredOnMetadataUpdateAttribute] System.Func<int> f)
+                    => f();
+
+                public void G()
+                <AS:0>{</AS:0>
+                    F(() => 2);
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        var active = GetActiveStatements(src1, src2);
+
+        edits.VerifySemantics(
+            active,
+            [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.G"), preserveLocalVariables: true)]);
+    }
+
+    [Fact]
+    public void Lambdas_RestartRequired_ActiveStatementInContainingLambda()
+    {
+        var src1 = RestartRequiredOnMetadataUpdateAttributeSrc + """
+            public class C
+            {
+                public int F([RestartRequiredOnMetadataUpdateAttribute] System.Func<int> f)
+                    => f();
+
+                public void M(System.Action a)
+                    => a();
+            
+                public void G()
+                {
+                    M(() =>
+                    <AS:0>{</AS:0>
+                        F(() => 1);
+                    });
+                }
+            }
+            """;
+
+        var src2 = RestartRequiredOnMetadataUpdateAttributeSrc + """
+            public class C
+            {
+                public int F([RestartRequiredOnMetadataUpdateAttribute] System.Func<int> f)
+                    => f();
+            
+                public void M(System.Action a)
+                    => a();
+            
+                public void G()
+                {
+                    M(() =>
+                    <AS:0>{</AS:0>
+                        F(() => 2);
+                    });
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        var active = GetActiveStatements(src1, src2);
+
+        edits.VerifySemantics(
+            active,
+            [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.G"), preserveLocalVariables: true)]);
+    }
+
+    [Fact]
+    public void Lambdas_RestartRequired_ActiveStatementInAnotherLambda()
+    {
+        var src1 = RestartRequiredOnMetadataUpdateAttributeSrc + """
+            public class C
+            {
+                public int R([RestartRequiredOnMetadataUpdateAttribute] System.Func<int> f)
+                    => f();
+            
+                public int N(System.Func<int> f)
+                    => f();
+
+                public void G()
+                {
+                    R(() => 1);
+                    N(() => <AS:0>10</AS:0>);
+                }
+            }
+            """;
+
+        var src2 = RestartRequiredOnMetadataUpdateAttributeSrc + """
+            public class C
+            {
+                public int R([RestartRequiredOnMetadataUpdateAttribute] System.Func<int> f)
+                    => f();
+
+                public int N(System.Func<int> f)
+                    => f();
+
+                public void G()
+                {
+                    R(() => 2);
+                    N(() => <AS:0>10</AS:0>);
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        var active = GetActiveStatements(src1, src2);
+
+        edits.VerifySemanticDiagnostics(
+            active,
+            Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "()", GetResource("lambda")));
+    }
+
+    [Fact]
+    public void Lambdas_RestartRequired_ConstructorWithInitializers()
+    {
+        var src1 = RestartRequiredOnMetadataUpdateAttributeSrc + """
+            public class C
+            {
+                <AS:0>int x = 1;</AS:0>
+                int y;
+            
+                [RestartRequiredOnMetadataUpdateAttribute]
+                public C()
+                {
+                    y = 3;
+                }
+            }
+            """;
+
+        var src2 = RestartRequiredOnMetadataUpdateAttributeSrc + """
+            public class C
+            {
+                <AS:0>int x = 1;</AS:0>
+                int y;
+            
+                [RestartRequiredOnMetadataUpdateAttribute]
+                public C()
+                {
+                    y = 0;
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        var active = GetActiveStatements(src1, src2);
+
+        // UpdateMightNotHaveAnyEffect not reported since the constructor is active 
+        edits.VerifySemanticDiagnostics(active);
+    }
+
+    [Fact]
+    public void Lambdas_RestartRequired_ConstructorWithoutInitializers()
+    {
+        var src1 = RestartRequiredOnMetadataUpdateAttributeSrc + """
+            public class C
+            {
+                <AS:0>int x = 1;</AS:0>
+                int y;
+            
+                public C(int a)
+                {
+                    y = a;
+                }
+            
+                [RestartRequiredOnMetadataUpdateAttribute]
+                public C() : this(3)
+                {
+                }
+            }
+            """;
+
+        var src2 = RestartRequiredOnMetadataUpdateAttributeSrc + """
+            public class C
+            {
+                <AS:0>int x = 1;</AS:0>
+                int y;
+            
+                public C(int a)
+                {
+                    y = a;
+                }
+            
+                [RestartRequiredOnMetadataUpdateAttribute]
+                public C() : this(0)
+                {
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        var active = GetActiveStatements(src1, src2);
+
+        edits.VerifySemanticDiagnostics(
+            active,
+            Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "public C()", GetResource("constructor")));
+    }
+
+    [Fact]
     public void Queries_ActiveStatementRemoved_WhereClause()
     {
         var src1 = @"
@@ -12574,7 +12916,7 @@ class C
     /// Custom exception class that has a fixed ToString so that tests aren't relying
     /// on stack traces, which could make them flaky
     /// </summary>
-    private class SimpleToStringException : Exception
+    private sealed class SimpleToStringException : Exception
     {
         public const string ToStringOutput = "<Exception>";
 
@@ -12661,6 +13003,61 @@ static void Goo(int a)
 
         edits.VerifySemanticDiagnostics(active,
             Diagnostic(RudeEditKind.ActiveStatementUpdate, "Goo(2);"));
+    }
+
+    [Fact]
+    public void TopLevelStatements_RestartRequired()
+    {
+        var src1 = """
+            using System;
+            
+            while (true)
+            {
+                <AS:0>Console.WriteLine(1);</AS:0>
+            }
+            """;
+
+        var src2 = """
+            using System;
+            
+            while (true)
+            {
+                <AS:0>Console.WriteLine(2);</AS:0>
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        var active = GetActiveStatements(src1, src2);
+
+        // UpdateMightNotHaveAnyEffect not reported since the top-level method is active
+        edits.VerifySemanticDiagnostics(active);
+    }
+
+    [Fact]
+    public void TopLevelStatements_RestartRequired_Lambda()
+    {
+        var src1 = """
+            using System;
+            
+            _ = new Action(() => { <AS:0>Console.WriteLine(1);</AS:0> });
+
+            Console.WriteLine(2);
+            """;
+
+        var src2 = """
+            using System;
+            
+            _ = new Action(() => { <AS:0>Console.WriteLine(1);</AS:0> });
+
+            Console.WriteLine(20);
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        var active = GetActiveStatements(src1, src2);
+
+        edits.VerifySemanticDiagnostics(
+            active,
+            Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "20", GetResource("top-level code")));
     }
 
     #endregion

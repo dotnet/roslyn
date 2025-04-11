@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.Utilities.ServiceBroker;
 namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 
 [Export, Shared]
-internal class MefServiceBrokerOfExportedServices : ServiceBrokerOfExportedServices
+internal sealed class MefServiceBrokerOfExportedServices : ServiceBrokerOfExportedServices
 {
     private Task<GlobalBrokeredServiceContainer>? _containerTask;
 

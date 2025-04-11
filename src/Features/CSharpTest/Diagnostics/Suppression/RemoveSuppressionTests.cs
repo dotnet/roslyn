@@ -23,7 +23,7 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
     protected override bool IncludeUnsuppressedDiagnostics => false;
     protected override int CodeActionIndex => 0;
 
-    protected class UserDiagnosticAnalyzer : DiagnosticAnalyzer
+    protected sealed class UserDiagnosticAnalyzer : DiagnosticAnalyzer
     {
         private readonly bool _reportDiagnosticsWithoutLocation;
         public static readonly DiagnosticDescriptor Decsciptor =
@@ -51,7 +51,7 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
         }
     }
 
-    public class CSharpDiagnosticWithLocationRemoveSuppressionTests : CSharpRemoveSuppressionTests
+    public sealed class CSharpDiagnosticWithLocationRemoveSuppressionTests : CSharpRemoveSuppressionTests
     {
         internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
         {
@@ -940,7 +940,7 @@ class Class2
         }
     }
 
-    public class CSharpDiagnosticWithoutLocationRemoveSuppressionTests : CSharpRemoveSuppressionTests
+    public sealed class CSharpDiagnosticWithoutLocationRemoveSuppressionTests : CSharpRemoveSuppressionTests
     {
         internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
         {

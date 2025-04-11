@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration;
 using static CSharpSyntaxTokens;
 
 [Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-public partial class CodeGenerationTests
+public sealed partial class CodeGenerationTests
 {
     [UseExportProvider]
     public class CSharp

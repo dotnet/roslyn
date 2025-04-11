@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -42,27 +40,18 @@ internal sealed class GenerateConstructorCodeFixProvider() : AbstractGenerateMem
     protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
         Document document, SyntaxNode node, CancellationToken cancellationToken)
     {
-        var service = document.GetLanguageService<IGenerateConstructorService>();
+        var service = document.GetRequiredLanguageService<IGenerateConstructorService>();
         return service.GenerateConstructorAsync(document, node, cancellationToken);
     }
 
     protected override bool IsCandidate(SyntaxNode node, SyntaxToken token, Diagnostic diagnostic)
-    {
-        return node is BaseObjectCreationExpressionSyntax or
-               ConstructorInitializerSyntax or
-               AttributeSyntax;
-    }
+        => node is BaseObjectCreationExpressionSyntax or ConstructorInitializerSyntax or AttributeSyntax;
 
-    protected override SyntaxNode GetTargetNode(SyntaxNode node)
-    {
-        switch (node)
+    protected override SyntaxNode? GetTargetNode(SyntaxNode node)
+        => node switch
         {
-            case ObjectCreationExpressionSyntax objectCreationNode:
-                return objectCreationNode.Type.GetRightmostName();
-            case AttributeSyntax attributeNode:
-                return attributeNode.Name;
-        }
-
-        return node;
-    }
+            ObjectCreationExpressionSyntax objectCreationNode => objectCreationNode.Type.GetRightmostName(),
+            AttributeSyntax attributeNode => attributeNode.Name,
+            _ => node,
+        };
 }

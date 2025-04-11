@@ -9,27 +9,26 @@ using System.Linq;
 using Microsoft.CodeAnalysis.MoveToNamespace;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
+namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace;
+
+public abstract partial class AbstractMoveToNamespaceTests
 {
-    public abstract partial class AbstractMoveToNamespaceTests
+    internal sealed class TestState : IDisposable
     {
-        internal class TestState : IDisposable
-        {
-            public TestState(EditorTestWorkspace workspace)
-                => Workspace = workspace;
+        public TestState(EditorTestWorkspace workspace)
+            => Workspace = workspace;
 
-            public void Dispose()
-                => Workspace?.Dispose();
+        public void Dispose()
+            => Workspace?.Dispose();
 
-            public EditorTestWorkspace Workspace { get; }
-            public EditorTestHostDocument TestInvocationDocument => Workspace.Documents.Single();
-            public Document InvocationDocument => Workspace.CurrentSolution.GetDocument(TestInvocationDocument.Id);
+        public EditorTestWorkspace Workspace { get; }
+        public EditorTestHostDocument TestInvocationDocument => Workspace.Documents.Single();
+        public Document InvocationDocument => Workspace.CurrentSolution.GetDocument(TestInvocationDocument.Id);
 
-            public TestMoveToNamespaceOptionsService TestMoveToNamespaceOptionsService
-                => (TestMoveToNamespaceOptionsService)MoveToNamespaceService.OptionsService;
+        public TestMoveToNamespaceOptionsService TestMoveToNamespaceOptionsService
+            => (TestMoveToNamespaceOptionsService)MoveToNamespaceService.OptionsService;
 
-            public IMoveToNamespaceService MoveToNamespaceService
-                => InvocationDocument.GetRequiredLanguageService<IMoveToNamespaceService>();
-        }
+        public IMoveToNamespaceService MoveToNamespaceService
+            => InvocationDocument.GetRequiredLanguageService<IMoveToNamespaceService>();
     }
 }

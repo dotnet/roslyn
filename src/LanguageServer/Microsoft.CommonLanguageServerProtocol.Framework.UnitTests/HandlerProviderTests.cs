@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
 
-public class HandlerProviderTests
+public sealed class HandlerProviderTests
 {
     [Theory, CombinatorialData]
     public void GetMethodHandler(bool supportsMethodHandlerProvider)

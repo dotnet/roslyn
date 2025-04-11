@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -162,7 +160,7 @@ internal interface IInlineRenameInfo
     /// Provides the reason that can be displayed to the user if the entity at the selected 
     /// location cannot be renamed.
     /// </summary>
-    string LocalizedErrorMessage { get; }
+    string? LocalizedErrorMessage { get; }
 
     /// <summary>
     /// The span of the entity that is being renamed.

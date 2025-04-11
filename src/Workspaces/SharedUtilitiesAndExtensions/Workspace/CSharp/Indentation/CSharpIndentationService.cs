@@ -109,7 +109,7 @@ internal sealed partial class CSharpIndentationService : AbstractIndentationServ
         return token.Kind() is SyntaxKind.None or SyntaxKind.EndOfDirectiveToken or SyntaxKind.EndOfFileToken;
     }
 
-    private class CSharpIndentationFormattingRule : AbstractFormattingRule
+    private sealed class CSharpIndentationFormattingRule : AbstractFormattingRule
     {
         public static readonly AbstractFormattingRule Instance = new CSharpIndentationFormattingRule();
 

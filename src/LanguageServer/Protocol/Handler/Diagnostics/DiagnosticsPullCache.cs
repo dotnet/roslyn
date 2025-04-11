@@ -97,8 +97,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
                 writer.WriteString(diagnosticData.Properties[key]);
             }
 
-            if (diagnosticData.ProjectId != null)
-                writer.WriteGuid(diagnosticData.ProjectId.Id);
+            writer.WriteGuid(diagnosticData.ProjectId.Id);
 
             WriteDiagnosticDataLocation(diagnosticData.DataLocation, writer);
 

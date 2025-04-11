@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy;
 
-internal class CallHierarchyDetail : ICallHierarchyItemDetails
+internal sealed class CallHierarchyDetail : ICallHierarchyItemDetails
 {
     private readonly CallHierarchyProvider _provider;
     private readonly TextSpan _span;

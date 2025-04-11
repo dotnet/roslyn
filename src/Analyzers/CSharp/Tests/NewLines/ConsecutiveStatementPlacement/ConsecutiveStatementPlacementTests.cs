@@ -15,7 +15,7 @@ using Verify = CSharpCodeFixVerifier<
     CSharpConsecutiveStatementPlacementDiagnosticAnalyzer,
     ConsecutiveStatementPlacementCodeFixProvider>;
 
-public class ConsecutiveStatementPlacementTests
+public sealed class ConsecutiveStatementPlacementTests
 {
     [Fact]
     public async Task TestNotAfterPropertyBlock()

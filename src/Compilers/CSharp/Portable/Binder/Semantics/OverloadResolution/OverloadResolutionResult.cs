@@ -895,7 +895,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to required formal parameter 'y'.
 
             TMember badMember = bad.Member;
-            ImmutableArray<ParameterSymbol> parameters = badMember.GetParameters();
+            ImmutableArray<ParameterSymbol> parameters = badMember.GetParametersIncludingExtensionParameter();
             int badParamIndex = bad.Result.BadParameter;
             string badParamName;
             if (badParamIndex == parameters.Length)
@@ -946,7 +946,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             };
 
             int argCount = arguments.Arguments.Count;
-            if (arguments.IsExtensionMethodInvocation)
+            if (arguments.IncludesReceiverAsArgument)
             {
                 argCount--;
             }
@@ -1114,8 +1114,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // ErrorCode.ERR_BadArgTypesForCollectionAdd or ErrorCode.ERR_InitializerAddHasParamModifiers
                 // as there is no explicit call to Add method.
 
-                int argumentOffset = arguments.IsExtensionMethodInvocation ? 1 : 0;
-                var parameters = method.GetParameters();
+                int argumentOffset = arguments.IncludesReceiverAsArgument ? 1 : 0;
+                var parameters = method.GetParametersIncludingExtensionParameter();
 
                 for (int i = argumentOffset; i < parameters.Length; i++)
                 {
@@ -1156,6 +1156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TMember method,
             int arg)
         {
+            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider adjusting or removing the argument index for displaying in diagnostic
             BoundExpression argument = arguments.Argument(arg);
             if (argument.HasAnyErrors)
             {
@@ -1169,7 +1170,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Early out: if the bad argument is an __arglist parameter then simply report that:
 
-            if (method.GetIsVararg() && parm == method.GetParameterCount())
+            var parameters = method.GetParametersIncludingExtensionParameter();
+            if (method.GetIsVararg() && parm == parameters.Length)
             {
                 // NOTE: No SymbolDistinguisher required, since one of the arguments is "__arglist".
 
@@ -1184,12 +1186,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            ParameterSymbol parameter = method.GetParameters()[parm];
-            bool isLastParameter = method.GetParameterCount() == parm + 1; // This is used to later decide if we need to try to unwrap a params collection
+            ParameterSymbol parameter = parameters[parm];
+            bool isLastParameter = parameters.Length == parm + 1; // This is used to later decide if we need to try to unwrap a params collection
             RefKind refArg = arguments.RefKind(arg);
             RefKind refParameter = parameter.RefKind;
 
-            if (arguments.IsExtensionMethodThisArgument(arg))
+            if (arguments.IsExtensionMethodReceiverArgument(arg))
             {
                 Debug.Assert(refArg == RefKind.None);
                 if (refParameter == RefKind.Ref || refParameter == RefKind.In)
@@ -1301,7 +1303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(argument.Kind != BoundKind.DiscardExpression || argument.HasExpressionType());
                 Debug.Assert(argument.Display != null);
 
-                if (arguments.IsExtensionMethodThisArgument(arg))
+                if (arguments.IsExtensionMethodReceiverArgument(arg))
                 {
                     Debug.Assert((arg == 0) && (parm == arg));
                     Debug.Assert(!badArg.Result.ConversionForArg(parm).IsImplicit);

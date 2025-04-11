@@ -2,129 +2,128 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Roslyn.LanguageServer.Protocol
+namespace Roslyn.LanguageServer.Protocol;
+
+using System;
+using System.Text.Json.Serialization;
+
+/// <summary>
+/// Response class when asking server to resolve the rendering information of a string kind.
+/// </summary>
+internal sealed class VSInternalIconMapping : IEquatable<VSInternalIconMapping>
 {
-    using System;
-    using System.Text.Json.Serialization;
+    /// <summary>
+    /// Gets or sets the ImageElements for a certain kind.
+    /// </summary>
+    [JsonPropertyName("_vs_images")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public VSImageId[]? Images
+    {
+        get;
+        set;
+    }
 
     /// <summary>
-    /// Response class when asking server to resolve the rendering information of a string kind.
+    /// Gets or sets the tags for a certain kind. To be used in the absence of ImageIds.
     /// </summary>
-    internal class VSInternalIconMapping : IEquatable<VSInternalIconMapping>
+    [JsonPropertyName("_vs_tags")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string[]? Tags
     {
-        /// <summary>
-        /// Gets or sets the ImageElements for a certain kind.
-        /// </summary>
-        [JsonPropertyName("_vs_images")]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public VSImageId[]? Images
+        get;
+        set;
+    }
+
+    /// <inheritdoc/>
+    public override bool Equals(object? obj)
+    {
+        return this.Equals(obj as VSInternalIconMapping);
+    }
+
+    /// <inheritdoc/>
+    public bool Equals(VSInternalIconMapping? other)
+    {
+        if (other == null)
         {
-            get;
-            set;
+            return false;
         }
 
-        /// <summary>
-        /// Gets or sets the tags for a certain kind. To be used in the absence of ImageIds.
-        /// </summary>
-        [JsonPropertyName("_vs_tags")]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string[]? Tags
-        {
-            get;
-            set;
-        }
+        return CheckImagesAreEqual(this.Images, other.Images) && CheckTagsAreEqual(this.Tags, other.Tags);
+    }
 
-        /// <inheritdoc/>
-        public override bool Equals(object? obj)
-        {
-            return this.Equals(obj as VSInternalIconMapping);
-        }
+    /// <inheritdoc/>
+    public override int GetHashCode()
+    {
+        var hashCode = 1825600323;
 
-        /// <inheritdoc/>
-        public bool Equals(VSInternalIconMapping? other)
+        if (this.Images != null)
         {
-            if (other == null)
+            for (var i = 0; i < this.Images.Length; i++)
             {
-                return false;
+                hashCode = (hashCode * -1521134295) + this.Images[i].Guid.GetHashCode();
+                hashCode = (hashCode * -1521134295) + this.Images[i].Id.GetHashCode();
             }
-
-            return CheckImagesAreEqual(this.Images, other.Images) && CheckTagsAreEqual(this.Tags, other.Tags);
         }
 
-        /// <inheritdoc/>
-        public override int GetHashCode()
+        if (this.Tags != null)
         {
-            var hashCode = 1825600323;
-
-            if (this.Images != null)
+            for (var i = 0; i < this.Tags.Length; i++)
             {
-                for (var i = 0; i < this.Images.Length; i++)
+                hashCode = (hashCode * -1521134295) + StringComparer.Ordinal.GetHashCode(this.Tags[i]);
+            }
+        }
+
+        return hashCode;
+    }
+
+    private static bool CheckImagesAreEqual(VSImageId[]? current, VSImageId[]? other)
+    {
+        if (current == null ^ other == null)
+        {
+            return false;
+        }
+
+        if (current != null &&
+            other != null &&
+            current.Length == other.Length)
+        {
+            for (var i = 0; i < current.Length; i++)
+            {
+                if (current[i].Id != other[i].Id)
                 {
-                    hashCode = (hashCode * -1521134295) + this.Images[i].Guid.GetHashCode();
-                    hashCode = (hashCode * -1521134295) + this.Images[i].Id.GetHashCode();
+                    return false;
+                }
+
+                if (current[i].Guid != other[i].Guid)
+                {
+                    return false;
                 }
             }
-
-            if (this.Tags != null)
-            {
-                for (var i = 0; i < this.Tags.Length; i++)
-                {
-                    hashCode = (hashCode * -1521134295) + StringComparer.Ordinal.GetHashCode(this.Tags[i]);
-                }
-            }
-
-            return hashCode;
         }
 
-        private static bool CheckImagesAreEqual(VSImageId[]? current, VSImageId[]? other)
+        return true;
+    }
+
+    private static bool CheckTagsAreEqual(string[]? current, string[]? other)
+    {
+        if (current == null ^ other == null)
         {
-            if (current == null ^ other == null)
-            {
-                return false;
-            }
-
-            if (current != null &&
-                other != null &&
-                current.Length == other.Length)
-            {
-                for (var i = 0; i < current.Length; i++)
-                {
-                    if (current[i].Id != other[i].Id)
-                    {
-                        return false;
-                    }
-
-                    if (current[i].Guid != other[i].Guid)
-                    {
-                        return false;
-                    }
-                }
-            }
-
-            return true;
+            return false;
         }
 
-        private static bool CheckTagsAreEqual(string[]? current, string[]? other)
+        if (current != null &&
+            other != null &&
+            current.Length == other.Length)
         {
-            if (current == null ^ other == null)
+            for (var i = 0; i < current.Length; i++)
             {
-                return false;
-            }
-
-            if (current != null &&
-                other != null &&
-                current.Length == other.Length)
-            {
-                for (var i = 0; i < current.Length; i++)
+                if (!string.Equals(current[i], other[i], StringComparison.Ordinal))
                 {
-                    if (!string.Equals(current[i], other[i], StringComparison.Ordinal))
-                    {
-                        return false;
-                    }
+                    return false;
                 }
             }
-
-            return true;
         }
+
+        return true;
     }
 }

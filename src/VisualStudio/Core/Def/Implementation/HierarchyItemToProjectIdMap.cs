@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Shell;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 
 [ExportWorkspaceService(typeof(IHierarchyItemToProjectIdMap), ServiceLayer.Host), Shared]
-internal class HierarchyItemToProjectIdMap : IHierarchyItemToProjectIdMap
+internal sealed class HierarchyItemToProjectIdMap : IHierarchyItemToProjectIdMap
 {
     private readonly VisualStudioWorkspaceImpl _workspace;
 

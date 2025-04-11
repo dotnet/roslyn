@@ -1042,7 +1042,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
     }
 
     [Fact]
-    public Task WhenInsidePreferred_UsingsInBoth_UsingsMoved_FileScopedNamespaec()
+    public Task WhenInsidePreferred_UsingsInBoth_UsingsMoved_FileScopedNamespace()
     {
         var testCode = """
             [|using Microsoft.CodeAnalysis;|]
@@ -1054,6 +1054,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
 
         var fixedTestCode = """
             namespace TestNamespace;
+
             {|Warning:using Microsoft.CodeAnalysis;|}
 
             using System;

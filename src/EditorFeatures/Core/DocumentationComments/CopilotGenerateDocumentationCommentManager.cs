@@ -15,90 +15,89 @@ using Microsoft.VisualStudio.Language.Suggestions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
-namespace Microsoft.CodeAnalysis.DocumentationComments
+namespace Microsoft.CodeAnalysis.DocumentationComments;
+
+[Export(typeof(CopilotGenerateDocumentationCommentManager))]
+internal sealed class CopilotGenerateDocumentationCommentManager
 {
-    [Export(typeof(CopilotGenerateDocumentationCommentManager))]
-    internal class CopilotGenerateDocumentationCommentManager
+    private readonly SuggestionServiceBase? _suggestionServiceBase;
+    private readonly IThreadingContext _threadingContext;
+    private readonly IAsynchronousOperationListener _asyncListener;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CopilotGenerateDocumentationCommentManager([Import(AllowDefault = true)] SuggestionServiceBase? suggestionServiceBase, IThreadingContext threadingContext,
+        IAsynchronousOperationListenerProvider listenerProvider)
     {
-        private readonly SuggestionServiceBase? _suggestionServiceBase;
-        private readonly IThreadingContext _threadingContext;
-        private readonly IAsynchronousOperationListener _asyncListener;
+        _suggestionServiceBase = suggestionServiceBase;
+        _threadingContext = threadingContext;
+        _asyncListener = listenerProvider.GetListener(FeatureAttribute.GenerateDocumentation);
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CopilotGenerateDocumentationCommentManager([Import(AllowDefault = true)] SuggestionServiceBase? suggestionServiceBase, IThreadingContext threadingContext,
-            IAsynchronousOperationListenerProvider listenerProvider)
+    public void TriggerDocumentationCommentProposalGeneration(Document document,
+        DocumentationCommentSnippet snippet, ITextSnapshot snapshot, VirtualSnapshotPoint caret, ITextView textView, CancellationToken cancellationToken)
+    {
+        if (_suggestionServiceBase is null)
         {
-            _suggestionServiceBase = suggestionServiceBase;
-            _threadingContext = threadingContext;
-            _asyncListener = listenerProvider.GetListener(FeatureAttribute.GenerateDocumentation);
+            return;
         }
 
-        public void TriggerDocumentationCommentProposalGeneration(Document document,
-            DocumentationCommentSnippet snippet, ITextSnapshot snapshot, VirtualSnapshotPoint caret, ITextView textView, CancellationToken cancellationToken)
-        {
-            if (_suggestionServiceBase is null)
-            {
-                return;
-            }
+        var token = _asyncListener.BeginAsyncOperation(nameof(GenerateDocumentationCommentProposalsAsync));
+        _ = GenerateDocumentationCommentProposalsAsync(document, snippet, snapshot, caret, textView, cancellationToken).CompletesAsyncOperation(token);
+    }
 
-            var token = _asyncListener.BeginAsyncOperation(nameof(GenerateDocumentationCommentProposalsAsync));
-            _ = GenerateDocumentationCommentProposalsAsync(document, snippet, snapshot, caret, textView, cancellationToken).CompletesAsyncOperation(token);
+    private async Task GenerateDocumentationCommentProposalsAsync(Document document, DocumentationCommentSnippet snippet, ITextSnapshot snapshot, VirtualSnapshotPoint caret, ITextView textView, CancellationToken cancellationToken)
+    {
+        var generateDocumentationCommentProvider = await CreateProviderAsync(document, textView, snippet.MemberNode, cancellationToken).ConfigureAwait(false);
+        if (generateDocumentationCommentProvider is not null)
+        {
+            await generateDocumentationCommentProvider.GenerateDocumentationProposalAsync(snippet, snapshot, caret, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private async Task<CopilotGenerateDocumentationCommentProvider?> CreateProviderAsync(Document document, ITextView textView, SyntaxNode? memberNode, CancellationToken cancellationToken)
+    {
+        var copilotService = await IsGenerateDocumentationAvailableAsync(document, memberNode, cancellationToken).ConfigureAwait(false);
+
+        if (copilotService is null)
+        {
+            return null;
         }
 
-        private async Task GenerateDocumentationCommentProposalsAsync(Document document, DocumentationCommentSnippet snippet, ITextSnapshot snapshot, VirtualSnapshotPoint caret, ITextView textView, CancellationToken cancellationToken)
+        var provider = textView.Properties.GetOrCreateSingletonProperty(typeof(CopilotGenerateDocumentationCommentProvider),
+            () => new CopilotGenerateDocumentationCommentProvider(_threadingContext, copilotService));
+
+        await provider.InitializeAsync(textView, _suggestionServiceBase!, cancellationToken).ConfigureAwait(false);
+
+        return provider;
+    }
+
+    private static async Task<ICopilotCodeAnalysisService?> IsGenerateDocumentationAvailableAsync(Document document, SyntaxNode? memberNode, CancellationToken cancellationToken)
+    {
+        // Bailing out if copilot is not available or the option is not enabled.
+        if (document.GetLanguageService<ICopilotOptionsService>() is not { } copilotOptionService ||
+            !await copilotOptionService.IsGenerateDocumentationCommentOptionEnabledAsync().ConfigureAwait(false))
         {
-            var generateDocumentationCommentProvider = await CreateProviderAsync(document, textView, snippet.MemberNode, cancellationToken).ConfigureAwait(false);
-            if (generateDocumentationCommentProvider is not null)
-            {
-                await generateDocumentationCommentProvider.GenerateDocumentationProposalAsync(snippet, snapshot, caret, cancellationToken).ConfigureAwait(false);
-            }
+            return null;
         }
 
-        private async Task<CopilotGenerateDocumentationCommentProvider?> CreateProviderAsync(Document document, ITextView textView, SyntaxNode? memberNode, CancellationToken cancellationToken)
+        if (document.GetLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
+                await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false) is false)
         {
-            var copilotService = await IsGenerateDocumentationAvailableAsync(document, memberNode, cancellationToken).ConfigureAwait(false);
-
-            if (copilotService is null)
-            {
-                return null;
-            }
-
-            var provider = textView.Properties.GetOrCreateSingletonProperty(typeof(CopilotGenerateDocumentationCommentProvider),
-                () => new CopilotGenerateDocumentationCommentProvider(_threadingContext, copilotService));
-
-            await provider!.InitializeAsync(textView, _suggestionServiceBase!, cancellationToken).ConfigureAwait(false);
-
-            return provider;
+            return null;
         }
 
-        private static async Task<ICopilotCodeAnalysisService?> IsGenerateDocumentationAvailableAsync(Document document, SyntaxNode? memberNode, CancellationToken cancellationToken)
+        if (memberNode is null)
         {
-            // Bailing out if copilot is not available or the option is not enabled.
-            if (document.GetLanguageService<ICopilotOptionsService>() is not { } copilotOptionService ||
-                !await copilotOptionService.IsGenerateDocumentationCommentOptionEnabledAsync().ConfigureAwait(false))
-            {
-                return null;
-            }
-
-            if (document.GetLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
-                    await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false) is false)
-            {
-                return null;
-            }
-
-            if (memberNode is null)
-            {
-                return null;
-            }
-
-            // Check to see if the file containing the member being documented has been excluded.
-            if (await copilotService.IsFileExcludedAsync(memberNode.SyntaxTree.FilePath, cancellationToken).ConfigureAwait(false))
-            {
-                return null;
-            }
-
-            return copilotService;
+            return null;
         }
+
+        // Check to see if the file containing the member being documented has been excluded.
+        if (await copilotService.IsFileExcludedAsync(memberNode.SyntaxTree.FilePath, cancellationToken).ConfigureAwait(false))
+        {
+            return null;
+        }
+
+        return copilotService;
     }
 }

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.Diagnostics)]
-public class DiagnosticDataTests
+public sealed class DiagnosticDataTests
 {
     [Fact]
     public async Task DiagnosticData_GetText()

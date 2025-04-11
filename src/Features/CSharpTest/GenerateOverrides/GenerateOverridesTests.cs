@@ -15,7 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateOverrides;
 
-public class GenerateOverridesTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class GenerateOverridesTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new GenerateOverridesCodeRefactoringProvider((IPickMembersService)parameters.fixProviderData);

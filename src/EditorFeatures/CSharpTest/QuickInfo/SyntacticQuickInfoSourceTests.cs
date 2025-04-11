@@ -30,7 +30,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo;
 
 [Trait(Traits.Feature, Traits.Features.QuickInfo)]
-public class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
+public sealed class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
 {
     [WpfFact]
     public async Task Brackets_0()

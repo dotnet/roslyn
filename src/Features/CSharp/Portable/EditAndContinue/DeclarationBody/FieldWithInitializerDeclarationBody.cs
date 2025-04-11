@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -45,11 +46,14 @@ internal sealed class FieldWithInitializerDeclarationBody(VariableDeclaratorSynt
     public override SyntaxNode EncompassingAncestor
         => GetFieldDeclaration();
 
-    public override IEnumerable<SyntaxToken> GetActiveTokens()
+    public override IEnumerable<SyntaxToken> GetActiveTokens(Func<SyntaxNode, IEnumerable<SyntaxToken>> getDescendantTokens)
     {
         var fieldDeclaration = GetFieldDeclaration();
-        return BreakpointSpans.GetActiveTokensForVariableDeclarator(variableDeclarator, fieldDeclaration.Modifiers, fieldDeclaration.SemicolonToken);
+        return BreakpointSpans.GetActiveTokensForVariableDeclarator(variableDeclarator, fieldDeclaration.Modifiers, fieldDeclaration.SemicolonToken, getDescendantTokens);
     }
+
+    public override IEnumerable<SyntaxToken> GetUserCodeTokens(Func<SyntaxNode, IEnumerable<SyntaxToken>> getDescendantTokens)
+        => getDescendantTokens(variableDeclarator);
 
     public override StateMachineInfo GetStateMachineInfo()
         => new(IsAsync: false, IsIterator: false, HasSuspensionPoints: false);

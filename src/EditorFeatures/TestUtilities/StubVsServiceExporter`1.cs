@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests;
 [Export(typeof(IVsService<>))]
 [PartCreationPolicy(CreationPolicy.NonShared)]
 [PartNotDiscoverable]
-internal class StubVsServiceExporter<T> : StubVsServiceExporter<T, T>
+internal sealed class StubVsServiceExporter<T> : StubVsServiceExporter<T, T>
     where T : class
 {
     [ImportingConstructor]

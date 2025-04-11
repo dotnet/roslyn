@@ -14,57 +14,56 @@ using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
 using System;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview;
+
+/// <summary>
+/// Special tagger we use for previews that is told precisely which spans to
+/// reference highlight.
+/// </summary>
+[Export(typeof(ITaggerProvider))]
+[TagType(typeof(NavigableHighlightTag))]
+[ContentType(ContentTypeNames.RoslynContentType)]
+[ContentType(ContentTypeNames.XamlContentType)]
+[TextViewRole(TextViewRoles.PreviewRole)]
+internal sealed class PreviewReferenceHighlightingTaggerProvider
+    : AbstractPreviewTaggerProvider<NavigableHighlightTag>
 {
-    /// <summary>
-    /// Special tagger we use for previews that is told precisely which spans to
-    /// reference highlight.
-    /// </summary>
-    [Export(typeof(ITaggerProvider))]
-    [TagType(typeof(NavigableHighlightTag))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    [ContentType(ContentTypeNames.XamlContentType)]
-    [TextViewRole(TextViewRoles.PreviewRole)]
-    internal class PreviewReferenceHighlightingTaggerProvider
-        : AbstractPreviewTaggerProvider<NavigableHighlightTag>
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public PreviewReferenceHighlightingTaggerProvider()
+        : base(PredefinedPreviewTaggerKeys.ReferenceHighlightingSpansKey, ReferenceHighlightTag.Instance)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public PreviewReferenceHighlightingTaggerProvider()
-            : base(PredefinedPreviewTaggerKeys.ReferenceHighlightingSpansKey, ReferenceHighlightTag.Instance)
-        {
-        }
     }
+}
 
-    [Export(typeof(ITaggerProvider))]
-    [TagType(typeof(NavigableHighlightTag))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    [ContentType(ContentTypeNames.XamlContentType)]
-    [TextViewRole(TextViewRoles.PreviewRole)]
-    internal class PreviewWrittenReferenceHighlightingTaggerProvider
-        : AbstractPreviewTaggerProvider<NavigableHighlightTag>
+[Export(typeof(ITaggerProvider))]
+[TagType(typeof(NavigableHighlightTag))]
+[ContentType(ContentTypeNames.RoslynContentType)]
+[ContentType(ContentTypeNames.XamlContentType)]
+[TextViewRole(TextViewRoles.PreviewRole)]
+internal sealed class PreviewWrittenReferenceHighlightingTaggerProvider
+    : AbstractPreviewTaggerProvider<NavigableHighlightTag>
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public PreviewWrittenReferenceHighlightingTaggerProvider()
+        : base(PredefinedPreviewTaggerKeys.WrittenReferenceHighlightingSpansKey, WrittenReferenceHighlightTag.Instance)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public PreviewWrittenReferenceHighlightingTaggerProvider()
-            : base(PredefinedPreviewTaggerKeys.WrittenReferenceHighlightingSpansKey, WrittenReferenceHighlightTag.Instance)
-        {
-        }
     }
+}
 
-    [Export(typeof(ITaggerProvider))]
-    [TagType(typeof(NavigableHighlightTag))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    [ContentType(ContentTypeNames.XamlContentType)]
-    [TextViewRole(TextViewRoles.PreviewRole)]
-    internal class PreviewDefinitionHighlightingTaggerProvider
-        : AbstractPreviewTaggerProvider<NavigableHighlightTag>
+[Export(typeof(ITaggerProvider))]
+[TagType(typeof(NavigableHighlightTag))]
+[ContentType(ContentTypeNames.RoslynContentType)]
+[ContentType(ContentTypeNames.XamlContentType)]
+[TextViewRole(TextViewRoles.PreviewRole)]
+internal sealed class PreviewDefinitionHighlightingTaggerProvider
+    : AbstractPreviewTaggerProvider<NavigableHighlightTag>
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public PreviewDefinitionHighlightingTaggerProvider()
+        : base(PredefinedPreviewTaggerKeys.DefinitionHighlightingSpansKey, DefinitionHighlightTag.Instance)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public PreviewDefinitionHighlightingTaggerProvider()
-            : base(PredefinedPreviewTaggerKeys.DefinitionHighlightingSpansKey, DefinitionHighlightTag.Instance)
-        {
-        }
     }
 }

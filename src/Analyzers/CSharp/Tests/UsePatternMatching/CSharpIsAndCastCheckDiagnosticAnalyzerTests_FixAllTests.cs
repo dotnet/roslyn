@@ -11,7 +11,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests
+public sealed partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests
 {
     [Fact]
     public async Task FixAllInDocument1()

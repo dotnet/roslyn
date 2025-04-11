@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespac
 [Export(typeof(IDefaultColumnGroup))]
 [Name(nameof(WhitespaceCategoryGroupingSet))]    // Required, name of the default group
 [GroupColumns(Category)] // Required, the names of the columns in the grouping
-internal class WhitespaceCategoryGroupingSet : IDefaultColumnGroup
+internal sealed class WhitespaceCategoryGroupingSet : IDefaultColumnGroup
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -27,7 +27,7 @@ internal class WhitespaceCategoryGroupingSet : IDefaultColumnGroup
 
 [Export(typeof(ITableColumnDefinition))]
 [Name(Category)]
-internal class WhitespaceCategoryColumnDefinition : TableColumnDefinitionBase
+internal sealed class WhitespaceCategoryColumnDefinition : TableColumnDefinitionBase
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

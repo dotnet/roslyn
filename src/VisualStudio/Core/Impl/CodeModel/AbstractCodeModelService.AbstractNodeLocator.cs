@@ -9,32 +9,31 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
+
+internal partial class AbstractCodeModelService : ICodeModelService
 {
-    internal partial class AbstractCodeModelService : ICodeModelService
+    protected abstract AbstractNodeLocator CreateNodeLocator();
+
+    protected abstract class AbstractNodeLocator
     {
-        protected abstract AbstractNodeLocator CreateNodeLocator();
+        protected abstract string LanguageName { get; }
 
-        protected abstract class AbstractNodeLocator
+        protected abstract EnvDTE.vsCMPart DefaultPart { get; }
+
+        protected abstract VirtualTreePoint? GetStartPoint(SourceText text, LineFormattingOptions options, SyntaxNode node, EnvDTE.vsCMPart part);
+        protected abstract VirtualTreePoint? GetEndPoint(SourceText text, LineFormattingOptions options, SyntaxNode node, EnvDTE.vsCMPart part);
+
+        public VirtualTreePoint? GetStartPoint(SyntaxNode node, LineFormattingOptions options, EnvDTE.vsCMPart? part)
         {
-            protected abstract string LanguageName { get; }
+            var text = node.SyntaxTree.GetText();
+            return GetStartPoint(text, options, node, part ?? DefaultPart);
+        }
 
-            protected abstract EnvDTE.vsCMPart DefaultPart { get; }
-
-            protected abstract VirtualTreePoint? GetStartPoint(SourceText text, LineFormattingOptions options, SyntaxNode node, EnvDTE.vsCMPart part);
-            protected abstract VirtualTreePoint? GetEndPoint(SourceText text, LineFormattingOptions options, SyntaxNode node, EnvDTE.vsCMPart part);
-
-            public VirtualTreePoint? GetStartPoint(SyntaxNode node, LineFormattingOptions options, EnvDTE.vsCMPart? part)
-            {
-                var text = node.SyntaxTree.GetText();
-                return GetStartPoint(text, options, node, part ?? DefaultPart);
-            }
-
-            public VirtualTreePoint? GetEndPoint(SyntaxNode node, LineFormattingOptions options, EnvDTE.vsCMPart? part)
-            {
-                var text = node.SyntaxTree.GetText();
-                return GetEndPoint(text, options, node, part ?? DefaultPart);
-            }
+        public VirtualTreePoint? GetEndPoint(SyntaxNode node, LineFormattingOptions options, EnvDTE.vsCMPart? part)
+        {
+            var text = node.SyntaxTree.GetText();
+            return GetEndPoint(text, options, node, part ?? DefaultPart);
         }
     }
 }

@@ -16,7 +16,7 @@ using VerifyCS = CSharpCodeRefactoringVerifier<CSharpConvertTryCastToDirectCastC
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.ConvertCast)]
-public class ConvertTryCastToDirectCastTests
+public sealed class ConvertTryCastToDirectCastTests
 {
     [Fact]
     public async Task ConvertFromAsToExplicit()

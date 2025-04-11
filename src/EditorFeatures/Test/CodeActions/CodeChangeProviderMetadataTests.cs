@@ -18,7 +18,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 
 [UseExportProvider]
-public class CodeChangeProviderMetadataTests
+public sealed class CodeChangeProviderMetadataTests
 {
     [Theory]
     [InlineData(typeof(CodeFixProvider))]

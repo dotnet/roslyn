@@ -5,20 +5,19 @@
 using Roslyn.LanguageServer.Protocol;
 using Newtonsoft.Json;
 
-namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
-{
-    /// <summary>
-    /// Represents a hoverResult vertex for serialization. See https://github.com/Microsoft/language-server-protocol/blob/main/indexFormat/specification.md#more-about-request-textdocumenthover for further details.
-    /// </summary>
-    internal sealed class HoverResult : Vertex
-    {
-        [JsonProperty("result")]
-        public Hover Result { get; }
+namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
 
-        public HoverResult(Hover result, IdFactory idFactory)
-            : base(label: "hoverResult", idFactory)
-        {
-            Result = result;
-        }
+/// <summary>
+/// Represents a hoverResult vertex for serialization. See https://github.com/Microsoft/language-server-protocol/blob/main/indexFormat/specification.md#more-about-request-textdocumenthover for further details.
+/// </summary>
+internal sealed class HoverResult : Vertex
+{
+    [JsonProperty("result")]
+    public Hover Result { get; }
+
+    public HoverResult(Hover result, IdFactory idFactory)
+        : base(label: "hoverResult", idFactory)
+    {
+        Result = result;
     }
 }

@@ -105,7 +105,7 @@ internal sealed class StaticKeywordRecommender() : AbstractSyntacticSingleKeywor
     {
         return context.IsTypeDeclarationContext(
             validModifiers: s_validTypeModifiers,
-            validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
+            validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
             canBePartial: false,
             cancellationToken: cancellationToken);
     }

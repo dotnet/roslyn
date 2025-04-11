@@ -17,7 +17,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor;
 
 [UseExportProvider]
-public class TextBufferAssociatedViewServiceTests
+public sealed class TextBufferAssociatedViewServiceTests
 {
     [Fact]
     public void SanityCheck()

@@ -16,7 +16,7 @@ using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel;
 
 [Export(typeof(IEnumSettingViewModelFactory)), Shared]
-internal class IndentationSizeVViewModelFactory : IEnumSettingViewModelFactory
+internal sealed class IndentationSizeVViewModelFactory : IEnumSettingViewModelFactory
 {
     private readonly OptionKey2 _key;
 
@@ -47,7 +47,7 @@ internal enum IndentationSizeSetting
     _8,
 }
 
-internal class IndentationSizeViewModel : EnumSettingViewModel<IndentationSizeSetting>
+internal sealed class IndentationSizeViewModel : EnumSettingViewModel<IndentationSizeSetting>
 {
     private readonly Setting _setting;
 

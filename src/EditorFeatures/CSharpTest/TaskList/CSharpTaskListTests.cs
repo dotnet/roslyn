@@ -11,7 +11,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TaskList;
 
 [UseExportProvider]
-public class CSharpTaskListTests : AbstractTaskListTests
+public sealed class CSharpTaskListTests : AbstractTaskListTests
 {
     protected override EditorTestWorkspace CreateWorkspace(string codeWithMarker, TestComposition composition)
         => EditorTestWorkspace.CreateCSharp(codeWithMarker, composition: composition);

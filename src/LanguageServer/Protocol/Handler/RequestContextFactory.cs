@@ -10,7 +10,7 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-internal class RequestContextFactory : AbstractRequestContextFactory<RequestContext>, ILspService
+internal sealed class RequestContextFactory : AbstractRequestContextFactory<RequestContext>, ILspService
 {
     private readonly ILspServices _lspServices;
 

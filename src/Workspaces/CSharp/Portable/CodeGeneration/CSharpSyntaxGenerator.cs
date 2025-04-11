@@ -1613,8 +1613,8 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
     private static SyntaxTokenList GetModifierTokens(SyntaxNode declaration)
         => CSharpAccessibilityFacts.GetModifierTokens(declaration);
 
-    public override SyntaxNode WithModifiers(SyntaxNode declaration, DeclarationModifiers modifiers)
-        => this.Isolate(declaration, d => this.WithModifiersInternal(d, modifiers));
+    internal override TSyntaxNode WithModifiers<TSyntaxNode>(TSyntaxNode declaration, DeclarationModifiers modifiers)
+        => (TSyntaxNode)this.Isolate(declaration, d => this.WithModifiersInternal(d, modifiers));
 
     private SyntaxNode WithModifiersInternal(SyntaxNode declaration, DeclarationModifiers modifiers)
     {
@@ -2167,7 +2167,7 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
         return (TNode)rewriter.Visit(node);
     }
 
-    private class AddMissingTokensRewriter : CSharpSyntaxRewriter
+    private sealed class AddMissingTokensRewriter : CSharpSyntaxRewriter
     {
         private readonly bool _recurse;
         private bool _firstVisit = true;

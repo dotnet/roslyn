@@ -4,15 +4,14 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
-{
-    internal sealed class ModelUpdatedEventsArgs : EventArgs
-    {
-        public ModelUpdatedEventsArgs(Model? newModel)
-        {
-            NewModel = newModel;
-        }
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp;
 
-        public Model? NewModel { get; }
+internal sealed class ModelUpdatedEventsArgs : EventArgs
+{
+    public ModelUpdatedEventsArgs(Model? newModel)
+    {
+        NewModel = newModel;
     }
+
+    public Model? NewModel { get; }
 }

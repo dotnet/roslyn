@@ -8,17 +8,16 @@ using System;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
-{
-    [GuidAttribute(Guids.CSharpOptionPageFormattingGeneralIdString)]
-    internal class FormattingOptionPage : AbstractOptionPage
-    {
-        private FormattingOptionPageControl _optionPageControl;
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting;
 
-        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
-        {
-            _optionPageControl = new FormattingOptionPageControl(optionStore);
-            return _optionPageControl;
-        }
+[GuidAttribute(Guids.CSharpOptionPageFormattingGeneralIdString)]
+internal sealed class FormattingOptionPage : AbstractOptionPage
+{
+    private FormattingOptionPageControl _optionPageControl;
+
+    protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
+    {
+        _optionPageControl = new FormattingOptionPageControl(optionStore);
+        return _optionPageControl;
     }
 }

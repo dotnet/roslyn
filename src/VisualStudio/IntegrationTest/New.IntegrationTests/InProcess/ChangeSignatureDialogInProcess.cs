@@ -19,7 +19,7 @@ using WindowsInput.Native;
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
 [TestService]
-internal partial class ChangeSignatureDialogInProcess
+internal sealed partial class ChangeSignatureDialogInProcess
 {
     private async Task<ChangeSignatureDialog?> TryGetDialogAsync(CancellationToken cancellationToken)
     {

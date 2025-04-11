@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Services;
 /// Must be done this way as the manager is required to create MEF as well.
 /// </summary>
 [Export, Shared]
-internal class ExtensionAssemblyManagerMefProvider
+internal sealed class ExtensionAssemblyManagerMefProvider
 {
     private ExtensionAssemblyManager? _extensionAssemblyManager;
 

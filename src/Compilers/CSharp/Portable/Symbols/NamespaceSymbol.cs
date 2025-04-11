@@ -355,6 +355,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal void GetExtensionContainers(ArrayBuilder<NamedTypeSymbol> extensions)
+        {
+            foreach (var type in this.GetTypeMembersUnordered())
+            {
+                if (!type.IsReferenceType || !type.IsStatic || type.IsGenericType || !type.MightContainExtensionMethods) continue;
+
+                foreach (var nestedType in type.GetTypeMembersUnordered())
+                {
+                    if (nestedType.IsExtension)
+                    {
+                        extensions.Add(nestedType);
+                    }
+                }
+            }
+        }
+
         internal string QualifiedName
         {
             get

@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class ConvertToFileScopedNamespaceDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class ConvertToFileScopedNamespaceDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
     public ConvertToFileScopedNamespaceDiagnosticAnalyzer()
         : base(IDEDiagnosticIds.UseFileScopedNamespaceDiagnosticId,

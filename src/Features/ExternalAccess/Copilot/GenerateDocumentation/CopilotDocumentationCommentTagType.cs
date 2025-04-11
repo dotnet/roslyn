@@ -4,14 +4,15 @@
 
 using Microsoft.CodeAnalysis.DocumentationComments;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot
+namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot;
+
+internal enum CopilotDocumentationCommentTagType
 {
-    internal enum CopilotDocumentationCommentTagType
-    {
-        Summary = DocumentationCommentTagType.Summary,
-        TypeParam = DocumentationCommentTagType.TypeParam,
-        Param = DocumentationCommentTagType.Param,
-        Returns = DocumentationCommentTagType.Returns,
-        Exception = DocumentationCommentTagType.Exception,
-    }
+    Summary = DocumentationCommentTagType.Summary,
+    Remarks = DocumentationCommentTagType.Remarks,
+    TypeParam = DocumentationCommentTagType.TypeParam,
+    Param = DocumentationCommentTagType.Param,
+    Returns = DocumentationCommentTagType.Returns,
+    Value = DocumentationCommentTagType.Value,
+    Exception = DocumentationCommentTagType.Exception,
 }

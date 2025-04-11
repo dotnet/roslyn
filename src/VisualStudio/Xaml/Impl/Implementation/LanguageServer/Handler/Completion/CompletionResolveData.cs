@@ -7,15 +7,14 @@
 using System;
 using Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
+namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler;
+
+internal sealed class CompletionResolveData
 {
-    internal class CompletionResolveData
-    {
-        public Guid ProjectGuid { get; set; }
-        public Guid DocumentGuid { get; set; }
+    public Guid ProjectGuid { get; set; }
+    public Guid DocumentGuid { get; set; }
 
-        public Position Position { get; set; }
+    public Position Position { get; set; }
 
-        public string DisplayText { get; set; }
-    }
+    public string DisplayText { get; set; }
 }

@@ -74,7 +74,7 @@ internal sealed class CSharpImportAdder() : ImportAdderService
     /// no users being hit, then that's far less important than if we have a reasonable coding pattern that would be
     /// impacted by adding an import to a normal namespace.
     /// </summary>
-    private class ConflictFinder
+    private sealed class ConflictFinder
     {
         private readonly SemanticModel _model;
 

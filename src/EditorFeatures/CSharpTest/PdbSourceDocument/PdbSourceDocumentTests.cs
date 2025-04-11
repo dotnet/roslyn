@@ -18,7 +18,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument;
 
-public partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTests
+public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTests
 {
     [Theory, CombinatorialData]
     public async Task PreprocessorSymbols1(Location pdbLocation, Location sourceLocation)

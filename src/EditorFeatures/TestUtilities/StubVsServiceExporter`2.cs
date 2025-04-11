@@ -34,7 +34,7 @@ internal class StubVsServiceExporter<TService, TInterface> : IVsService<TService
         [Import(typeof(SAsyncServiceProvider))] IAsyncServiceProvider2 asyncServiceProvider,
         JoinableTaskContext joinableTaskContext)
     {
-        _serviceGetter = new AsyncLazy<TInterface>(() => asyncServiceProvider.GetServiceAsync<TService, TInterface>(joinableTaskContext.Factory, throwOnFailure: true)!, joinableTaskContext.Factory);
+        _serviceGetter = new AsyncLazy<TInterface>(() => asyncServiceProvider.GetServiceAsync<TService, TInterface>(throwOnFailure: true, CancellationToken.None)!, joinableTaskContext.Factory);
     }
 
     /// <inheritdoc />

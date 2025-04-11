@@ -7,7 +7,7 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-internal class InitializeManager : IInitializeManager
+internal sealed class InitializeManager : IInitializeManager
 {
     public InitializeManager()
     {

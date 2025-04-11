@@ -24,7 +24,7 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp;
 
 [ExportWorkspaceService(typeof(IPullMemberUpOptionsService), ServiceLayer.Host), Shared]
-internal class VisualStudioPullMemberUpService : IPullMemberUpOptionsService
+internal sealed class VisualStudioPullMemberUpService : IPullMemberUpOptionsService
 {
     private readonly IGlyphService _glyphService;
     private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;

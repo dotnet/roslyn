@@ -10,21 +10,20 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using LSP = Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
+namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler;
+
+[ExportStatelessXamlLspService(typeof(FormatDocumentHandler)), Shared]
+[Method(LSP.Methods.TextDocumentFormattingName)]
+internal sealed class FormatDocumentHandler : AbstractFormatDocumentHandlerBase<LSP.DocumentFormattingParams, LSP.TextEdit[]>
 {
-    [ExportStatelessXamlLspService(typeof(FormatDocumentHandler)), Shared]
-    [Method(LSP.Methods.TextDocumentFormattingName)]
-    internal class FormatDocumentHandler : AbstractFormatDocumentHandlerBase<LSP.DocumentFormattingParams, LSP.TextEdit[]>
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public FormatDocumentHandler()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FormatDocumentHandler()
-        {
-        }
-
-        public override LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.DocumentFormattingParams request) => request.TextDocument;
-
-        public override Task<LSP.TextEdit[]> HandleRequestAsync(LSP.DocumentFormattingParams request, RequestContext context, CancellationToken cancellationToken)
-            => GetTextEditsAsync(request.Options, context, cancellationToken);
     }
+
+    public override LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.DocumentFormattingParams request) => request.TextDocument;
+
+    public override Task<LSP.TextEdit[]> HandleRequestAsync(LSP.DocumentFormattingParams request, RequestContext context, CancellationToken cancellationToken)
+        => GetTextEditsAsync(request.Options, context, cancellationToken);
 }

@@ -15,7 +15,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     EmptyDiagnosticAnalyzer,
     CSharpTransposeRecordKeywordCodeFixProvider>;
 
-public class TransposeRecordKeywordTests
+public sealed class TransposeRecordKeywordTests
 {
     [Fact]
     public async Task TestStructRecord()

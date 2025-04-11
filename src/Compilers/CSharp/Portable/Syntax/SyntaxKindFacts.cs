@@ -291,6 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.LoadDirectiveTrivia:
                 case SyntaxKind.BadDirectiveTrivia:
                 case SyntaxKind.ShebangDirectiveTrivia:
+                case SyntaxKind.IgnoredDirectiveTrivia:
                 case SyntaxKind.NullableDirectiveTrivia:
                     return true;
                 default:
@@ -383,6 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
+                case SyntaxKind.ExtensionDeclaration:
                     return true;
 
                 default:
@@ -828,6 +830,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return kind == SyntaxKind.EnumKeyword ? SyntaxKind.EnumDeclaration : GetTypeDeclarationKind(kind);
         }
 
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : decide what we want for extension declaration
         public static SyntaxKind GetTypeDeclarationKind(SyntaxKind kind)
         {
             switch (kind)
@@ -1166,7 +1169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<SyntaxKind> GetContextualKeywordKinds()
         {
-            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.AllowsKeyword; i++)
+            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.ExtensionKeyword; i++)
             {
                 // 8441 corresponds to a deleted kind (DataKeyword) that was previously shipped.
                 if (i != 8441)
@@ -1228,6 +1231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ScopedKeyword:
                 case SyntaxKind.FileKeyword:
                 case SyntaxKind.AllowsKeyword:
+                case SyntaxKind.ExtensionKeyword:
                     return true;
                 default:
                     return false;
@@ -1355,6 +1359,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.FileKeyword;
                 case "allows":
                     return SyntaxKind.AllowsKeyword;
+                case "extension":
+                    return SyntaxKind.ExtensionKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1802,6 +1808,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "file";
                 case SyntaxKind.AllowsKeyword:
                     return "allows";
+                case SyntaxKind.ExtensionKeyword:
+                    return "extension";
                 default:
                     return string.Empty;
             }

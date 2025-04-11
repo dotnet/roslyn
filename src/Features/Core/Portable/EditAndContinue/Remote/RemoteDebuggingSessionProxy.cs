@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -88,25 +89,26 @@ internal sealed class RemoteDebuggingSessionProxy(SolutionServices services, IDi
             return new EmitSolutionUpdateResults.Data()
             {
                 ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, []),
-                Diagnostics = GetInternalErrorDiagnosticData(solution, e),
+                Diagnostics = GetInternalErrorDiagnosticData(e.Message),
                 RudeEdits = [],
                 SyntaxError = null,
                 ProjectsToRebuild = [],
                 ProjectsToRestart = [],
             };
         }
-    }
 
-    private static ImmutableArray<DiagnosticData> GetInternalErrorDiagnosticData(Solution solution, Exception e)
-    {
-        var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(RudeEditKind.InternalError);
+        ImmutableArray<DiagnosticData> GetInternalErrorDiagnosticData(string message)
+        {
+            var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(RudeEditKind.InternalError);
 
-        var diagnostic = Diagnostic.Create(
-            descriptor,
-            Location.None,
-            string.Format(descriptor.MessageFormat.ToString(), "", e.Message));
+            var firstProject = solution.GetProject(runningProjects.FirstOrDefault()) ?? solution.Projects.First();
+            var diagnostic = Diagnostic.Create(
+                descriptor,
+                Location.None,
+                string.Format(descriptor.MessageFormat.ToString(), "", message));
 
-        return [DiagnosticData.Create(solution, diagnostic, project: null)];
+            return [DiagnosticData.Create(diagnostic, firstProject)];
+        }
     }
 
     public async ValueTask CommitSolutionUpdateAsync(CancellationToken cancellationToken)

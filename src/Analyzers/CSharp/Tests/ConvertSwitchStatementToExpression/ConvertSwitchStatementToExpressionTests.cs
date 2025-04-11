@@ -22,7 +22,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     ConvertSwitchStatementToExpressionCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-public class ConvertSwitchStatementToExpressionTests
+public sealed class ConvertSwitchStatementToExpressionTests
 {
     private static readonly LanguageVersion CSharp9 = LanguageVersion.CSharp9;
 

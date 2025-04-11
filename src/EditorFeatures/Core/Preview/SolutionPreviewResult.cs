@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor;
 
-internal class SolutionPreviewResult(
+internal sealed class SolutionPreviewResult(
     IThreadingContext threadingContext,
     IList<SolutionPreviewItem>? previews,
     SolutionChangeSummary? changeSummary = null)

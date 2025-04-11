@@ -19,9 +19,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal partial class DiagnosticAnalyzerService
+internal sealed partial class DiagnosticAnalyzerService
 {
-    private partial class DiagnosticIncrementalAnalyzer
+    private sealed partial class DiagnosticIncrementalAnalyzer
     {
         private static async Task<ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>> ComputeDocumentDiagnosticsCoreAsync(
             DocumentAnalysisExecutor executor,
@@ -54,7 +54,6 @@ internal partial class DiagnosticAnalyzerService
             Func<string, bool>? shouldIncludeDiagnostic,
             ICodeActionRequestPriorityProvider priorityProvider,
             DiagnosticKind diagnosticKind,
-            bool isExplicit,
             CancellationToken cancellationToken)
         {
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
@@ -176,17 +175,11 @@ internal partial class DiagnosticAnalyzerService
                 if (!priorityProvider.MatchesPriority(analyzer))
                     return false;
 
-                // Special case DocumentDiagnosticAnalyzer to never skip these document analyzers
-                // based on 'shouldIncludeDiagnostic' predicate. More specifically, TS has special document
-                // analyzer which report 0 supported diagnostics, but we always want to execute it.
+                // Special case DocumentDiagnosticAnalyzer to never skip these document analyzers based on
+                // 'shouldIncludeDiagnostic' predicate. More specifically, TS has special document analyzer which report
+                // 0 supported diagnostics, but we always want to execute it.  This also applies to our special built in
+                // analyzers 'FileContentLoadAnalyzer' and 'GeneratorDiagnosticsPlaceholderAnalyzer'.
                 if (analyzer is DocumentDiagnosticAnalyzer)
-                    return true;
-
-                // Special case GeneratorDiagnosticsPlaceholderAnalyzer to never skip it based on
-                // 'shouldIncludeDiagnostic' predicate. More specifically, this is a placeholder analyzer
-                // for threading through all source generator reported diagnostics, but this special analyzer
-                // reports 0 supported diagnostics, and we always want to execute it.
-                if (analyzer is GeneratorDiagnosticsPlaceholderAnalyzer)
                     return true;
 
                 // Skip analyzer if none of its reported diagnostics should be included.
@@ -236,7 +229,7 @@ internal partial class DiagnosticAnalyzerService
                 var projectAnalyzers = analyzers.WhereAsArray(static (a, info) => !info.IsHostAnalyzer(a), hostAnalyzerInfo);
                 var hostAnalyzers = analyzers.WhereAsArray(static (a, info) => info.IsHostAnalyzer(a), hostAnalyzerInfo);
                 var analysisScope = new DocumentAnalysisScope(document, span, projectAnalyzers, hostAnalyzers, kind);
-                var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, isExplicit, logPerformanceInfo);
+                var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, logPerformanceInfo);
                 var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
 
                 ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> diagnosticsMap;

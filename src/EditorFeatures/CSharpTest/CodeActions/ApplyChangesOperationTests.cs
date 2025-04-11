@@ -17,12 +17,12 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions;
 
-public class ApplyChangesOperationTests : AbstractCSharpCodeActionTest
+public sealed class ApplyChangesOperationTests : AbstractCSharpCodeActionTest
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
         => new MyCodeRefactoringProvider((Func<Solution, Solution>)parameters.fixProviderData);
 
-    private class MyCodeRefactoringProvider : CodeRefactoringProvider
+    private sealed class MyCodeRefactoringProvider : CodeRefactoringProvider
     {
         private readonly Func<Solution, Solution> _changeSolution;
 

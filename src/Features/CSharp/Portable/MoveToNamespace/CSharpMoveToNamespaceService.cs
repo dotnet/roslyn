@@ -13,10 +13,18 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveToNamespace;
 [ExportLanguageService(typeof(IMoveToNamespaceService), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class CSharpMoveToNamespaceService(
+internal sealed class CSharpMoveToNamespaceService(
     [Import(AllowDefault = true)] IMoveToNamespaceOptionsService optionsService) :
     AbstractMoveToNamespaceService<CompilationUnitSyntax, BaseNamespaceDeclarationSyntax, BaseTypeDeclarationSyntax>(optionsService)
 {
+    protected override BaseTypeDeclarationSyntax? GetNamedTypeDeclarationSyntax(SyntaxNode node)
+        => node switch
+        {
+            BaseTypeDeclarationSyntax namedTypeDeclaration => namedTypeDeclaration,
+            ParameterListSyntax parameterList => parameterList.Parent as BaseTypeDeclarationSyntax,
+            _ => null
+        };
+
     protected override string GetNamespaceName(SyntaxNode container)
         => container switch
         {

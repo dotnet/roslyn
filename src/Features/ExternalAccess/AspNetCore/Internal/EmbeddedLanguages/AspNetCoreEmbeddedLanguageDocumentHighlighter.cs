@@ -10,54 +10,53 @@ using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLanguages
+namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLanguages;
+
+[ExportEmbeddedLanguageDocumentHighlighter(
+    nameof(AspNetCoreEmbeddedLanguageDocumentHighlighter),
+    [LanguageNames.CSharp],
+    supportsUnannotatedAPIs: false,
+    // Add more syntax names here in the future if there are additional cases ASP.Net would like to light up on.
+    identifiers: ["Route"]), Shared]
+internal class AspNetCoreEmbeddedLanguageDocumentHighlighter : IEmbeddedLanguageDocumentHighlighter
 {
-    [ExportEmbeddedLanguageDocumentHighlighter(
-        nameof(AspNetCoreEmbeddedLanguageDocumentHighlighter),
-        [LanguageNames.CSharp],
-        supportsUnannotatedAPIs: false,
-        // Add more syntax names here in the future if there are additional cases ASP.Net would like to light up on.
-        identifiers: ["Route"]), Shared]
-    internal class AspNetCoreEmbeddedLanguageDocumentHighlighter : IEmbeddedLanguageDocumentHighlighter
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public AspNetCoreEmbeddedLanguageDocumentHighlighter()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public AspNetCoreEmbeddedLanguageDocumentHighlighter()
+    }
+
+    public ImmutableArray<DocumentHighlights> GetDocumentHighlights(
+        Document document,
+        SemanticModel semanticModel,
+        SyntaxToken token,
+        int position,
+        HighlightingOptions options,
+        CancellationToken cancellationToken)
+    {
+        var highlighters = AspNetCoreDocumentHighlighterExtensionProvider.GetExtensions(document.Project);
+        foreach (var highlighter in highlighters)
         {
+            var highlights = highlighter.GetDocumentHighlights(semanticModel, token, position, cancellationToken);
+            if (!highlights.IsDefaultOrEmpty)
+            {
+                return highlights.SelectAsArray(h => new DocumentHighlights(document,
+                    h.HighlightSpans.SelectAsArray(hs => new HighlightSpan(hs.TextSpan, ConvertKind(hs.Kind)))));
+            }
         }
 
-        public ImmutableArray<DocumentHighlights> GetDocumentHighlights(
-            Document document,
-            SemanticModel semanticModel,
-            SyntaxToken token,
-            int position,
-            HighlightingOptions options,
-            CancellationToken cancellationToken)
+        return [];
+
+        static HighlightSpanKind ConvertKind(AspNetCoreHighlightSpanKind kind)
         {
-            var highlighters = AspNetCoreDocumentHighlighterExtensionProvider.GetExtensions(document.Project);
-            foreach (var highlighter in highlighters)
+            return kind switch
             {
-                var highlights = highlighter.GetDocumentHighlights(semanticModel, token, position, cancellationToken);
-                if (!highlights.IsDefaultOrEmpty)
-                {
-                    return highlights.SelectAsArray(h => new DocumentHighlights(document,
-                        h.HighlightSpans.SelectAsArray(hs => new HighlightSpan(hs.TextSpan, ConvertKind(hs.Kind)))));
-                }
-            }
-
-            return [];
-
-            static HighlightSpanKind ConvertKind(AspNetCoreHighlightSpanKind kind)
-            {
-                return kind switch
-                {
-                    AspNetCoreHighlightSpanKind.None => HighlightSpanKind.None,
-                    AspNetCoreHighlightSpanKind.Definition => HighlightSpanKind.Definition,
-                    AspNetCoreHighlightSpanKind.Reference => HighlightSpanKind.Reference,
-                    AspNetCoreHighlightSpanKind.WrittenReference => HighlightSpanKind.WrittenReference,
-                    _ => throw new NotImplementedException(),
-                };
-            }
+                AspNetCoreHighlightSpanKind.None => HighlightSpanKind.None,
+                AspNetCoreHighlightSpanKind.Definition => HighlightSpanKind.Definition,
+                AspNetCoreHighlightSpanKind.Reference => HighlightSpanKind.Reference,
+                AspNetCoreHighlightSpanKind.WrittenReference => HighlightSpanKind.WrittenReference,
+                _ => throw new NotImplementedException(),
+            };
         }
     }
 }

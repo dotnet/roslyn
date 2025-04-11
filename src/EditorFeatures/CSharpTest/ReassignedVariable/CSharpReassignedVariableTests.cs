@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReassignedVariable;
 
-public class CSharpReassignedVariableTests : AbstractReassignedVariableTests
+public sealed class CSharpReassignedVariableTests : AbstractReassignedVariableTests
 {
     protected override EditorTestWorkspace CreateWorkspace(string markup)
         => EditorTestWorkspace.CreateCSharp(markup);

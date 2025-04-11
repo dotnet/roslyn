@@ -30,7 +30,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup;
 
-internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKeyCommandArgs>
+internal sealed partial class EventHookupCommandHandler : IChainedCommandHandler<TabKeyCommandArgs>
 {
     private static readonly SyntaxAnnotation s_plusEqualsTokenAnnotation = new();
 

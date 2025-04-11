@@ -17,7 +17,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseDefaultLiteralCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-public class UseDefaultLiteralTests
+public sealed class UseDefaultLiteralTests
 {
     [Fact]
     public async Task TestNotInCSharp7()

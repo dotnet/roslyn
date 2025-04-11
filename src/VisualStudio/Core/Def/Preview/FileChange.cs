@@ -23,7 +23,7 @@ using Microsoft.VisualStudio.Text.Differencing;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview;
 
-internal class FileChange : AbstractChange
+internal sealed class FileChange : AbstractChange
 {
     private readonly TextDocument _left;
     private readonly TextDocument _right;

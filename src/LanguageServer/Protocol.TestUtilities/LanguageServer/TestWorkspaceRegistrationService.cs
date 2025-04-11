@@ -13,6 +13,6 @@ namespace Roslyn.Test.Utilities;
 [Export(typeof(LspWorkspaceRegistrationService)), Shared, PartNotDiscoverable]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class TestWorkspaceRegistrationService() : LspWorkspaceRegistrationService
+internal sealed class TestWorkspaceRegistrationService() : LspWorkspaceRegistrationService
 {
 }

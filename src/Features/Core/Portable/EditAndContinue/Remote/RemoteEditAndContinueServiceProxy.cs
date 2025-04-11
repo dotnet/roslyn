@@ -163,7 +163,7 @@ internal readonly partial struct RemoteEditAndContinueServiceProxy(SolutionServi
         if (client == null)
         {
             var diagnostics = await GetLocalService().GetDocumentDiagnosticsAsync(document, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
-            return diagnostics.SelectAsArray(diagnostic => DiagnosticData.Create(document.Project.Solution, diagnostic, document.Project));
+            return diagnostics.SelectAsArray(diagnostic => DiagnosticData.Create(diagnostic, document));
         }
 
         var diagnosticData = await client.TryInvokeAsync<IRemoteEditAndContinueService, ImmutableArray<DiagnosticData>>(

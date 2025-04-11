@@ -39,18 +39,6 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
         Func<Task<ImmutableArray<AnalyzerReference>>> getReferencesAsync,
         CancellationToken cancellationToken);
 
-    private static ValueTask<ImmutableArray<AnalyzerReference>> DefaultCreateIsolatedAnalyzerReferencesAsync(
-        ImmutableArray<AnalyzerReference> references)
-    {
-        return ValueTaskFactory.FromResult(references);
-    }
-
-    private static async ValueTask<ImmutableArray<AnalyzerReference>> DefaultCreateIsolatedAnalyzerReferencesAsync(
-        Func<Task<ImmutableArray<AnalyzerReference>>> getReferencesAsync)
-    {
-        return await getReferencesAsync().ConfigureAwait(false);
-    }
-
     public static Guid TryGetFileReferenceMvid(string filePath)
     {
         try

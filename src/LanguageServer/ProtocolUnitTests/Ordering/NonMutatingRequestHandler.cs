@@ -9,41 +9,40 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
+namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering;
+
+[ExportCSharpVisualBasicStatelessLspService(typeof(NonMutatingRequestHandler)), PartNotDiscoverable, Shared]
+[Method(MethodName)]
+internal sealed class NonMutatingRequestHandler : ILspServiceRequestHandler<TestRequest, TestResponse>
 {
-    [ExportCSharpVisualBasicStatelessLspService(typeof(NonMutatingRequestHandler)), PartNotDiscoverable, Shared]
-    [Method(MethodName)]
-    internal class NonMutatingRequestHandler : ILspServiceRequestHandler<TestRequest, TestResponse>
+    public const string MethodName = nameof(NonMutatingRequestHandler);
+    private const int Delay = 100;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public NonMutatingRequestHandler()
     {
-        public const string MethodName = nameof(NonMutatingRequestHandler);
-        private const int Delay = 100;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public NonMutatingRequestHandler()
-        {
-        }
+    public bool MutatesSolutionState => false;
+    public bool RequiresLSPSolution => true;
 
-        public bool MutatesSolutionState => false;
-        public bool RequiresLSPSolution => true;
+    public async Task<TestResponse> HandleRequestAsync(TestRequest request, RequestContext context, CancellationToken cancellationToken)
+    {
+        var response = new TestResponse();
 
-        public async Task<TestResponse> HandleRequestAsync(TestRequest request, RequestContext context, CancellationToken cancellationToken)
-        {
-            var response = new TestResponse();
+        response.ContextHasSolution = context.Solution != null;
+        response.StartTime = DateTime.UtcNow;
 
-            response.ContextHasSolution = context.Solution != null;
-            response.StartTime = DateTime.UtcNow;
+        await Task.Delay(Delay, cancellationToken).ConfigureAwait(false);
 
-            await Task.Delay(Delay, cancellationToken).ConfigureAwait(false);
+        // some busy work
+        response.ToString();
 
-            // some busy work
-            response.ToString();
+        await Task.Delay(Delay, cancellationToken).ConfigureAwait(false);
 
-            await Task.Delay(Delay, cancellationToken).ConfigureAwait(false);
+        response.EndTime = DateTime.UtcNow;
 
-            response.EndTime = DateTime.UtcNow;
-
-            return response;
-        }
+        return response;
     }
 }

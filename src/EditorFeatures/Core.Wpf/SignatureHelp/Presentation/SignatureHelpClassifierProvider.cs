@@ -12,24 +12,23 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp.Presentation
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp.Presentation;
+
+[Export(typeof(IClassifierProvider))]
+[ContentType(ContentTypeNames.CSharpSignatureHelpContentType)]
+[ContentType(ContentTypeNames.VisualBasicSignatureHelpContentType)]
+internal sealed partial class SignatureHelpClassifierProvider : IClassifierProvider
 {
-    [Export(typeof(IClassifierProvider))]
-    [ContentType(ContentTypeNames.CSharpSignatureHelpContentType)]
-    [ContentType(ContentTypeNames.VisualBasicSignatureHelpContentType)]
-    internal partial class SignatureHelpClassifierProvider : IClassifierProvider
+    private readonly ClassificationTypeMap _typeMap;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public SignatureHelpClassifierProvider(ClassificationTypeMap typeMap)
+        => _typeMap = typeMap;
+
+    public IClassifier GetClassifier(ITextBuffer subjectBuffer)
     {
-        private readonly ClassificationTypeMap _typeMap;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SignatureHelpClassifierProvider(ClassificationTypeMap typeMap)
-            => _typeMap = typeMap;
-
-        public IClassifier GetClassifier(ITextBuffer subjectBuffer)
-        {
-            return subjectBuffer.Properties.GetOrCreateSingletonProperty<IClassifier>(
-                () => new SignatureHelpClassifier(subjectBuffer, _typeMap));
-        }
+        return subjectBuffer.Properties.GetOrCreateSingletonProperty<IClassifier>(
+            () => new SignatureHelpClassifier(subjectBuffer, _typeMap));
     }
 }

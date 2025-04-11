@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages;
 [DataSource(StreamingFindUsagesPresenter.RoslynFindUsagesTableDataSourceIdentifier)]
 [Name(nameof(FindUsagesTableControlEventProcessorProvider))]
 [Order(Before = Priority.Default)]
-internal class FindUsagesTableControlEventProcessorProvider : ITableControlEventProcessorProvider
+internal sealed class FindUsagesTableControlEventProcessorProvider : ITableControlEventProcessorProvider
 {
     private readonly IUIThreadOperationExecutor _operationExecutor;
     private readonly IAsynchronousOperationListener _listener;
@@ -44,7 +44,7 @@ internal class FindUsagesTableControlEventProcessorProvider : ITableControlEvent
     public ITableControlEventProcessor GetAssociatedEventProcessor(IWpfTableControl tableControl)
         => new TableControlEventProcessor(_operationExecutor, _listener);
 
-    private class TableControlEventProcessor : TableControlEventProcessorBase
+    private sealed class TableControlEventProcessor : TableControlEventProcessorBase
     {
         private readonly IUIThreadOperationExecutor _operationExecutor;
         private readonly IAsynchronousOperationListener _listener;

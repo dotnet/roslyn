@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
-internal class RenameClassificationTagger(ITextBuffer buffer, InlineRenameService renameService, IClassificationType classificationType) : AbstractRenameTagger<IClassificationTag>(buffer, renameService)
+internal sealed class RenameClassificationTagger(ITextBuffer buffer, InlineRenameService renameService, IClassificationType classificationType) : AbstractRenameTagger<IClassificationTag>(buffer, renameService)
 {
     private readonly IClassificationType _classificationType = classificationType;
 

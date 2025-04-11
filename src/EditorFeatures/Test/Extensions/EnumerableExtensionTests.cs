@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 
-public class EnumerableExtensionTests
+public sealed class EnumerableExtensionTests
 {
     private static IEnumerable<T> Enumerable<T>(params T[] values)
         => values;

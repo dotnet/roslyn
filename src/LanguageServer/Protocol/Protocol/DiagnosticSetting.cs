@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal class DiagnosticSetting : DynamicRegistrationSetting
+internal sealed class DiagnosticSetting : DynamicRegistrationSetting
 {
     /// <summary>
     /// Gets or sets a value indicating whether the client supports related documents for document diagnostic pulls.

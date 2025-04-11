@@ -17,7 +17,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseCollectionExpressionForCreateCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionExpression)]
-public class UseCollectionExpressionForCreateTests
+public sealed class UseCollectionExpressionForCreateTests
 {
     private const string s_collectionBuilderApi = """
 

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.Example;
 
-internal class ExampleRequestContextFactory : AbstractRequestContextFactory<ExampleRequestContext>
+internal sealed class ExampleRequestContextFactory : AbstractRequestContextFactory<ExampleRequestContext>
 {
     private readonly ILspServices _lspServices;
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -20,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 
 using Workspace = Microsoft.CodeAnalysis.Workspace;
 
-internal partial class GlobalUndoServiceFactory
+internal sealed partial class GlobalUndoServiceFactory
 {
     private sealed class WorkspaceUndoTransaction : IWorkspaceGlobalUndoTransaction
     {

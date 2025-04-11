@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QualifyMemberAccess;
 
-public partial class QualifyMemberAccessTests
+public sealed partial class QualifyMemberAccessTests
 {
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppre
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessarySuppressions)]
 [WorkItem("https://github.com/dotnet/roslyn/issues/44176")]
-public class RemoveUnnecessaryAttributeSuppressionsTests
+public sealed class RemoveUnnecessaryAttributeSuppressionsTests
 {
     [Theory, CombinatorialData]
     public void TestStandardProperty(AnalyzerProperty property)

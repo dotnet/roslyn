@@ -15,7 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 
-public class BloomFilterTests
+public sealed class BloomFilterTests
 {
     private static IEnumerable<string> GenerateStrings(int count)
     {

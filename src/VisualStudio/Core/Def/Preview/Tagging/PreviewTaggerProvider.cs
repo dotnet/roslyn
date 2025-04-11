@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview;
 [TagType(typeof(HighlightTag))]
 [ContentType(ContentTypeNames.RoslynContentType)]
 [ContentType(ContentTypeNames.XamlContentType)]
-internal class PreviewTaggerProvider : IViewTaggerProvider
+internal sealed class PreviewTaggerProvider : IViewTaggerProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

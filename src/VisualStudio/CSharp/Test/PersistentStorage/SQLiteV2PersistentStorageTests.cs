@@ -8,75 +8,74 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
+namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices;
+
+/// <remarks>
+/// Tests are inherited from <see cref="AbstractPersistentStorageTests"/>.  That way we can
+/// write tests once and have them run against all <see cref="IPersistentStorageService"/>
+/// implementations.
+/// </remarks>
+public sealed class SQLiteV2PersistentStorageTests : AbstractPersistentStorageTests
 {
-    /// <remarks>
-    /// Tests are inherited from <see cref="AbstractPersistentStorageTests"/>.  That way we can
-    /// write tests once and have them run against all <see cref="IPersistentStorageService"/>
-    /// implementations.
-    /// </remarks>
-    public class SQLiteV2PersistentStorageTests : AbstractPersistentStorageTests
+    [Fact]
+    public async Task TestCrashInNewConnection()
     {
-        [Fact]
-        public async Task TestCrashInNewConnection()
+        var solution = CreateOrOpenSolution(nullPaths: true);
+
+        var hitInjector = false;
+        var faultInjector = new PersistentStorageFaultInjector(
+            onNewConnection: () =>
+            {
+                hitInjector = true;
+                throw new Exception();
+            },
+            onFatalError: e => throw e);
+
+        // Because instantiating the connection will fail, we will not get back
+        // a working persistent storage. We are testing a fault recovery code path.
+        var storage = await GetStorageAsync(solution, faultInjector: faultInjector, throwOnFailure: false);
+        using (var memStream = new MemoryStream())
+        using (var streamWriter = new StreamWriter(memStream))
         {
-            var solution = CreateOrOpenSolution(nullPaths: true);
+            streamWriter.WriteLine("contents");
+            streamWriter.Flush();
 
-            var hitInjector = false;
-            var faultInjector = new PersistentStorageFaultInjector(
-                onNewConnection: () =>
-                {
-                    hitInjector = true;
-                    throw new Exception();
-                },
-                onFatalError: e => throw e);
+            memStream.Position = 0;
+            await storage.WriteStreamAsync("temp", memStream);
+            var readStream = await storage.ReadStreamAsync("temp");
 
-            // Because instantiating the connection will fail, we will not get back
-            // a working persistent storage. We are testing a fault recovery code path.
-            var storage = await GetStorageAsync(solution, faultInjector: faultInjector, throwOnFailure: false);
-            using (var memStream = new MemoryStream())
-            using (var streamWriter = new StreamWriter(memStream))
-            {
-                streamWriter.WriteLine("contents");
-                streamWriter.Flush();
-
-                memStream.Position = 0;
-                await storage.WriteStreamAsync("temp", memStream);
-                var readStream = await storage.ReadStreamAsync("temp");
-
-                // Because we don't have a real storage service, we should get back
-                // null even when trying to read something we just wrote.
-                Assert.Null(readStream);
-            }
-
-            Assert.True(hitInjector);
-
-            // Ensure we don't get a crash due to SqlConnection's finalizer running.
-            for (var i = 0; i < 10; i++)
-            {
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-            }
+            // Because we don't have a real storage service, we should get back
+            // null even when trying to read something we just wrote.
+            Assert.Null(readStream);
         }
 
-        private class PersistentStorageFaultInjector : IPersistentStorageFaultInjector
+        Assert.True(hitInjector);
+
+        // Ensure we don't get a crash due to SqlConnection's finalizer running.
+        for (var i = 0; i < 10; i++)
         {
-            private readonly Action? _onNewConnection;
-            private readonly Action<Exception>? _onFatalError;
-
-            public PersistentStorageFaultInjector(
-                Action? onNewConnection = null,
-                Action<Exception>? onFatalError = null)
-            {
-                _onNewConnection = onNewConnection;
-                _onFatalError = onFatalError;
-            }
-
-            public void OnNewConnection()
-                => _onNewConnection?.Invoke();
-
-            public void OnFatalError(Exception ex)
-                => _onFatalError?.Invoke(ex);
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
         }
+    }
+
+    private sealed class PersistentStorageFaultInjector : IPersistentStorageFaultInjector
+    {
+        private readonly Action? _onNewConnection;
+        private readonly Action<Exception>? _onFatalError;
+
+        public PersistentStorageFaultInjector(
+            Action? onNewConnection = null,
+            Action<Exception>? onFatalError = null)
+        {
+            _onNewConnection = onNewConnection;
+            _onFatalError = onFatalError;
+        }
+
+        public void OnNewConnection()
+            => _onNewConnection?.Invoke();
+
+        public void OnFatalError(Exception ex)
+            => _onFatalError?.Invoke(ex);
     }
 }

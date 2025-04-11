@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -31,11 +32,9 @@ internal sealed partial class AttributeSignatureHelpProvider : AbstractCSharpSig
     {
     }
 
-    public override bool IsTriggerCharacter(char ch)
-        => ch is '(' or ',';
+    public override ImmutableArray<char> TriggerCharacters => ['(', ','];
 
-    public override bool IsRetriggerCharacter(char ch)
-        => ch == ')';
+    public override ImmutableArray<char> RetriggerCharacters => [')'];
 
     private bool TryGetAttributeExpression(
         SyntaxNode root,
@@ -58,7 +57,7 @@ internal sealed partial class AttributeSignatureHelpProvider : AbstractCSharpSig
     {
         return !token.IsKind(SyntaxKind.None) &&
             token.ValueText.Length == 1 &&
-            IsTriggerCharacter(token.ValueText[0]) &&
+            TriggerCharacters.Contains(token.ValueText[0]) &&
             token.Parent is AttributeArgumentListSyntax &&
             token.Parent.Parent is AttributeSyntax;
     }

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
 using static CSharpSyntaxTokens;
 
 [UseExportProvider]
-public class SyntaxComparerTests
+public sealed class SyntaxComparerTests
 {
     private static SyntaxNode MakeLiteral(int n)
         => SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(n));

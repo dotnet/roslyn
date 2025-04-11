@@ -25,7 +25,6 @@ Imports Microsoft.CodeAnalysis.UnitTests
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
-
     <[UseExportProvider]>
     <Trait(Traits.Feature, Traits.Features.Diagnostics)>
     Public Class CodeFixServiceTests
@@ -380,8 +379,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Return Task.FromResult(False)
             End Function
 
-            Public Function ImplementNotImplementedExceptionsAsync(document As Document, methodOrProperties As ImmutableDictionary(Of CodeAnalysis.CSharp.Syntax.MemberDeclarationSyntax, ImmutableArray(Of ReferencedSymbol)), cancellationToken As CancellationToken) As Task(Of ImmutableDictionary(Of CodeAnalysis.CSharp.Syntax.MemberDeclarationSyntax, ImplementationDetails)) Implements ICopilotCodeAnalysisService.ImplementNotImplementedExceptionsAsync
-                Return Task.FromResult(ImmutableDictionary(Of CodeAnalysis.CSharp.Syntax.MemberDeclarationSyntax, ImplementationDetails).Empty)
+            Public Function ImplementNotImplementedExceptionsAsync(document As Document, methodOrProperties As ImmutableDictionary(Of SyntaxNode, ImmutableArray(Of ReferencedSymbol)), cancellationToken As CancellationToken) As Task(Of ImmutableDictionary(Of SyntaxNode, ImplementationDetails)) Implements ICopilotCodeAnalysisService.ImplementNotImplementedExceptionsAsync
+                Return Task.FromResult(ImmutableDictionary(Of SyntaxNode, ImplementationDetails).Empty)
             End Function
         End Class
     End Class

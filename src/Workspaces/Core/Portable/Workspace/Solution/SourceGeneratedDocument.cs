@@ -4,6 +4,7 @@
 
 using System;
 using System.Threading;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -25,6 +26,12 @@ public sealed class SourceGeneratedDocument : Document
     internal SourceGeneratedDocumentIdentity Identity => State.Identity;
 
     internal DateTime GenerationDateTime => State.GenerationDateTime;
+
+    internal new SourceGeneratedDocument WithText(SourceText text)
+        => (SourceGeneratedDocument)base.WithText(text);
+
+    internal new SourceGeneratedDocument WithSyntaxRoot(SyntaxNode root)
+        => (SourceGeneratedDocument)base.WithSyntaxRoot(root);
 
     internal override Document WithFrozenPartialSemantics(bool forceFreeze, CancellationToken cancellationToken)
     {

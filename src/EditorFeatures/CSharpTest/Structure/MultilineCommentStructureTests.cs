@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
 [Trait(Traits.Feature, Traits.Features.Outlining)]
-public class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaStructureTests
+public sealed class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaStructureTests
 {
     internal override AbstractSyntaxStructureProvider CreateProvider() => new MultilineCommentBlockStructureProvider();
 

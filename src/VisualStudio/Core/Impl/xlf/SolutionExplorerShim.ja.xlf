@@ -102,11 +102,6 @@
         <target state="translated">抑制済み</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rule_Set">
-        <source>Rule Set</source>
-        <target state="translated">ルール セット</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Checking_out_0_for_editing">
         <source>Checking out {0} for editing...</source>
         <target state="translated">編集のために {0} をチェックアウトしています...</target>

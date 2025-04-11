@@ -1,0 +1,34 @@
+abstract Microsoft.CodeAnalysis.Extensions.ExtensionHandlerWrapper<TArgument>.ExecuteAsync(System.Reflection.MethodInfo! executeAsyncMethod, object! handler, object? message, TArgument argument, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Microsoft.CodeAnalysis.CustomMessageHandler.CustomDocumentMessageHandlerWrapper
+Microsoft.CodeAnalysis.CustomMessageHandler.CustomDocumentMessageHandlerWrapper.CustomDocumentMessageHandlerWrapper(object! handler, System.Type! iCustomMessageDocumentHandlerInterface) -> void
+Microsoft.CodeAnalysis.CustomMessageHandler.CustomDocumentMessageHandlerWrapper.ExecuteAsync(object? message, Microsoft.CodeAnalysis.Document! document, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<object?>!
+Microsoft.CodeAnalysis.CustomMessageHandler.CustomDocumentMessageHandlerWrapper.MessageType.get -> System.Type!
+Microsoft.CodeAnalysis.CustomMessageHandler.CustomDocumentMessageHandlerWrapper.Name.get -> string!
+Microsoft.CodeAnalysis.CustomMessageHandler.CustomDocumentMessageHandlerWrapper.ResponseType.get -> System.Type!
+Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageContext.CustomMessageContext(Microsoft.CodeAnalysis.Solution! solution) -> void
+Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageHandlerFactory
+Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageHandlerFactory.CreateDocumentMessageHandlers(System.Reflection.Assembly! assembly) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CustomMessageHandler.ICustomDocumentMessageHandlerWrapper!>
+Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageHandlerFactory.CreateWorkspaceMessageHandlers(System.Reflection.Assembly! assembly) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CustomMessageHandler.ICustomWorspaceMessageHandlerWrapper!>
+Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageHandlerFactory.CustomMessageHandlerFactory() -> void
+Microsoft.CodeAnalysis.CustomMessageHandler.CustomWorspaceMessageHandlerWrapper
+Microsoft.CodeAnalysis.CustomMessageHandler.CustomWorspaceMessageHandlerWrapper.CustomWorspaceMessageHandlerWrapper(object! handler, System.Type! iCustomMessageHandlerInterface) -> void
+Microsoft.CodeAnalysis.CustomMessageHandler.CustomWorspaceMessageHandlerWrapper.ExecuteAsync(object? message, Microsoft.CodeAnalysis.Solution! solution, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<object?>!
+Microsoft.CodeAnalysis.CustomMessageHandler.CustomWorspaceMessageHandlerWrapper.MessageType.get -> System.Type!
+Microsoft.CodeAnalysis.CustomMessageHandler.CustomWorspaceMessageHandlerWrapper.Name.get -> string!
+Microsoft.CodeAnalysis.CustomMessageHandler.CustomWorspaceMessageHandlerWrapper.ResponseType.get -> System.Type!
+Microsoft.CodeAnalysis.Extensions.ExtensionDocumentMessageHandlerWrapper
+Microsoft.CodeAnalysis.Extensions.ExtensionDocumentMessageHandlerWrapper.ExtensionDocumentMessageHandlerWrapper(object! handler, System.Type! customMessageHandlerInterface, string! extensionIdentifier) -> void
+Microsoft.CodeAnalysis.Extensions.ExtensionHandlerWrapper<TArgument>
+Microsoft.CodeAnalysis.Extensions.ExtensionHandlerWrapper<TArgument>.ExecuteAsync(object? message, TArgument argument, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<object?>!
+Microsoft.CodeAnalysis.Extensions.ExtensionHandlerWrapper<TArgument>.ExtensionHandlerWrapper(object! handler, System.Type! customMessageHandlerInterface, string! extensionIdentifier) -> void
+Microsoft.CodeAnalysis.Extensions.ExtensionHandlerWrapper<TArgument>.ExtensionIdentifier.get -> string!
+Microsoft.CodeAnalysis.Extensions.ExtensionHandlerWrapper<TArgument>.MessageType.get -> System.Type!
+Microsoft.CodeAnalysis.Extensions.ExtensionHandlerWrapper<TArgument>.Name.get -> string!
+Microsoft.CodeAnalysis.Extensions.ExtensionHandlerWrapper<TArgument>.ResponseType.get -> System.Type!
+Microsoft.CodeAnalysis.Extensions.ExtensionMessageContext.ExtensionMessageContext(Microsoft.CodeAnalysis.Solution! solution) -> void
+Microsoft.CodeAnalysis.Extensions.ExtensionMessageHandlerFactory
+Microsoft.CodeAnalysis.Extensions.ExtensionMessageHandlerFactory.CreateDocumentMessageHandlers(System.Reflection.Assembly! assembly, string! extensionIdentifier, System.Threading.CancellationToken cancellationToken) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Extensions.IExtensionMessageHandlerWrapper<Microsoft.CodeAnalysis.Document!>!>
+Microsoft.CodeAnalysis.Extensions.ExtensionMessageHandlerFactory.CreateWorkspaceMessageHandlers(System.Reflection.Assembly! assembly, string! extensionIdentifier, System.Threading.CancellationToken cancellationToken) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Extensions.IExtensionMessageHandlerWrapper<Microsoft.CodeAnalysis.Solution!>!>
+Microsoft.CodeAnalysis.Extensions.ExtensionMessageHandlerFactory.ExtensionMessageHandlerFactory() -> void
+Microsoft.CodeAnalysis.Extensions.ExtensionWorkspaceMessageHandlerWrapper
+Microsoft.CodeAnalysis.Extensions.ExtensionWorkspaceMessageHandlerWrapper.ExtensionWorkspaceMessageHandlerWrapper(object! handler, System.Type! customMessageHandlerInterface, string! extensionIdentifier) -> void

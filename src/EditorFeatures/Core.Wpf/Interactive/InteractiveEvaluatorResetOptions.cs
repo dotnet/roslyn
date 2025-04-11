@@ -5,13 +5,12 @@
 extern alias InteractiveHost;
 using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 
-namespace Microsoft.CodeAnalysis.Interactive
-{
-    internal sealed class InteractiveEvaluatorResetOptions
-    {
-        public readonly InteractiveHostPlatform? Platform;
+namespace Microsoft.CodeAnalysis.Interactive;
 
-        public InteractiveEvaluatorResetOptions(InteractiveHostPlatform? platform)
-            => Platform = platform;
-    }
+internal sealed class InteractiveEvaluatorResetOptions
+{
+    public readonly InteractiveHostPlatform? Platform;
+
+    public InteractiveEvaluatorResetOptions(InteractiveHostPlatform? platform)
+        => Platform = platform;
 }

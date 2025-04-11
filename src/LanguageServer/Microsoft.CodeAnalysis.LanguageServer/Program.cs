@@ -116,18 +116,9 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     var telemetryReporter = exportProvider.GetExports<ITelemetryReporter>().SingleOrDefault()?.Value;
     RoslynLogger.Initialize(telemetryReporter, serverConfiguration.TelemetryLevel, serverConfiguration.SessionId);
 
-    // Create the workspace first, since right now the language server will assume there's at least one Workspace
+    // Create the workspace first, since right now the language server will assume there's at least one Workspace. This as a side effect creates the actual workspace
+    // object which is registered by the LspWorkspaceRegistrationEventListener.
     var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
-
-    var analyzerPaths = new DirectoryInfo(AppContext.BaseDirectory).GetFiles("*.dll")
-        .Where(f => f.Name.StartsWith("Microsoft.CodeAnalysis.", StringComparison.Ordinal) && !f.Name.Contains("LanguageServer", StringComparison.Ordinal))
-        .Select(f => f.FullName)
-        .ToImmutableArray();
-
-    // Include analyzers from extension assemblies.
-    analyzerPaths = analyzerPaths.AddRange(extensionManager.ExtensionAssemblyPaths);
-
-    await workspaceFactory.InitializeSolutionLevelAnalyzersAsync(analyzerPaths);
 
     var serviceBrokerFactory = exportProvider.GetExportedValue<ServiceBrokerFactory>();
     StarredCompletionAssemblyHelper.InitializeInstance(serverConfiguration.StarredCompletionsPath, extensionManager, loggerFactory, serviceBrokerFactory);
@@ -181,7 +172,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     }
 }
 
-static CliRootCommand CreateCommandLineParser()
+static CliConfiguration CreateCommandLineParser()
 {
     var debugOption = new CliOption<bool>("--debug")
     {
@@ -277,6 +268,7 @@ static CliRootCommand CreateCommandLineParser()
         serverPipeNameOption,
         useStdIoOption
     };
+
     rootCommand.SetAction((parseResult, cancellationToken) =>
     {
         var launchDebugger = parseResult.GetValue(debugOption);
@@ -308,7 +300,16 @@ static CliRootCommand CreateCommandLineParser()
 
         return RunAsync(serverConfiguration, cancellationToken);
     });
-    return rootCommand;
+
+    var config = new CliConfiguration(rootCommand)
+    {
+        // By default, System.CommandLine will catch all exceptions, log them to the console, and return a non-zero exit code.
+        // Unfortunately this makes .NET's crash dump collection environment variables (e.g. 'DOTNET_DbgEnableMiniDump')
+        // entirely useless as it never detects an actual crash.  Disable this behavior so we can collect crash dumps when asked to.
+        EnableDefaultExceptionHandler = false
+    };
+
+    return config;
 }
 
 static (string clientPipe, string serverPipe) CreateNewPipeNames()

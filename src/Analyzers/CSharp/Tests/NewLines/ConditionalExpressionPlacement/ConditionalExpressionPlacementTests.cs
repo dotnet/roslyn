@@ -15,7 +15,7 @@ using Verify = CSharpCodeFixVerifier<
     ConditionalExpressionPlacementDiagnosticAnalyzer,
     ConditionalExpressionPlacementCodeFixProvider>;
 
-public class ConditionalExpressionPlacementTests
+public sealed class ConditionalExpressionPlacementTests
 {
     [Fact]
     public async Task TestNotWithOptionOff()

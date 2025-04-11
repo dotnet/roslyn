@@ -8,17 +8,16 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using StreamJsonRpc;
 
-namespace Microsoft.CodeAnalysis.LanguageServer
+namespace Microsoft.CodeAnalysis.LanguageServer;
+
+internal interface ILanguageServerFactory
 {
-    internal interface ILanguageServerFactory
-    {
-        public AbstractLanguageServer<RequestContext> Create(
-            JsonRpc jsonRpc,
-            JsonSerializerOptions options,
-            ICapabilitiesProvider capabilitiesProvider,
-            WellKnownLspServerKinds serverKind,
-            AbstractLspLogger logger,
-            HostServices hostServices,
-            AbstractTypeRefResolver? typeRefResolver = null);
-    }
+    public AbstractLanguageServer<RequestContext> Create(
+        JsonRpc jsonRpc,
+        JsonSerializerOptions options,
+        ICapabilitiesProvider capabilitiesProvider,
+        WellKnownLspServerKinds serverKind,
+        AbstractLspLogger logger,
+        HostServices hostServices,
+        AbstractTypeRefResolver? typeRefResolver = null);
 }

@@ -60,7 +60,7 @@ using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing;
 
-internal partial class EditorInProcess : ITextViewWindowInProcess
+internal sealed partial class EditorInProcess : ITextViewWindowInProcess
 {
     TestServices ITextViewWindowInProcess.TestServices => TestServices;
 

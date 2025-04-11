@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal class DiagnosticServerCancellationData
+internal sealed class DiagnosticServerCancellationData
 {
     /// <summary>
     /// Gets or sets a value indicating whether the client should re-trigger the request.

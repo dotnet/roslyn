@@ -14,79 +14,78 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.ExternalE
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
+
+public sealed class ExternalNamespaceEnumerator : IEnumerator, ICloneable
 {
-    public sealed class ExternalNamespaceEnumerator : IEnumerator, ICloneable
+    internal static IEnumerator Create(CodeModelState state, ProjectId projectId, SymbolKey namespaceSymbolId)
     {
-        internal static IEnumerator Create(CodeModelState state, ProjectId projectId, SymbolKey namespaceSymbolId)
+        var newEnumerator = new ExternalNamespaceEnumerator(state, projectId, namespaceSymbolId);
+        return (IEnumerator)ComAggregate.CreateAggregatedObject(newEnumerator);
+    }
+
+    private ExternalNamespaceEnumerator(CodeModelState state, ProjectId projectId, SymbolKey namespaceSymbolId)
+    {
+        _state = state;
+        _projectId = projectId;
+        _namespaceSymbolId = namespaceSymbolId;
+
+        _childEnumerator = ChildrenOfNamespace(state, projectId, namespaceSymbolId).GetEnumerator();
+    }
+
+    private readonly CodeModelState _state;
+    private readonly ProjectId _projectId;
+    private readonly SymbolKey _namespaceSymbolId;
+
+    private readonly IEnumerator<EnvDTE.CodeElement> _childEnumerator;
+
+    public object Current
+    {
+        get
         {
-            var newEnumerator = new ExternalNamespaceEnumerator(state, projectId, namespaceSymbolId);
-            return (IEnumerator)ComAggregate.CreateAggregatedObject(newEnumerator);
+            return _childEnumerator.Current;
+        }
+    }
+
+    public object Clone()
+        => Create(_state, _projectId, _namespaceSymbolId);
+
+    public bool MoveNext()
+        => _childEnumerator.MoveNext();
+
+    public void Reset()
+        => _childEnumerator.Reset();
+
+    internal static IEnumerable<EnvDTE.CodeElement> ChildrenOfNamespace(CodeModelState state, ProjectId projectId, SymbolKey namespaceSymbolId)
+    {
+        var project = state.Workspace.CurrentSolution.GetProject(projectId);
+        if (project == null)
+        {
+            throw Exceptions.ThrowEFail();
         }
 
-        private ExternalNamespaceEnumerator(CodeModelState state, ProjectId projectId, SymbolKey namespaceSymbolId)
+        if (namespaceSymbolId.Resolve(project.GetCompilationAsync().Result).Symbol is not INamespaceSymbol namespaceSymbol)
         {
-            _state = state;
-            _projectId = projectId;
-            _namespaceSymbolId = namespaceSymbolId;
-
-            _childEnumerator = ChildrenOfNamespace(state, projectId, namespaceSymbolId).GetEnumerator();
+            throw Exceptions.ThrowEFail();
         }
 
-        private readonly CodeModelState _state;
-        private readonly ProjectId _projectId;
-        private readonly SymbolKey _namespaceSymbolId;
+        var containingAssembly = project.GetCompilationAsync().Result.Assembly;
 
-        private readonly IEnumerator<EnvDTE.CodeElement> _childEnumerator;
-
-        public object Current
+        foreach (var child in namespaceSymbol.GetMembers())
         {
-            get
+            if (child is INamespaceSymbol namespaceChild)
             {
-                return _childEnumerator.Current;
+                yield return (EnvDTE.CodeElement)ExternalCodeNamespace.Create(state, projectId, namespaceChild);
             }
-        }
-
-        public object Clone()
-            => Create(_state, _projectId, _namespaceSymbolId);
-
-        public bool MoveNext()
-            => _childEnumerator.MoveNext();
-
-        public void Reset()
-            => _childEnumerator.Reset();
-
-        internal static IEnumerable<EnvDTE.CodeElement> ChildrenOfNamespace(CodeModelState state, ProjectId projectId, SymbolKey namespaceSymbolId)
-        {
-            var project = state.Workspace.CurrentSolution.GetProject(projectId);
-            if (project == null)
+            else
             {
-                throw Exceptions.ThrowEFail();
-            }
+                var namedType = (INamedTypeSymbol)child;
 
-            if (namespaceSymbolId.Resolve(project.GetCompilationAsync().Result).Symbol is not INamespaceSymbol namespaceSymbol)
-            {
-                throw Exceptions.ThrowEFail();
-            }
-
-            var containingAssembly = project.GetCompilationAsync().Result.Assembly;
-
-            foreach (var child in namespaceSymbol.GetMembers())
-            {
-                if (child is INamespaceSymbol namespaceChild)
+                if (namedType.IsAccessibleWithin(containingAssembly))
                 {
-                    yield return (EnvDTE.CodeElement)ExternalCodeNamespace.Create(state, projectId, namespaceChild);
-                }
-                else
-                {
-                    var namedType = (INamedTypeSymbol)child;
-
-                    if (namedType.IsAccessibleWithin(containingAssembly))
+                    if (namedType.Locations.Any(static l => l.IsInMetadata || l.IsInSource))
                     {
-                        if (namedType.Locations.Any(static l => l.IsInMetadata || l.IsInSource))
-                        {
-                            yield return state.CodeModelService.CreateCodeType(state, projectId, namedType);
-                        }
+                        yield return state.CodeModelService.CreateCodeType(state, projectId, namedType);
                     }
                 }
             }

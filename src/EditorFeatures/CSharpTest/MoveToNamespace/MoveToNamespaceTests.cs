@@ -1532,4 +1532,34 @@ expectedNamespaceName: "A.Complex.Namespace");
             {
                 {"A.MyType", "B.MyType" }
             });
+
+    [Theory]
+    [InlineData("class MyClass[||](int x, int y)")]
+    [InlineData("class [||]MyClass(int x, int y)")]
+    [InlineData("class MyC[||]lass(int x, int y)")]
+    public Task MoveToNamespace_PrimaryConstructor(string decl)
+        => TestMoveToNamespaceAsync(
+            $$"""
+            namespace A;
+
+            {{decl}}
+            {
+                public int X => x;
+                public int Y => y;
+            }
+            """,
+            expectedMarkup: """
+            namespace {|Warning:B|};
+            
+            class MyClass(int x, int y)
+            {
+                public int X => x;
+                public int Y => y;
+            }
+            """,
+            targetNamespace: "B",
+            expectedSymbolChanges: new Dictionary<string, string>()
+            {
+                {"A.MyClass", "B.MyClass" }
+            });
 }

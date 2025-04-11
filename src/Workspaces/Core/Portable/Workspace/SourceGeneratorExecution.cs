@@ -25,25 +25,24 @@ internal static class SourceGeneratorExecutionPreferenceUtilities
     private const string balanced = "balanced";
 
     // Default to beginning_of_line if we don't know the value.
-    public static string GetEditorConfigString(SourceGeneratorExecutionPreference? value)
+    public static string GetEditorConfigString(SourceGeneratorExecutionPreference value)
     {
         return value switch
         {
             SourceGeneratorExecutionPreference.Automatic => automatic,
             SourceGeneratorExecutionPreference.Balanced => balanced,
-            null => "",
             _ => throw ExceptionUtilities.UnexpectedValue(value),
         };
     }
 
-    public static SourceGeneratorExecutionPreference? Parse(
-        string optionString)
+    public static SourceGeneratorExecutionPreference Parse(
+        string optionString, SourceGeneratorExecutionPreference defaultValue)
     {
         return optionString switch
         {
             automatic => SourceGeneratorExecutionPreference.Automatic,
             balanced => SourceGeneratorExecutionPreference.Balanced,
-            _ => null,
+            _ => defaultValue,
         };
     }
 }

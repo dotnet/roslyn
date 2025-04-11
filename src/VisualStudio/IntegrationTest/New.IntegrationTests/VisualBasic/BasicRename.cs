@@ -4,7 +4,6 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -18,14 +17,9 @@ using Xunit.Sdk;
 namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic;
 
 [Trait(Traits.Feature, Traits.Features.Rename)]
-public class BasicRename : AbstractEditorTest
+public sealed class BasicRename() : AbstractEditorTest(nameof(BasicRename))
 {
     protected override string LanguageName => LanguageNames.VisualBasic;
-
-    public BasicRename()
-        : base(nameof(BasicRename))
-    {
-    }
 
     public override async Task InitializeAsync()
     {
@@ -33,7 +27,6 @@ public class BasicRename : AbstractEditorTest
 
         // reset relevant global options to default values:
         var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-        globalOptions.SetGlobalOption(InlineRenameUIOptionsStorage.UseInlineAdornment, false);
         globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInComments, false);
         globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInStrings, false);
         globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameOverloads, false);
@@ -86,7 +79,7 @@ Module Program
 End Module", HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63576")]
     public async Task VerifyLocalVariableRenameWithCommentsUpdated()
     {
         // "variable" is intentionally misspelled as "varixable" and "this" is misspelled as
@@ -137,7 +130,7 @@ Module Program
 End Module", HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63576")]
     public async Task VerifyLocalVariableRenameWithStringsUpdated()
     {
         var markup = @"
@@ -178,7 +171,7 @@ Module Program
 End Module", HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63576")]
     public async Task VerifyOverloadsUpdated()
     {
         var markup = @"
@@ -250,8 +243,8 @@ End Class", HangMitigatingCancellationToken);
         var markup = @"
 Imports System
 
-Public Class [|$$ustom|]Attribute 
-        Inherits Attribute
+Public Class [|$$ustom|]Attribute
+    Inherits Attribute
 End Class";
 
         await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
@@ -262,13 +255,13 @@ End Class";
         var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
         AssertEx.SetEqual(renameSpans, tagSpans);
 
-        await TestServices.Input.SendWithoutActivateAsync("Custom", HangMitigatingCancellationToken);
+        await TestServices.Input.SendWithoutActivateAsync(["Custom", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextEqualsAsync(@"
 Imports System
 
-Public Class Custom$$Attribute 
-        Inherits Attribute
+Public Class Custom$$Attribute
+    Inherits Attribute
 End Class", HangMitigatingCancellationToken);
     }
 
@@ -282,8 +275,8 @@ Imports System
 Class Bar
 End Class
 
-Public Class [|ustom|]Attribute 
-        Inherits Attribute
+Public Class [|ustom|]Attribute
+    Inherits Attribute
 End Class";
         await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
         await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
@@ -293,7 +286,7 @@ End Class";
         var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
         AssertEx.SetEqual(renameSpans, tagSpans);
 
-        await TestServices.Input.SendWithoutActivateAsync("Custom", HangMitigatingCancellationToken);
+        await TestServices.Input.SendWithoutActivateAsync(["Custom", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextEqualsAsync(@"
 Imports System
@@ -302,8 +295,8 @@ Imports System
 Class Bar
 End Class
 
-Public Class CustomAttribute 
-        Inherits Attribute
+Public Class CustomAttribute
+    Inherits Attribute
 End Class", HangMitigatingCancellationToken);
     }
 
@@ -317,8 +310,8 @@ Imports System
 Class Bar
 End Class
 
-Public Class [|$$ustom|]Attribute 
-        Inherits Attribute
+Public Class [|$$ustom|]Attribute
+    Inherits Attribute
 End Class";
         await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
         await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
@@ -328,7 +321,7 @@ End Class";
         var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
         AssertEx.SetEqual(renameSpans, tagSpans);
 
-        await TestServices.Input.SendWithoutActivateAsync("Custom", HangMitigatingCancellationToken);
+        await TestServices.Input.SendWithoutActivateAsync(["Custom", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextEqualsAsync(@"
 Imports System
@@ -337,8 +330,8 @@ Imports System
 Class Bar
 End Class
 
-Public Class Custom$$Attribute 
-        Inherits Attribute
+Public Class Custom$$Attribute
+    Inherits Attribute
 End Class", HangMitigatingCancellationToken);
     }
 

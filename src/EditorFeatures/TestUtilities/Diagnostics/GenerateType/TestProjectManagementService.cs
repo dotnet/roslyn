@@ -10,26 +10,25 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ProjectManagement;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType;
+
+[ExportWorkspaceService(typeof(IProjectManagementService), ServiceLayer.Default), Shared]
+internal sealed class TestProjectManagementService : IProjectManagementService
 {
-    [ExportWorkspaceService(typeof(IProjectManagementService), ServiceLayer.Default), Shared]
-    internal class TestProjectManagementService : IProjectManagementService
+    private string _defaultNamespace;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public TestProjectManagementService()
     {
-        private string _defaultNamespace;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TestProjectManagementService()
-        {
-        }
-
-        public IList<string> GetFolders(ProjectId projectId, Workspace workspace)
-            => null;
-
-        public string GetDefaultNamespace(Project project, Workspace workspace)
-            => _defaultNamespace;
-
-        public void SetDefaultNamespace(string defaultNamespace)
-            => _defaultNamespace = defaultNamespace;
     }
+
+    public IList<string> GetFolders(ProjectId projectId, Workspace workspace)
+        => null;
+
+    public string GetDefaultNamespace(Project project, Workspace workspace)
+        => _defaultNamespace;
+
+    public void SetDefaultNamespace(string defaultNamespace)
+        => _defaultNamespace = defaultNamespace;
 }

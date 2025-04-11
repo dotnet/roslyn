@@ -32,10 +32,11 @@ internal static partial class MemberDeclarationSyntaxExtensions
                 case SyntaxKind.EnumDeclaration:
                     return ((EnumDeclarationSyntax)member).Identifier;
                 case SyntaxKind.ClassDeclaration:
-                case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.ExtensionDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
-                case SyntaxKind.StructDeclaration:
+                case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
+                case SyntaxKind.StructDeclaration:
                     return ((TypeDeclarationSyntax)member).Identifier;
                 case SyntaxKind.DelegateDeclaration:
                     return ((DelegateDeclarationSyntax)member).Identifier;
@@ -71,10 +72,11 @@ internal static partial class MemberDeclarationSyntaxExtensions
             switch (member.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
-                case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.ExtensionDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
-                case SyntaxKind.StructDeclaration:
+                case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
+                case SyntaxKind.StructDeclaration:
                     return ((TypeDeclarationSyntax)member).Arity;
                 case SyntaxKind.DelegateDeclaration:
                     return ((DelegateDeclarationSyntax)member).Arity;
@@ -86,17 +88,20 @@ internal static partial class MemberDeclarationSyntaxExtensions
         return 0;
     }
 
-    public static TypeParameterListSyntax GetTypeParameterList(this MemberDeclarationSyntax member)
+#nullable enable
+
+    public static TypeParameterListSyntax? GetTypeParameterList(this MemberDeclarationSyntax member)
     {
         if (member != null)
         {
             switch (member.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
-                case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.ExtensionDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
-                case SyntaxKind.StructDeclaration:
+                case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
+                case SyntaxKind.StructDeclaration:
                     return ((TypeDeclarationSyntax)member).TypeParameterList;
                 case SyntaxKind.DelegateDeclaration:
                     return ((DelegateDeclarationSyntax)member).TypeParameterList;
@@ -107,6 +112,8 @@ internal static partial class MemberDeclarationSyntaxExtensions
 
         return null;
     }
+
+#nullable disable
 
     public static MemberDeclarationSyntax WithParameterList(
         this MemberDeclarationSyntax member,

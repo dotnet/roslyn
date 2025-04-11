@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.SplitComment)]
-public class SplitCommentCommandHandlerTests : AbstractSplitCommentCommandHandlerTests
+public sealed class SplitCommentCommandHandlerTests : AbstractSplitCommentCommandHandlerTests
 {
     protected override EditorTestWorkspace CreateWorkspace(string markup)
         => EditorTestWorkspace.CreateCSharp(markup);

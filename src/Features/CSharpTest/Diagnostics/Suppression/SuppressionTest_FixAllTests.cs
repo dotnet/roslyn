@@ -20,7 +20,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
     public abstract partial class CSharpPragmaWarningDisableSuppressionTests : CSharpSuppressionTests
     {
         [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-        public partial class UserInfoDiagnosticSuppressionTests : CSharpPragmaWarningDisableSuppressionTests
+        public sealed partial class UserInfoDiagnosticSuppressionTests : CSharpPragmaWarningDisableSuppressionTests
         {
             [Fact]
             [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
@@ -454,7 +454,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
 
     public abstract partial class CSharpGlobalSuppressMessageSuppressionTests : CSharpSuppressionTests
     {
-        public partial class UserInfoDiagnosticSuppressionTests : CSharpGlobalSuppressMessageSuppressionTests
+        public sealed partial class UserInfoDiagnosticSuppressionTests : CSharpGlobalSuppressMessageSuppressionTests
         {
             [Fact]
             [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
@@ -930,7 +930,7 @@ using System.Diagnostics.CodeAnalysis;
     }
 
     [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-    public partial class CSharpDiagnosticWithoutLocationSuppressionTests : CSharpSuppressionTests
+    public sealed partial class CSharpDiagnosticWithoutLocationSuppressionTests : CSharpSuppressionTests
     {
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]

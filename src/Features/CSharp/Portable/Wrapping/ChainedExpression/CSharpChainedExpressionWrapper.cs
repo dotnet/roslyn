@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Wrapping.ChainedExpression;
 
 namespace Microsoft.CodeAnalysis.CSharp.Wrapping.ChainedExpression;
 
-internal class CSharpChainedExpressionWrapper :
+internal sealed class CSharpChainedExpressionWrapper :
     AbstractChainedExpressionWrapper<NameSyntax, BaseArgumentListSyntax>
 {
     public CSharpChainedExpressionWrapper()

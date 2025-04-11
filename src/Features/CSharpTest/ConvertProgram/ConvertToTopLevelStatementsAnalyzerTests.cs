@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertProgram;
 
 using VerifyCS = CSharpCodeFixVerifier<ConvertToTopLevelStatementsDiagnosticAnalyzer, ConvertToTopLevelStatementsCodeFixProvider>;
 
-public class ConvertToTopLevelStatementsAnalyzerTests
+public sealed class ConvertToTopLevelStatementsAnalyzerTests
 {
     public static IEnumerable<object[]> EndOfDocumentSequences
     {

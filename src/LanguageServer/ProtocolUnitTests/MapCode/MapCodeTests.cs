@@ -20,10 +20,10 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeMapping;
 
-public class MapCodeTests : AbstractLanguageServerProtocolTests
+public sealed class MapCodeTests : AbstractLanguageServerProtocolTests
 {
     [ExportLanguageService(typeof(IMapCodeService), language: LanguageNames.CSharp, layer: ServiceLayer.Test), Shared, PartNotDiscoverable]
-    private class TestMapCodeService : IMapCodeService
+    private sealed class TestMapCodeService : IMapCodeService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

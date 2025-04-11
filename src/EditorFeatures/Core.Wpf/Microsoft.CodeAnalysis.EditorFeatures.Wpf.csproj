@@ -63,10 +63,6 @@
     <InternalsVisibleTo Include="Roslyn.Services.Test.Utilities" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="InlineRename\UI\Dashboard\Images\ErrorIcon.png" />
-    <Resource Include="InlineRename\UI\Dashboard\Images\InfoIcon.png" />
-  </ItemGroup>
-  <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>

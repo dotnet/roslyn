@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class EnumAndCompletionListTagCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class EnumAndCompletionListTagCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType()
         => typeof(EnumAndCompletionListTagCompletionProvider);

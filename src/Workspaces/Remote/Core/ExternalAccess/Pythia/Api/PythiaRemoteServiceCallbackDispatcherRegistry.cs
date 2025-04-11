@@ -7,20 +7,19 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Remote;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api;
+
+internal sealed class PythiaRemoteServiceCallbackDispatcherRegistry : IRemoteServiceCallbackDispatcherProvider
 {
-    internal sealed class PythiaRemoteServiceCallbackDispatcherRegistry : IRemoteServiceCallbackDispatcherProvider
+    public static readonly PythiaRemoteServiceCallbackDispatcherRegistry Empty = new([]);
+
+    private readonly ImmutableDictionary<Type, PythiaRemoteServiceCallbackDispatcher> _lazyDispatchers;
+
+    public PythiaRemoteServiceCallbackDispatcherRegistry(IEnumerable<(Type serviceType, PythiaRemoteServiceCallbackDispatcher dispatcher)> lazyDispatchers)
     {
-        public static readonly PythiaRemoteServiceCallbackDispatcherRegistry Empty = new([]);
-
-        private readonly ImmutableDictionary<Type, PythiaRemoteServiceCallbackDispatcher> _lazyDispatchers;
-
-        public PythiaRemoteServiceCallbackDispatcherRegistry(IEnumerable<(Type serviceType, PythiaRemoteServiceCallbackDispatcher dispatcher)> lazyDispatchers)
-        {
-            _lazyDispatchers = lazyDispatchers.ToImmutableDictionary(e => e.serviceType, e => e.dispatcher);
-        }
-
-        IRemoteServiceCallbackDispatcher IRemoteServiceCallbackDispatcherProvider.GetDispatcher(Type serviceType)
-            => _lazyDispatchers[serviceType];
+        _lazyDispatchers = lazyDispatchers.ToImmutableDictionary(e => e.serviceType, e => e.dispatcher);
     }
+
+    IRemoteServiceCallbackDispatcher IRemoteServiceCallbackDispatcherProvider.GetDispatcher(Type serviceType)
+        => _lazyDispatchers[serviceType];
 }

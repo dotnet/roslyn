@@ -16,7 +16,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseCollectionExpressionForStackAllocCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionExpression)]
-public class UseCollectionExpressionForStackAllocTests
+public sealed class UseCollectionExpressionForStackAllocTests
 {
     [Fact]
     public async Task TestNotInCSharp11()

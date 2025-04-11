@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CommentSelection;
 [VisualStudio.Utilities.Name(PredefinedCommandHandlerNames.ToggleLineComment)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class ToggleLineCommentCommandHandler(
+internal sealed class ToggleLineCommentCommandHandler(
     ITextUndoHistoryRegistry undoHistoryRegistry,
     IEditorOperationsFactoryService editorOperationsFactoryService,
     EditorOptionsService editorOptionsService) :

@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace;
 
 [UseExportProvider]
-public class ConvertNamespaceCommandHandlerTests
+public sealed class ConvertNamespaceCommandHandlerTests
 {
     internal sealed class ConvertNamespaceTestState : AbstractCommandHandlerTestState
     {

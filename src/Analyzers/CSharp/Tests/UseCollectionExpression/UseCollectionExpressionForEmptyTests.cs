@@ -17,7 +17,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseCollectionExpressionForEmptyCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionExpression)]
-public class UseCollectionExpressionForEmptyTests
+public sealed class UseCollectionExpressionForEmptyTests
 {
     private const string CollectionBuilderAttributeDefinition = """
 

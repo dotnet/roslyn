@@ -12,9 +12,9 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.Dialog;
 
-internal partial class UnusedReferencesTableProvider
+internal sealed partial class UnusedReferencesTableProvider
 {
-    internal class UnusedReferencesDataSource : ITableDataSource
+    internal sealed class UnusedReferencesDataSource : ITableDataSource
     {
         public const string Name = nameof(UnusedReferencesDataSource);
 
@@ -87,7 +87,7 @@ internal partial class UnusedReferencesTableProvider
             }
         }
 
-        internal class UnusedReferencesEntry : ITableEntry
+        internal sealed class UnusedReferencesEntry : ITableEntry
         {
             public string SolutionName { get; }
             public string ProjectName { get; }

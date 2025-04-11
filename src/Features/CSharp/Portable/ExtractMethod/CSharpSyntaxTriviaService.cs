@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.ExtractMethod;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 
-internal class CSharpSyntaxTriviaService : AbstractSyntaxTriviaService
+internal sealed class CSharpSyntaxTriviaService : AbstractSyntaxTriviaService
 {
     public static readonly CSharpSyntaxTriviaService Instance = new CSharpSyntaxTriviaService();
 

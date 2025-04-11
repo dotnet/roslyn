@@ -9,21 +9,20 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
+namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
+
+[ExportWorkspaceServiceFactory(typeof(INavigateToPreviewService), ServiceLayer.Editor), Shared]
+internal sealed class DefaultNavigateToPreviewServiceFactory : IWorkspaceServiceFactory
 {
-    [ExportWorkspaceServiceFactory(typeof(INavigateToPreviewService), ServiceLayer.Editor), Shared]
-    internal sealed class DefaultNavigateToPreviewServiceFactory : IWorkspaceServiceFactory
+    private readonly Lazy<INavigateToPreviewService> _singleton =
+        new Lazy<INavigateToPreviewService>(() => new DefaultNavigateToPreviewService());
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public DefaultNavigateToPreviewServiceFactory()
     {
-        private readonly Lazy<INavigateToPreviewService> _singleton =
-            new Lazy<INavigateToPreviewService>(() => new DefaultNavigateToPreviewService());
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DefaultNavigateToPreviewServiceFactory()
-        {
-        }
-
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => _singleton.Value;
     }
+
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        => _singleton.Value;
 }

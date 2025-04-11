@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DebugId methodId,
             DebugId closureId,
             RuntimeRudeEdit? rudeEdit)
-            : base(MakeName(scopeSyntaxOpt, methodId, closureId), containingMethod)
+            : base(MakeName(scopeSyntaxOpt, methodId, closureId), containingMethod is null ? [] : TypeMap.ConcatMethodTypeParameters(containingMethod, stopAt: null))
         {
             TypeKind = isStruct ? TypeKind.Struct : TypeKind.Class;
             TopLevelMethod = topLevelMethod;

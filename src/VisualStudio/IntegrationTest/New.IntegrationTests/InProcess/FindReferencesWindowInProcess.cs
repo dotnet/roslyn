@@ -18,7 +18,7 @@ using Microsoft.VisualStudio.Threading;
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess;
 
 [TestService]
-internal partial class FindReferencesWindowInProcess
+internal sealed partial class FindReferencesWindowInProcess
 {
     // Guid of the FindRefs window.  Defined here:
     // https://devdiv.visualstudio.com/DevDiv/_git/VS?path=/src/env/ErrorList/Pkg/Guids.cs&version=GBmain&line=24

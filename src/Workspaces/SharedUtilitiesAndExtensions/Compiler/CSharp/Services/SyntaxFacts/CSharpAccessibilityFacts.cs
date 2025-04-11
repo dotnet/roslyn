@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CSharp.LanguageService;
 
-internal class CSharpAccessibilityFacts : IAccessibilityFacts
+internal sealed class CSharpAccessibilityFacts : IAccessibilityFacts
 {
     public static readonly IAccessibilityFacts Instance = new CSharpAccessibilityFacts();
 

@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace Microsoft.CommonLanguageServerProtocol.Framework.Handlers;
 
 [LanguageServerEndpoint("initialized", LanguageServerConstants.DefaultLanguageName)]
-internal class InitializedHandler<TRequest, TRequestContext> : INotificationHandler<TRequest, TRequestContext>
+internal sealed class InitializedHandler<TRequest, TRequestContext> : INotificationHandler<TRequest, TRequestContext>
 {
     private bool HasBeenInitialized = false;
 

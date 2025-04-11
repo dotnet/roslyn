@@ -10,27 +10,26 @@ using MessagePack.Formatters;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Framework;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
+
+internal readonly struct UnitTestingServiceDescriptorsWrapper
 {
-    internal readonly struct UnitTestingServiceDescriptorsWrapper
-    {
-        internal readonly ServiceDescriptors UnderlyingObject;
+    internal readonly ServiceDescriptors UnderlyingObject;
 
-        public UnitTestingServiceDescriptorsWrapper(
-            string componentName,
-            Func<string, string> featureDisplayNameProvider,
-            ImmutableArray<IMessagePackFormatter> additionalFormatters,
-            ImmutableArray<IFormatterResolver> additionalResolvers,
-            IEnumerable<(Type serviceInterface, Type? callbackInterface)> interfaces)
-            => UnderlyingObject = new ServiceDescriptors(componentName, featureDisplayNameProvider, new RemoteSerializationOptions(additionalFormatters, additionalResolvers), interfaces);
+    public UnitTestingServiceDescriptorsWrapper(
+        string componentName,
+        Func<string, string> featureDisplayNameProvider,
+        ImmutableArray<IMessagePackFormatter> additionalFormatters,
+        ImmutableArray<IFormatterResolver> additionalResolvers,
+        IEnumerable<(Type serviceInterface, Type? callbackInterface)> interfaces)
+        => UnderlyingObject = new ServiceDescriptors(componentName, featureDisplayNameProvider, new RemoteSerializationOptions(additionalFormatters, additionalResolvers), interfaces);
 
-        /// <summary>
-        /// To be called from a service factory in OOP.
-        /// </summary>
-        public ServiceJsonRpcDescriptor GetDescriptorForServiceFactory(Type serviceInterface)
-            => UnderlyingObject.GetServiceDescriptorForServiceFactory(serviceInterface);
+    /// <summary>
+    /// To be called from a service factory in OOP.
+    /// </summary>
+    public ServiceJsonRpcDescriptor GetDescriptorForServiceFactory(Type serviceInterface)
+        => UnderlyingObject.GetServiceDescriptorForServiceFactory(serviceInterface);
 
-        public MessagePackSerializerOptions MessagePackOptions
-            => UnderlyingObject.Options.MessagePackOptions;
-    }
+    public MessagePackSerializerOptions MessagePackOptions
+        => UnderlyingObject.Options.MessagePackOptions;
 }

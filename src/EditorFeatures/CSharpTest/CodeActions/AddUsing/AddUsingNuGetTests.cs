@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing;
 using FixProviderData = Tuple<IPackageInstallerService, ISymbolSearchService>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-public class AddUsingNuGetTests : AbstractAddUsingTests
+public sealed class AddUsingNuGetTests : AbstractAddUsingTests
 {
     private static readonly ImmutableArray<PackageSource> NugetPackageSources =
         [new PackageSource(PackageSourceHelper.NugetOrgSourceName, "http://nuget.org/")];

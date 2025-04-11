@@ -23,7 +23,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification;
 
-internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
+internal sealed partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
 {
     public sealed class Tagger : IAccurateTagger<IClassificationTag>, IDisposable
     {
