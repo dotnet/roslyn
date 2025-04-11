@@ -4,6 +4,7 @@
 
 using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
