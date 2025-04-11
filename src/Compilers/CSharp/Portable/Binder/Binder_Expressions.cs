@@ -11154,7 +11154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
                 ArrayBuilder<TypeParameterDiagnosticInfo>? useSiteDiagnosticsBuilder = null;
 
-                bool constraintsSatisfied = ConstraintsHelper.CheckMethodConstraints(
+                bool constraintsSatisfied = ConstraintsHelper.CheckMethodConstraintsIncludingExtension(
                     method,
                     new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, location: NoLocation.Singleton, diagnostics: null),
                     diagnosticsBuilder,

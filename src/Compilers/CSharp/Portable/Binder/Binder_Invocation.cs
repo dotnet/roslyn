@@ -1011,7 +1011,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     TMethodOrPropertySymbol member = result.Member;
                     if (!MemberGroupFinalValidationAccessibilityChecks(receiverOpt, member, syntax, candidateDiagnostics, invokedAsExtensionMethod: isExtensionMethodGroup && !member.GetIsNewExtensionMember()) &&
-                        (typeArgumentsOpt.IsDefault || ((MethodSymbol)(object)result.Member).CheckConstraintsIncludingExtension(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, syntax.Location, candidateDiagnostics))))
+                        (typeArgumentsOpt.IsDefault || ((MethodSymbol)(object)result.Member).CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, syntax.Location, candidateDiagnostics))))
                     {
                         finalCandidates.Add(result);
                         continue;
@@ -2047,9 +2047,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameterListList = ArrayBuilder<ImmutableArray<ParameterSymbol>>.GetInstance();
             foreach (var m in methods)
             {
-                if (!IsUnboundGeneric(m) && m.GetParametersIncludingExtensionParameter().Length > 0)
+                if (!IsUnboundGeneric(m) && m.GetParameterCountIncludingExtensionParameter() > 0)
                 {
-                    parameterListList.Add(m.Parameters);
+                    parameterListList.Add(m.GetParametersIncludingExtensionParameter());
                     if (parameterListList.Count == MaxParameterListsForErrorRecovery)
                     {
                         break;

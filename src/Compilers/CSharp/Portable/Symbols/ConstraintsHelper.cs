@@ -803,7 +803,7 @@ hasRelatedInterfaces:
             this MethodSymbol method,
             in CheckConstraintsArgs args)
         {
-            Debug.Assert(!method.GetIsNewExtensionMember()); // Tracked by https://github.com/dotnet/roslyn/issues/76130: Review all remaining callers with regards to new extensions
+            Debug.Assert(!method.GetIsNewExtensionMember());
             return CheckConstraintsIncludingExtension(method, in args);
         }
 
@@ -856,26 +856,6 @@ hasRelatedInterfaces:
                 diagnosticsBuilder,
                 nullabilityDiagnosticsBuilderOpt,
                 ref useSiteDiagnosticsBuilder);
-        }
-
-        public static bool CheckMethodConstraints(
-            MethodSymbol method,
-            in CheckConstraintsArgs args,
-            ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
-            ArrayBuilder<TypeParameterDiagnosticInfo> nullabilityDiagnosticsBuilderOpt,
-            ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder,
-            BitVector skipParameters = default(BitVector))
-        {
-            return CheckConstraints(
-                method,
-                in args,
-                method.TypeSubstitution,
-                method.OriginalDefinition.TypeParameters,
-                method.TypeArgumentsWithAnnotations,
-                diagnosticsBuilder,
-                nullabilityDiagnosticsBuilderOpt,
-                ref useSiteDiagnosticsBuilder,
-                skipParameters);
         }
 
         public static bool CheckMethodConstraintsIncludingExtension(

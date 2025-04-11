@@ -129,11 +129,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static ImmutableArray<TypeParameterSymbol> GetTypeParametersIncludingExtension<TMember>(this TMember member) where TMember : Symbol
         {
+            Debug.Assert(member.GetMemberArityIncludingExtension() != 0);
+
             if (member is MethodSymbol method)
             {
                 return method.GetIsNewExtensionMember()
                     ? method.ContainingType.TypeParameters.Concat(method.TypeParameters)
-                    : method.ConstructedFrom.TypeParameters;
+                    : method.TypeParameters;
             }
 
             if (member is PropertySymbol property)
@@ -145,19 +147,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.UnexpectedValue(member);
         }
 
-        internal static PooledDictionary<TypeParameterSymbol, int>? MakeOrdinalsIfNeeded<TMember>(this TMember member, ImmutableArray<TypeParameterSymbol> originalTypeParameters)
+        internal static PooledDictionary<object, int>? MakeAdjustedTypeParameterOrdinalsIfNeeded<TMember>(this TMember member, ImmutableArray<TypeParameterSymbol> originalTypeParameters)
             where TMember : Symbol
         {
             if (member is MethodSymbol method)
             {
-                PooledDictionary<TypeParameterSymbol, int>? ordinals = null;
+                PooledDictionary<object, int>? ordinals = null;
                 if (method.GetIsNewExtensionMember() && method.Arity > 0 && method.ContainingType.Arity > 0)
                 {
                     Debug.Assert(originalTypeParameters.Length == method.Arity + method.ContainingType.Arity);
 
                     // Since we're concatenating type parameters from the extension and from the method together
                     // we need to control the ordinals that are used
-                    ordinals = PooledDictionary<TypeParameterSymbol, int>.GetInstance();
+                    ordinals = PooledDictionary<object, int>.GetInstance();
                     for (int i = 0; i < originalTypeParameters.Length; i++)
                     {
                         ordinals.Add(originalTypeParameters[i], i);
@@ -184,6 +186,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return symbol.GetParameters();
+        }
+
+        internal static int GetParameterCountIncludingExtensionParameter(this Symbol symbol)
+        {
+            bool hasExtensionParameter = symbol.GetIsNewExtensionMember() && symbol.ContainingType.ExtensionParameter is { };
+            return symbol.GetParameterCount() + (hasExtensionParameter ? 1 : 0);
         }
 
         /// <summary>

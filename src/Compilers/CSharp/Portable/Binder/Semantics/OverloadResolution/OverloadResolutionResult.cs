@@ -1043,7 +1043,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // is, then just report that error.
 
             MethodSymbol method = (MethodSymbol)(Symbol)result.Member;
-            if (!method.CheckConstraintsIncludingExtension(new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false, location, diagnostics)))
+            if (!method.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false, location, diagnostics)))
             {
                 // The error is already reported into the diagnostics bag.
                 return true;

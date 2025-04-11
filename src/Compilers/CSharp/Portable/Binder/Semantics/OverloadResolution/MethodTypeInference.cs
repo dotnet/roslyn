@@ -138,9 +138,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ImmutableArray<BoundExpression> _arguments;
         private readonly Extensions _extensions;
 
+        // Map of TypeParameterSymbol to ordinal for new extension methods
         // When doing type inference on a new extension method, we combine the type parameters
         // from the extension declaration and from the method, so we cannot rely on the ordinals from the type parameters.
-        private readonly Dictionary<TypeParameterSymbol, int> _ordinals;
+        private readonly Dictionary<object, int> _ordinals;
 
         private readonly (TypeWithAnnotations Type, bool FromFunctionType)[] _fixedResults;
         private readonly HashSet<TypeWithAnnotations>[] _exactBounds;
@@ -277,7 +278,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                       // no arguments per se we cons up some fake arguments.
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             Extensions extensions = null,
-            Dictionary<TypeParameterSymbol, int> ordinals = null)
+            // Map of TypeParameterSymbol to ordinal for new extension methods
+            Dictionary<object, int> ordinals = null)
         {
             Debug.Assert(!methodTypeParameters.IsDefault);
             Debug.Assert(methodTypeParameters.Length > 0);
@@ -327,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> formalParameterRefKinds,
             ImmutableArray<BoundExpression> arguments,
             Extensions extensions,
-            Dictionary<TypeParameterSymbol, int>? ordinals)
+            Dictionary<object, int>? ordinals)
         {
             _compilation = compilation;
             _conversions = conversions;
@@ -342,7 +344,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(ordinals is null || ordinals.Values.Count() == ordinals.Values.Distinct().Count());
             Debug.Assert(ordinals is null || methodTypeParameters.All(tp => ordinals.ContainsKey(tp)));
 
+            Debug.Assert(ordinals is null || ordinals.Keys.All(k => k is TypeParameterSymbol));
             _ordinals = ordinals;
+
             _fixedResults = new (TypeWithAnnotations, bool)[methodTypeParameters.Length];
             _exactBounds = new HashSet<TypeWithAnnotations>[methodTypeParameters.Length];
             _upperBounds = new HashSet<TypeWithAnnotations>[methodTypeParameters.Length];

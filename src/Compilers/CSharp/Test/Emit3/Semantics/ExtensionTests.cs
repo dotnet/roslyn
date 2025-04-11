@@ -26860,8 +26860,7 @@ static class E
 }
 """;
         var comp = CreateCompilation(source);
-        comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "True");
+        CompileAndVerify(comp, expectedOutput: "True").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -26887,8 +26886,7 @@ static class E
 }
 """;
         var comp = CreateCompilation(source);
-        comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "True");
+        CompileAndVerify(comp, expectedOutput: "True").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -33437,6 +33435,74 @@ static class E
     }
 
     [Fact]
+    public void Nullability_Invocation_08()
+    {
+        var src = """
+#nullable enable
+
+object? o = new object();
+object? oNull = null;
+object? oNotNull = new object();
+
+o.M(oNull);
+o.M(oNotNull);
+
+object.M(oNull);
+object.M(oNotNull);
+
+static class E
+{
+    extension(object o1)
+    {
+        public void M(object o2) { }
+        public static void M2(object o2) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (7,5): warning CS8604: Possible null reference argument for parameter 'o2' in 'void extension(object).M(object o2)'.
+            // o.M(oNull);
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o2", "void extension(object).M(object o2)").WithLocation(7, 5),
+            // (10,1): error CS0120: An object reference is required for the non-static field, method, or property 'E.extension(object).M(object)'
+            // object.M(oNull);
+            Diagnostic(ErrorCode.ERR_ObjectRequired, "object.M").WithArguments("E.extension(object).M(object)").WithLocation(10, 1),
+            // (11,1): error CS0120: An object reference is required for the non-static field, method, or property 'E.extension(object).M(object)'
+            // object.M(oNotNull);
+            Diagnostic(ErrorCode.ERR_ObjectRequired, "object.M").WithArguments("E.extension(object).M(object)").WithLocation(11, 1));
+    }
+
+    [Fact]
+    public void Nullability_Invocation_09()
+    {
+        var src = """
+#nullable enable
+
+object? oNull = null;
+object? oNotNull = new object();
+
+oNull.M().M().ToString();
+oNotNull.M().M().ToString();
+
+object.M2().M().ToString();
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public T M() => throw null!;
+        public static T M2() => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (6,1): warning CS8602: Dereference of a possibly null reference.
+            // oNull.M().M().ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNull.M().M()").WithLocation(6, 1));
+    }
+
+    [Fact]
     public void Nullability_MethodGroup_01()
     {
         var src = """
@@ -34160,32 +34226,109 @@ static class E
     {
         var src = """
 #nullable enable
+
 object? o = null;
 if (o.Try())
 {
-    o.ToString(); // 1
+    o.ToString();
+}
+
+object? o2 = null;
+if (o2.Try2())
+{
+    o2.ToString();
 }
 
 static class E
 {
     extension([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] object? o)
     {
-        public bool Try() => throw null!;
-        public static bool Try2() => throw null!;
+        public bool Try(bool b = false)
+        {
+            if (b)
+            {
+                return true;
+            }
+
+            if (o is null)
+            {
+                return false;
+            }
+
+            return true;
+        }
+        public static bool M() => throw null!; // no warning
     }
 
-    public static void M([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] object? o) { }
+    public static bool Try2([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] this object? o) => throw null!;
+
+    public static void M2([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] object? o) { } // no warning
 }
 """;
+        // Note: the enforcement within body only kicks in for ref/out parameters
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
-        comp.VerifyEmitDiagnostics(
-            // (5,5): warning CS8602: Dereference of a possibly null reference.
-            //     o.ToString(); // 1
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(5, 5));
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
     public void Nullability_Attribute_02()
+    {
+        var src = """
+#nullable enable
+
+int? i = null;
+if (i.Try())
+{
+    i.Value.ToString();
+}
+
+int? o2 = null;
+if (o2.Try2())
+{
+    o2.Value.ToString();
+}
+
+static class E
+{
+    extension([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] ref int? o)
+    {
+        public bool Try(bool b = false)
+        {
+            if (b)
+            {
+                return true; // 1
+            }
+
+            if (b)
+            {
+                o = 42;
+                return true;
+            }
+
+            if (b)
+            {
+                return false;
+            }
+
+            return true; // 2
+        }
+    }
+
+    public static bool Try2([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] this ref int? o) => throw null!;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (23,17): warning CS8762: Parameter 'o' must have a non-null value when exiting with 'true'.
+            //                 return true; // 1
+            Diagnostic(ErrorCode.WRN_ParameterConditionallyDisallowsNull, "return true;").WithArguments("o", "true").WithLocation(23, 17),
+            // (37,13): warning CS8762: Parameter 'o' must have a non-null value when exiting with 'true'.
+            //             return true; // 2
+            Diagnostic(ErrorCode.WRN_ParameterConditionallyDisallowsNull, "return true;").WithArguments("o", "true").WithLocation(37, 13));
+    }
+
+    [Fact]
+    public void Nullability_Attribute_03()
     {
         var src = """
 #nullable enable
@@ -34212,18 +34355,50 @@ static class E
     }
 
     [Fact]
-    public void Nullability_Attribute_03()
+    public void Nullability_Attribute_04()
+    {
+        var src = """
+#nullable enable
+
+int? iNull = null;
+iNull.M();
+
+int? iNotNull = 42;
+iNotNull.M();
+
+static class E
+{
+    extension([System.Diagnostics.CodeAnalysis.DisallowNull] int? i)
+    {
+        public void M() 
+        {
+            i.Value.ToString();
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (4,1): warning CS8607: A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]
+            // iNull.M();
+            Diagnostic(ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment, "iNull").WithLocation(4, 1));
+    }
+
+    [Fact]
+    public void Nullability_Attribute_05()
     {
         var src = """
 #nullable enable
 
 object? oNull = null;
 oNull.M();
-oNull.ToString();
+
+object? oNotNull = new object();
+oNotNull.M();
 
 static class E
 {
-    extension([System.Diagnostics.CodeAnalysis.NotNull] object? o)
+    extension([System.Diagnostics.CodeAnalysis.AllowNull] object o)
     {
         public void M() 
         {
@@ -34234,13 +34409,138 @@ static class E
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
-            // (13,13): warning CS8602: Dereference of a possibly null reference.
+            // (15,13): warning CS8602: Dereference of a possibly null reference.
             //             o.ToString();
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(13, 13));
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(15, 13));
     }
 
     [Fact]
-    public void Nullability_Attribute_04()
+    public void Nullability_Attribute_06()
+    {
+        var src = """
+#nullable enable
+
+object? oNull = null;
+oNull.M();
+oNull.ToString();
+
+object? oNull2 = null;
+oNull2.M2();
+oNull2.ToString();
+
+static class E
+{
+    extension([System.Diagnostics.CodeAnalysis.NotNull] object? o)
+    {
+        public void M() 
+        {
+        } // 1
+    }
+
+    public static void M2([System.Diagnostics.CodeAnalysis.NotNull] this object? o)
+    {
+    } // 2
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (17,9): warning CS8777: Parameter 'o' must have a non-null value when exiting.
+            //         } // 1
+            Diagnostic(ErrorCode.WRN_ParameterDisallowsNull, "}").WithArguments("o").WithLocation(17, 9),
+            // (22,5): warning CS8777: Parameter 'o' must have a non-null value when exiting.
+            //     } // 2
+            Diagnostic(ErrorCode.WRN_ParameterDisallowsNull, "}").WithArguments("o").WithLocation(22, 5));
+    }
+
+    [Fact]
+    public void Nullability_Attribute_07()
+    {
+        var src = """
+#nullable enable
+
+int? iNull = null;
+iNull.M();
+iNull.Value.ToString();
+
+int? iNull2 = null;
+iNull2.M2();
+iNull2.Value.ToString();
+
+static class E
+{
+    extension([System.Diagnostics.CodeAnalysis.NotNull] ref int? o)
+    {
+        public void M() 
+        {
+        } // 1
+
+        public void M3() 
+        {
+            o = 42;
+        }
+    }
+
+    public static void M2([System.Diagnostics.CodeAnalysis.NotNull] this ref int? o)
+    {
+    } // 2
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (17,9): warning CS8777: Parameter 'o' must have a non-null value when exiting.
+            //         } // 1
+            Diagnostic(ErrorCode.WRN_ParameterDisallowsNull, "}").WithArguments("o").WithLocation(17, 9),
+            // (27,5): warning CS8777: Parameter 'o' must have a non-null value when exiting.
+            //     } // 2
+            Diagnostic(ErrorCode.WRN_ParameterDisallowsNull, "}").WithArguments("o").WithLocation(27, 5));
+    }
+
+    [Fact]
+    public void Nullability_Attribute_08()
+    {
+        var src = """
+#nullable enable
+
+int? iNull = null;
+iNull.M();
+iNull.Value.ToString();
+
+int? iNull2 = null;
+iNull2.M2();
+iNull2.Value.ToString();
+
+static class E
+{
+    extension([System.Diagnostics.CodeAnalysis.NotNull] ref int? o)
+    {
+        public void M(bool b = false) 
+        {
+            if (b)
+                return; // 1
+
+            o = 42;
+            return;
+        }
+    }
+
+    public static void M2([System.Diagnostics.CodeAnalysis.NotNull] this ref int? o)
+    {
+        return; // 2
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (18,17): warning CS8777: Parameter 'o' must have a non-null value when exiting.
+            //                 return; // 1
+            Diagnostic(ErrorCode.WRN_ParameterDisallowsNull, "return;").WithArguments("o").WithLocation(18, 17),
+            // (27,9): warning CS8777: Parameter 'o' must have a non-null value when exiting.
+            //         return; // 2
+            Diagnostic(ErrorCode.WRN_ParameterDisallowsNull, "return;").WithArguments("o").WithLocation(27, 9));
+    }
+
+    [Fact]
+    public void Nullability_Attribute_09()
     {
         var src = """
 #nullable enable
@@ -34251,25 +34551,198 @@ x.ToString();
 
 object? oNull = null;
 oNull.M(out var y);
-y.ToString();
+y.ToString(); // 1
+
+oNotNull.M2(out var x2);
+x2.ToString();
+
+object? oNull2 = null;
+oNull2.M2(out var y2);
+y2.ToString(); // 2
 
 static class E
 {
     extension(object? o)
     {
-        public void M([System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(o))] out object? o2)  => throw null!;
+        public void M([System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(o))] out object? o2, bool b = false)
+        {
+            if (o is null)
+            {
+                o2 = null;
+                return;
+            }
+
+            if (b)
+            {
+                o2 = null;
+                return; // 3
+            }
+
+            if (b)
+            {
+                o2 = 42;
+                return;
+            }
+
+            o2 = null;
+        } // 4
     }
+
+    public static void M2(this object? o, [System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(o))] out object? o2, bool b = false) => throw null!;
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
             // (9,1): warning CS8602: Dereference of a possibly null reference.
-            // y.ToString();
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(9, 1));
+            // y.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(9, 1),
+            // (16,1): warning CS8602: Dereference of a possibly null reference.
+            // y2.ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y2").WithLocation(16, 1),
+            // (33,17): warning CS8824: Parameter 'o2' must have a non-null value when exiting because parameter 'o' is non-null.
+            //                 return; // 3
+            Diagnostic(ErrorCode.WRN_ParameterNotNullIfNotNull, "return;").WithArguments("o2", "o").WithLocation(33, 17),
+            // (43,9): warning CS8824: Parameter 'o2' must have a non-null value when exiting because parameter 'o' is non-null.
+            //         } // 4
+            Diagnostic(ErrorCode.WRN_ParameterNotNullIfNotNull, "}").WithArguments("o2", "o").WithLocation(43, 9));
     }
 
     [Fact]
-    public void Nullability_Attribute_05()
+    public void Nullability_Attribute_10()
+    {
+        var src = """
+#nullable enable
+
+object.M(out var x);
+x.ToString(); // 1
+
+object.M2(out var x2);
+x2.ToString(); // 2
+
+static class E
+{
+    extension(object? o)
+    {
+        public static void M([System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(o))] out object? o2, bool b = false)
+        {
+            if (b)
+            {
+                o2 = null;
+                return;
+            }
+
+            if (b)
+            {
+                o2 = 42;
+                return;
+            }
+
+            o2 = null;
+        }
+    }
+
+    extension(object o)
+    {
+        public static void M2([System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(o))] out object? o2, bool b = false)
+        {
+            if (b)
+            {
+                o2 = null;
+                return;
+            }
+
+            if (b)
+            {
+                o2 = 42;
+                return;
+            }
+
+            o2 = null;
+        }
+    }
+
+    public static void M3([System.Diagnostics.CodeAnalysis.NotNullIfNotNull("missing")] out object? o) => throw null!;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (4,1): warning CS8602: Dereference of a possibly null reference.
+            // x.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(4, 1),
+            // (7,1): warning CS8602: Dereference of a possibly null reference.
+            // x2.ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(7, 1));
+    }
+
+    [Fact]
+    public void Nullability_Attribute_11()
+    {
+        var src = """
+#nullable enable
+
+int? iNotNull = 42;
+iNotNull.M(new object());
+iNotNull.ToString();
+
+int? iNull = null;
+iNull.M(new object());
+iNull.ToString();
+
+static class E
+{
+    extension([System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(o))] ref int? i)
+    {
+        public void M(object? o)  => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (13,72): error CS0103: The name 'o' does not exist in the current context
+            //     extension([System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(o))] ref int? i)
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "o").WithArguments("o").WithLocation(13, 72));
+
+        src = """
+#nullable enable
+
+int? iNotNull = 42;
+iNotNull.M(new object());
+iNotNull.ToString();
+
+int? iNull = null;
+iNull.M(new object());
+iNull.ToString();
+
+static class E
+{
+    extension([System.Diagnostics.CodeAnalysis.NotNullIfNotNull("o")] ref int? i)
+    {
+        public void M(object? o)  => throw null!;
+    }
+}
+""";
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+
+        src = """
+#nullable enable
+
+int? iNull = null;
+iNull.M2(new object());
+iNull.Value.ToString();
+
+static class E
+{
+    public static void M2([System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(o))] this ref int? i, object? o) => throw null!;
+}
+""";
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_Attribute_12()
     {
         var src = """
 #nullable enable
@@ -34297,7 +34770,7 @@ static class E
     }
 
     [Fact]
-    public void Nullability_Attribute_06()
+    public void Nullability_Attribute_13()
     {
         var src = """
 #nullable enable
@@ -34335,7 +34808,7 @@ static class E
     }
 
     [Fact]
-    public void Nullability_Attribute_07()
+    public void Nullability_Attribute_14()
     {
         var src = """
 #nullable enable
@@ -34368,7 +34841,7 @@ static class E
     }
 
     [Fact]
-    public void Nullability_Attribute_08()
+    public void Nullability_Attribute_15()
     {
         var src = """
 #nullable enable
@@ -34405,7 +34878,7 @@ static class E
     }
 
     [Fact]
-    public void Nullability_Attribute_09()
+    public void Nullability_Attribute_16()
     {
         var src = """
 #nullable enable
@@ -34430,5 +34903,171 @@ static class E
             // (5,1): warning CS8602: Dereference of a possibly null reference.
             // o.P.ToString(); // 1
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(5, 1));
+    }
+
+    [Fact]
+    public void Nullability_Attribute_17()
+    {
+        var src = """
+#nullable enable
+
+object? o = null;
+(o is not null).AssertTrue();
+o.ToString();
+
+object? o2 = null;
+E.AssertTrue(o2 is not null);
+o2.ToString();
+
+object? o3 = null;
+object.AssertTrue2(o3 is not null);
+o3.ToString();
+
+object? o4 = null;
+E.AssertTrue2(o4 is not null);
+o4.ToString();
+
+object? o5 = null;
+(o5 is not null).AssertTrue3();
+o5.ToString();
+
+object? o6 = null;
+E.AssertTrue3(o6 is not null);
+o6.ToString();
+
+static class E
+{
+    extension([System.Diagnostics.CodeAnalysis.DoesNotReturnIf(false)] bool b)
+    {
+        public void AssertTrue() => throw null!;
+    }
+
+    extension(object)
+    {
+        public static void AssertTrue2([System.Diagnostics.CodeAnalysis.DoesNotReturnIf(false)] bool b) => throw null!;
+    }
+
+    public static void AssertTrue3([System.Diagnostics.CodeAnalysis.DoesNotReturnIf(false)] this bool b) => throw null!;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void BuildArgumentsForErrorRecovery_01()
+    {
+        var src = """
+/*<bind>*/
+"".M("");
+/*</bind>*/
+
+static class E
+{
+    extension(object o)
+    {
+        public void M(string s) => throw null!;
+    }
+
+    extension(string s)
+    {
+        public void M(object o) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        var expectedDiagnostics = new[] {
+            // (2,4): error CS0121: The call is ambiguous between the following methods or properties: 'E.extension(object).M(string)' and 'E.extension(string).M(object)'
+            // "".M("");
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E.extension(object).M(string)", "E.extension(string).M(object)").WithLocation(2, 4)
+            };
+
+        comp.VerifyEmitDiagnostics(expectedDiagnostics);
+
+        string expectedOperationTree = """
+IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '"".M("");')
+  Expression:
+    IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: '"".M("")')
+      Children(2):
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "") (Syntax: '""')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "") (Syntax: '""')
+""";
+
+        VerifyOperationTreeAndDiagnosticsForTest<ExpressionStatementSyntax>(src, expectedOperationTree, expectedDiagnostics);
+    }
+
+    [Fact]
+    public void BuildArgumentsForErrorRecovery_02()
+    {
+        var src = """
+string s = "";
+/*<bind>*/
+s.M(s);
+/*</bind>*/
+
+static class E
+{
+    extension(object o)
+    {
+        public void M(string s) => throw null!;
+    }
+
+    extension(string s)
+    {
+        public void M(object o) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        var expectedDiagnostics = new[] {
+            // (3,3): error CS0121: The call is ambiguous between the following methods or properties: 'E.extension(object).M(string)' and 'E.extension(string).M(object)'
+            // s.M(s);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E.extension(object).M(string)", "E.extension(string).M(object)").WithLocation(3, 3)
+            };
+
+        comp.VerifyEmitDiagnostics(expectedDiagnostics);
+
+        string expectedOperationTree = """
+IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 's.M(s);')
+Expression:
+  IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 's.M(s)')
+    Children(2):
+        ILocalReferenceOperation: s (OperationKind.LocalReference, Type: System.String) (Syntax: 's')
+        ILocalReferenceOperation: s (OperationKind.LocalReference, Type: System.String) (Syntax: 's')
+""";
+
+        VerifyOperationTreeAndDiagnosticsForTest<ExpressionStatementSyntax>(src, expectedOperationTree, expectedDiagnostics);
+    }
+
+    [Fact]
+    public void BuildArgumentsForErrorRecovery_03()
+    {
+        var source = @"
+#nullable enable
+
+bool b = true;
+(b switch { true => 1, false => null}).M(ERROR);
+
+static class E
+{
+    extension(int? i)
+    {
+        public void M(object o) => throw null!;
+    }
+}
+";
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (5,4): error CS8506: No best type was found for the switch expression.
+            // (b switch { true => 1, false => null}).M(ERROR);
+            Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(5, 4),
+            // (5,33): warning CS8619: Nullability of reference types in value of type '<null>' doesn't match target type 'int'.
+            // (b switch { true => 1, false => null}).M(ERROR);
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "null").WithArguments("<null>", "int").WithLocation(5, 33),
+            // (5,42): error CS0103: The name 'ERROR' does not exist in the current context
+            // (b switch { true => 1, false => null}).M(ERROR);
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(5, 42));
     }
 }

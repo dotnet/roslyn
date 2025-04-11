@@ -1228,7 +1228,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void EnforceNotNullWhenForPendingReturn(PendingBranch pendingReturn, BoundReturnStatement returnStatement)
         {
-            var parameters = this.MethodParameters;
+            if (_symbol is not MethodSymbol method)
+            {
+                return;
+            }
+
+            ImmutableArray<ParameterSymbol> parameters = method.IsStatic ? method.Parameters : method.GetParametersIncludingExtensionParameter();
 
             if (!parameters.IsEmpty)
             {
@@ -1271,7 +1276,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            foreach (var parameter in this.MethodParameters)
+            if (_symbol is not MethodSymbol method)
+            {
+                return;
+            }
+
+            ImmutableArray<ParameterSymbol> parameters = method.IsStatic ? method.Parameters : method.GetParametersIncludingExtensionParameter();
+            foreach (var parameter in parameters)
             {
                 var slot = GetOrCreateSlot(parameter);
                 if (slot <= 0)
@@ -1299,7 +1310,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    EnforceNotNullIfNotNull(syntaxOpt, state, this.MethodParameters, parameter.NotNullIfParameterNotNull, parameterState, parameter);
+                    EnforceNotNullIfNotNull(syntaxOpt, state, parameters, parameter.NotNullIfParameterNotNull, parameterState, parameter);
                 }
             }
         }
@@ -3060,7 +3071,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Unsplit();
             if (CurrentSymbol is MethodSymbol method)
             {
-                EnforceNotNullIfNotNull(node.Syntax, this.State, method.Parameters, method.ReturnNotNullIfParameterNotNull, ResultType.State, outputParam: null);
+                ImmutableArray<ParameterSymbol> parameters = method.IsStatic ? method.Parameters : method.GetParametersIncludingExtensionParameter();
+                EnforceNotNullIfNotNull(node.Syntax, this.State, parameters, method.ReturnNotNullIfParameterNotNull, ResultType.State, outputParam: null);
             }
 
             SetUnreachable();
@@ -6331,7 +6343,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     VisitExpressionWithoutStackGuardEpilogue(receiver); // VisitExpressionWithoutStackGuard does this after visiting each node
 
-                    Debug.Assert(!node.Method.GetIsNewExtensionMember());
                     // Only instance receivers go through VisitRvalue; arguments go through VisitArgumentEvaluate.
                     if (node.ReceiverOpt is not null)
                     {
@@ -6366,13 +6377,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Gets the instance or extension invocation receiver if any.
             bool tryGetReceiver(BoundCall node, [MaybeNullWhen(returnValue: false)] out BoundCall receiver)
             {
-                if (node.Method.GetIsNewExtensionMember())
-                {
-                    // The receiver will be analyzed as an argument instead
-                    receiver = null;
-                    return false;
-                }
-
                 if (node.ReceiverOpt is BoundCall instanceReceiver)
                 {
                     receiver = instanceReceiver;
@@ -6412,7 +6416,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(method is not null);
 
                 bool adjustForNewExtension = method.GetIsNewExtensionMember() && !node.HasErrors;
-                Debug.Assert(!adjustForNewExtension || receiverType.HasNullType); // For new extensions, the receiver will be handled as an argument
 
                 ImmutableArray<RefKind> refKindsOpt = GetArgumentRefKinds(node.ArgumentRefKindsOpt, adjustForNewExtension, method, node.Arguments.Length);
 
@@ -6759,7 +6762,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckCallReceiver(BoundExpression? receiverOpt, TypeWithState receiverType, MethodSymbol method)
         {
-            Debug.Assert(!method.GetIsNewExtensionMember());
+            if (method.GetIsNewExtensionMember())
+            {
+                return;
+            }
+
             // methods which are members of Nullable<T> (ex: ToString, GetHashCode) can be invoked on null receiver.
             // However, inherited methods (ex: GetType) are invoked on a boxed value (since base types are reference types)
             // and therefore in those cases nullable receivers should be checked for nullness.
@@ -6814,8 +6821,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var annotations = parameter.FlowAnalysisAnnotations;
 
             // Conditional annotations are ignored on parameters of non-boolean members.
-            if (parameter.IsExtensionParameter()
-                || GetTypeOrReturnType(parameter.ContainingSymbol).SpecialType != SpecialType.System_Boolean)
+            if (!parameter.IsExtensionParameter()
+                && GetTypeOrReturnType(parameter.ContainingSymbol).SpecialType != SpecialType.System_Boolean)
             {
                 // NotNull = NotNullWhenTrue + NotNullWhenFalse
                 bool hasNotNullWhenTrue = (annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNullWhenTrue;
@@ -7120,13 +7127,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         _disableDiagnostics = previousDisableDiagnostics;
 
-                        if (results[i].RValueType.IsNotNull || isExpandedParamsArgument)
+                        bool isStaticExtensionReceiver = method?.GetIsNewExtensionMember() == true && method.IsStatic && i == 0;
+                        if (!isStaticExtensionReceiver)
                         {
-                            notNullParametersBuilder?.Add(parameter);
-
-                            if (returnNotNullIfParameterNotNull?.Contains(parameter.Name) == true)
+                            if (results[i].RValueType.IsNotNull || isExpandedParamsArgument)
                             {
-                                shouldReturnNotNull = true;
+                                notNullParametersBuilder?.Add(parameter);
+
+                                if (returnNotNullIfParameterNotNull?.Contains(parameter.Name) == true)
+                                {
+                                    shouldReturnNotNull = true;
+                                }
                             }
                         }
                     }
@@ -8081,7 +8092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             var typeParameters = definition.GetTypeParametersIncludingExtension();
-            PooledDictionary<TypeParameterSymbol, int>? ordinals = definition.MakeOrdinalsIfNeeded(typeParameters);
+            PooledDictionary<object, int>? ordinals = definition.MakeAdjustedTypeParameterOrdinalsIfNeeded(typeParameters);
 
             var result = MethodTypeInferrer.Infer(
                 _binder,
@@ -11231,7 +11242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useLegacyWarnings: false,
                 AssignmentKind.Assignment);
 
-            bool reportedDiagnostic = enumeratorInfoOpt?.GetEnumeratorInfo.Method is { IsExtensionMethod: true } // Tracked by https://github.com/dotnet/roslyn/issues/76130: Test this code path with new extensions            // Tracked by https://github.com/dotnet/roslyn/issues/76130: Test this code path with new extensions
+            bool reportedDiagnostic = enumeratorInfoOpt?.GetEnumeratorInfo.Method is { IsExtensionMethod: true } // Tracked by https://github.com/dotnet/roslyn/issues/76130: Test this code path with new extensions
                 ? false
                 : CheckPossibleNullReceiver(expr);
 

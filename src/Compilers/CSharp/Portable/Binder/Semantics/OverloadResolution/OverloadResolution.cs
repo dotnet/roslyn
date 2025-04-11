@@ -802,19 +802,18 @@ outerDefault:
             var constraintsArgs = new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, location: NoLocation.Singleton, diagnostics: null, template);
 
             bool constraintsSatisfied = true;
-            if (member is MethodSymbol method && method.Arity > 0)
+            if (member is MethodSymbol method)
             {
-                constraintsSatisfied &= ConstraintsHelper.CheckMethodConstraints(
+                constraintsSatisfied = ConstraintsHelper.CheckMethodConstraintsIncludingExtension(
                     method,
                     constraintsArgs,
                     diagnosticsBuilder,
                     nullabilityDiagnosticsBuilderOpt: null,
                     ref useSiteDiagnosticsBuilder);
             }
-
-            if (member.GetIsNewExtensionMember() && member.ContainingType is { } extension && ConstraintsHelper.RequiresChecking(extension))
+            else if (member.GetIsNewExtensionMember() && member.ContainingType is { } extension && ConstraintsHelper.RequiresChecking(extension))
             {
-                constraintsSatisfied &= ConstraintsHelper.CheckConstraints(extension, in constraintsArgs,
+                constraintsSatisfied = ConstraintsHelper.CheckConstraints(extension, in constraintsArgs,
                     extension.TypeSubstitution, extension.TypeParameters, extension.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics,
                     diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null, ref useSiteDiagnosticsBuilder);
             }
@@ -4406,7 +4405,7 @@ outerDefault:
             // a possibly constructed generic type, is exceedingly subtle. See the comments
             // in "Infer" for details.
 
-            PooledDictionary<TypeParameterSymbol, int> ordinals = member.MakeOrdinalsIfNeeded(originalTypeParameters);
+            PooledDictionary<object, int> ordinals = member.MakeAdjustedTypeParameterOrdinalsIfNeeded(originalTypeParameters);
 
             var inferenceResult = MethodTypeInferrer.Infer(
                 _binder,
