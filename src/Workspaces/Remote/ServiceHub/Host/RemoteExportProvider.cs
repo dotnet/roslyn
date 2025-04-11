@@ -37,13 +37,17 @@ internal class RemoteExportProvider
 
     public static async Task InitializeAsync(string localSettingsDirectory, CancellationToken cancellationToken)
     {
-        var resolver = new Resolver(SimpleAssemblyLoader.Instance);
-        var assemblyPaths = RemoteHostAssemblies.SelectAsArray(static a => a.Location);
+        var args = new ExportProviderBuilder.ExportProviderCreationArguments(
+            AssemblyPaths: RemoteHostAssemblies.SelectAsArray(static a => a.Location),
+            Resolver: new Resolver(SimpleAssemblyLoader.Instance),
+            CacheDirectory: Path.Combine(localSettingsDirectory, "Roslyn", "RemoteHost", "Cache"),
+            CatalogPrefix: "RoslynRemoteHost",
+            ExpectedErrorParts: ["PythiaSignatureHelpProvider", "VSTypeScriptAnalyzerService", "RazorTestLanguageServerFactory"],
+            PerformCleanup: true,
+            LogError: _ => { },
+            LogTrace: _ => { });
 
-        var cacheDirectory = Path.Combine(localSettingsDirectory, "Roslyn", "RemoteHost", "Cache");
-        var catalogPrefix = "RoslynRemoteHost";
-
-        s_instance = await ExportProviderBuilder.CreateExportProviderAsync(assemblyPaths, resolver, cacheDirectory, catalogPrefix, performCleanup: true, loggerFactory: null, cancellationToken).ConfigureAwait(false);
+        s_instance = await ExportProviderBuilder.CreateExportProviderAsync(args, cancellationToken).ConfigureAwait(false);
     }
 
     private sealed class SimpleAssemblyLoader : IAssemblyLoader

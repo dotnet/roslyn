@@ -24,7 +24,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.ComponentModel.Composition" />
-    <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Microsoft.VisualStudio.Composition" />
     <PackageReference Include="Microsoft.VisualStudio.Telemetry" PrivateAssets="all" />
     <PackageReference Include="Microsoft.ServiceHub.Client" />

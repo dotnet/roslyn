@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.IO.Hashing;
@@ -12,7 +11,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
 
@@ -20,17 +18,22 @@ namespace Microsoft.CodeAnalysis.Remote;
 
 internal sealed class ExportProviderBuilder
 {
+    public record ExportProviderCreationArguments(
+        ImmutableArray<string> AssemblyPaths,
+        Resolver Resolver,
+        string CacheDirectory,
+        string CatalogPrefix,
+        ImmutableArray<string> ExpectedErrorParts,
+        bool PerformCleanup,
+        Action<string> LogError,
+        Action<string> LogTrace);
+
     // For testing purposes, track the last cache write task.
     private static Task? _cacheWriteTask;
     private const string CatalogSuffix = ".mef-composition";
 
     public static async Task<ExportProvider> CreateExportProviderAsync(
-        ImmutableArray<string> assemblyPaths,
-        Resolver resolver,
-        string cacheDirectory,
-        string catalogPrefix,
-        bool performCleanup,
-        ILoggerFactory? loggerFactory,
+        ExportProviderCreationArguments args,
         CancellationToken cancellationToken)
     {
         // Clear any previous cache write task, so that it is easy to discern whether
@@ -38,7 +41,7 @@ internal sealed class ExportProviderBuilder
         _cacheWriteTask = null;
 
         // Get the cached MEF composition or create a new one.
-        var exportProviderFactory = await GetCompositionConfigurationAsync(assemblyPaths, resolver, cacheDirectory, catalogPrefix, performCleanup, loggerFactory, cancellationToken).ConfigureAwait(false);
+        var exportProviderFactory = await GetCompositionConfigurationAsync(args, cancellationToken).ConfigureAwait(false);
 
         // Create an export provider, which represents a unique container of values.
         // You can create as many of these as you want, but typically an app needs just one.
@@ -48,27 +51,21 @@ internal sealed class ExportProviderBuilder
     }
 
     private static async Task<IExportProviderFactory> GetCompositionConfigurationAsync(
-        ImmutableArray<string> assemblyPaths,
-        Resolver resolver,
-        string cacheDirectory,
-        string catalogPrefix,
-        bool performCleanup,
-        ILoggerFactory? loggerFactory,
+        ExportProviderCreationArguments args,
         CancellationToken cancellationToken)
     {
-        var logger = loggerFactory?.CreateLogger<ExportProviderBuilder>();
-        var compositionCacheFile = GetCompositionCacheFilePath(cacheDirectory, catalogPrefix, assemblyPaths);
+        var compositionCacheFile = GetCompositionCacheFilePath(args.CacheDirectory, args.CatalogPrefix, args.AssemblyPaths);
 
         // Try to load a cached composition.
         try
         {
             if (File.Exists(compositionCacheFile))
             {
-                logger?.LogTrace($"Loading cached MEF catalog: {compositionCacheFile}");
+                args.LogTrace($"Loading cached MEF catalog: {compositionCacheFile}");
 
                 CachedComposition cachedComposition = new();
                 using FileStream cacheStream = new(compositionCacheFile, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 4096, useAsync: true);
-                var exportProviderFactory = await cachedComposition.LoadExportProviderFactoryAsync(cacheStream, resolver, cancellationToken).ConfigureAwait(false);
+                var exportProviderFactory = await cachedComposition.LoadExportProviderFactoryAsync(cacheStream, args.Resolver, cancellationToken).ConfigureAwait(false);
 
                 return exportProviderFactory;
             }
@@ -76,18 +73,18 @@ internal sealed class ExportProviderBuilder
         catch (Exception ex)
         {
             // Log the error, and move on to recover by recreating the MEF composition.
-            logger?.LogError($"Loading cached MEF composition failed: {ex}");
+            args.LogError($"Loading cached MEF composition failed: {ex}");
         }
 
-        logger?.LogTrace($"Composing MEF catalog using:{Environment.NewLine}{string.Join($"    {Environment.NewLine}", assemblyPaths)}.");
+        args.LogTrace($"Composing MEF catalog using:{Environment.NewLine}{string.Join($"    {Environment.NewLine}", args.AssemblyPaths)}.");
 
         var discovery = PartDiscovery.Combine(
-            resolver,
-            new AttributedPartDiscovery(resolver, isNonPublicSupported: true), // "NuGet MEF" attributes (Microsoft.Composition)
-            new AttributedPartDiscoveryV1(resolver));
+            args.Resolver,
+            new AttributedPartDiscovery(args.Resolver, isNonPublicSupported: true), // "NuGet MEF" attributes (Microsoft.Composition)
+            new AttributedPartDiscoveryV1(args.Resolver));
 
-        var parts = await discovery.CreatePartsAsync(assemblyPaths, progress: null, cancellationToken).ConfigureAwait(false);
-        var catalog = ComposableCatalog.Create(resolver)
+        var parts = await discovery.CreatePartsAsync(args.AssemblyPaths, progress: null, cancellationToken).ConfigureAwait(false);
+        var catalog = ComposableCatalog.Create(args.Resolver)
             .AddParts(parts)
             .WithCompositionService(); // Makes an ICompositionService export available to MEF parts to import
 
@@ -95,10 +92,10 @@ internal sealed class ExportProviderBuilder
         var config = CompositionConfiguration.Create(catalog);
 
         // Verify we only have expected errors.
-        ThrowOnUnexpectedErrors(config, catalog, logger);
+        ThrowOnUnexpectedErrors(config, catalog, args.ExpectedErrorParts, args.LogError);
 
         // Try to cache the composition.
-        _cacheWriteTask = WriteCompositionCacheAsync(compositionCacheFile, config, performCleanup, logger, cancellationToken).ReportNonFatalErrorAsync();
+        _cacheWriteTask = WriteCompositionCacheAsync(compositionCacheFile, config, args.PerformCleanup, args.LogError, cancellationToken).ReportNonFatalErrorAsync();
 
         // Prepare an ExportProvider factory based on this graph.
         return config.CreateExportProviderFactory();
@@ -136,7 +133,7 @@ internal sealed class ExportProviderBuilder
         }
     }
 
-    private static async Task WriteCompositionCacheAsync(string compositionCacheFile, CompositionConfiguration config, bool performCleanup, ILogger? logger, CancellationToken cancellationToken)
+    private static async Task WriteCompositionCacheAsync(string compositionCacheFile, CompositionConfiguration config, bool performCleanup, Action<string> logError, CancellationToken cancellationToken)
     {
         try
         {
@@ -173,16 +170,16 @@ internal sealed class ExportProviderBuilder
         }
         catch (Exception ex)
         {
-            logger?.LogError($"Failed to save MEF cache: {ex}");
+            logError($"Failed to save MEF cache: {ex}");
         }
     }
 
-    private static void ThrowOnUnexpectedErrors(CompositionConfiguration configuration, ComposableCatalog catalog, ILogger? logger)
+    private static void ThrowOnUnexpectedErrors(CompositionConfiguration configuration, ComposableCatalog catalog, ImmutableArray<string> expectedErrorParts, Action<string> logError)
     {
         // Verify that we have exactly the MEF errors that we expect.  If we have less or more this needs to be updated to assert the expected behavior.
         var erroredParts = configuration.CompositionErrors.FirstOrDefault()?.SelectMany(error => error.Parts).Select(part => part.Definition.Type.Name) ?? [];
-        var expectedErroredParts = new HashSet<string>(["PythiaSignatureHelpProvider", "VSTypeScriptAnalyzerService", "RazorTestLanguageServerFactory"]);
-        var hasUnexpectedErroredParts = erroredParts.Any(part => !expectedErroredParts.Contains(part));
+        var expectedErrorPartsSet = expectedErrorParts.ToSet();
+        var hasUnexpectedErroredParts = erroredParts.Any(part => !expectedErrorPartsSet.Contains(part));
 
         if (hasUnexpectedErroredParts || !catalog.DiscoveredParts.DiscoveryErrors.IsEmpty)
         {
@@ -194,7 +191,7 @@ internal sealed class ExportProviderBuilder
             catch (CompositionFailedException ex)
             {
                 // The ToString for the composition failed exception doesn't output a nice set of errors by default, so log it separately
-                logger?.LogError($"Encountered errors in the MEF composition:{Environment.NewLine}{ex.ErrorsAsString}");
+                logError($"Encountered errors in the MEF composition:{Environment.NewLine}{ex.ErrorsAsString}");
                 throw;
             }
         }

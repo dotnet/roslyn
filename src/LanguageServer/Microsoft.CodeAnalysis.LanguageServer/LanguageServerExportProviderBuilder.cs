@@ -39,10 +39,20 @@ internal class LanguageServerExportProviderBuilder
         // Add the extension assemblies to the MEF catalog.
         assemblyPaths = assemblyPaths.Concat(extensionManager.ExtensionAssemblyPaths);
 
+        var logger = loggerFactory.CreateLogger<ExportProviderBuilder>();
+
         // Create a MEF resolver that can resolve assemblies in the extension contexts.
-        var resolver = new Resolver(assemblyLoader);
-        var catalogPrefix = "c#-languageserver";
-        var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(assemblyPaths.ToImmutableArray(), resolver, cacheDirectory, catalogPrefix, performCleanup: false, loggerFactory, cancellationToken);
+        var args = new ExportProviderBuilder.ExportProviderCreationArguments(
+            AssemblyPaths: assemblyPaths.ToImmutableArray(),
+            Resolver: new Resolver(assemblyLoader),
+            CacheDirectory: cacheDirectory,
+            CatalogPrefix: "c#-languageserver",
+            ExpectedErrorParts: ["PythiaSignatureHelpProvider"],
+            PerformCleanup: false,
+            LogError: text => logger.LogError(text),
+            LogTrace: text => logger.LogTrace(text));
+
+        var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(args, cancellationToken);
 
         // Also add the ExtensionAssemblyManager so it will be available for the rest of the composition.
         exportProvider.GetExportedValue<ExtensionAssemblyManagerMefProvider>().SetMefExtensionAssemblyManager(extensionManager);
