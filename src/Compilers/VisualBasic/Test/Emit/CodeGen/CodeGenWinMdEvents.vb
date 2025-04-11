@@ -30,7 +30,7 @@ End Class
                 Diagnostic(ERRID.ERR_TypeRefResolutionError3, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken", "MissingReferences.winmdobj"))
 
             ' Throws *test* exception, but does not assert or throw produce exception.
-            Assert.Throws(Of EmitException)(Sub() CompileAndVerify(comp))
+            Assert.Throws(Of Exception)(Sub() CompileAndVerify(comp))
         End Sub
 
         <Fact()>
@@ -58,7 +58,7 @@ End Class
                 Diagnostic(ERRID.ERR_TypeRefResolutionError3, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken", "MissingReferences.winmdobj"))
 
             ' Throws *test* exception, but does not assert or throw produce exception.
-            Assert.Throws(Of EmitException)(Sub() CompileAndVerify(comp))
+            Assert.Throws(Of Exception)(Sub() CompileAndVerify(comp))
         End Sub
 
         <Fact()>
@@ -86,7 +86,7 @@ End Class
                 Diagnostic(ERRID.ERR_TypeRefResolutionError3, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken", "MissingReferences.winmdobj"))
 
             ' Throws *test* exception, but does not assert or throw produce exception.
-            Assert.Throws(Of EmitException)(Sub() CompileAndVerify(comp))
+            Assert.Throws(Of Exception)(Sub() CompileAndVerify(comp))
         End Sub
 
         <Fact()>
@@ -114,7 +114,7 @@ End Class
                 Diagnostic(ERRID.ERR_TypeRefResolutionError3, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken", "MissingReferences.winmdobj"))
 
             ' Throws *test* exception, but does not assert or throw produce exception.
-            Assert.Throws(Of EmitException)(Sub() CompileAndVerify(comp))
+            Assert.Throws(Of Exception)(Sub() CompileAndVerify(comp))
         End Sub
 
         <Fact()>
@@ -162,7 +162,7 @@ End Namespace
                 Diagnostic(ERRID.ERR_MissingRuntimeHelper, "RaiseEvent E()").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1.get_InvocationList"))
 
             ' Throws *test* exception, but does not assert or throw produce exception.
-            Assert.Throws(Of EmitException)(Sub() CompileAndVerify(comp))
+            Assert.Throws(Of Exception)(Sub() CompileAndVerify(comp))
         End Sub
 
         <Fact>
@@ -204,7 +204,7 @@ End Class
                 Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports System.Runtime.InteropServices.WindowsRuntime"))
 
             ' Throws *test* exception, but does not assert or throw produce exception.
-            Assert.Throws(Of EmitException)(Sub() CompileAndVerify(comp))
+            Assert.Throws(Of Exception)(Sub() CompileAndVerify(comp))
         End Sub
 
         <Fact()>

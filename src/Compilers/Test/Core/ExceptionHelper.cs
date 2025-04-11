@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Roslyn.Test.Utilities
 {
@@ -25,49 +26,28 @@ namespace Roslyn.Test.Utilities
             return sb.ToString();
         }
 
-        internal static string GetMessageFromResult(string output, string exePath, bool isIlVerify = false)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine();
-            string tool = isIlVerify ? "ILVerify" : "PEVerify";
-            sb.Append($"{tool} failed for assembly '");
-            sb.Append(exePath);
-            sb.AppendLine("':");
-            sb.AppendLine(output);
-            return sb.ToString();
-        }
+        internal static string GetMessageFromResult(string output, string exePath, bool isIlVerify = false) =>
+            $"""
+                {(isIlVerify ? "ILVerify" : "PEVerify")} failed for assembly '{exePath}'
+                {output}
+                """;
 
-        internal static string GetMessageFromException(Exception executionException, string exePath)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine();
-            sb.Append("Execution failed for assembly '");
-            sb.Append(exePath);
-            sb.AppendLine("'.");
-            sb.Append("Exception: " + executionException);
-            return sb.ToString();
-        }
+        internal static string GetMessageFromException(Exception executionException, string exePath) =>
+            $"""
+                Execution failed for assembly '{exePath}'
+                Exception: {executionException.Message}
+                """;
 
-        internal static string GetMessageFromResult(string expectedOutput, string actualOutput, string exePath)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine();
-            sb.Append("Execution failed for assembly '");
-            sb.Append(exePath);
-            sb.AppendLine("'.");
-            if (expectedOutput != null)
-            {
-                sb.Append("Expected: ");
-                sb.AppendLine(expectedOutput);
-                sb.Append("Actual: ");
-                sb.AppendLine(actualOutput);
-            }
-            else
-            {
-                sb.Append("Output: ");
-                sb.AppendLine(actualOutput);
-            }
-            return sb.ToString();
-        }
+        internal static string GetMessageFromResult(string expectedOutput, string actualOutput, string exePath) =>
+            $"""
+                Execution failed for assembly '{exePath}'
+                Output differed from expected
+                Diff:
+                {DiffUtil.DiffReport(expectedOutput, actualOutput)}
+                Expected:
+                {expectedOutput}
+                Actual:
+                {actualOutput}
+                """;
     }
 }

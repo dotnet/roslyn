@@ -18,42 +18,36 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
     {
         public static ScriptState<T> RunScriptWithOutput<T>(Script<T> script, string expectedOutput)
         {
-            string output;
-            string errorOutput;
             ScriptState<T> result = null;
-            RuntimeEnvironmentFactory.CaptureOutput(() =>
+            var (output, errorOutput) = RuntimeEnvironmentFactory.CaptureOutput(() =>
             {
                 var task = script.RunAsync();
                 task.Wait();
                 result = task.Result;
-            }, expectedOutput.Length, out output, out errorOutput);
+            }, expectedOutput.Length);
             Assert.Equal(expectedOutput, output.Trim());
             return result;
         }
 
         public static T EvaluateScriptWithOutput<T>(Script<T> script, string expectedOutput)
         {
-            string output;
-            string errorOutput;
             T result = default(T);
-            RuntimeEnvironmentFactory.CaptureOutput(() =>
+            var (output, errorOutput) = RuntimeEnvironmentFactory.CaptureOutput(() =>
             {
                 var task = script.EvaluateAsync();
                 task.Wait();
                 result = task.Result;
-            }, expectedOutput.Length, out output, out errorOutput);
+            }, expectedOutput.Length);
             Assert.Equal(expectedOutput, output.Trim());
             return result;
         }
 
         public static void ContinueRunScriptWithOutput<T>(Task<ScriptState<T>> scriptState, string code, string expectedOutput)
         {
-            string output;
-            string errorOutput;
-            RuntimeEnvironmentFactory.CaptureOutput(() =>
+            var (output, errorOutput) = RuntimeEnvironmentFactory.CaptureOutput(() =>
             {
                 scriptState.ContinueWith(code).Wait();
-            }, expectedOutput.Length, out output, out errorOutput);
+            }, expectedOutput.Length);
             Assert.Equal(expectedOutput, output.Trim());
         }
 

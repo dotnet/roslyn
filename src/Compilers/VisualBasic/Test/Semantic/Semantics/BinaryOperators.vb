@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
         End Sub
 
-        <ConditionalFact(GetType(WindowsOrLinuxOnly), Reason:="https://github.com/dotnet/roslyn/issues/77861")>
+        <Fact>
         Public Sub Test1_Date()
             ' test binary operator between Date value and another type data
             ' call ToString() on it defeat the purpose of these scenarios
@@ -219,11 +219,11 @@ End Module
 [Ob & Da] Object: -138:30:00 AM
 [Tc & Da] String: [148:30:00 AM]]]>
 
-                Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+                Dim compilation = CompilationUtils.CreateCompilation(compilationDef, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe)
                 Assert.True(compilation.Options.CheckOverflow)
                 CompileAndVerify(compilation, expectedOutput:=expected)
 
-                compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOverflowChecks(False))
+                compilation = CompilationUtils.CreateCompilation(compilationDef, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe.WithOverflowChecks(False))
                 Assert.False(compilation.Options.CheckOverflow)
                 CompileAndVerify(compilation, expectedOutput:=expected)
 
@@ -381,8 +381,10 @@ False
 
         End Sub
 
-        <ConditionalFact(GetType(WindowsOrLinuxOnly), Reason:="https://github.com/dotnet/roslyn/issues/77861")>
-        Public Sub Test5_DateConst()
+        <Theory>
+        <InlineData(True)>
+        <InlineData(False)>
+        Public Sub Test5_DateConst(overflowChecks As Boolean)
             ' test binary operator between Date const and another type data
             ' call ToString() on it defeat the purpose of these scenarios
             Dim currCulture = System.Threading.Thread.CurrentThread.CurrentCulture
@@ -402,7 +404,6 @@ Imports System
 Module Module1
 
     Sub Main()
-
         PrintResult("#8:30:00 AM# + ""12""", #8:30:00 AM# + "12")
         PrintResult("#8:30:00 AM# + #8:30:00 AM#", #8:30:00 AM# + #8:30:00 AM#)
         PrintResult("""12"" + #8:30:00 AM#", "12" + #8:30:00 AM#)
@@ -487,20 +488,12 @@ End Module
 [TypeCode.Double & #8:30:00 AM#] String: [148:30:00 AM]
 ]]>
 
-                Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
-                Assert.True(compilation.Options.CheckOverflow)
-                CompileAndVerify(compilation, expectedOutput:=expected)
+                Dim compilation = CompilationUtils.CreateCompilation(compilationDef, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe.WithOverflowChecks(overflowChecks))
+                CompileAndVerify(compilation, CreateExecutionValidator(expected, ExecutionValidators.NormalizeOutputFlags.All))
 
-                compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOverflowChecks(False))
-                Assert.False(compilation.Options.CheckOverflow)
-                CompileAndVerify(compilation, expectedOutput:=expected)
-
-            Catch ex As Exception
-                Assert.Null(ex)
             Finally
                 System.Threading.Thread.CurrentThread.CurrentCulture = currCulture
             End Try
-
         End Sub
 
         <Fact>
