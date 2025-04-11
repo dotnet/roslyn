@@ -1432,7 +1432,7 @@ Module Module1
         PrintResult("26UI ^ System.SByte.MinValue", 26UI ^ System.SByte.MinValue)
         PrintResult("26UI ^ System.Byte.MaxValue", 26UI ^ System.Byte.MaxValue)
         PrintResult("26UI ^ -3S", 26UI ^ -3S)
-        PrintResult("26UI ^ 24US", 26UI ^ 24US)
+        ' PrintResult("26UI ^ 24US", 26UI ^ 24US) ' https://github.com/dotnet/roslyn/issues/78117
         PrintResult("26UI ^ -5I", 26UI ^ -5I)
         PrintResult("26UI ^ 26UI", 26UI ^ 26UI)
         PrintResult("26UI ^ -7L", 26UI ^ -7L)
