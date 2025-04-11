@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.QuickInfo;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -126,5 +127,14 @@ public sealed class OnTheFlyDocsUtilitiesTests
 
         var result = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, methodSymbol!);
         Assert.True(result.All(item => item is not null));
+    }
+
+    public static async Task<string> GetTextBeingAddedToContextAsync(OnTheFlyDocsRelevantFileInfo onTheFlyDocsRelevantFileInfo)
+    {
+        var document = onTheFlyDocsRelevantFileInfo.Document;
+        var textSpan = onTheFlyDocsRelevantFileInfo.TextSpan;
+
+        var text = await document.GetTextAsync();
+        return text.GetSubText(textSpan).ToString();
     }
 }
