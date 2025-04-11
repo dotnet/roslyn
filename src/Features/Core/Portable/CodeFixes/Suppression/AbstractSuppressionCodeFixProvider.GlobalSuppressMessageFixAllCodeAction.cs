@@ -38,7 +38,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
             _diagnosticsBySymbol = diagnosticsBySymbol;
         }
 
-        internal static CodeAction Create(string title, AbstractSuppressionCodeFixProvider fixer, Document triggerDocument, ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsByDocument)
+        internal static CodeAction Create(string title, AbstractSuppressionCodeFixProvider fixer, TextDocument triggerDocument, ImmutableDictionary<TextDocument, ImmutableArray<Diagnostic>> diagnosticsByDocument)
         {
             return new GlobalSuppressionSolutionChangeAction(title,
                 (_, ct) => CreateChangedSolutionAsync(fixer, triggerDocument, diagnosticsByDocument, ct),
@@ -66,8 +66,8 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
 
         private static async Task<Solution> CreateChangedSolutionAsync(
             AbstractSuppressionCodeFixProvider fixer,
-            Document triggerDocument,
-            ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsByDocument,
+            TextDocument triggerDocument,
+            ImmutableDictionary<TextDocument, ImmutableArray<Diagnostic>> diagnosticsByDocument,
             CancellationToken cancellationToken)
         {
             var currentSolution = triggerDocument.Project.Solution;
@@ -149,11 +149,18 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
             return final;
         }
 
-        private static async Task<IEnumerable<KeyValuePair<ISymbol, ImmutableArray<Diagnostic>>>> CreateDiagnosticsBySymbolAsync(AbstractSuppressionCodeFixProvider fixer, IEnumerable<KeyValuePair<Document, ImmutableArray<Diagnostic>>> diagnosticsByDocument, CancellationToken cancellationToken)
+        private static async Task<IEnumerable<KeyValuePair<ISymbol, ImmutableArray<Diagnostic>>>> CreateDiagnosticsBySymbolAsync(AbstractSuppressionCodeFixProvider fixer, IEnumerable<KeyValuePair<TextDocument, ImmutableArray<Diagnostic>>> diagnosticsByDocument, CancellationToken cancellationToken)
         {
             var diagnosticsMapBuilder = ImmutableDictionary.CreateBuilder<ISymbol, List<Diagnostic>>();
-            foreach (var (document, diagnostics) in diagnosticsByDocument)
+            foreach (var (textDocument, diagnostics) in diagnosticsByDocument)
             {
+                if (textDocument is not Document document)
+                {
+                    // We don't currently have a way to globally suppress a diagnostic which is in a TextDocument that
+                    // is not also a Document.
+                    continue;
+                }
+
                 foreach (var diagnostic in diagnostics)
                 {
                     Contract.ThrowIfFalse(diagnostic.Location.IsInSource);

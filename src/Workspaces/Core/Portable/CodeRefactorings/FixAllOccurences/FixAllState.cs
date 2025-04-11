@@ -33,7 +33,7 @@ internal sealed class FixAllState : CommonFixAllState<CodeRefactoringProvider, F
 
     public FixAllState(
         FixAllProvider fixAllProvider,
-        Document document,
+        TextDocument document,
         TextSpan selectionSpan,
         CodeRefactoringProvider codeRefactoringProvider,
         FixAllScope fixAllScope,
@@ -57,7 +57,7 @@ internal sealed class FixAllState : CommonFixAllState<CodeRefactoringProvider, F
 
     private FixAllState(
         FixAllProvider fixAllProvider,
-        Document? document,
+        TextDocument? document,
         Project project,
         TextSpan selectionSpan,
         CodeRefactoringProvider codeRefactoringProvider,
@@ -70,7 +70,7 @@ internal sealed class FixAllState : CommonFixAllState<CodeRefactoringProvider, F
         this.CodeActionTitle = codeActionTitle;
     }
 
-    protected override FixAllState With(Document? document, Project project, FixAllScope scope, string? codeActionEquivalenceKey)
+    protected override FixAllState With(TextDocument? document, Project project, FixAllScope scope, string? codeActionEquivalenceKey)
     {
         return new FixAllState(
             this.FixAllProvider,
@@ -87,16 +87,16 @@ internal sealed class FixAllState : CommonFixAllState<CodeRefactoringProvider, F
     /// Gets the spans to fix by document for the <see cref="FixAllScope"/> for this fix all occurences fix.
     /// If no spans are specified, it indicates the entire document needs to be fixed.
     /// </summary>
-    internal async Task<ImmutableDictionary<Document, Optional<ImmutableArray<TextSpan>>>> GetFixAllSpansAsync(CancellationToken cancellationToken)
+    internal async Task<ImmutableDictionary<TextDocument, Optional<ImmutableArray<TextSpan>>>> GetFixAllSpansAsync(CancellationToken cancellationToken)
     {
-        IEnumerable<Document>? documentsToFix = null;
+        IEnumerable<TextDocument>? documentsToFix = null;
         switch (this.Scope)
         {
             case FixAllScope.ContainingType or FixAllScope.ContainingMember:
                 Contract.ThrowIfNull(Document);
-                var spanMappingService = Document.GetLanguageService<IFixAllSpanMappingService>();
+                var spanMappingService = ((Document)Document).GetLanguageService<IFixAllSpanMappingService>();
                 if (spanMappingService is null)
-                    return ImmutableDictionary<Document, Optional<ImmutableArray<TextSpan>>>.Empty;
+                    return ImmutableDictionary<TextDocument, Optional<ImmutableArray<TextSpan>>>.Empty;
 
                 var spansByDocument = await spanMappingService.GetFixAllSpansAsync(
                     Document, _selectionSpan, Scope, cancellationToken).ConfigureAwait(false);
@@ -117,7 +117,7 @@ internal sealed class FixAllState : CommonFixAllState<CodeRefactoringProvider, F
                 break;
 
             default:
-                return ImmutableDictionary<Document, Optional<ImmutableArray<TextSpan>>>.Empty;
+                return ImmutableDictionary<TextDocument, Optional<ImmutableArray<TextSpan>>>.Empty;
         }
 
         return documentsToFix.ToImmutableDictionary(d => d, _ => default(Optional<ImmutableArray<TextSpan>>));

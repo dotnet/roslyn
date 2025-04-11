@@ -19,9 +19,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixesAndRefactorings
         Public Sub New()
         End Sub
 
-        Protected Overrides Function GetFixAllSpansIfWithinGlobalStatementAsync(document As Document, diagnosticSpan As TextSpan, cancellationToken As CancellationToken) As Task(Of ImmutableDictionary(Of Document, ImmutableArray(Of TextSpan)))
+        Protected Overrides Function GetFixAllSpansIfWithinGlobalStatementAsync(document As Document, diagnosticSpan As TextSpan, cancellationToken As CancellationToken) As Task(Of ImmutableDictionary(Of TextDocument, ImmutableArray(Of TextSpan)))
             ' VB does not support global statements
-            Return Task.FromResult(ImmutableDictionary(Of Document, ImmutableArray(Of TextSpan)).Empty)
+            Return Task.FromResult(ImmutableDictionary(Of TextDocument, ImmutableArray(Of TextSpan)).Empty)
         End Function
     End Class
 End Namespace

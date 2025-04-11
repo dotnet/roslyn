@@ -200,7 +200,7 @@ public abstract partial class AbstractUserDiagnosticTest_NoEditor : AbstractCode
         IEnumerable<Diagnostic> diagnostics,
         CodeFixProvider fixer,
         TestDiagnosticAnalyzerDriver testDriver,
-        Document document,
+        TextDocument document,
         FixAllScope scope,
         string equivalenceKey)
     {

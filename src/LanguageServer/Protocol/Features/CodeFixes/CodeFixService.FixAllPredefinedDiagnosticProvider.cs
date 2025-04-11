@@ -23,6 +23,9 @@ internal sealed partial class CodeFixService
             => Task.FromResult<IEnumerable<Diagnostic>>(_diagnostics);
 
         public override Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
+            => throw ExceptionUtilities.Unreachable();
+
+        public override Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(TextDocument document, CancellationToken cancellationToken)
             => Task.FromResult<IEnumerable<Diagnostic>>(_diagnostics);
 
         public override Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project, CancellationToken cancellationToken)

@@ -35,8 +35,11 @@ internal sealed partial class CSharpUseSystemThreadingLockCodeFixProvider
             foreach (var currentContext in contexts)
             {
                 var documentToDiagnostics = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(currentContext).ConfigureAwait(false);
-                foreach (var (document, diagnostics) in documentToDiagnostics)
+                foreach (var (textDocument, diagnostics) in documentToDiagnostics)
                 {
+                    if (textDocument is not Document document)
+                        throw ExceptionUtilities.UnexpectedValue(textDocument);
+
                     var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     foreach (var diagnostic in diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start))
                     {

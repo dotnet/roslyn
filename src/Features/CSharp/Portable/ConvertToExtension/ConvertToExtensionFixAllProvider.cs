@@ -25,11 +25,14 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider
         : DocumentBasedFixAllProvider(
             [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution, FixAllScope.ContainingType])
     {
-        protected override async Task<Document?> FixAllAsync(
+        protected override async Task<TextDocument?> FixAllAsync(
             FixAllContext fixAllContext,
-            Document document,
+            TextDocument textDocument,
             Optional<ImmutableArray<TextSpan>> fixAllSpans)
         {
+            if (textDocument is not Document document)
+                return null;
+
             var cancellationToken = fixAllContext.CancellationToken;
 
             var codeGenerationService = (CSharpCodeGenerationService)document.GetRequiredLanguageService<ICodeGenerationService>();

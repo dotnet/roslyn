@@ -17,7 +17,7 @@ internal interface IFixMultipleOccurrencesService : IWorkspaceService
     /// NOTE: This method does not apply the fix to the workspace.
     /// </summary>
     Task<Solution> GetFixAsync(
-        ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsToFix,
+        ImmutableDictionary<TextDocument, ImmutableArray<Diagnostic>> diagnosticsToFix,
         Workspace workspace,
         CodeFixProvider fixProvider,
         FixAllProvider fixAllProvider,

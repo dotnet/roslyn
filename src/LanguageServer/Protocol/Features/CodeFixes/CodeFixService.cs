@@ -777,7 +777,7 @@ internal sealed partial class CodeFixService : ICodeFixService
 
         FixAllState? fixAllState = null;
         var supportedScopes = ImmutableArray<FixAllScope>.Empty;
-        if (fixAllProviderInfo != null && textDocument is Document document)
+        if (fixAllProviderInfo != null)
         {
             var diagnosticIds = diagnostics.Where(fixAllProviderInfo.CanBeFixed)
                                            .Select(d => d.Id)
@@ -792,8 +792,8 @@ internal sealed partial class CodeFixService : ICodeFixService
             fixAllState = new FixAllState(
                 (FixAllProvider)fixAllProviderInfo.FixAllProvider,
                 fixesSpan,
-                document,
-                document.Project,
+                textDocument,
+                textDocument.Project,
                 codeFixProvider,
                 FixAllScope.Document,
                 fixes[0].Action.EquivalenceKey,

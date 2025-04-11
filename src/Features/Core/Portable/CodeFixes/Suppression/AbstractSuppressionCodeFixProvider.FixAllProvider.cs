@@ -37,9 +37,9 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
             {
                 // For global suppressions, we defer to the global suppression system to handle directly.
                 var title = fixAllContext.CodeActionEquivalenceKey;
-                return fixAllContext.Document != null
+                return fixAllContext.TextDocument != null
                     ? GlobalSuppressMessageFixAllCodeAction.Create(
-                        title, suppressionFixer, fixAllContext.Document,
+                        title, suppressionFixer, fixAllContext.TextDocument,
                         await fixAllContext.GetDocumentDiagnosticsToFixAsync().ConfigureAwait(false))
                     : GlobalSuppressMessageFixAllCodeAction.Create(
                         title, suppressionFixer, fixAllContext.Project,

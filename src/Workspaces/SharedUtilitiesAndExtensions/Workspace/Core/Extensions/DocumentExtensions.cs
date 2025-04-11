@@ -194,21 +194,6 @@ internal static partial class DocumentExtensions
     }
 #endif
 
-#if !CODE_STYLE
-    public static bool IsGeneratedCode(this Document document, CancellationToken cancellationToken)
-    {
-        var generatedCodeRecognitionService = document.GetLanguageService<IGeneratedCodeRecognitionService>();
-        return generatedCodeRecognitionService?.IsGeneratedCode(document, cancellationToken) == true;
-    }
-#endif
-
-    public static async Task<bool> IsGeneratedCodeAsync(this Document document, CancellationToken cancellationToken)
-    {
-        var generatedCodeRecognitionService = document.GetLanguageService<IGeneratedCodeRecognitionService>();
-        return generatedCodeRecognitionService != null &&
-            await generatedCodeRecognitionService.IsGeneratedCodeAsync(document, cancellationToken).ConfigureAwait(false);
-    }
-
     public static IEnumerable<Document> GetLinkedDocuments(this Document document)
     {
         var solution = document.Project.Solution;

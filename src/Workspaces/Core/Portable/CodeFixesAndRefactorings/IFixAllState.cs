@@ -16,7 +16,7 @@ internal interface IFixAllState
     string? CodeActionEquivalenceKey { get; }
     FixAllScope Scope { get; }
     FixAllKind FixAllKind { get; }
-    Document? Document { get; }
+    TextDocument? Document { get; }
     Project Project { get; }
     Solution Solution { get; }
 
@@ -26,7 +26,7 @@ internal interface IFixAllState
     object Provider { get; }
 
     IFixAllState With(
-        Optional<(Document? document, Project project)> documentAndProject = default,
+        Optional<(TextDocument? document, Project project)> documentAndProject = default,
         Optional<FixAllScope> scope = default,
         Optional<string?> codeActionEquivalenceKey = default);
 }

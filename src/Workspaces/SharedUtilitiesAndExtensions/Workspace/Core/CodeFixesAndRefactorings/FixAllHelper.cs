@@ -11,7 +11,7 @@ internal static class FixAllHelper
     public static string GetDefaultFixAllTitle(
         FixAllScope fixAllScope,
         string title,
-        Document triggerDocument,
+        TextDocument triggerDocument,
         Project triggerProject)
     {
         return fixAllScope switch

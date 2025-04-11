@@ -93,7 +93,7 @@ public sealed partial class CodeCleanupTests
                             Project? project = null;
                             foreach (var kvp in toFix)
                             {
-                                var document = kvp.Key;
+                                var document = (Document)kvp.Key;
                                 project ??= document.Project;
                                 var diagnostics = kvp.Value;
                                 var root = await document.GetSyntaxRootAsync(cancellationToken);
@@ -149,7 +149,7 @@ public sealed partial class CodeCleanupTests
                             Project? project = null;
                             foreach (var kvp in toFix)
                             {
-                                var document = kvp.Key;
+                                var document = (Document)kvp.Key;
                                 project ??= document.Project;
                                 var diagnostics = kvp.Value;
                                 var root = await document.GetSyntaxRootAsync(cancellationToken);

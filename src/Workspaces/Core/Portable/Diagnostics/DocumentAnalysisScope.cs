@@ -56,7 +56,10 @@ internal sealed class DocumentAnalysisScope
         Contract.ThrowIfFalse(TextDocument is AdditionalDocument);
 
         var filePath = TextDocument.FilePath ?? TextDocument.Name;
-        return TextDocument.Project.AnalyzerOptions.AdditionalFiles.First(a => PathUtilities.Comparer.Equals(a.Path, filePath));
+        var additionalFile = TextDocument.Project.AnalyzerOptions.AdditionalFiles.FirstOrDefault(static (a, filePath) => PathUtilities.Comparer.Equals(a.Path, filePath), filePath);
+        Contract.ThrowIfNull(additionalFile);
+
+        return additionalFile;
     }
 
     public DocumentAnalysisScope WithSpan(TextSpan? span)
