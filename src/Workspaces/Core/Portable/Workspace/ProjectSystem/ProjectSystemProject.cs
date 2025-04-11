@@ -286,7 +286,7 @@ internal sealed partial class ProjectSystemProject
 
                     if (!isFullyLoaded)
                     {
-                        if (ShouldReportCompilationWillBeThrownAway(newValue, oldValue)
+                        if (ShouldReportCompilationWillBeThrownAway(newValue, oldValue))
                             TryReportCompilationThrownAway(_projectSystemProjectFactory.Workspace.CurrentSolution, Id);
                     }
                 }
