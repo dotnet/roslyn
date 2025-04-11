@@ -103,31 +103,32 @@ internal sealed class ExportProviderBuilder
 
     private static string GetCompositionCacheFilePath(string cacheDirectory, string catalogPrefix, ImmutableArray<string> assemblyPaths)
     {
-        // This should vary based on .NET runtime major version so that as some of our processes switch between our target
-        // .NET version and the user's selected SDK runtime version (which may be newer), the MEF cache is kept isolated.
-        // This can be important when the MEF catalog records full assembly names such as "System.Runtime, 8.0.0.0" yet
-        // we might be running on .NET 7 or .NET 8, depending on the particular session and user settings.
-        var cacheSubdirectory = $".NET {Environment.Version.Major}";
-
-        return Path.Combine(cacheDirectory, cacheSubdirectory, $"{catalogPrefix}.{ComputeAssemblyHash(assemblyPaths)}{CatalogSuffix}");
+        return Path.Combine(cacheDirectory, $"{catalogPrefix}.{ComputeAssemblyHash(assemblyPaths)}{CatalogSuffix}");
 
         static string ComputeAssemblyHash(ImmutableArray<string> assemblyPaths)
         {
             // Ensure AssemblyPaths are always in the same order.
             assemblyPaths = assemblyPaths.Sort();
 
-            var assemblies = new StringBuilder();
+            var hashContents = new StringBuilder();
+
+            // This should vary based on .NET runtime major version so that as some of our processes switch between our target
+            // .NET version and the user's selected SDK runtime version (which may be newer), the MEF cache is kept isolated.
+            // This can be important when the MEF catalog records full assembly names such as "System.Runtime, 8.0.0.0" yet
+            // we might be running on .NET 7 or .NET 8, depending on the particular session and user settings.
+            hashContents.Append(Environment.Version.Major);
+
             foreach (var assemblyPath in assemblyPaths)
             {
                 // Include assembly path in the hash so that changes to the set of included
                 // assemblies cause the composition to be rebuilt.
-                assemblies.Append(assemblyPath);
+                hashContents.Append(assemblyPath);
                 // Include the last write time in the hash so that newer assemblies written
                 // to the same location cause the composition to be rebuilt.
-                assemblies.Append(File.GetLastWriteTimeUtc(assemblyPath).ToString("F"));
+                hashContents.Append(File.GetLastWriteTimeUtc(assemblyPath).ToString("F"));
             }
 
-            var hash = XxHash128.Hash(Encoding.UTF8.GetBytes(assemblies.ToString()));
+            var hash = XxHash128.Hash(Encoding.UTF8.GetBytes(hashContents.ToString()));
             // Convert to filename safe base64 string.
             return Convert.ToBase64String(hash).Replace('+', '-').Replace('/', '_').TrimEnd('=');
         }
