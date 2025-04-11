@@ -1420,7 +1420,6 @@
 [26UI ^ System.SByte.MinValue] Double: 7.64559800600316E-182
 [26UI ^ System.Byte.MaxValue] Double: Infinity
 [26UI ^ -3S] Double: 5.68957669549386E-05
-[26UI ^ 24US] Double: 9.10668576953722E+33
 [26UI ^ -5I] Double: 8.41653357321576E-08
 [26UI ^ 26UI] Double: 6.15611958020716E+36
 [26UI ^ -7L] Double: 1.24504934515026E-10
@@ -1472,7 +1471,6 @@
 [-9D ^ 28UL] Double: -5.23347633027361E+26
 [-9D ^ -9D] Double: -2.5811747917132E-09
 [-9D ^ 10.0F] Double: -3486784401
-[-9D ^ -11.0R] Double: -3.18663554532494E-11
 [-9D ^ "12"] Double: -282429536481
 [-9D ^ TypeCode.Double] Double: -22876792454961
 [10.0F ^ False] Double: 1
