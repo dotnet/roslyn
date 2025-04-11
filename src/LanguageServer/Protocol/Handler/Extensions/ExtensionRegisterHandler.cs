@@ -37,6 +37,6 @@ internal sealed class ExtensionRegisterHandler()
         return new(
             handlerNames.WorkspaceMessageHandlers,
             handlerNames.DocumentMessageHandlers,
-            ExtensionException.FromException(handlerNames.ExtensionException));
+            handlerNames.ExtensionException);
     }
 }

@@ -38,9 +38,6 @@ internal sealed class ExtensionDocumentMessageHandler()
         if (exception is not null)
             context.Logger.LogException(exception);
 
-        return new ExtensionMessageResponse(
-            response,
-            extensionWasUnloaded,
-            ExtensionException.FromException(exception));
+        return new ExtensionMessageResponse(response, extensionWasUnloaded, exception);
     }
 }
