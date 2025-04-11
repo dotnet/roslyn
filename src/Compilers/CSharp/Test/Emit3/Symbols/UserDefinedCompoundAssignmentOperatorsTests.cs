@@ -6005,6 +6005,766 @@ public class C1 : C2
             comp.VerifyEmitDiagnostics();
         }
 
+        [Theory]
+        [CombinatorialData]
+        public void Increment_107_CRef([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator " + op + @"()""/>.
+/// </summary>
+class C1
+{
+    public static C1 operator " + op + @"(C1 x) => x;
+    public void operator " + op + @"() {}
+}
+
+/// <summary>
+/// See <see cref=""C1.operator " + op + @"()""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation.VerifyDiagnostics();
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
+                AssertEx.Equal("C1.operator " + op + @"()", actualSymbol.ToDisplayString());
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_108_CRef([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator " + op + @"""/>.
+/// </summary>
+class C1
+{
+    public void operator " + op + @"() {}
+}
+
+/// <summary>
+/// See <see cref=""C1.operator " + op + @"""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation.VerifyDiagnostics();
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
+                AssertEx.Equal("C1.operator " + op + @"()", actualSymbol.ToDisplayString());
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_109_CRef([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator " + op + @"""/>.
+/// </summary>
+class C1
+{
+    public static C1 operator " + op + @"(C1 x) => x;
+}
+
+/// <summary>
+/// See <see cref=""C1.operator " + op + @"""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation.VerifyDiagnostics();
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
+                AssertEx.Equal("C1.operator " + op + @"(C1)", actualSymbol.ToDisplayString());
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_110_CRef([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator " + op + @"""/>.
+/// </summary>
+class C1
+{
+    public static C1 operator " + op + @"(C1 x) => x;
+    public void operator " + op + @"() {}
+}
+
+/// <summary>
+/// See <see cref=""C1.operator " + op + @"""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+
+            var expected = new[] {
+                // (3,20): warning CS0419: Ambiguous reference in cref attribute: 'operator --'. Assuming 'C1.operator --(C1)', but could have also matched other overloads including 'C1.operator --()'.
+                // /// See <see cref="operator --"/>.
+                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "operator " + op).WithArguments("operator " + op, "C1.operator " + op + @"(C1)", "C1.operator " + op + @"()").WithLocation(3, 20),
+                // (12,20): warning CS0419: Ambiguous reference in cref attribute: 'C1.operator --'. Assuming 'C1.operator --(C1)', but could have also matched other overloads including 'C1.operator --()'.
+                // /// See <see cref="C1.operator --"/>.
+                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "C1.operator " + op).WithArguments("C1.operator " + op, "C1.operator " + op + @"(C1)", "C1.operator " + op + @"()").WithLocation(12, 20)
+                };
+
+            compilation.VerifyDiagnostics(expected);
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbols = GetReferencedSymbols(crefSyntax, compilation, out var ambiguityWinner, expected[count]);
+                AssertEx.Equal("C1.operator " + op + @"(C1)", ambiguityWinner.ToDisplayString());
+                Assert.Equal(2, actualSymbols.Length);
+                AssertEx.Equal("C1.operator " + op + @"(C1)", actualSymbols[0].ToDisplayString());
+                AssertEx.Equal("C1.operator " + op + @"()", actualSymbols[1].ToDisplayString());
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_111_CRef([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator " + op + @"""/>.
+/// </summary>
+class C1
+{
+    public void operator " + op + @"() {}
+    public static C1 operator " + op + @"(C1 x) => x;
+}
+
+/// <summary>
+/// See <see cref=""C1.operator " + op + @"""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+
+            var expected = new[] {
+                // (3,20): warning CS0419: Ambiguous reference in cref attribute: 'operator ++'. Assuming 'C1.operator ++()', but could have also matched other overloads including 'C1.operator ++(C1)'.
+                // /// See <see cref="operator ++"/>.
+                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "operator " + op).WithArguments("operator " + op, "C1.operator " + op + @"()", "C1.operator " + op + @"(C1)").WithLocation(3, 20),
+                // (12,20): warning CS0419: Ambiguous reference in cref attribute: 'C1.operator ++'. Assuming 'C1.operator ++()', but could have also matched other overloads including 'C1.operator ++(C1)'.
+                // /// See <see cref="C1.operator ++"/>.
+                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "C1.operator " + op).WithArguments("C1.operator " + op, "C1.operator " + op + @"()", "C1.operator " + op + @"(C1)").WithLocation(12, 20)
+                };
+
+            compilation.VerifyDiagnostics(expected);
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbols = GetReferencedSymbols(crefSyntax, compilation, out var ambiguityWinner, expected[count]);
+                AssertEx.Equal("C1.operator " + op + @"()", ambiguityWinner.ToDisplayString());
+                Assert.Equal(2, actualSymbols.Length);
+                AssertEx.Equal("C1.operator " + op + @"()", actualSymbols[0].ToDisplayString());
+                AssertEx.Equal("C1.operator " + op + @"(C1)", actualSymbols[1].ToDisplayString());
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_112_CRef([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator " + op + @"(C1)""/>.
+/// </summary>
+class C1
+{
+    public void operator " + op + @"() {}
+    public static C1 operator " + op + @"(C1 x) => x;
+}
+
+/// <summary>
+/// See <see cref=""C1.operator " + op + @"(C1)""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation.VerifyDiagnostics();
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
+                AssertEx.Equal("C1.operator " + op + @"(C1)", actualSymbol.ToDisplayString());
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_113_CRef([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator " + op + @"(C1)""/>.
+/// </summary>
+class C1
+{
+    public void operator " + op + @"() {}
+}
+
+/// <summary>
+/// See <see cref=""C1.operator " + op + @"(C1)""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var expected = new[] {
+                // (3,20): warning CS1574: XML comment has cref attribute 'operator ++(C1)' that could not be resolved
+                // /// See <see cref="operator ++(C1)"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "operator " + op + @"(C1)").WithArguments("operator " + op + @"(C1)").WithLocation(3, 20),
+                // (11,20): warning CS1574: XML comment has cref attribute 'operator ++(C1)' that could not be resolved
+                // /// See <see cref="C1.operator ++(C1)"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "C1.operator " + op + @"(C1)").WithArguments("operator " + op + @"(C1)").WithLocation(11, 20)
+                };
+
+            compilation.VerifyDiagnostics(expected);
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation, expected[count]);
+                Assert.Null(actualSymbol);
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78103")]
+        public void Increment_114_CRef([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator " + op + @"""/>.
+/// </summary>
+class C1
+{
+    public static C1 " + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName) + @"() => null;
+}
+
+/// <summary>
+/// See <see cref=""C1.operator " + op + @"""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation.VerifyDiagnostics();
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
+                AssertEx.Equal("C1." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName) + @"()", actualSymbol.ToDisplayString());
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78103")]
+        public void Increment_115_CRef([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""" + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName) + @"""/>.
+/// </summary>
+class C1
+{
+    public static C1 operator " + op + @"(C1 x) => x;
+}
+
+/// <summary>
+/// See <see cref=""C1." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName) + @"""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation.VerifyDiagnostics();
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
+                AssertEx.Equal("C1.operator " + op + @"(C1)", actualSymbol.ToDisplayString());
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78103")]
+        public void Increment_116_CRef([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""" + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName) + @"""/>.
+/// </summary>
+class C1
+{
+    public void operator " + op + @"() {}
+}
+
+/// <summary>
+/// See <see cref=""C1." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName) + @"""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation.VerifyDiagnostics();
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
+                AssertEx.Equal("C1.operator " + op + @"()", actualSymbol.ToDisplayString());
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_117_CRef_Checked([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator checked " + op + @"()""/>.
+/// </summary>
+class C1
+{
+    public static C1 operator " + op + @"(C1 x) => x;
+    public static C1 operator checked " + op + @"(C1 x) => x;
+    public void operator " + op + @"() {}
+    public void operator checked " + op + @"() {}
+}
+
+/// <summary>
+/// See <see cref=""C1.operator checked " + op + @"()""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation.VerifyDiagnostics();
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
+                AssertEx.Equal("C1.operator checked " + op + @"()", actualSymbol.ToDisplayString());
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_118_CRef_Checked([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator checked " + op + @"""/>.
+/// </summary>
+class C1
+{
+    public void operator " + op + @"() {}
+    public void operator checked " + op + @"() {}
+}
+
+/// <summary>
+/// See <see cref=""C1.operator checked " + op + @"""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation.VerifyDiagnostics();
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
+                AssertEx.Equal("C1.operator checked " + op + @"()", actualSymbol.ToDisplayString());
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_119_CRef_Checked([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator checked " + op + @"""/>.
+/// </summary>
+class C1
+{
+    public static C1 operator " + op + @"(C1 x) => x;
+    public static C1 operator checked " + op + @"(C1 x) => x;
+}
+
+/// <summary>
+/// See <see cref=""C1.operator checked " + op + @"""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation.VerifyDiagnostics();
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
+                AssertEx.Equal("C1.operator checked " + op + @"(C1)", actualSymbol.ToDisplayString());
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_120_CRef_Checked([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator checked " + op + @"""/>.
+/// </summary>
+class C1
+{
+    public static C1 operator " + op + @"(C1 x) => x;
+    public static C1 operator checked " + op + @"(C1 x) => x;
+    public void operator " + op + @"() {}
+    public void operator checked " + op + @"() {}
+}
+
+#line 11
+/// <summary>
+/// See <see cref=""C1.operator checked " + op + @"""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+
+            var expected = new[] {
+                // (3,20): warning CS0419: Ambiguous reference in cref attribute: 'operator checked --'. Assuming 'C1.operator checked --(C1)', but could have also matched other overloads including 'C1.operator checked --()'.
+                // /// See <see cref="operator checked --"/>.
+                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "operator checked " + op).WithArguments("operator checked " + op, "C1.operator checked " + op + @"(C1)", "C1.operator checked " + op + @"()").WithLocation(3, 20),
+                // (12,20): warning CS0419: Ambiguous reference in cref attribute: 'C1.operator checked --'. Assuming 'C1.operator checked --(C1)', but could have also matched other overloads including 'C1.operator checked --()'.
+                // /// See <see cref="C1.operator checked --"/>.
+                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "C1.operator checked " + op).WithArguments("C1.operator checked " + op, "C1.operator checked " + op + @"(C1)", "C1.operator checked " + op + @"()").WithLocation(12, 20)
+                };
+
+            compilation.VerifyDiagnostics(expected);
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbols = GetReferencedSymbols(crefSyntax, compilation, out var ambiguityWinner, expected[count]);
+                AssertEx.Equal("C1.operator checked " + op + @"(C1)", ambiguityWinner.ToDisplayString());
+                Assert.Equal(2, actualSymbols.Length);
+                AssertEx.Equal("C1.operator checked " + op + @"(C1)", actualSymbols[0].ToDisplayString());
+                AssertEx.Equal("C1.operator checked " + op + @"()", actualSymbols[1].ToDisplayString());
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_121_CRef_Checked([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator checked " + op + @"""/>.
+/// </summary>
+class C1
+{
+    public void operator " + op + @"() {}
+    public void operator checked " + op + @"() {}
+    public static C1 operator " + op + @"(C1 x) => x;
+    public static C1 operator checked " + op + @"(C1 x) => x;
+}
+
+#line 11
+/// <summary>
+/// See <see cref=""C1.operator checked " + op + @"""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+
+            var expected = new[] {
+                // (3,20): warning CS0419: Ambiguous reference in cref attribute: 'operator checked ++'. Assuming 'C1.operator checked ++()', but could have also matched other overloads including 'C1.operator checked ++(C1)'.
+                // /// See <see cref="operator checked ++"/>.
+                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "operator checked " + op).WithArguments("operator checked " + op, "C1.operator checked " + op + @"()", "C1.operator checked " + op + @"(C1)").WithLocation(3, 20),
+                // (12,20): warning CS0419: Ambiguous reference in cref attribute: 'C1.operator ++'. Assuming 'C1.operator ++()', but could have also matched other overloads including 'C1.operator ++(C1)'.
+                // /// See <see cref="C1.operator checked ++"/>.
+                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "C1.operator checked " + op).WithArguments("C1.operator checked " + op, "C1.operator checked " + op + @"()", "C1.operator checked " + op + @"(C1)").WithLocation(12, 20)
+                };
+
+            compilation.VerifyDiagnostics(expected);
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbols = GetReferencedSymbols(crefSyntax, compilation, out var ambiguityWinner, expected[count]);
+                AssertEx.Equal("C1.operator checked " + op + @"()", ambiguityWinner.ToDisplayString());
+                Assert.Equal(2, actualSymbols.Length);
+                AssertEx.Equal("C1.operator checked " + op + @"()", actualSymbols[0].ToDisplayString());
+                AssertEx.Equal("C1.operator checked " + op + @"(C1)", actualSymbols[1].ToDisplayString());
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_122_CRef_Checked([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator checked " + op + @"(C1)""/>.
+/// </summary>
+class C1
+{
+    public void operator " + op + @"() {}
+    public void operator checked " + op + @"() {}
+    public static C1 operator " + op + @"(C1 x) => x;
+    public static C1 operator checked " + op + @"(C1 x) => x;
+}
+
+/// <summary>
+/// See <see cref=""C1.operator checked " + op + @"(C1)""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation.VerifyDiagnostics();
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
+                AssertEx.Equal("C1.operator checked " + op + @"(C1)", actualSymbol.ToDisplayString());
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_123_CRef_Checked([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator checked " + op + @"(C1)""/>.
+/// </summary>
+class C1
+{
+    public void operator " + op + @"() {}
+    public void operator checked " + op + @"() {}
+}
+
+#line 10
+/// <summary>
+/// See <see cref=""C1.operator checked " + op + @"(C1)""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var expected = new[] {
+                // (3,20): warning CS1574: XML comment has cref attribute 'operator checked ++(C1)' that could not be resolved
+                // /// See <see cref="operator checked ++(C1)"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "operator checked " + op + @"(C1)").WithArguments("operator checked " + op + @"(C1)").WithLocation(3, 20),
+                // (11,20): warning CS1574: XML comment has cref attribute 'operator ++(C1)' that could not be resolved
+                // /// See <see cref="C1.operator checked ++(C1)"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "C1.operator checked " + op + @"(C1)").WithArguments("operator checked " + op + @"(C1)").WithLocation(11, 20)
+                };
+
+            compilation.VerifyDiagnostics(expected);
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation, expected[count]);
+                Assert.Null(actualSymbol);
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78103")]
+        public void Increment_124_CRef_Checked([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator checked " + op + @"""/>.
+/// </summary>
+class C1
+{
+    public static C1 " + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName) + @"() => null;
+}
+
+/// <summary>
+/// See <see cref=""C1.operator checked " + op + @"""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation.VerifyDiagnostics();
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
+                AssertEx.Equal("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName) + @"()", actualSymbol.ToDisplayString());
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78103")]
+        public void Increment_125_CRef_Checked([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""" + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName) + @"""/>.
+/// </summary>
+class C1
+{
+    public static C1 operator " + op + @"(C1 x) => x;
+    public static C1 operator checked " + op + @"(C1 x) => x;
+}
+
+/// <summary>
+/// See <see cref=""C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName) + @"""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation.VerifyDiagnostics();
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
+                AssertEx.Equal("C1.operator checked " + op + @"(C1)", actualSymbol.ToDisplayString());
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78103")]
+        public void Increment_126_CRef_Checked([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""" + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName) + @"""/>.
+/// </summary>
+class C1
+{
+    public void operator " + op + @"() {}
+    public void operator checked " + op + @"() {}
+}
+
+/// <summary>
+/// See <see cref=""C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName) + @"""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation.VerifyDiagnostics();
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
+                AssertEx.Equal("C1.operator checked " + op + @"()", actualSymbol.ToDisplayString());
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
         private static string CompoundAssignmentOperatorName(string op, bool isChecked = false)
         {
             var kind = op switch
@@ -14176,6 +14936,692 @@ public class C1 : C2
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
+        }
+
+        private static string ToCRefOp(string op)
+        {
+            return op.Replace("&", "&amp;").Replace("<", "&lt;");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01070_CRef([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator " + ToCRefOp(op) + @"()""/>.
+/// </summary>
+class C1
+{
+    public void operator " + op + @"(int x) {}
+    public void operator " + op + @"(long x) {}
+}
+
+/// <summary>
+/// See <see cref=""C1.operator " + ToCRefOp(op) + @"()""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var expected = new[] {
+                // (3,20): warning CS1574: XML comment has cref attribute 'operator +=()' that could not be resolved
+                // /// See <see cref="operator +=()"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "operator " + ToCRefOp(op) + @"()").WithArguments("operator " + ToCRefOp(op) + @"()").WithLocation(3, 20),
+                // (12,20): warning CS1574: XML comment has cref attribute 'operator +=()' that could not be resolved
+                // /// See <see cref="C1.operator +=()"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "C1.operator " + ToCRefOp(op) + @"()").WithArguments("operator " + ToCRefOp(op) + @"()").WithLocation(12, 20)
+                };
+
+            compilation.VerifyDiagnostics(expected);
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation, expected[count]);
+                Assert.Null(actualSymbol);
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01080_CRef([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator " + ToCRefOp(op) + @"""/>.
+/// </summary>
+class C1
+{
+    public void operator " + op + @"(int x) {}
+}
+
+/// <summary>
+/// See <see cref=""C1.operator " + ToCRefOp(op) + @"""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation.VerifyDiagnostics();
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
+                AssertEx.Equal("C1.operator " + op + @"(int)", actualSymbol.ToDisplayString());
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01100_CRef([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator " + ToCRefOp(op) + @"""/>.
+/// </summary>
+class C1
+{
+    public void operator " + op + @"(int x) {}
+    public void operator " + op + @"(long x) {}
+}
+
+/// <summary>
+/// See <see cref=""C1.operator " + ToCRefOp(op) + @"""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+
+            var expected = new[] {
+                // (3,20): warning CS0419: Ambiguous reference in cref attribute: 'operator +='. Assuming 'C1.operator +=(int)', but could have also matched other overloads including 'C1.operator +=(long)'.
+                // /// See <see cref="operator +="/>.
+                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "operator " + ToCRefOp(op)).WithArguments("operator " + ToCRefOp(op), "C1.operator " + op + @"(int)", "C1.operator " + op + @"(long)").WithLocation(3, 20),
+                // (12,20): warning CS0419: Ambiguous reference in cref attribute: 'C1.operator +='. Assuming 'C1.operator +=(int)', but could have also matched other overloads including 'C1.operator +=(long)'.
+                // /// See <see cref="C1.operator +="/>.
+                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "C1.operator " + ToCRefOp(op)).WithArguments("C1.operator " + ToCRefOp(op), "C1.operator " + op + @"(int)", "C1.operator " + op + @"(long)").WithLocation(12, 20)
+                };
+
+            compilation.VerifyDiagnostics(expected);
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbols = GetReferencedSymbols(crefSyntax, compilation, out var ambiguityWinner, expected[count]);
+                AssertEx.Equal("C1.operator " + op + @"(int)", ambiguityWinner.ToDisplayString());
+                Assert.Equal(2, actualSymbols.Length);
+                AssertEx.Equal("C1.operator " + op + @"(int)", actualSymbols[0].ToDisplayString());
+                AssertEx.Equal("C1.operator " + op + @"(long)", actualSymbols[1].ToDisplayString());
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01120_CRef([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator " + ToCRefOp(op) + @"(int)""/>.
+/// </summary>
+class C1
+{
+    public void operator " + op + @"(long x) {}
+    public void operator " + op + @"(int x) {}
+}
+
+/// <summary>
+/// See <see cref=""C1.operator " + ToCRefOp(op) + @"(int)""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation.VerifyDiagnostics();
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
+                AssertEx.Equal("C1.operator " + op + @"(int)", actualSymbol.ToDisplayString());
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01130_CRef([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator " + ToCRefOp(op) + @"(string)""/>.
+/// </summary>
+class C1
+{
+    public void operator " + op + @"(int x) {}
+    public void operator " + op + @"(long x) {}
+}
+
+/// <summary>
+/// See <see cref=""C1.operator " + ToCRefOp(op) + @"(string)""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var expected = new[] {
+                // (3,20): warning CS1574: XML comment has cref attribute 'operator +=(string)' that could not be resolved
+                // /// See <see cref="operator +=(string)"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "operator " + ToCRefOp(op) + @"(string)").WithArguments("operator " + ToCRefOp(op) + @"(string)").WithLocation(3, 20),
+                // (12,20): warning CS1574: XML comment has cref attribute 'operator +=(string)' that could not be resolved
+                // /// See <see cref="C1.operator +=(string)"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "C1.operator " + ToCRefOp(op) + @"(string)").WithArguments("operator " + ToCRefOp(op) + @"(string)").WithLocation(12, 20)
+                };
+
+            compilation.VerifyDiagnostics(expected);
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation, expected[count]);
+                Assert.Null(actualSymbol);
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01131_CRef([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator " + ToCRefOp(op) + @"(int, string)""/>.
+/// </summary>
+class C1
+{
+    public void operator " + op + @"(int x) {}
+    public void operator " + op + @"(long x) {}
+}
+
+/// <summary>
+/// See <see cref=""C1.operator " + ToCRefOp(op) + @"(int, string)""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var expected = new[] {
+                // (3,20): warning CS1574: XML comment has cref attribute 'operator +=(int, string)' that could not be resolved
+                // /// See <see cref="operator +=(int, string)"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "operator " + ToCRefOp(op) + @"(int, string)").WithArguments("operator " + ToCRefOp(op) + @"(int, string)").WithLocation(3, 20),
+                // (12,20): warning CS1574: XML comment has cref attribute 'operator +=(int, string)' that could not be resolved
+                // /// See <see cref="C1.operator +=(int, string)"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "C1.operator " + ToCRefOp(op) + @"(int, string)").WithArguments("operator " + ToCRefOp(op) + @"(int, string)").WithLocation(12, 20)
+                };
+
+            compilation.VerifyDiagnostics(expected);
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation, expected[count]);
+                Assert.Null(actualSymbol);
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78103")]
+        public void CompoundAssignment_01140_CRef([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator " + ToCRefOp(op) + @"""/>.
+/// </summary>
+class C1
+{
+    public static void " + CompoundAssignmentOperatorName(op, isChecked: false) + @"(int x, long y) {}
+}
+
+/// <summary>
+/// See <see cref=""C1.operator " + ToCRefOp(op) + @"""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation.VerifyDiagnostics();
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
+                AssertEx.Equal("C1." + CompoundAssignmentOperatorName(op, isChecked: false) + @"(int, long)", actualSymbol.ToDisplayString());
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78103")]
+        public void CompoundAssignment_01160_CRef([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""" + CompoundAssignmentOperatorName(op, isChecked: false) + @"""/>.
+/// </summary>
+class C1
+{
+    public void operator " + op + @"(int x) {}
+}
+
+/// <summary>
+/// See <see cref=""C1." + CompoundAssignmentOperatorName(op, isChecked: false) + @"""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation.VerifyDiagnostics();
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
+                AssertEx.Equal("C1.operator " + op + @"(int)", actualSymbol.ToDisplayString());
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01170_CRef_Checked([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator checked " + ToCRefOp(op) + @"()""/>.
+/// </summary>
+class C1
+{
+    public void operator " + op + @"(int x) {}
+    public void operator checked " + op + @"(int x) {}
+    public void operator " + op + @"(long x) {}
+    public void operator checked " + op + @"(long x) {}
+}
+
+#line 11
+/// <summary>
+/// See <see cref=""C1.operator checked " + ToCRefOp(op) + @"()""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var expected = new[] {
+                // (3,20): warning CS1574: XML comment has cref attribute 'operator checked +=()' that could not be resolved
+                // /// See <see cref="operator checked +=()"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "operator checked " + ToCRefOp(op) + @"()").WithArguments("operator checked " + ToCRefOp(op) + @"()").WithLocation(3, 20),
+                // (12,20): warning CS1574: XML comment has cref attribute 'operator checked +=()' that could not be resolved
+                // /// See <see cref="C1.operator checked +=()"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "C1.operator checked " + ToCRefOp(op) + @"()").WithArguments("operator checked " + ToCRefOp(op) + @"()").WithLocation(12, 20)
+                };
+
+            compilation.VerifyDiagnostics(expected);
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation, expected[count]);
+                Assert.Null(actualSymbol);
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01180_CRef_Checked([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator checked " + ToCRefOp(op) + @"""/>.
+/// </summary>
+class C1
+{
+    public void operator " + op + @"(int x) {}
+    public void operator checked " + op + @"(int x) {}
+}
+
+/// <summary>
+/// See <see cref=""C1.operator checked " + ToCRefOp(op) + @"""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation.VerifyDiagnostics();
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
+                AssertEx.Equal("C1.operator checked " + op + @"(int)", actualSymbol.ToDisplayString());
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01181_CRef_Checked([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator checked " + ToCRefOp(op) + @"""/>.
+/// </summary>
+class C1
+{
+    public void operator " + op + @"(int x) {}
+}
+
+#line 11
+/// <summary>
+/// See <see cref=""C1.operator checked " + ToCRefOp(op) + @"""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var expected = new[] {
+                // (3,20): warning CS1574: XML comment has cref attribute 'operator checked %=' that could not be resolved
+                // /// See <see cref="operator checked %="/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "operator checked " + ToCRefOp(op)).WithArguments("operator checked " + ToCRefOp(op)).WithLocation(3, 20),
+                // (12,20): warning CS1574: XML comment has cref attribute 'operator checked %=' that could not be resolved
+                // /// See <see cref="C1.operator checked %="/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "C1.operator checked " + ToCRefOp(op)).WithArguments("operator checked " + ToCRefOp(op)).WithLocation(12, 20)
+                };
+
+            compilation.VerifyDiagnostics(expected);
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation, expected[count]);
+                Assert.Null(actualSymbol);
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01200_CRef_Checked([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator checked " + ToCRefOp(op) + @"""/>.
+/// </summary>
+class C1
+{
+    public void operator " + op + @"(int x) {}
+    public void operator checked " + op + @"(int x) {}
+    public void operator " + op + @"(long x) {}
+    public void operator checked " + op + @"(long x) {}
+}
+
+#line 11
+/// <summary>
+/// See <see cref=""C1.operator checked " + ToCRefOp(op) + @"""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+
+            var expected = new[] {
+                // (3,20): warning CS0419: Ambiguous reference in cref attribute: 'operator checked +='. Assuming 'C1.operator checked +=(int)', but could have also matched other overloads including 'C1.operator checked +=(long)'.
+                // /// See <see cref="operator checked +="/>.
+                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "operator checked " + ToCRefOp(op)).WithArguments("operator checked " + ToCRefOp(op), "C1.operator checked " + op + @"(int)", "C1.operator checked " + op + @"(long)").WithLocation(3, 20),
+                // (12,20): warning CS0419: Ambiguous reference in cref attribute: 'C1.operator checked +='. Assuming 'C1.operator checked +=(int)', but could have also matched other overloads including 'C1.operator checked +=(long)'.
+                // /// See <see cref="C1.operator +="/>.
+                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "C1.operator checked " + ToCRefOp(op)).WithArguments("C1.operator checked " + ToCRefOp(op), "C1.operator checked " + op + @"(int)", "C1.operator checked " + op + @"(long)").WithLocation(12, 20)
+                };
+
+            compilation.VerifyDiagnostics(expected);
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbols = GetReferencedSymbols(crefSyntax, compilation, out var ambiguityWinner, expected[count]);
+                AssertEx.Equal("C1.operator checked " + op + @"(int)", ambiguityWinner.ToDisplayString());
+                Assert.Equal(2, actualSymbols.Length);
+                AssertEx.Equal("C1.operator checked " + op + @"(int)", actualSymbols[0].ToDisplayString());
+                AssertEx.Equal("C1.operator checked " + op + @"(long)", actualSymbols[1].ToDisplayString());
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01220_CRef_Checked([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator checked " + ToCRefOp(op) + @"(int)""/>.
+/// </summary>
+class C1
+{
+    public void operator " + op + @"(long x) {}
+    public void operator checked " + op + @"(long x) {}
+    public void operator " + op + @"(int x) {}
+    public void operator checked " + op + @"(int x) {}
+}
+
+/// <summary>
+/// See <see cref=""C1.operator checked " + ToCRefOp(op) + @"(int)""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation.VerifyDiagnostics();
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
+                AssertEx.Equal("C1.operator checked " + op + @"(int)", actualSymbol.ToDisplayString());
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01230_CRef_Checked([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator checked " + ToCRefOp(op) + @"(string)""/>.
+/// </summary>
+class C1
+{
+    public void operator " + op + @"(int x) {}
+    public void operator checked " + op + @"(int x) {}
+    public void operator " + op + @"(long x) {}
+    public void operator checked " + op + @"(long x) {}
+}
+
+#line 11
+/// <summary>
+/// See <see cref=""C1.operator checked " + ToCRefOp(op) + @"(string)""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var expected = new[] {
+                // (3,20): warning CS1574: XML comment has cref attribute 'operator checked +=(string)' that could not be resolved
+                // /// See <see cref="operator checked +=(string)"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "operator checked " + ToCRefOp(op) + @"(string)").WithArguments("operator checked " + ToCRefOp(op) + @"(string)").WithLocation(3, 20),
+                // (12,20): warning CS1574: XML comment has cref attribute 'operator checked +=(string)' that could not be resolved
+                // /// See <see cref="C1.operator checked +=(string)"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "C1.operator checked " + ToCRefOp(op) + @"(string)").WithArguments("operator checked " + ToCRefOp(op) + @"(string)").WithLocation(12, 20)
+                };
+
+            compilation.VerifyDiagnostics(expected);
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation, expected[count]);
+                Assert.Null(actualSymbol);
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01231_CRef_Checked([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator checked " + ToCRefOp(op) + @"(int, string)""/>.
+/// </summary>
+class C1
+{
+    public void operator " + op + @"(int x) {}
+    public void operator checked " + op + @"(int x) {}
+    public void operator " + op + @"(long x) {}
+    public void operator checked " + op + @"(long x) {}
+}
+
+#line 11
+/// <summary>
+/// See <see cref=""C1.operator checked " + ToCRefOp(op) + @"(int, string)""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var expected = new[] {
+                // (3,20): warning CS1574: XML comment has cref attribute 'operator checked +=(int, string)' that could not be resolved
+                // /// See <see cref="operator checked +=(int, string)"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "operator checked " + ToCRefOp(op) + @"(int, string)").WithArguments("operator checked " + ToCRefOp(op) + @"(int, string)").WithLocation(3, 20),
+                // (12,20): warning CS1574: XML comment has cref attribute 'operator checked +=(int, string)' that could not be resolved
+                // /// See <see cref="C1.operator checked +=(int, string)"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "C1.operator checked " + ToCRefOp(op) + @"(int, string)").WithArguments("operator checked " + ToCRefOp(op) + @"(int, string)").WithLocation(12, 20)
+                };
+
+            compilation.VerifyDiagnostics(expected);
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation, expected[count]);
+                Assert.Null(actualSymbol);
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78103")]
+        public void CompoundAssignment_01240_CRef_Checked([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator checked " + ToCRefOp(op) + @"""/>.
+/// </summary>
+class C1
+{
+    public static void " + CompoundAssignmentOperatorName(op, isChecked: true) + @"(int x, long y) {}
+}
+
+/// <summary>
+/// See <see cref=""C1.operator checked " + ToCRefOp(op) + @"""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation.VerifyDiagnostics();
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
+                AssertEx.Equal("C1." + CompoundAssignmentOperatorName(op, isChecked: true) + @"(int, long)", actualSymbol.ToDisplayString());
+                count++;
+            }
+
+            Assert.Equal(2, count);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78103")]
+        public void CompoundAssignment_01260_CRef_Checked([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""" + CompoundAssignmentOperatorName(op, isChecked: true) + @"""/>.
+/// </summary>
+class C1
+{
+    public void operator " + op + @"(int x) {}
+    public void operator checked " + op + @"(int x) {}
+}
+
+/// <summary>
+/// See <see cref=""C1." + CompoundAssignmentOperatorName(op, isChecked: true) + @"""/>.
+/// </summary>
+class C2
+{}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation.VerifyDiagnostics();
+
+            int count = 0;
+            foreach (var crefSyntax in GetCrefSyntaxes(compilation))
+            {
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
+                AssertEx.Equal("C1.operator checked " + op + @"(int)", actualSymbol.ToDisplayString());
+                count++;
+            }
+
+            Assert.Equal(2, count);
         }
 
         // PROTOTYPE: Disable ORPA during overload resolution? 

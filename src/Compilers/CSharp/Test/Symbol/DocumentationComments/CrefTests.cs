@@ -6608,37 +6608,6 @@ class Cat { }
 
         private static IEnumerable<CrefSyntax> GetCrefSyntaxes(Compilation compilation) => GetCrefSyntaxes((CSharpCompilation)compilation);
 
-        internal static IEnumerable<CrefSyntax> GetCrefSyntaxes(CSharpCompilation compilation)
-        {
-            return compilation.SyntaxTrees.SelectMany(tree =>
-            {
-                var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
-                return docComments.SelectMany(docComment => docComment.DescendantNodes().OfType<XmlCrefAttributeSyntax>().Select(attr => attr.Cref));
-            });
-        }
-
-        internal static Symbol GetReferencedSymbol(CrefSyntax crefSyntax, CSharpCompilation compilation, params DiagnosticDescription[] expectedDiagnostics)
-        {
-            Symbol ambiguityWinner;
-            var references = GetReferencedSymbols(crefSyntax, compilation, out ambiguityWinner, expectedDiagnostics);
-            Assert.Null(ambiguityWinner);
-            Assert.InRange(references.Length, 0, 1); //Otherwise, call GetReferencedSymbols
-
-            return references.FirstOrDefault();
-        }
-
-        private static ImmutableArray<Symbol> GetReferencedSymbols(CrefSyntax crefSyntax, CSharpCompilation compilation, out Symbol ambiguityWinner, params DiagnosticDescription[] expectedDiagnostics)
-        {
-            var binderFactory = compilation.GetBinderFactory(crefSyntax.SyntaxTree);
-            var binder = binderFactory.GetBinder(crefSyntax);
-
-            DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
-            var references = binder.BindCref(crefSyntax, out ambiguityWinner, diagnostics);
-            diagnostics.Verify(expectedDiagnostics);
-            diagnostics.Free();
-            return references;
-        }
-
         private static ISymbol[] GetCrefOriginalDefinitions(SemanticModel model, IEnumerable<CrefSyntax> crefs)
         {
             return crefs.Select(syntax => model.GetSymbolInfo(syntax).Symbol).Select(symbol => (object)symbol == null ? null : symbol.OriginalDefinition).ToArray();
