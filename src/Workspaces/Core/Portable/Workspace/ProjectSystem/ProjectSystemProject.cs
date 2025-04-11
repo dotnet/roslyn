@@ -1190,9 +1190,9 @@ internal sealed partial class ProjectSystemProject
 
     private OneOrMany<string> GetMappedRazorSourceGenerator(string fullPath)
     {
-        var vsixRazorAnalyzers = _hostInfo.HostDiagnosticAnalyzerProvider.GetAnalyzerReferencesInExtensions().SelectAsArray(
+        var vsixRazorAnalyzers = _hostInfo.HostDiagnosticAnalyzerProvider.GetRazorReferencesInExtensions().SelectAsArray(
             predicate: item => item.extensionId == RazorVsixExtensionId,
-            selector: item => item.reference.FullPath);
+            selector: item => item.path);
 
         if (!vsixRazorAnalyzers.IsEmpty)
         {
