@@ -14,6 +14,7 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
@@ -33,10 +34,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private readonly Compilation _compilation;
         private CompilationTestData _testData;
         private readonly IEnumerable<ModuleData> _dependencies;
-        private ImmutableArray<Diagnostic> _diagnostics;
         private IModuleSymbol _lazyModuleSymbol;
         private IList<ModuleData> _allModuleData;
 
+        public ImmutableArray<Diagnostic> Diagnostics;
         public ImmutableArray<byte> EmittedAssemblyData;
         public ImmutableArray<byte> EmittedAssemblyPdb;
 
@@ -54,7 +55,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal CompilationTestData TestData => _testData;
         public Compilation Compilation => _compilation;
-        internal ImmutableArray<Diagnostic> Diagnostics => _diagnostics;
 
         internal Metadata GetMetadata()
         {
@@ -92,36 +92,31 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public string Dump(string methodName = null)
         {
-            using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
+            var (mainModule, modules) = Emit(manifestResources: null, EmitOptions.Default);
+            RuntimeEnvironmentUtilities.DumpAssemblyData(modules, out var dumpDir);
+
+            string extension = mainModule.Kind == OutputKind.ConsoleApplication ? ".exe" : ".dll";
+            string modulePath = Path.Combine(dumpDir, mainModule.SimpleName + extension);
+
+            var decompiler = new ICSharpCode.Decompiler.CSharp.CSharpDecompiler(modulePath,
+                new ICSharpCode.Decompiler.DecompilerSettings() { AsyncAwait = false });
+
+            if (methodName != null)
             {
-                string mainModuleFullName = Emit(testEnvironment, manifestResources: null, EmitOptions.Default);
-                IList<ModuleData> moduleDatas = testEnvironment.GetAllModuleData();
-                var mainModule = moduleDatas.Single(md => md.FullName == mainModuleFullName);
-                RuntimeEnvironmentUtilities.DumpAssemblyData(moduleDatas, out var dumpDir);
+                var map = new Dictionary<string, ICSharpCode.Decompiler.TypeSystem.IMethod>();
+                listMethods(decompiler.TypeSystem.MainModule.RootNamespace, map);
 
-                string extension = mainModule.Kind == OutputKind.ConsoleApplication ? ".exe" : ".dll";
-                string modulePath = Path.Combine(dumpDir, mainModule.SimpleName + extension);
-
-                var decompiler = new ICSharpCode.Decompiler.CSharp.CSharpDecompiler(modulePath,
-                    new ICSharpCode.Decompiler.DecompilerSettings() { AsyncAwait = false });
-
-                if (methodName != null)
+                if (map.TryGetValue(methodName, out var method))
                 {
-                    var map = new Dictionary<string, ICSharpCode.Decompiler.TypeSystem.IMethod>();
-                    listMethods(decompiler.TypeSystem.MainModule.RootNamespace, map);
-
-                    if (map.TryGetValue(methodName, out var method))
-                    {
-                        return decompiler.DecompileAsString(method.MetadataToken);
-                    }
-                    else
-                    {
-                        throw new Exception($"Didn't find method '{methodName}'. Available/distinguishable methods are: {Environment.NewLine}{string.Join(Environment.NewLine, map.Keys)}");
-                    }
+                    return decompiler.DecompileAsString(method.MetadataToken);
                 }
-
-                return decompiler.DecompileWholeModuleAsString();
+                else
+                {
+                    throw new Exception($"Didn't find method '{methodName}'. Available/distinguishable methods are: {Environment.NewLine}{string.Join(Environment.NewLine, map.Keys)}");
+                }
             }
+
+            return decompiler.DecompileWholeModuleAsString();
 
             void listMethods(ICSharpCode.Decompiler.TypeSystem.INamespace @namespace, Dictionary<string, ICSharpCode.Decompiler.TypeSystem.IMethod> result)
             {
@@ -165,24 +160,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public string DumpIL()
         {
             var output = new ICSharpCode.Decompiler.PlainTextOutput();
-            using var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies);
-            string mainModuleFullName = Emit(testEnvironment, manifestResources: null, EmitOptions.Default);
-            using var moduleMetadata = ModuleMetadata.CreateFromImage(testEnvironment.GetMainImage());
-            var peFile = new PEFile(mainModuleFullName, moduleMetadata.Module.PEReaderOpt);
+            var (mainModule, _) = Emit(manifestResources: null, EmitOptions.Default);
+            using var moduleMetadata = ModuleMetadata.CreateFromImage(mainModule.Image);
+            var peFile = new PEFile(mainModule.Id.FullName, moduleMetadata.Module.PEReaderOpt);
             var disassembler = new ICSharpCode.Decompiler.Disassembler.ReflectionDisassembler(output, default);
             disassembler.WriteModuleContents(peFile);
             return output.ToString();
         }
 
         /// <summary>
-		/// Asserts that the emitted IL for a type is the same as the expected IL.
-		/// Many core library types are in different assemblies on .Net Framework, and .Net Core.
-		/// Therefore this test is likely to fail unless you  only run it only only on one of these frameworks,
-		/// or you run it on both, but provide a different expected output string for each.
-		/// See <see cref="ExecutionConditionUtil"/>.
-		/// </summary>
-		/// <param name="typeName">The non-fully-qualified name of the type</param>
-		/// <param name="expected">The expected IL</param>
+        /// Asserts that the emitted IL for a type is the same as the expected IL.
+        /// Many core library types are in different assemblies on .Net Framework, and .Net Core.
+        /// Therefore this test is likely to fail unless you  only run it only only on one of these frameworks,
+        /// or you run it on both, but provide a different expected output string for each.
+        /// See <see cref="ExecutionConditionUtil"/>.
+        /// </summary>
+        /// <param name="typeName">The non-fully-qualified name of the type</param>
+        /// <param name="expected">The expected IL</param>
         public void VerifyTypeIL(string typeName, string expected)
         {
             VerifyTypeIL(typeName, output =>
@@ -225,30 +219,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public void VerifyTypeIL(string typeName, Action<string> validateExpected)
         {
             var output = new ICSharpCode.Decompiler.PlainTextOutput() { IndentationString = "    " };
-            using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
+            var (mainModule, _) = Emit(manifestResources: null, EmitOptions.Default);
+            using (var moduleMetadata = ModuleMetadata.CreateFromImage(mainModule.Image))
             {
-                string mainModuleFullName = Emit(testEnvironment, manifestResources: null, EmitOptions.Default);
-                IList<ModuleData> moduleData = testEnvironment.GetAllModuleData();
-                var mainModule = moduleData.Single(md => md.FullName == mainModuleFullName);
-                using (var moduleMetadata = ModuleMetadata.CreateFromImage(testEnvironment.GetMainImage()))
-                {
-                    var peFile = new PEFile(mainModuleFullName, moduleMetadata.Module.PEReaderOpt);
-                    var metadataReader = moduleMetadata.GetMetadataReader();
+                var peFile = new PEFile(mainModule.Id.FullName, moduleMetadata.Module.PEReaderOpt);
+                var metadataReader = moduleMetadata.GetMetadataReader();
 
-                    bool found = false;
-                    foreach (var typeDefHandle in metadataReader.TypeDefinitions)
+                bool found = false;
+                foreach (var typeDefHandle in metadataReader.TypeDefinitions)
+                {
+                    var typeDef = metadataReader.GetTypeDefinition(typeDefHandle);
+                    if (metadataReader.GetString(typeDef.Name) == typeName)
                     {
-                        var typeDef = metadataReader.GetTypeDefinition(typeDefHandle);
-                        if (metadataReader.GetString(typeDef.Name) == typeName)
-                        {
-                            var disassembler = new ICSharpCode.Decompiler.Disassembler.ReflectionDisassembler(output, default);
-                            disassembler.DisassembleType(peFile, typeDefHandle);
-                            found = true;
-                            break;
-                        }
+                        var disassembler = new ICSharpCode.Decompiler.Disassembler.ReflectionDisassembler(output, default);
+                        disassembler.DisassembleType(peFile, typeDefHandle);
+                        found = true;
+                        break;
                     }
-                    Assert.True(found, "Could not find type named " + typeName);
                 }
+                Assert.True(found, "Could not find type named " + typeName);
             }
 
             validateExpected(output.ToString());
@@ -264,11 +253,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Verification peVerify,
             SignatureDescription[] expectedSignatures)
         {
-            using var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies);
+            var (mainModule, modules) = Emit(manifestResources, emitOptions);
+            _allModuleData = modules;
 
-            string mainModuleName = Emit(testEnvironment, manifestResources, emitOptions);
-            _allModuleData = testEnvironment.GetAllModuleData();
-
+            using var testEnvironment = RuntimeEnvironmentFactory.Create(mainModule, modules);
             try
             {
                 testEnvironment.Verify(peVerify);
@@ -291,11 +279,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (expectedOutput != null || expectedReturnCode != null)
             {
-                var returnCode = testEnvironment.Execute(mainModuleName, args, expectedOutput, trimOutput);
-
-                if (expectedReturnCode is int exCode)
+                var (exitCode, output, errorOutput) = testEnvironment.Execute(args, expectedOutput?.Length);
+                if (expectedReturnCode.HasValue)
                 {
-                    Assert.Equal(exCode, returnCode);
+                    Assert.Equal(expectedReturnCode.Value, exitCode);
+                }
+
+                if (expectedOutput != null)
+                {
+                    if (trimOutput)
+                    {
+                        expectedOutput = expectedOutput.Trim();
+                        output = output.Trim();
+                    }
+
+                    Assert.Equal(expectedOutput, output);
+                    Assert.Empty(errorOutput);
                 }
             }
         }
@@ -478,24 +477,53 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         // Replace bool verify parameter with string[] expectedPeVerifyOutput. If null, no verification. If empty verify have to succeed. Otherwise compare errors.
         public void EmitAndVerify(params string[] expectedPeVerifyOutput)
         {
-            using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
-            {
-                string mainModuleName = Emit(testEnvironment, null, null);
-                string[] actualOutput = testEnvironment.VerifyModules(new[] { mainModuleName });
-                Assert.Equal(expectedPeVerifyOutput, actualOutput);
-            }
+            var (mainModule, modules) = Emit(null, null);
+            using var testEnvironment = RuntimeEnvironmentFactory.Create(mainModule, modules);
+            string[] actualOutput = testEnvironment.VerifyModules([mainModule.FullName]);
+            Assert.Equal(expectedPeVerifyOutput, actualOutput);
         }
 
-        private string Emit(IRuntimeEnvironment testEnvironment, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions)
+        private (ModuleData MainModule, ImmutableArray<ModuleData> Modules) Emit(IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions)
         {
-            testEnvironment.Emit(_compilation, manifestResources, emitOptions);
+            _testData = new CompilationTestData();
+            var diagnostics = DiagnosticBag.GetInstance();
+            var dependencyList = new List<ModuleData>();
+            var emitOutput = RuntimeEnvironmentUtilities.EmitCompilation(
+                _compilation,
+                manifestResources,
+                dependencyList,
+                diagnostics,
+                _testData,
+                emitOptions);
 
-            _diagnostics = testEnvironment.GetDiagnostics();
-            EmittedAssemblyData = testEnvironment.GetMainImage();
-            EmittedAssemblyPdb = testEnvironment.GetMainPdb();
-            _testData = ((IInternalRuntimeEnvironment)testEnvironment).GetCompilationTestData();
+            Diagnostics = diagnostics.ToReadOnlyAndFree();
+            if (emitOutput is { } e)
+            {
+                var mainImage = e.Assembly;
+                var mainPdb = e.Pdb;
+                var corLibIdentity = _compilation.GetSpecialType(SpecialType.System_Object).ContainingAssembly.Identity;
+                var identity = _compilation.Assembly.Identity;
+                var mainModuleData = new ModuleData(
+                    identity,
+                    _compilation.Options.OutputKind,
+                    mainImage,
+                    pdb: default,
+                    inMemoryModule: true,
+                    isCorLib: corLibIdentity == identity);
 
-            return _compilation.Assembly.Identity.GetDisplayName();
+                // We need to add the main module so that it gets checked against already loaded assembly names.
+                // If an assembly is loaded directly via PEVerify(image) another assembly of the same full name
+                // can't be loaded as a dependency (via Assembly.ReflectionOnlyLoad) in the same domain.
+                dependencyList.Insert(0, mainModuleData);
+
+                return (mainModuleData, dependencyList.ToImmutableArray());
+            }
+            else
+            {
+                RuntimeEnvironmentUtilities.DumpAssemblyData(dependencyList, out var dumpDir);
+                var message = ExceptionHelper.GetMessageFromResult(Diagnostics, dumpDir);
+                throw new Exception(message);
+            }
         }
 
         /// <summary>
@@ -682,7 +710,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public CompilationVerifier VerifyDiagnostics(params DiagnosticDescription[] expected)
         {
-            _diagnostics.Verify(expected);
+            Diagnostics.Verify(expected);
             return this;
         }
 

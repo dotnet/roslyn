@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -24,20 +22,13 @@ namespace Roslyn.Test.Utilities
 {
     public static class RuntimeEnvironmentFactory
     {
-        private static readonly Lazy<IRuntimeEnvironmentFactory> s_lazyFactory = new Lazy<IRuntimeEnvironmentFactory>(RuntimeUtilities.GetRuntimeEnvironmentFactory);
+        private static IRuntimeEnvironmentFactory Instance { get; } = RuntimeUtilities.GetRuntimeEnvironmentFactory();
 
-        internal static IRuntimeEnvironment Create(IEnumerable<ModuleData> additionalDependencies = null)
-        {
-            return s_lazyFactory.Value.Create(additionalDependencies);
-        }
+        internal static IRuntimeEnvironment Create(ModuleData mainModule, ImmutableArray<ModuleData> modules = default) =>
+            Instance.Create(mainModule, modules);
 
-        public static void CaptureOutput(Action action, int expectedLength, out string output, out string errorOutput)
-        {
-            using (var runtimeEnvironment = Create())
-            {
-                runtimeEnvironment.CaptureOutput(action, expectedLength, out output, out errorOutput);
-            }
-        }
+        public static (string Output, string ErrorOutput) CaptureOutput(Action action, int? maxOutputLength) =>
+            Instance.CaptureOutput(action, maxOutputLength);
     }
 
     internal readonly struct EmitOutput
@@ -104,12 +95,12 @@ namespace Roslyn.Test.Utilities
                 var metadata = peRef.GetMetadataNoCopy();
                 var isManifestModule = peRef.Properties.Kind == MetadataImageKind.Assembly;
                 var identity = isManifestModule
-                    ? ((AssemblyMetadata)metadata).GetAssembly().Identity
+                    ? ((AssemblyMetadata)metadata).GetAssembly()!.Identity
                     : null;
 
                 // If this is an indirect reference to a Compilation then it is already been emitted 
                 // so no more work to be done.
-                if (isManifestModule && fullNameSet.Contains(identity.GetDisplayName()))
+                if (isManifestModule && fullNameSet.Contains(identity!.GetDisplayName()))
                 {
                     continue;
                 }
@@ -121,7 +112,7 @@ namespace Roslyn.Test.Utilities
                     ModuleData moduleData;
                     if (isManifestModule)
                     {
-                        fullNameSet.Add(identity.GetDisplayName());
+                        fullNameSet.Add(identity!.GetDisplayName());
                         moduleData = new ModuleData(identity,
                                                     OutputKind.DynamicallyLinkedLibrary,
                                                     bytes,
@@ -234,9 +225,9 @@ namespace Roslyn.Test.Utilities
 
         internal static EmitOutput? EmitCompilationCore(
             Compilation compilation,
-            IEnumerable<ResourceDescription> manifestResources,
+            IEnumerable<ResourceDescription>? manifestResources,
             DiagnosticBag diagnostics,
-            CompilationTestData testData,
+            CompilationTestData? testData,
             EmitOptions emitOptions)
         {
             emitOptions ??= EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded);
@@ -292,7 +283,7 @@ namespace Roslyn.Test.Utilities
             return null;
         }
 
-        public static string DumpAssemblyData(IEnumerable<ModuleData> modules, out string dumpDirectory)
+        public static string DumpAssemblyData(IEnumerable<ModuleData> modules, out string? dumpDirectory)
         {
             dumpDirectory = null;
 
@@ -330,8 +321,9 @@ namespace Roslyn.Test.Utilities
                     }
                     else
                     {
-                        AssemblyIdentity.TryParseDisplayName(module.FullName, out var identity);
-                        fileName = identity.Name;
+                        fileName = AssemblyIdentity.TryParseDisplayName(module.FullName, out var identity)
+                            ? identity.Name
+                            : "";
                     }
 
                     string pePath = Path.Combine(dumpDirectory, fileName + module.Kind.GetDefaultExtension());
@@ -348,7 +340,7 @@ namespace Roslyn.Test.Utilities
                         pePath = $"<unable to write file: '{pePath}' -- {e.Message}>";
                     }
 
-                    string pdbPath;
+                    string? pdbPath;
                     if (!module.Pdb.IsDefaultOrEmpty)
                     {
                         pdbPath = Path.Combine(dumpDirectory, fileName + ".pdb");
@@ -386,25 +378,15 @@ namespace Roslyn.Test.Utilities
 
     public interface IRuntimeEnvironmentFactory
     {
-        IRuntimeEnvironment Create(IEnumerable<ModuleData> additionalDependencies);
+        IRuntimeEnvironment Create(ModuleData mainModule, ImmutableArray<ModuleData> modules);
+        (string Output, string ErrorOutput) CaptureOutput(Action action, int? maxOutputLength);
     }
 
     public interface IRuntimeEnvironment : IDisposable
     {
-        void Emit(Compilation mainCompilation, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, bool usePdbForDebugging = false);
-        int Execute(string moduleName, string[] args, string expectedOutput, bool trimOutput = true);
-        ImmutableArray<byte> GetMainImage();
-        ImmutableArray<byte> GetMainPdb();
-        ImmutableArray<Diagnostic> GetDiagnostics();
+        (int ExitCode, string Output, string ErrorOutput) Execute(string[] args, int? maxOutputLength);
         SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName);
-        IList<ModuleData> GetAllModuleData();
         void Verify(Verification verification);
         string[] VerifyModules(string[] modulesToVerify);
-        void CaptureOutput(Action action, int expectedLength, out string output, out string errorOutput);
-    }
-
-    internal interface IInternalRuntimeEnvironment
-    {
-        CompilationTestData GetCompilationTestData();
     }
 }

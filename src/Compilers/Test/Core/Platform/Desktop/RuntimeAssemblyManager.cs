@@ -374,16 +374,7 @@ namespace Roslyn.Test.Utilities.Desktop
             }
         }
 
-        private SortedSet<string> GetFullyQualifiedTypeNames(string assemblyName)
-        {
-            var typeNames = new SortedSet<string>();
-            Assembly assembly = GetAssembly(assemblyName, true);
-            foreach (var typ in assembly.GetTypes())
-                typeNames.Add(typ.FullName);
-            return typeNames;
-        }
-
-        public int Execute(string moduleName, string[] mainArgs, int? expectedOutputLength, out string output)
+        public int Execute(string moduleName, string[] mainArgs, int? expectedOutputLength, out string output, out string errorOutput)
         {
             ImmutableArray<byte> bytes = GetModuleBytesByName(moduleName);
             Assembly assembly = DesktopRuntimeUtil.LoadAsAssembly(moduleName, bytes);
@@ -397,11 +388,11 @@ namespace Roslyn.Test.Utilities.Desktop
                 object[] args;
                 if (count == 0)
                 {
-                    args = new object[0];
+                    args = [];
                 }
                 else if (count == 1)
                 {
-                    args = new object[] { mainArgs ?? new string[0] };
+                    args = [mainArgs];
                 }
                 else
                 {
@@ -411,8 +402,9 @@ namespace Roslyn.Test.Utilities.Desktop
                 result = entryPoint.Invoke(null, args);
             }, expectedOutputLength ?? 0, out var stdOut, out var stdErr);
 
-            output = stdOut + stdErr;
-            return result is int ? (int)result : 0;
+            output = stdOut;
+            errorOutput = stdErr;
+            return result is int i ? i : 0;
         }
 
         public string[] PeVerifyModules(string[] modulesToVerify, bool throwOnError = true)
