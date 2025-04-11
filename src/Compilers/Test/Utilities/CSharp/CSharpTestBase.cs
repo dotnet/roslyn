@@ -1075,7 +1075,6 @@ namespace System.Diagnostics.CodeAnalysis
                 emitOptions,
                 verify);
 
-
         internal CompilationVerifier CompileAndVerify(
             Compilation compilation,
             IEnumerable<ResourceDescription>? manifestResources,
@@ -1108,9 +1107,9 @@ namespace System.Diagnostics.CodeAnalysis
                 translate(sourceSymbolValidator),
                 validator,
                 translate(symbolValidator),
+                executionValidator,
                 expectedSignatures,
                 args,
-                executionValidator,
                 emitOptions,
                 verify);
         }

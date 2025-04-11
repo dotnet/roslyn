@@ -77,6 +77,28 @@ End Namespace
             verify)
     End Function
 
+    Friend Shadows Function CompileAndVerifyBaseline(
+        compilation As Compilation,
+        expectedOutput As XCData,
+        Optional emitOptions As EmitOptions = Nothing,
+        Optional verify As Verification = Nothing) As CompilationVerifier
+
+        Return CompileAndVerifyBaseline(compilation, XCDataToString(expectedOutput), emitOptions, verify)
+    End Function
+
+    Friend Shadows Function CompileAndVerifyBaseline(
+        compilation As Compilation,
+        expectedOutput As String,
+        Optional emitOptions As EmitOptions = Nothing,
+        Optional verify As Verification = Nothing) As CompilationVerifier
+
+        Return MyBase.CompileAndVerifyCommon(
+            compilation,
+            executionValidator:=ExecutionValidators.CreateBaseLine(expectedOutput),
+            emitOptions:=emitOptions,
+            verify:=verify)
+    End Function
+
     Friend Shadows Function CompileAndVerify(
         compilation As Compilation,
         Optional manifestResources As IEnumerable(Of ResourceDescription) = Nothing,

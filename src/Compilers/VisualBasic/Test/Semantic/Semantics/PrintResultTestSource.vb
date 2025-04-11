@@ -16,15 +16,32 @@ Module PrintHelper
         Dim valStr = val.ToString()
         If vType Is GetType(DateTime) Then
             valStr = DirectCast(val, DateTime).ToString("M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture)
+            valStr = NormalizeSpaces(valStr)
         ElseIf vType Is GetType(Single) Then
-            valStr = DirectCast(val, Single).ToString(CultureInfo.InvariantCulture)
+            valStr = DirectCast(val, Single).ToString("R", CultureInfo.InvariantCulture)
         ElseIf vType Is GetType(Double) Then
-            valStr = DirectCast(val, Double).ToString(CultureInfo.InvariantCulture)
+            valStr = DirectCast(val, Double).ToString("R", CultureInfo.InvariantCulture)
         ElseIf vType Is GetType(Decimal) Then
             valStr = DirectCast(val, Decimal).ToString(CultureInfo.InvariantCulture)
         End If
 
         Return valStr
+    End Function
+
+    Function NormalizeSpaces(input As String) As String
+        If input Is Nothing Then Return Nothing
+
+        Dim sb As New System.Text.StringBuilder()
+
+        For Each ch As Char In input
+            If CharUnicodeInfo.GetUnicodeCategory(ch) = UnicodeCategory.SpaceSeparator Then
+                sb.Append(" "c)
+            Else
+                sb.Append(ch)
+            End If
+        Next
+
+        Return sb.ToString()
     End Function
 
     Sub PrintResult(val As Boolean)

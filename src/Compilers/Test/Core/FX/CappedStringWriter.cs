@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public CappedStringWriter(int? maxLength)
         {
-            if (maxLength is int m)
+            if (maxLength is int m && m > 0)
             {
                 _expectedLength = m;
                 _remaining = Math.Max(256, m * 4);

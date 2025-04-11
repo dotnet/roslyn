@@ -21,8 +21,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Inherits BasicTestBase
 
         ' The test uses double.ToString which has precision differences between English and non-English cultures
-        <ConditionalFact(GetType(WindowsDesktopOnly), GetType(IsEnglishLocal), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
-        Public Sub Test1()
+        <ConditionalTheory(GetType(WindowsDesktopOnly), GetType(IsEnglishLocal), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
+        <InlineData(True)>
+        <InlineData(False)>
+        Public Sub Test1(overflowChecks As Boolean)
 
             Dim currCulture = System.Threading.Thread.CurrentThread.CurrentCulture
             System.Threading.Thread.CurrentThread.CurrentCulture = New System.Globalization.CultureInfo("en-US", useUserOverride:=False)
@@ -39,28 +41,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     </file>
 </compilation>
 
-                Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+                Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOverflowChecks(overflowChecks))
+                CompileAndVerifyBaseline(compilation, expectedOutput:=SemanticResourceUtil.BinaryOperatorsTestBaseline1)
 
-                Assert.True(compilation.Options.CheckOverflow)
-
-                CompileAndVerify(compilation, expectedOutput:=SemanticResourceUtil.BinaryOperatorsTestBaseline1)
-
-                compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOverflowChecks(False))
-
-                Assert.False(compilation.Options.CheckOverflow)
-
-                CompileAndVerify(compilation, expectedOutput:=SemanticResourceUtil.BinaryOperatorsTestBaseline1)
-
-            Catch ex As Exception
-                Assert.Null(ex)
             Finally
                 System.Threading.Thread.CurrentThread.CurrentCulture = currCulture
             End Try
 
         End Sub
 
-        <Fact>
-        Public Sub Test1_Date()
+        <Theory>
+        <InlineData(True)>
+        <InlineData(False)>
+        Public Sub Test1_Date(overflowChecks As Boolean)
             ' test binary operator between Date value and another type data
             ' call ToString() on it defeat the purpose of these scenarios
             Dim currCulture = System.Threading.Thread.CurrentThread.CurrentCulture
@@ -219,16 +212,9 @@ End Module
 [Ob & Da] Object: -138:30:00 AM
 [Tc & Da] String: [148:30:00 AM]]]>
 
-                Dim compilation = CompilationUtils.CreateCompilation(compilationDef, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe)
-                Assert.True(compilation.Options.CheckOverflow)
-                CompileAndVerify(compilation, expectedOutput:=expected)
+                Dim compilation = CompilationUtils.CreateCompilation(compilationDef, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe.WithOverflowChecks(overflowChecks))
+                CompileAndVerifyBaseline(compilation, expectedOutput:=expected)
 
-                compilation = CompilationUtils.CreateCompilation(compilationDef, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe.WithOverflowChecks(False))
-                Assert.False(compilation.Options.CheckOverflow)
-                CompileAndVerify(compilation, expectedOutput:=expected)
-
-            Catch ex As Exception
-                Assert.Null(ex)
             Finally
                 System.Threading.Thread.CurrentThread.CurrentCulture = currCulture
             End Try
@@ -302,7 +288,7 @@ End Module
 
             Assert.False(compilation.Options.OptionCompareText)
 
-            CompileAndVerify(compilation, <![CDATA[
+            CompileAndVerifyBaseline(compilation, <![CDATA[
 True
 True
 False
@@ -315,7 +301,7 @@ False
 
             Assert.True(compilation.Options.OptionCompareText)
 
-            CompileAndVerify(compilation, <![CDATA[
+            CompileAndVerifyBaseline(compilation, <![CDATA[
 True
 True
 True
@@ -354,12 +340,14 @@ False
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
-            CompileAndVerify(compilation, expectedOutput:=SemanticResourceUtil.BinaryOperatorsTestBaseline4)
+            CompileAndVerifyBaseline(compilation, expectedOutput:=SemanticResourceUtil.BinaryOperatorsTestBaseline4)
         End Sub
 
         ' The test uses double.ToString which has precision differences between English and non-English cultures
-        <ConditionalFact(GetType(WindowsDesktopOnly), GetType(IsEnglishLocal), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
-        Public Sub Test5()
+        <ConditionalTheory(GetType(WindowsDesktopOnly), GetType(IsEnglishLocal), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
+        <InlineData(True)>
+        <InlineData(False)>
+        Public Sub Test5(overflowChecks As Boolean)
 
             Dim compilationDef =
 <compilation name="VBBinaryOperators52">
@@ -371,13 +359,8 @@ False
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
-            Assert.True(compilation.Options.CheckOverflow)
-            CompileAndVerify(compilation, expectedOutput:=SemanticResourceUtil.BinaryOperatorsTestBaseline5)
-
-            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOverflowChecks(False))
-            Assert.False(compilation.Options.CheckOverflow)
-            CompileAndVerify(compilation, expectedOutput:=SemanticResourceUtil.BinaryOperatorsTestBaseline5)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOverflowChecks(overflowChecks))
+            CompileAndVerifyBaseline(compilation, expectedOutput:=SemanticResourceUtil.BinaryOperatorsTestBaseline5)
 
         End Sub
 
@@ -489,7 +472,7 @@ End Module
 ]]>
 
                 Dim compilation = CompilationUtils.CreateCompilation(compilationDef, targetFramework:=TargetFramework.StandardAndVBRuntime, options:=TestOptions.ReleaseExe.WithOverflowChecks(overflowChecks))
-                CompileAndVerify(compilation, CreateExecutionValidator(expected, ExecutionValidators.NormalizeOutputFlags.All))
+                CompileAndVerifyBaseline(compilation, expected)
 
             Finally
                 System.Threading.Thread.CurrentThread.CurrentCulture = currCulture
@@ -760,7 +743,7 @@ End Module
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
-            CompileAndVerify(compilation, expectedOutput:=
+            CompileAndVerifyBaseline(compilation, expectedOutput:=
             <![CDATA[
 Succeeded
 ]]>)
@@ -833,7 +816,7 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
-            Dim compilationVerifier = CompileAndVerify(compilation,
+            Dim compilationVerifier = CompileAndVerifyBaseline(compilation,
                          expectedOutput:=
             <![CDATA[
 Expected: .
