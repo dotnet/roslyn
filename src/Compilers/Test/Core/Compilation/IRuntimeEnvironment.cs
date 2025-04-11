@@ -71,8 +71,6 @@ namespace Roslyn.Test.Utilities
 
     internal static class RuntimeEnvironmentUtilities
     {
-        private static int s_dumpCount;
-
         private static IEnumerable<ModuleMetadata> EnumerateModules(Metadata metadata)
         {
             return (metadata.Kind == MetadataImageKind.Assembly) ? ((AssemblyMetadata)metadata).GetModules().AsEnumerable() : SpecializedCollections.SingletonEnumerable((ModuleMetadata)metadata);
@@ -283,97 +281,6 @@ namespace Roslyn.Test.Utilities
             return null;
         }
 
-        public static string DumpAssemblyData(IEnumerable<ModuleData> modules, out string? dumpDirectory)
-        {
-            dumpDirectory = null;
-
-            var sb = new StringBuilder();
-            foreach (var module in modules)
-            {
-                // Limit the number of dumps to 10.  After 10 we're likely in a bad state and are 
-                // dumping lots of unnecessary data.
-                if (s_dumpCount > 10)
-                {
-                    break;
-                }
-
-                if (module.InMemoryModule)
-                {
-                    Interlocked.Increment(ref s_dumpCount);
-
-                    if (dumpDirectory == null)
-                    {
-                        dumpDirectory = TempRoot.Root;
-                        try
-                        {
-                            Directory.CreateDirectory(dumpDirectory);
-                        }
-                        catch
-                        {
-                            // Okay if directory already exists
-                        }
-                    }
-
-                    string fileName;
-                    if (module.Kind == OutputKind.NetModule)
-                    {
-                        fileName = module.FullName;
-                    }
-                    else
-                    {
-                        fileName = AssemblyIdentity.TryParseDisplayName(module.FullName, out var identity)
-                            ? identity.Name
-                            : "";
-                    }
-
-                    string pePath = Path.Combine(dumpDirectory, fileName + module.Kind.GetDefaultExtension());
-                    try
-                    {
-                        module.Image.WriteToFile(pePath);
-                    }
-                    catch (ArgumentException e)
-                    {
-                        pePath = $"<unable to write file: '{pePath}' -- {e.Message}>";
-                    }
-                    catch (IOException e)
-                    {
-                        pePath = $"<unable to write file: '{pePath}' -- {e.Message}>";
-                    }
-
-                    string? pdbPath;
-                    if (!module.Pdb.IsDefaultOrEmpty)
-                    {
-                        pdbPath = Path.Combine(dumpDirectory, fileName + ".pdb");
-
-                        try
-                        {
-                            module.Pdb.WriteToFile(pdbPath);
-                        }
-                        catch (ArgumentException e)
-                        {
-                            pdbPath = $"<unable to write file: '{pdbPath}' -- {e.Message}>";
-                        }
-                        catch (IOException e)
-                        {
-                            pdbPath = $"<unable to write file: '{pdbPath}' -- {e.Message}>";
-                        }
-                    }
-                    else
-                    {
-                        pdbPath = null;
-                    }
-
-                    sb.Append("PE(" + module.Kind + "): ");
-                    sb.AppendLine(pePath);
-                    if (pdbPath != null)
-                    {
-                        sb.Append("PDB: ");
-                        sb.AppendLine(pdbPath);
-                    }
-                }
-            }
-            return sb.ToString();
-        }
     }
 
     public interface IRuntimeEnvironmentFactory
