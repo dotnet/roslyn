@@ -77,3 +77,10 @@ The compiler is free to make assumptions about the shape and behavior of well-kn
 It may not check for unexpected constraints, `Obsolete` attribute, or `UnmanagedCallersOnly` attribute.
 It may perform some optimizations based on expectations that the types/members are well-behaved.
 Note: the compiler should remain resilient to missing well-known types/members.
+
+# Interface partial methods
+
+Interface partial methods are implicitly non-virtual,
+unlike non-partial interface methods and other interface partial member kinds,
+see [a related breaking change](./Compiler%20Breaking%20Changes%20-%20DotNet%2010.md#partial-properties-and-events-are-now-implicitly-virtual-and-public)
+and [LDM 2025-04-07](https://github.com/dotnet/csharplang/blob/main/meetings/2025/LDM-2025-04-07.md#breaking-change-discussion-making-partial-members-in-interfaces-virtual-andor-public).
