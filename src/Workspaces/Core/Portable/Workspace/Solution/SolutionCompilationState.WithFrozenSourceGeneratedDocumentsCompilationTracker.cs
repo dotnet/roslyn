@@ -211,16 +211,6 @@ internal sealed partial class SolutionCompilationState
             }
         }
 
-        public ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(
-            SolutionCompilationState compilationState, CancellationToken cancellationToken)
-        {
-            // We can directly return the diagnostics from the underlying tracker; this is because
-            // a generated document cannot have any diagnostics that are produced by a generator:
-            // a generator cannot add diagnostics to it's own file outputs, and generators don't see the
-            // outputs of each other.
-            return UnderlyingTracker.GetSourceGeneratorDiagnosticsAsync(compilationState, cancellationToken);
-        }
-
         public ValueTask<GeneratorDriverRunResult?> GetSourceGeneratorRunResultAsync(SolutionCompilationState solution, CancellationToken cancellationToken)
         {
             // The provided run result would be out of sync with the replaced documents.
