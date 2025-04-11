@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
@@ -1576,7 +1577,7 @@ namespace System.Diagnostics.CodeAnalysis
                 CompileAndVerify(comp, expectedOutput: "", verify: verify); //need expected output to force execution
                 Assert.False(true, string.Format("Expected exception {0}({1})", typeof(T).Name, expectedMessage));
             }
-            catch (ExecutionException x)
+            catch (TargetInvocationException x)
             {
                 var e = x.InnerException;
                 Assert.IsType<T>(e);
