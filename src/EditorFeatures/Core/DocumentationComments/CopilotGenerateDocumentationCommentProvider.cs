@@ -7,6 +7,7 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -188,14 +189,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             var list = new List<ProposedEdit>();
             var documentationCommentResults = await copilotService.GetDocumentationCommentAsync([proposal], cancellationToken).ConfigureAwait(false);
 
-            Dictionary<string, string>? documentationCommentDictionary = null;
-            var isQuotaExceeded = false;
-
-            if (!documentationCommentResults.IsEmpty)
-            {
-                documentationCommentDictionary = documentationCommentResults[0].responseDictionary;
-                isQuotaExceeded = documentationCommentResults[0].isQuotaExceeded;
-            }
+            var (documentationCommentDictionary, isQuotaExceeded) = documentationCommentResults.FirstOrDefault();
 
             // Quietly fail if the quota has been exceeded.
             if (isQuotaExceeded)
