@@ -57,8 +57,6 @@ internal class LanguageServerExportProviderBuilder
         // Also add the ExtensionAssemblyManager so it will be available for the rest of the composition.
         exportProvider.GetExportedValue<ExtensionAssemblyManagerMefProvider>().SetMefExtensionAssemblyManager(extensionManager);
 
-        var exportProviderBuilderLogger = loggerFactory.CreateLogger<ExportProviderBuilder>();
-
         // Immediately set the logger factory, so that way it'll be available for the rest of the composition
         exportProvider.GetExportedValue<ServerLoggerFactory>().SetFactory(loggerFactory);
 
