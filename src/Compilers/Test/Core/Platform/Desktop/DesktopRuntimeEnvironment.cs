@@ -23,7 +23,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
-using static Roslyn.Test.Utilities.RuntimeEnvironmentUtilities;
 
 namespace Roslyn.Test.Utilities.Desktop
 {
@@ -164,16 +163,8 @@ namespace Roslyn.Test.Utilities.Desktop
 
         public (int ExitCode, string Output, string ErrorOutput) Execute(string[] args, int? maxOutputLength)
         {
-            try
-            {
-                var exitCode = Data.Manager.Execute(MainModule.FullName, args, maxOutputLength, out string output, out string errorOutput);
-                return (exitCode, output, errorOutput);
-            }
-            catch (TargetInvocationException tie)
-            {
-                Data.Manager.DumpAssemblyData(out var dumpDir);
-                throw new ExecutionException(tie.InnerException, dumpDir);
-            }
+            var exitCode = Data.Manager.Execute(MainModule.FullName, args, maxOutputLength, out string output, out string errorOutput);
+            return (exitCode, output, errorOutput);
         }
 
         public void Verify(Verification verification)

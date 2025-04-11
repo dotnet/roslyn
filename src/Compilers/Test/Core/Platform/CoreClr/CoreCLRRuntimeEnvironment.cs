@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
-using static Roslyn.Test.Utilities.RuntimeEnvironmentUtilities;
 
 namespace Roslyn.Test.Utilities.CoreClr
 {

@@ -88,11 +88,6 @@ namespace Roslyn.Test.Utilities.Desktop
             }
         }
 
-        public string DumpAssemblyData(out string dumpDirectory)
-        {
-            return RuntimeEnvironmentUtilities.DumpAssemblyData(ModuleDatas, out dumpDirectory);
-        }
-
         public void Dispose()
         {
             // clean up our handlers, so that they don't accumulate
@@ -447,8 +442,7 @@ namespace Roslyn.Test.Utilities.Desktop
 
             if (throwOnError && errors.Length > 0)
             {
-                RuntimeEnvironmentUtilities.DumpAssemblyData(ModuleDatas, out var dumpDir);
-                throw new RuntimePeVerifyException(errors.ToString(), dumpDir);
+                throw new RuntimePeVerifyException(errors.ToString());
             }
             return allOutput.ToArray();
         }

@@ -29,19 +29,4 @@ namespace Roslyn.Test.Utilities
             throw new NotImplementedException();
         }
     }
-
-    [Serializable]
-    public class ExecutionException : Exception
-    {
-        public ExecutionException(string expectedOutput, string actualOutput, string exePath)
-            : base(GetMessageFromResult(expectedOutput, actualOutput, exePath)) { }
-
-        public ExecutionException(Exception innerException, string exePath)
-            : base(GetMessageFromException(innerException, exePath), innerException) { }
-
-        protected ExecutionException(SerializationInfo serializationInfo, StreamingContext streamingContext)
-        {
-            throw new NotImplementedException();
-        }
-    }
 }

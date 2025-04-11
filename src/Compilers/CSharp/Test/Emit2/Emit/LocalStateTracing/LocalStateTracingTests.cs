@@ -205,7 +205,6 @@ namespace Microsoft.CodeAnalysis.Runtime
         private static void AssertInstrumented(CompilationVerifier verifier, string qualifiedMethodName, bool expected = true)
         {
             var il = verifier.VisualizeIL(qualifiedMethodName);
-            Assert.NotNull(il);
             var isInstrumented = il.Contains(TrackerTypeName);
 
             AssertEx.AreEqual(expected, isInstrumented,
@@ -517,7 +516,6 @@ namespace Microsoft.CodeAnalysis.Runtime
             foreach (var entry in verifier.TestData.Methods)
             {
                 string actualIL = verifier.VisualizeIL(entry.Value);
-                Assert.NotNull(actualIL);
                 Assert.False(actualIL.Contains(TrackerTypeName + ".Log"));
             }
         }

@@ -16,6 +16,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Xml.Linq;
 using ICSharpCode.Decompiler.Metadata;
 using Microsoft.CodeAnalysis;
@@ -31,6 +32,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public sealed partial class CompilationVerifier
     {
+        /// <summary>
+        /// When true this will dump assemblies to disk when verification fails or there are emit errors writing
+        /// the compilation to bytes
+        /// </summary>
+        internal static bool DumpAssembliesOnFailure { get; set; }
+
+        private static int s_dumpCount;
+
         private readonly Compilation _compilation;
         private readonly IEnumerable<ModuleData>? _dependencies;
         private IModuleSymbol? _lazyModuleSymbol;
@@ -42,7 +51,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public ImmutableArray<byte> EmittedAssemblyPdb => GetEmitData().EmittedAssemblyPdb;
         public ImmutableArray<Diagnostic> Diagnostics => GetEmitData().Diagnostics;
         internal CompilationTestData TestData => GetEmitData().TestData;
-
 
         internal CompilationVerifier(
             Compilation compilation,
@@ -85,9 +93,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public string Dump(string? methodName = null)
         {
             var emitData = Emit(manifestResources: null, EmitOptions.Default);
-            RuntimeEnvironmentUtilities.DumpAssemblyData(emitData.Modules, out var dumpDir);
-            Debug.Assert(dumpDir is not null);
-
+            var dumpDir = DumpAssemblyData(emitData.Modules);
             string extension = emitData.EmittedModule.Kind == OutputKind.ConsoleApplication ? ".exe" : ".dll";
             string modulePath = Path.Combine(dumpDir, emitData.EmittedModule.SimpleName + extension);
 
@@ -159,6 +165,91 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var disassembler = new ICSharpCode.Decompiler.Disassembler.ReflectionDisassembler(output, default);
             disassembler.WriteModuleContents(peFile);
             return output.ToString();
+        }
+
+        public static string DumpAssemblyData(IEnumerable<ModuleData> modules)
+        {
+            var dumpCount = Interlocked.Increment(ref s_dumpCount);
+            var dumpDirectory = Path.Combine(TempRoot.Root, "dumps", dumpCount.ToString());
+            _ = Directory.CreateDirectory(dumpDirectory);
+
+            // Limit the number of dumps to 10. After 10 we're likely in a bad state and are 
+            // dumping lots of unnecessary data to disk.
+            if (dumpCount > 10 || !DumpAssembliesOnFailure)
+            {
+                return dumpDirectory;
+            }
+
+            var sb = new StringBuilder();
+            foreach (var module in modules)
+            {
+                if (module.InMemoryModule)
+                {
+                    string fileName;
+                    if (module.Kind == OutputKind.NetModule)
+                    {
+                        fileName = module.FullName;
+                    }
+                    else
+                    {
+                        fileName = AssemblyIdentity.TryParseDisplayName(module.FullName, out var identity)
+                            ? identity.Name
+                            : "";
+                    }
+
+                    string pePath = Path.Combine(dumpDirectory, fileName + module.Kind.GetDefaultExtension());
+                    try
+                    {
+                        module.Image.WriteToFile(pePath);
+                    }
+                    catch (ArgumentException e)
+                    {
+                        pePath = $"<unable to write file: '{pePath}' -- {e.Message}>";
+                    }
+                    catch (IOException e)
+                    {
+                        pePath = $"<unable to write file: '{pePath}' -- {e.Message}>";
+                    }
+
+                    string? pdbPath;
+                    if (!module.Pdb.IsDefaultOrEmpty)
+                    {
+                        pdbPath = Path.Combine(dumpDirectory, fileName + ".pdb");
+
+                        try
+                        {
+                            module.Pdb.WriteToFile(pdbPath);
+                        }
+                        catch (ArgumentException e)
+                        {
+                            pdbPath = $"<unable to write file: '{pdbPath}' -- {e.Message}>";
+                        }
+                        catch (IOException e)
+                        {
+                            pdbPath = $"<unable to write file: '{pdbPath}' -- {e.Message}>";
+                        }
+                    }
+                    else
+                    {
+                        pdbPath = null;
+                    }
+
+                    sb.Append("PE(" + module.Kind + "): ");
+                    sb.AppendLine(pePath);
+                    if (pdbPath != null)
+                    {
+                        sb.Append("PDB: ");
+                        sb.AppendLine(pdbPath);
+                    }
+                }
+            }
+
+            if (sb.Length > 0)
+            {
+                File.WriteAllText(Path.Combine(dumpDirectory, "log.txt"), sb.ToString());
+            }
+
+            return dumpDirectory;
         }
 
         /// <summary>
@@ -253,12 +344,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 testEnvironment.Verify(peVerify);
             }
-            catch (Exception) when (peVerify.Status.HasFlag(VerificationStatus.PassesOrFailFast))
+            catch (Exception)
             {
-                var il = DumpIL();
-                Console.WriteLine(il);
+                DumpAssemblyData(emitData.Modules);
 
-                Environment.FailFast("Investigating flaky IL verification issue. Tracked by https://github.com/dotnet/roslyn/issues/63782");
+                if (peVerify.Status.HasFlag(VerificationStatus.PassesOrFailFast))
+                {
+                    var il = DumpIL();
+                    Console.WriteLine(il);
+
+                    Environment.FailFast("Investigating flaky IL verification issue. Tracked by https://github.com/dotnet/roslyn/issues/63782");
+                }
+
+                throw;
             }
 
             if (expectedSignatures != null)
@@ -513,7 +611,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
             else
             {
-                RuntimeEnvironmentUtilities.DumpAssemblyData(dependencyList, out var dumpDir);
+                var dumpDir = DumpAssemblyData(dependencyList);
                 var message = ExceptionHelper.GetMessageFromResult(diagnostics.ToReadOnlyAndFree(), dumpDir);
                 throw new Exception(message);
             }
