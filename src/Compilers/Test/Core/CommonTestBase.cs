@@ -76,11 +76,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Action<IModuleSymbol>? sourceSymbolValidator = null,
             Action<PEAssembly>? assemblyValidator = null,
             Action<IModuleSymbol>? symbolValidator = null,
-            Action<int, string, string> executionValidator = null,
+            Action<int, string, string>? executionValidator = null,
             SignatureDescription[]? expectedSignatures = null,
-            string? expectedOutput = null,
-            bool trimOutput = true,
-            int? expectedReturnCode = null,
             string[]? args = null,
             EmitOptions? emitOptions = null,
             Verification verify = default)
@@ -105,8 +102,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 expectedSignatures,
                                 assemblyValidator,
                                 symbolValidator,
-                                args,
                                 executionValidator,
+                                args,
                                 emitOptions,
                                 verify);
 
@@ -170,26 +167,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-#nullable enable
-
         internal CompilationVerifier Emit(
             Compilation compilation,
             IEnumerable<ModuleData>? dependencies,
             IEnumerable<ResourceDescription>? manifestResources,
             SignatureDescription[]? expectedSignatures,
-            string? expectedOutput,
-            bool trimOutput,
-            int? expectedReturnCode,
             Action<PEAssembly>? assemblyValidator,
             Action<IModuleSymbol>? symbolValidator,
-            string[]? args,
             Action<int, string, string>? executionValidator,
+            string[]? args,
             EmitOptions? emitOptions,
             Verification verify)
         {
             var verifier = new CompilationVerifier(compilation, VisualizeRealIL, dependencies);
 
-            verifier.Emit(manifestResources, emitOptions, verify, expectedSignatures, args, executionValidator);
+            verifier.Emit(emitOptions, manifestResources, verify, expectedSignatures, args, executionValidator);
 
             if (assemblyValidator != null || symbolValidator != null)
             {
@@ -200,8 +192,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             return verifier;
         }
-
-#nullable disable
 
         /// <summary>
         /// Reads content of the specified file.
