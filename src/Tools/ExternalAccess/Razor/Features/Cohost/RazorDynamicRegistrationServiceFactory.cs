@@ -7,7 +7,7 @@ using System.Composition;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 
-[ExportCSharpVisualBasicLspServiceFactory(typeof(RazorDynamicRegistrationService), WellKnownLspServerKinds.AlwaysActiveVSLspServer), Shared]
+[ExportCSharpVisualBasicLspServiceFactory(typeof(RazorDynamicRegistrationService), WellKnownLspServerKinds.Any), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class RazorDynamicRegistrationServiceFactory(
@@ -48,6 +48,12 @@ internal sealed class RazorDynamicRegistrationServiceFactory(
 
         public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
         {
+            if (context.ServerKind is not (WellKnownLspServerKinds.AlwaysActiveVSLspServer or WellKnownLspServerKinds.CSharpVisualBasicLspServer))
+            {
+                // We have to register this class for Any server, but only want to run in the C# server in VS or VS Code
+                return Task.CompletedTask;
+            }
+
             if (dynamicRegistrationService is null || clientLanguageServerManager is null)
             {
                 return Task.CompletedTask;
