@@ -5,24 +5,19 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Copilot;
-
-//[DataContract]
-//internal readonly record struct TextChange(
-//    [property: DataMember(Order = 0)] TextSpan OldSpan,
-//    [property: DataMember(Order = 1)] TextSpan NewSpan,
-//    [property: DataMember(Order = 2)] string NewText);
 
 internal interface ICopilotChangeAnalysisService : IWorkspaceService
 {
@@ -38,20 +33,26 @@ internal interface ICopilotChangeAnalysisService : IWorkspaceService
 internal interface IRemoteCopilotChangeAnalysisService : IWorkspaceService
 {
     /// <inheritdoc cref="ICopilotChangeAnalysisService.AnalyzeChangeAsync"/>
-    ValueTask AnalyzeChangeAsync(Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TextChange> changes, CancellationToken cancellationToken);
+    ValueTask AnalyzeChangeAsync(
+        Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TextChange> edits, CancellationToken cancellationToken);
 }
 
 [ExportWorkspaceServiceFactory(typeof(ICopilotChangeAnalysisService)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class DefaultCopilotChangeAnalysisServiceFactory() : IWorkspaceServiceFactory
+internal sealed class DefaultCopilotChangeAnalysisServiceFactory(
+    IDiagnosticAnalyzerService diagnosticAnalyzerService) : IWorkspaceServiceFactory
 {
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        => new DefaultCopilotChangeAnalysisService(workspaceServices);
+        => new DefaultCopilotChangeAnalysisService(diagnosticAnalyzerService, workspaceServices);
 
     private sealed class DefaultCopilotChangeAnalysisService(
+        IDiagnosticAnalyzerService diagnosticAnalyzerService,
         HostWorkspaceServices workspaceServices) : ICopilotChangeAnalysisService
     {
+        private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService = diagnosticAnalyzerService;
+        private readonly HostWorkspaceServices _workspaceServices = workspaceServices;
+
         public async Task AnalyzeChangeAsync(
             Document document,
             ImmutableArray<TextChange> changes,
@@ -59,10 +60,10 @@ internal sealed class DefaultCopilotChangeAnalysisServiceFactory() : IWorkspaceS
         {
             Contract.ThrowIfTrue(!changes.IsSorted(static (c1, c2) => c1.Span.Start - c2.Span.Start), "'changes' was not sorted.");
             Contract.ThrowIfTrue(new NormalizedTextSpanCollection(changes.Select(c => c.Span)).Count != changes.Length, "'changes' was not normalized.");
-            Contract.ThrowIfTrue(document.Project.Solution.Workspace != workspaceServices.Workspace);
+            Contract.ThrowIfTrue(document.Project.Solution.Workspace != _workspaceServices.Workspace);
 
             var client = await RemoteHostClient.TryGetClientAsync(
-                workspaceServices.Workspace, cancellationToken).ConfigureAwait(false);
+                _workspaceServices.Workspace, cancellationToken).ConfigureAwait(false);
 
             if (client != null)
             {
@@ -78,22 +79,56 @@ internal sealed class DefaultCopilotChangeAnalysisServiceFactory() : IWorkspaceS
             }
         }
 
-        private Task AnalyzeChangeInCurrentProcessAsync(
+        private async Task AnalyzeChangeInCurrentProcessAsync(
             Document document,
             ImmutableArray<TextChange> changes,
             CancellationToken cancellationToken)
         {
-            return Task.WhenAll(AnalyzeChangedRegionsAsync(), AnalyzeUnchangedRegionsAsync());
+            var oldText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var newText = oldText.WithChanges(changes);
+
+            var newDocument = document.WithText(newText);
+
+            var totalDelta = 0;
+            using var _ = ArrayBuilder<TextSpan>.GetInstance(out var newSpans);
+
+            foreach (var change in changes)
+            {
+                var newSpan = new TextSpan(change.Span.Start + totalDelta, change.Span.Length);
+                newSpans.Add(newSpan);
+                totalDelta += change.NewText!.Length - change.Span.Length;
+            }
+
+            await Task.WhenAll(
+                AnalyzeChangeAsync(DiagnosticKind.CompilerSyntax),
+                AnalyzeChangeAsync(DiagnosticKind.CompilerSemantic),
+                AnalyzeChangeAsync(DiagnosticKind.AnalyzerSyntax),
+                AnalyzeChangeAsync(DiagnosticKind.AnalyzerSemantic)).ConfigureAwait(false);
+            return;
+
+            Task AnalyzeChangeAsync(DiagnosticKind diagnosticKind)
+                => Task.WhenAll(AnalyzeChangedRegionsAsync(diagnosticKind), AnalyzeUnchangedRegionsAsync(diagnosticKind));
+
+            async Task AnalyzeChangedRegionsAsync(DiagnosticKind diagnosticKind)
+            {
+                await ProducerConsumer<DiagnosticData>.RunParallelAsync(
+                    newSpans,
+                    static async (span, callback, args, cancellationToken) =>
+                    {
+                        var (@this, newDocument, diagnosticKind) = args;
+                        var diagnostics = await @this._diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(
+                            newDocument, span, diagnosticKind, cancellationToken).ConfigureAwait(false);
+                        foreach (var diagnostic in diagnostics)
+                            callback(diagnostic);
+                    },
+                    args: (@this: this, newDocument, diagnosticKind),
+                    cancellationToken).ConfigureAwait(false);
+            }
 
             // Not yet implemented.  Flesh this out if we think there is value in looking at the rest of the document
             // (or just the regions around the copilot edits) to see how the actual edits impacted them.
-            Task AnalyzeUnchangedRegionsAsync()
+            Task AnalyzeUnchangedRegionsAsync(DiagnosticKind diagnosticKind)
                 => Task.CompletedTask;
-
-            async Task AnalyzeChangedRegionsAsync()
-            {
-
-            }
         }
     }
 }
