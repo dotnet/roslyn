@@ -45,8 +45,15 @@ internal class RemoteWorkspaceManager
     /// </item>
     /// </list>
     /// </remarks>
-    internal static readonly RemoteWorkspaceManager Default = new(
-        workspace => new SolutionAssetCache(workspace, cleanupInterval: TimeSpan.FromSeconds(30), purgeAfter: TimeSpan.FromMinutes(1)));
+    private static readonly Lazy<RemoteWorkspaceManager> s_default = new(static () =>
+    {
+        return new RemoteWorkspaceManager(CreateAssetCache);
+
+        static SolutionAssetCache CreateAssetCache(RemoteWorkspace workspace)
+            => new SolutionAssetCache(workspace, cleanupInterval: TimeSpan.FromSeconds(30), purgeAfter: TimeSpan.FromMinutes(1));
+    });
+
+    internal static RemoteWorkspaceManager Default => s_default.Value;
 
     private readonly RemoteWorkspace _workspace;
     internal readonly SolutionAssetCache SolutionAssetCache;

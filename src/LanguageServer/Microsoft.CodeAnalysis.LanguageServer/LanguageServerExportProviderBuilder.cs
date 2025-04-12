@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-internal class LanguageServerExportProviderBuilder
+internal sealed class LanguageServerExportProviderBuilder
 {
     public static async Task<ExportProvider> CreateExportProviderAsync(
         ExtensionAssemblyManager extensionManager,

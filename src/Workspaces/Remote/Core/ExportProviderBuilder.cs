@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Remote;
 
 internal sealed class ExportProviderBuilder
 {
-    public record ExportProviderCreationArguments(
+    public record struct ExportProviderCreationArguments(
         ImmutableArray<string> AssemblyPaths,
         Resolver Resolver,
         string CacheDirectory,

@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
-internal class RemoteExportProvider
+internal static class RemoteExportProvider
 {
     internal static readonly ImmutableArray<Assembly> RemoteHostAssemblies =
         MefHostServices.DefaultAssemblies
@@ -44,8 +44,8 @@ internal class RemoteExportProvider
             CatalogPrefix: "RoslynRemoteHost",
             ExpectedErrorParts: ["PythiaSignatureHelpProvider", "VSTypeScriptAnalyzerService", "RazorTestLanguageServerFactory"],
             PerformCleanup: true,
-            LogError: _ => { },
-            LogTrace: _ => { });
+            LogError: static _ => { },
+            LogTrace: static _ => { });
 
         s_instance = await ExportProviderBuilder.CreateExportProviderAsync(args, cancellationToken).ConfigureAwait(false);
     }
