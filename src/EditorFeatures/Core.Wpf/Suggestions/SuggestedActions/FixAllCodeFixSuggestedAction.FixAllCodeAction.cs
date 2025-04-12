@@ -5,16 +5,15 @@
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
+
+internal partial class FixAllCodeFixSuggestedAction
 {
-    internal partial class FixAllCodeFixSuggestedAction
+    private sealed partial class FixAllCodeAction : AbstractFixAllCodeFixCodeAction
     {
-        private sealed partial class FixAllCodeAction : AbstractFixAllCodeFixCodeAction
+        public FixAllCodeAction(IFixAllState fixAllState)
+            : base(fixAllState, showPreviewChangesDialog: true)
         {
-            public FixAllCodeAction(IFixAllState fixAllState)
-                : base(fixAllState, showPreviewChangesDialog: true)
-            {
-            }
         }
     }
 }

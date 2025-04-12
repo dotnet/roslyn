@@ -20,7 +20,7 @@ using Xunit;
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
 [TestService]
-internal partial class InheritanceMarginInProcess
+internal sealed partial class InheritanceMarginInProcess
 {
     private const string MarginName = nameof(InheritanceMarginViewMargin);
 

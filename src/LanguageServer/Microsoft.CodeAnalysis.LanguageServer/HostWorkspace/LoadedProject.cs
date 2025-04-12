@@ -133,6 +133,7 @@ internal sealed class LoadedProject : IDisposable
         _projectSystemProject.OutputRefFilePath = newProjectInfo.OutputRefFilePath;
         _projectSystemProject.GeneratedFilesOutputDirectory = newProjectInfo.GeneratedFilesOutputDirectory;
         _projectSystemProject.CompilationOutputAssemblyFilePath = newProjectInfo.IntermediateOutputFilePath;
+        _projectSystemProject.DefaultNamespace = newProjectInfo.DefaultNamespace;
 
         if (newProjectInfo.TargetFrameworkIdentifier != null)
         {

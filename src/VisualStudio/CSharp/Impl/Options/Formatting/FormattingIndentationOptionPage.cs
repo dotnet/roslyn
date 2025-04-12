@@ -8,12 +8,11 @@ using System;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting;
+
+[Guid(Guids.CSharpOptionPageFormattingIndentationIdString)]
+internal sealed class FormattingIndentationOptionPage : AbstractOptionPage
 {
-    [Guid(Guids.CSharpOptionPageFormattingIndentationIdString)]
-    internal class FormattingIndentationOptionPage : AbstractOptionPage
-    {
-        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
-            => new OptionPreviewControl(serviceProvider, optionStore, (o, s) => new IndentationViewModel(o, s));
-    }
+    protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
+        => new OptionPreviewControl(serviceProvider, optionStore, (o, s) => new IndentationViewModel(o, s));
 }

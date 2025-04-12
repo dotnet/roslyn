@@ -14,9 +14,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal partial class DiagnosticAnalyzerService
+internal sealed partial class DiagnosticAnalyzerService
 {
-    private partial class DiagnosticIncrementalAnalyzer
+    private sealed partial class DiagnosticIncrementalAnalyzer
     {
         public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Project project, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
         {
@@ -130,7 +130,8 @@ internal partial class DiagnosticAnalyzerService
                 var compilation = await GetOrCreateCompilationWithAnalyzersAsync(
                     project, analyzers, hostAnalyzerInfo, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
-                var result = await ComputeDiagnosticAnalysisResultsAsync(compilation, project, analyzers, cancellationToken).ConfigureAwait(false);
+                var result = await ComputeDiagnosticAnalysisResultsAsync(
+                    compilation, project, [.. analyzers.OfType<DocumentDiagnosticAnalyzer>()], cancellationToken).ConfigureAwait(false);
                 return result;
             }
 

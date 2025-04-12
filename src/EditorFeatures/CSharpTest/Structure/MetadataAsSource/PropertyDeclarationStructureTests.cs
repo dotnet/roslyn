@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource;
 
-public class PropertyDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<PropertyDeclarationSyntax>
+public sealed class PropertyDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<PropertyDeclarationSyntax>
 {
     protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
     internal override AbstractSyntaxStructureProvider CreateProvider() => new PropertyDeclarationStructureProvider();

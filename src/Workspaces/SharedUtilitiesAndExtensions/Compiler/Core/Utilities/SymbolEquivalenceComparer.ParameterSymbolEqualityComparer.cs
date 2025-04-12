@@ -32,12 +32,13 @@ internal sealed partial class SymbolEquivalenceComparer
                 return false;
             }
 
-            var nameComparisonCheck = true;
             if (compareParameterName)
             {
-                nameComparisonCheck = isCaseSensitive ?
+                var nameComparisonCheck = isCaseSensitive ?
                     x.Name == y.Name
                     : string.Equals(x.Name, y.Name, StringComparison.OrdinalIgnoreCase);
+                if (!nameComparisonCheck)
+                    return false;
             }
 
             // See the comment in the outer type.  If we're comparing two parameters for
@@ -45,7 +46,6 @@ internal sealed partial class SymbolEquivalenceComparer
 
             return
                 AreRefKindsEquivalent(x.RefKind, y.RefKind, distinguishRefFromOut) &&
-                nameComparisonCheck &&
                 symbolEqualityComparer.GetEquivalenceVisitor().AreEquivalent(x.CustomModifiers, y.CustomModifiers, equivalentTypesWithDifferingAssemblies) &&
                 symbolEqualityComparer.SignatureTypeEquivalenceComparer.Equals(x.Type, y.Type, equivalentTypesWithDifferingAssemblies);
         }

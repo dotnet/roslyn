@@ -12,33 +12,32 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Test.Utilities;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities.Formatting
+namespace Microsoft.CodeAnalysis.Test.Utilities.Formatting;
+
+[UseExportProvider]
+public abstract class AbstractNewDocumentFormattingServiceTests
 {
-    [UseExportProvider]
-    public abstract class AbstractNewDocumentFormattingServiceTests
+    protected abstract string Language { get; }
+    protected abstract EditorTestWorkspace CreateTestWorkspace(string testCode, ParseOptions? parseOptions);
+
+    internal async Task TestAsync(string testCode, string expected, OptionsCollection? options = null, ParseOptions? parseOptions = null)
     {
-        protected abstract string Language { get; }
-        protected abstract EditorTestWorkspace CreateTestWorkspace(string testCode, ParseOptions? parseOptions);
+        using var workspace = CreateTestWorkspace(testCode, parseOptions);
+        options?.SetGlobalOptions(workspace.GlobalOptions);
 
-        internal async Task TestAsync(string testCode, string expected, OptionsCollection? options = null, ParseOptions? parseOptions = null)
-        {
-            using var workspace = CreateTestWorkspace(testCode, parseOptions);
-            options?.SetGlobalOptions(workspace.GlobalOptions);
+        var solution = workspace.CurrentSolution;
 
-            var solution = workspace.CurrentSolution;
+        var document = workspace.CurrentSolution.Projects.First().Documents.First();
+        var languageServices = document.Project.Services;
 
-            var document = workspace.CurrentSolution.Projects.First().Documents.First();
-            var languageServices = document.Project.Services;
+        var cleanupOptions =
+            options?.GetCodeCleanupOptions(languageServices, allowImportsInHiddenRegions: false) ??
+            await document.GetCodeCleanupOptionsAsync(CancellationToken.None);
 
-            var cleanupOptions =
-                options?.GetCodeCleanupOptions(languageServices, allowImportsInHiddenRegions: false) ??
-                await document.GetCodeCleanupOptionsAsync(CancellationToken.None);
+        var formattingService = document.GetRequiredLanguageService<INewDocumentFormattingService>();
+        var formattedDocument = await formattingService.FormatNewDocumentAsync(document, hintDocument: null, cleanupOptions, CancellationToken.None);
 
-            var formattingService = document.GetRequiredLanguageService<INewDocumentFormattingService>();
-            var formattedDocument = await formattingService.FormatNewDocumentAsync(document, hintDocument: null, cleanupOptions, CancellationToken.None);
-
-            var actual = await formattedDocument.GetTextAsync();
-            AssertEx.EqualOrDiff(expected, actual.ToString());
-        }
+        var actual = await formattedDocument.GetTextAsync();
+        AssertEx.EqualOrDiff(expected, actual.ToString());
     }
 }

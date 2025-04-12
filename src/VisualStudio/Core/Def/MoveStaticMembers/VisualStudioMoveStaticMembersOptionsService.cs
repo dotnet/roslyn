@@ -89,7 +89,7 @@ internal sealed class VisualStudioMoveStaticMembersOptionsService(
         INamedTypeSymbol selectedType,
         ImmutableArray<ISymbol> selectedNodeSymbols,
         LinkedList<INamedTypeSymbol> history,
-        IGlyphService? glyphService,
+        IGlyphService glyphService,
         IUIThreadOperationExecutor uiThreadOperationExecutor)
     {
         var membersInType = selectedType.GetMembers().

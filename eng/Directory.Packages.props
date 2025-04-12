@@ -21,6 +21,8 @@
     <MicrosoftWindowsDesktopAppRuntimePackagesVersion>8.0.10</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
     <_xunitVersion>2.9.2</_xunitVersion>
     <SqliteVersion>2.1.0</SqliteVersion>
+    <!-- HumanizerVersion is referenced from the Text.Analyzers.Package.csproj -->
+    <HumanizerVersion>2.14.1</HumanizerVersion>
   </PropertyGroup>
 
   <!--
@@ -37,10 +39,10 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(TargetFramework)' != 'net472'">
-    <PackageVersion Include="Microsoft.Build" Version="17.7.2" />
-    <PackageVersion Include="Microsoft.Build.Framework" Version="17.7.2" />
-    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.7.2" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.7.2" />
+    <PackageVersion Include="Microsoft.Build" Version="17.11.4" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="17.11.4" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.11.4" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.11.4" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(TargetFramework)' == 'net472'">
@@ -105,7 +107,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.RemoteControl" Version="16.3.52" />
     <PackageVersion Include="Microsoft.VisualStudio.RpcContracts" Version="17.13.7" />
     <PackageVersion Include="Microsoft.VisualStudio.Shell.15.0" Version="17.13.40008" />
-    <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="17.14.2" />
+    <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="17.14.8" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="17.13.226" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="17.13.226" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.UI" Version="17.13.226" />
@@ -116,7 +118,7 @@
     <PackageVersion Include="Nerdbank.Streams" Version="2.11.79" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="StreamJsonRpc" Version="2.21.10" />
-    
+
     <!--
       VS Debugger
     -->
@@ -195,17 +197,15 @@
     <PackageVersion Include="System.IO.Pipes.AccessControl" Version="5.0.0" />
     <PackageVersion Include="System.Memory" Version="$(SystemMemoryVersion)" />
     <PackageVersion Include="System.Numerics.Vectors" Version="$(SystemNumericsVectorsVersion)" />
-    <PackageVersion Include="System.Runtime.CompilerServices.Unsafe" Version="$(SystemRuntimeCompilerServicesUnsafeVersion)" />
     <PackageVersion Include="System.Resources.Extensions" Version="$(SystemResourcesExtensionsVersion)" />
+    <PackageVersion Include="System.Runtime.CompilerServices.Unsafe" Version="$(SystemRuntimeCompilerServicesUnsafeVersion)" />
     <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="$(SystemSecurityCryptographyProtectedDataVersion)" />
     <PackageVersion Include="System.Security.Permissions" Version="$(SystemSecurityPermissionsVersion)" />
     <PackageVersion Include="System.Text.Encoding.CodePages" Version="7.0.0" />
     <PackageVersion Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowVersion)" />
     <PackageVersion Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" />
+    <PackageVersion Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
     <PackageVersion Include="System.Windows.Extensions" Version="$(SystemWindowsExtensionsVersion)" />
-
-    <!-- We need System.ValueTuple assembly version at least 4.0.3.0 on net47 to make F5 work against Dev15 - see https://github.com/dotnet/roslyn/issues/29705 -->
-    <PackageVersion Include="System.ValueTuple" Version="4.5.0" />
 
     <!--
       When updating the S.C.I or S.R.M version please let the MSBuild team know in advance so they
@@ -225,8 +225,12 @@
     <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="$(SqliteVersion)" />
     <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="$(SqliteVersion)" />
     <PackageVersion Include="SQLitePCLRaw.provider.dynamic_cdecl" Version="$(SqliteVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.linux" Version="$(SqliteVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.osx" Version="$(SqliteVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.v110_xp" Version="$(SqliteVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.provider.e_sqlite3.net45" Version="$(SqliteVersion)" />
 
-    <PackageVersion Include="Humanizer.Core" Version="2.14.1" />
+    <PackageVersion Include="Humanizer.Core" Version="$(HumanizerVersion)" />
     <PackageVersion Include="ICSharpCode.Decompiler" Version="8.2.0.7535" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Elfie" Version="1.0.0" />
 
@@ -237,10 +241,15 @@
     <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.13.0" />
     <PackageVersion Include="BasicUndo" Version="0.9.3" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.XUnit" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing.XUnit" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary" Version="2.0.0-pre-20160714" />
     <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing.XUnit" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.XUnit" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.XUnit" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageVersion Include="Microsoft.DiaSymReader.Converter" Version="1.1.0-beta2-22302-02" />
     <PackageVersion Include="Microsoft.DiaSymReader.Converter.Xml" Version="1.1.0-beta2-22302-02" />
@@ -256,7 +265,7 @@
     <PackageVersion Include="System.Drawing.Common" Version="8.0.8" />
     <PackageVersion Include="NuGet.SolutionRestoreManager.Interop" Version="4.8.0" />
     <PackageVersion Include="Moq" Version="4.10.1" />
-    <PackageVersion Include="System.CodeDom" Version="7.0.0" />
+    <PackageVersion Include="System.CodeDom" Version="8.0.0" />
     <PackageVersion Include="InputSimulatorPlus" Version="1.0.7" />
     <PackageVersion Include="UIAComWrapper" Version="1.1.0.14" />
     <PackageVersion Include="DiffPlex" Version="1.7.2" />
@@ -293,15 +302,14 @@
     <PackageVersion Include="Microsoft.TeamFoundationServer.Client" Version="19.232.0-preview" />
     <PackageVersion Include="System.Data.SqlClient" Version="$(SystemDataSqlClientVersion)" />
     <!-- fix of vulnerability in 6.0.0 coming via Microsoft.TeamFoundationServer.Client -->
-    <PackageVersion Include="System.Security.Cryptography.Xml" Version="7.0.1" />
-    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="7.0.2" />
+    <PackageVersion Include="System.Security.Cryptography.Xml" Version="8.0.0" />
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="8.0.0" />
     <!--
       Infra
     -->
     <PackageVersion Include="Microsoft.Win32.Registry" Version="5.0.0" />
     <PackageVersion Include="MSBuild.StructuredLogger" Version="2.2.386" />
     <PackageVersion Include="Mono.Options" Version="6.6.0.161" />
-    <PackageVersion Include="RichCodeNav.EnvVarDump" Version="0.1.1643-alpha" />
     <PackageVersion Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsNugetPackageVersion)" />
     <PackageVersion Include="SourceBrowser" Version="1.0.21" />
     <PackageVersion Include="RoslynTools.VSIXExpInstaller" Version="1.1.0-beta3.22474.1" />
@@ -314,5 +322,15 @@
       the generators we build would load on the command line but not load in IDEs.
     -->
     <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="4.1.0" />
-  </ItemGroup>
+    <!--
+      The version of Roslyn used in the RoslynAnalyzers varies. These are defaults that
+      will be overridden in the RoslynAnalyzer project files.
+    -->
+    <!--<PackageVersion Include="Microsoft.CodeAnalysis" Version="4.1.0" /> -->
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.1.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.1.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic" Version="4.1.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="4.1.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="4.1.0" />
+ </ItemGroup>
 </Project>

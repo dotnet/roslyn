@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 /// <summary>
 /// this holds onto changes made by formatting engine.
 /// </summary>
-internal class FormattingResult : AbstractFormattingResult
+internal sealed class FormattingResult : AbstractFormattingResult
 {
     internal FormattingResult(TreeData treeInfo, TokenStream tokenStream, TextSpan spanToFormat)
         : base(treeInfo, tokenStream, spanToFormat)

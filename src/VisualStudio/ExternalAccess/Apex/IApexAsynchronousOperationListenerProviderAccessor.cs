@@ -7,10 +7,9 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Apex
+namespace Microsoft.CodeAnalysis.ExternalAccess.Apex;
+
+internal interface IApexAsynchronousOperationListenerProviderAccessor
 {
-    internal interface IApexAsynchronousOperationListenerProviderAccessor
-    {
-        Task WaitAllAsync(string[] featureNames = null, Action eventProcessingAction = null, TimeSpan? timeout = null);
-    }
+    Task WaitAllAsync(string[] featureNames = null, Action eventProcessingAction = null, TimeSpan? timeout = null);
 }

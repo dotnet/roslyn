@@ -6,5 +6,5 @@ using System.Text.Json.Serialization;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-internal record NamedPipeInformation(
+internal sealed record NamedPipeInformation(
     [property: JsonPropertyName("pipeName")] string PipeName);

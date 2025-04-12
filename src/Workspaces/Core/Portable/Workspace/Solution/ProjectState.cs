@@ -22,7 +22,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal sealed partial class ProjectState
+internal sealed partial class ProjectState : IComparable<ProjectState>
 {
     public readonly LanguageServices LanguageServices;
 
@@ -1140,5 +1140,13 @@ internal sealed partial class ProjectState
         return this.DocumentStates.GetFirstDocumentIdWithFilePath(filePath) ??
             this.AdditionalDocumentStates.GetFirstDocumentIdWithFilePath(filePath) ??
             this.AnalyzerConfigDocumentStates.GetFirstDocumentIdWithFilePath(filePath);
+    }
+
+    public int CompareTo(ProjectState? other)
+    {
+        if (other is null)
+            return 1;
+
+        return this.Id.CompareTo(other.Id);
     }
 }

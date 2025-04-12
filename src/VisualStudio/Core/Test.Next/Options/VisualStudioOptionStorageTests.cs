@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 
-public class VisualStudioOptionStorageTests
+public sealed class VisualStudioOptionStorageTests
 {
     public static IEnumerable<object[]> ConfigNames
     {
@@ -269,7 +269,6 @@ public class VisualStudioOptionStorageTests
             "SimplificationOptions_QualifyMemberAccessWithThisOrMe",                        // public option, deprecated
             "SimplificationOptions_QualifyMethodAccess",                                    // public option, deprecated
             "SimplificationOptions_QualifyPropertyAccess",                                  // public option, deprecated
-            "SolutionCrawlerOptionsStorage_SolutionBackgroundAnalysisScopeOption",          // handled by PackageSettingsPersister
         };
 
         Assert.Contains(configName, optionsWithoutStorage);

@@ -18,7 +18,7 @@ using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
 [TestService]
-internal partial class MessageBoxInProcess
+internal sealed partial class MessageBoxInProcess
 {
     private static bool s_initializedMessageBoxService;
 #pragma warning disable IDE0052 // Remove unread private members

@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument;
 
-public class PdbFileLocatorServiceTests : AbstractPdbSourceDocumentTests
+public sealed class PdbFileLocatorServiceTests : AbstractPdbSourceDocumentTests
 {
     [Fact]
     public async Task ReturnsPdbPathFromDebugger()
