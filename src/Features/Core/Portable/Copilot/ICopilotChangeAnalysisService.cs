@@ -8,6 +8,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -38,12 +39,14 @@ internal sealed class DefaultCopilotChangeAnalysisServiceFactory(
     IDiagnosticAnalyzerService diagnosticAnalyzerService) : IWorkspaceServiceFactory
 {
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        => new DefaultCopilotChangeAnalysisService(diagnosticAnalyzerService, workspaceServices);
+        => new DefaultCopilotChangeAnalysisService(codeFixService, diagnosticAnalyzerService, workspaceServices);
 
     private sealed class DefaultCopilotChangeAnalysisService(
+        ICodeFixService codeFixService,
         IDiagnosticAnalyzerService diagnosticAnalyzerService,
         HostWorkspaceServices workspaceServices) : ICopilotChangeAnalysisService
     {
+        private readonly ICodeFixService _codeFixService = codeFixService;
         private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService = diagnosticAnalyzerService;
         private readonly HostWorkspaceServices _workspaceServices = workspaceServices;
 
@@ -118,7 +121,20 @@ internal sealed class DefaultCopilotChangeAnalysisServiceFactory(
                     args: (@this: this, newDocument, diagnosticKind),
                     cancellationToken).ConfigureAwait(false);
 
-                var fixers = await 
+                var codeFixCollections = await ProducerConsumer<DiagnosticData>.RunAsync(
+                    newSpans,
+                    static async (span, callback, args, cancellationToken) =>
+                    {
+                        var (@this, newDocument) = args;
+                        await foreach (var codeFixCollection in @this._codeFixService.StreamFixesAsync(
+                            newDocument, span, callback, CancellationToken.None).ConfigureAwait(false))
+                        {
+                            foreach (var codeFix in codeFixCollection)
+                                callback(codeFix);
+                        }
+                    },
+                    args: (@this: this, newDocument),
+                    cancellationToken).ConfigureAwait(false);
 
                 Logger.Log(FunctionId.Copilot_AnalyzeChange, KeyValueLogMessage.Create(LogType.Trace, static (message, args) =>
                 {
