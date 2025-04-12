@@ -27,6 +27,6 @@ internal static class DiagnosticLogger
             m[Id] = telemetry ? id : id.GetHashCode().ToString();
             m[HasDescription] = description;
             m[Uri] = telemetry ? uri : uri.GetHashCode().ToString();
-        }, (from, telemetry, id, description, uri));
+        }, (from, telemetry, id, description, uri)));
     }
 }
