@@ -6,10 +6,39 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote;
+
+internal sealed partial class RemoteCopilotChangeAnalysisService(
+    in BrokeredServiceBase.ServiceConstructionArguments arguments)
+    : BrokeredServiceBase(arguments), IRemoteCopilotChangeAnalysisService
+{
+    internal sealed class Factory : FactoryBase<IRemoteCopilotChangeAnalysisService>
+    {
+        protected override IRemoteCopilotChangeAnalysisService CreateService(in ServiceConstructionArguments arguments)
+            => new RemoteCopilotChangeAnalysisService(arguments);
+    }
+
+    public ValueTask AnalyzeChangeAsync(
+        Checksum solutionChecksum,
+        DocumentId documentId,
+        ImmutableArray<TextChange> edits,
+        CancellationToken cancellationToken)
+    {
+        return RunServiceAsync(solutionChecksum, async solution =>
+        {
+            var document = await solution.GetRequiredDocumentAsync(
+                documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+
+            var service = solution.Services.GetRequiredService<ICopilotChangeAnalysisService>();
+            await service.AnalyzeChangeAsync(
+                document, edits, cancellationToken).ConfigureAwait(false);
+        }, cancellationToken);
+    }
+}
 
 internal sealed partial class RemoteSemanticClassificationService : BrokeredServiceBase, IRemoteSemanticClassificationService
 {
