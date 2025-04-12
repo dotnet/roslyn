@@ -647,6 +647,8 @@ internal enum FunctionId
 
     Copilot_Rename = 851,
 
+    Copilot_AnalyzeChange = 860,
+
     VSCode_LanguageServer_Started = 860,
     VSCode_Project_Load_Started = 861,
     VSCode_Projects_Load_Completed = 862,
