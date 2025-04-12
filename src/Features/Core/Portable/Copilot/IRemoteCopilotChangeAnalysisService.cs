@@ -14,6 +14,6 @@ namespace Microsoft.CodeAnalysis.Copilot;
 internal interface IRemoteCopilotChangeAnalysisService : IWorkspaceService
 {
     /// <inheritdoc cref="ICopilotChangeAnalysisService.AnalyzeChangeAsync"/>
-    ValueTask AnalyzeChangeAsync(
+    ValueTask<CopilotChangeAnalysis> AnalyzeChangeAsync(
         Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TextChange> edits, CancellationToken cancellationToken);
 }
