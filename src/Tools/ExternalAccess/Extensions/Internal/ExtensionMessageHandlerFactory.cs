@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Reflection;
 using System.Threading;
+using Microsoft.CodeAnalysis.ExternalAccess.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Extensions;
@@ -55,7 +56,7 @@ internal sealed class ExtensionMessageHandlerFactory() : IExtensionMessageHandle
                     interfaceType.GetGenericTypeDefinition() == unboundInterfaceType)
                 {
                     if (boundInterfaceType is not null)
-                        throw new InvalidOperationException($"Type {candidateType.FullName} implements interface {unboundInterfaceType.Name} more than once.");
+                        throw new InvalidOperationException(string.Format(ExternalAccessExtensionsResources.Type_0_implements_interface_1_more_than_once, candidateType.FullName, unboundInterfaceType.Name));
 
                     boundInterfaceType = interfaceType;
                 }
@@ -65,7 +66,7 @@ internal sealed class ExtensionMessageHandlerFactory() : IExtensionMessageHandle
                 continue;
 
             var handler = Activator.CreateInstance(candidateType)
-                ?? throw new InvalidOperationException($"Cannot create {candidateType.FullName}.");
+                ?? throw new InvalidOperationException(string.Format(ExternalAccessExtensionsResources.Cannot_create_0, candidateType.FullName));
 
             resultBuilder.Add(wrapperCreator(handler, boundInterfaceType));
         }

@@ -4172,6 +4172,9 @@ You should consider suppressing the warning only if you're sure that you don't w
   <data name="ERR_ExpressionTreeContainsNamedArgument" xml:space="preserve">
     <value>An expression tree may not contain a named argument specification</value>
   </data>
+  <data name="ERR_ExpressionTreeContainsNamedArgumentOutOfPosition" xml:space="preserve">
+    <value>An expression tree may not contain a named argument specification out of position</value>
+  </data>
   <data name="ERR_ExpressionTreeContainsOptionalArgument" xml:space="preserve">
     <value>An expression tree may not contain a call or invocation that uses optional arguments</value>
   </data>
@@ -8135,7 +8138,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>'#:' directives cannot be after first token in file</value>
   </data>
   <data name="ERR_PPIgnoredNeedsFileBasedProgram" xml:space="preserve">
-    <value>'#:' directives can be only used in file-based programs ('/feature:FileBasedProgram')</value>
+    <value>'#:' directives can be only used in file-based programs ('-features:FileBasedProgram')</value>
   </data>
   <data name="ERR_PPIgnoredFollowsIf" xml:space="preserve">
     <value>'#:' directives cannot be after '#if' directive</value>

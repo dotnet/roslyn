@@ -22,21 +22,23 @@ public sealed class SignatureHelpTests : AbstractLanguageServerProtocolTests
     public async Task TestGetSignatureHelpAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-    void M()
-    {
-        M2({|caret:|}'a');
-    }
-    /// <summary>
-    /// M2 is a method.
-    /// </summary>
-    int M2(string a)
-    {
-        return 1;
-    }
+            """
+            class A
+            {
+                void M()
+                {
+                    M2({|caret:|}'a');
+                }
+                /// <summary>
+                /// M2 is a method.
+                /// </summary>
+                int M2(string a)
+                {
+                    return 1;
+                }
 
-}";
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
         var expected = new LSP.SignatureHelp()
         {
@@ -53,13 +55,15 @@ public sealed class SignatureHelpTests : AbstractLanguageServerProtocolTests
     public async Task TestGetNestedSignatureHelpAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"class Foo {
-  public Foo(int showMe) {}
+            """
+            class Foo {
+              public Foo(int showMe) {}
 
-  public static void Do(Foo foo) {
-    Do(new Foo({|caret:|}
-  }
-}";
+              public static void Do(Foo foo) {
+                Do(new Foo({|caret:|}
+              }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
         var expected = new LSP.SignatureHelp()
         {
@@ -70,6 +74,33 @@ public sealed class SignatureHelpTests : AbstractLanguageServerProtocolTests
 
         var results = await RunGetSignatureHelpAsync(testLspServer, testLspServer.GetLocations("caret").Single());
         AssertJsonEquals(expected, results);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/8154")]
+    public async Task TestGetSignatureHelpInGenericAsync(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            using System.Collections.Generic;
+            class A
+            {
+                Dictionary<{|caret:|}
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGetSignatureHelpAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        Assert.Equal(1, results?.Signatures.Length);
+        Assert.Equal("Dictionary<TKey, TValue>", results?.Signatures[0].Label);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/8154")]
+    public async Task TestGetSignatureHelpServerCapabilitiesAsync(bool mutatingLspWorkspace)
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
+        Assert.Contains("(", testLspServer.GetServerCapabilities().SignatureHelpProvider!.TriggerCharacters!);
+        Assert.Contains("<", testLspServer.GetServerCapabilities().SignatureHelpProvider!.TriggerCharacters!);
+        Assert.Contains("{", testLspServer.GetServerCapabilities().SignatureHelpProvider!.TriggerCharacters!);
     }
 
     private static async Task<LSP.SignatureHelp?> RunGetSignatureHelpAsync(TestLspServer testLspServer, LSP.Location caret)

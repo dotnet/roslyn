@@ -100,7 +100,7 @@ internal sealed partial class Controller
         else
         {
             var computed = false;
-            if (allProviders.Any(static (p, args) => p.IsRetriggerCharacter(args.TypedChar), args))
+            if (allProviders.Any(static (p, args) => p.RetriggerCharacters.Contains(args.TypedChar), args))
             {
                 // The user typed a character that might close the scope of the current model.
                 // In this case, we should requery all providers.
@@ -138,7 +138,7 @@ internal sealed partial class Controller
         using var unmatchedProvidersDisposer = ArrayBuilder<ISignatureHelpProvider>.GetInstance(out var unmatchedProviders);
         foreach (var provider in providers)
         {
-            if (provider.IsTriggerCharacter(ch))
+            if (provider.TriggerCharacters.Contains(ch))
             {
                 matchedProviders.Add(provider);
             }

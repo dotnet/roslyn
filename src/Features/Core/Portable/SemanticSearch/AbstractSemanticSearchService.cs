@@ -54,6 +54,19 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
             => IntPtr.Zero;
     }
 
+    private readonly struct CompiledQuery(MemoryStream peStream, MemoryStream pdbStream, SourceText text) : IDisposable
+    {
+        public MemoryStream PEStream { get; } = peStream;
+        public MemoryStream PdbStream { get; } = pdbStream;
+        public SourceText Text { get; } = text;
+
+        public void Dispose()
+        {
+            PEStream.Dispose();
+            PdbStream.Dispose();
+        }
+    }
+
     /// <summary>
     /// Mapping from the parameter type of the <c>Find</c> method to the <see cref="QueryKind"/> value.
     /// </summary>
@@ -66,76 +79,93 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
         .Add(typeof(IPropertySymbol), QueryKind.Property)
         .Add(typeof(IEventSymbol), QueryKind.Event);
 
+    private ImmutableDictionary<CompiledQueryId, CompiledQuery> _compiledQueries = ImmutableDictionary<CompiledQueryId, CompiledQuery>.Empty;
+
     protected abstract Compilation CreateCompilation(SourceText query, IEnumerable<MetadataReference> references, SolutionServices services, out SyntaxTree queryTree, CancellationToken cancellationToken);
+
+    public CompileQueryResult CompileQuery(
+        SolutionServices services,
+        string query,
+        string referenceAssembliesDir,
+        TraceSource traceSource,
+        CancellationToken cancellationToken)
+    {
+        var metadataService = services.GetRequiredService<IMetadataService>();
+        var metadataReferences = SemanticSearchUtilities.GetMetadataReferences(metadataService, referenceAssembliesDir);
+        var queryText = SemanticSearchUtilities.CreateSourceText(query);
+        var queryCompilation = CreateCompilation(queryText, metadataReferences, services, out var queryTree, cancellationToken);
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var emitOptions = new EmitOptions(
+            debugInformationFormat: DebugInformationFormat.PortablePdb,
+            instrumentationKinds: [InstrumentationKind.StackOverflowProbing, InstrumentationKind.ModuleCancellation]);
+
+        var peStream = new MemoryStream();
+        var pdbStream = new MemoryStream();
+
+        var emitDifferenceTimer = SharedStopwatch.StartNew();
+        var emitResult = queryCompilation.Emit(peStream, pdbStream, options: emitOptions, cancellationToken: cancellationToken);
+        var emitTime = emitDifferenceTimer.Elapsed;
+
+        CompiledQueryId queryId;
+        ImmutableArray<QueryCompilationError> errors;
+        if (emitResult.Success)
+        {
+            queryId = CompiledQueryId.Create(queryCompilation.Language);
+            Contract.ThrowIfFalse(ImmutableInterlocked.TryAdd(ref _compiledQueries, queryId, new CompiledQuery(peStream, pdbStream, queryText)));
+
+            errors = [];
+        }
+        else
+        {
+            queryId = default;
+
+            foreach (var diagnostic in emitResult.Diagnostics)
+            {
+                if (diagnostic.Severity == DiagnosticSeverity.Error)
+                {
+                    traceSource.TraceInformation($"Semantic search query compilation failed: {diagnostic}");
+                }
+            }
+
+            errors = emitResult.Diagnostics.SelectAsArray(
+                d => d.Severity == DiagnosticSeverity.Error,
+                d => new QueryCompilationError(d.Id, d.GetMessage(), (d.Location.SourceTree == queryTree) ? d.Location.SourceSpan : default));
+        }
+
+        return new CompileQueryResult(queryId, errors, emitTime);
+    }
+
+    public void DiscardQuery(CompiledQueryId queryId)
+    {
+        Contract.ThrowIfFalse(ImmutableInterlocked.TryRemove(ref _compiledQueries, queryId, out var compiledQuery));
+        compiledQuery.Dispose();
+    }
 
     public async Task<ExecuteQueryResult> ExecuteQueryAsync(
         Solution solution,
-        string query,
-        string referenceAssembliesDir,
+        CompiledQueryId queryId,
         ISemanticSearchResultsObserver observer,
         OptionsProvider<ClassificationOptions> classificationOptions,
         TraceSource traceSource,
         CancellationToken cancellationToken)
     {
+        Contract.ThrowIfFalse(ImmutableInterlocked.TryRemove(ref _compiledQueries, queryId, out var query));
+
         try
         {
-            // add progress items - one for compilation, one for emit and one for each project:
-            var remainingProgressItemCount = 2 + solution.ProjectIds.Count;
-            await observer.AddItemsAsync(remainingProgressItemCount, cancellationToken).ConfigureAwait(false);
-
-            var metadataService = solution.Services.GetRequiredService<IMetadataService>();
-            var metadataReferences = SemanticSearchUtilities.GetMetadataReferences(metadataService, referenceAssembliesDir);
-            var queryText = SemanticSearchUtilities.CreateSourceText(query);
-            var queryCompilation = CreateCompilation(queryText, metadataReferences, solution.Services, out var queryTree, cancellationToken);
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // complete compilation progress item:
-            remainingProgressItemCount--;
-            await observer.ItemsCompletedAsync(1, cancellationToken).ConfigureAwait(false);
-
-            var emitOptions = new EmitOptions(
-                debugInformationFormat: DebugInformationFormat.PortablePdb,
-                instrumentationKinds: [InstrumentationKind.StackOverflowProbing, InstrumentationKind.ModuleCancellation]);
-
-            using var peStream = new MemoryStream();
-            using var pdbStream = new MemoryStream();
-
-            var emitDifferenceTimer = SharedStopwatch.StartNew();
-            var emitResult = queryCompilation.Emit(peStream, pdbStream, options: emitOptions, cancellationToken: cancellationToken);
-            var emitTime = emitDifferenceTimer.Elapsed;
-
             var executionTime = TimeSpan.Zero;
 
-            cancellationToken.ThrowIfCancellationRequested();
+            var remainingProgressItemCount = solution.ProjectIds.Count;
+            await observer.AddItemsAsync(remainingProgressItemCount, cancellationToken).ConfigureAwait(false);
 
-            // complete compilation progress item:
-            remainingProgressItemCount--;
-            await observer.ItemsCompletedAsync(1, cancellationToken).ConfigureAwait(false);
-
-            if (!emitResult.Success)
-            {
-                foreach (var diagnostic in emitResult.Diagnostics)
-                {
-                    if (diagnostic.Severity == DiagnosticSeverity.Error)
-                    {
-                        traceSource.TraceInformation($"Semantic search query compilation failed: {diagnostic}");
-                    }
-                }
-
-                var errors = emitResult.Diagnostics.SelectAsArray(
-                        d => d.Severity == DiagnosticSeverity.Error,
-                        d => new QueryCompilationError(d.Id, d.GetMessage(), (d.Location.SourceTree == queryTree) ? d.Location.SourceSpan : default));
-
-                return CreateResult(errors, FeaturesResources.Semantic_search_query_failed_to_compile);
-            }
-
-            peStream.Position = 0;
-            pdbStream.Position = 0;
+            query.PEStream.Position = 0;
+            query.PdbStream.Position = 0;
             var loadContext = new LoadContext();
             try
             {
-                var queryAssembly = loadContext.LoadFromStream(peStream, pdbStream);
+                var queryAssembly = loadContext.LoadFromStream(query.PEStream, query.PdbStream);
                 SetModuleCancellationToken(queryAssembly, cancellationToken);
 
                 SetToolImplementations(
@@ -146,17 +176,17 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
                 if (!TryGetFindMethod(queryAssembly, out var findMethod, out var queryKind, out var errorMessage, out var errorMessageArgs))
                 {
                     traceSource.TraceInformation($"Semantic search failed: {errorMessage}");
-                    return CreateResult(compilationErrors: [], errorMessage, errorMessageArgs);
+                    return CreateResult(errorMessage, errorMessageArgs);
                 }
 
-                var invocationContext = new QueryExecutionContext(queryText, findMethod, observer, classificationOptions, traceSource);
+                var invocationContext = new QueryExecutionContext(query.Text, findMethod, observer, classificationOptions, traceSource);
                 try
                 {
                     await invocationContext.InvokeAsync(solution, queryKind, cancellationToken).ConfigureAwait(false);
 
                     if (invocationContext.TerminatedWithException)
                     {
-                        return CreateResult(compilationErrors: [], FeaturesResources.Semantic_search_query_terminated_with_exception);
+                        return CreateResult(FeaturesResources.Semantic_search_query_terminated_with_exception);
                     }
                 }
                 finally
@@ -176,14 +206,18 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
                 }
             }
 
-            return CreateResult(compilationErrors: [], errorMessage: null);
+            return CreateResult(errorMessage: null);
 
-            ExecuteQueryResult CreateResult(ImmutableArray<QueryCompilationError> compilationErrors, string? errorMessage, params string[]? args)
-                => new(compilationErrors, errorMessage, args, emitTime, executionTime);
+            ExecuteQueryResult CreateResult(string? errorMessage, params string[]? args)
+                => new(errorMessage, args, executionTime);
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
         {
             throw ExceptionUtilities.Unreachable();
+        }
+        finally
+        {
+            query.Dispose();
         }
     }
 

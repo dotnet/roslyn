@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,30 +15,15 @@ namespace Microsoft.CodeAnalysis.Xaml.Diagnostics.Analyzers;
 internal sealed class XamlDocumentDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
 {
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            return XamlProjectService.AnalyzerService?.SupportedDiagnostics ?? [];
-        }
-    }
+        => XamlProjectService.AnalyzerService?.SupportedDiagnostics ?? [];
 
-    public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
-    {
-        if (XamlProjectService.AnalyzerService == null)
-        {
-            return [];
-        }
+    public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(TextDocument textDocument, SyntaxTree? tree, CancellationToken cancellationToken)
+        => XamlProjectService.AnalyzerService is null || textDocument is not Document document
+            ? []
+            : await XamlProjectService.AnalyzerService.AnalyzeSyntaxAsync(document, cancellationToken).ConfigureAwait(false);
 
-        return await XamlProjectService.AnalyzerService.AnalyzeSyntaxAsync(document, cancellationToken).ConfigureAwait(false);
-    }
-
-    public override async Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
-    {
-        if (XamlProjectService.AnalyzerService == null)
-        {
-            return [];
-        }
-
-        return await XamlProjectService.AnalyzerService.AnalyzeSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
-    }
+    public override async Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(TextDocument textDocument, SyntaxTree? tree, CancellationToken cancellationToken)
+        => XamlProjectService.AnalyzerService is null || textDocument is not Document document
+            ? []
+            : await XamlProjectService.AnalyzerService.AnalyzeSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
 }
