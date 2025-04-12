@@ -40,7 +40,4 @@ internal static class ICodeFixServiceExtensions
 
     public static Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(this ICodeFixService service, TextDocument document, TextSpan textSpan, ICodeActionRequestPriorityProvider priorityProvider, CancellationToken cancellationToken)
         => service.StreamFixesAsync(document, textSpan, priorityProvider, cancellationToken).ToImmutableArrayAsync(cancellationToken);
-
-    public static Task<TDocument> ApplyCodeFixesForSpecificDiagnosticIdAsync<TDocument>(this ICodeFixService service, TDocument document, string diagnosticId, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken) where TDocument : TextDocument
-        => service.ApplyCodeFixesForSpecificDiagnosticIdAsync(document, diagnosticId, DiagnosticSeverity.Hidden, progressTracker, cancellationToken);
 }
