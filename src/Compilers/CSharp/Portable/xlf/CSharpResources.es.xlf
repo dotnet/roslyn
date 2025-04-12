@@ -742,6 +742,11 @@
         <target state="translated">Un árbol de (la) expresión no puede contener una conversión de controlador de cadena interpolada.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsNamedArgumentOutOfPosition">
+        <source>An expression tree may not contain a named argument specification out of position</source>
+        <target state="new">An expression tree may not contain a named argument specification out of position</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsPatternImplicitIndexer">
         <source>An expression tree may not contain a pattern System.Index or System.Range indexer access</source>
         <target state="translated">Un árbol de expresión no puede contener un patrón System.Index o un acceso a indizador System.Range.</target>
@@ -1718,8 +1723,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PPIgnoredNeedsFileBasedProgram">
-        <source>'#:' directives can be only used in file-based programs ('/feature:FileBasedProgram')</source>
-        <target state="new">'#:' directives can be only used in file-based programs ('/feature:FileBasedProgram')</target>
+        <source>'#:' directives can be only used in file-based programs ('-features:FileBasedProgram')</source>
+        <target state="new">'#:' directives can be only used in file-based programs ('-features:FileBasedProgram')</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">

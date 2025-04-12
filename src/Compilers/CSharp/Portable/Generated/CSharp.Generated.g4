@@ -1335,7 +1335,7 @@ error_directive_trivia
   ;
 
 ignored_directive_trivia
-  : '#' ':'
+  : '#' ':' string_literal_token?
   ;
 
 line_or_span_directive_trivia
