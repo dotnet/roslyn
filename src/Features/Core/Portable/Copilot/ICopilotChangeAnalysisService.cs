@@ -126,10 +126,10 @@ internal sealed class DefaultCopilotChangeAnalysisServiceFactory(
                         message[$"Id_{group.Key}"] = group.Count();
 
                     foreach (var group in diagnostics.GroupBy(d => d.Category))
-                        message[$"Category_{group.Key}"] = group.Count();
+                        message[$"{diagnosticKind}_{group.Key}"] = group.Count();
 
                     foreach (var group in diagnostics.GroupBy(d => d.Severity))
-                        message[$"Severity_{group.Key}"] = group.Count();
+                        message[$"{diagnosticKind}_{group.Key}"] = group.Count();
                 }, (diagnosticKind, diagnostics)));
             }
 
