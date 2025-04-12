@@ -12,57 +12,56 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
+namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols;
+
+internal partial class NavigableSymbolService
 {
-    internal partial class NavigableSymbolService
+    private sealed class NavigableSymbol : INavigableSymbol
     {
-        private class NavigableSymbol : INavigableSymbol
+        private readonly NavigableSymbolService _service;
+        private readonly ITextView _textView;
+        private readonly INavigableLocation _location;
+        private readonly IBackgroundWorkIndicatorFactory _indicatorFactory;
+
+        public NavigableSymbol(
+            NavigableSymbolService service,
+            ITextView textView,
+            INavigableLocation location,
+            SnapshotSpan symbolSpan,
+            IBackgroundWorkIndicatorFactory indicatorFactory)
         {
-            private readonly NavigableSymbolService _service;
-            private readonly ITextView _textView;
-            private readonly INavigableLocation _location;
-            private readonly IBackgroundWorkIndicatorFactory _indicatorFactory;
+            Contract.ThrowIfNull(location);
 
-            public NavigableSymbol(
-                NavigableSymbolService service,
-                ITextView textView,
-                INavigableLocation location,
-                SnapshotSpan symbolSpan,
-                IBackgroundWorkIndicatorFactory indicatorFactory)
-            {
-                Contract.ThrowIfNull(location);
+            _service = service;
+            _textView = textView;
+            _location = location;
+            SymbolSpan = symbolSpan;
+            _indicatorFactory = indicatorFactory;
+        }
 
-                _service = service;
-                _textView = textView;
-                _location = location;
-                SymbolSpan = symbolSpan;
-                _indicatorFactory = indicatorFactory;
-            }
+        public SnapshotSpan SymbolSpan { get; }
 
-            public SnapshotSpan SymbolSpan { get; }
+        public IEnumerable<INavigableRelationship> Relationships
+            => [PredefinedNavigableRelationships.Definition];
 
-            public IEnumerable<INavigableRelationship> Relationships
-                => [PredefinedNavigableRelationships.Definition];
+        public void Navigate(INavigableRelationship relationship)
+        {
+            // Fire and forget.
+            var token = _service._listener.BeginAsyncOperation(nameof(NavigateAsync));
+            _ = NavigateAsync().ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
+        }
 
-            public void Navigate(INavigableRelationship relationship)
-            {
-                // Fire and forget.
-                var token = _service._listener.BeginAsyncOperation(nameof(NavigateAsync));
-                _ = NavigateAsync().ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
-            }
+        private async Task NavigateAsync()
+        {
+            // we're about to navigate.  so disable cancellation on focus-lost in our indicator so we don't end up
+            // causing ourselves to self-cancel.
+            using var backgroundIndicator = _indicatorFactory.Create(
+                _textView, SymbolSpan,
+                EditorFeaturesResources.Navigating_to_definition,
+                cancelOnFocusLost: false);
 
-            private async Task NavigateAsync()
-            {
-                // we're about to navigate.  so disable cancellation on focus-lost in our indicator so we don't end up
-                // causing ourselves to self-cancel.
-                using var backgroundIndicator = _indicatorFactory.Create(
-                    _textView, SymbolSpan,
-                    EditorFeaturesResources.Navigating_to_definition,
-                    cancelOnFocusLost: false);
-
-                await _location.TryNavigateToAsync(
-                    _service._threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), backgroundIndicator.UserCancellationToken).ConfigureAwait(false);
-            }
+            await _location.TryNavigateToAsync(
+                _service._threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), backgroundIndicator.UserCancellationToken).ConfigureAwait(false);
         }
     }
 }

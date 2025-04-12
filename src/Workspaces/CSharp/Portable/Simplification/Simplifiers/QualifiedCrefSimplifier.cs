@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers;
 
 using static SyntaxFactory;
 
-internal class QualifiedCrefSimplifier : AbstractCSharpSimplifier<QualifiedCrefSyntax, CrefSyntax>
+internal sealed class QualifiedCrefSimplifier : AbstractCSharpSimplifier<QualifiedCrefSyntax, CrefSyntax>
 {
     public static readonly QualifiedCrefSimplifier Instance = new();
 

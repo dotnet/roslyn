@@ -30,7 +30,7 @@ public abstract partial class MultipleCodeStyleOptionBasedSeverityConfigurationT
     }
 
     [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-    public class ErrorConfigurationTests : MultipleCodeStyleOptionBasedSeverityConfigurationTests
+    public sealed class ErrorConfigurationTests : MultipleCodeStyleOptionBasedSeverityConfigurationTests
     {
         protected override int CodeActionIndex => 4;
 

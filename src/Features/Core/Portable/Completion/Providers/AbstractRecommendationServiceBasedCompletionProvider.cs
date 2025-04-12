@@ -226,7 +226,7 @@ internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSy
 
         async Task<CompletionDescription?> TryGetDescriptionAsync(DocumentId documentId)
         {
-            var relatedDocument = document.Project.Solution.GetRequiredDocument(documentId);
+            var relatedDocument = await document.Project.Solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
             var context = await Utilities.CreateSyntaxContextWithExistingSpeculativeModelAsync(relatedDocument, position, cancellationToken).ConfigureAwait(false) as TSyntaxContext;
             Contract.ThrowIfNull(context);
             var symbols = await TryGetSymbolsForContextAsync(completionContext: null, context, options, cancellationToken).ConfigureAwait(false);

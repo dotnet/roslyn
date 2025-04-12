@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.CompletionSetSources;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class PossibleTupleContextTests : AbstractContextTests
+public sealed class PossibleTupleContextTests : AbstractContextTests
 {
     protected override void CheckResult(bool validLocation, int position, SyntaxTree syntaxTree)
     {

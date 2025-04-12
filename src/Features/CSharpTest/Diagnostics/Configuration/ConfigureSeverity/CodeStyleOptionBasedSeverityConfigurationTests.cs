@@ -30,7 +30,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
     }
 
     [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-    public class NoneConfigurationTests : CodeStyleOptionBasedSeverityConfigurationTests
+    public sealed class NoneConfigurationTests : CodeStyleOptionBasedSeverityConfigurationTests
     {
         protected override int CodeActionIndex => 0;
 
@@ -420,7 +420,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
     }
 
     [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-    public class SilentConfigurationTests : CodeStyleOptionBasedSeverityConfigurationTests
+    public sealed class SilentConfigurationTests : CodeStyleOptionBasedSeverityConfigurationTests
     {
         protected override int CodeActionIndex => 1;
 
@@ -574,7 +574,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
     }
 
     [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-    public class SuggestionConfigurationTests : CodeStyleOptionBasedSeverityConfigurationTests
+    public sealed class SuggestionConfigurationTests : CodeStyleOptionBasedSeverityConfigurationTests
     {
         protected override int CodeActionIndex => 2;
 
@@ -730,7 +730,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
     }
 
     [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-    public class WarningConfigurationTests : CodeStyleOptionBasedSeverityConfigurationTests
+    public sealed class WarningConfigurationTests : CodeStyleOptionBasedSeverityConfigurationTests
     {
         protected override int CodeActionIndex => 3;
 
@@ -884,7 +884,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
     }
 
     [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-    public class ErrorConfigurationTests : CodeStyleOptionBasedSeverityConfigurationTests
+    public sealed class ErrorConfigurationTests : CodeStyleOptionBasedSeverityConfigurationTests
     {
         protected override int CodeActionIndex => 4;
 

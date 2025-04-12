@@ -9,7 +9,7 @@ using Roslyn.Core.Imaging;
 using Roslyn.Text.Adornments;
 
 namespace Roslyn.LanguageServer.Protocol;
-internal class ImageElementConverter : JsonConverter<ImageElement>
+internal sealed class ImageElementConverter : JsonConverter<ImageElement>
 {
     public static readonly ImageElementConverter Instance = new();
 

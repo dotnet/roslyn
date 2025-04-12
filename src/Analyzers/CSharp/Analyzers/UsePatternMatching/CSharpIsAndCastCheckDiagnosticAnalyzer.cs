@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching;
 ///     }
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpIsAndCastCheckDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpIsAndCastCheckDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
     public static readonly CSharpIsAndCastCheckDiagnosticAnalyzer Instance = new();
 

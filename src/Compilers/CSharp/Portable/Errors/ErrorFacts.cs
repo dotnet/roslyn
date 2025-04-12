@@ -2503,6 +2503,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_ValueParameterSameNameAsExtensionTypeParameter
                 or ErrorCode.ERR_UnderspecifiedExtension
                 or ErrorCode.ERR_ExpressionTreeContainsExtensionPropertyAccess
+                or ErrorCode.ERR_PPIgnoredFollowsToken
+                or ErrorCode.ERR_PPIgnoredNeedsFileBasedProgram
+                or ErrorCode.ERR_PPIgnoredFollowsIf
+                or ErrorCode.ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne
+                or ErrorCode.ERR_InExtensionParameterMustBeValueType
+                or ErrorCode.ERR_ProtectedInExtension
+                or ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter
+                or ErrorCode.ERR_InitInExtension
+                or ErrorCode.ERR_ModifierOnUnnamedReceiverParameter
+                or ErrorCode.ERR_ExtensionTypeNameDisallowed
+                or ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition
                 or ErrorCode.ERR_OperatorsMustBePublic
                 or ErrorCode.ERR_BadIncrementOpArgs
                 or ErrorCode.ERR_OperatorMustReturnVoid

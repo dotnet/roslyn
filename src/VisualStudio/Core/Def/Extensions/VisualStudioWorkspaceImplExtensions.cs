@@ -79,7 +79,7 @@ internal static class VisualStudioWorkspaceImplExtensions
         return false;
     }
 
-    private class VsImageMonikerImageList : IVsImageMonikerImageList
+    private sealed class VsImageMonikerImageList : IVsImageMonikerImageList
     {
         private readonly ImageMoniker _imageMoniker;
 

@@ -8,25 +8,24 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.FindUsages;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FindUsages
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FindUsages;
+
+internal interface IFSharpFindUsagesContext
 {
-    internal interface IFSharpFindUsagesContext
-    {
-        CancellationToken CancellationToken { get; }
+    CancellationToken CancellationToken { get; }
 
-        /// <summary>
-        /// Report a message to be displayed to the user.
-        /// </summary>
-        Task ReportMessageAsync(string message);
+    /// <summary>
+    /// Report a message to be displayed to the user.
+    /// </summary>
+    Task ReportMessageAsync(string message);
 
-        /// <summary>
-        /// Set the title of the window that results are displayed in.
-        /// </summary>
-        Task SetSearchTitleAsync(string title);
+    /// <summary>
+    /// Set the title of the window that results are displayed in.
+    /// </summary>
+    Task SetSearchTitleAsync(string title);
 
-        Task OnDefinitionFoundAsync(FSharpDefinitionItem definition);
-        Task OnReferenceFoundAsync(FSharpSourceReferenceItem reference);
+    Task OnDefinitionFoundAsync(FSharpDefinitionItem definition);
+    Task OnReferenceFoundAsync(FSharpSourceReferenceItem reference);
 
-        Task ReportProgressAsync(int current, int maximum);
-    }
+    Task ReportProgressAsync(int current, int maximum);
 }

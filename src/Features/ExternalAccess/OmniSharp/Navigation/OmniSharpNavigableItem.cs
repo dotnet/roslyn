@@ -5,21 +5,20 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Navigation
+namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Navigation;
+
+internal readonly struct OmniSharpNavigableItem
 {
-    internal readonly struct OmniSharpNavigableItem
+    public OmniSharpNavigableItem(ImmutableArray<TaggedText> displayTaggedParts, Document document, TextSpan sourceSpan)
     {
-        public OmniSharpNavigableItem(ImmutableArray<TaggedText> displayTaggedParts, Document document, TextSpan sourceSpan)
-        {
-            DisplayTaggedParts = displayTaggedParts;
-            Document = document;
-            SourceSpan = sourceSpan;
-        }
-
-        public ImmutableArray<TaggedText> DisplayTaggedParts { get; }
-
-        public Document Document { get; }
-
-        public TextSpan SourceSpan { get; }
+        DisplayTaggedParts = displayTaggedParts;
+        Document = document;
+        SourceSpan = sourceSpan;
     }
+
+    public ImmutableArray<TaggedText> DisplayTaggedParts { get; }
+
+    public Document Document { get; }
+
+    public TextSpan SourceSpan { get; }
 }

@@ -2167,7 +2167,7 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
         return (TNode)rewriter.Visit(node);
     }
 
-    private class AddMissingTokensRewriter : CSharpSyntaxRewriter
+    private sealed class AddMissingTokensRewriter : CSharpSyntaxRewriter
     {
         private readonly bool _recurse;
         private bool _firstVisit = true;

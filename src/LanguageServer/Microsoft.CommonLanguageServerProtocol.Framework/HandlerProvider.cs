@@ -14,7 +14,7 @@ using System.Linq;
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 /// <inheritdoc/>
-internal class HandlerProvider(ILspServices lspServices, AbstractTypeRefResolver typeRefResolver) : AbstractHandlerProvider
+internal sealed class HandlerProvider(ILspServices lspServices, AbstractTypeRefResolver typeRefResolver) : AbstractHandlerProvider
 {
     private readonly ILspServices _lspServices = lspServices;
     private readonly AbstractTypeRefResolver _typeRefResolver = typeRefResolver;

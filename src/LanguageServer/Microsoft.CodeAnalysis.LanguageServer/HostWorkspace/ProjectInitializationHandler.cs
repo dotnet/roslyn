@@ -87,7 +87,7 @@ internal sealed class ProjectInitializationHandler : IDisposable
         _serviceBrokerClient.Dispose();
     }
 
-    internal class ProjectInitializationCompleteObserver : IObserver<ProjectInitializationCompletionState>
+    internal sealed class ProjectInitializationCompleteObserver : IObserver<ProjectInitializationCompletionState>
     {
         private readonly ILogger _logger;
 
