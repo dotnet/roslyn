@@ -121,16 +121,15 @@ internal sealed class DefaultCopilotChangeAnalysisServiceFactory(
                     args: (@this: this, newDocument, diagnosticKind),
                     cancellationToken).ConfigureAwait(false);
 
-                var codeFixCollections = await ProducerConsumer<DiagnosticData>.RunAsync(
+                var codeFixCollections = await ProducerConsumer<CodeFixCollection>.RunParallelAsync(
                     newSpans,
                     static async (span, callback, args, cancellationToken) =>
                     {
                         var (@this, newDocument) = args;
                         await foreach (var codeFixCollection in @this._codeFixService.StreamFixesAsync(
-                            newDocument, span, callback, CancellationToken.None).ConfigureAwait(false))
+                            newDocument, span, cancellationToken).ConfigureAwait(false))
                         {
-                            foreach (var codeFix in codeFixCollection)
-                                callback(codeFix);
+                            callback(codeFixCollection);
                         }
                     },
                     args: (@this: this, newDocument),
