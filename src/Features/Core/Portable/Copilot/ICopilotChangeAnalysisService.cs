@@ -30,14 +30,6 @@ internal interface ICopilotChangeAnalysisService : IWorkspaceService
     Task AnalyzeChangeAsync(Document document, ImmutableArray<TextChange> changes, CancellationToken cancellationToken);
 }
 
-/// <summary>Remote version of <see cref="ICopilotChangeAnalysisService"/></summary>
-internal interface IRemoteCopilotChangeAnalysisService : IWorkspaceService
-{
-    /// <inheritdoc cref="ICopilotChangeAnalysisService.AnalyzeChangeAsync"/>
-    ValueTask AnalyzeChangeAsync(
-        Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TextChange> edits, CancellationToken cancellationToken);
-}
-
 [ExportWorkspaceServiceFactory(typeof(ICopilotChangeAnalysisService)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
