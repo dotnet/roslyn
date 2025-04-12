@@ -175,11 +175,12 @@ internal sealed class CodeRefactoringService(
 
                     var providerName = provider.GetType().Name;
 
-                    var logMessage = KeyValueLogMessage.Create(m =>
+                    var logMessage = KeyValueLogMessage.Create(static (m, args) =>
                     {
+                        var (providerName, document) = args;
                         m[TelemetryLogging.KeyName] = providerName;
                         m[TelemetryLogging.KeyLanguageName] = document.Project.Language;
-                    });
+                    }, (providerName, document));
 
                     using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, cancellationToken))
                     using (TelemetryLogging.LogBlockTime(FunctionId.CodeRefactoring_Delay, logMessage, CodeRefactoringTelemetryDelay))

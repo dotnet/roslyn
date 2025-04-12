@@ -393,10 +393,10 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
             var changedDocuments = args.NewSolution.GetChangedDocuments(args.OldSolution);
             if (changedDocuments.Any())
             {
-                Logger.Log(FunctionId.Rename_InlineSession_Cancel_NonDocumentChangedWorkspaceChange, KeyValueLogMessage.Create(m =>
+                Logger.Log(FunctionId.Rename_InlineSession_Cancel_NonDocumentChangedWorkspaceChange, KeyValueLogMessage.Create(static (m, args) =>
                 {
                     m["Kind"] = Enum.GetName(typeof(WorkspaceChangeKind), args.Kind);
-                }));
+                }, args));
 
                 Cancel();
             }
