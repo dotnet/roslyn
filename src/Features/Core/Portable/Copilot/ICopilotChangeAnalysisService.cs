@@ -125,12 +125,20 @@ internal sealed class DefaultCopilotChangeAnalysisServiceFactory(
                     args: (@this: this, newDocument, diagnosticKind),
                     cancellationToken).ConfigureAwait(false);
 
-                Logger.Log(FunctionId.Copilot_AnalyzeChange, KeyValueLogMessage.Create(LogType.Trace, static (args, message) =>
+                Logger.Log(FunctionId.Copilot_AnalyzeChange, KeyValueLogMessage.Create(LogType.Trace, static (message, args) =>
                 {
+                    var (diagnosticKind, diagnostics) = args;
                     message["DiagnosticKind"] = diagnosticKind.ToString();
-                    message["DocumentId"] = newDocument.Id.ToString();
-                    message["Diagnostics"] = string.Join(", ", diagnostics.Select(d => d.ToString()));
-                },));
+
+                    foreach (var group in diagnostics.GroupBy(d => d.Id))
+                        message[$"Id_{group.Key}"] = group.Count();
+
+                    foreach (var group in diagnostics.GroupBy(d => d.Category))
+                        message[$"Category_{group.Key}"] = group.Count();
+
+                    foreach (var group in diagnostics.GroupBy(d => d.Severity))
+                        message[$"Severity_{group.Key}"] = group.Count();
+                }, (diagnosticKind, diagnostics)));
             }
 
             // Not yet implemented.  Flesh this out if we think there is value in looking at the rest of the document
