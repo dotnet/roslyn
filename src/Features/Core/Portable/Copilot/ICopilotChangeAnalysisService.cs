@@ -3,9 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -22,6 +24,40 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Threading;
 
 namespace Microsoft.CodeAnalysis.Copilot;
+
+/// <param name="DiagnosticKind">What diagnostic kind this is analysis data for.</param>
+/// <param name="DiagnosticComputationTime">How long it took to produce the diagnostics for this diagnostic kind.</param>
+/// <param name="IdToCount">Mapping from <see cref="Diagnostic.Id"/> to the number of diagnostics produced for that id.</param>
+/// <param name="CategoryToCount">Mapping from <see cref="Diagnostic.Category"/> to the number of diagnostics produced for that category.</param>
+/// <param name="SeverityToCount">Mapping from <see cref="Diagnostic.Severity"/> to the number of diagnostics produced for that severity.</param>
+[DataContract]
+internal readonly record struct CopilotDiagnosticAnalysis(
+    [property: DataMember(Order = 0)] DiagnosticKind DiagnosticKind,
+    [property: DataMember(Order = 1)] TimeSpan DiagnosticComputationTime,
+    [property: DataMember(Order = 2)] Dictionary<string, int> IdToCount,
+    [property: DataMember(Order = 3)] Dictionary<string, int> CategoryToCount,
+    [property: DataMember(Order = 4)] Dictionary<DiagnosticSeverity, int> SeverityToCount);
+
+/// <param name="CodeFixComputationTime">Total time to compute code fixes for the changed regions.</param>
+/// <param name="DiagnosticIdToCount">Mapping from diagnostic id to to how many diagnostics with that id had fixes.</param>
+/// <param name="DiagnosticIdToApplicationTime">Mapping from diagnostic id to the total time taken to fix diagnostics with that id.</param>
+/// <param name="DiagnosticIdToProviderName">Mapping from diagnostic id to the name of the provider that provided the fix.</param>
+/// <param name="ProviderNameToApplicationTime">Mapping from provider name to the total time taken to fix diagnostics with that provider.</param>
+[DataContract]
+internal readonly record struct CopilotCodeFixAnalysis(
+    [property: DataMember(Order = 0)] TimeSpan CodeFixComputationTime,
+    [property: DataMember(Order = 1)] Dictionary<string, int> DiagnosticIdToCount,
+    [property: DataMember(Order = 2)] Dictionary<string, TimeSpan> DiagnosticIdToApplicationTime,
+    [property: DataMember(Order = 4)] Dictionary<string, HashSet<string>> DiagnosticIdToProviderName,
+    [property: DataMember(Order = 5)] Dictionary<string, TimeSpan> ProviderNameToApplicationTime);
+
+internal readonly record struct CopilotChangeAnalysis(
+    TimeSpan TotalAnalysisTime,
+    TimeSpan TotalDiagnosticComputationTime,
+    TimeSpan TotalCodeFixComputationTime,
+    TimeSpan TotalCodeFixApplicationTime,
+    ImmutableArray<CopilotDiagnosticAnalysis> DiagnosticAnalyses,
+    CopilotCodeFixAnalysis CodeFixAnalysis);
 
 internal interface ICopilotChangeAnalysisService : IWorkspaceService
 {
