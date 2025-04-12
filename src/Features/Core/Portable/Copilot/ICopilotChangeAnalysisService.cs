@@ -8,6 +8,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
@@ -18,6 +19,7 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 
 namespace Microsoft.CodeAnalysis.Copilot;
 
@@ -116,7 +118,12 @@ internal sealed class DefaultCopilotChangeAnalysisServiceFactory(
                         var diagnostics = await @this._diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(
                             newDocument, span, diagnosticKind, cancellationToken).ConfigureAwait(false);
                         foreach (var diagnostic in diagnostics)
-                            callback(diagnostic);
+                        {
+                            // Ignore supressed diagnostics.  These are things the user has said they do not care about
+                            // and would then have no interest in being auto fixed.
+                            if (!diagnostic.IsSuppressed)
+                                callback(diagnostic);
+                        }
                     },
                     args: (@this: this, newDocument, diagnosticKind),
                     cancellationToken).ConfigureAwait(false);
@@ -129,10 +136,27 @@ internal sealed class DefaultCopilotChangeAnalysisServiceFactory(
                         await foreach (var codeFixCollection in @this._codeFixService.StreamFixesAsync(
                             newDocument, span, cancellationToken).ConfigureAwait(false))
                         {
-                            callback(codeFixCollection);
+                            // Ignore the suppress/configure codefixes that are almost always present.
+                            // We would not ever want to apply those to a copilot change.
+                            if (codeFixCollection.Provider is not IConfigurationFixProvider &&
+                                codeFixCollection.Fixes is [var codeFix, ..])
+                            {
+                                callback(codeFixCollection);
+                            }
                         }
                     },
                     args: (@this: this, newDocument),
+                    cancellationToken).ConfigureAwait(false);
+
+                var results = await ProducerConsumer<VoidResult>.RunParallelAsync(
+                    codeFixCollections,
+                    static async (codeFixCollection, callback, args, cancellationToken) =>
+                    {
+                        var (@this, solution) = args;
+                        var firstAction = GetFirstAction(codeFixCollection.Fixes[0]);
+                        var result = await firstAction.GetPreviewOperationsAsync(solution, cancellationToken).ConfigureAwait(false);
+                    },
+                    args: (@this: this, document.Project.Solution),
                     cancellationToken).ConfigureAwait(false);
 
                 Logger.Log(FunctionId.Copilot_AnalyzeChange, KeyValueLogMessage.Create(LogType.Trace, static (message, args) =>
@@ -149,6 +173,15 @@ internal sealed class DefaultCopilotChangeAnalysisServiceFactory(
                     foreach (var group in diagnostics.GroupBy(d => d.Severity))
                         message[$"{diagnosticKind}_{group.Key}"] = group.Count();
                 }, (diagnosticKind, diagnostics)));
+            }
+
+            static CodeAction GetFirstAction(CodeFix codeFix)
+            {
+                var action = codeFix.Action;
+                while (action is { NestedCodeActions: [var nestedAction, ..] })
+                    action = nestedAction;
+
+                return action;
             }
 
             // Not yet implemented.  Flesh this out if we think there is value in looking at the rest of the document
