@@ -34,6 +34,7 @@ internal interface ICopilotChangeAnalysisService : IWorkspaceService
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class DefaultCopilotChangeAnalysisServiceFactory(
+    ICodeFixService codeFixService,
     IDiagnosticAnalyzerService diagnosticAnalyzerService) : IWorkspaceServiceFactory
 {
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
@@ -116,6 +117,8 @@ internal sealed class DefaultCopilotChangeAnalysisServiceFactory(
                     },
                     args: (@this: this, newDocument, diagnosticKind),
                     cancellationToken).ConfigureAwait(false);
+
+                var fixers = await 
 
                 Logger.Log(FunctionId.Copilot_AnalyzeChange, KeyValueLogMessage.Create(LogType.Trace, static (message, args) =>
                 {
