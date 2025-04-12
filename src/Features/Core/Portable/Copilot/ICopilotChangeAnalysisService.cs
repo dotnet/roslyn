@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared;
@@ -111,7 +112,7 @@ internal sealed class DefaultCopilotChangeAnalysisServiceFactory(
 
             async Task AnalyzeChangedRegionsAsync(DiagnosticKind diagnosticKind)
             {
-                await ProducerConsumer<DiagnosticData>.RunParallelAsync(
+                var diagnostics = await ProducerConsumer<DiagnosticData>.RunParallelAsync(
                     newSpans,
                     static async (span, callback, args, cancellationToken) =>
                     {
@@ -123,6 +124,13 @@ internal sealed class DefaultCopilotChangeAnalysisServiceFactory(
                     },
                     args: (@this: this, newDocument, diagnosticKind),
                     cancellationToken).ConfigureAwait(false);
+
+                Logger.Log(FunctionId.Copilot_AnalyzeChange, KeyValueLogMessage.Create(LogType.Trace, static (args, message) =>
+                {
+                    message["DiagnosticKind"] = diagnosticKind.ToString();
+                    message["DocumentId"] = newDocument.Id.ToString();
+                    message["Diagnostics"] = string.Join(", ", diagnostics.Select(d => d.ToString()));
+                },));
             }
 
             // Not yet implemented.  Flesh this out if we think there is value in looking at the rest of the document
