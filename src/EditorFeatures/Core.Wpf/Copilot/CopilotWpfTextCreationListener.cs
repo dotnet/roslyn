@@ -110,7 +110,7 @@ internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationL
             builder.Add(new TextChange(edit.Span.Span.ToTextSpan(), edit.ReplacementText));
 
         // Ensure everything is sorted.
-        builder.Sort((c1, c2) => c1.Span.Start - c2.Span.Start);
+        builder.Sort(static (c1, c2) => c1.Span.Start - c2.Span.Start);
 
         // Now, go through and make sure no edit overlaps another.
         for (int i = 1, n = builder.Count; i < n; i++)
@@ -118,7 +118,7 @@ internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationL
             var lastEdit = builder[i - 1];
             var currentEdit = builder[i];
 
-            if (lastEdit.Span.End > currentEdit.Span.Start)
+            if (lastEdit.Span.OverlapsWith(currentEdit.Span))
                 return default;
         }
 
