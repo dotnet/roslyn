@@ -5,7 +5,9 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -15,6 +17,12 @@ using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Copilot;
+
+//[DataContract]
+//internal readonly record struct TextChange(
+//    [property: DataMember(Order = 0)] TextSpan OldSpan,
+//    [property: DataMember(Order = 1)] TextSpan NewSpan,
+//    [property: DataMember(Order = 2)] string NewText);
 
 internal interface ICopilotChangeAnalysisService : IWorkspaceService
 {
