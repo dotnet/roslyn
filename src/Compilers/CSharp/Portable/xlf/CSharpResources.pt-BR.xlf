@@ -2552,6 +2552,11 @@
         <target state="translated">substituição do construtor de método assíncrono</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_CollectionExpression">
+        <source>collection expression</source>
+        <target state="new">collection expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureAllowsRefStructConstraint">
         <source>allows ref struct constraint</source>
         <target state="translated">permite a restrição de ref struct</target>
@@ -2568,7 +2573,7 @@
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressions">
-        <source>collection expression</source>
+        <source>collection expressions</source>
         <target state="needs-review-translation">expressões de coleção</target>
         <note />
       </trans-unit>

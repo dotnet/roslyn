@@ -2552,6 +2552,11 @@
         <target state="translated">异步方法生成器替代</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_CollectionExpression">
+        <source>collection expression</source>
+        <target state="new">collection expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureAllowsRefStructConstraint">
         <source>allows ref struct constraint</source>
         <target state="translated">允许 ref struct 约束</target>
@@ -2568,7 +2573,7 @@
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressions">
-        <source>collection expression</source>
+        <source>collection expressions</source>
         <target state="needs-review-translation">集合表达式</target>
         <note />
       </trans-unit>

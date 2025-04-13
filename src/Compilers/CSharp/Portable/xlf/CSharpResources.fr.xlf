@@ -2552,6 +2552,11 @@
         <target state="translated">Remplacement du générateur de méthode asynchrone</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_CollectionExpression">
+        <source>collection expression</source>
+        <target state="new">collection expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureAllowsRefStructConstraint">
         <source>allows ref struct constraint</source>
         <target state="translated">autorise la contrainte de struct ref</target>
@@ -2568,7 +2573,7 @@
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressions">
-        <source>collection expression</source>
+        <source>collection expressions</source>
         <target state="needs-review-translation">expressions de collection</target>
         <note />
       </trans-unit>

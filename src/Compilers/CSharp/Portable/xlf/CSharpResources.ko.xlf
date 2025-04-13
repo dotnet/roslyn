@@ -2552,6 +2552,11 @@
         <target state="translated">비동기 메서드 빌더 재정의</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_CollectionExpression">
+        <source>collection expression</source>
+        <target state="new">collection expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureAllowsRefStructConstraint">
         <source>allows ref struct constraint</source>
         <target state="translated">ref 구조체 제약 조건 허용</target>
@@ -2568,7 +2573,7 @@
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressions">
-        <source>collection expression</source>
+        <source>collection expressions</source>
         <target state="needs-review-translation">컬렉션 식</target>
         <note />
       </trans-unit>
