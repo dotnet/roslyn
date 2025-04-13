@@ -532,11 +532,12 @@ internal sealed partial class CodeFixService : ICodeFixService
                     const int CodeFixTelemetryDelay = 500;
 
                     var fixerName = fixer.GetType().Name;
-                    var logMessage = KeyValueLogMessage.Create(m =>
+                    var logMessage = KeyValueLogMessage.Create(static (m, args) =>
                     {
+                        var (fixerName, document) = args;
                         m[TelemetryLogging.KeyName] = fixerName;
                         m[TelemetryLogging.KeyLanguageName] = document.Project.Language;
-                    });
+                    }, (fixerName, document));
 
                     using var _ = TelemetryLogging.LogBlockTime(FunctionId.CodeFix_Delay, logMessage, CodeFixTelemetryDelay);
 

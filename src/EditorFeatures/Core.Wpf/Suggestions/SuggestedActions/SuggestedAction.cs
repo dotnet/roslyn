@@ -170,7 +170,8 @@ internal abstract partial class SuggestedAction : ISuggestedAction3, IEquatable<
             progressTracker.Report(CodeAnalysisProgress.Description(EditorFeaturesResources.Applying_changes));
 
             using (Logger.LogBlock(
-                FunctionId.CodeFixes_ApplyChanges, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m)), cancellationToken))
+                FunctionId.CodeFixes_ApplyChanges, KeyValueLogMessage.Create(
+                    LogType.UserAction, static (m, @this) => @this.CreateLogProperties(m), this), cancellationToken))
             {
                 var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
 

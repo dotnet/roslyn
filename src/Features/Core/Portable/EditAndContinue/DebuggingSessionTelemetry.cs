@@ -76,15 +76,16 @@ internal sealed class DebuggingSessionTelemetry(Guid solutionSessionId)
 
         var debugSessionId = getNextId();
 
-        log(FunctionId.Debugging_EncSession, KeyValueLogMessage.Create(map =>
+        log(FunctionId.Debugging_EncSession, KeyValueLogMessage.Create(static (map, args) =>
         {
+            var (data, debugSessionId) = args;
             map["SolutionSessionId"] = data.SolutionSessionId.ToString("B").ToUpperInvariant();
             map[SessionId] = debugSessionId;
             map["SessionCount"] = data.EditSessionData.Count(session => session.InBreakState);
             map["EmptySessionCount"] = data.EmptyEditSessionCount;
             map["HotReloadSessionCount"] = data.EditSessionData.Count(session => !session.InBreakState);
             map["EmptyHotReloadSessionCount"] = data.EmptyHotReloadEditSessionCount;
-        }));
+        }, (data, debugSessionId)));
 
         foreach (var editSessionData in data.EditSessionData)
         {
