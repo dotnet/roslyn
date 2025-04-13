@@ -54,6 +54,6 @@ public abstract partial class Workspace
     {
         _asyncEventMap.AddAsyncEventHandler(eventName, handler);
 
-        return new WorkspaceEventRegistration(() => _asyncEventMap.RemoveAsyncEventHandler(eventName, handler));
+        return WorkspaceEventRegistration.Create(_asyncEventMap, eventName, handler);
     }
 }

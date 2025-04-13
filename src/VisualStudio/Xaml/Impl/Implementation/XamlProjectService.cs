@@ -63,6 +63,9 @@ internal sealed partial class XamlProjectService : IDisposable
         _documentClosedHandlerDisposer = _workspace.RegisterDocumentClosedHandler(OnDocumentClosedAsync);
     }
 
+    public void Dispose()
+        => _documentClosedHandlerDisposer.Dispose();
+
     public static IXamlDocumentAnalyzerService? AnalyzerService { get; private set; }
 
     public DocumentId? TrackOpenDocument(string filePath)
@@ -274,10 +277,5 @@ internal sealed partial class XamlProjectService : IDisposable
         }
 
         return null;
-    }
-
-    public void Dispose()
-    {
-        _documentClosedHandlerDisposer.Dispose();
     }
 }

@@ -23,6 +23,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             _workspaceChangedDisposer = environment.Workspace.RegisterWorkspaceChangedHandler(AddressOf OnWorkspaceChangedAsync)
         End Sub
 
+        Public Sub Dispose() Implements IDisposable.Dispose
+            _workspaceChangedDisposer.Dispose()
+        End Sub
+
         Private Function OnWorkspaceChangedAsync(e As WorkspaceChangeEventArgs) As Task
             _changeEvents.Add(e)
 
@@ -37,9 +41,5 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             _changeEvents = New List(Of WorkspaceChangeEventArgs)()
             Return changeEvents
         End Function
-
-        Public Sub Dispose() Implements IDisposable.Dispose
-            _workspaceChangedDisposer.Dispose()
-        End Sub
     End Class
 End Namespace

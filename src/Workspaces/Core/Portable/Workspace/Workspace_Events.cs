@@ -169,7 +169,6 @@ public abstract partial class Workspace
     /// <summary>
     /// An event that is fired when a <see cref="Document"/> is opened in the editor.
     /// </summary>
-    [Obsolete("This member is obsolete. Use the RegisterDocumentOpenedHandler(Func<DocumentEventArgs, Task>) overload instead.", error: true)]
     public event EventHandler<DocumentEventArgs> DocumentOpened
     {
         add
@@ -189,7 +188,6 @@ public abstract partial class Workspace
     /// <summary>
     /// An event that is fired when any <see cref="TextDocument"/> is opened in the editor.
     /// </summary>
-    [Obsolete("This member is obsolete. Use the RegisterTextDocumentOpenedHandler(Func<TextDocumentEventArgs, Task>) overload instead.", error: true)]
     public event EventHandler<TextDocumentEventArgs> TextDocumentOpened
     {
         add
@@ -240,7 +238,6 @@ public abstract partial class Workspace
     /// <summary>
     /// An event that is fired when a <see cref="Document"/> is closed in the editor.
     /// </summary>
-    [Obsolete("This member is obsolete. Use the RegisterDocumentClosedHandler(Func<DocumentEventArgs, Task>) overload instead.", error: true)]
     public event EventHandler<DocumentEventArgs> DocumentClosed
     {
         add
@@ -260,7 +257,6 @@ public abstract partial class Workspace
     /// <summary>
     /// An event that is fired when any <see cref="TextDocument"/> is closed in the editor.
     /// </summary>
-    [Obsolete("This member is obsolete. Use the RegisterTextDocumentClosedHandler(Func<TextDocumentEventArgs, Task>) overload instead.", error: true)]
     public event EventHandler<TextDocumentEventArgs> TextDocumentClosed
     {
         add
@@ -281,7 +277,6 @@ public abstract partial class Workspace
     /// An event that is fired when the active context document associated with a buffer 
     /// changes.
     /// </summary>
-    [Obsolete("This member is obsolete. Use the RegisterActiveContextChangedHandler(Func<DocumentEventArgs, Task>) overload instead.", error: true)]
     public event EventHandler<DocumentActiveContextChangedEventArgs> DocumentActiveContextChanged
     {
         add

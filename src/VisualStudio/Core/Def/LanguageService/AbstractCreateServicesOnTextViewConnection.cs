@@ -60,6 +60,9 @@ internal abstract class AbstractCreateServicesOnTextViewConnection : IWpfTextVie
         _workspaceDocumentOpenedDisposer = Workspace.RegisterDocumentOpenedHandler(QueueWorkOnDocumentOpenedAsync);
     }
 
+    public void Dispose()
+        => _workspaceDocumentOpenedDisposer.Dispose();
+
     void IWpfTextViewConnectionListener.SubjectBuffersConnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
     {
         if (!_initialized)
@@ -114,10 +117,5 @@ internal abstract class AbstractCreateServicesOnTextViewConnection : IWpfTextVie
         // Preload completion providers on a background thread since assembly loads can be slow
         // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1242321
         languageServices.GetService<CompletionService>()?.LoadImportedProviders();
-    }
-
-    public void Dispose()
-    {
-        _workspaceDocumentOpenedDisposer?.Dispose();
     }
 }
