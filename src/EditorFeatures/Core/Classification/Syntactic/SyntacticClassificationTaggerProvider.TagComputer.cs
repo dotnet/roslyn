@@ -269,7 +269,7 @@ internal partial class SyntacticClassificationTaggerProvider
             _workQueue.AddWork(args.After);
         }
 
-        private Task OnDocumentActiveContextChangedAsync(DocumentActiveContextChangedEventArgs args)
+        private Task OnDocumentActiveContextChangedAsync(DocumentActiveContextChangedEventArgs args, CancellationToken cancellationToken)
         {
             if (_workspace == null)
                 return Task.CompletedTask;
@@ -283,7 +283,7 @@ internal partial class SyntacticClassificationTaggerProvider
             return Task.CompletedTask;
         }
 
-        private Task OnWorkspaceChangedAsync(WorkspaceChangeEventArgs args)
+        private Task OnWorkspaceChangedAsync(WorkspaceChangeEventArgs args, CancellationToken cancellationToken)
         {
             // We may be getting an event for a workspace we already disconnected from.  If so,
             // ignore them.  We won't be able to find the Document corresponding to our text buffer,

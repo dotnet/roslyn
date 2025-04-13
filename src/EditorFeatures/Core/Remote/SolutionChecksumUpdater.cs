@@ -137,7 +137,7 @@ internal sealed class SolutionChecksumUpdater
         }
     }
 
-    private Task OnWorkspaceChangedAsync(WorkspaceChangeEventArgs e)
+    private Task OnWorkspaceChangedAsync(WorkspaceChangeEventArgs e, CancellationToken cancellationToken)
     {
         // Check if we're currently paused.  If so ignore this notification.  We don't want to any work in response
         // to whatever the workspace is doing.

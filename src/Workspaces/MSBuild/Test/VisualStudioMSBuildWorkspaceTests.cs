@@ -2213,7 +2213,7 @@ class C1
         var expectedEventKind = WorkspaceChangeKind.DocumentChanged;
         var originalSolution = workspace.CurrentSolution;
 
-        using var eventWaiter = workspace.VerifyWorkspaceChangedEvent(args =>
+        using var eventWaiter = workspace.VerifyWorkspaceChangedEvent((args, cancellationToken) =>
         {
             Assert.Equal(expectedEventKind, args.Kind);
             Assert.NotNull(args.NewSolution);
@@ -2245,7 +2245,7 @@ class C1
         var expectedEventKind = WorkspaceChangeKind.DocumentChanged;
         var originalSolution = workspace.CurrentSolution;
 
-        using var eventWanter = workspace.VerifyWorkspaceChangedEvent(args =>
+        using var eventWanter = workspace.VerifyWorkspaceChangedEvent((args, cancellationToken) =>
         {
             Assert.Equal(expectedEventKind, args.Kind);
             Assert.NotNull(args.NewSolution);

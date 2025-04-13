@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -21,7 +22,7 @@ internal sealed partial class DiagnosticAnalyzerService
         return new DiagnosticIncrementalAnalyzer(this, AnalyzerInfoCache, this.GlobalOptions);
     }
 
-    private Task OnDocumentActiveContextChangedAsync(DocumentActiveContextChangedEventArgs e)
+    private Task OnDocumentActiveContextChangedAsync(DocumentActiveContextChangedEventArgs e, CancellationToken cancellationToken)
     {
         RequestDiagnosticRefresh();
 

@@ -420,7 +420,7 @@ language: LanguageNames.CSharp);
         Assert.Equal(newName, changedDoc.Name);
 
         var tcs = new TaskCompletionSource<bool>();
-        using var _ = ws.RegisterWorkspaceChangedHandler(args =>
+        using var _ = ws.RegisterWorkspaceChangedHandler((args, cancellationToken) =>
         {
             if (args.Kind == WorkspaceChangeKind.DocumentInfoChanged
                 && args.DocumentId == originalDoc.Id)
@@ -454,7 +454,7 @@ language: LanguageNames.CSharp);
         Assert.Equal("B", changedDoc.Folders[1]);
 
         var tcs = new TaskCompletionSource<bool>();
-        using var _ = ws.RegisterWorkspaceChangedHandler(args =>
+        using var _ = ws.RegisterWorkspaceChangedHandler((args, cancellationToken) =>
         {
             if (args.Kind == WorkspaceChangeKind.DocumentInfoChanged
                 && args.DocumentId == originalDoc.Id)
@@ -490,7 +490,7 @@ language: LanguageNames.CSharp);
         Assert.Equal(newPath, changedDoc.FilePath);
 
         var tcs = new TaskCompletionSource<bool>();
-        using var _ = ws.RegisterWorkspaceChangedHandler(args =>
+        using var _ = ws.RegisterWorkspaceChangedHandler((args, cancellationToken) =>
         {
             if (args.Kind == WorkspaceChangeKind.DocumentInfoChanged
                 && args.DocumentId == originalDoc.Id)
@@ -522,7 +522,7 @@ language: LanguageNames.CSharp);
         Assert.Equal(SourceCodeKind.Script, changedDoc.SourceCodeKind);
 
         var tcs = new TaskCompletionSource<bool>();
-        using var _ = ws.RegisterWorkspaceChangedHandler(args =>
+        using var _ = ws.RegisterWorkspaceChangedHandler((args, cancellationToken) =>
         {
             if (args.Kind == WorkspaceChangeKind.DocumentInfoChanged
                 && args.DocumentId == originalDoc.Id)

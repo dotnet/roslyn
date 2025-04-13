@@ -37,7 +37,7 @@ internal sealed partial class XamlProjectService : IDisposable
     private readonly IThreadingContext _threadingContext;
     private readonly Dictionary<IVsHierarchy, ProjectSystemProject> _xamlProjects = [];
     private readonly ConcurrentDictionary<string, DocumentId> _documentIds = new ConcurrentDictionary<string, DocumentId>(StringComparer.OrdinalIgnoreCase);
-    private IDisposable _documentClosedHandlerDisposer;
+    private readonly IDisposable _documentClosedHandlerDisposer;
 
     private RunningDocumentTable? _rdt;
     private IVsSolution? _vsSolution;
@@ -193,7 +193,7 @@ internal sealed partial class XamlProjectService : IDisposable
         return null;
     }
 
-    private Task OnDocumentClosedAsync(DocumentEventArgs e)
+    private Task OnDocumentClosedAsync(DocumentEventArgs e, CancellationToken cancellationToken)
     {
         var filePath = e.Document.FilePath;
         if (filePath == null)

@@ -144,7 +144,7 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
             }
         }
 
-        private Task DocumentClosedAsync(DocumentEventArgs e)
+        private Task DocumentClosedAsync(DocumentEventArgs e, CancellationToken cancellationToken)
         {
             if (e.Document.FilePath != null)
             {
@@ -157,7 +157,7 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
             return Task.CompletedTask;
         }
 
-        private Task DocumentOpenedAsync(DocumentEventArgs e)
+        private Task DocumentOpenedAsync(DocumentEventArgs e, CancellationToken cancellationToken)
         {
             _ = TrackActiveSpansAsync(e.Document);
 

@@ -64,7 +64,7 @@ internal static class ITextViewWindowVerifierInProcessExtensions
         var events = new List<WorkspaceChangeEventArgs>();
 
         var workspace = await textViewWindowVerifier.TestServices.Shell.GetComponentModelServiceAsync<VisualStudioWorkspace>(cancellationToken);
-        using var _ = workspace.RegisterWorkspaceChangedHandler(e =>
+        using var _ = workspace.RegisterWorkspaceChangedHandler((e, cancellationToken) =>
         {
             events.Add(e);
             return Task.CompletedTask;

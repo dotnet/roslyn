@@ -100,7 +100,7 @@ internal abstract class AbstractCreateServicesOnTextViewConnection : IWpfTextVie
         }
     }
 
-    private Task QueueWorkOnDocumentOpenedAsync(DocumentEventArgs e)
+    private Task QueueWorkOnDocumentOpenedAsync(DocumentEventArgs e, CancellationToken cancellationToken)
     {
         if (e.Document.Project.Language == _languageName)
             _workQueue.AddWork(e.Document.Project.Id);

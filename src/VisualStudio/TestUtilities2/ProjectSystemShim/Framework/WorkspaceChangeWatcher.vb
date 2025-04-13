@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 
@@ -27,7 +28,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             _workspaceChangedDisposer.Dispose()
         End Sub
 
-        Private Function OnWorkspaceChangedAsync(e As WorkspaceChangeEventArgs) As Task
+        Private Function OnWorkspaceChangedAsync(e As WorkspaceChangeEventArgs, cancellationToken As CancellationToken) As Task
             _changeEvents.Add(e)
 
             Return Task.CompletedTask

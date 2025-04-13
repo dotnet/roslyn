@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
 
@@ -15,41 +16,41 @@ public abstract partial class Workspace
     /// <summary>
     /// Registers a handler that is fired whenever the current solution is changed.
     /// </summary>
-    internal WorkspaceEventRegistration RegisterWorkspaceChangedHandler(Func<WorkspaceChangeEventArgs, Task> handler)
+    internal WorkspaceEventRegistration RegisterWorkspaceChangedHandler(Func<WorkspaceChangeEventArgs, CancellationToken, Task> handler)
         => RegisterAsyncHandler(WorkspaceChangeEventName, handler);
 
     /// <summary>
     /// Registers a handler that is fired when a <see cref="Document"/> is opened in the editor.
     /// </summary>
-    internal WorkspaceEventRegistration RegisterDocumentOpenedHandler(Func<DocumentEventArgs, Task> handler)
+    internal WorkspaceEventRegistration RegisterDocumentOpenedHandler(Func<DocumentEventArgs, CancellationToken, Task> handler)
         => RegisterAsyncHandler(DocumentOpenedEventName, handler);
 
     /// <summary>
     /// Registers a handler that is fired when a <see cref="Document"/> is closed in the editor.
     /// </summary>
-    internal WorkspaceEventRegistration RegisterDocumentClosedHandler(Func<DocumentEventArgs, Task> handler)
+    internal WorkspaceEventRegistration RegisterDocumentClosedHandler(Func<DocumentEventArgs, CancellationToken, Task> handler)
         => RegisterAsyncHandler(DocumentClosedEventName, handler);
 
     /// <summary>
     /// Registers a handler that is fired when any <see cref="TextDocument"/> is opened in the editor.
     /// </summary>
-    internal WorkspaceEventRegistration RegisterTextDocumentOpenedHandler(Func<TextDocumentEventArgs, Task> handler)
+    internal WorkspaceEventRegistration RegisterTextDocumentOpenedHandler(Func<TextDocumentEventArgs, CancellationToken, Task> handler)
         => RegisterAsyncHandler(TextDocumentOpenedEventName, handler);
 
     /// <summary>
     /// Registers a handler that is fired when any <see cref="TextDocument"/> is closed in the editor.
     /// </summary>
-    internal WorkspaceEventRegistration RegisterTextDocumentClosedHandler(Func<TextDocumentEventArgs, Task> handler)
+    internal WorkspaceEventRegistration RegisterTextDocumentClosedHandler(Func<TextDocumentEventArgs, CancellationToken, Task> handler)
         => RegisterAsyncHandler(TextDocumentClosedEventName, handler);
 
     /// <summary>
     /// Registers a handler that is fired when the active context document associated with a buffer 
     /// changes.
     /// </summary>
-    internal WorkspaceEventRegistration RegisterDocumentActiveContextChangedHandler(Func<DocumentActiveContextChangedEventArgs, Task> handler)
+    internal WorkspaceEventRegistration RegisterDocumentActiveContextChangedHandler(Func<DocumentActiveContextChangedEventArgs, CancellationToken, Task> handler)
         => RegisterAsyncHandler(DocumentActiveContextChangedName, handler);
 
-    private WorkspaceEventRegistration RegisterAsyncHandler<TEventArgs>(string eventName, Func<TEventArgs, Task> handler)
+    private WorkspaceEventRegistration RegisterAsyncHandler<TEventArgs>(string eventName, Func<TEventArgs, CancellationToken, Task> handler)
         where TEventArgs : EventArgs
     {
         _asyncEventMap.AddAsyncEventHandler(eventName, handler);

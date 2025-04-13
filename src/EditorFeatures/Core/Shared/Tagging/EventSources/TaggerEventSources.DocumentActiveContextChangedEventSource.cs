@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -23,7 +24,7 @@ internal partial class TaggerEventSources
         protected override void DisconnectFromWorkspace(Workspace workspace)
             => _documentActiveContextChangedDisposer?.Dispose();
 
-        private Task OnDocumentActiveContextChangedAsync(DocumentActiveContextChangedEventArgs e)
+        private Task OnDocumentActiveContextChangedAsync(DocumentActiveContextChangedEventArgs e, CancellationToken cancellationToken)
         {
             var document = SubjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
 

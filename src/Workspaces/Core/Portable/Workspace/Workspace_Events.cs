@@ -108,7 +108,7 @@ public abstract partial class Workspace
         if (asyncEv.HasHandlers)
         {
             args ??= new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
-            var asyncEventHandlersTask = this.ScheduleBackgroundTask(() => RaiseEventForAsyncHandlersAsync(asyncEv, args, FunctionId.Workspace_Events));
+            var asyncEventHandlersTask = this.ScheduleBackgroundTask(() => RaiseEventForAsyncHandlersAsync(asyncEv, args, FunctionId.Workspace_Events, CancellationToken.None));
 
             eventHandlerTasks.Add(asyncEventHandlersTask);
         }
@@ -130,11 +130,12 @@ public abstract partial class Workspace
         static async Task RaiseEventForAsyncHandlersAsync(
             AsyncEventMap.AsyncEventHandlerSet<WorkspaceChangeEventArgs> asyncHandlers,
             WorkspaceChangeEventArgs args,
-            FunctionId functionId)
+            FunctionId functionId,
+            CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(functionId, (s, p, d, k) => $"{s.Id} - {p} - {d} {args.Kind.ToString()}", args.NewSolution, args.ProjectId, args.DocumentId, args.Kind, CancellationToken.None))
             {
-                await asyncHandlers.RaiseEventAsync(args).ConfigureAwait(false);
+                await asyncHandlers.RaiseEventAsync(args, cancellationToken).ConfigureAwait(false);
             }
         }
     }
@@ -183,7 +184,7 @@ public abstract partial class Workspace
     }
 
     protected Task RaiseDocumentOpenedEventAsync(Document document)
-        => RaiseTextDocumentOpenedOrClosedEventAsync(document, new DocumentEventArgs(document), DocumentOpenedEventName);
+        => RaiseTextDocumentOpenedOrClosedEventAsync(document, new DocumentEventArgs(document), DocumentOpenedEventName, CancellationToken.None);
 
     /// <summary>
     /// An event that is fired when any <see cref="TextDocument"/> is opened in the editor.
@@ -202,12 +203,13 @@ public abstract partial class Workspace
     }
 
     protected Task RaiseTextDocumentOpenedEventAsync(TextDocument document)
-        => RaiseTextDocumentOpenedOrClosedEventAsync(document, new TextDocumentEventArgs(document), TextDocumentOpenedEventName);
+        => RaiseTextDocumentOpenedOrClosedEventAsync(document, new TextDocumentEventArgs(document), TextDocumentOpenedEventName, CancellationToken.None);
 
     private Task RaiseTextDocumentOpenedOrClosedEventAsync<TDocument, TDocumentEventArgs>(
         TDocument document,
         TDocumentEventArgs args,
-        string eventName)
+        string eventName,
+        CancellationToken cancellationToken)
         where TDocument : TextDocument
         where TDocumentEventArgs : EventArgs
     {
@@ -227,7 +229,7 @@ public abstract partial class Workspace
         var asyncEv = _asyncEventMap.GetEventHandlerSet<TDocumentEventArgs>(eventName);
         if (asyncEv.HasHandlers)
         {
-            var asyncEventHandlersTask = this.ScheduleBackgroundTask(() => asyncEv.RaiseEventAsync(args));
+            var asyncEventHandlersTask = this.ScheduleBackgroundTask(() => asyncEv.RaiseEventAsync(args, cancellationToken));
 
             eventHandlerTasks.Add(asyncEventHandlersTask);
         }
@@ -252,7 +254,7 @@ public abstract partial class Workspace
     }
 
     protected Task RaiseDocumentClosedEventAsync(Document document)
-        => RaiseTextDocumentOpenedOrClosedEventAsync(document, new DocumentEventArgs(document), DocumentClosedEventName);
+        => RaiseTextDocumentOpenedOrClosedEventAsync(document, new DocumentEventArgs(document), DocumentClosedEventName, CancellationToken.None);
 
     /// <summary>
     /// An event that is fired when any <see cref="TextDocument"/> is closed in the editor.
@@ -271,7 +273,7 @@ public abstract partial class Workspace
     }
 
     protected Task RaiseTextDocumentClosedEventAsync(TextDocument document)
-        => RaiseTextDocumentOpenedOrClosedEventAsync(document, new TextDocumentEventArgs(document), TextDocumentClosedEventName);
+        => RaiseTextDocumentOpenedOrClosedEventAsync(document, new TextDocumentEventArgs(document), TextDocumentClosedEventName, CancellationToken.None);
 
     /// <summary>
     /// An event that is fired when the active context document associated with a buffer 
@@ -301,12 +303,13 @@ public abstract partial class Workspace
 
         var eventHandlerTasks = new List<Task>();
         var ev = GetEventHandlers<DocumentActiveContextChangedEventArgs>(DocumentActiveContextChangedName);
-        DocumentActiveContextChangedEventArgs? args = null;
+        DocumentActiveContextChangedEventArgs args = null;
+
+        // Capture the current solution snapshot (inside the _serializationLock of OnDocumentContextUpdated)
+        var currentSolution = this.CurrentSolution;
 
         if (ev.HasHandlers)
         {
-            // Capture the current solution snapshot (inside the _serializationLock of OnDocumentContextUpdated)
-            var currentSolution = this.CurrentSolution;
             args ??= new DocumentActiveContextChangedEventArgs(currentSolution, sourceTextContainer, oldActiveContextDocumentId, newActiveContextDocumentId);
 
             var syncEventHandlerTask = this.ScheduleTask(() =>
@@ -320,7 +323,9 @@ public abstract partial class Workspace
         var asyncEv = _asyncEventMap.GetEventHandlerSet<DocumentActiveContextChangedEventArgs>(DocumentActiveContextChangedName);
         if (asyncEv.HasHandlers)
         {
-            var asyncEventHandlersTask = this.ScheduleBackgroundTask(() => asyncEv.RaiseEventAsync(args));
+            args ??= new DocumentActiveContextChangedEventArgs(currentSolution, sourceTextContainer, oldActiveContextDocumentId, newActiveContextDocumentId);
+
+            var asyncEventHandlersTask = this.ScheduleBackgroundTask(() => asyncEv.RaiseEventAsync(args, CancellationToken.None));
 
             eventHandlerTasks.Add(asyncEventHandlersTask);
         }

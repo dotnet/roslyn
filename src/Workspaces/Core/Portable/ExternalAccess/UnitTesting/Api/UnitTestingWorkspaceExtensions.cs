@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
@@ -25,7 +26,7 @@ internal static class UnitTestingWorkspaceExtensions
                 ? workspace.RegisterTextDocumentOpenedHandler(HandleAsync)
                 : workspace.RegisterTextDocumentClosedHandler(HandleAsync);
 
-            Task HandleAsync(TextDocumentEventArgs args)
+            Task HandleAsync(TextDocumentEventArgs args, CancellationToken cancellationToken)
             {
                 action(new UnitTestingTextDocumentEventArgsWrapper(args));
 

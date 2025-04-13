@@ -15,7 +15,7 @@ internal sealed class AsyncEventMap
     private readonly SemaphoreSlim _guard = new(initialCount: 1);
     private readonly Dictionary<string, object> _eventNameToHandlerSet = [];
 
-    public void AddAsyncEventHandler<TEventArgs>(string eventName, Func<TEventArgs, Task> asyncHandler)
+    public void AddAsyncEventHandler<TEventArgs>(string eventName, Func<TEventArgs, CancellationToken, Task> asyncHandler)
         where TEventArgs : EventArgs
     {
         using (_guard.DisposableWait())
@@ -26,7 +26,7 @@ internal sealed class AsyncEventMap
         }
     }
 
-    public void RemoveAsyncEventHandler<TEventArgs>(string eventName, Func<TEventArgs, Task> asyncHandler)
+    public void RemoveAsyncEventHandler<TEventArgs>(string eventName, Func<TEventArgs, CancellationToken, Task> asyncHandler)
         where TEventArgs : EventArgs
     {
         using (_guard.DisposableWait())
@@ -47,16 +47,16 @@ internal sealed class AsyncEventMap
         }
     }
 
-    public sealed class AsyncEventHandlerSet<TEventArgs>(ImmutableArray<Func<TEventArgs, Task>> asyncHandlers)
+    public sealed class AsyncEventHandlerSet<TEventArgs>(ImmutableArray<Func<TEventArgs, CancellationToken, Task>> asyncHandlers)
         where TEventArgs : EventArgs
     {
-        private readonly ImmutableArray<Func<TEventArgs, Task>> _asyncHandlers = asyncHandlers;
+        private readonly ImmutableArray<Func<TEventArgs, CancellationToken, Task>> _asyncHandlers = asyncHandlers;
         public static readonly AsyncEventHandlerSet<TEventArgs> Empty = new([]);
 
-        public AsyncEventHandlerSet<TEventArgs> AddHandler(Func<TEventArgs, Task> asyncHandler)
+        public AsyncEventHandlerSet<TEventArgs> AddHandler(Func<TEventArgs, CancellationToken, Task> asyncHandler)
             => new(_asyncHandlers.Add(asyncHandler));
 
-        public AsyncEventHandlerSet<TEventArgs> RemoveHandler(Func<TEventArgs, Task> asyncHandler)
+        public AsyncEventHandlerSet<TEventArgs> RemoveHandler(Func<TEventArgs, CancellationToken, Task> asyncHandler)
         {
             var newAsyncHandlers = _asyncHandlers.RemoveAll(r => r.Equals(asyncHandler));
 
@@ -65,10 +65,10 @@ internal sealed class AsyncEventMap
 
         public bool HasHandlers => !_asyncHandlers.IsEmpty;
 
-        public async Task RaiseEventAsync(TEventArgs arg)
+        public async Task RaiseEventAsync(TEventArgs arg, CancellationToken cancellationToken)
         {
             foreach (var asyncHandler in _asyncHandlers)
-                await asyncHandler(arg).ConfigureAwait(false);
+                await asyncHandler(arg, cancellationToken).ConfigureAwait(false);
         }
     }
 }

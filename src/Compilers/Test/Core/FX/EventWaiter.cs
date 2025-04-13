@@ -55,13 +55,13 @@ namespace Roslyn.Test.Utilities
             };
         }
 
-        public Func<TEventArgs, Task> Wrap<TEventArgs>(Func<TEventArgs, Task> input)
+        public Func<TEventArgs, CancellationToken, Task> Wrap<TEventArgs>(Func<TEventArgs, CancellationToken, Task> input)
         {
-            return (args) =>
+            return (args, cancellationToken) =>
             {
                 try
                 {
-                    return input(args);
+                    return input(args, cancellationToken);
                 }
                 catch (Exception ex)
                 {
