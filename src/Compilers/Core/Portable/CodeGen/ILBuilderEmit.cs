@@ -7,8 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
-using Roslyn.Utilities;
-using static System.Linq.ImmutableArrayExtensions;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -46,9 +44,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.GetCurrentWriter().WriteUInt32(token);
         }
 
-        internal void EmitToken(Cci.IReference value, SyntaxNode? syntaxNode, DiagnosticBag diagnostics, Cci.MetadataWriter.RawTokenEncoding encoding = 0)
+        internal void EmitToken(Cci.IReference value, SyntaxNode? syntaxNode, Cci.MetadataWriter.RawTokenEncoding encoding = 0)
         {
-            uint token = module?.GetFakeSymbolTokenForIL(value, syntaxNode, diagnostics) ?? 0xFFFF;
+            uint token = module?.GetFakeSymbolTokenForIL(value, syntaxNode, _diagnostics) ?? 0xFFFF;
             if (encoding != Cci.MetadataWriter.RawTokenEncoding.None)
             {
                 token = Cci.MetadataWriter.GetRawToken(encoding, token);
@@ -56,9 +54,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.GetCurrentWriter().WriteUInt32(token);
         }
 
-        internal void EmitToken(Cci.ISignature value, SyntaxNode? syntaxNode, DiagnosticBag diagnostics)
+        internal void EmitToken(Cci.ISignature value, SyntaxNode? syntaxNode)
         {
-            uint token = module?.GetFakeSymbolTokenForIL(value, syntaxNode, diagnostics) ?? 0xFFFF;
+            uint token = module?.GetFakeSymbolTokenForIL(value, syntaxNode, _diagnostics) ?? 0xFFFF;
             this.GetCurrentWriter().WriteUInt32(token);
         }
 
@@ -80,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.GetCurrentWriter().WriteUInt32(token);
         }
 
-        internal void EmitArrayBlockInitializer(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        internal void EmitArrayBlockInitializer(ImmutableArray<byte> data, SyntaxNode syntaxNode)
         {
             // Emit the call to RuntimeHelpers.InitializeArray, creating the necessary metadata blob if there isn't
             // already one for this data.  Note that this specifies an alignment of 1.  This is valid regardless of
@@ -100,14 +98,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
             var initializeArray = module.GetInitArrayHelper();
 
             // map a field to the block (that makes it addressable via a token).
-            var field = module.GetFieldForData(data, alignment: 1, syntaxNode, diagnostics);
+            var field = module.GetFieldForData(data, alignment: 1, syntaxNode, _diagnostics);
 
             // emit call to the helper
             EmitOpCode(ILOpCode.Dup);       //array
             EmitOpCode(ILOpCode.Ldtoken);
-            EmitToken(field, syntaxNode, diagnostics);      //block
+            EmitToken(field, syntaxNode);      //block
             EmitOpCode(ILOpCode.Call, -2);
-            EmitToken(initializeArray, syntaxNode, diagnostics);
+            EmitToken(initializeArray, syntaxNode);
         }
 
         /// <summary>
@@ -365,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// Generates code that creates an instance of multidimensional array
         /// </summary>
-        internal void EmitArrayCreation(Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        internal void EmitArrayCreation(Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode)
         {
             Debug.Assert(!arrayType.IsSZArray, "should be used only with multidimensional arrays");
 
@@ -373,13 +371,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             // idx1, idx2 --> array
             this.EmitOpCode(ILOpCode.Newobj, 1 - (int)arrayType.Rank);
-            this.EmitToken(ctor, syntaxNode, diagnostics);
+            this.EmitToken(ctor, syntaxNode);
         }
 
         /// <summary>
         /// Generates code that loads an element of a multidimensional array
         /// </summary>
-        internal void EmitArrayElementLoad(Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        internal void EmitArrayElementLoad(Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode)
         {
             Debug.Assert(!arrayType.IsSZArray, "should be used only with multidimensional arrays");
 
@@ -387,13 +385,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             // this, idx1, idx2 --> value
             this.EmitOpCode(ILOpCode.Call, -(int)arrayType.Rank);
-            this.EmitToken(load, syntaxNode, diagnostics);
+            this.EmitToken(load, syntaxNode);
         }
 
         /// <summary>
         /// Generates code that loads an address of an element of a multidimensional array.
         /// </summary>
-        internal void EmitArrayElementAddress(Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        internal void EmitArrayElementAddress(Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode)
         {
             Debug.Assert(!arrayType.IsSZArray, "should be used only with multidimensional arrays");
 
@@ -401,13 +399,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             // this, idx1, idx2 --> &value
             this.EmitOpCode(ILOpCode.Call, -(int)arrayType.Rank);
-            this.EmitToken(address, syntaxNode, diagnostics);
+            this.EmitToken(address, syntaxNode);
         }
 
         /// <summary>
         /// Generates code that stores an element of a multidimensional array.
         /// </summary>
-        internal void EmitArrayElementStore(Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        internal void EmitArrayElementStore(Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode)
         {
             Debug.Assert(!arrayType.IsSZArray, "should be used only with multidimensional arrays");
 
@@ -415,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             // this, idx1, idx2, value --> void
             this.EmitOpCode(ILOpCode.Call, -(2 + (int)arrayType.Rank));
-            this.EmitToken(store, syntaxNode, diagnostics);
+            this.EmitToken(store, syntaxNode);
         }
 
         internal void EmitLoad(LocalOrParameter localOrParameter)

@@ -1096,7 +1096,7 @@ oneMoreTime:
                     var exceptionType = _module.Translate(catchBlock.ExceptionTypeOpt, catchBlock.Syntax, _diagnostics.DiagnosticBag);
 
                     _builder.EmitOpCode(ILOpCode.Isinst);
-                    _builder.EmitToken(exceptionType, catchBlock.Syntax, _diagnostics.DiagnosticBag);
+                    _builder.EmitToken(exceptionType, catchBlock.Syntax);
                     _builder.EmitOpCode(ILOpCode.Dup);
                     _builder.EmitBranch(ILOpCode.Brtrue, typeCheckPassedLabel);
                     _builder.EmitOpCode(ILOpCode.Pop);
@@ -1475,7 +1475,7 @@ oneMoreTime:
             void emitMethodRef(Microsoft.Cci.IMethodReference lengthMethodRef)
             {
                 var diag = DiagnosticBag.GetInstance();
-                _builder.EmitToken(lengthMethodRef, syntaxNode: null, diag);
+                _builder.EmitToken(lengthMethodRef, syntaxNode: null);
                 Debug.Assert(diag.IsEmptyWithoutResolution);
                 diag.Free();
             }
@@ -1519,7 +1519,7 @@ oneMoreTime:
 
                     _builder.EmitLoad(key);
                     _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
-                    _builder.EmitToken(stringHashMethodRef, syntaxNode, _diagnostics.DiagnosticBag);
+                    _builder.EmitToken(stringHashMethodRef, syntaxNode);
 
                     var UInt32Type = Binder.GetSpecialType(_module.Compilation, SpecialType.System_UInt32, syntaxNode, _diagnostics);
                     keyHash = AllocateTemp(UInt32Type, syntaxNode);
@@ -1592,7 +1592,7 @@ oneMoreTime:
                         // Stack: key --> length
                         _builder.EmitOpCode(ILOpCode.Call, 0);
                         var diag = DiagnosticBag.GetInstance();
-                        _builder.EmitToken(lengthMethodRef, null, diag);
+                        _builder.EmitToken(lengthMethodRef, null);
                         Debug.Assert(diag.IsEmptyWithoutResolution);
                         diag.Free();
 
@@ -1711,7 +1711,7 @@ oneMoreTime:
             _builder.EmitLoad(key);
             _builder.EmitConstantValue(stringConstant, syntaxNode);
             _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: -1);
-            _builder.EmitToken(stringEqualityMethodRef, syntaxNode, _diagnostics.DiagnosticBag);
+            _builder.EmitToken(stringEqualityMethodRef, syntaxNode);
 
             // Branch to targetLabel if String.Equals returned true.
             _builder.EmitBranch(ILOpCode.Brtrue, targetLabel, ILOpCode.Brfalse);
@@ -1738,9 +1738,9 @@ oneMoreTime:
             _builder.EmitLoad(key);
             _builder.EmitConstantValue(stringConstant, syntaxNode);
             _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
-            _builder.EmitToken(asSpanRef, syntaxNode, _diagnostics.DiagnosticBag);
+            _builder.EmitToken(asSpanRef, syntaxNode);
             _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: -1);
-            _builder.EmitToken(sequenceEqualsRef, syntaxNode, _diagnostics.DiagnosticBag);
+            _builder.EmitToken(sequenceEqualsRef, syntaxNode);
 
             // Branch to targetLabel if SequenceEquals returned true.
             _builder.EmitBranch(ILOpCode.Brtrue, targetLabel, ILOpCode.Brfalse);

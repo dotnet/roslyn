@@ -3683,7 +3683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_moduleInitializerMethods is object)
             {
-                var ilBuilder = new ILBuilder(moduleBeingBuilt, new LocalSlotManager(slotAllocator: null), OptimizationLevel.Release, areLocalsZeroed: false);
+                var ilBuilder = new ILBuilder(moduleBeingBuilt, new LocalSlotManager(slotAllocator: null), methodBodyDiagnosticBag, OptimizationLevel.Release, areLocalsZeroed: false);
 
                 foreach (MethodSymbol method in _moduleInitializerMethods.OrderBy<MethodSymbol>(LexicalOrderSymbolComparer.Instance))
                 {
@@ -3691,8 +3691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     ilBuilder.EmitToken(
                         moduleBeingBuilt.Translate(method, methodBodyDiagnosticBag, needDeclaration: true),
-                        CSharpSyntaxTree.Dummy.GetRoot(),
-                        methodBodyDiagnosticBag);
+                        CSharpSyntaxTree.Dummy.GetRoot());
                 }
 
                 ilBuilder.EmitRet(isVoid: true);

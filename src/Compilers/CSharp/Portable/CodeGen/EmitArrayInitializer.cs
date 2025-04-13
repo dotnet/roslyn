@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 ImmutableArray<byte> data = this.GetRawData(initExprs);
 
-                _builder.EmitArrayBlockInitializer(data, inits.Syntax, _diagnostics.DiagnosticBag);
+                _builder.EmitArrayBlockInitializer(data, inits.Syntax);
 
                 if (initializationStyle == ArrayInitializerStyle.Mixed)
                 {
@@ -554,7 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // Map a field to the block (that makes it addressable).
                 var field = _builder.module.GetFieldForData(data, alignment: 1, wrappedExpression.Syntax, _diagnostics.DiagnosticBag);
                 _builder.EmitOpCode(ILOpCode.Ldsflda);
-                _builder.EmitToken(field, wrappedExpression.Syntax, _diagnostics.DiagnosticBag);
+                _builder.EmitToken(field, wrappedExpression.Syntax);
 
                 _builder.EmitIntConstant(lengthForConstructor);
 
@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // call ReadOnlySpan<elementType> RuntimeHelpers::CreateSpan<elementType>(fldHandle)
                 var field = _builder.module.GetFieldForData(data, alignment: (ushort)specialElementType.SizeInBytes(), wrappedExpression.Syntax, _diagnostics.DiagnosticBag);
                 _builder.EmitOpCode(ILOpCode.Ldtoken);
-                _builder.EmitToken(field, wrappedExpression.Syntax, _diagnostics.DiagnosticBag);
+                _builder.EmitToken(field, wrappedExpression.Syntax);
                 _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
                 EmitSymbolToken(createSpan.Construct(elementType), wrappedExpression.Syntax, optArgList: null);
                 return true;
@@ -652,7 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // T[]? array = PrivateImplementationDetails.cachingField;
                 // if (array is not null) goto arrayNotNull;
                 _builder.EmitOpCode(ILOpCode.Ldsfld);
-                _builder.EmitToken(cachingField, wrappedExpression.Syntax, _diagnostics.DiagnosticBag);
+                _builder.EmitToken(cachingField, wrappedExpression.Syntax);
                 _builder.EmitOpCode(ILOpCode.Dup);
                 _builder.EmitBranch(ILOpCode.Brtrue, arrayNotNullLabel);
 
@@ -663,10 +663,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _builder.EmitIntConstant(elementCount);
                 _builder.EmitOpCode(ILOpCode.Newarr);
                 EmitSymbolToken(arrayType.ElementType, wrappedExpression.Syntax);
-                _builder.EmitArrayBlockInitializer(data, wrappedExpression.Syntax, _diagnostics.DiagnosticBag);
+                _builder.EmitArrayBlockInitializer(data, wrappedExpression.Syntax);
                 _builder.EmitOpCode(ILOpCode.Dup);
                 _builder.EmitOpCode(ILOpCode.Stsfld);
-                _builder.EmitToken(cachingField, wrappedExpression.Syntax, _diagnostics.DiagnosticBag);
+                _builder.EmitToken(cachingField, wrappedExpression.Syntax);
 
                 // arrayNotNullLabel:
                 // new ReadOnlySpan<T>(array)
@@ -712,7 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // T[]? array = PrivateImplementationDetails.cachingField;
                 // if (array is not null) goto arrayNotNull;
                 _builder.EmitOpCode(ILOpCode.Ldsfld);
-                _builder.EmitToken(cachingField, arrayCreation.Syntax, _diagnostics.DiagnosticBag);
+                _builder.EmitToken(cachingField, arrayCreation.Syntax);
                 _builder.EmitOpCode(ILOpCode.Dup);
                 _builder.EmitBranch(ILOpCode.Brtrue, arrayNotNullLabel);
 
@@ -722,7 +722,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 EmitExpression(arrayCreation, used: true);
                 _builder.EmitOpCode(ILOpCode.Dup);
                 _builder.EmitOpCode(ILOpCode.Stsfld);
-                _builder.EmitToken(cachingField, arrayCreation.Syntax, _diagnostics.DiagnosticBag);
+                _builder.EmitToken(cachingField, arrayCreation.Syntax);
 
                 // arrayNotNullLabel:
                 // new ReadOnlySpan<T>(array)

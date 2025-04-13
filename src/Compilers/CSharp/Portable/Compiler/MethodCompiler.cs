@@ -1392,7 +1392,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            ILBuilder builder = new ILBuilder(_moduleBeingBuiltOpt, new LocalSlotManager(slotAllocator: null), OptimizationLevel.Release, areLocalsZeroed: false);
+            Debug.Assert(_diagnostics.DiagnosticBag != null);
+
+            ILBuilder builder = new ILBuilder(_moduleBeingBuiltOpt, new LocalSlotManager(slotAllocator: null), _diagnostics.DiagnosticBag, OptimizationLevel.Release, areLocalsZeroed: false);
 
             // Emit methods in extensions as skeletons:
             // => throw null;
@@ -1429,8 +1431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     StateMachineStatesDebugInfo.Create(variableSlotAllocator: null, ImmutableArray<StateMachineStateDebugInfo>.Empty),
                     stateMachineMoveNextDebugInfoOpt: null,
                     codeCoverageSpans: ImmutableArray<SourceSpan>.Empty,
-                    isPrimaryConstructor: false)
-                    );
+                    isPrimaryConstructor: false));
         }
 
         private static MethodSymbol GetSymbolForEmittedBody(MethodSymbol methodSymbol)
@@ -1604,9 +1605,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var localSlotManager = new LocalSlotManager(variableSlotAllocatorOpt);
             var optimizations = compilation.Options.OptimizationLevel;
 
-            ILBuilder builder = new ILBuilder(moduleBuilder, localSlotManager, optimizations, method.AreLocalsZeroed);
-            bool hasStackalloc;
             var diagnosticsForThisMethod = BindingDiagnosticBag.GetInstance(withDiagnostics: true, diagnostics.AccumulatesDependencies);
+            Debug.Assert(diagnosticsForThisMethod.DiagnosticBag != null);
+
+            ILBuilder builder = new ILBuilder(moduleBuilder, localSlotManager, diagnosticsForThisMethod.DiagnosticBag, optimizations, method.AreLocalsZeroed);
+            bool hasStackalloc;
             try
             {
                 StateMachineMoveNextBodyDebugInfo moveNextBodyDebugInfoOpt = null;

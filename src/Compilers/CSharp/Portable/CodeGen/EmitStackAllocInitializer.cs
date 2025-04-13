@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     var field = _builder.module.GetFieldForData(data, alignment: 1, inits.Syntax, _diagnostics.DiagnosticBag);
                     _builder.EmitOpCode(ILOpCode.Dup);
                     _builder.EmitOpCode(ILOpCode.Ldsflda);
-                    _builder.EmitToken(field, inits.Syntax, _diagnostics.DiagnosticBag);
+                    _builder.EmitToken(field, inits.Syntax);
                     _builder.EmitIntConstant(data.Length);
                     _builder.EmitUnaligned(alignment: 1);
                     _builder.EmitOpCode(ILOpCode.Cpblk, -3);
@@ -81,10 +81,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         // call ReadOnlySpan<elementType> RuntimeHelpers::CreateSpan<elementType>(fldHandle)
                         var field = _builder.module.GetFieldForData(data, alignment: (ushort)sizeInBytes, syntaxNode, _diagnostics.DiagnosticBag);
                         _builder.EmitOpCode(ILOpCode.Ldtoken);
-                        _builder.EmitToken(field, syntaxNode, _diagnostics.DiagnosticBag);
+                        _builder.EmitToken(field, syntaxNode);
                         _builder.EmitOpCode(ILOpCode.Call, 0);
                         var createSpanHelperReference = createSpanHelper.Construct(elementType).GetCciAdapter();
-                        _builder.EmitToken(createSpanHelperReference, syntaxNode, _diagnostics.DiagnosticBag);
+                        _builder.EmitToken(createSpanHelperReference, syntaxNode);
 
                         var temp = AllocateTemp(readOnlySpan, syntaxNode);
                         _builder.EmitLocalStore(temp);

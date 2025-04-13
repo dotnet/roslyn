@@ -227,7 +227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                 'Determine if the exception object is or inherits from System.Exception
                 _builder.EmitOpCode(ILOpCode.Isinst)
-                _builder.EmitToken(exceptionType, catchBlock.Syntax, _diagnostics)
+                _builder.EmitToken(exceptionType, catchBlock.Syntax)
                 _builder.EmitOpCode(ILOpCode.Ldnull)
                 _builder.EmitOpCode(ILOpCode.Cgt_un)
 
@@ -251,7 +251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 _builder.MarkFilterConditionEnd()
 
                 _builder.EmitOpCode(ILOpCode.Castclass)
-                _builder.EmitToken(exceptionType, catchBlock.Syntax, _diagnostics)
+                _builder.EmitToken(exceptionType, catchBlock.Syntax)
 
                 If ShouldNoteProjectErrors() Then
                     EmitSetProjectError(catchBlock.Syntax, catchBlock.ErrorLineNumberOpt)
@@ -278,7 +278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     typeCheckFailedLabel = New Object
 
                     _builder.EmitOpCode(ILOpCode.Isinst)
-                    _builder.EmitToken(exceptionType, catchBlock.Syntax, _diagnostics)
+                    _builder.EmitToken(exceptionType, catchBlock.Syntax)
                     _builder.EmitOpCode(ILOpCode.Dup)
                     _builder.EmitBranch(ILOpCode.Brtrue, typeCheckPassedLabel)
                     _builder.EmitOpCode(ILOpCode.Pop)
@@ -1100,7 +1100,7 @@ OtherExpressions:
 
                 _builder.EmitLocalLoad(key)
                 _builder.EmitOpCode(ILOpCode.[Call], stackAdjustment:=0)
-                _builder.EmitToken(stringHashMethodRef, syntaxNode, _diagnostics)
+                _builder.EmitToken(stringHashMethodRef, syntaxNode)
 
                 Dim UInt32Type = DirectCast(_module.GetSpecialType(SpecialType.System_UInt32, syntaxNode, _diagnostics).GetInternalSymbol(), TypeSymbol)
                 keyHash = AllocateTemp(UInt32Type, syntaxNode)
@@ -1176,7 +1176,7 @@ OtherExpressions:
             _builder.EmitConstantValue(stringConstant, syntaxNode)
             _builder.EmitConstantValue(ConstantValue.False, syntaxNode)
             _builder.EmitOpCode(ILOpCode.Call, stackAdjustment:=-2)
-            _builder.EmitToken(stringCompareMethodRef, syntaxNode, _diagnostics)
+            _builder.EmitToken(stringCompareMethodRef, syntaxNode)
 
             ' CompareString returns 0 if Left and Right strings are equal.
             ' Branch to targetLabel if CompareString returned 0.
