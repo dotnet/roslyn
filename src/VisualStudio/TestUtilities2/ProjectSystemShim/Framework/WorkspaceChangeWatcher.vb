@@ -4,7 +4,6 @@
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
-Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
     Friend Class WorkspaceChangeWatcher
@@ -13,6 +12,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         Private ReadOnly _environment As TestEnvironment
         Private ReadOnly _asynchronousOperationWaiter As IAsynchronousOperationWaiter
         Private _changeEvents As New List(Of WorkspaceChangeEventArgs)
+        Private ReadOnly _workspaceChangedDisposer As IDisposable
 
         Public Sub New(environment As TestEnvironment)
             _environment = environment
@@ -20,12 +20,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Dim listenerProvider = environment.ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)()
             _asynchronousOperationWaiter = listenerProvider.GetWaiter(FeatureAttribute.Workspace)
 
-            AddHandler environment.Workspace.WorkspaceChanged, AddressOf OnWorkspaceChanged
+            _workspaceChangedDisposer = environment.Workspace.RegisterWorkspaceChangedHandler(AddressOf OnWorkspaceChangedAsync)
         End Sub
 
-        Private Sub OnWorkspaceChanged(sender As Object, e As WorkspaceChangeEventArgs)
+        Private Function OnWorkspaceChangedAsync(e As WorkspaceChangeEventArgs) As Task
             _changeEvents.Add(e)
-        End Sub
+
+            Return Task.CompletedTask
+        End Function
 
         Friend Async Function GetNewChangeEventsAsync() As Task(Of IEnumerable(Of WorkspaceChangeEventArgs))
             Await _asynchronousOperationWaiter.ExpeditedWaitAsync()
@@ -37,7 +39,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         End Function
 
         Public Sub Dispose() Implements IDisposable.Dispose
-            RemoveHandler _environment.Workspace.WorkspaceChanged, AddressOf OnWorkspaceChanged
+            _workspaceChangedDisposer.Dispose()
         End Sub
     End Class
 End Namespace

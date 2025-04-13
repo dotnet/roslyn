@@ -2218,6 +2218,8 @@ class C1
             Assert.Equal(expectedEventKind, args.Kind);
             Assert.NotNull(args.NewSolution);
             Assert.NotSame(originalSolution, args.NewSolution);
+
+            return Task.CompletedTask;
         });
         // change document text (should fire SolutionChanged event)
         var doc = workspace.CurrentSolution.Projects.First().Documents.First();
@@ -2248,6 +2250,8 @@ class C1
             Assert.Equal(expectedEventKind, args.Kind);
             Assert.NotNull(args.NewSolution);
             Assert.NotSame(originalSolution, args.NewSolution);
+
+            return Task.CompletedTask;
         });
         // change document text (should fire SolutionChanged event)
         var doc = workspace.CurrentSolution.Projects.First().Documents.First();

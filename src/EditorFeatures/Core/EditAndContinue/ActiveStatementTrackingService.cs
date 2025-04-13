@@ -103,6 +103,8 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
         private readonly CancellationTokenSource _cancellationSource = new();
         private readonly IActiveStatementSpanFactory _spanProvider;
         private readonly ICompileTimeSolutionProvider _compileTimeSolutionProvider;
+        private readonly IDisposable _documentOpenedHandlerDisposer;
+        private readonly IDisposable _documentClosedHandlerDisposer;
 
         #region lock(_trackingSpans)
 
@@ -121,8 +123,8 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
             _spanProvider = spanProvider;
             _compileTimeSolutionProvider = workspace.Services.GetRequiredService<ICompileTimeSolutionProvider>();
 
-            _workspace.DocumentOpened += DocumentOpened;
-            _workspace.DocumentClosed += DocumentClosed;
+            _documentOpenedHandlerDisposer = _workspace.RegisterDocumentOpenedHandler(DocumentOpenedAsync);
+            _documentClosedHandlerDisposer = _workspace.RegisterDocumentClosedHandler(DocumentClosedAsync);
         }
 
         internal Dictionary<string, ImmutableArray<ActiveStatementTrackingSpan>> Test_GetTrackingSpans()
@@ -133,8 +135,8 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
             _cancellationSource.Cancel();
             _cancellationSource.Dispose();
 
-            _workspace.DocumentOpened -= DocumentOpened;
-            _workspace.DocumentClosed -= DocumentClosed;
+            _documentOpenedHandlerDisposer.Dispose();
+            _documentClosedHandlerDisposer.Dispose();
 
             lock (_trackingSpans)
             {
@@ -142,7 +144,7 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
             }
         }
 
-        private void DocumentClosed(object? sender, DocumentEventArgs e)
+        private Task DocumentClosedAsync(DocumentEventArgs e)
         {
             if (e.Document.FilePath != null)
             {
@@ -151,10 +153,16 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
                     _trackingSpans.Remove(e.Document.FilePath);
                 }
             }
+
+            return Task.CompletedTask;
         }
 
-        private void DocumentOpened(object? sender, DocumentEventArgs e)
-            => _ = TrackActiveSpansAsync(e.Document);
+        private Task DocumentOpenedAsync(DocumentEventArgs e)
+        {
+            _ = TrackActiveSpansAsync(e.Document);
+
+            return Task.CompletedTask;
+        }
 
         private async Task TrackActiveSpansAsync(Document designTimeDocument)
         {

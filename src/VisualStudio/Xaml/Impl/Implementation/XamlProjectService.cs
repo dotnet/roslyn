@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -27,7 +28,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 namespace Microsoft.VisualStudio.LanguageServices.Xaml;
 
 [Export]
-internal sealed partial class XamlProjectService
+internal sealed partial class XamlProjectService : IDisposable
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly Workspace _workspace;
@@ -36,6 +37,7 @@ internal sealed partial class XamlProjectService
     private readonly IThreadingContext _threadingContext;
     private readonly Dictionary<IVsHierarchy, ProjectSystemProject> _xamlProjects = [];
     private readonly ConcurrentDictionary<string, DocumentId> _documentIds = new ConcurrentDictionary<string, DocumentId>(StringComparer.OrdinalIgnoreCase);
+    private IDisposable _documentClosedHandlerDisposer;
 
     private RunningDocumentTable? _rdt;
     private IVsSolution? _vsSolution;
@@ -58,7 +60,7 @@ internal sealed partial class XamlProjectService
 
         AnalyzerService = analyzerService;
 
-        _workspace.DocumentClosed += OnDocumentClosed;
+        _documentClosedHandlerDisposer = _workspace.RegisterDocumentClosedHandler(OnDocumentClosedAsync);
     }
 
     public static IXamlDocumentAnalyzerService? AnalyzerService { get; private set; }
@@ -188,12 +190,12 @@ internal sealed partial class XamlProjectService
         return null;
     }
 
-    private void OnDocumentClosed(object sender, DocumentEventArgs e)
+    private Task OnDocumentClosedAsync(DocumentEventArgs e)
     {
         var filePath = e.Document.FilePath;
         if (filePath == null)
         {
-            return;
+            return Task.CompletedTask;
         }
 
         if (_documentIds.TryGetValue(filePath, out var documentId))
@@ -207,6 +209,8 @@ internal sealed partial class XamlProjectService
 
             _documentIds.TryRemove(filePath, out _);
         }
+
+        return Task.CompletedTask;
     }
 
     private void OnProjectClosing(IVsHierarchy hierarchy)
@@ -270,5 +274,10 @@ internal sealed partial class XamlProjectService
         }
 
         return null;
+    }
+
+    public void Dispose()
+    {
+        _documentClosedHandlerDisposer.Dispose();
     }
 }

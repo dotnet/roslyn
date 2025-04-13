@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 
@@ -16,28 +17,23 @@ internal static class UnitTestingWorkspaceExtensions
 
     private sealed class EventHandlerWrapper : IDisposable
     {
-        private readonly Workspace _workspace;
-        private readonly EventHandler<TextDocumentEventArgs> _handler;
-        private readonly bool _opened;
+        private readonly IDisposable _textDocumentOperationDisposer;
 
         internal EventHandlerWrapper(Workspace workspace, Action<UnitTestingTextDocumentEventArgsWrapper> action, bool opened)
         {
-            _workspace = workspace;
-            _handler = (sender, args) => action(new UnitTestingTextDocumentEventArgsWrapper(args));
-            _opened = opened;
+            _textDocumentOperationDisposer = opened
+                ? workspace.RegisterTextDocumentOpenedHandler(HandleAsync)
+                : workspace.RegisterTextDocumentClosedHandler(HandleAsync);
 
-            if (_opened)
-                _workspace.TextDocumentOpened += _handler;
-            else
-                _workspace.TextDocumentClosed += _handler;
+            Task HandleAsync(TextDocumentEventArgs args)
+            {
+                action(new UnitTestingTextDocumentEventArgsWrapper(args));
+
+                return Task.CompletedTask;
+            }
         }
 
         public void Dispose()
-        {
-            if (_opened)
-                _workspace.TextDocumentOpened -= _handler;
-            else
-                _workspace.TextDocumentClosed -= _handler;
-        }
+            => _textDocumentOperationDisposer.Dispose();
     }
 }

@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -89,19 +90,30 @@ public abstract partial class Workspace
             RaiseEventForHandlers(ev, sender: this, args, FunctionId.Workspace_EventsImmediate);
         }
 
+        var eventHandlerTasks = new List<Task>();
+
         ev = GetEventHandlers<WorkspaceChangeEventArgs>(WorkspaceChangeEventName);
         if (ev.HasHandlers)
         {
             args ??= new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
-            return this.ScheduleTask(() =>
+            var syncEventHandlersTask = this.ScheduleTask(() =>
             {
                 RaiseEventForHandlers(ev, sender: this, args, FunctionId.Workspace_Events);
             }, WorkspaceChangeEventName);
+
+            eventHandlerTasks.Add(syncEventHandlersTask);
         }
-        else
+
+        var asyncEv = _asyncEventMap.GetEventHandlerSet<WorkspaceChangeEventArgs>(WorkspaceChangeEventName);
+        if (asyncEv.HasHandlers)
         {
-            return Task.CompletedTask;
+            args ??= new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
+            var asyncEventHandlersTask = this.ScheduleBackgroundTask(() => RaiseEventForAsyncHandlersAsync(asyncEv, args, FunctionId.Workspace_Events));
+
+            eventHandlerTasks.Add(asyncEventHandlersTask);
         }
+
+        return Task.WhenAll(eventHandlerTasks);
 
         static void RaiseEventForHandlers(
             EventMap.EventHandlerSet<EventHandler<WorkspaceChangeEventArgs>> handlers,
@@ -112,6 +124,17 @@ public abstract partial class Workspace
             using (Logger.LogBlock(functionId, (s, p, d, k) => $"{s.Id} - {p} - {d} {args.Kind.ToString()}", args.NewSolution, args.ProjectId, args.DocumentId, args.Kind, CancellationToken.None))
             {
                 handlers.RaiseEvent(static (handler, arg) => handler(arg.sender, arg.args), (sender, args));
+            }
+        }
+
+        static async Task RaiseEventForAsyncHandlersAsync(
+            AsyncEventMap.AsyncEventHandlerSet<WorkspaceChangeEventArgs> asyncHandlers,
+            WorkspaceChangeEventArgs args,
+            FunctionId functionId)
+        {
+            using (Logger.LogBlock(functionId, (s, p, d, k) => $"{s.Id} - {p} - {d} {args.Kind.ToString()}", args.NewSolution, args.ProjectId, args.DocumentId, args.Kind, CancellationToken.None))
+            {
+                await asyncHandlers.RaiseEventAsync(args).ConfigureAwait(false);
             }
         }
     }
@@ -146,6 +169,7 @@ public abstract partial class Workspace
     /// <summary>
     /// An event that is fired when a <see cref="Document"/> is opened in the editor.
     /// </summary>
+    [Obsolete("This member is obsolete. Use the RegisterDocumentOpenedHandler(Func<DocumentEventArgs, Task>) overload instead.", error: true)]
     public event EventHandler<DocumentEventArgs> DocumentOpened
     {
         add
@@ -165,6 +189,7 @@ public abstract partial class Workspace
     /// <summary>
     /// An event that is fired when any <see cref="TextDocument"/> is opened in the editor.
     /// </summary>
+    [Obsolete("This member is obsolete. Use the RegisterTextDocumentOpenedHandler(Func<TextDocumentEventArgs, Task>) overload instead.", error: true)]
     public event EventHandler<TextDocumentEventArgs> TextDocumentOpened
     {
         add
@@ -188,23 +213,34 @@ public abstract partial class Workspace
         where TDocument : TextDocument
         where TDocumentEventArgs : EventArgs
     {
+        var eventHandlerTasks = new List<Task>();
         var ev = GetEventHandlers<TDocumentEventArgs>(eventName);
+
         if (ev.HasHandlers && document != null)
         {
-            return this.ScheduleTask(() =>
+            var syncEventHandlerTask = this.ScheduleTask(() =>
             {
                 ev.RaiseEvent(static (handler, arg) => handler(arg.self, arg.args), (self: this, args));
             }, eventName);
+
+            eventHandlerTasks.Add(syncEventHandlerTask);
         }
-        else
+
+        var asyncEv = _asyncEventMap.GetEventHandlerSet<TDocumentEventArgs>(eventName);
+        if (asyncEv.HasHandlers)
         {
-            return Task.CompletedTask;
+            var asyncEventHandlersTask = this.ScheduleBackgroundTask(() => asyncEv.RaiseEventAsync(args));
+
+            eventHandlerTasks.Add(asyncEventHandlersTask);
         }
+
+        return Task.WhenAll(eventHandlerTasks);
     }
 
     /// <summary>
     /// An event that is fired when a <see cref="Document"/> is closed in the editor.
     /// </summary>
+    [Obsolete("This member is obsolete. Use the RegisterDocumentClosedHandler(Func<DocumentEventArgs, Task>) overload instead.", error: true)]
     public event EventHandler<DocumentEventArgs> DocumentClosed
     {
         add
@@ -224,6 +260,7 @@ public abstract partial class Workspace
     /// <summary>
     /// An event that is fired when any <see cref="TextDocument"/> is closed in the editor.
     /// </summary>
+    [Obsolete("This member is obsolete. Use the RegisterTextDocumentClosedHandler(Func<TextDocumentEventArgs, Task>) overload instead.", error: true)]
     public event EventHandler<TextDocumentEventArgs> TextDocumentClosed
     {
         add
@@ -244,6 +281,7 @@ public abstract partial class Workspace
     /// An event that is fired when the active context document associated with a buffer 
     /// changes.
     /// </summary>
+    [Obsolete("This member is obsolete. Use the RegisterActiveContextChangedHandler(Func<DocumentEventArgs, Task>) overload instead.", error: true)]
     public event EventHandler<DocumentActiveContextChangedEventArgs> DocumentActiveContextChanged
     {
         add
@@ -263,22 +301,36 @@ public abstract partial class Workspace
 
     protected Task RaiseDocumentActiveContextChangedEventAsync(SourceTextContainer sourceTextContainer, DocumentId oldActiveContextDocumentId, DocumentId newActiveContextDocumentId)
     {
+        if (sourceTextContainer == null || oldActiveContextDocumentId == null || newActiveContextDocumentId == null)
+            return Task.CompletedTask;
+
+        var eventHandlerTasks = new List<Task>();
         var ev = GetEventHandlers<DocumentActiveContextChangedEventArgs>(DocumentActiveContextChangedName);
-        if (ev.HasHandlers && sourceTextContainer != null && oldActiveContextDocumentId != null && newActiveContextDocumentId != null)
+        DocumentActiveContextChangedEventArgs? args = null;
+
+        if (ev.HasHandlers)
         {
             // Capture the current solution snapshot (inside the _serializationLock of OnDocumentContextUpdated)
             var currentSolution = this.CurrentSolution;
+            args ??= new DocumentActiveContextChangedEventArgs(currentSolution, sourceTextContainer, oldActiveContextDocumentId, newActiveContextDocumentId);
 
-            return this.ScheduleTask(() =>
+            var syncEventHandlerTask = this.ScheduleTask(() =>
             {
-                var args = new DocumentActiveContextChangedEventArgs(currentSolution, sourceTextContainer, oldActiveContextDocumentId, newActiveContextDocumentId);
                 ev.RaiseEvent(static (handler, arg) => handler(arg.self, arg.args), (self: this, args));
             }, "Workspace.WorkspaceChanged");
+
+            eventHandlerTasks.Add(syncEventHandlerTask);
         }
-        else
+
+        var asyncEv = _asyncEventMap.GetEventHandlerSet<DocumentActiveContextChangedEventArgs>(DocumentActiveContextChangedName);
+        if (asyncEv.HasHandlers)
         {
-            return Task.CompletedTask;
+            var asyncEventHandlersTask = this.ScheduleBackgroundTask(() => asyncEv.RaiseEventAsync(args));
+
+            eventHandlerTasks.Add(asyncEventHandlersTask);
         }
+
+        return Task.WhenAll(eventHandlerTasks);
     }
 
     private EventMap.EventHandlerSet<EventHandler<T>> GetEventHandlers<T>(string eventName) where T : EventArgs

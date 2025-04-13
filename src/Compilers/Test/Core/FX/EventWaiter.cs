@@ -55,6 +55,27 @@ namespace Roslyn.Test.Utilities
             };
         }
 
+        public Func<TEventArgs, Task> Wrap<TEventArgs>(Func<TEventArgs, Task> input)
+        {
+            return (args) =>
+            {
+                try
+                {
+                    return input(args);
+                }
+                catch (Exception ex)
+                {
+                    _capturedException = ex;
+                }
+                finally
+                {
+                    _eventSignal.Set();
+                }
+
+                return Task.CompletedTask;
+            };
+        }
+
         /// <summary>
         /// Use this method to block the test until the operation enclosed in the Wrap method completes
         /// </summary>

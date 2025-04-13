@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 
@@ -11,13 +13,17 @@ internal partial class TaggerEventSources
 {
     private sealed class DocumentActiveContextChangedEventSource(ITextBuffer subjectBuffer) : AbstractWorkspaceTrackingTaggerEventSource(subjectBuffer)
     {
+        private IDisposable? _documentActiveContextChangedDisposer;
+
         protected override void ConnectToWorkspace(Workspace workspace)
-            => workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
+        {
+            _documentActiveContextChangedDisposer = workspace.RegisterDocumentActiveContextChangedHandler(OnDocumentActiveContextChangedAsync);
+        }
 
         protected override void DisconnectFromWorkspace(Workspace workspace)
-            => workspace.DocumentActiveContextChanged -= OnDocumentActiveContextChanged;
+            => _documentActiveContextChangedDisposer?.Dispose();
 
-        private void OnDocumentActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs e)
+        private Task OnDocumentActiveContextChangedAsync(DocumentActiveContextChangedEventArgs e)
         {
             var document = SubjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
 
@@ -25,6 +31,8 @@ internal partial class TaggerEventSources
             {
                 this.RaiseChanged();
             }
+
+            return Task.CompletedTask;
         }
     }
 }

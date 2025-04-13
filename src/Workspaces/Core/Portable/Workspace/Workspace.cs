@@ -40,6 +40,7 @@ public abstract partial class Workspace : IDisposable
     private readonly IAsynchronousOperationListener _asyncOperationListener;
 
     private readonly AsyncBatchingWorkQueue<Action> _workQueue;
+    private readonly AsyncBatchingWorkQueue<Func<Task>> _backgroundAsyncWorkQueue;
     private readonly CancellationTokenSource _workQueueTokenSource = new();
     private readonly ITaskSchedulerProvider _taskSchedulerProvider;
 
@@ -83,6 +84,12 @@ public abstract partial class Workspace : IDisposable
         _workQueue = new(
             TimeSpan.Zero,
             ProcessWorkQueueAsync,
+            _asyncOperationListener,
+            _workQueueTokenSource.Token);
+
+        _backgroundAsyncWorkQueue = new(
+            TimeSpan.Zero,
+            ProcessBackgroundWorkQueueAsync,
             _asyncOperationListener,
             _workQueueTokenSource.Token);
 
@@ -596,6 +603,13 @@ public abstract partial class Workspace : IDisposable
         return _workQueue.WaitUntilCurrentBatchCompletesAsync();
     }
 
+    [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
+    internal Task ScheduleBackgroundTask(Func<Task> action)
+    {
+        _backgroundAsyncWorkQueue.AddWork(action);
+        return _backgroundAsyncWorkQueue.WaitUntilCurrentBatchCompletesAsync();
+    }
+
     /// <summary>
     /// Execute a function as a background task, as part of a sequential queue of tasks.
     /// </summary>
@@ -735,6 +749,23 @@ public abstract partial class Workspace : IDisposable
                 }
             }
         }, cancellationToken, TaskCreationOptions.None, _taskSchedulerProvider.CurrentContextScheduler).ConfigureAwait(false);
+    }
+
+    private static async ValueTask ProcessBackgroundWorkQueueAsync(ImmutableSegmentedList<Func<Task>> list, CancellationToken cancellationToken)
+    {
+        foreach (var item in list)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            try
+            {
+                await item().ConfigureAwait(false);
+            }
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            {
+                // Ensure we continue onto further items, even if one particular item fails.
+            }
+        }
     }
 
     #region Host API

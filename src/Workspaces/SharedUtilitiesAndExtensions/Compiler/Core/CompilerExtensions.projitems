@@ -485,6 +485,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AbstractSpeculationAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AliasSymbolCache.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AnnotationTable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncEventMap.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncLazy.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncLazy`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Base64Utilities.cs" />

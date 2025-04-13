@@ -46,6 +46,8 @@ internal partial class SyntacticClassificationTaggerProvider
         private readonly SyntacticClassificationTaggerProvider _taggerProvider;
         private readonly ITextBuffer2 _subjectBuffer;
         private readonly WorkspaceRegistration _workspaceRegistration;
+        private IDisposable? _workspaceChangedDisposer;
+        private IDisposable? _workspaceDocumentActiveContextChangedDisposer;
 
         private readonly CancellationTokenSource _disposalCancellationSource = new();
 
@@ -224,8 +226,8 @@ internal partial class SyntacticClassificationTaggerProvider
             _taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
 
             _workspace = workspace;
-            _workspace.WorkspaceChanged += this.OnWorkspaceChanged;
-            _workspace.DocumentActiveContextChanged += this.OnDocumentActiveContextChanged;
+            _workspaceChangedDisposer = _workspace.RegisterWorkspaceChangedHandler(this.OnWorkspaceChangedAsync);
+            _workspaceDocumentActiveContextChangedDisposer = _workspace.RegisterDocumentActiveContextChangedHandler(this.OnDocumentActiveContextChangedAsync);
 
             // Now that we've connected to the workspace, kick off work to reclassify this buffer.
             _workQueue.AddWork(_subjectBuffer.CurrentSnapshot);
@@ -243,8 +245,11 @@ internal partial class SyntacticClassificationTaggerProvider
 
             if (_workspace != null)
             {
-                _workspace.WorkspaceChanged -= this.OnWorkspaceChanged;
-                _workspace.DocumentActiveContextChanged -= this.OnDocumentActiveContextChanged;
+                _workspaceChangedDisposer?.Dispose();
+                _workspaceChangedDisposer = null;
+
+                _workspaceDocumentActiveContextChangedDisposer?.Dispose();
+                _workspaceDocumentActiveContextChangedDisposer = null;
 
                 _workspace = null;
 
@@ -264,33 +269,34 @@ internal partial class SyntacticClassificationTaggerProvider
             _workQueue.AddWork(args.After);
         }
 
-        private void OnDocumentActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs args)
+        private Task OnDocumentActiveContextChangedAsync(DocumentActiveContextChangedEventArgs args)
         {
             if (_workspace == null)
-                return;
+                return Task.CompletedTask;
 
             var documentId = args.NewActiveContextDocumentId;
             var bufferDocumentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
             if (bufferDocumentId != documentId)
-                return;
+                return Task.CompletedTask;
 
             _workQueue.AddWork(_subjectBuffer.CurrentSnapshot);
+            return Task.CompletedTask;
         }
 
-        private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs args)
+        private Task OnWorkspaceChangedAsync(WorkspaceChangeEventArgs args)
         {
             // We may be getting an event for a workspace we already disconnected from.  If so,
             // ignore them.  We won't be able to find the Document corresponding to our text buffer,
             // so we can't reasonably classify this anyways.
             if (args.NewSolution.Workspace != _workspace)
-                return;
+                return Task.CompletedTask;
 
             if (args.Kind != WorkspaceChangeKind.ProjectChanged)
-                return;
+                return Task.CompletedTask;
 
             var documentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
             if (args.ProjectId != documentId?.ProjectId)
-                return;
+                return Task.CompletedTask;
 
             var oldProject = args.OldSolution.GetProject(args.ProjectId);
             var newProject = args.NewSolution.GetProject(args.ProjectId);
@@ -298,9 +304,10 @@ internal partial class SyntacticClassificationTaggerProvider
             // In case of parse options change reclassify the doc as it may have affected things
             // like preprocessor directives.
             if (Equals(oldProject?.ParseOptions, newProject?.ParseOptions))
-                return;
+                return Task.CompletedTask;
 
             _workQueue.AddWork(_subjectBuffer.CurrentSnapshot);
+            return Task.CompletedTask;
         }
 
         #endregion

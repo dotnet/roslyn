@@ -44,6 +44,7 @@ internal sealed class SolutionChecksumUpdater
 
     private readonly object _gate = new();
     private bool _isSynchronizeWorkspacePaused;
+    private readonly IDisposable _workspaceChangedDisposer;
 
     private readonly CancellationToken _shutdownToken;
 
@@ -79,7 +80,7 @@ internal sealed class SolutionChecksumUpdater
             shutdownToken);
 
         // start listening workspace change event
-        _workspace.WorkspaceChanged += OnWorkspaceChanged;
+        _workspaceChangedDisposer = _workspace.RegisterWorkspaceChangedHandler(this.OnWorkspaceChangedAsync);
         _workspace.WorkspaceChangedImmediate += OnWorkspaceChangedImmediate;
         _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentChanged;
 
@@ -100,7 +101,7 @@ internal sealed class SolutionChecksumUpdater
         PauseSynchronizingPrimaryWorkspace();
 
         _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentChanged;
-        _workspace.WorkspaceChanged -= OnWorkspaceChanged;
+        _workspaceChangedDisposer.Dispose();
         _workspace.WorkspaceChangedImmediate -= OnWorkspaceChangedImmediate;
 
         if (_globalOperationService != null)
@@ -136,7 +137,7 @@ internal sealed class SolutionChecksumUpdater
         }
     }
 
-    private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
+    private Task OnWorkspaceChangedAsync(WorkspaceChangeEventArgs e)
     {
         // Check if we're currently paused.  If so ignore this notification.  We don't want to any work in response
         // to whatever the workspace is doing.
@@ -145,6 +146,8 @@ internal sealed class SolutionChecksumUpdater
             if (!_isSynchronizeWorkspacePaused)
                 _synchronizeWorkspaceQueue.AddWork();
         }
+
+        return Task.CompletedTask;
     }
 
     private void OnWorkspaceChangedImmediate(object? sender, WorkspaceChangeEventArgs e)

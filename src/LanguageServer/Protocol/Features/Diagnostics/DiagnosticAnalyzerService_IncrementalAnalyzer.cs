@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading.Tasks;
+
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal sealed partial class DiagnosticAnalyzerService
@@ -14,11 +16,15 @@ internal sealed partial class DiagnosticAnalyzerService
     private DiagnosticIncrementalAnalyzer CreateIncrementalAnalyzerCallback(Workspace workspace)
     {
         // subscribe to active context changed event for new workspace
-        workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
+        _ = workspace.RegisterDocumentActiveContextChangedHandler(OnDocumentActiveContextChangedAsync);
 
         return new DiagnosticIncrementalAnalyzer(this, AnalyzerInfoCache, this.GlobalOptions);
     }
 
-    private void OnDocumentActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs e)
-        => RequestDiagnosticRefresh();
+    private Task OnDocumentActiveContextChangedAsync(DocumentActiveContextChangedEventArgs e)
+    {
+        RequestDiagnosticRefresh();
+
+        return Task.CompletedTask;
+    }
 }

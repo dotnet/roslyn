@@ -62,7 +62,11 @@ public sealed class WorkspaceTests_EditorFeatures : TestBase
         var solution = workspace.CurrentSolution;
         var workspaceChanged = false;
 
-        workspace.WorkspaceChanged += (s, e) => workspaceChanged = true;
+        using var _ = workspace.RegisterWorkspaceChangedHandler(e =>
+        {
+            workspaceChanged = true;
+            return Task.CompletedTask;
+        });
 
         // make an 'empty' update by claiming something changed, but its the same as before
         workspace.OnParseOptionsChanged(project.Id, project.ParseOptions);
@@ -814,16 +818,26 @@ public sealed class WorkspaceTests_EditorFeatures : TestBase
         using var closeWaiter = new EventWaiter();
         using var openWaiter = new EventWaiter();
         // Wrapping event handlers so they can notify us on being called.
-        var documentOpenedEventHandler = openWaiter.Wrap<DocumentEventArgs>(
-            (sender, args) => Assert.True(args.Document.Id == document.Id,
-            "The document given to the 'DocumentOpened' event handler did not have the same id as the one created for the test."));
+        var documentOpenedEventHandlerAsync = openWaiter.Wrap<DocumentEventArgs>(
+            args =>
+            {
+                Assert.True(args.Document.Id == document.Id,
+                    "The document given to the 'DocumentOpened' event handler did not have the same id as the one created for the test.");
 
-        var documentClosedEventHandler = closeWaiter.Wrap<DocumentEventArgs>(
-            (sender, args) => Assert.True(args.Document.Id == document.Id,
-            "The document given to the 'DocumentClosed' event handler did not have the same id as the one created for the test."));
+                return Task.CompletedTask;
+            });
 
-        workspace.DocumentOpened += documentOpenedEventHandler;
-        workspace.DocumentClosed += documentClosedEventHandler;
+        var documentClosedEventHandlerAsync = closeWaiter.Wrap<DocumentEventArgs>(
+            args =>
+            {
+                Assert.True(args.Document.Id == document.Id,
+                    "The document given to the 'DocumentClosed' event handler did not have the same id as the one created for the test.");
+
+                return Task.CompletedTask;
+            });
+
+        var documentOpenedDisposer = workspace.RegisterDocumentOpenedHandler(documentOpenedEventHandlerAsync);
+        var documentClosedDisposer = workspace.RegisterDocumentClosedHandler(documentClosedEventHandlerAsync);
 
         workspace.OpenDocument(document.Id);
         workspace.CloseDocument(document.Id);
@@ -833,15 +847,15 @@ public sealed class WorkspaceTests_EditorFeatures : TestBase
 
         // Wait to receive signal that events have fired.
         Assert.True(openWaiter.WaitForEventToFire(longEventTimeout),
-                                string.Format("event 'DocumentOpened' was not fired within {0} minutes.",
+                                string.Format("event for 'RegisterDocumentOpenedHandler' was not fired within {0} minutes.",
                                 longEventTimeout.Minutes));
 
         Assert.True(closeWaiter.WaitForEventToFire(longEventTimeout),
-                                string.Format("event 'DocumentClosed' was not fired within {0} minutes.",
+                                string.Format("event for 'RegisterDocumentClosedHandler' was not fired within {0} minutes.",
                                 longEventTimeout.Minutes));
 
-        workspace.DocumentOpened -= documentOpenedEventHandler;
-        workspace.DocumentClosed -= documentClosedEventHandler;
+        documentOpenedDisposer.Dispose();
+        documentClosedDisposer.Dispose();
 
         workspace.OpenDocument(document.Id);
         workspace.CloseDocument(document.Id);
@@ -852,11 +866,11 @@ public sealed class WorkspaceTests_EditorFeatures : TestBase
         // Verifying that an event has not been called is difficult to prove.  
         // All events should have already been called so we wait 5 seconds and then assume the event handler was removed correctly. 
         Assert.False(openWaiter.WaitForEventToFire(shortEventTimeout),
-                                string.Format("event handler 'DocumentOpened' was called within {0} seconds though it was removed from the list.",
+                                string.Format("event for 'RegisterDocumentOpenedHandler' was called within {0} seconds though it was removed from the list.",
                                 shortEventTimeout.Seconds));
 
         Assert.False(closeWaiter.WaitForEventToFire(shortEventTimeout),
-                                string.Format("event handler 'DocumentClosed' was called within {0} seconds though it was removed from the list.",
+                                string.Format("event for 'RegisterDocumentClosedHandler' was called within {0} seconds though it was removed from the list.",
                                 shortEventTimeout.Seconds));
     }
 
@@ -880,16 +894,26 @@ public sealed class WorkspaceTests_EditorFeatures : TestBase
         using var openWaiter = new EventWaiter();
 
         // Wrapping event handlers so they can notify us on being called.
-        var documentOpenedEventHandler = openWaiter.Wrap<DocumentEventArgs>(
-            (sender, args) => Assert.True(args.Document.Id == document.Id,
-            $"The source generated document given to the '{nameof(Workspace.DocumentOpened)}' event handler did not have the same id as the one created for the test."));
+        var documentOpenedEventHandlerAsync = openWaiter.Wrap<DocumentEventArgs>(
+            args =>
+            {
+                Assert.True(args.Document.Id == document.Id,
+                    $"The source generated document given to the '{nameof(Workspace.RegisterDocumentOpenedHandler)}' did not have the same id as the one created for the test.");
 
-        var documentClosedEventHandler = closeWaiter.Wrap<DocumentEventArgs>(
-            (sender, args) => Assert.True(args.Document.Id == document.Id,
-            $"The source generated document given to the '{nameof(Workspace.DocumentClosed)}' event handler did not have the same id as the one created for the test."));
+                return Task.CompletedTask;
+            });
 
-        workspace.DocumentOpened += documentOpenedEventHandler;
-        workspace.DocumentClosed += documentClosedEventHandler;
+        var documentClosedEventHandlerAsync = closeWaiter.Wrap<DocumentEventArgs>(
+            args =>
+            {
+                Assert.True(args.Document.Id == document.Id,
+                    $"The source generated document given to the '{nameof(Workspace.RegisterDocumentClosedHandler)}' did not have the same id as the one created for the test.");
+
+                return Task.CompletedTask;
+            });
+
+        var documentOpenedDisposer = workspace.RegisterDocumentOpenedHandler(documentOpenedEventHandlerAsync);
+        var documentClosedDisposer = workspace.RegisterDocumentClosedHandler(documentClosedEventHandlerAsync);
 
         workspace.OpenSourceGeneratedDocument(document.Id);
         var sourceGeneratedDocumentId = workspace.GetDocumentIdInCurrentContext(document.GetOpenTextContainer());
@@ -902,15 +926,15 @@ public sealed class WorkspaceTests_EditorFeatures : TestBase
 
         // Wait to receive signal that events have fired.
         Assert.True(openWaiter.WaitForEventToFire(longEventTimeout),
-                                string.Format("event 'DocumentOpened' was not fired within {0} minutes.",
+                                string.Format("event for 'RegisterDocumentOpenedHandler' was not fired within {0} minutes.",
                                 longEventTimeout.Minutes));
 
         Assert.True(closeWaiter.WaitForEventToFire(longEventTimeout),
-                                string.Format("event 'DocumentClosed' was not fired within {0} minutes.",
+                                string.Format("event for 'RegisterDocumentClosedHandler' was not fired within {0} minutes.",
                                 longEventTimeout.Minutes));
 
-        workspace.DocumentOpened -= documentOpenedEventHandler;
-        workspace.DocumentClosed -= documentClosedEventHandler;
+        documentOpenedDisposer.Dispose();
+        documentClosedDisposer.Dispose();
 
         workspace.OpenSourceGeneratedDocument(document.Id);
         await workspace.CloseSourceGeneratedDocumentAsync(document.Id);
@@ -921,11 +945,11 @@ public sealed class WorkspaceTests_EditorFeatures : TestBase
         // Verifying that an event has not been called is difficult to prove.  
         // All events should have already been called so we wait 5 seconds and then assume the event handler was removed correctly. 
         Assert.False(openWaiter.WaitForEventToFire(shortEventTimeout),
-                                string.Format("event handler 'DocumentOpened' was called within {0} seconds though it was removed from the list.",
+                                string.Format("event for 'RegisterDocumentOpenedHandler' was called within {0} seconds though it was removed from the list.",
                                 shortEventTimeout.Seconds));
 
         Assert.False(closeWaiter.WaitForEventToFire(shortEventTimeout),
-                                string.Format("event handler 'DocumentClosed' was called within {0} seconds though it was removed from the list.",
+                                string.Format("event for 'RegisterDocumentClosedHandler' was called within {0} seconds though it was removed from the list.",
                                 shortEventTimeout.Seconds));
     }
 
@@ -944,16 +968,26 @@ public sealed class WorkspaceTests_EditorFeatures : TestBase
         using var closeWaiter = new EventWaiter();
         using var openWaiter = new EventWaiter();
         // Wrapping event handlers so they can notify us on being called.
-        var documentOpenedEventHandler = openWaiter.Wrap<TextDocumentEventArgs>(
-            (sender, args) => Assert.True(args.Document.Id == document.Id,
-            "The document given to the 'AdditionalDocumentOpened' event handler did not have the same id as the one created for the test."));
+        var textDocumentOpenedEventHandlerAsync = openWaiter.Wrap<TextDocumentEventArgs>(
+            args =>
+            {
+                Assert.True(args.Document.Id == document.Id,
+                    "The document given to the 'RegisterTextDocumentOpenedHandler' event handler did not have the same id as the one created for the test.");
 
-        var documentClosedEventHandler = closeWaiter.Wrap<TextDocumentEventArgs>(
-            (sender, args) => Assert.True(args.Document.Id == document.Id,
-            "The document given to the 'AdditionalDocumentClosed' event handler did not have the same id as the one created for the test."));
+                return Task.CompletedTask;
+            });
 
-        workspace.TextDocumentOpened += documentOpenedEventHandler;
-        workspace.TextDocumentClosed += documentClosedEventHandler;
+        var textDocumentClosedEventHandlerAsync = closeWaiter.Wrap<TextDocumentEventArgs>(
+            args =>
+            {
+                Assert.True(args.Document.Id == document.Id,
+                    "The document given to the 'RegisterTextDocumentClosedHandler' event handler did not have the same id as the one created for the test.");
+
+                return Task.CompletedTask;
+            });
+
+        var textDocumentOpenedDisposer = workspace.RegisterTextDocumentOpenedHandler(textDocumentOpenedEventHandlerAsync);
+        var textDocumentClosedDisposer = workspace.RegisterTextDocumentClosedHandler(textDocumentClosedEventHandlerAsync);
 
         workspace.OpenAdditionalDocument(document.Id);
         workspace.CloseAdditionalDocument(document.Id);
@@ -963,15 +997,15 @@ public sealed class WorkspaceTests_EditorFeatures : TestBase
 
         // Wait to receive signal that events have fired.
         Assert.True(openWaiter.WaitForEventToFire(longEventTimeout),
-                                string.Format("event 'AdditionalDocumentOpened' was not fired within {0} minutes.",
+                                string.Format("event for 'RegisterTextDocumentOpenedHandler' was not fired within {0} minutes.",
                                 longEventTimeout.Minutes));
 
         Assert.True(closeWaiter.WaitForEventToFire(longEventTimeout),
-                                string.Format("event 'AdditionalDocumentClosed' was not fired within {0} minutes.",
+                                string.Format("event for 'RegisterTextDocumentClosedHandler' was not fired within {0} minutes.",
                                 longEventTimeout.Minutes));
 
-        workspace.TextDocumentOpened -= documentOpenedEventHandler;
-        workspace.TextDocumentClosed -= documentClosedEventHandler;
+        textDocumentOpenedDisposer.Dispose();
+        textDocumentClosedDisposer.Dispose();
 
         workspace.OpenAdditionalDocument(document.Id);
         workspace.CloseAdditionalDocument(document.Id);
@@ -982,11 +1016,11 @@ public sealed class WorkspaceTests_EditorFeatures : TestBase
         // Verifying that an event has not been called is difficult to prove.  
         // All events should have already been called so we wait 5 seconds and then assume the event handler was removed correctly. 
         Assert.False(openWaiter.WaitForEventToFire(shortEventTimeout),
-                                string.Format("event handler 'AdditionalDocumentOpened' was called within {0} seconds though it was removed from the list.",
+                                string.Format("event for 'RegisterTextDocumentOpenedHandler' was called within {0} seconds though it was removed from the list.",
                                 shortEventTimeout.Seconds));
 
         Assert.False(closeWaiter.WaitForEventToFire(shortEventTimeout),
-                                string.Format("event handler 'AdditionalDocumentClosed' was called within {0} seconds though it was removed from the list.",
+                                string.Format("event for 'RegisterTextDocumentClosedHandler' was called within {0} seconds though it was removed from the list.",
                                 shortEventTimeout.Seconds));
     }
 
@@ -1005,16 +1039,26 @@ public sealed class WorkspaceTests_EditorFeatures : TestBase
         using var closeWaiter = new EventWaiter();
         using var openWaiter = new EventWaiter();
         // Wrapping event handlers so they can notify us on being called.
-        var documentOpenedEventHandler = openWaiter.Wrap<TextDocumentEventArgs>(
-            (sender, args) => Assert.True(args.Document.Id == document.Id,
-            "The document given to the 'AnalyzerConfigDocumentOpened' event handler did not have the same id as the one created for the test."));
+        var textDocumentOpenedEventHandlerAsync = openWaiter.Wrap<TextDocumentEventArgs>(
+            args =>
+            {
+                Assert.True(args.Document.Id == document.Id,
+                    "The document given to the 'AnalyzerConfigDocumentOpened' event handler did not have the same id as the one created for the test.");
 
-        var documentClosedEventHandler = closeWaiter.Wrap<TextDocumentEventArgs>(
-            (sender, args) => Assert.True(args.Document.Id == document.Id,
-            "The document given to the 'AnalyzerConfigDocumentClosed' event handler did not have the same id as the one created for the test."));
+                return Task.CompletedTask;
+            });
 
-        workspace.TextDocumentOpened += documentOpenedEventHandler;
-        workspace.TextDocumentClosed += documentClosedEventHandler;
+        var textDocumentClosedEventHandlerAsync = closeWaiter.Wrap<TextDocumentEventArgs>(
+            args =>
+            {
+                Assert.True(args.Document.Id == document.Id,
+                    "The document given to the 'AnalyzerConfigDocumentClosed' event handler did not have the same id as the one created for the test.");
+
+                return Task.CompletedTask;
+            });
+
+        var textDocumentOpenedDisposer = workspace.RegisterTextDocumentOpenedHandler(textDocumentOpenedEventHandlerAsync);
+        var textDocumentClosedDisposer = workspace.RegisterTextDocumentClosedHandler(textDocumentClosedEventHandlerAsync);
 
         workspace.OpenAnalyzerConfigDocument(document.Id);
         workspace.CloseAnalyzerConfigDocument(document.Id);
@@ -1024,15 +1068,15 @@ public sealed class WorkspaceTests_EditorFeatures : TestBase
 
         // Wait to receive signal that events have fired.
         Assert.True(openWaiter.WaitForEventToFire(longEventTimeout),
-                                string.Format("event 'AnalyzerConfigDocumentOpened' was not fired within {0} minutes.",
+                                string.Format("event for 'RegisterTextDocumentOpenedHandler' was not fired within {0} minutes.",
                                 longEventTimeout.Minutes));
 
         Assert.True(closeWaiter.WaitForEventToFire(longEventTimeout),
-                                string.Format("event 'AnalyzerConfigDocumentClosed' was not fired within {0} minutes.",
+                                string.Format("event for 'RegisterTextDocumentClosedHandler' was not fired within {0} minutes.",
                                 longEventTimeout.Minutes));
 
-        workspace.TextDocumentOpened -= documentOpenedEventHandler;
-        workspace.TextDocumentClosed -= documentClosedEventHandler;
+        textDocumentOpenedDisposer.Dispose();
+        textDocumentClosedDisposer.Dispose();
 
         workspace.OpenAnalyzerConfigDocument(document.Id);
         workspace.CloseAnalyzerConfigDocument(document.Id);
@@ -1043,11 +1087,11 @@ public sealed class WorkspaceTests_EditorFeatures : TestBase
         // Verifying that an event has not been called is difficult to prove.  
         // All events should have already been called so we wait 5 seconds and then assume the event handler was removed correctly. 
         Assert.False(openWaiter.WaitForEventToFire(shortEventTimeout),
-                                string.Format("event handler 'AnalyzerConfigDocumentOpened' was called within {0} seconds though it was removed from the list.",
+                                string.Format("event for 'RegisterTextDocumentOpenedHandler' was called within {0} seconds though it was removed from the list.",
                                 shortEventTimeout.Seconds));
 
         Assert.False(closeWaiter.WaitForEventToFire(shortEventTimeout),
-                                string.Format("event handler 'AnalyzerConfigDocumentClosed' was called within {0} seconds though it was removed from the list.",
+                                string.Format("event for 'RegisterTextDocumentClosedHandler' was called within {0} seconds though it was removed from the list.",
                                 shortEventTimeout.Seconds));
     }
 
@@ -1420,11 +1464,12 @@ public sealed class WorkspaceTests_EditorFeatures : TestBase
         using var workspace = EditorTestWorkspace.Create(input, composition: EditorTestCompositions.EditorFeatures, openDocuments: true);
         var eventArgs = new List<WorkspaceChangeEventArgs>();
 
-        workspace.WorkspaceChanged += (s, e) =>
+        using var _ = workspace.RegisterWorkspaceChangedHandler(e =>
         {
             Assert.Equal(WorkspaceChangeKind.DocumentChanged, e.Kind);
             eventArgs.Add(e);
-        };
+            return Task.CompletedTask;
+        });
 
         var originalDocumentId = workspace.GetOpenDocumentIds().Single(id => !workspace.GetTestDocument(id).IsLinkFile);
         var linkedDocumentId = workspace.GetOpenDocumentIds().Single(id => workspace.GetTestDocument(id).IsLinkFile);

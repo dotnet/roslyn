@@ -420,14 +420,15 @@ language: LanguageNames.CSharp);
         Assert.Equal(newName, changedDoc.Name);
 
         var tcs = new TaskCompletionSource<bool>();
-        ws.WorkspaceChanged += (s, args) =>
+        using var _ = ws.RegisterWorkspaceChangedHandler(args =>
         {
             if (args.Kind == WorkspaceChangeKind.DocumentInfoChanged
                 && args.DocumentId == originalDoc.Id)
             {
                 tcs.SetResult(true);
             }
-        };
+            return Task.CompletedTask;
+        });
 
         Assert.True(ws.TryApplyChanges(changedDoc.Project.Solution));
 
@@ -453,14 +454,16 @@ language: LanguageNames.CSharp);
         Assert.Equal("B", changedDoc.Folders[1]);
 
         var tcs = new TaskCompletionSource<bool>();
-        ws.WorkspaceChanged += (s, args) =>
+        using var _ = ws.RegisterWorkspaceChangedHandler(args =>
         {
             if (args.Kind == WorkspaceChangeKind.DocumentInfoChanged
                 && args.DocumentId == originalDoc.Id)
             {
                 tcs.SetResult(true);
             }
-        };
+
+            return Task.CompletedTask;
+        });
 
         Assert.True(ws.TryApplyChanges(changedDoc.Project.Solution));
 
@@ -487,14 +490,15 @@ language: LanguageNames.CSharp);
         Assert.Equal(newPath, changedDoc.FilePath);
 
         var tcs = new TaskCompletionSource<bool>();
-        ws.WorkspaceChanged += (s, args) =>
+        using var _ = ws.RegisterWorkspaceChangedHandler(args =>
         {
             if (args.Kind == WorkspaceChangeKind.DocumentInfoChanged
                 && args.DocumentId == originalDoc.Id)
             {
                 tcs.SetResult(true);
             }
-        };
+            return Task.CompletedTask;
+        });
 
         Assert.True(ws.TryApplyChanges(changedDoc.Project.Solution));
 
@@ -518,14 +522,15 @@ language: LanguageNames.CSharp);
         Assert.Equal(SourceCodeKind.Script, changedDoc.SourceCodeKind);
 
         var tcs = new TaskCompletionSource<bool>();
-        ws.WorkspaceChanged += (s, args) =>
+        using var _ = ws.RegisterWorkspaceChangedHandler(args =>
         {
             if (args.Kind == WorkspaceChangeKind.DocumentInfoChanged
                 && args.DocumentId == originalDoc.Id)
             {
                 tcs.SetResult(true);
             }
-        };
+            return Task.CompletedTask;
+        });
 
         Assert.True(ws.TryApplyChanges(changedDoc.Project.Solution));
 

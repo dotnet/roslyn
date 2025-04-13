@@ -26,11 +26,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 /// Creates services on the first connection of an applicable subject buffer to an IWpfTextView. 
 /// This ensures the services are available by the time an open document or the interactive window needs them.
 /// </summary>
-internal abstract class AbstractCreateServicesOnTextViewConnection : IWpfTextViewConnectionListener
+internal abstract class AbstractCreateServicesOnTextViewConnection : IWpfTextViewConnectionListener, IDisposable
 {
     private readonly string _languageName;
     private readonly AsyncBatchingWorkQueue<ProjectId?> _workQueue;
     private bool _initialized = false;
+    private readonly IDisposable _workspaceDocumentOpenedDisposer;
 
     protected VisualStudioWorkspace Workspace { get; }
     protected IGlobalOptionService GlobalOptions { get; }
@@ -56,7 +57,7 @@ internal abstract class AbstractCreateServicesOnTextViewConnection : IWpfTextVie
                 listenerProvider.GetListener(FeatureAttribute.CompletionSet),
                 threadingContext.DisposalToken);
 
-        Workspace.DocumentOpened += QueueWorkOnDocumentOpened;
+        _workspaceDocumentOpenedDisposer = Workspace.RegisterDocumentOpenedHandler(QueueWorkOnDocumentOpenedAsync);
     }
 
     void IWpfTextViewConnectionListener.SubjectBuffersConnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
@@ -96,10 +97,12 @@ internal abstract class AbstractCreateServicesOnTextViewConnection : IWpfTextVie
         }
     }
 
-    private void QueueWorkOnDocumentOpened(object sender, DocumentEventArgs e)
+    private Task QueueWorkOnDocumentOpenedAsync(DocumentEventArgs e)
     {
         if (e.Document.Project.Language == _languageName)
             _workQueue.AddWork(e.Document.Project.Id);
+
+        return Task.CompletedTask;
     }
 
     private void InitializePerVSSessionServices()
@@ -111,5 +114,10 @@ internal abstract class AbstractCreateServicesOnTextViewConnection : IWpfTextVie
         // Preload completion providers on a background thread since assembly loads can be slow
         // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1242321
         languageServices.GetService<CompletionService>()?.LoadImportedProviders();
+    }
+
+    public void Dispose()
+    {
+        _workspaceDocumentOpenedDisposer?.Dispose();
     }
 }
