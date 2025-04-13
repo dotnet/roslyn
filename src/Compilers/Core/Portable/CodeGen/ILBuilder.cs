@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly LocalScopeManager _scopeManager;
 
         // internal for testing
-        internal readonly ITokenDeferral module;
+        internal readonly CommonPEModuleBuilder module;
 
         //leader block is the entry point of the method body
         internal readonly BasicBlock leaderBlock;
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         // created, in particular for leader blocks in exception handlers.
         private bool _pendingBlockCreate;
 
-        internal ILBuilder(ITokenDeferral module, LocalSlotManager localSlotManager, OptimizationLevel optimizations, bool areLocalsZeroed)
+        internal ILBuilder(CommonPEModuleBuilder module, LocalSlotManager localSlotManager, OptimizationLevel optimizations, bool areLocalsZeroed)
         {
             this.module = module;
             this.LocalSlotManager = localSlotManager;

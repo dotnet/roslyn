@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private ImmutableArray<Cci.AssemblyReferenceAlias> _lazyAssemblyReferenceAliases;
         private ImmutableArray<Cci.ManagedResource> _lazyManagedResources;
         private IEnumerable<EmbeddedText> _embeddedTexts = SpecializedCollections.EmptyEnumerable<EmbeddedText>();
+        private ArrayMethods? _lazyArrayMethods;
 
         // Only set when running tests to allow inspection of the emitted data.
         internal CompilationTestData? TestData { get; private set; }
@@ -137,6 +138,11 @@ namespace Microsoft.CodeAnalysis.Emit
         public abstract IEnumerable<Cci.SecurityAttribute> GetSourceAssemblySecurityAttributes();
         public abstract IEnumerable<Cci.ICustomAttribute> GetSourceModuleAttributes();
         internal abstract Cci.ICustomAttribute SynthesizeAttribute(WellKnownMember attributeConstructor);
+        public abstract Cci.IMethodReference GetInitArrayHelper();
+
+        public abstract Cci.IFieldReference GetFieldForData(ImmutableArray<byte> data, ushort alignment, SyntaxNode syntaxNode, DiagnosticBag diagnostics);
+        public abstract Cci.IFieldReference GetArrayCachingFieldForData(ImmutableArray<byte> data, Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics);
+        public abstract Cci.IFieldReference GetArrayCachingFieldForConstants(ImmutableArray<ConstantValue> constants, Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics);
 
         /// <summary>
         /// Public types defined in other modules making up this assembly and to which other assemblies may refer to via this assembly
@@ -180,6 +186,26 @@ namespace Microsoft.CodeAnalysis.Emit
         public abstract bool IsPlatformType(Cci.ITypeReference typeRef, Cci.PlatformType platformType);
 
 #nullable enable
+        public ArrayMethods ArrayMethods
+        {
+            get
+            {
+                ArrayMethods? result = _lazyArrayMethods;
+
+                if (result == null)
+                {
+                    result = new ArrayMethods();
+
+                    if (Interlocked.CompareExchange(ref _lazyArrayMethods, result, null) != null)
+                    {
+                        result = _lazyArrayMethods;
+                    }
+                }
+
+                return result;
+            }
+        }
+
         public abstract IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypeDefinitions(EmitContext context);
 
         public IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypeDefinitionsCore(EmitContext context)
@@ -582,7 +608,7 @@ namespace Microsoft.CodeAnalysis.Emit
     /// <summary>
     /// Common base class for C# and VB PE module builder.
     /// </summary>
-    internal abstract class PEModuleBuilder<TCompilation, TSourceModuleSymbol, TAssemblySymbol, TTypeSymbol, TNamedTypeSymbol, TMethodSymbol, TSyntaxNode, TEmbeddedTypesManager, TModuleCompilationState> : CommonPEModuleBuilder, ITokenDeferral
+    internal abstract class PEModuleBuilder<TCompilation, TSourceModuleSymbol, TAssemblySymbol, TTypeSymbol, TNamedTypeSymbol, TMethodSymbol, TSyntaxNode, TEmbeddedTypesManager, TModuleCompilationState> : CommonPEModuleBuilder
         where TCompilation : Compilation
         where TSourceModuleSymbol : class, IModuleSymbolInternal
         where TAssemblySymbol : class, IAssemblySymbolInternal
@@ -597,7 +623,6 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly TCompilation Compilation;
 
         private PrivateImplementationDetails _lazyPrivateImplementationDetails;
-        private ArrayMethods _lazyArrayMethods;
         private HashSet<string> _namesOfTopLevelTypes;
 
         internal readonly TModuleCompilationState CompilationState;
@@ -1023,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         #region Token Mapping
 
-        Cci.IFieldReference ITokenDeferral.GetFieldForData(ImmutableArray<byte> data, ushort alignment, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        public sealed override Cci.IFieldReference GetFieldForData(ImmutableArray<byte> data, ushort alignment, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             RoslynDebug.Assert(alignment is 1 or 2 or 4 or 8, $"Unexpected alignment: {alignment}");
 
@@ -1033,7 +1058,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return privateImpl.GetOrAddDataField(data, alignment);
         }
 
-        Cci.IFieldReference ITokenDeferral.GetArrayCachingFieldForData(ImmutableArray<byte> data, Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        public sealed override Cci.IFieldReference GetArrayCachingFieldForData(ImmutableArray<byte> data, Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             var privateImpl = GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
 
@@ -1043,7 +1068,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return privateImpl.CreateArrayCachingField(data, arrayType, emitContext);
         }
 
-        public Cci.IFieldReference GetArrayCachingFieldForConstants(ImmutableArray<ConstantValue> constants, Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        public sealed override Cci.IFieldReference GetArrayCachingFieldForConstants(ImmutableArray<ConstantValue> constants, Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             var privateImpl = GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
             var emitContext = new EmitContext(this, syntaxNode, diagnostics, metadataOnly: false, includePrivateMembers: true);
@@ -1056,28 +1081,6 @@ namespace Microsoft.CodeAnalysis.Emit
         public Cci.IFieldReference TryGetOrCreateFieldForStringValue(string text, TSyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             return PrivateImplementationDetails.TryGetOrCreateFieldForStringValue(text, this, syntaxNode, diagnostics);
-        }
-
-        public abstract Cci.IMethodReference GetInitArrayHelper();
-
-        public ArrayMethods ArrayMethods
-        {
-            get
-            {
-                ArrayMethods result = _lazyArrayMethods;
-
-                if (result == null)
-                {
-                    result = new ArrayMethods();
-
-                    if (Interlocked.CompareExchange(ref _lazyArrayMethods, result, null) != null)
-                    {
-                        result = _lazyArrayMethods;
-                    }
-                }
-
-                return result;
-            }
         }
 
         #endregion
