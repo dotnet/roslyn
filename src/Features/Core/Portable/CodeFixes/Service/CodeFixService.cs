@@ -28,7 +28,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Threading;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes;
@@ -157,7 +157,7 @@ internal sealed partial class CodeFixService : ICodeFixService
             CancellationToken cancellationToken)
         {
             // Ensure we yield here so the caller can continue on.
-            await TaskScheduler.Default.SwitchTo(alwaysYield: true);
+            await Task.Yield().ConfigureAwait(false);
 
             await foreach (var collection in StreamFixesAsync(
                 document, spanToDiagnostics, fixAllForInSpan: false,
