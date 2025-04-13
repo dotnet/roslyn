@@ -28,7 +28,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Threading;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
@@ -103,6 +103,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetMostSevereFixAsync)}");
 
+            // Ensure we yield here so the caller can continue on.
+            await Task.Yield().ConfigureAwait(false);
+
             ImmutableArray<DiagnosticData> allDiagnostics;
 
             using (TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetMostSevereFixAsync)}.{nameof(_diagnosticService.GetDiagnosticsForSpanAsync)}"))
@@ -157,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 CancellationToken cancellationToken)
             {
                 // Ensure we yield here so the caller can continue on.
-                await TaskScheduler.Default.SwitchTo(alwaysYield: true);
+                await Task.Yield().ConfigureAwait(false);
 
                 await foreach (var collection in StreamFixesAsync(
                     document, spanToDiagnostics, fixAllForInSpan: false,
