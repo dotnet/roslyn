@@ -136,7 +136,7 @@ internal sealed class FindReferencesCommandHandler : ICommandHandler<FindReferen
 
             using (Logger.LogBlock(
                 FunctionId.CommandHandler_FindAllReference,
-                KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
+                KeyValueLogMessage.Create(LogType.UserAction, static m => m["type"] = "streaming"),
                 cancellationToken))
             {
                 try
