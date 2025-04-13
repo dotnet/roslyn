@@ -332,9 +332,6 @@ internal sealed partial class CodeFixService : ICodeFixService
         return null;
     }
 
-    public Task<TDocument> ApplyCodeFixesForSpecificDiagnosticIdAsync<TDocument>(TDocument document, string diagnosticId, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken) where TDocument : TextDocument
-        => ApplyCodeFixesForSpecificDiagnosticIdAsync(document, diagnosticId, DiagnosticSeverity.Hidden, progressTracker, cancellationToken);
-
     public async Task<TDocument> ApplyCodeFixesForSpecificDiagnosticIdAsync<TDocument>(
         TDocument document,
         string diagnosticId,
