@@ -6005,6 +6005,406 @@ public class C1 : C2
             comp.VerifyEmitDiagnostics();
         }
 
+        [Theory]
+        [CombinatorialData]
+        public void Increment_127_Readonly([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+struct S1
+{
+    public static readonly S1 operator " + op + @"(S1 s) => s;
+    public static readonly S1 operator checked " + op + @"(S1 s) => s;
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (4,40): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public static readonly S1 operator ++(S1 s) => s;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("readonly").WithLocation(4, 40),
+                // (5,48): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public static readonly S1 operator checked ++(S1 s) => s;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("readonly").WithLocation(5, 48)
+                );
+
+            foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>())
+            {
+                Assert.False(m.IsDeclaredReadOnly);
+                Assert.False(m.IsEffectivelyReadOnly);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_128_Readonly([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+struct S1
+{
+    public readonly void operator " + op + @"() {}
+    public readonly void operator checked " + op + @"() {}
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyEmitDiagnostics();
+
+            foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.True(m.IsDeclaredReadOnly);
+                Assert.True(m.IsEffectivelyReadOnly);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_129_Readonly([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+readonly struct S1
+{
+    public void operator " + op + @"() {}
+    public void operator checked " + op + @"() {}
+}
+
+readonly struct S2
+{
+    public readonly void operator " + op + @"() {}
+    public readonly void operator checked " + op + @"() {}
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyEmitDiagnostics();
+
+            foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.False(m.IsDeclaredReadOnly);
+                Assert.True(m.IsEffectivelyReadOnly);
+            }
+
+            foreach (var m in compilation.GetTypeByMetadataName("S2").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.True(m.IsDeclaredReadOnly);
+                Assert.True(m.IsEffectivelyReadOnly);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_130_Readonly([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+struct S1
+{
+    int F;
+    public readonly void operator " + op + @"() { F++; }
+    public readonly void operator checked " + op + @"() { F++; }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (5,42): error CS1604: Cannot assign to 'F' because it is read-only
+                //     public readonly void operator ++() { F++; }
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "F").WithArguments("F").WithLocation(5, 42),
+                // (6,50): error CS1604: Cannot assign to 'F' because it is read-only
+                //     public readonly void operator checked ++() { F++; }
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "F").WithArguments("F").WithLocation(6, 50)
+                );
+
+            foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.True(m.IsDeclaredReadOnly);
+                Assert.True(m.IsEffectivelyReadOnly);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_131_Readonly([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+readonly struct S1
+{
+    public void operator " + op + @"() { this = new S1(); }
+    public void operator checked " + op + @"() { this = new S1(); }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (4,33): error CS1604: Cannot assign to 'this' because it is read-only
+                //     public void operator ++() { this = new S1(); }
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this").WithArguments("this").WithLocation(4, 33),
+                // (5,41): error CS1604: Cannot assign to 'this' because it is read-only
+                //     public void operator checked ++() { this = new S1(); }
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this").WithArguments("this").WithLocation(5, 41)
+                );
+
+            foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.False(m.IsDeclaredReadOnly);
+                Assert.True(m.IsEffectivelyReadOnly);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_132_Readonly([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+interface I1<T> where T : I1<T>
+{
+    static abstract T operator " + op + @"(T s);
+    static abstract T operator checked " + op + @"(T s);
+}
+
+struct S1 : I1<S1>
+{
+    static readonly S1 I1<S1>.operator " + op + @"(S1 s) => s;
+    static readonly S1 I1<S1>.operator checked " + op + @"(S1 s) => s;
+}
+";
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            compilation.VerifyDiagnostics(
+                // (10,40): error CS0106: The modifier 'readonly' is not valid for this item
+                //     static readonly S1 I1<S1>.operator ++(S1 s) => s;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("readonly").WithLocation(10, 40),
+                // (11,48): error CS0106: The modifier 'readonly' is not valid for this item
+                //     static readonly S1 I1<S1>.operator checked ++(S1 s) => s;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("readonly").WithLocation(11, 48)
+                );
+
+            foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.False(m.IsDeclaredReadOnly);
+                Assert.False(m.IsEffectivelyReadOnly);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_133_Readonly([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"();
+    void operator checked " + op + @"();
+}
+
+struct S1 : I1
+{
+    readonly void I1.operator " + op + @"() {}
+    readonly void I1.operator checked " + op + @"() {}
+}
+
+readonly struct S2 : I1
+{
+    readonly void I1.operator " + op + @"() {}
+    readonly void I1.operator checked " + op + @"() {}
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyEmitDiagnostics();
+
+            foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.True(m.IsDeclaredReadOnly);
+                Assert.True(m.IsEffectivelyReadOnly);
+            }
+
+            foreach (var m in compilation.GetTypeByMetadataName("S2").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.True(m.IsDeclaredReadOnly);
+                Assert.True(m.IsEffectivelyReadOnly);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_134_Readonly([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"();
+    void operator checked " + op + @"();
+}
+
+readonly struct S1 : I1
+{
+    void I1.operator " + op + @"() {}
+    void I1.operator checked " + op + @"() {}
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyEmitDiagnostics();
+
+            foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.False(m.IsDeclaredReadOnly);
+                Assert.True(m.IsEffectivelyReadOnly);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_135_Readonly([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"();
+    void operator checked " + op + @"();
+}
+
+struct S1 : I1
+{
+    int F;
+    readonly void I1.operator " + op + @"() { F++; }
+    readonly void I1.operator checked " + op + @"() { F++; }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (11,38): error CS1604: Cannot assign to 'F' because it is read-only
+                //     readonly void I1.operator --() { F++; }
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "F").WithArguments("F").WithLocation(11, 38),
+                // (12,46): error CS1604: Cannot assign to 'F' because it is read-only
+                //     readonly void I1.operator checked --() { F++; }
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "F").WithArguments("F").WithLocation(12, 46)
+                );
+
+            foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.True(m.IsDeclaredReadOnly);
+                Assert.True(m.IsEffectivelyReadOnly);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_136_Readonly([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"();
+    void operator checked " + op + @"();
+}
+
+readonly struct S1 : I1
+{
+    void I1.operator " + op + @"() { this = new S1(); }
+    void I1.operator checked " + op + @"() { this = new S1(); }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (10,29): error CS1604: Cannot assign to 'this' because it is read-only
+                //     void I1.operator ++() { this = new S1(); }
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this").WithArguments("this").WithLocation(10, 29),
+                // (11,37): error CS1604: Cannot assign to 'this' because it is read-only
+                //     void I1.operator checked ++() { this = new S1(); }
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this").WithArguments("this").WithLocation(11, 37)
+                );
+
+            foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.False(m.IsDeclaredReadOnly);
+                Assert.True(m.IsEffectivelyReadOnly);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_137_Readonly([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"();
+    void operator checked " + op + @"();
+}
+
+interface I2 : I1
+{
+#line 200
+    readonly void I1.operator " + op + @"() {}
+    readonly void I1.operator checked " + op + @"() {}
+}
+
+class C3 : I1
+{
+#line 300
+    readonly void I1.operator " + op + @"() {}
+    readonly void I1.operator checked " + op + @"() {}
+}
+
+class C4
+{
+#line 400
+    public readonly void operator " + op + @"() {}
+    public readonly void operator checked " + op + @"() {}
+}
+
+interface I5
+{
+#line 500
+    readonly void operator " + op + @"();
+    readonly void operator checked " + op + @"();
+}
+";
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            compilation.VerifyDiagnostics(
+                    // (200,31): error CS0106: The modifier 'readonly' is not valid for this item
+                    //     readonly void I1.operator ++() {}
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("readonly").WithLocation(200, 31),
+                    // (201,39): error CS0106: The modifier 'readonly' is not valid for this item
+                    //     readonly void I1.operator checked ++() {}
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("readonly").WithLocation(201, 39),
+                    // (300,31): error CS0106: The modifier 'readonly' is not valid for this item
+                    //     readonly void I1.operator ++() {}
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("readonly").WithLocation(300, 31),
+                    // (301,39): error CS0106: The modifier 'readonly' is not valid for this item
+                    //     readonly void I1.operator checked ++() {}
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("readonly").WithLocation(301, 39),
+                    // (400,35): error CS0106: The modifier 'readonly' is not valid for this item
+                    //     public readonly void operator ++() {}
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("readonly").WithLocation(400, 35),
+                    // (401,43): error CS0106: The modifier 'readonly' is not valid for this item
+                    //     public readonly void operator checked ++() {}
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("readonly").WithLocation(401, 43),
+                    // (500,28): error CS0106: The modifier 'readonly' is not valid for this item
+                    //     readonly void operator ++();
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("readonly").WithLocation(500, 28),
+                    // (501,36): error CS0106: The modifier 'readonly' is not valid for this item
+                    //     readonly void operator checked ++();
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("readonly").WithLocation(501, 36)
+                );
+
+            foreach (var m in compilation.GetTypeByMetadataName("I2").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.False(m.IsDeclaredReadOnly);
+                Assert.False(m.IsEffectivelyReadOnly);
+            }
+
+            foreach (var m in compilation.GetTypeByMetadataName("C3").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.False(m.IsDeclaredReadOnly);
+                Assert.False(m.IsEffectivelyReadOnly);
+            }
+
+            foreach (var m in compilation.GetTypeByMetadataName("C4").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.False(m.IsDeclaredReadOnly);
+                Assert.False(m.IsEffectivelyReadOnly);
+            }
+
+            foreach (var m in compilation.GetTypeByMetadataName("I5").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.False(m.IsDeclaredReadOnly);
+                Assert.False(m.IsEffectivelyReadOnly);
+            }
+        }
+
         private static string CompoundAssignmentOperatorName(string op, bool isChecked = false)
         {
             var kind = op switch
@@ -14176,6 +14576,658 @@ public class C1 : C2
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01280_Readonly([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+struct S1
+{
+    public readonly void operator " + op + @"(int x) {}
+    public readonly void operator checked " + op + @"(int x) {}
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyEmitDiagnostics();
+
+            foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.True(m.IsDeclaredReadOnly);
+                Assert.True(m.IsEffectivelyReadOnly);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01281_Readonly([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+struct S1
+{
+    public readonly void operator " + op + @"(int x) {}
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyEmitDiagnostics();
+
+            foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.True(m.IsDeclaredReadOnly);
+                Assert.True(m.IsEffectivelyReadOnly);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01290_Readonly([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+readonly struct S1
+{
+    public void operator " + op + @"(int x) {}
+    public void operator checked " + op + @"(int x) {}
+}
+
+readonly struct S2
+{
+    public readonly void operator " + op + @"(int x) {}
+    public readonly void operator checked " + op + @"(int x) {}
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyEmitDiagnostics();
+
+            foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.False(m.IsDeclaredReadOnly);
+                Assert.True(m.IsEffectivelyReadOnly);
+            }
+
+            foreach (var m in compilation.GetTypeByMetadataName("S2").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.True(m.IsDeclaredReadOnly);
+                Assert.True(m.IsEffectivelyReadOnly);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01291_Readonly([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+readonly struct S1
+{
+    public void operator " + op + @"(int x) {}
+}
+
+readonly struct S2
+{
+    public readonly void operator " + op + @"(int x) {}
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyEmitDiagnostics();
+
+            foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.False(m.IsDeclaredReadOnly);
+                Assert.True(m.IsEffectivelyReadOnly);
+            }
+
+            foreach (var m in compilation.GetTypeByMetadataName("S2").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.True(m.IsDeclaredReadOnly);
+                Assert.True(m.IsEffectivelyReadOnly);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01300_Readonly([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+struct S1
+{
+    int F;
+    public readonly void operator " + op + @"(int x) { F++; }
+    public readonly void operator checked " + op + @"(int x) { F++; }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (5,47): error CS1604: Cannot assign to 'F' because it is read-only
+                //     public readonly void operator +=(int x) { F++; }
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "F").WithArguments("F").WithLocation(5, 47),
+                // (6,55): error CS1604: Cannot assign to 'F' because it is read-only
+                //     public readonly void operator checked +=(int x) { F++; }
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "F").WithArguments("F").WithLocation(6, 55)
+                );
+
+            foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.True(m.IsDeclaredReadOnly);
+                Assert.True(m.IsEffectivelyReadOnly);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01301_Readonly([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+struct S1
+{
+    int F;
+    public readonly void operator " + op + @"(int x)
+    {
+        F++;
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (7,9): error CS1604: Cannot assign to 'F' because it is read-only
+                //         F++;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "F").WithArguments("F").WithLocation(7, 9)
+                );
+
+            foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.True(m.IsDeclaredReadOnly);
+                Assert.True(m.IsEffectivelyReadOnly);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01310_Readonly([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+readonly struct S1
+{
+    public void operator " + op + @"(int x) { this = new S1(); }
+    public void operator checked " + op + @"(int x) { this = new S1(); }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (4,38): error CS1604: Cannot assign to 'this' because it is read-only
+                //     public void operator +=(int x) { this = new S1(); }
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this").WithArguments("this").WithLocation(4, 38),
+                // (5,46): error CS1604: Cannot assign to 'this' because it is read-only
+                //     public void operator checked +=(int x) { this = new S1(); }
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this").WithArguments("this").WithLocation(5, 46)
+                );
+
+            foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.False(m.IsDeclaredReadOnly);
+                Assert.True(m.IsEffectivelyReadOnly);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01311_Readonly([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+readonly struct S1
+{
+    public void operator " + op + @"(int x)
+    {
+        this = new S1();
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,9): error CS1604: Cannot assign to 'this' because it is read-only
+                //         this = new S1();
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this").WithArguments("this").WithLocation(6, 9)
+                );
+
+            foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.False(m.IsDeclaredReadOnly);
+                Assert.True(m.IsEffectivelyReadOnly);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01330_Readonly([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"(int x);
+    void operator checked " + op + @"(int x);
+}
+
+struct S1 : I1
+{
+    readonly void I1.operator " + op + @"(int x) {}
+    readonly void I1.operator checked " + op + @"(int x) {}
+}
+
+readonly struct S2 : I1
+{
+    readonly void I1.operator " + op + @"(int x) {}
+    readonly void I1.operator checked " + op + @"(int x) {}
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyEmitDiagnostics();
+
+            foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.True(m.IsDeclaredReadOnly);
+                Assert.True(m.IsEffectivelyReadOnly);
+            }
+
+            foreach (var m in compilation.GetTypeByMetadataName("S2").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.True(m.IsDeclaredReadOnly);
+                Assert.True(m.IsEffectivelyReadOnly);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01331_Readonly([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"(int x);
+}
+
+struct S1 : I1
+{
+    readonly void I1.operator " + op + @"(int x) {}
+}
+
+readonly struct S2 : I1
+{
+    readonly void I1.operator " + op + @"(int x) {}
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyEmitDiagnostics();
+
+            foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.True(m.IsDeclaredReadOnly);
+                Assert.True(m.IsEffectivelyReadOnly);
+            }
+
+            foreach (var m in compilation.GetTypeByMetadataName("S2").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.True(m.IsDeclaredReadOnly);
+                Assert.True(m.IsEffectivelyReadOnly);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01340_Readonly([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"(int x);
+    void operator checked " + op + @"(int x);
+}
+
+readonly struct S1 : I1
+{
+    void I1.operator " + op + @"(int x) {}
+    void I1.operator checked " + op + @"(int x) {}
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyEmitDiagnostics();
+
+            foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.False(m.IsDeclaredReadOnly);
+                Assert.True(m.IsEffectivelyReadOnly);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01341_Readonly([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"(int x);
+}
+
+readonly struct S1 : I1
+{
+    void I1.operator " + op + @"(int x) {}
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyEmitDiagnostics();
+
+            foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.False(m.IsDeclaredReadOnly);
+                Assert.True(m.IsEffectivelyReadOnly);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01350_Readonly([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"(int x);
+    void operator checked " + op + @"(int x);
+}
+
+struct S1 : I1
+{
+    int F;
+    readonly void I1.operator " + op + @"(int x) { F++; }
+    readonly void I1.operator checked " + op + @"(int x) { F++; }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (11,43): error CS1604: Cannot assign to 'F' because it is read-only
+                //     readonly void I1.operator +=(int x) { F++; }
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "F").WithArguments("F").WithLocation(11, 43),
+                // (12,51): error CS1604: Cannot assign to 'F' because it is read-only
+                //     readonly void I1.operator checked +=(int x) { F++; }
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "F").WithArguments("F").WithLocation(12, 51)
+                );
+
+            foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.True(m.IsDeclaredReadOnly);
+                Assert.True(m.IsEffectivelyReadOnly);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01351_Readonly([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"(int x);
+}
+
+struct S1 : I1
+{
+    int F;
+    readonly void I1.operator " + op + @"(int x)
+    {
+        F++;
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (12,9): error CS1604: Cannot assign to 'F' because it is read-only
+                //         F++;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "F").WithArguments("F").WithLocation(12, 9)
+                );
+
+            foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.True(m.IsDeclaredReadOnly);
+                Assert.True(m.IsEffectivelyReadOnly);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01360_Readonly([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"(int x);
+    void operator checked " + op + @"(int x);
+}
+
+readonly struct S1 : I1
+{
+    void I1.operator " + op + @"(int x)
+    {
+        this = new S1();
+    }
+
+    void I1.operator checked " + op + @"(int x)
+    {
+        this = new S1();
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (12,9): error CS1604: Cannot assign to 'this' because it is read-only
+                //         this = new S1();
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this").WithArguments("this").WithLocation(12, 9),
+                // (17,9): error CS1604: Cannot assign to 'this' because it is read-only
+                //         this = new S1();
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this").WithArguments("this").WithLocation(17, 9)
+                );
+
+            foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.False(m.IsDeclaredReadOnly);
+                Assert.True(m.IsEffectivelyReadOnly);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01361_Readonly([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"(int x);
+}
+
+readonly struct S1 : I1
+{
+    void I1.operator " + op + @"(int x)
+    {
+        this = new S1();
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (11,9): error CS1604: Cannot assign to 'this' because it is read-only
+                //         this = new S1();
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this").WithArguments("this").WithLocation(11, 9)
+                );
+
+            foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.False(m.IsDeclaredReadOnly);
+                Assert.True(m.IsEffectivelyReadOnly);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01370_Readonly([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"(int x);
+    void operator checked " + op + @"(int x);
+}
+
+interface I2 : I1
+{
+#line 200
+    readonly void I1.operator " + op + @"(int x) {}
+    readonly void I1.operator checked " + op + @"(int x) {}
+}
+
+class C3 : I1
+{
+#line 300
+    readonly void I1.operator " + op + @"(int x) {}
+    readonly void I1.operator checked " + op + @"(int x) {}
+}
+
+class C4
+{
+#line 400
+    public readonly void operator " + op + @"(int x) {}
+    public readonly void operator checked " + op + @"(int x) {}
+}
+
+interface I5
+{
+#line 500
+    readonly void operator " + op + @"(int x);
+    readonly void operator checked " + op + @"(int x);
+}
+";
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            compilation.VerifyDiagnostics(
+                    // (200,31): error CS0106: The modifier 'readonly' is not valid for this item
+                    //     readonly void I1.operator +=(int x) {}
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("readonly").WithLocation(200, 31),
+                    // (201,39): error CS0106: The modifier 'readonly' is not valid for this item
+                    //     readonly void I1.operator checked +=(int x) {}
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("readonly").WithLocation(201, 39),
+                    // (300,31): error CS0106: The modifier 'readonly' is not valid for this item
+                    //     readonly void I1.operator +=(int x) {}
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("readonly").WithLocation(300, 31),
+                    // (301,39): error CS0106: The modifier 'readonly' is not valid for this item
+                    //     readonly void I1.operator checked +=(int x) {}
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("readonly").WithLocation(301, 39),
+                    // (400,35): error CS0106: The modifier 'readonly' is not valid for this item
+                    //     public readonly void operator +=(int x) {}
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("readonly").WithLocation(400, 35),
+                    // (401,43): error CS0106: The modifier 'readonly' is not valid for this item
+                    //     public readonly void operator checked +=(int x) {}
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("readonly").WithLocation(401, 43),
+                    // (500,28): error CS0106: The modifier 'readonly' is not valid for this item
+                    //     readonly void operator +=(int x);
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("readonly").WithLocation(500, 28),
+                    // (501,36): error CS0106: The modifier 'readonly' is not valid for this item
+                    //     readonly void operator checked +=(int x);
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("readonly").WithLocation(501, 36)
+                );
+
+            foreach (var m in compilation.GetTypeByMetadataName("I2").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.False(m.IsDeclaredReadOnly);
+                Assert.False(m.IsEffectivelyReadOnly);
+            }
+
+            foreach (var m in compilation.GetTypeByMetadataName("C3").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.False(m.IsDeclaredReadOnly);
+                Assert.False(m.IsEffectivelyReadOnly);
+            }
+
+            foreach (var m in compilation.GetTypeByMetadataName("C4").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.False(m.IsDeclaredReadOnly);
+                Assert.False(m.IsEffectivelyReadOnly);
+            }
+
+            foreach (var m in compilation.GetTypeByMetadataName("I5").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.False(m.IsDeclaredReadOnly);
+                Assert.False(m.IsEffectivelyReadOnly);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01371_Readonly([CombinatorialValues("%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+interface I1
+{
+    void operator " + op + @"(int x);
+}
+
+interface I2 : I1
+{
+#line 200
+    readonly void I1.operator " + op + @"(int x) {}
+}
+
+class C3 : I1
+{
+#line 300
+    readonly void I1.operator " + op + @"(int x) {}
+}
+
+class C4
+{
+#line 400
+    public readonly void operator " + op + @"(int x) {}
+}
+
+interface I5
+{
+#line 500
+    readonly void operator " + op + @"(int x);
+}
+";
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            compilation.VerifyDiagnostics(
+                    // (200,31): error CS0106: The modifier 'readonly' is not valid for this item
+                    //     readonly void I1.operator +=(int x) {}
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("readonly").WithLocation(200, 31),
+                    // (300,31): error CS0106: The modifier 'readonly' is not valid for this item
+                    //     readonly void I1.operator +=(int x) {}
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("readonly").WithLocation(300, 31),
+                    // (400,35): error CS0106: The modifier 'readonly' is not valid for this item
+                    //     public readonly void operator +=(int x) {}
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("readonly").WithLocation(400, 35),
+                    // (500,28): error CS0106: The modifier 'readonly' is not valid for this item
+                    //     readonly void operator +=(int x);
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("readonly").WithLocation(500, 28)
+                );
+
+            foreach (var m in compilation.GetTypeByMetadataName("I2").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.False(m.IsDeclaredReadOnly);
+                Assert.False(m.IsEffectivelyReadOnly);
+            }
+
+            foreach (var m in compilation.GetTypeByMetadataName("C3").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.False(m.IsDeclaredReadOnly);
+                Assert.False(m.IsEffectivelyReadOnly);
+            }
+
+            foreach (var m in compilation.GetTypeByMetadataName("C4").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.False(m.IsDeclaredReadOnly);
+                Assert.False(m.IsEffectivelyReadOnly);
+            }
+
+            foreach (var m in compilation.GetTypeByMetadataName("I5").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
+            {
+                Assert.False(m.IsDeclaredReadOnly);
+                Assert.False(m.IsEffectivelyReadOnly);
+            }
         }
 
         // PROTOTYPE: Disable ORPA during overload resolution? 

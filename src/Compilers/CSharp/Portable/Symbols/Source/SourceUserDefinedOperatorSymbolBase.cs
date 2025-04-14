@@ -254,6 +254,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowedModifiers &= ~DeclarationModifiers.Static;
             }
 
+            if (containingType.IsStructType() && (isIncrementDecrement || isCompoundAssignment))
+            {
+                allowedModifiers |= DeclarationModifiers.ReadOnly;
+            }
+
             var result = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(
                 isOrdinaryMethod: false, isForInterfaceMember: inInterface,
                 syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics, modifierErrors: out _, hasExplicitAccessModifier: out _);
@@ -319,6 +324,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, ModifierUtils.ConvertSingleModifierToSyntaxText(DeclarationModifiers.New));
                     result &= ~DeclarationModifiers.New;
+                }
+
+                if ((result & DeclarationModifiers.ReadOnly) != 0)
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, ModifierUtils.ConvertSingleModifierToSyntaxText(DeclarationModifiers.ReadOnly));
+                    result &= ~DeclarationModifiers.ReadOnly;
                 }
             }
 
