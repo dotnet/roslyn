@@ -6606,8 +6606,6 @@ class Cat { }
 
         #endregion Dev10 bugs from KevinH
 
-        private static IEnumerable<CrefSyntax> GetCrefSyntaxes(Compilation compilation) => GetCrefSyntaxes((CSharpCompilation)compilation);
-
         private static ISymbol[] GetCrefOriginalDefinitions(SemanticModel model, IEnumerable<CrefSyntax> crefs)
         {
             return crefs.Select(syntax => model.GetSymbolInfo(syntax).Symbol).Select(symbol => (object)symbol == null ? null : symbol.OriginalDefinition).ToArray();

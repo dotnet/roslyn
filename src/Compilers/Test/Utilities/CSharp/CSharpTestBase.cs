@@ -1903,6 +1903,8 @@ namespace System.Diagnostics.CodeAnalysis
             }
         }
 
+        internal static IEnumerable<CrefSyntax> GetCrefSyntaxes(Compilation compilation) => GetCrefSyntaxes((CSharpCompilation)compilation);
+
         internal static IEnumerable<CrefSyntax> GetCrefSyntaxes(CSharpCompilation compilation)
         {
             return compilation.SyntaxTrees.SelectMany(tree =>
