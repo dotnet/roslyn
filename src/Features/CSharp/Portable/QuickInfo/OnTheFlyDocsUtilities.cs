@@ -33,6 +33,40 @@ internal static class OnTheFlyDocsUtilities
 
         OnTheFlyDocsRelevantFileInfo? GetOnTheFlyDocsRelevantFileInfo(ITypeSymbol typeSymbol)
         {
+            if (typeSymbol.IsTupleType && typeSymbol is INamedTypeSymbol tupleType)
+            {
+                foreach (var typeArgument in tupleType.TypeArguments)
+                {
+                    var elementInfo = GetOnTheFlyDocsRelevantFileInfo(typeArgument);
+                    if (elementInfo is not null)
+                    {
+                        return elementInfo;
+                    }
+                }
+            }
+
+            if (typeSymbol is ITypeParameterSymbol typeParameterSymbol)
+            {
+                foreach (var constraintType in typeParameterSymbol.ConstraintTypes)
+                {
+                    var constraintInfo = GetOnTheFlyDocsRelevantFileInfo(constraintType);
+                    if (constraintInfo is not null)
+                    {
+                        return constraintInfo;
+                    }
+                }
+            }
+
+            if (typeSymbol is IArrayTypeSymbol arrayTypeSymbol)
+            {
+                typeSymbol = arrayTypeSymbol.ElementType;
+            }
+
+            if (typeSymbol is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.IsValueType && namedTypeSymbol.ConstructedFrom.SpecialType == SpecialType.System_Nullable_T)
+            {
+                typeSymbol = namedTypeSymbol.TypeArguments[0];
+            }
+
             var typeSyntaxReference = typeSymbol.DeclaringSyntaxReferences.FirstOrDefault();
             if (typeSyntaxReference is not null)
             {
