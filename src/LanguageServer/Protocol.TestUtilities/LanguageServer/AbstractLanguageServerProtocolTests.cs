@@ -193,7 +193,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
     private protected static LSP.TextDocumentIdentifier CreateTextDocumentIdentifier(DocumentUri uri, ProjectId? projectContext = null)
     {
-        var documentIdentifier = new LSP.VSTextDocumentIdentifier { Uri = uri };
+        var documentIdentifier = new LSP.VSTextDocumentIdentifier { DocumentUri = uri };
 
         if (projectContext != null)
         {
@@ -513,7 +513,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         {
             TextDocument = new LSP.VersionedTextDocumentIdentifier
             {
-                Uri = documentUri
+                DocumentUri = documentUri
             },
             ContentChanges = changeEvents
         };
@@ -535,7 +535,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
        {
            TextDocument = new LSP.TextDocumentIdentifier
            {
-               Uri = uri
+               DocumentUri = uri
            }
        };
 
@@ -664,7 +664,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
         public async Task<Document> GetDocumentAsync(DocumentUri uri)
         {
-            var document = await GetCurrentSolution().GetDocumentAsync(new LSP.TextDocumentIdentifier { Uri = uri }, CancellationToken.None).ConfigureAwait(false);
+            var document = await GetCurrentSolution().GetDocumentAsync(new LSP.TextDocumentIdentifier { DocumentUri = uri }, CancellationToken.None).ConfigureAwait(false);
             Contract.ThrowIfNull(document, $"Unable to find document with {uri} in solution");
             return document;
         }

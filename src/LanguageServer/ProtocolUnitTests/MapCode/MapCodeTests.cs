@@ -119,7 +119,7 @@ public sealed class MapCodeTests : AbstractLanguageServerProtocolTests
             Assert.NotNull(results.DocumentChanges);
 
             var textDocumentEdits = results.DocumentChanges!.Value.First.Single();
-            Assert.Equal(textDocumentEdits.TextDocument.Uri, mapCodeParams.Mappings.Single().TextDocument!.Uri);
+            Assert.Equal(textDocumentEdits.TextDocument.DocumentUri, mapCodeParams.Mappings.Single().TextDocument!.DocumentUri);
 
             edits = [.. textDocumentEdits.Edits.Select(e => e.Unify())];
         }

@@ -64,7 +64,7 @@ internal sealed class MapCodeHandler : ILspServiceRequestHandler<VSInternalMapCo
             {
                 DocumentChanges = uriToEditsMap.Select(kvp => new TextDocumentEdit
                 {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = kvp.Key },
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = kvp.Key },
                     Edits = [.. kvp.Value.Select(v => new SumType<LSP.TextEdit, LSP.AnnotatedTextEdit>(v))],
                 }).ToArray()
             };
@@ -84,7 +84,7 @@ internal sealed class MapCodeHandler : ILspServiceRequestHandler<VSInternalMapCo
 
             var document = await context.Solution.GetDocumentAsync(textDocument, cancellationToken).ConfigureAwait(false);
             if (document is null)
-                throw new ArgumentException($"mapCode sub-request for {textDocument.Uri} failed: can't find this document in the workspace.");
+                throw new ArgumentException($"mapCode sub-request for {textDocument.DocumentUri} failed: can't find this document in the workspace.");
 
             var codeMapper = document.GetRequiredLanguageService<IMapCodeService>();
 
@@ -102,14 +102,14 @@ internal sealed class MapCodeHandler : ILspServiceRequestHandler<VSInternalMapCo
 
             if (textChanges is null)
             {
-                context.TraceInformation($"mapCode sub-request for {textDocument.Uri} failed: 'IMapCodeService.MapCodeAsync' returns null.");
+                context.TraceInformation($"mapCode sub-request for {textDocument.DocumentUri} failed: 'IMapCodeService.MapCodeAsync' returns null.");
                 return null;
             }
 
             var oldText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var textEdits = textChanges.Value.Select(change => ProtocolConversions.TextChangeToTextEdit(change, oldText)).ToArray();
 
-            return (textDocument.Uri, textEdits);
+            return (textDocument.DocumentUri, textEdits);
         }
 
         async Task<ImmutableArray<(Document, TextSpan)>> ConvertFocusLocationsToDocumentAndSpansAsync(
@@ -125,9 +125,9 @@ internal sealed class MapCodeHandler : ILspServiceRequestHandler<VSInternalMapCo
                 foreach (var location in locationsOfSamePriority)
                 {
                     // Ignore anything not in target document, which current code mapper doesn't handle anyway
-                    if (!location.Uri.Equals(textDocumentIdentifier.Uri))
+                    if (!location.Uri.Equals(textDocumentIdentifier.DocumentUri))
                     {
-                        context.TraceInformation($"A focus location in '{textDocumentIdentifier.Uri}' is skipped, only locations in corresponding MapCodeMapping.TextDocument is currently considered.");
+                        context.TraceInformation($"A focus location in '{textDocumentIdentifier.DocumentUri}' is skipped, only locations in corresponding MapCodeMapping.TextDocument is currently considered.");
                         continue;
                     }
 

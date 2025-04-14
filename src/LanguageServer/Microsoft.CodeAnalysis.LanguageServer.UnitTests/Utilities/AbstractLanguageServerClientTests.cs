@@ -120,7 +120,7 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
 
     private protected static TextDocumentIdentifier CreateTextDocumentIdentifier(DocumentUri uri, ProjectId? projectContext = null)
     {
-        var documentIdentifier = new VSTextDocumentIdentifier { Uri = uri };
+        var documentIdentifier = new VSTextDocumentIdentifier { DocumentUri = uri };
 
         if (projectContext != null)
         {

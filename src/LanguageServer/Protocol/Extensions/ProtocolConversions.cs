@@ -299,10 +299,10 @@ internal static partial class ProtocolConversions
     }
 
     public static LSP.TextDocumentIdentifier DocumentToTextDocumentIdentifier(TextDocument document)
-        => new() { Uri = document.GetURI() };
+        => new() { DocumentUri = document.GetURI() };
 
     public static LSP.VersionedTextDocumentIdentifier DocumentToVersionedTextDocumentIdentifier(Document document)
-        => new() { Uri = document.GetURI() };
+        => new() { DocumentUri = document.GetURI() };
 
     public static LinePosition PositionToLinePosition(LSP.Position position)
         => new(position.Line, position.Character);
@@ -446,7 +446,7 @@ internal static partial class ProtocolConversions
 
         var documentEdits = uriToTextEdits.GroupBy(uriAndEdit => uriAndEdit.Uri, uriAndEdit => new LSP.SumType<LSP.TextEdit, LSP.AnnotatedTextEdit>(uriAndEdit.TextEdit), (uri, edits) => new LSP.TextDocumentEdit
         {
-            TextDocument = new LSP.OptionalVersionedTextDocumentIdentifier { Uri = uri },
+            TextDocument = new LSP.OptionalVersionedTextDocumentIdentifier { DocumentUri = uri },
             Edits = [.. edits],
         }).ToArray();
 

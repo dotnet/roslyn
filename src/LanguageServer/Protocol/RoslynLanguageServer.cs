@@ -195,7 +195,7 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         {
             var textDocumentIdentifier = JsonSerializer.Deserialize<TextDocumentIdentifier>(textDocumentToken, ProtocolConversions.LspJsonSerializerOptions);
             Contract.ThrowIfNull(textDocumentIdentifier, "Failed to deserialize text document identifier property");
-            uri = textDocumentIdentifier.Uri;
+            uri = textDocumentIdentifier.DocumentUri;
         }
         else if (parameters.TryGetProperty("data", out var dataToken))
         {
@@ -206,7 +206,7 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
             //var dataToken = parameters["data"];
             var data = JsonSerializer.Deserialize<DocumentResolveData>(dataToken, ProtocolConversions.LspJsonSerializerOptions);
             Contract.ThrowIfNull(data, "Failed to document resolve data object");
-            uri = data.TextDocument.Uri;
+            uri = data.TextDocument.DocumentUri;
         }
 
         if (uri == null)

@@ -43,7 +43,7 @@ internal sealed partial class PublicWorkspacePullDiagnosticsHandler : AbstractWo
             [
                 new WorkspaceFullDocumentDiagnosticReport
                 {
-                    Uri = identifier.Uri,
+                    Uri = identifier.DocumentUri,
                     Items = diagnostics,
                     // The documents provided by workspace reports are never open, so we return null.
                     Version = null,
@@ -59,7 +59,7 @@ internal sealed partial class PublicWorkspacePullDiagnosticsHandler : AbstractWo
             [
                 new WorkspaceFullDocumentDiagnosticReport
                 {
-                    Uri = identifier.Uri,
+                    Uri = identifier.DocumentUri,
                     Items = [],
                     // The documents provided by workspace reports are never open, so we return null.
                     Version = null,
@@ -94,7 +94,7 @@ internal sealed partial class PublicWorkspacePullDiagnosticsHandler : AbstractWo
             PreviousResultId = id.Value,
             TextDocument = new TextDocumentIdentifier
             {
-                Uri = id.Uri
+                DocumentUri = id.Uri
             }
         }).ToImmutableArray();
     }

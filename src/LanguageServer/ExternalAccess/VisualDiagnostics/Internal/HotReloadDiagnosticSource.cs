@@ -24,7 +24,7 @@ internal sealed class HotReloadDiagnosticSource(IHotReloadDiagnosticSource sourc
         return result;
     }
 
-    public TextDocumentIdentifier? GetDocumentIdentifier() => new() { Uri = textDocument.GetURI() };
+    public TextDocumentIdentifier? GetDocumentIdentifier() => new() { DocumentUri = textDocument.GetURI() };
     public ProjectOrDocumentId GetId() => new(textDocument.Id);
     public Project GetProject() => textDocument.Project;
     public bool IsLiveSource() => true;

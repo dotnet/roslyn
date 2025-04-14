@@ -234,7 +234,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     public async Task<(Workspace?, Solution?, TextDocument?)> GetLspDocumentInfoAsync(TextDocumentIdentifier textDocumentIdentifier, CancellationToken cancellationToken)
     {
         // Get the LSP view of all the workspace solutions.
-        var uri = textDocumentIdentifier.Uri;
+        var uri = textDocumentIdentifier.DocumentUri;
         var lspSolutions = await GetLspSolutionsAsync(cancellationToken).ConfigureAwait(false);
 
         // Find the matching document from the LSP solutions.
@@ -264,7 +264,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         // We didn't find the document in any workspace, record a telemetry notification that we did not find it.
         // Depending on the host, this can be entirely normal (e.g. opening a loose file)
         var searchedWorkspaceKinds = string.Join(";", lspSolutions.SelectAsArray(lspSolution => lspSolution.Solution.Workspace.Kind));
-        _logger.LogInformation($"Could not find '{textDocumentIdentifier.Uri}'.  Searched {searchedWorkspaceKinds}");
+        _logger.LogInformation($"Could not find '{textDocumentIdentifier.DocumentUri}'.  Searched {searchedWorkspaceKinds}");
         _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
 
         // Add the document to our loose files workspace (if we have one) if it iss open.

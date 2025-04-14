@@ -46,7 +46,7 @@ internal sealed class RequestContextFactory : AbstractRequestContextFactory<Requ
             var textDocumentItem = uHandler.GetTextDocumentIdentifier(requestParam);
             textDocumentIdentifier = new TextDocumentIdentifier
             {
-                Uri = textDocumentItem.Uri,
+                DocumentUri = textDocumentItem.Uri,
             };
         }
         else if (textDocumentIdentifierHandler is null)

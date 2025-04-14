@@ -258,7 +258,7 @@ internal sealed class CodeActionResolveHelper
                 var newText = await newTextDoc.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var emptyDocumentRange = new LSP.Range { Start = new Position { Line = 0, Character = 0 }, End = new Position { Line = 0, Character = 0 } };
                 var edit = new TextEdit { Range = emptyDocumentRange, NewText = newText.ToString() };
-                var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = uri };
+                var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = uri };
                 textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = [edit] });
             }
         }
@@ -301,7 +301,7 @@ internal sealed class CodeActionResolveHelper
 
                     if (edits.Length > 0)
                     {
-                        var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newTextDoc.GetURI() };
+                        var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = newTextDoc.GetURI() };
                         textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = edits });
                     }
 

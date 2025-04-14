@@ -115,7 +115,7 @@ internal sealed class GoToDefinitionHandler : ILspServiceRequestHandler<TextDocu
         if (sourceDefinition.Span != null)
         {
             // If the Span is not null, use the span.
-            var document = await solution.GetTextDocumentAsync(new TextDocumentIdentifier { Uri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceDefinition.FilePath) }, cancellationToken).ConfigureAwait(false);
+            var document = await solution.GetTextDocumentAsync(new TextDocumentIdentifier { DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceDefinition.FilePath) }, cancellationToken).ConfigureAwait(false);
             if (document != null)
             {
                 return await ProtocolConversions.TextSpanToLocationAsync(

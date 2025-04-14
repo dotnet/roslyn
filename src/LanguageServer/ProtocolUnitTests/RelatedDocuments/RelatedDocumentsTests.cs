@@ -29,7 +29,7 @@ public sealed class RelatedDocumentsTests(ITestOutputHelper testOutputHelper)
             VSInternalMethods.CopilotRelatedDocumentsName,
             new VSInternalRelatedDocumentParams
             {
-                TextDocument = new TextDocumentIdentifier { Uri = uri },
+                TextDocument = new TextDocumentIdentifier { DocumentUri = uri },
                 PartialResultToken = progress,
             },
             CancellationToken.None).ConfigureAwait(false);

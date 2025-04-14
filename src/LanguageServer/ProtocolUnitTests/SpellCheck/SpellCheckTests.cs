@@ -352,7 +352,7 @@ class {|Identifier:A|}
 
             var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
 
-            Assert.True(results.All(r => r.TextDocument!.Uri.GetRequiredParsedUri().LocalPath == "C:\\C.cs"));
+            Assert.True(results.All(r => r.TextDocument!.DocumentUri.GetRequiredParsedUri().LocalPath == "C:\\C.cs"));
         }
 
         //        [Fact]
@@ -639,7 +639,7 @@ class {|Identifier:A|}
         {
             return new VSInternalDocumentSpellCheckableParams
             {
-                TextDocument = new TextDocumentIdentifier { Uri = uri },
+                TextDocument = new TextDocumentIdentifier { DocumentUri = uri },
                 PreviousResultId = previousResultId,
                 PartialResultToken = progress,
             };
@@ -651,14 +651,14 @@ class {|Identifier:A|}
         {
             return new VSInternalWorkspaceSpellCheckableParams
             {
-                PreviousResults = previousResults?.Select(r => new VSInternalStreamingParams { PreviousResultId = r.resultId, TextDocument = new TextDocumentIdentifier { Uri = r.uri } }).ToArray(),
+                PreviousResults = previousResults?.Select(r => new VSInternalStreamingParams { PreviousResultId = r.resultId, TextDocument = new TextDocumentIdentifier { DocumentUri = r.uri } }).ToArray(),
                 PartialResultToken = progress,
             };
         }
 
         private static ImmutableArray<(string resultId, DocumentUri uri)> CreateParamsFromPreviousReports(VSInternalWorkspaceSpellCheckableReport[] results)
         {
-            return [.. results.Select(r => (r.ResultId!, r.TextDocument.Uri))];
+            return [.. results.Select(r => (r.ResultId!, Uri:r.TextDocument.DocumentUri))];
         }
     }
 }

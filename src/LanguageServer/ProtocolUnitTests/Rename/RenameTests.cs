@@ -181,7 +181,7 @@ $@"<Workspace>
         var expectedMappedDocument = TestSpanMapper.MappedFileLocation.Uri;
 
         var documentEdit = results.DocumentChanges.Value.First.Single();
-        Assert.Equal(expectedMappedDocument, documentEdit.TextDocument.Uri);
+        Assert.Equal(expectedMappedDocument, documentEdit.TextDocument.DocumentUri);
         Assert.Equal(expectedMappedRanges, documentEdit.Edits.Select(edit => edit.Unify().Range));
         Assert.True(documentEdit.Edits.All(edit => edit.Unify().NewText == renameText));
     }

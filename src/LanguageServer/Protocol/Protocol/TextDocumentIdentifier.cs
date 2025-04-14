@@ -6,6 +6,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 using System;
 using System.Text.Json.Serialization;
+using Microsoft.CodeAnalysis.LanguageServer;
 
 /// <summary>
 /// Class which identifies a text document.
@@ -19,7 +20,10 @@ internal class TextDocumentIdentifier : IEquatable<TextDocumentIdentifier>
     /// </summary>
     [JsonPropertyName("uri")]
     [JsonConverter(typeof(DocumentUriConverter))]
-    public DocumentUri Uri { get; set; }
+    public DocumentUri DocumentUri { get; set; }
+
+    [Obsolete("Use DocumentUri instead. This property will be removed in a future version.")]
+    public Uri Uri => DocumentUri.GetRequiredParsedUri();
 
     public static bool operator ==(TextDocumentIdentifier? value1, TextDocumentIdentifier? value2)
     {
@@ -46,7 +50,7 @@ internal class TextDocumentIdentifier : IEquatable<TextDocumentIdentifier>
     public bool Equals(TextDocumentIdentifier other)
     {
         return other is not null
-            && this.Uri == other.Uri;
+            && this.DocumentUri == other.DocumentUri;
     }
 
     /// <inheritdoc/>
@@ -65,12 +69,12 @@ internal class TextDocumentIdentifier : IEquatable<TextDocumentIdentifier>
     /// <inheritdoc/>
     public override int GetHashCode()
     {
-        return this.Uri == null ? 89 : this.Uri.GetHashCode();
+        return this.DocumentUri == null ? 89 : this.DocumentUri.GetHashCode();
     }
 
     /// <inheritdoc/>
     public override string ToString()
     {
-        return this.Uri == null ? string.Empty : this.Uri.ToString();
+        return this.DocumentUri == null ? string.Empty : this.DocumentUri.ToString();
     }
 }

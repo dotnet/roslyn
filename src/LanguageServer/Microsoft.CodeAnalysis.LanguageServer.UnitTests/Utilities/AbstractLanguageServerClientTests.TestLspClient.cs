@@ -229,7 +229,7 @@ public partial class AbstractLanguageServerClientTests
 
             foreach (var documentEdit in textDocumentEdits)
             {
-                var uri = documentEdit.TextDocument.Uri;
+                var uri = documentEdit.TextDocument.DocumentUri;
                 var document = _documents[uri];
 
                 var changes = documentEdit.Edits

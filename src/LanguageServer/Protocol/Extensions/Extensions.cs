@@ -116,15 +116,15 @@ internal static partial class Extensions
     public static async ValueTask<TextDocument?> GetTextDocumentAsync(this Solution solution, TextDocumentIdentifier documentIdentifier, CancellationToken cancellationToken)
     {
         // If it's the URI scheme for source generated files, delegate to our other helper, otherwise we can handle anything else here.
-        if (documentIdentifier.Uri.ParsedUri?.Scheme == SourceGeneratedDocumentUri.Scheme)
+        if (documentIdentifier.DocumentUri.ParsedUri?.Scheme == SourceGeneratedDocumentUri.Scheme)
         {
             // In the case of a URI scheme for source generated files, we generate a different URI for each project, thus this URI cannot be linked into multiple projects;
             // this means we can safely call .SingleOrDefault() and not worry about calling FindDocumentInProjectContext.
-            var documentId = solution.GetDocumentIds(documentIdentifier.Uri).SingleOrDefault();
+            var documentId = solution.GetDocumentIds(documentIdentifier.DocumentUri).SingleOrDefault();
             return await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
         }
 
-        var documents = solution.GetTextDocuments(documentIdentifier.Uri);
+        var documents = solution.GetTextDocuments(documentIdentifier.DocumentUri);
         return documents.Length == 0
             ? null
             : documents.FindDocumentInProjectContext(documentIdentifier, (sln, id) => sln.GetRequiredTextDocument(id));
@@ -178,12 +178,12 @@ internal static partial class Extensions
     public static Project? GetProject(this Solution solution, TextDocumentIdentifier projectIdentifier)
     {
         // We need to parse the URI (scheme, file path) to be able to lookup the URI in the solution.
-        if (projectIdentifier.Uri.ParsedUri is null)
+        if (projectIdentifier.DocumentUri.ParsedUri is null)
         {
             return null;
         }
 
-        var projects = solution.Projects.Where(project => project.FilePath == projectIdentifier.Uri.ParsedUri.LocalPath).ToImmutableArray();
+        var projects = solution.Projects.Where(project => project.FilePath == projectIdentifier.DocumentUri.ParsedUri.LocalPath).ToImmutableArray();
         return !projects.Any()
             ? null
             : FindItemInProjectContext(projects, projectIdentifier, projectIdGetter: (item) => item.Id, defaultGetter: () => projects[0]);
@@ -191,7 +191,7 @@ internal static partial class Extensions
 
     public static TextDocument? GetAdditionalDocument(this Solution solution, TextDocumentIdentifier documentIdentifier)
     {
-        var documentIds = GetDocumentIds(solution, documentIdentifier.Uri);
+        var documentIds = GetDocumentIds(solution, documentIdentifier.DocumentUri);
 
         // We don't call GetRequiredAdditionalDocument as the id could be referring to a regular document.
         var additionalDocuments = documentIds.Select(solution.GetAdditionalDocument).WhereNotNull().ToImmutableArray();

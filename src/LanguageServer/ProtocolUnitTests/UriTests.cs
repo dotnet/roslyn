@@ -50,7 +50,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
         await testLspServer.OpenDocumentAsync(looseFileUri, source, languageId: "csharp").ConfigureAwait(false);
 
         // Verify file is added to the misc file workspace.
-        var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = looseFileUri }, CancellationToken.None);
+        var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = looseFileUri }, CancellationToken.None);
         Assert.True(workspace is LspMiscellaneousFilesWorkspace);
         AssertEx.NotNull(document);
         Assert.Equal(looseFileUri, document.GetURI());
@@ -76,7 +76,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
         await testLspServer.OpenDocumentAsync(looseFileUri, source, languageId: "csharp").ConfigureAwait(false);
 
         // Verify file is added to the misc file workspace.
-        var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = looseFileUri }, CancellationToken.None);
+        var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = looseFileUri }, CancellationToken.None);
         Assert.True(workspace is LspMiscellaneousFilesWorkspace);
         AssertEx.NotNull(document);
         Assert.Equal(looseFileUri, document.GetURI());
@@ -108,7 +108,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
 
         // Verify file is not added to the misc file workspace.
         {
-            var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = expectedDocumentUri }, CancellationToken.None);
+            var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = expectedDocumentUri }, CancellationToken.None);
             Assert.False(workspace is LspMiscellaneousFilesWorkspace);
             AssertEx.NotNull(document);
             Assert.Equal(expectedDocumentUri, document.GetURI());
@@ -119,7 +119,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
         {
             var lowercaseUri = ProtocolConversions.CreateAbsoluteDocumentUri(documentFilePath.ToLowerInvariant());
             Assert.NotEqual(expectedDocumentUri.GetRequiredParsedUri().AbsolutePath, lowercaseUri.GetRequiredParsedUri().AbsolutePath);
-            var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = lowercaseUri }, CancellationToken.None);
+            var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = lowercaseUri }, CancellationToken.None);
             Assert.False(workspace is LspMiscellaneousFilesWorkspace);
             AssertEx.NotNull(document);
             Assert.Equal(expectedDocumentUri, document.GetURI());
@@ -146,14 +146,14 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
         await testLspServer.OpenDocumentAsync(gitDocumentUri, gitDocumentText);
 
         // Verify file is added to the workspace and the text matches the file document
-        var (workspace, _, fileDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = fileDocumentUri }, CancellationToken.None);
+        var (workspace, _, fileDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = fileDocumentUri }, CancellationToken.None);
         AssertEx.NotNull(fileDocument);
         var fileTextResult = await fileDocument.GetTextAsync();
         Assert.Equal(fileDocumentUri, fileDocument.GetURI());
         Assert.Equal(fileDocumentText, fileTextResult.ToString());
 
         // Verify file is added to the workspace and the text matches the git document
-        var (gitWorkspace, _, gitDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = gitDocumentUri }, CancellationToken.None);
+        var (gitWorkspace, _, gitDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = gitDocumentUri }, CancellationToken.None);
         AssertEx.NotNull(gitDocument);
         var gitText = await gitDocument.GetTextAsync();
         Assert.Equal(gitDocumentUri, gitDocument.GetURI());
@@ -182,7 +182,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
         var unencodedUri = JsonSerializer.Deserialize<LSP.DidOpenTextDocumentParams>(jsonDocument, JsonSerializerOptions)!.TextDocument.Uri;
 
         // Access the document using the unencoded URI to make sure we find it in the C# misc files.
-        var (workspace, _, lspDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = unencodedUri }, CancellationToken.None).ConfigureAwait(false);
+        var (workspace, _, lspDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = unencodedUri }, CancellationToken.None).ConfigureAwait(false);
         AssertEx.NotNull(lspDocument);
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace?.Kind);
         Assert.Equal(LanguageNames.CSharp, lspDocument.Project.Language);
@@ -193,11 +193,11 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
         var encodedUriString = @"git:/c:/Users/dabarbet/source/repos/ConsoleApp10/ConsoleApp10/Program.cs?%7B%7B%22path%22:%22c:%5C%5CUsers%5C%5Cdabarbet%5C%5Csource%5C%5Crepos%5C%5CConsoleApp10%5C%5CConsoleApp10%5C%5CProgram.cs%22,%22ref%22:%22~%22%7D%7D";
         var encodedUri = new DocumentUri(encodedUriString);
         var info = await testLspServer.ExecuteRequestAsync<CustomResolveParams, ResolvedDocumentInfo>(CustomResolveHandler.MethodName,
-                new CustomResolveParams(new LSP.TextDocumentIdentifier { Uri = encodedUri }), CancellationToken.None);
+                new CustomResolveParams(new LSP.TextDocumentIdentifier { DocumentUri = encodedUri }), CancellationToken.None);
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace?.Kind);
         Assert.Equal(LanguageNames.CSharp, lspDocument.Project.Language);
 
-        var (encodedWorkspace, _, encodedDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = encodedUri }, CancellationToken.None).ConfigureAwait(false);
+        var (encodedWorkspace, _, encodedDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = encodedUri }, CancellationToken.None).ConfigureAwait(false);
         Assert.Same(workspace, encodedWorkspace);
         AssertEx.NotNull(encodedDocument);
         Assert.Equal(LanguageNames.CSharp, encodedDocument.Project.Language);
@@ -230,7 +230,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
         await testLspServer.ExecutePreSerializedRequestAsync(LSP.Methods.TextDocumentDidOpenName, jsonDocument);
 
         // Access the document using the upper case to make sure we find it in the C# misc files.
-        var (workspace, _, lspDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = upperCaseUri }, CancellationToken.None).ConfigureAwait(false);
+        var (workspace, _, lspDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = upperCaseUri }, CancellationToken.None).ConfigureAwait(false);
         AssertEx.NotNull(lspDocument);
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace?.Kind);
         Assert.Equal(LanguageNames.CSharp, lspDocument.Project.Language);
@@ -239,11 +239,11 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
 
         // Now make a request using different case.
         var info = await testLspServer.ExecuteRequestAsync<CustomResolveParams, ResolvedDocumentInfo>(CustomResolveHandler.MethodName,
-                new CustomResolveParams(new LSP.TextDocumentIdentifier { Uri = lowerCaseUri }), CancellationToken.None);
+                new CustomResolveParams(new LSP.TextDocumentIdentifier { DocumentUri = lowerCaseUri }), CancellationToken.None);
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace?.Kind);
         Assert.Equal(LanguageNames.CSharp, lspDocument.Project.Language);
 
-        var (lowerCaseWorkspace, _, lowerCaseDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = lowerCaseUri }, CancellationToken.None).ConfigureAwait(false);
+        var (lowerCaseWorkspace, _, lowerCaseDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = lowerCaseUri }, CancellationToken.None).ConfigureAwait(false);
         Assert.Same(workspace, lowerCaseWorkspace);
         AssertEx.NotNull(lowerCaseDocument);
         Assert.Equal(LanguageNames.CSharp, lowerCaseDocument.Project.Language);
@@ -276,7 +276,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
         await testLspServer.ExecutePreSerializedRequestAsync(LSP.Methods.TextDocumentDidOpenName, jsonDocument);
 
         // Access the document using the upper case to make sure we find it in the C# misc files.
-        var (workspace, _, lspDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = upperCaseUri }, CancellationToken.None).ConfigureAwait(false);
+        var (workspace, _, lspDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = upperCaseUri }, CancellationToken.None).ConfigureAwait(false);
         AssertEx.NotNull(lspDocument);
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace?.Kind);
         Assert.Equal(LanguageNames.CSharp, lspDocument.Project.Language);
@@ -286,7 +286,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
         // Now make a request using different case.  This should throw since we have not opened a document with the URI with different case (and not UNC).
         await Assert.ThrowsAnyAsync<Exception>(async ()
             => await testLspServer.ExecuteRequestAsync<CustomResolveParams, ResolvedDocumentInfo>(CustomResolveHandler.MethodName,
-                new CustomResolveParams(new LSP.TextDocumentIdentifier { Uri = lowerCaseUri }), CancellationToken.None));
+                new CustomResolveParams(new LSP.TextDocumentIdentifier { DocumentUri = lowerCaseUri }), CancellationToken.None));
     }
 
     [Theory, CombinatorialData]
@@ -300,7 +300,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
         await testLspServer.OpenDocumentAsync(looseFileUri, "hello", languageId: "csharp").ConfigureAwait(false);
 
         // Verify file is added to the misc file workspace.
-        var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = looseFileUri }, CancellationToken.None);
+        var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = looseFileUri }, CancellationToken.None);
         Assert.True(workspace is LspMiscellaneousFilesWorkspace);
         AssertEx.NotNull(document);
         Assert.Equal(looseFileUri, document.GetURI());
@@ -312,7 +312,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
         // Assert that the request throws but the server does not crash.
         await Assert.ThrowsAnyAsync<Exception>(async ()
             => await testLspServer.ExecuteRequestAsync<CustomResolveParams, ResolvedDocumentInfo>(CustomResolveHandler.MethodName,
-                new CustomResolveParams(new LSP.TextDocumentIdentifier { Uri = looseFileUri }), CancellationToken.None));
+                new CustomResolveParams(new LSP.TextDocumentIdentifier { DocumentUri = looseFileUri }), CancellationToken.None));
         Assert.False(testLspServer.GetServerAccessor().HasShutdownStarted());
         Assert.False(testLspServer.GetQueueAccessor()!.Value.IsComplete());
     }
@@ -342,13 +342,13 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
 
         // Verify requests succeed and that the file is in misc.
         var info = await testLspServer.ExecuteRequestAsync<CustomResolveParams, ResolvedDocumentInfo>(CustomResolveHandler.MethodName,
-                new CustomResolveParams(new LSP.TextDocumentIdentifier { Uri = invalidUri }), CancellationToken.None);
+                new CustomResolveParams(new LSP.TextDocumentIdentifier { DocumentUri = invalidUri }), CancellationToken.None);
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, info!.WorkspaceKind);
         Assert.Equal(LanguageNames.CSharp, info.ProjectLanguage);
 
         // Verify we can modify the document in misc.
         await testLspServer.InsertTextAsync(invalidUri, (0, 0, "hello"));
-        var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = invalidUri }, CancellationToken.None);
+        var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = invalidUri }, CancellationToken.None);
         Assert.Equal("hello", (await document!.GetTextAsync()).ToString());
     }
 

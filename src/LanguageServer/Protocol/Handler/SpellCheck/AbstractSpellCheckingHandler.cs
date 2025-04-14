@@ -212,7 +212,7 @@ internal abstract class AbstractSpellCheckHandler<TParams, TReport>
                 var document = await context.Solution.GetTextDocumentAsync(textDocument, cancellationToken).ConfigureAwait(false);
                 if (document == null)
                 {
-                    context.TraceInformation($"Clearing spans for removed document: {textDocument.Uri}");
+                    context.TraceInformation($"Clearing spans for removed document: {textDocument.DocumentUri}");
 
                     // Client is asking server about a document that no longer exists (i.e. was removed/deleted from
                     // the workspace). Report a (null-spans, null-result-id) response to the client as that means

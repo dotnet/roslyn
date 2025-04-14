@@ -483,7 +483,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
             return new VSTextDocumentIdentifier
             {
                 ProjectContext = projectContext,
-                Uri = document.GetURI(),
+                DocumentUri = document.GetURI(),
             };
         }
     }
@@ -1337,7 +1337,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         static string Inspect(TestDiagnosticResult result)
         {
-            return $"{result.TextDocument.Uri} -> [{string.Join(",", result.Diagnostics?.Select(d => d.Code?.Value) ?? [])}]";
+            return $"{result.TextDocument.DocumentUri} -> [{string.Join(",", result.Diagnostics?.Select(d => d.Code?.Value) ?? [])}]";
         }
     }
 
@@ -1420,7 +1420,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
-        Assert.False(results.Any(r => r.TextDocument!.Uri.GetRequiredParsedUri().LocalPath.Contains(".ts")));
+        Assert.False(results.Any(r => r.TextDocument!.DocumentUri.GetRequiredParsedUri().LocalPath.Contains(".ts")));
     }
 
     [Theory, CombinatorialData]
@@ -1584,7 +1584,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
         Assert.Equal(3, results.Length);
-        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test1.cs"), results[0].TextDocument!.Uri);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test1.cs"), results[0].TextDocument!.DocumentUri);
         Assert.Equal("CS1513", results[0].Diagnostics!.Single().Code);
         Assert.Equal(1, results[0].Diagnostics!.Single().Range.Start.Line);
         AssertEx.Empty(results[1].Diagnostics);
@@ -2014,9 +2014,9 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
         Assert.Equal(3, results.Length);
-        Assert.Equal(@"C:/C.cs", results[0].TextDocument.Uri.GetRequiredParsedUri().AbsolutePath);
-        Assert.Equal(@"C:/CSProj1.csproj", results[1].TextDocument.Uri.GetRequiredParsedUri().AbsolutePath);
-        Assert.Equal(@"C:/C2.cs", results[2].TextDocument.Uri.GetRequiredParsedUri().AbsolutePath);
+        Assert.Equal(@"C:/C.cs", results[0].TextDocument.DocumentUri.GetRequiredParsedUri().AbsolutePath);
+        Assert.Equal(@"C:/CSProj1.csproj", results[1].TextDocument.DocumentUri.GetRequiredParsedUri().AbsolutePath);
+        Assert.Equal(@"C:/C2.cs", results[2].TextDocument.DocumentUri.GetRequiredParsedUri().AbsolutePath);
     }
 
     [Theory, CombinatorialData]
