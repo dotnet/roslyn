@@ -386,7 +386,7 @@ partial interface I
 
 class C : I
 {
-    public int P => 2; // overrides I.M
+    public int P => 2; // implements I.P
 }
 ```
 
