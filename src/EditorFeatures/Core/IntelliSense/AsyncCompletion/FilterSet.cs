@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.Specialized;
@@ -102,7 +103,7 @@ internal sealed class FilterSet(bool supportExpander)
             accessKey: "a",
             new ImageElement(addImageId, EditorFeaturesResources.Expander_image_element));
 
-        CompletionFilter CreateCompletionFilterAndAddToBuilder(string displayText, char accessKey, params string[] tags)
+        CompletionFilter CreateCompletionFilterAndAddToBuilder(string displayText, char accessKey, params ReadOnlySpan<string> tags)
         {
             var filter = CreateCompletionFilter(displayText, tags, accessKey);
             previousMask = BitVector32.CreateMask(previousMask);
