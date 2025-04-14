@@ -44,7 +44,7 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
     protected abstract Task<string> GetOnTheFlyDocsPromptCoreAsync(OnTheFlyDocsInfo onTheFlyDocsInfo, CancellationToken cancellationToken);
     protected abstract Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsResponseCoreAsync(string prompt, CancellationToken cancellationToken);
     protected abstract Task<bool> IsFileExcludedCoreAsync(string filePath, CancellationToken cancellationToken);
-    protected abstract Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentCoreAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken);
+    protected abstract Task<ImmutableArray<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)>> GetDocumentationCommentCoreAsync(ImmutableArray<DocumentationCommentProposal> proposals, CancellationToken cancellationToken);
     protected abstract Task<ImmutableDictionary<SyntaxNode, ImplementationDetails>> ImplementNotImplementedExceptionsCoreAsync(Document document, ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>> methodOrProperties, CancellationToken cancellationToken);
     protected abstract bool IsImplementNotImplementedExceptionsAvailableCore();
 
@@ -183,6 +183,7 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
     {
         return await GetOnTheFlyDocsPromptCoreAsync(onTheFlyDocsInfo, cancellationToken).ConfigureAwait(false);
     }
+
     public async Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsResponseAsync(string prompt, CancellationToken cancellationToken)
     {
         if (!await IsAvailableAsync(cancellationToken).ConfigureAwait(false))
@@ -199,12 +200,12 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
         return await IsFileExcludedCoreAsync(filePath, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)>> GetDocumentationCommentAsync(ImmutableArray<DocumentationCommentProposal> proposals, CancellationToken cancellationToken)
     {
         if (!await IsAvailableAsync(cancellationToken).ConfigureAwait(false))
-            return (null, false);
+            return [(null, false)];
 
-        return await GetDocumentationCommentCoreAsync(proposal, cancellationToken).ConfigureAwait(false);
+        return await GetDocumentationCommentCoreAsync(proposals, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<bool> IsImplementNotImplementedExceptionsAvailableAsync(CancellationToken cancellationToken)
