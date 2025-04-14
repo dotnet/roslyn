@@ -182,7 +182,7 @@ internal static class Program
         var solutionLoadStopwatch = Stopwatch.StartNew();
 
         using var msbuildWorkspace = MSBuildWorkspace.Create(await Composition.CreateHostServicesAsync());
-        msbuildWorkspace.WorkspaceFailed += (s, e) => logger.Log(e.Diagnostic.Kind == WorkspaceDiagnosticKind.Failure ? LogLevel.Error : LogLevel.Warning, "Problem while loading: " + e.Diagnostic.Message);
+        _ = msbuildWorkspace.RegisterWorkspaceFailedHandler((e) => logger.Log(e.Diagnostic.Kind == WorkspaceDiagnosticKind.Failure ? LogLevel.Error : LogLevel.Warning, "Problem while loading: " + e.Diagnostic.Message));
 
         var solution = await openAsync(msbuildWorkspace, cancellationToken);
 

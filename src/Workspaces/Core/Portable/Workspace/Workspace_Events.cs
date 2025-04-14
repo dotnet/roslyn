@@ -43,6 +43,13 @@ public abstract partial class Workspace
         => RegisterHandler(WorkspaceChangedImmediateEventName, handler, options);
 
     /// <summary>
+    /// Registers a handler that is fired whenever the workspace or part of its solution model
+    /// fails to access a file or other external resource.
+    /// </summary>
+    internal WorkspaceEventRegistration RegisterWorkspaceFailedHandler(Action<WorkspaceDiagnosticEventArgs> handler, WorkspaceEventOptions? options = null)
+        => RegisterHandler(WorkspaceFailedEventName, handler, options);
+
+    /// <summary>
     /// Registers a handler that is fired when a <see cref="Document"/> is opened in the editor.
     /// </summary>
     internal WorkspaceEventRegistration RegisterDocumentOpenedHandler(Action<DocumentEventArgs> handler, WorkspaceEventOptions? options = null)

@@ -4,10 +4,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Threading;
-using Roslyn.Utilities;
-using static Roslyn.Utilities.EventMap;
 
 namespace Microsoft.CodeAnalysis;
 
