@@ -15,7 +15,7 @@ internal partial class TaggerEventSources
         private IDisposable? _documentActiveContextChangedDisposer;
 
         protected override void ConnectToWorkspace(Workspace workspace)
-            => _documentActiveContextChangedDisposer = workspace.RegisterDocumentActiveContextChangedHandler(OnDocumentActiveContextChanged);
+            => _documentActiveContextChangedDisposer = workspace.RegisterDocumentActiveContextChangedHandler(OnDocumentActiveContextChanged, WorkspaceEventOptions.MainThreadDependent);
 
         protected override void DisconnectFromWorkspace(Workspace workspace)
             => _documentActiveContextChangedDisposer?.Dispose();

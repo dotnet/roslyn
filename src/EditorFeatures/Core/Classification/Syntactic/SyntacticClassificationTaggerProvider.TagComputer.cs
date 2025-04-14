@@ -284,13 +284,14 @@ internal partial class SyntacticClassificationTaggerProvider
             // We may be getting an event for a workspace we already disconnected from.  If so,
             // ignore them.  We won't be able to find the Document corresponding to our text buffer,
             // so we can't reasonably classify this anyways.
-            if (args.NewSolution.Workspace != _workspace)
+            var workspace = _workspace;
+            if (args.NewSolution.Workspace != workspace)
                 return;
 
             if (args.Kind != WorkspaceChangeKind.ProjectChanged)
                 return;
 
-            var documentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
+            var documentId = workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
             if (args.ProjectId != documentId?.ProjectId)
                 return;
 

@@ -59,7 +59,7 @@ internal sealed partial class XamlProjectService : IDisposable
 
         AnalyzerService = analyzerService;
 
-        _documentClosedHandlerDisposer = _workspace.RegisterDocumentClosedHandler(OnDocumentClosed);
+        _documentClosedHandlerDisposer = _workspace.RegisterDocumentClosedHandler(OnDocumentClosed, WorkspaceEventOptions.MainThreadDependent);
     }
 
     public void Dispose()
