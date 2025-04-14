@@ -43,8 +43,10 @@ internal sealed class DefaultCopilotChangeAnalysisServiceFactory(
         IDiagnosticAnalyzerService diagnosticAnalyzerService,
         HostWorkspaceServices workspaceServices) : ICopilotChangeAnalysisService
     {
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly ICodeFixService _codeFixService = codeFixService;
         private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService = diagnosticAnalyzerService;
+#pragma warning restore IDE0052 // Remove unread private members
         private readonly HostWorkspaceServices _workspaceServices = workspaceServices;
 
         public async Task<CopilotChangeAnalysis> AnalyzeChangeAsync(
@@ -77,6 +79,9 @@ internal sealed class DefaultCopilotChangeAnalysisServiceFactory(
             }
         }
 
+#pragma warning disable CA1822 // Mark members as static
+#pragma warning disable IDE0060 // Remove unused parameter
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         private async Task<CopilotChangeAnalysis> AnalyzeChangeInCurrentProcessAsync(
             Document document,
             ImmutableArray<TextChange> changes,
@@ -84,5 +89,8 @@ internal sealed class DefaultCopilotChangeAnalysisServiceFactory(
         {
             return default;
         }
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+#pragma warning restore IDE0060 // Remove unused parameter
+#pragma warning restore CA1822 // Mark members as static
     }
 }

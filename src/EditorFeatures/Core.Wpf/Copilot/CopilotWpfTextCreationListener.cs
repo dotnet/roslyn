@@ -31,6 +31,7 @@ internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationL
 {
     private readonly IThreadingContext _threadingContext;
     private readonly Lazy<SuggestionServiceBase> _suggestionServiceBase;
+    private readonly IAsynchronousOperationListener _listener;
 
     private readonly AsyncBatchingWorkQueue<SuggestionAcceptedEventArgs> _workQueue;
 
@@ -45,10 +46,11 @@ internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationL
     {
         _threadingContext = threadingContext;
         _suggestionServiceBase = suggestionServiceBase;
+        _listener = listenerProvider.GetListener(FeatureAttribute.CopilotChangeAnalysis);
         _workQueue = new AsyncBatchingWorkQueue<SuggestionAcceptedEventArgs>(
             DelayTimeSpan.Idle,
             ProcessEventsAsync,
-            listenerProvider.GetListener(FeatureAttribute.CopilotChangeAnalysis),
+            _listener,
             _threadingContext.DisposalToken);
     }
 
@@ -58,11 +60,12 @@ internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationL
         // from it.
         if (Interlocked.CompareExchange(ref _started, 1, 0) == 0)
         {
-            _ = Task.Run(() =>
+            var token = _listener.BeginAsyncOperation(nameof(TextViewCreated));
+            Task.Run(() =>
             {
                 var suggestionService = _suggestionServiceBase.Value;
                 suggestionService.SuggestionAccepted += OnSuggestionAccepted;
-            });
+            }).CompletesAsyncOperation(token);
         }
     }
 
