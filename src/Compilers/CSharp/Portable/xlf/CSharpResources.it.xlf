@@ -2574,7 +2574,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressions">
         <source>collection expressions</source>
-        <target state="needs-review-translation">espressioni di raccolta</target>
+        <target state="translated">espressioni di raccolta</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">

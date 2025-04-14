@@ -2574,7 +2574,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressions">
         <source>collection expressions</source>
-        <target state="needs-review-translation">컬렉션 식</target>
+        <target state="translated">컬렉션 식</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
