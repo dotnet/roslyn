@@ -84,11 +84,12 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     internal static (Solution, Document) AddDefaultTestProject(
         Solution solution,
         string source,
+        TempDirectory? projectDirectory = null,
         ISourceGenerator? generator = null,
         string? additionalFileText = null,
         (string key, string value)[]? analyzerConfig = null)
     {
-        solution = AddDefaultTestProject(solution, [source], generator, additionalFileText, analyzerConfig);
+        solution = AddDefaultTestProject(solution, [source], projectDirectory, generator, additionalFileText, analyzerConfig);
         return (solution, solution.Projects.Single().Documents.Single());
     }
 
@@ -100,6 +101,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     internal static Solution AddDefaultTestProject(
         Solution solution,
         string[] sources,
+        TempDirectory? projectDirectory = null,
         ISourceGenerator? generator = null,
         string? additionalFileText = null,
         (string key, string value)[]? analyzerConfig = null)
@@ -121,11 +123,15 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
 
         if (analyzerConfig != null)
         {
+            var fileName = "config";
+            var text = GetAnalyzerConfigText(analyzerConfig);
+            var filePath = GetFilePath(fileName, text.ToString());
+
             solution = solution.AddAnalyzerConfigDocument(
                 DocumentId.CreateNewId(project.Id),
                 name: "config",
-                GetAnalyzerConfigText(analyzerConfig),
-                filePath: Path.Combine(TempRoot.Root, "config"));
+                text,
+                filePath: filePath);
         }
 
         Document? document = null;
@@ -133,22 +139,29 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         foreach (var source in sources)
         {
             var fileName = $"test{i++}.cs";
+            var filePath = GetFilePath(fileName, source);
 
             document = solution.GetRequiredProject(project.Id).
-                AddDocument(fileName, CreateText(source), filePath: Path.Combine(TempRoot.Root, fileName));
+                AddDocument(fileName, CreateText(source), filePath: filePath);
 
             solution = document.Project.Solution;
         }
 
         Debug.Assert(document != null);
         return document.Project.Solution;
+
+        string GetFilePath(string fileName, string content)
+            => projectDirectory?.CreateFile(fileName).WriteAllText(content, Encoding.UTF8).Path ?? Path.Combine(TempRoot.Root, fileName);
     }
 
     internal EditAndContinueService GetEditAndContinueService(TestWorkspace workspace)
     {
         var service = (EditAndContinueService)workspace.GetService<IEditAndContinueService>();
         var accessor = service.GetTestAccessor();
-        accessor.SetOutputProvider(project => _mockCompilationOutputs[project.Id]);
+
+        // Empty guid means project is not built.
+        accessor.SetOutputProvider(project => _mockCompilationOutputs.GetValueOrDefault(project.Id, null) ?? new MockCompilationOutputs(Guid.Empty));
+
         return service;
     }
 
@@ -229,15 +242,29 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         return metadataReader.GetGuid(mvidHandle);
     }
 
+    internal Guid EmitAndLoadLibraryToDebuggee(Document document, TargetFramework targetFramework = DefaultTargetFramework)
+    {
+        var text = document.GetTextSynchronously(CancellationToken.None);
+        return EmitAndLoadLibraryToDebuggee(
+            document.Project.Id,
+            text.ToString(),
+            document.FilePath,
+            text.Encoding,
+            text.ChecksumAlgorithm,
+            document.Project.AssemblyName,
+            targetFramework);
+    }
+
     internal Guid EmitAndLoadLibraryToDebuggee(
         ProjectId projectId,
         string source,
         string? sourceFilePath = null,
         Encoding? encoding = null,
         SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default,
-        string assemblyName = "")
+        string assemblyName = "",
+        TargetFramework targetFramework = DefaultTargetFramework)
     {
-        var moduleId = EmitLibrary(projectId, source, sourceFilePath, encoding, checksumAlgorithm, assemblyName);
+        var moduleId = EmitLibrary(projectId, source, sourceFilePath, encoding, checksumAlgorithm, assemblyName, targetFramework: targetFramework);
         LoadLibraryToDebuggee(moduleId);
         return moduleId;
     }
@@ -257,10 +284,11 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         DebugInformationFormat pdbFormat = DebugInformationFormat.PortablePdb,
         Project? generatorProject = null,
         string? additionalFileText = null,
-        IEnumerable<(string, string)>? analyzerOptions = null)
+        IEnumerable<(string, string)>? analyzerOptions = null,
+        TargetFramework targetFramework = DefaultTargetFramework)
     {
         var sources = new[] { (source, sourceFilePath ?? Path.Combine(TempRoot.Root, "test1.cs")) };
-        return EmitLibrary(projectId, sources, encoding, checksumAlgorithm, assemblyName, pdbFormat, generatorProject, additionalFileText, analyzerOptions);
+        return EmitLibrary(projectId, sources, encoding, checksumAlgorithm, assemblyName, pdbFormat, generatorProject, additionalFileText, analyzerOptions, targetFramework);
     }
 
     internal Guid EmitLibrary(
@@ -272,7 +300,8 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         DebugInformationFormat pdbFormat = DebugInformationFormat.PortablePdb,
         Project? generatorProject = null,
         string? additionalFileText = null,
-        IEnumerable<(string, string)>? analyzerOptions = null)
+        IEnumerable<(string, string)>? analyzerOptions = null,
+        TargetFramework targetFramework = DefaultTargetFramework)
     {
         encoding ??= Encoding.UTF8;
 
@@ -284,7 +313,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
             return SyntaxFactory.ParseSyntaxTree(sourceText, parseOptions, source.filePath);
         });
 
-        Compilation compilation = CSharpTestBase.CreateCompilation(trees.ToArray(), options: TestOptions.DebugDll, targetFramework: DefaultTargetFramework, assemblyName: assemblyName);
+        Compilation compilation = CSharpTestBase.CreateCompilation(trees.ToArray(), options: TestOptions.DebugDll, targetFramework: targetFramework, assemblyName: assemblyName);
 
         if (generatorProject != null)
         {

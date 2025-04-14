@@ -25,10 +25,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 /// </summary>
 internal sealed class CommittedSolution
 {
-    private readonly DebuggingSession _debuggingSession;
-
-    private Solution _solution;
-
     internal enum DocumentState
     {
         None = 0,
@@ -59,6 +55,11 @@ internal sealed class CommittedSolution
         /// </summary>
         MatchesBuildOutput = 4
     }
+
+    private readonly DebuggingSession _debuggingSession;
+
+    private Solution _solution;
+    private readonly HashSet<ProjectId> _staleProjects = [];
 
     /// <summary>
     /// Implements workaround for https://github.com/dotnet/project-system/issues/5457.
@@ -123,6 +124,9 @@ internal sealed class CommittedSolution
 
     public Project GetRequiredProject(ProjectId id)
         => _solution.GetRequiredProject(id);
+
+    public bool IsStaleProject(ProjectId id)
+        => _staleProjects.Contains(id);
 
     public ImmutableArray<DocumentId> GetDocumentIdsWithFilePath(string path)
         => _solution.GetDocumentIdsWithFilePath(path);
@@ -258,6 +262,12 @@ internal sealed class CommittedSolution
             }
             else
             {
+                // The following patches the current committed solution with the actual baseline content of the document, if we could retrieve it.
+                // This patch is temporary, in effect for the current delta calculation. Once the changes are applied and committed we 
+                // update the committed solution to the latest snapshot of the main workspace solution. This operation drops the changes made here.
+                // That's ok since we only patch documents that have been modified and therefore their new versions will be the correct baseline for the 
+                // next delta calculation. The baseline content loaded here won't be needed anymore.
+
                 // Document exists in the PDB but not in the committed solution.
                 // Add the document to the committed solution with its current (possibly out-of-sync) text.
                 if (committedDocument == null)
@@ -426,11 +436,21 @@ internal sealed class CommittedSolution
         }
     }
 
-    public void CommitSolution(Solution solution)
+    public void CommitChanges(Solution solution, ImmutableArray<ProjectId> projectsToStale, ImmutableArray<ProjectId> projectsToUnstale)
     {
         lock (_guard)
         {
             _solution = solution;
+            _staleProjects.AddRange(projectsToStale);
+            _staleProjects.RemoveRange(projectsToUnstale);
+
+            foreach (var documentId in _documentState.Keys)
+            {
+                if (projectsToUnstale.Contains(documentId.ProjectId))
+                {
+                    _documentState.Remove(documentId);
+                }
+            }
         }
     }
 
