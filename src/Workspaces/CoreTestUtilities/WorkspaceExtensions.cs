@@ -57,7 +57,7 @@ public static partial class WorkspaceExtensions
     internal static EventWaiter VerifyWorkspaceChangedEvent(this Workspace workspace, Action<WorkspaceChangeEventArgs> action)
     {
         var wew = new EventWaiter();
-        workspace.RegisterWorkspaceChangedHandler(wew.Wrap(action));
+        _ = workspace.RegisterWorkspaceChangedHandler(wew.Wrap(action));
         return wew;
     }
 }

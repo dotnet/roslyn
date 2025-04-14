@@ -83,7 +83,7 @@ public abstract partial class Workspace : IDisposable
         _asyncOperationListener = listenerProvider.GetListener();
         _eventHandlerWorkQueue = new(
             TimeSpan.Zero,
-            ProcessWorkQueueNewAsync,
+            ProcessEventHandlerWorkQueueAsync,
             _asyncOperationListener,
             _workQueueTokenSource.Token);
 
@@ -729,7 +729,7 @@ public abstract partial class Workspace : IDisposable
         _workQueueTokenSource.Cancel();
     }
 
-    private async ValueTask ProcessWorkQueueNewAsync(ImmutableSegmentedList<(EventArgs Args, EventHandlerSet handlerSet)> list, CancellationToken cancellationToken)
+    private async ValueTask ProcessEventHandlerWorkQueueAsync(ImmutableSegmentedList<(EventArgs Args, EventHandlerSet handlerSet)> list, CancellationToken cancellationToken)
     {
         ProcessWorkQueueHelper(list, shouldRaise: static options => !options.RequiresMainThread, cancellationToken);
 

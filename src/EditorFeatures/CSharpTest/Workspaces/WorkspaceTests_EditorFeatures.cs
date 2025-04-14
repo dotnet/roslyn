@@ -62,10 +62,7 @@ public sealed class WorkspaceTests_EditorFeatures : TestBase
         var solution = workspace.CurrentSolution;
         var workspaceChanged = false;
 
-        using var _ = workspace.RegisterWorkspaceChangedHandler(e =>
-        {
-            workspaceChanged = true;
-        });
+        using var _ = workspace.RegisterWorkspaceChangedHandler(e => workspaceChanged = true);
 
         // make an 'empty' update by claiming something changed, but its the same as before
         workspace.OnParseOptionsChanged(project.Id, project.ParseOptions);
@@ -818,18 +815,12 @@ public sealed class WorkspaceTests_EditorFeatures : TestBase
         using var openWaiter = new EventWaiter();
         // Wrapping event handlers so they can notify us on being called.
         var documentOpenedEventHandler = openWaiter.Wrap<DocumentEventArgs>(
-            args =>
-            {
-                Assert.True(args.Document.Id == document.Id,
-                    "The document given to the 'DocumentOpened' event handler did not have the same id as the one created for the test.");
-            });
+            args => Assert.True(args.Document.Id == document.Id,
+            "The document given to the 'DocumentOpened' event handler did not have the same id as the one created for the test."));
 
         var documentClosedEventHandler = closeWaiter.Wrap<DocumentEventArgs>(
-            args =>
-            {
-                Assert.True(args.Document.Id == document.Id,
-                    "The document given to the 'DocumentClosed' event handler did not have the same id as the one created for the test.");
-            });
+            args => Assert.True(args.Document.Id == document.Id,
+            "The document given to the 'DocumentClosed' event handler did not have the same id as the one created for the test."));
 
         var documentOpenedDisposer = workspace.RegisterDocumentOpenedHandler(documentOpenedEventHandler);
         var documentClosedDisposer = workspace.RegisterDocumentClosedHandler(documentClosedEventHandler);
@@ -890,18 +881,12 @@ public sealed class WorkspaceTests_EditorFeatures : TestBase
 
         // Wrapping event handlers so they can notify us on being called.
         var documentOpenedEventHandler = openWaiter.Wrap<DocumentEventArgs>(
-            args =>
-            {
-                Assert.True(args.Document.Id == document.Id,
-                    $"The source generated document given to the '{nameof(Workspace.RegisterDocumentOpenedHandler)}' did not have the same id as the one created for the test.");
-            });
+            args => Assert.True(args.Document.Id == document.Id,
+            $"The source generated document given to the '{nameof(Workspace.RegisterDocumentOpenedHandler)}' did not have the same id as the one created for the test."));
 
         var documentClosedEventHandler = closeWaiter.Wrap<DocumentEventArgs>(
-            args =>
-            {
-                Assert.True(args.Document.Id == document.Id,
-                    $"The source generated document given to the '{nameof(Workspace.RegisterDocumentClosedHandler)}' did not have the same id as the one created for the test.");
-            });
+            args => Assert.True(args.Document.Id == document.Id,
+            $"The source generated document given to the '{nameof(Workspace.RegisterDocumentClosedHandler)}' did not have the same id as the one created for the test."));
 
         var documentOpenedDisposer = workspace.RegisterDocumentOpenedHandler(documentOpenedEventHandler);
         var documentClosedDisposer = workspace.RegisterDocumentClosedHandler(documentClosedEventHandler);
@@ -960,18 +945,12 @@ public sealed class WorkspaceTests_EditorFeatures : TestBase
         using var openWaiter = new EventWaiter();
         // Wrapping event handlers so they can notify us on being called.
         var textDocumentOpenedEventHandler = openWaiter.Wrap<TextDocumentEventArgs>(
-            args =>
-            {
-                Assert.True(args.Document.Id == document.Id,
-                    "The document given to the 'RegisterTextDocumentOpenedHandler' event handler did not have the same id as the one created for the test.");
-            });
+            args => Assert.True(args.Document.Id == document.Id,
+            "The document given to the 'RegisterTextDocumentOpenedHandler' event handler did not have the same id as the one created for the test."));
 
         var textDocumentClosedEventHandler = closeWaiter.Wrap<TextDocumentEventArgs>(
-            args =>
-            {
-                Assert.True(args.Document.Id == document.Id,
-                    "The document given to the 'RegisterTextDocumentClosedHandler' event handler did not have the same id as the one created for the test.");
-            });
+            args => Assert.True(args.Document.Id == document.Id,
+            "The document given to the 'RegisterTextDocumentClosedHandler' event handler did not have the same id as the one created for the test."));
 
         var textDocumentOpenedDisposer = workspace.RegisterTextDocumentOpenedHandler(textDocumentOpenedEventHandler);
         var textDocumentClosedDisposer = workspace.RegisterTextDocumentClosedHandler(textDocumentClosedEventHandler);
@@ -1027,18 +1006,12 @@ public sealed class WorkspaceTests_EditorFeatures : TestBase
         using var openWaiter = new EventWaiter();
         // Wrapping event handlers so they can notify us on being called.
         var textDocumentOpenedEventHandler = openWaiter.Wrap<TextDocumentEventArgs>(
-            args =>
-            {
-                Assert.True(args.Document.Id == document.Id,
-                    "The document given to the 'AnalyzerConfigDocumentOpened' event handler did not have the same id as the one created for the test.");
-            });
+            args => Assert.True(args.Document.Id == document.Id,
+            "The document given to the 'AnalyzerConfigDocumentOpened' event handler did not have the same id as the one created for the test."));
 
         var textDocumentClosedEventHandler = closeWaiter.Wrap<TextDocumentEventArgs>(
-            args =>
-            {
-                Assert.True(args.Document.Id == document.Id,
-                    "The document given to the 'AnalyzerConfigDocumentClosed' event handler did not have the same id as the one created for the test.");
-            });
+            args => Assert.True(args.Document.Id == document.Id,
+            "The document given to the 'AnalyzerConfigDocumentClosed' event handler did not have the same id as the one created for the test."));
 
         var textDocumentOpenedDisposer = workspace.RegisterTextDocumentOpenedHandler(textDocumentOpenedEventHandler);
         var textDocumentClosedDisposer = workspace.RegisterTextDocumentClosedHandler(textDocumentClosedEventHandler);

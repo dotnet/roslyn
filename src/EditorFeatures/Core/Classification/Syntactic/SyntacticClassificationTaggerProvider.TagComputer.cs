@@ -46,8 +46,8 @@ internal partial class SyntacticClassificationTaggerProvider
         private readonly SyntacticClassificationTaggerProvider _taggerProvider;
         private readonly ITextBuffer2 _subjectBuffer;
         private readonly WorkspaceRegistration _workspaceRegistration;
-        private IDisposable? _workspaceChangedDisposer;
-        private IDisposable? _workspaceDocumentActiveContextChangedDisposer;
+        private IDisposable _workspaceChangedDisposer;
+        private IDisposable _workspaceDocumentActiveContextChangedDisposer;
 
         private readonly CancellationTokenSource _disposalCancellationSource = new();
 
@@ -245,11 +245,8 @@ internal partial class SyntacticClassificationTaggerProvider
 
             if (_workspace != null)
             {
-                _workspaceChangedDisposer?.Dispose();
-                _workspaceChangedDisposer = null;
-
-                _workspaceDocumentActiveContextChangedDisposer?.Dispose();
-                _workspaceDocumentActiveContextChangedDisposer = null;
+                _workspaceChangedDisposer.Dispose();
+                _workspaceDocumentActiveContextChangedDisposer.Dispose();
 
                 _workspace = null;
 
@@ -280,7 +277,6 @@ internal partial class SyntacticClassificationTaggerProvider
                 return;
 
             _workQueue.AddWork(_subjectBuffer.CurrentSnapshot);
-            return;
         }
 
         private void OnWorkspaceChanged(WorkspaceChangeEventArgs args)
@@ -307,7 +303,6 @@ internal partial class SyntacticClassificationTaggerProvider
                 return;
 
             _workQueue.AddWork(_subjectBuffer.CurrentSnapshot);
-            return;
         }
 
         #endregion

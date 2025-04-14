@@ -156,9 +156,7 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
         }
 
         private void DocumentOpened(DocumentEventArgs e)
-        {
-            _ = TrackActiveSpansAsync(e.Document);
-        }
+            => _ = TrackActiveSpansAsync(e.Document);
 
         private async Task TrackActiveSpansAsync(Document designTimeDocument)
         {
