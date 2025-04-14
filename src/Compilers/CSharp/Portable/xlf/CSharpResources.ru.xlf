@@ -12,6 +12,11 @@
         <target state="translated">Передача "{0}" недопустима, если "{1}" является "SignatureCallingConvention.Unmanaged".</target>
         <note />
       </trans-unit>
+      <trans-unit id="CannotConvertDirective">
+        <source>Some directives cannot be converted: the first error is at {0}. Run the file to see all compilation errors. Specify '--force' to convert anyway.</source>
+        <target state="new">Some directives cannot be converted: the first error is at {0}. Run the file to see all compilation errors. Specify '--force' to convert anyway.</target>
+        <note>{Locked="--force"}. {0} is the file path and line number.</note>
+      </trans-unit>
       <trans-unit id="CannotCreateConstructedFromConstructed">
         <source>Cannot create constructed generic type from another constructed generic type.</source>
         <target state="translated">Не удается создать сконструированный универсальный тип из другого сконструированного универсального типа.</target>
@@ -2871,6 +2876,26 @@
         <source>{0} is not a valid C# spread operation</source>
         <target state="translated">{0} не является допустимой операцией расширения C#</target>
         <note />
+      </trans-unit>
+      <trans-unit id="MissingDirectiveName">
+        <source>Missing name of '{0}' at {1}.</source>
+        <target state="new">Missing name of '{0}' at {1}.</target>
+        <note>{0} is the directive name like 'package' or 'sdk', {1} is the file path and line number.</note>
+      </trans-unit>
+      <trans-unit id="PropertyDirectiveInvalidName">
+        <source>Invalid property name at {0}. {1}</source>
+        <target state="new">Invalid property name at {0}. {1}</target>
+        <note>{0} is the file path and line number. {1} is an inner exception message.</note>
+      </trans-unit>
+      <trans-unit id="PropertyDirectiveMissingParts">
+        <source>The property directive needs to have two parts separated by a space like 'PropertyName PropertyValue': {0}</source>
+        <target state="new">The property directive needs to have two parts separated by a space like 'PropertyName PropertyValue': {0}</target>
+        <note>{0} is the file path and line number.</note>
+      </trans-unit>
+      <trans-unit id="UnrecognizedDirective">
+        <source>Unrecognized directive '{0}' at {1}.</source>
+        <target state="new">Unrecognized directive '{0}' at {1}.</target>
+        <note>{0} is the directive name like 'package' or 'sdk', {1} is the file path and line number.</note>
       </trans-unit>
       <trans-unit id="WRN_AccessorDoesNotUseBackingField">
         <source>The '{0}' accessor of property '{1}' should use 'field' because the other accessor is using it.</source>

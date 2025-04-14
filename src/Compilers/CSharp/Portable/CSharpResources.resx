@@ -8158,4 +8158,24 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExtensionTypeNameDisallowed" xml:space="preserve">
     <value>Types and aliases cannot be named 'extension'.</value>
   </data>
+  <data name="UnrecognizedDirective" xml:space="preserve">
+    <value>Unrecognized directive '{0}' at {1}.</value>
+    <comment>{0} is the directive name like 'package' or 'sdk', {1} is the file path and line number.</comment>
+  </data>
+  <data name="MissingDirectiveName" xml:space="preserve">
+    <value>Missing name of '{0}' at {1}.</value>
+    <comment>{0} is the directive name like 'package' or 'sdk', {1} is the file path and line number.</comment>
+  </data>
+  <data name="PropertyDirectiveMissingParts" xml:space="preserve">
+    <value>The property directive needs to have two parts separated by a space like 'PropertyName PropertyValue': {0}</value>
+    <comment>{0} is the file path and line number.</comment>
+  </data>
+  <data name="PropertyDirectiveInvalidName" xml:space="preserve">
+    <value>Invalid property name at {0}. {1}</value>
+    <comment>{0} is the file path and line number. {1} is an inner exception message.</comment>
+  </data>
+  <data name="CannotConvertDirective" xml:space="preserve">
+    <value>Some directives cannot be converted: the first error is at {0}. Run the file to see all compilation errors. Specify '--force' to convert anyway.</value>
+    <comment>{Locked="--force"}. {0} is the file path and line number.</comment>
+  </data>
 </root>

@@ -19,4 +19,7 @@ internal static class RoslynExperiments
     internal const string GeneratorHostOutputs_Url = "https://github.com/dotnet/roslyn/issues/74753";
 
     // Previously taken: RSEXPERIMENTAL005 - https://github.com/dotnet/roslyn/issues/77697
+
+    internal const string VirtualProjectGenerator = "RSEXPERIMENTAL006";
+    internal const string VirtualProjectGenerator_Url = "TBD";
 }
