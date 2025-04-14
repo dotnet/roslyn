@@ -300,7 +300,7 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
         await using var testLspServer = await CreateTestLspServerAsync(source, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
         var caret = testLspServer.GetLocations("caret").Single();
 
-        var document = await GetTextDocumentAsync(testLspServer, caret.Uri);
+        var document = await GetTextDocumentAsync(testLspServer, caret.DocumentUri);
         Assert.NotNull(document);
 
         var projectContext = ProtocolConversions.ProjectToProjectContext(document.Project);

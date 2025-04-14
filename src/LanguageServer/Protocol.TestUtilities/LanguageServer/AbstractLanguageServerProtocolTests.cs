@@ -68,7 +68,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         internal static readonly LSP.Location MappedFileLocation = new LSP.Location
         {
             Range = ProtocolConversions.LinePositionToRange(s_mappedLinePosition),
-            Uri = ProtocolConversions.CreateAbsoluteDocumentUri(s_mappedFilePath)
+            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(s_mappedFilePath)
         };
 
         /// <summary>
@@ -153,7 +153,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         if (l2 is null)
             return 1;
 
-        var compareDocument = l1.Uri.UriString.CompareTo(l2.Uri.UriString);
+        var compareDocument = l1.DocumentUri.UriString.CompareTo(l2.DocumentUri.UriString);
         var compareRange = CompareRange(l1.Range, l2.Range);
         return compareDocument != 0 ? compareDocument : compareRange;
     }
@@ -207,7 +207,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
     private protected static LSP.TextDocumentPositionParams CreateTextDocumentPositionParams(LSP.Location caret, ProjectId? projectContext = null)
         => new LSP.TextDocumentPositionParams()
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri, projectContext),
+            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri, projectContext),
             Position = caret.Range.Start
         };
 
@@ -225,7 +225,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         LSP.CompletionTriggerKind triggerKind)
         => new LSP.CompletionParams()
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Position = caret.Range.Start,
             Context = new LSP.VSInternalCompletionContext()
             {
@@ -292,7 +292,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         };
 
     private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location, string[] codeActionPath, IEnumerable<string>? customTags = null)
-        => new(uniqueIdentifier, customTags.ToImmutableArrayOrEmpty(), location.Range, CreateTextDocumentIdentifier(location.Uri), fixAllFlavors: null, nestedCodeActions: null, codeActionPath: codeActionPath);
+        => new(uniqueIdentifier, customTags.ToImmutableArrayOrEmpty(), location.Range, CreateTextDocumentIdentifier(location.DocumentUri), fixAllFlavors: null, nestedCodeActions: null, codeActionPath: codeActionPath);
 
     private protected Task<TestLspServer> CreateTestLspServerAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup, bool mutatingLspWorkspace, LSP.ClientCapabilities clientCapabilities, bool callInitialized = true)
         => CreateTestLspServerAsync([markup], LanguageNames.CSharp, mutatingLspWorkspace, new InitializationOptions { ClientCapabilities = clientCapabilities, CallInitialized = callInitialized });
@@ -478,7 +478,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         {
             var location = new LSP.Location
             {
-                Uri = documentUri,
+                DocumentUri = documentUri,
                 Range = ProtocolConversions.TextSpanToRange(span, text),
             };
 
@@ -491,7 +491,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         var newPosition = new LSP.Position { Character = originalLocation.Range.Start.Character + 1, Line = originalLocation.Range.Start.Line };
         return new LSP.Location
         {
-            Uri = originalLocation.Uri,
+            DocumentUri = originalLocation.DocumentUri,
             Range = new LSP.Range { Start = newPosition, End = newPosition }
         };
     }
@@ -525,7 +525,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
             TextDocument = new LSP.TextDocumentItem
             {
                 Text = source,
-                Uri = uri,
+                DocumentUri = uri,
                 LanguageId = languageId
             }
         };

@@ -688,7 +688,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         if (mutatingLspWorkspace)
         {
             // In the mutating workspace, we just need to update the LSP text (which will flow into the workspace).
-            await testLspServer.ReplaceTextAsync(textLocation.Uri, (textEdit.Range, textEdit.NewText));
+            await testLspServer.ReplaceTextAsync(textLocation.DocumentUri, (textEdit.Range, textEdit.NewText));
             await WaitForWorkspaceOperationsAsync(testLspServer.TestWorkspace);
         }
         else
@@ -697,7 +697,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
             var workspaceText = await document.GetTextAsync(CancellationToken.None);
             var textChange = ProtocolConversions.TextEditToTextChange(textEdit, workspaceText);
             await testLspServer.TestWorkspace.ChangeDocumentAsync(document.Id, workspaceText.WithChanges(textChange));
-            await testLspServer.ReplaceTextAsync(textLocation.Uri, (textEdit.Range, textEdit.NewText));
+            await testLspServer.ReplaceTextAsync(textLocation.DocumentUri, (textEdit.Range, textEdit.NewText));
         }
 
         await testLspServer.WaitForSourceGeneratorsAsync();

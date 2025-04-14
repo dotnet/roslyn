@@ -110,7 +110,7 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
         {
             var location = new LSP.Location
             {
-                Uri = documentUri,
+                DocumentUri = documentUri,
                 Range = ProtocolConversions.TextSpanToRange(span, text),
             };
 
@@ -138,7 +138,7 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
     private protected static CodeActionParams CreateCodeActionParams(LSP.Location location)
         => new()
         {
-            TextDocument = CreateTextDocumentIdentifier(location.Uri),
+            TextDocument = CreateTextDocumentIdentifier(location.DocumentUri),
             Range = location.Range,
             Context = new CodeActionContext
             {

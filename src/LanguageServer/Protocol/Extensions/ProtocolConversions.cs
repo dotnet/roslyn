@@ -378,7 +378,7 @@ internal static partial class ProtocolConversions
 
         return location == null ? null : new LSP.VSInternalLocation
         {
-            Uri = location.Uri,
+            DocumentUri = location.DocumentUri,
             Range = location.Range,
             Text = text
         };
@@ -497,7 +497,7 @@ internal static partial class ProtocolConversions
 
         return new LSP.Location
         {
-            Uri = uri,
+            DocumentUri = uri,
             Range = MappedSpanResultToRange(mappedSpan)
         };
 
@@ -527,7 +527,7 @@ internal static partial class ProtocolConversions
         {
             var location = new LSP.Location
             {
-                Uri = documentUri,
+                DocumentUri = documentUri,
                 Range = TextSpanToRange(span, text),
             };
 

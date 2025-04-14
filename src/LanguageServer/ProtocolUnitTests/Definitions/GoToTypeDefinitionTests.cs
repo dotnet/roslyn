@@ -217,7 +217,7 @@ class B
 
         var results = await RunGotoTypeDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
         var result = Assert.Single(results);
-        Assert.Equal(SourceGeneratedDocumentUri.Scheme, result.Uri.GetRequiredParsedUri().Scheme);
+        Assert.Equal(SourceGeneratedDocumentUri.Scheme, result.DocumentUri.GetRequiredParsedUri().Scheme);
     }
 
     [Theory, CombinatorialData]
@@ -242,9 +242,9 @@ class B
         var results = await RunGotoTypeDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
 
         // Open the metadata file and verify it gets added to the metadata workspace.
-        await testLspServer.OpenDocumentAsync(results.Single().Uri, text: string.Empty).ConfigureAwait(false);
+        await testLspServer.OpenDocumentAsync(results.Single().DocumentUri, text: string.Empty).ConfigureAwait(false);
 
-        Assert.Equal(WorkspaceKind.MetadataAsSource, (await GetWorkspaceForDocument(testLspServer, results.Single().Uri)).Kind);
+        Assert.Equal(WorkspaceKind.MetadataAsSource, (await GetWorkspaceForDocument(testLspServer, results.Single().DocumentUri)).Kind);
     }
 
     [Theory, CombinatorialData]

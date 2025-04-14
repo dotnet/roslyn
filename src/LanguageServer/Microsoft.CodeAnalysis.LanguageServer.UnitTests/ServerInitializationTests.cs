@@ -23,7 +23,7 @@ public sealed class ServerInitializationTests : AbstractLanguageServerHostTests
         {
             TextDocument = new TextDocumentItem
             {
-                Uri = document.DocumentUri,
+                DocumentUri = document.DocumentUri,
                 Text = "Write"
             }
         }, CancellationToken.None);

@@ -196,7 +196,7 @@ public sealed partial class RequestOrderingTests : AbstractLanguageServerProtoco
         Assert.Equal(expectedSolution, solution);
 
         // Open a document, to get a forked solution
-        await ExecuteDidOpen(testLspServer, testLspServer.GetLocations("caret").First().Uri);
+        await ExecuteDidOpen(testLspServer, testLspServer.GetLocations("caret").First().DocumentUri);
 
         // solution should be different because there has been a mutation
         solution = await GetLSPSolution(testLspServer, NonMutatingRequestHandler.MethodName);
@@ -245,7 +245,7 @@ public sealed partial class RequestOrderingTests : AbstractLanguageServerProtoco
         Assert.Null(solution);
 
         // Open a document, to create a change that LSP handlers wouldn normally see
-        await ExecuteDidOpen(testLspServer, testLspServer.GetLocations("caret").First().Uri);
+        await ExecuteDidOpen(testLspServer, testLspServer.GetLocations("caret").First().DocumentUri);
 
         // solution shouldn't have changed
         solution = await GetLSPSolution(testLspServer, NonLSPSolutionRequestHandler.MethodName);
@@ -258,7 +258,7 @@ public sealed partial class RequestOrderingTests : AbstractLanguageServerProtoco
         {
             TextDocument = new LSP.TextDocumentItem
             {
-                Uri = documentUri,
+                DocumentUri = documentUri,
                 Text = "// hi there"
             }
         };

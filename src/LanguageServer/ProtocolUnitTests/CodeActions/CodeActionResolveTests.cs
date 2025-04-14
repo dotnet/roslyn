@@ -299,7 +299,7 @@ class BCD
             DocumentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]
             {
                 // Create file
-                new CreateFile() { Uri = newDocumentUri },
+                new CreateFile() { DocumentUri = newDocumentUri },
                 // Add content to file
                 new TextDocumentEdit()
                 {
@@ -426,7 +426,7 @@ class {|caret:BCD|}
             DocumentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]
             {
                 // Create file
-                new CreateFile() { Uri = newDocumentUri },
+                new CreateFile() { DocumentUri = newDocumentUri },
                 // Add content to file
                 new TextDocumentEdit()
                 {
@@ -525,7 +525,7 @@ class {|caret:BCD|}
                 {
                     TextDocument = new OptionalVersionedTextDocumentIdentifier
                     {
-                        DocumentUri = locations.Single().Uri
+                        DocumentUri = locations.Single().DocumentUri
                     },
                     Edits = edits,
                 }
@@ -536,6 +536,6 @@ class {|caret:BCD|}
         => new()
         {
             DocumentChanges = renameLocations.Select(
-                locations => new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>(new RenameFile() { OldUri = locations.oldUri, NewUri = locations.newUri })).ToArray()
+                locations => new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>(new RenameFile() { OldDocumentUri = locations.oldUri, NewDocumentUri = locations.newUri })).ToArray()
         };
 }

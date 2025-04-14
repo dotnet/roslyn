@@ -170,7 +170,7 @@ $@"<Workspace>
         var renameText = "RENAME";
         var renameParams = CreateRenameParams(new LSP.Location
         {
-            Uri = ProtocolConversions.CreateAbsoluteDocumentUri($"C:\\{TestSpanMapper.GeneratedFileName}"),
+            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri($"C:\\{TestSpanMapper.GeneratedFileName}"),
             Range = new LSP.Range { Start = startPosition, End = endPosition }
         }, "RENAME");
 
@@ -178,7 +178,7 @@ $@"<Workspace>
 
         // There are two rename locations, so we expect two mapped locations.
         var expectedMappedRanges = ImmutableArray.Create(TestSpanMapper.MappedFileLocation.Range, TestSpanMapper.MappedFileLocation.Range);
-        var expectedMappedDocument = TestSpanMapper.MappedFileLocation.Uri;
+        var expectedMappedDocument = TestSpanMapper.MappedFileLocation.DocumentUri;
 
         var documentEdit = results.DocumentChanges.Value.First.Single();
         Assert.Equal(expectedMappedDocument, documentEdit.TextDocument.DocumentUri);
@@ -191,7 +191,7 @@ $@"<Workspace>
         {
             NewName = newName,
             Position = location.Range.Start,
-            TextDocument = CreateTextDocumentIdentifier(location.Uri)
+            TextDocument = CreateTextDocumentIdentifier(location.DocumentUri)
         };
 
     private static async Task<WorkspaceEdit> RunRenameAsync(TestLspServer testLspServer, LSP.RenameParams renameParams)

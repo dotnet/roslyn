@@ -88,7 +88,7 @@ public sealed class PrepareRenameTests(ITestOutputHelper testOutputHelper) : Abs
         => new LSP.PrepareRenameParams()
         {
             Position = location.Range.Start,
-            TextDocument = CreateTextDocumentIdentifier(location.Uri)
+            TextDocument = CreateTextDocumentIdentifier(location.DocumentUri)
         };
 
     private static async Task<LSP.Range?> RunPrepareRenameAsync(TestLspServer testLspServer, LSP.PrepareRenameParams prepareRenameParams)

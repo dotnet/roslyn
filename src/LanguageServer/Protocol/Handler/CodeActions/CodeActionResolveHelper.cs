@@ -220,7 +220,7 @@ internal sealed class CodeActionResolveHelper
                 var oldTextDoc = getOldDocument(docId);
                 Contract.ThrowIfNull(oldTextDoc);
 
-                textDocumentEdits.Add(new DeleteFile { Uri = oldTextDoc.GetURI() });
+                textDocumentEdits.Add(new DeleteFile { DocumentUri = oldTextDoc.GetURI() });
             }
 
             return Task.CompletedTask;
@@ -252,7 +252,7 @@ internal sealed class CodeActionResolveHelper
                     Contract.Fail($"Can't find uri for document: {newTextDoc.Name}.");
                 }
 
-                textDocumentEdits.Add(new CreateFile { Uri = uri });
+                textDocumentEdits.Add(new CreateFile { DocumentUri = uri });
 
                 // And then give it content
                 var newText = await newTextDoc.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
@@ -312,7 +312,7 @@ internal sealed class CodeActionResolveHelper
                     // So we would like to first edit the old document, then rename it.
                     if (oldTextDoc.Name != newTextDoc.Name)
                     {
-                        textDocumentEdits.Add(new RenameFile() { OldUri = oldTextDoc.GetURI(), NewUri = newTextDoc.GetUriForRenamedDocument() });
+                        textDocumentEdits.Add(new RenameFile() { OldDocumentUri = oldTextDoc.GetURI(), NewDocumentUri = newTextDoc.GetUriForRenamedDocument() });
                     }
 
                     var linkedDocuments = solution.GetRelatedDocumentIds(docId);

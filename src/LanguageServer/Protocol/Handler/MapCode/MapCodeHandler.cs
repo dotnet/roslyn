@@ -125,7 +125,7 @@ internal sealed class MapCodeHandler : ILspServiceRequestHandler<VSInternalMapCo
                 foreach (var location in locationsOfSamePriority)
                 {
                     // Ignore anything not in target document, which current code mapper doesn't handle anyway
-                    if (!location.Uri.Equals(textDocumentIdentifier.DocumentUri))
+                    if (!location.DocumentUri.Equals(textDocumentIdentifier.DocumentUri))
                     {
                         context.TraceInformation($"A focus location in '{textDocumentIdentifier.DocumentUri}' is skipped, only locations in corresponding MapCodeMapping.TextDocument is currently considered.");
                         continue;

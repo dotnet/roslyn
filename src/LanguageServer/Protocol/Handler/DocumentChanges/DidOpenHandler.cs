@@ -32,13 +32,13 @@ internal class DidOpenHandler : ILspServiceNotificationHandler<LSP.DidOpenTextDo
     public async Task HandleNotificationAsync(LSP.DidOpenTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
     {
         // GetTextDocumentIdentifier returns null to avoid creating the solution, so the queue is not able to log the uri.
-        context.TraceInformation($"didOpen for {request.TextDocument.Uri}");
+        context.TraceInformation($"didOpen for {request.TextDocument.DocumentUri}");
 
         // Add the document and ensure the text we have matches whats on the client
         // TODO (https://github.com/dotnet/roslyn/issues/63583):
         // Create SourceText from binary representation of the document, retrieve encoding from the request and checksum algorithm from the project.
         var sourceText = SourceText.From(request.TextDocument.Text, System.Text.Encoding.UTF8, SourceHashAlgorithms.OpenDocumentChecksumAlgorithm);
 
-        await context.StartTrackingAsync(request.TextDocument.Uri, sourceText, request.TextDocument.LanguageId, cancellationToken).ConfigureAwait(false);
+        await context.StartTrackingAsync(request.TextDocument.DocumentUri, sourceText, request.TextDocument.LanguageId, cancellationToken).ConfigureAwait(false);
     }
 }

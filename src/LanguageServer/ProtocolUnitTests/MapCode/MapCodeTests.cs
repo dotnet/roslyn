@@ -92,7 +92,7 @@ public sealed class MapCodeTests : AbstractLanguageServerProtocolTests
 
         await using var testLspServer = await CreateTestLspServerAsync(code, mutatingLspWorkspace, CreateClientCapabilities(supportDocumentChanges));
         var ranges = testLspServer.GetLocations("range").ToArray();
-        var documentUri = ranges.Single().Uri;
+        var documentUri = ranges.Single().DocumentUri;
         var mapCodeParams = new LSP.VSInternalMapCodeParams()
         {
             Mappings =

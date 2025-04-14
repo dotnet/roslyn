@@ -91,7 +91,7 @@ public sealed class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHe
         var sourceGeneratedDocumentIdentity = sourceGeneratedDocuments.Single().Identity;
         var sourceGeneratorDocumentUri = SourceGeneratedDocumentUri.Create(sourceGeneratedDocumentIdentity);
 
-        var location = new LSP.Location { Uri = sourceGeneratorDocumentUri, Range = new LSP.Range { Start = new LSP.Position(0, 6), End = new LSP.Position(0, 6) } };
+        var location = new LSP.Location { DocumentUri = sourceGeneratorDocumentUri, Range = new LSP.Range { Start = new LSP.Position(0, 6), End = new LSP.Position(0, 6) } };
 
         var hover = await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Hover>(LSP.Methods.TextDocumentHoverName,
                 CreateTextDocumentPositionParams(location), CancellationToken.None);

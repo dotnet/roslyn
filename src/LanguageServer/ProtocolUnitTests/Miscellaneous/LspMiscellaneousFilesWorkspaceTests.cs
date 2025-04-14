@@ -74,7 +74,7 @@ public sealed class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServer
 
         // Make a text change to the loose file and verify requests appropriately reflect the changes.
         await testLspServer.InsertTextAsync(looseFileUri, (0, 0, source)).ConfigureAwait(false);
-        var caret = new LSP.Location { Range = new() { Start = new(0, 6), End = new(0, 7) }, Uri = looseFileUri };
+        var caret = new LSP.Location { Range = new() { Start = new(0, 6), End = new(0, 7) }, DocumentUri = looseFileUri };
         var hover = await RunGetHoverAsync(testLspServer, caret).ConfigureAwait(false);
         Assert.Contains("class A", hover.Contents.Fourth.Value);
         await AssertFileInMiscWorkspaceAsync(testLspServer, looseFileUri).ConfigureAwait(false);
@@ -268,7 +268,7 @@ public sealed class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServer
         var result = await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentDefinitionName,
             CreateTextDocumentPositionParams(new LSP.Location
             {
-                Uri = looseFileUri,
+                DocumentUri = looseFileUri,
                 Range = new LSP.Range
                 {
                     Start = new(4, 8)

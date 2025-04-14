@@ -31,7 +31,7 @@ public sealed class GetTextDocumentWithContextHandlerTests : AbstractLanguageSer
 </Workspace>";
 
         await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace);
-        var documentUri = testLspServer.GetLocations("caret").Single().Uri;
+        var documentUri = testLspServer.GetLocations("caret").Single().DocumentUri;
         var result = await RunGetProjectContext(testLspServer, documentUri);
 
         Assert.NotNull(result);
@@ -57,7 +57,7 @@ public sealed class GetTextDocumentWithContextHandlerTests : AbstractLanguageSer
 </Workspace>";
 
         await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace);
-        var documentUri = testLspServer.GetLocations("caret").Single().Uri;
+        var documentUri = testLspServer.GetLocations("caret").Single().DocumentUri;
         var result = await RunGetProjectContext(testLspServer, documentUri);
 
         Assert.NotNull(result);
@@ -86,7 +86,7 @@ public sealed class GetTextDocumentWithContextHandlerTests : AbstractLanguageSer
         var document = testLspServer.TestWorkspace.Documents.First();
         await testLspServer.OpenDocumentInWorkspaceAsync(document.Id, openAllLinkedDocuments: true);
 
-        var documentUri = testLspServer.GetLocations("caret").Single().Uri;
+        var documentUri = testLspServer.GetLocations("caret").Single().DocumentUri;
 
         foreach (var project in testLspServer.GetCurrentSolution().Projects)
         {
@@ -107,6 +107,6 @@ public sealed class GetTextDocumentWithContextHandlerTests : AbstractLanguageSer
     private static LSP.VSGetProjectContextsParams CreateGetProjectContextParams(DocumentUri uri)
         => new LSP.VSGetProjectContextsParams()
         {
-            TextDocument = new LSP.TextDocumentItem { Uri = uri }
+            TextDocument = new LSP.TextDocumentItem { DocumentUri = uri }
         };
 }

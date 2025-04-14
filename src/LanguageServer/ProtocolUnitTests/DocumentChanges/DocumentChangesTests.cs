@@ -45,19 +45,19 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
         {
             Assert.Empty(testLspServer.GetTrackedTexts());
 
-            await DidOpen(testLspServer, locationTyped.Uri);
+            await DidOpen(testLspServer, locationTyped.DocumentUri);
 
             Assert.Single(testLspServer.GetTrackedTexts());
 
             var document = testLspServer.GetTrackedTexts().Single();
             Assert.Equal(documentText, document.ToString());
 
-            await DidChange(testLspServer, locationTyped.Uri, (4, 8, "// hi there"));
+            await DidChange(testLspServer, locationTyped.DocumentUri, (4, 8, "// hi there"));
 
             document = testLspServer.GetTrackedTexts().Single();
             Assert.Equal(expected, document.ToString());
 
-            await DidClose(testLspServer, locationTyped.Uri);
+            await DidClose(testLspServer, locationTyped.DocumentUri);
 
             Assert.Empty(testLspServer.GetTrackedTexts());
         }
@@ -78,7 +78,7 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
 
         await using (testLspServer)
         {
-            await DidOpen(testLspServer, locationTyped.Uri);
+            await DidOpen(testLspServer, locationTyped.DocumentUri);
 
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
 
@@ -102,9 +102,9 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
 
         await using (testLspServer)
         {
-            await DidOpen(testLspServer, locationTyped.Uri);
+            await DidOpen(testLspServer, locationTyped.DocumentUri);
 
-            await Assert.ThrowsAnyAsync<StreamJsonRpc.RemoteRpcException>(() => DidOpen(testLspServer, locationTyped.Uri));
+            await Assert.ThrowsAnyAsync<StreamJsonRpc.RemoteRpcException>(() => DidOpen(testLspServer, locationTyped.DocumentUri));
             await testLspServer.AssertServerShuttingDownAsync();
         }
     }
@@ -124,7 +124,7 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
 
         await using (testLspServer)
         {
-            await Assert.ThrowsAnyAsync<StreamJsonRpc.RemoteRpcException>(() => DidClose(testLspServer, locationTyped.Uri));
+            await Assert.ThrowsAnyAsync<StreamJsonRpc.RemoteRpcException>(() => DidClose(testLspServer, locationTyped.DocumentUri));
             await testLspServer.AssertServerShuttingDownAsync();
         }
     }
@@ -144,7 +144,7 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
 
         await using (testLspServer)
         {
-            await Assert.ThrowsAnyAsync<StreamJsonRpc.RemoteRpcException>(() => DidChange(testLspServer, locationTyped.Uri, (0, 0, "goo")));
+            await Assert.ThrowsAnyAsync<StreamJsonRpc.RemoteRpcException>(() => DidChange(testLspServer, locationTyped.DocumentUri, (0, 0, "goo")));
             await testLspServer.AssertServerShuttingDownAsync();
         }
     }
@@ -165,9 +165,9 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
 
         await using (testLspServer)
         {
-            await DidOpen(testLspServer, locationTyped.Uri);
+            await DidOpen(testLspServer, locationTyped.DocumentUri);
 
-            await DidClose(testLspServer, locationTyped.Uri);
+            await DidClose(testLspServer, locationTyped.DocumentUri);
 
             Assert.Empty(testLspServer.GetTrackedTexts());
         }
@@ -197,9 +197,9 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
 
         await using (testLspServer)
         {
-            await DidOpen(testLspServer, locationTyped.Uri);
+            await DidOpen(testLspServer, locationTyped.DocumentUri);
 
-            await DidChange(testLspServer, locationTyped.Uri, (4, 8, "// hi there"));
+            await DidChange(testLspServer, locationTyped.DocumentUri, (4, 8, "// hi there"));
 
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
 
@@ -232,11 +232,11 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
 
         await using (testLspServer)
         {
-            await DidOpen(testLspServer, locationTyped.Uri);
+            await DidOpen(testLspServer, locationTyped.DocumentUri);
 
-            await DidChange(testLspServer, locationTyped.Uri, (4, 8, "// hi there"));
+            await DidChange(testLspServer, locationTyped.DocumentUri, (4, 8, "// hi there"));
 
-            var documentTextFromWorkspace = (await testLspServer.GetDocumentTextAsync(locationTyped.Uri)).ToString();
+            var documentTextFromWorkspace = (await testLspServer.GetDocumentTextAsync(locationTyped.DocumentUri)).ToString();
 
             Assert.NotNull(documentTextFromWorkspace);
             Assert.Equal(documentText, documentTextFromWorkspace);
@@ -275,9 +275,9 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
 
         await using (testLspServer)
         {
-            await DidOpen(testLspServer, locationTyped.Uri);
+            await DidOpen(testLspServer, locationTyped.DocumentUri);
 
-            await DidChange(testLspServer, locationTyped.Uri, (4, 8, "// hi there"), (5, 0, "        // this builds on that\r\n"));
+            await DidChange(testLspServer, locationTyped.DocumentUri, (4, 8, "// hi there"), (5, 0, "        // this builds on that\r\n"));
 
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
 
@@ -314,9 +314,9 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
 
         await using (testLspServer)
         {
-            await DidOpen(testLspServer, locationTyped.Uri);
+            await DidOpen(testLspServer, locationTyped.DocumentUri);
 
-            await DidChange(testLspServer, locationTyped.Uri, (4, 8, "// there"), (4, 11, "hi "));
+            await DidChange(testLspServer, locationTyped.DocumentUri, (4, 8, "// there"), (4, 11, "hi "));
 
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
 
@@ -354,9 +354,9 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
 
         await using (testLspServer)
         {
-            await DidOpen(testLspServer, locationTyped.Uri);
+            await DidOpen(testLspServer, locationTyped.DocumentUri);
 
-            await DidChange(testLspServer, locationTyped.Uri, (5, 0, "        // this builds on that\r\n"), (4, 8, "// hi there"));
+            await DidChange(testLspServer, locationTyped.DocumentUri, (5, 0, "        // this builds on that\r\n"), (4, 8, "// hi there"));
 
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
 
@@ -437,10 +437,10 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
 
         await using (testLspServer)
         {
-            await DidOpen(testLspServer, locationTyped.Uri);
+            await DidOpen(testLspServer, locationTyped.DocumentUri);
 
-            await DidChange(testLspServer, locationTyped.Uri, (4, 8, "// hi there"));
-            await DidChange(testLspServer, locationTyped.Uri, (5, 0, "        // this builds on that\r\n"));
+            await DidChange(testLspServer, locationTyped.DocumentUri, (4, 8, "// hi there"));
+            await DidChange(testLspServer, locationTyped.DocumentUri, (5, 0, "        // this builds on that\r\n"));
 
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
 
@@ -453,7 +453,7 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
     {
         var testLspServer = await CreateTestLspServerAsync(source, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
         var locationTyped = testLspServer.GetLocations("type").Single();
-        var documentText = await testLspServer.GetDocumentTextAsync(locationTyped.Uri);
+        var documentText = await testLspServer.GetDocumentTextAsync(locationTyped.DocumentUri);
 
         return (testLspServer, locationTyped, documentText.ToString());
     }

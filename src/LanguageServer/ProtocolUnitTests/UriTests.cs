@@ -179,7 +179,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
         await testLspServer.ExecutePreSerializedRequestAsync(LSP.Methods.TextDocumentDidOpenName, jsonDocument);
 
         // Retrieve the URI from the json - this is the unencoded (and not JSON escaped) version of the URI.
-        var unencodedUri = JsonSerializer.Deserialize<LSP.DidOpenTextDocumentParams>(jsonDocument, JsonSerializerOptions)!.TextDocument.Uri;
+        var unencodedUri = JsonSerializer.Deserialize<LSP.DidOpenTextDocumentParams>(jsonDocument, JsonSerializerOptions)!.TextDocument.DocumentUri;
 
         // Access the document using the unencoded URI to make sure we find it in the C# misc files.
         var (workspace, _, lspDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = unencodedUri }, CancellationToken.None).ConfigureAwait(false);

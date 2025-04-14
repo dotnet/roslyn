@@ -23,7 +23,12 @@ internal class TextDocumentIdentifier : IEquatable<TextDocumentIdentifier>
     public DocumentUri DocumentUri { get; set; }
 
     [Obsolete("Use DocumentUri instead. This property will be removed in a future version.")]
-    public Uri Uri => DocumentUri.GetRequiredParsedUri();
+    [JsonIgnore]
+    public Uri Uri
+    {
+        get => DocumentUri.GetRequiredParsedUri();
+        set => DocumentUri = new DocumentUri(value);
+    }
 
     public static bool operator ==(TextDocumentIdentifier? value1, TextDocumentIdentifier? value2)
     {

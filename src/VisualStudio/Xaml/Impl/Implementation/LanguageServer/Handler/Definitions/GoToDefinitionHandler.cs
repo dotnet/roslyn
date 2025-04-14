@@ -132,7 +132,7 @@ internal sealed class GoToDefinitionHandler : ILspServiceRequestHandler<TextDocu
                 var sourceText = SourceText.From(fileStream);
                 return new LSP.Location
                 {
-                    Uri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceDefinition.FilePath),
+                    DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceDefinition.FilePath),
                     Range = ProtocolConversions.TextSpanToRange(sourceDefinition.Span.Value, sourceText)
                 };
             }
@@ -144,7 +144,7 @@ internal sealed class GoToDefinitionHandler : ILspServiceRequestHandler<TextDocu
 
             return new LSP.Location
             {
-                Uri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceDefinition.FilePath),
+                DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceDefinition.FilePath),
                 Range = new LSP.Range() { Start = position, End = position }
             };
         }
@@ -182,7 +182,7 @@ internal sealed class GoToDefinitionHandler : ILspServiceRequestHandler<TextDocu
                     var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                     locations.Add(new LSP.Location
                     {
-                        Uri = ProtocolConversions.CreateAbsoluteDocumentUri(declarationFile.FilePath),
+                        DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(declarationFile.FilePath),
                         Range = ProtocolConversions.LinePositionToRange(linePosSpan),
                     });
                 }
