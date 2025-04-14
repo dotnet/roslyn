@@ -77,7 +77,8 @@ internal static partial class SyntaxGeneratorExtensions
         {
             // Call accessors directly if C# overriding VB
             if (document.Project.Language == LanguageNames.CSharp
-                && SymbolFinder.FindSourceDefinition(overriddenProperty, document.Project.Solution, cancellationToken) is { Language: LanguageNames.VisualBasic })
+                && (await SymbolFinder.FindSourceDefinitionAsync(overriddenProperty, document.Project.Solution, cancellationToken).ConfigureAwait(false))
+                        is { Language: LanguageNames.VisualBasic })
             {
                 var getName = overriddenProperty.GetMethod?.Name;
                 var setName = overriddenProperty.SetMethod?.Name;

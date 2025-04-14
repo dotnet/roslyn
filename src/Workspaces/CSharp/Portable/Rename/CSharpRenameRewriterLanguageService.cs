@@ -358,7 +358,9 @@ internal sealed class CSharpRenameConflictLanguageService() : AbstractRenameRewr
                         symbol = symbol.ContainingSymbol;
                     }
 
-                    var sourceDefinition = SymbolFinder.FindSourceDefinition(symbol, _solution, _cancellationToken);
+                    // We cannot make this containing method async since it's being used in a rewriter. FindSourceDefinitionAsync will only yield in cross-language cases
+                    // when the compilation is not already available, so this is expected to not really cause any significant blocking.
+                    var sourceDefinition = SymbolFinder.FindSourceDefinitionAsync(symbol, _solution, _cancellationToken).WaitAndGetResult_CanCallOnBackground(_cancellationToken);
                     symbol = sourceDefinition ?? symbol;
 
                     if (symbol is INamedTypeSymbol namedTypeSymbol)
