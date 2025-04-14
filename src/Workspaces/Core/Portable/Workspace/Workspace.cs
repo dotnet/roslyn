@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
+using static Roslyn.Utilities.EventMap;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -39,8 +40,7 @@ public abstract partial class Workspace : IDisposable
 
     private readonly IAsynchronousOperationListener _asyncOperationListener;
 
-    private readonly AsyncBatchingWorkQueue<Action> _workQueue;
-    private readonly AsyncBatchingWorkQueue<Func<Task>> _backgroundAsyncWorkQueue;
+    private readonly AsyncBatchingWorkQueue<(EventArgs, EventHandlerSet)> _eventHandlerWorkQueue;
     private readonly CancellationTokenSource _workQueueTokenSource = new();
     private readonly ITaskSchedulerProvider _taskSchedulerProvider;
 
@@ -81,15 +81,9 @@ public abstract partial class Workspace : IDisposable
 
         var listenerProvider = Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
         _asyncOperationListener = listenerProvider.GetListener();
-        _workQueue = new(
+        _eventHandlerWorkQueue = new(
             TimeSpan.Zero,
-            ProcessWorkQueueAsync,
-            _asyncOperationListener,
-            _workQueueTokenSource.Token);
-
-        _backgroundAsyncWorkQueue = new(
-            TimeSpan.Zero,
-            ProcessBackgroundWorkQueueAsync,
+            ProcessWorkQueueNewAsync,
             _asyncOperationListener,
             _workQueueTokenSource.Token);
 
@@ -599,15 +593,17 @@ public abstract partial class Workspace : IDisposable
 #pragma warning disable IDE0060 // Remove unused parameter
     protected internal Task ScheduleTask(Action action, string? taskName = "Workspace.Task")
     {
-        _workQueue.AddWork(action);
-        return _workQueue.WaitUntilCurrentBatchCompletesAsync();
+        var handlerAndOptions = new WorkspaceEventHandlerAndOptions(args => action(), WorkspaceEventOptions.MainThreadDependent);
+        var handlerSet = new EventHandlerSet(handlerAndOptions);
+
+        return ScheduleTask(EventArgs.Empty, handlerSet);
     }
 
     [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-    internal Task ScheduleBackgroundTask(Func<Task> action)
+    internal Task ScheduleTask(EventArgs args, EventHandlerSet handlerSet)
     {
-        _backgroundAsyncWorkQueue.AddWork(action);
-        return _backgroundAsyncWorkQueue.WaitUntilCurrentBatchCompletesAsync();
+        _eventHandlerWorkQueue.AddWork((args, handlerSet));
+        return _eventHandlerWorkQueue.WaitUntilCurrentBatchCompletesAsync();
     }
 
     /// <summary>
@@ -617,8 +613,11 @@ public abstract partial class Workspace : IDisposable
     protected internal async Task<T> ScheduleTask<T>(Func<T> func, string? taskName = "Workspace.Task")
     {
         T? result = default;
-        _workQueue.AddWork(() => result = func());
-        await _workQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
+
+        var handlerAndOptions = new WorkspaceEventHandlerAndOptions(args => result = func(), WorkspaceEventOptions.MainThreadDependent);
+        var handlerSet = new EventHandlerSet(handlerAndOptions);
+
+        await ScheduleTask(EventArgs.Empty, handlerSet).ConfigureAwait(false);
         return result!;
     }
 #pragma warning restore IDE0060 // Remove unused parameter
@@ -730,40 +729,33 @@ public abstract partial class Workspace : IDisposable
         _workQueueTokenSource.Cancel();
     }
 
-    private async ValueTask ProcessWorkQueueAsync(ImmutableSegmentedList<Action> list, CancellationToken cancellationToken)
+    private async ValueTask ProcessWorkQueueNewAsync(ImmutableSegmentedList<(EventArgs Args, EventHandlerSet handlerSet)> list, CancellationToken cancellationToken)
     {
-        // Hop over to the right scheduler to execute all this work.
+        ProcessWorkQueueHelper(list, shouldRaise: static options => !options.RequiresMainThread, cancellationToken);
+
         await Task.Factory.StartNew(() =>
         {
-            foreach (var item in list)
+            ProcessWorkQueueHelper(list, shouldRaise: static options => options.RequiresMainThread, cancellationToken);
+        }, cancellationToken, TaskCreationOptions.None, _taskSchedulerProvider.CurrentContextScheduler).ConfigureAwait(false);
+
+        void ProcessWorkQueueHelper(
+            ImmutableSegmentedList<(EventArgs Args, EventHandlerSet handlerSet)> list,
+            Func<WorkspaceEventOptions, bool> shouldRaise,
+            CancellationToken cancellationToken)
+        {
+
+            foreach (var (args, handlerSet) in list)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 try
                 {
-                    item();
+                    handlerSet.RaiseEvent(args, shouldRaise);
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
                 {
                     // Ensure we continue onto further items, even if one particular item fails.
                 }
-            }
-        }, cancellationToken, TaskCreationOptions.None, _taskSchedulerProvider.CurrentContextScheduler).ConfigureAwait(false);
-    }
-
-    private static async ValueTask ProcessBackgroundWorkQueueAsync(ImmutableSegmentedList<Func<Task>> list, CancellationToken cancellationToken)
-    {
-        foreach (var item in list)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            try
-            {
-                await item().ConfigureAwait(false);
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
-            {
-                // Ensure we continue onto further items, even if one particular item fails.
             }
         }
     }

@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 
@@ -55,7 +54,7 @@ public static partial class WorkspaceExtensions
     public static IEnumerable<Project> GetProjectsByName(this Solution solution, string name)
         => solution.Projects.Where(p => string.Compare(p.Name, name, StringComparison.OrdinalIgnoreCase) == 0);
 
-    internal static EventWaiter VerifyWorkspaceChangedEvent(this Workspace workspace, Func<WorkspaceChangeEventArgs, Task> action)
+    internal static EventWaiter VerifyWorkspaceChangedEvent(this Workspace workspace, Action<WorkspaceChangeEventArgs> action)
     {
         var wew = new EventWaiter();
         workspace.RegisterWorkspaceChangedHandler(wew.Wrap(action));

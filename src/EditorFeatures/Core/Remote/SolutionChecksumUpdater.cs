@@ -45,6 +45,7 @@ internal sealed class SolutionChecksumUpdater
     private readonly object _gate = new();
     private bool _isSynchronizeWorkspacePaused;
     private readonly IDisposable _workspaceChangedDisposer;
+    private readonly IDisposable _workspaceChangedImmediateDisposer;
 
     private readonly CancellationToken _shutdownToken;
 
@@ -80,8 +81,8 @@ internal sealed class SolutionChecksumUpdater
             shutdownToken);
 
         // start listening workspace change event
-        _workspaceChangedDisposer = _workspace.RegisterWorkspaceChangedHandler(this.OnWorkspaceChangedAsync);
-        _workspace.WorkspaceChangedImmediate += OnWorkspaceChangedImmediate;
+        _workspaceChangedDisposer = _workspace.RegisterWorkspaceChangedHandler(this.OnWorkspaceChanged);
+        _workspaceChangedImmediateDisposer = _workspace.RegisterWorkspaceChangedImmediateHandler(OnWorkspaceChangedImmediate);
         _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentChanged;
 
         if (_globalOperationService != null)
@@ -102,7 +103,7 @@ internal sealed class SolutionChecksumUpdater
 
         _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentChanged;
         _workspaceChangedDisposer.Dispose();
-        _workspace.WorkspaceChangedImmediate -= OnWorkspaceChangedImmediate;
+        _workspaceChangedImmediateDisposer.Dispose();
 
         if (_globalOperationService != null)
         {
@@ -137,7 +138,7 @@ internal sealed class SolutionChecksumUpdater
         }
     }
 
-    private Task OnWorkspaceChangedAsync(WorkspaceChangeEventArgs e)
+    private void OnWorkspaceChanged(WorkspaceChangeEventArgs _)
     {
         // Check if we're currently paused.  If so ignore this notification.  We don't want to any work in response
         // to whatever the workspace is doing.
@@ -146,11 +147,9 @@ internal sealed class SolutionChecksumUpdater
             if (!_isSynchronizeWorkspacePaused)
                 _synchronizeWorkspaceQueue.AddWork();
         }
-
-        return Task.CompletedTask;
     }
 
-    private void OnWorkspaceChangedImmediate(object? sender, WorkspaceChangeEventArgs e)
+    private void OnWorkspaceChangedImmediate(WorkspaceChangeEventArgs e)
     {
         if (e.Kind == WorkspaceChangeKind.DocumentChanged)
         {

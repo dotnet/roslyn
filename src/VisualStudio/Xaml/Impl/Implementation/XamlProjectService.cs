@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -37,7 +36,7 @@ internal sealed partial class XamlProjectService : IDisposable
     private readonly IThreadingContext _threadingContext;
     private readonly Dictionary<IVsHierarchy, ProjectSystemProject> _xamlProjects = [];
     private readonly ConcurrentDictionary<string, DocumentId> _documentIds = new ConcurrentDictionary<string, DocumentId>(StringComparer.OrdinalIgnoreCase);
-    private IDisposable _documentClosedHandlerDisposer;
+    private readonly IDisposable _documentClosedHandlerDisposer;
 
     private RunningDocumentTable? _rdt;
     private IVsSolution? _vsSolution;
@@ -60,7 +59,7 @@ internal sealed partial class XamlProjectService : IDisposable
 
         AnalyzerService = analyzerService;
 
-        _documentClosedHandlerDisposer = _workspace.RegisterDocumentClosedHandler(OnDocumentClosedAsync);
+        _documentClosedHandlerDisposer = _workspace.RegisterDocumentClosedHandler(OnDocumentClosed);
     }
 
     public void Dispose()
@@ -193,13 +192,11 @@ internal sealed partial class XamlProjectService : IDisposable
         return null;
     }
 
-    private Task OnDocumentClosedAsync(DocumentEventArgs e)
+    private void OnDocumentClosed(DocumentEventArgs e)
     {
         var filePath = e.Document.FilePath;
         if (filePath == null)
-        {
-            return Task.CompletedTask;
-        }
+            return;
 
         if (_documentIds.TryGetValue(filePath, out var documentId))
         {
@@ -212,8 +209,6 @@ internal sealed partial class XamlProjectService : IDisposable
 
             _documentIds.TryRemove(filePath, out _);
         }
-
-        return Task.CompletedTask;
     }
 
     private void OnProjectClosing(IVsHierarchy hierarchy)

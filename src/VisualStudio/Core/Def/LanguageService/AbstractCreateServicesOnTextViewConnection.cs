@@ -57,7 +57,7 @@ internal abstract class AbstractCreateServicesOnTextViewConnection : IWpfTextVie
                 listenerProvider.GetListener(FeatureAttribute.CompletionSet),
                 threadingContext.DisposalToken);
 
-        _workspaceDocumentOpenedDisposer = Workspace.RegisterDocumentOpenedHandler(QueueWorkOnDocumentOpenedAsync);
+        _workspaceDocumentOpenedDisposer = Workspace.RegisterDocumentOpenedHandler(QueueWorkOnDocumentOpened);
     }
 
     public void Dispose()
@@ -100,12 +100,10 @@ internal abstract class AbstractCreateServicesOnTextViewConnection : IWpfTextVie
         }
     }
 
-    private Task QueueWorkOnDocumentOpenedAsync(DocumentEventArgs e)
+    private void QueueWorkOnDocumentOpened(DocumentEventArgs e)
     {
         if (e.Document.Project.Language == _languageName)
             _workQueue.AddWork(e.Document.Project.Id);
-
-        return Task.CompletedTask;
     }
 
     private void InitializePerVSSessionServices()

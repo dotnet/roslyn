@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 
@@ -22,15 +21,11 @@ internal static class UnitTestingWorkspaceExtensions
         internal EventHandlerWrapper(Workspace workspace, Action<UnitTestingTextDocumentEventArgsWrapper> action, bool opened)
         {
             _textDocumentOperationDisposer = opened
-                ? workspace.RegisterTextDocumentOpenedHandler(HandleAsync)
-                : workspace.RegisterTextDocumentClosedHandler(HandleAsync);
+                ? workspace.RegisterTextDocumentOpenedHandler(HandleEvent)
+                : workspace.RegisterTextDocumentClosedHandler(HandleEvent);
 
-            Task HandleAsync(TextDocumentEventArgs args)
-            {
-                action(new UnitTestingTextDocumentEventArgsWrapper(args));
-
-                return Task.CompletedTask;
-            }
+            void HandleEvent(TextDocumentEventArgs args)
+                => action(new UnitTestingTextDocumentEventArgsWrapper(args));
         }
 
         public void Dispose()

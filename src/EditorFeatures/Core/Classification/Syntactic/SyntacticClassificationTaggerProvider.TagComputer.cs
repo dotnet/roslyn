@@ -226,8 +226,8 @@ internal partial class SyntacticClassificationTaggerProvider
             _taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
 
             _workspace = workspace;
-            _workspaceChangedDisposer = _workspace.RegisterWorkspaceChangedHandler(this.OnWorkspaceChangedAsync);
-            _workspaceDocumentActiveContextChangedDisposer = _workspace.RegisterDocumentActiveContextChangedHandler(this.OnDocumentActiveContextChangedAsync);
+            _workspaceChangedDisposer = _workspace.RegisterWorkspaceChangedHandler(this.OnWorkspaceChanged);
+            _workspaceDocumentActiveContextChangedDisposer = _workspace.RegisterDocumentActiveContextChangedHandler(this.OnDocumentActiveContextChanged);
 
             // Now that we've connected to the workspace, kick off work to reclassify this buffer.
             _workQueue.AddWork(_subjectBuffer.CurrentSnapshot);
@@ -269,34 +269,34 @@ internal partial class SyntacticClassificationTaggerProvider
             _workQueue.AddWork(args.After);
         }
 
-        private Task OnDocumentActiveContextChangedAsync(DocumentActiveContextChangedEventArgs args)
+        private void OnDocumentActiveContextChanged(DocumentActiveContextChangedEventArgs args)
         {
             if (_workspace == null)
-                return Task.CompletedTask;
+                return;
 
             var documentId = args.NewActiveContextDocumentId;
             var bufferDocumentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
             if (bufferDocumentId != documentId)
-                return Task.CompletedTask;
+                return;
 
             _workQueue.AddWork(_subjectBuffer.CurrentSnapshot);
-            return Task.CompletedTask;
+            return;
         }
 
-        private Task OnWorkspaceChangedAsync(WorkspaceChangeEventArgs args)
+        private void OnWorkspaceChanged(WorkspaceChangeEventArgs args)
         {
             // We may be getting an event for a workspace we already disconnected from.  If so,
             // ignore them.  We won't be able to find the Document corresponding to our text buffer,
             // so we can't reasonably classify this anyways.
             if (args.NewSolution.Workspace != _workspace)
-                return Task.CompletedTask;
+                return;
 
             if (args.Kind != WorkspaceChangeKind.ProjectChanged)
-                return Task.CompletedTask;
+                return;
 
             var documentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
             if (args.ProjectId != documentId?.ProjectId)
-                return Task.CompletedTask;
+                return;
 
             var oldProject = args.OldSolution.GetProject(args.ProjectId);
             var newProject = args.NewSolution.GetProject(args.ProjectId);
@@ -304,10 +304,10 @@ internal partial class SyntacticClassificationTaggerProvider
             // In case of parse options change reclassify the doc as it may have affected things
             // like preprocessor directives.
             if (Equals(oldProject?.ParseOptions, newProject?.ParseOptions))
-                return Task.CompletedTask;
+                return;
 
             _workQueue.AddWork(_subjectBuffer.CurrentSnapshot);
-            return Task.CompletedTask;
+            return;
         }
 
         #endregion

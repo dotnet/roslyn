@@ -18,8 +18,8 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -123,8 +123,8 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
             _spanProvider = spanProvider;
             _compileTimeSolutionProvider = workspace.Services.GetRequiredService<ICompileTimeSolutionProvider>();
 
-            _documentOpenedHandlerDisposer = _workspace.RegisterDocumentOpenedHandler(DocumentOpenedAsync);
-            _documentClosedHandlerDisposer = _workspace.RegisterDocumentClosedHandler(DocumentClosedAsync);
+            _documentOpenedHandlerDisposer = _workspace.RegisterDocumentOpenedHandler(DocumentOpened);
+            _documentClosedHandlerDisposer = _workspace.RegisterDocumentClosedHandler(DocumentClosed);
         }
 
         internal Dictionary<string, ImmutableArray<ActiveStatementTrackingSpan>> Test_GetTrackingSpans()
@@ -144,7 +144,7 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
             }
         }
 
-        private Task DocumentClosedAsync(DocumentEventArgs e)
+        private void DocumentClosed(DocumentEventArgs e)
         {
             if (e.Document.FilePath != null)
             {
@@ -153,15 +153,11 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
                     _trackingSpans.Remove(e.Document.FilePath);
                 }
             }
-
-            return Task.CompletedTask;
         }
 
-        private Task DocumentOpenedAsync(DocumentEventArgs e)
+        private void DocumentOpened(DocumentEventArgs e)
         {
             _ = TrackActiveSpansAsync(e.Document);
-
-            return Task.CompletedTask;
         }
 
         private async Task TrackActiveSpansAsync(Document designTimeDocument)

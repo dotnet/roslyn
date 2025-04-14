@@ -485,7 +485,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AbstractSpeculationAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AliasSymbolCache.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AnnotationTable.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncEventMap.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncLazy.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncLazy`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Base64Utilities.cs" />
@@ -559,6 +558,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\StringBreaker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ValueTaskExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\WeakEvent`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\WorkspaceEventOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\EnumerableConditionalWeakTable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\WordSimilarityChecker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\StringEscapeEncoder.cs" />

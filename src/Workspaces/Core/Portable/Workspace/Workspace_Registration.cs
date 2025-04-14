@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Text;
+using static Roslyn.Utilities.EventMap;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -42,7 +43,10 @@ public abstract partial class Workspace
 
         var registration = GetWorkspaceRegistration(textContainer);
         registration.SetWorkspace(this);
-        this.ScheduleTask(registration.RaiseEvents, "Workspace.RegisterText");
+
+        var handlerAndOptions = new WorkspaceEventHandlerAndOptions(args => registration.RaiseEvents(), WorkspaceEventOptions.MainThreadDependent);
+        var handlerSet = new EventHandlerSet(handlerAndOptions);
+        this.ScheduleTask(EventArgs.Empty, handlerSet);
     }
 
     /// <summary>

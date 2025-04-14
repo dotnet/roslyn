@@ -427,7 +427,6 @@ language: LanguageNames.CSharp);
             {
                 tcs.SetResult(true);
             }
-            return Task.CompletedTask;
         });
 
         Assert.True(ws.TryApplyChanges(changedDoc.Project.Solution));
@@ -461,8 +460,6 @@ language: LanguageNames.CSharp);
             {
                 tcs.SetResult(true);
             }
-
-            return Task.CompletedTask;
         });
 
         Assert.True(ws.TryApplyChanges(changedDoc.Project.Solution));
@@ -497,7 +494,6 @@ language: LanguageNames.CSharp);
             {
                 tcs.SetResult(true);
             }
-            return Task.CompletedTask;
         });
 
         Assert.True(ws.TryApplyChanges(changedDoc.Project.Solution));
@@ -529,7 +525,6 @@ language: LanguageNames.CSharp);
             {
                 tcs.SetResult(true);
             }
-            return Task.CompletedTask;
         });
 
         Assert.True(ws.TryApplyChanges(changedDoc.Project.Solution));

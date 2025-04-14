@@ -67,7 +67,6 @@ internal static class ITextViewWindowVerifierInProcessExtensions
         using var _ = workspace.RegisterWorkspaceChangedHandler(e =>
         {
             events.Add(e);
-            return Task.CompletedTask;
         });
 
         await textViewWindowVerifier.TestServices.Editor.ShowLightBulbAsync(cancellationToken);

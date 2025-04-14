@@ -20,18 +20,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Dim listenerProvider = environment.ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)()
             _asynchronousOperationWaiter = listenerProvider.GetWaiter(FeatureAttribute.Workspace)
 
-            _workspaceChangedDisposer = environment.Workspace.RegisterWorkspaceChangedHandler(AddressOf OnWorkspaceChangedAsync)
+            _workspaceChangedDisposer = environment.Workspace.RegisterWorkspaceChangedHandler(AddressOf OnWorkspaceChanged)
         End Sub
 
         Public Sub Dispose() Implements IDisposable.Dispose
             _workspaceChangedDisposer.Dispose()
         End Sub
 
-        Private Function OnWorkspaceChangedAsync(e As WorkspaceChangeEventArgs) As Task
+        Private Sub OnWorkspaceChanged(e As WorkspaceChangeEventArgs)
             _changeEvents.Add(e)
-
-            Return Task.CompletedTask
-        End Function
+        End Sub
 
         Friend Async Function GetNewChangeEventsAsync() As Task(Of IEnumerable(Of WorkspaceChangeEventArgs))
             Await _asynchronousOperationWaiter.ExpeditedWaitAsync()

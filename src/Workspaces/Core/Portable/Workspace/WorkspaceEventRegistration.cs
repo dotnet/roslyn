@@ -3,30 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Threading.Tasks;
 using Roslyn.Utilities;
+using static Roslyn.Utilities.EventMap;
 
 namespace Microsoft.CodeAnalysis;
 
-internal abstract class WorkspaceEventRegistration : IDisposable
+internal sealed class WorkspaceEventRegistration(EventMap eventMap, string eventName, WorkspaceEventHandlerAndOptions handlerAndOptions) : IDisposable
 {
-    public static WorkspaceEventRegistration Create<TEventArgs>(AsyncEventMap asyncEventMap, string eventName, Func<TEventArgs, Task> handler)
-        where TEventArgs : EventArgs
-    {
-        return new WorkspaceEventRegistrationImpl<TEventArgs>(asyncEventMap, eventName, handler);
-    }
+    private readonly EventMap _eventMap = eventMap;
+    private readonly string _eventName = eventName;
+    private readonly WorkspaceEventHandlerAndOptions _handlerAndOptions = handlerAndOptions;
 
-    public abstract void Dispose();
-
-    private sealed class WorkspaceEventRegistrationImpl<TEventArgs>(AsyncEventMap asyncEventMap, string eventName, Func<TEventArgs, Task> handler)
-        : WorkspaceEventRegistration
-        where TEventArgs : EventArgs
-    {
-        private readonly AsyncEventMap _asyncEventMap = asyncEventMap;
-        private readonly string _eventName = eventName;
-        private readonly Func<TEventArgs, Task> _handler = handler;
-
-        public override void Dispose()
-             => _asyncEventMap.RemoveAsyncEventHandler(_eventName, _handler);
-    }
+    public void Dispose()
+        => _eventMap.RemoveEventHandler(_eventName, _handlerAndOptions);
 }
