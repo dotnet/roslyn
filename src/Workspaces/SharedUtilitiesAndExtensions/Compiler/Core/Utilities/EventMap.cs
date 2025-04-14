@@ -49,20 +49,13 @@ internal sealed class EventMap
     {
     }
 
-    public sealed class EventHandlerSet
+    public sealed class EventHandlerSet(ImmutableArray<Registry> registries)
     {
         public static readonly EventHandlerSet Empty = new([]);
-        private readonly ImmutableArray<Registry> _registries;
+        private readonly ImmutableArray<Registry> _registries = registries;
 
-        public EventHandlerSet(WorkspaceEventHandlerAndOptions handlerAndOptions)
-            : this([new Registry(handlerAndOptions)])
-        {
-        }
-
-        public EventHandlerSet(ImmutableArray<Registry> registries)
-        {
-            _registries = registries;
-        }
+        public static EventHandlerSet Create(WorkspaceEventHandlerAndOptions handlerAndOptions)
+            => new EventHandlerSet([new Registry(handlerAndOptions)]);
 
         public EventHandlerSet AddHandler(WorkspaceEventHandlerAndOptions handlerAndOptions)
             => new EventHandlerSet(_registries.Add(new Registry(handlerAndOptions)));
@@ -71,17 +64,15 @@ internal sealed class EventMap
         {
             var newRegistries = _registries.RemoveAll(r => r.HasHandlerAndOptions(handlerAndOptions));
 
-            if (newRegistries != _registries)
-            {
-                // disable all registrations of this handler (so pending raise events can be squelched)
-                // This does not guarantee no race condition between Raise and Remove but greatly reduces it.
-                foreach (var registry in _registries.Where(r => r.HasHandlerAndOptions(handlerAndOptions)))
-                    registry.Unregister();
+            if (newRegistries == _registries)
+                return this;
 
-                return newRegistries.IsEmpty ? Empty : new(newRegistries);
-            }
+            // disable all registrations of this handler (so pending raise events can be squelched)
+            // This does not guarantee no race condition between Raise and Remove but greatly reduces it.
+            foreach (var registry in _registries.Where(r => r.HasHandlerAndOptions(handlerAndOptions)))
+                registry.Unregister();
 
-            return this;
+            return newRegistries.IsEmpty ? Empty : new(newRegistries);
         }
 
         public bool HasHandlers => _registries.Length > 0;

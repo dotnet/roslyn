@@ -594,7 +594,7 @@ public abstract partial class Workspace : IDisposable
     protected internal Task ScheduleTask(Action action, string? taskName = "Workspace.Task")
     {
         var handlerAndOptions = new WorkspaceEventHandlerAndOptions(args => action(), WorkspaceEventOptions.MainThreadDependent);
-        var handlerSet = new EventHandlerSet(handlerAndOptions);
+        var handlerSet = EventHandlerSet.Create(handlerAndOptions);
 
         return ScheduleTask(EventArgs.Empty, handlerSet);
     }
@@ -615,7 +615,7 @@ public abstract partial class Workspace : IDisposable
         T? result = default;
 
         var handlerAndOptions = new WorkspaceEventHandlerAndOptions(args => result = func(), WorkspaceEventOptions.MainThreadDependent);
-        var handlerSet = new EventHandlerSet(handlerAndOptions);
+        var handlerSet = EventHandlerSet.Create(handlerAndOptions);
 
         await ScheduleTask(EventArgs.Empty, handlerSet).ConfigureAwait(false);
         return result!;

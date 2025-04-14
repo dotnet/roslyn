@@ -45,7 +45,7 @@ public abstract partial class Workspace
         registration.SetWorkspace(this);
 
         var handlerAndOptions = new WorkspaceEventHandlerAndOptions(args => registration.RaiseEvents(), WorkspaceEventOptions.MainThreadDependent);
-        var handlerSet = new EventHandlerSet(handlerAndOptions);
+        var handlerSet = EventHandlerSet.Create(handlerAndOptions);
         this.ScheduleTask(EventArgs.Empty, handlerSet);
     }
 

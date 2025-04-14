@@ -174,7 +174,7 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
         if (!_threadingContext.JoinableTaskContext.IsOnMainThread)
         {
             var handlerAndOptions = new WorkspaceEventHandlerAndOptions(args => Registration_WorkspaceChanged(sender, e), WorkspaceEventOptions.MainThreadDependent);
-            var handlerSet = new EventHandlerSet(handlerAndOptions);
+            var handlerSet = EventHandlerSet.Create(handlerAndOptions);
 
             ScheduleTask(e, handlerSet);
             return;

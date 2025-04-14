@@ -46,8 +46,8 @@ internal partial class SyntacticClassificationTaggerProvider
         private readonly SyntacticClassificationTaggerProvider _taggerProvider;
         private readonly ITextBuffer2 _subjectBuffer;
         private readonly WorkspaceRegistration _workspaceRegistration;
-        private IDisposable _workspaceChangedDisposer;
-        private IDisposable _workspaceDocumentActiveContextChangedDisposer;
+        private IDisposable? _workspaceChangedDisposer;
+        private IDisposable? _workspaceDocumentActiveContextChangedDisposer;
 
         private readonly CancellationTokenSource _disposalCancellationSource = new();
 
@@ -245,8 +245,8 @@ internal partial class SyntacticClassificationTaggerProvider
 
             if (_workspace != null)
             {
-                _workspaceChangedDisposer.Dispose();
-                _workspaceDocumentActiveContextChangedDisposer.Dispose();
+                _workspaceChangedDisposer?.Dispose();
+                _workspaceDocumentActiveContextChangedDisposer?.Dispose();
 
                 _workspace = null;
 
