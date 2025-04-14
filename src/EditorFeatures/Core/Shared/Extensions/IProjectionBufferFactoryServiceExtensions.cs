@@ -169,7 +169,7 @@ internal static class IProjectionBufferFactoryServiceExtensions
         IEditorOptions editorOptions,
         ITextSnapshot snapshot,
         string separator,
-        params LineSpan[] exposedLineSpans)
+        params ReadOnlySpan<LineSpan> exposedLineSpans)
     {
         return CreateProjectionBuffer(
             factoryService,
@@ -188,7 +188,7 @@ internal static class IProjectionBufferFactoryServiceExtensions
         IEditorOptions editorOptions,
         ITextSnapshot snapshot,
         string separator,
-        params LineSpan[] exposedLineSpans)
+        params ReadOnlySpan<LineSpan> exposedLineSpans)
     {
         return factoryService.CreateProjectionBufferWithoutIndentation(
             registryService,
@@ -206,7 +206,7 @@ internal static class IProjectionBufferFactoryServiceExtensions
         ITextSnapshot snapshot,
         string separator,
         object? suffixOpt,
-        params LineSpan[] exposedLineSpans)
+        params ReadOnlySpan<LineSpan> exposedLineSpans)
     {
         return CreateProjectionBuffer(
             factoryService,
@@ -239,7 +239,7 @@ internal static class IProjectionBufferFactoryServiceExtensions
         string separator,
         object? suffixOpt,
         bool trim,
-        params LineSpan[] exposedLineSpans)
+        params ReadOnlySpan<LineSpan> exposedLineSpans)
     {
         var spans = new List<object>();
         if (exposedLineSpans.Length > 0)
@@ -314,7 +314,7 @@ internal static class IProjectionBufferFactoryServiceExtensions
             contentType: registryService.GetContentType(RoslynPreviewContentType));
     }
 
-    private static IList<IList<SnapshotSpan>> CreateSnapshotSpanRanges(ITextSnapshot snapshot, LineSpan[] exposedLineSpans)
+    private static IList<IList<SnapshotSpan>> CreateSnapshotSpanRanges(ITextSnapshot snapshot, ReadOnlySpan<LineSpan> exposedLineSpans)
     {
         var result = new List<IList<SnapshotSpan>>();
         foreach (var lineSpan in exposedLineSpans)

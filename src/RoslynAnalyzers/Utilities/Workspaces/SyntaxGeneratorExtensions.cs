@@ -323,11 +323,10 @@ namespace Analyzer.Utilities
         {
             return generator.OperatorDeclaration(
                 operatorKind,
-                new[]
-                {
+                [
                     generator.ParameterDeclaration(LeftIdentifierName, generator.TypeExpression(containingType)),
                     generator.ParameterDeclaration(RightIdentifierName, generator.TypeExpression(containingType))
-                },
+                ],
                 generator.TypeExpression(SpecialType.System_Boolean),
                 Accessibility.Public,
                 DeclarationModifiers.Static,
