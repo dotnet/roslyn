@@ -171,7 +171,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     }
 }
 
-static RootCommand CreateCommandLineParser()
+static CommandLineConfiguration CreateCommandLineParser()
 {
     var debugOption = new Option<bool>("--debug")
     {
@@ -300,7 +300,7 @@ static RootCommand CreateCommandLineParser()
         return RunAsync(serverConfiguration, cancellationToken);
     });
 
-    var config = new CliConfiguration(rootCommand)
+    var config = new CommandLineConfiguration(rootCommand)
     {
         // By default, System.CommandLine will catch all exceptions, log them to the console, and return a non-zero exit code.
         // Unfortunately this makes .NET's crash dump collection environment variables (e.g. 'DOTNET_DbgEnableMiniDump')
