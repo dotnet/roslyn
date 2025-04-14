@@ -22,7 +22,7 @@ using VerifyCSRefactoring = CSharpCodeRefactoringVerifier<CSharpConvertToRecordR
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertToRecord)]
-public class ConvertToRecordCodeRefactoringTests
+public sealed class ConvertToRecordCodeRefactoringTests
 {
     [Fact]
     public async Task VerifyRefactoringAndFixHaveSameEquivalenceKey()
@@ -4704,7 +4704,7 @@ public class ConvertToRecordCodeRefactoringTests
         }
     }
 
-    private class RefactoringTestWithGenerator : RefactoringTest
+    private sealed class RefactoringTestWithGenerator : RefactoringTest
     {
         protected override IEnumerable<Type> GetSourceGenerators()
         {
@@ -4727,7 +4727,7 @@ public class ConvertToRecordCodeRefactoringTests
     private static Task TestNoRefactoringAsync(string initialMarkup)
         => TestRefactoringAsync(initialMarkup, initialMarkup);
 
-    private class CodeFixTest :
+    private sealed class CodeFixTest :
         CSharpCodeFixVerifier<TestAnalyzer, CSharpConvertToRecordCodeFixProvider>.Test
     {
         public CodeFixTest()
@@ -4747,7 +4747,7 @@ public class ConvertToRecordCodeRefactoringTests
         }
     }
 
-    private class TestAnalyzer : DiagnosticAnalyzer
+    private sealed class TestAnalyzer : DiagnosticAnalyzer
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             => [new DiagnosticDescriptor(

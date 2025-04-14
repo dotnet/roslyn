@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp;
 
-internal partial class CSharpSyntaxTreeFactoryService
+internal sealed partial class CSharpSyntaxTreeFactoryService
 {
     /// <summary>
     /// Parsed <see cref="CSharpSyntaxTree"/> that creates <see cref="SourceText"/> with given encoding and checksum algorithm.

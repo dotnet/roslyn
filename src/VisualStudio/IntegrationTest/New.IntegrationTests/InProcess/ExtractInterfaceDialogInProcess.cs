@@ -22,7 +22,7 @@ using Roslyn.Utilities;
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
 [TestService]
-internal partial class ExtractInterfaceDialogInProcess
+internal sealed partial class ExtractInterfaceDialogInProcess
 {
     private async Task<ExtractInterfaceDialog?> TryGetDialogAsync(CancellationToken cancellationToken)
     {

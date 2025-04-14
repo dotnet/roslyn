@@ -20,7 +20,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityLevel;
 
 [UseExportProvider]
-public class IDEDiagnosticIDConfigurationTests
+public sealed class IDEDiagnosticIDConfigurationTests
 {
     private static ImmutableArray<(string diagnosticId, ImmutableHashSet<IOption2> codeStyleOptions)> GetIDEDiagnosticIdsAndOptions(
         string languageName)
@@ -38,7 +38,8 @@ public class IDEDiagnosticIDConfigurationTests
                     ValidateHelpLinkForDiagnostic(diagnosticId, descriptor.HelpLinkUri);
 
                     if (diagnosticId.StartsWith("ENC") ||
-                        !char.IsDigit(diagnosticId[^1]))
+                        !char.IsDigit(diagnosticId[^1]) ||
+                        diagnosticId == IDEDiagnosticIds.CopilotImplementNotImplementedExceptionDiagnosticId)
                     {
                         // Ignore non-IDE diagnostic IDs (such as ENCxxxx diagnostics) and
                         // diagnostic IDs for suggestions, fading, etc. (such as IDExxxxWithSuggestion)

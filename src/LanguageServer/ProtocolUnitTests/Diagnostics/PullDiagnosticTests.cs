@@ -18,8 +18,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TaskList;
-using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
@@ -1048,12 +1048,12 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
     }
 
     [Theory, CombinatorialData]
-    public async Task SourceGeneratorFailures_FSA(bool useVSDiagnostics, bool mutatingLspWorkspace, bool enableDiagnosticsInSourceGeneratedFiles)
+    public async Task SourceGeneratorFailures_FSA(bool useVSDiagnostics, bool mutatingLspWorkspace)
     {
         await using var testLspServer = await CreateTestLspServerAsync(["class C {}"], mutatingLspWorkspace,
-            GetInitializationOptions(BackgroundAnalysisScope.FullSolution, CompilerDiagnosticsScope.FullSolution, useVSDiagnostics, enableDiagnosticsInSourceGeneratedFiles: enableDiagnosticsInSourceGeneratedFiles));
+            GetInitializationOptions(BackgroundAnalysisScope.FullSolution, CompilerDiagnosticsScope.FullSolution, useVSDiagnostics));
 
-        var generator = new Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator()
+        var generator = new TestSourceGenerator()
         {
             ExecuteImpl = context => throw new InvalidOperationException("Source generator failed")
         };
@@ -1253,9 +1253,9 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         await OpenDocumentAsync(testLspServer, openDocument);
 
         var projectDiagnostic = CreateDiagnostic("ENC_PROJECT", project: project);
-        var openDocumentDiagnostic1 = CreateDiagnostic("ENC_OPEN_DOC1", openDocument);
-        var openDocumentDiagnostic2 = await CreateDiagnostic("ENC_OPEN_DOC2", openDocument).ToDiagnosticAsync(project, CancellationToken.None);
-        var closedDocumentDiagnostic = CreateDiagnostic("ENC_CLOSED_DOC", closedDocument);
+        var openDocumentDiagnostic1 = CreateDocumentDiagnostic("ENC_OPEN_DOC1", openDocument);
+        var openDocumentDiagnostic2 = await CreateDocumentDiagnostic("ENC_OPEN_DOC2", openDocument).ToDiagnosticAsync(project, CancellationToken.None);
+        var closedDocumentDiagnostic = CreateDocumentDiagnostic("ENC_CLOSED_DOC", closedDocument);
 
         encSessionState.IsSessionActive = true;
         encSessionState.ApplyChangesDiagnostics = [projectDiagnostic, openDocumentDiagnostic1, closedDocumentDiagnostic];
@@ -1314,7 +1314,10 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
             testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(workspaceResults2), includeTaskListItems: false, category: PullDiagnosticCategories.EditAndContinue);
         AssertEx.Equal([], workspaceResults3.Select(Inspect));
 
-        static DiagnosticData CreateDiagnostic(string id, Document? document = null, Project? project = null)
+        static DiagnosticData CreateDocumentDiagnostic(string id, Document document)
+            => CreateDiagnostic(id, document.Project, document);
+
+        static DiagnosticData CreateDiagnostic(string id, Project project, Document? document = null)
         {
             return new(
                         id,
@@ -1324,12 +1327,12 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
                         defaultSeverity: DiagnosticSeverity.Error,
                         isEnabledByDefault: true,
                         warningLevel: 0,
-                        projectId: project?.Id,
+                        projectId: project.Id,
                         customTags: [],
                         properties: ImmutableDictionary<string, string?>.Empty,
                         location: new DiagnosticDataLocation(new FileLinePositionSpan("file", span: default), document?.Id),
                         additionalLocations: [],
-                        language: (project ?? document!.Project).Language);
+                        language: project.Language);
         }
 
         static string Inspect(TestDiagnosticResult result)
@@ -2040,7 +2043,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         await testLspServer.OpenDocumentAsync(uri);
 
         // Assert the task completes after a change occurs
-        var results = await resultTask;
+        var results = await resultTask.WithTimeout(TestHelpers.HangMitigatingTimeout);
         Assert.NotEmpty(results);
     }
 
@@ -2068,7 +2071,36 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         testLspServer.TestWorkspace.OnProjectReloaded(projectInfo);
 
         // Assert the task completes after a change occurs
-        var results = await resultTask;
+        var results = await resultTask.WithTimeout(TestHelpers.HangMitigatingTimeout);
+        Assert.NotEmpty(results);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/77495")]
+    public async Task TestWorkspaceDiagnosticsWaitsForRefreshRequestedEvent(bool useVSDiagnostics, bool mutatingLspWorkspace)
+    {
+        var markup1 = @"class A {";
+        var markup2 = "";
+        await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+            [markup1, markup2], mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+
+        // The very first request should return immediately (as we're have no prior state to tell if the sln changed).
+        var resultTask = RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, useProgress: true, triggerConnectionClose: false);
+        await resultTask;
+
+        // The second request should wait for a solution change before returning.
+        resultTask = RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, useProgress: true, triggerConnectionClose: false);
+
+        // Assert that the connection isn't closed and task doesn't complete even after some delay.
+        await Task.Delay(TimeSpan.FromSeconds(5));
+        Assert.False(resultTask.IsCompleted);
+
+        // Make workspace change that will trigger connection close.
+        var refreshService = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IDiagnosticsRefresher>();
+        refreshService.RequestWorkspaceRefresh();
+
+        // Assert the task completes after a change occurs
+        var results = await resultTask.WithTimeout(TestHelpers.HangMitigatingTimeout);
         Assert.NotEmpty(results);
     }
 

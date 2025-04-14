@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
@@ -44,7 +43,7 @@ internal sealed class CSharpGenerateConstructorService()
         CancellationToken cancellationToken,
         out SyntaxToken token,
         out ImmutableArray<Argument<ExpressionSyntax>> arguments,
-        out INamedTypeSymbol typeToGenerateIn)
+        [NotNullWhen(true)] out INamedTypeSymbol? typeToGenerateIn)
     {
         var constructorInitializer = (ConstructorInitializerSyntax)node;
 
@@ -57,7 +56,7 @@ internal sealed class CSharpGenerateConstructorService()
             var currentType = semanticModel.GetEnclosingNamedType(constructorInitializer.SpanStart, cancellationToken);
             typeToGenerateIn = constructorInitializer.IsKind(SyntaxKind.ThisConstructorInitializer)
                 ? currentType
-                : currentType.BaseType.OriginalDefinition;
+                : currentType?.BaseType?.OriginalDefinition;
             return typeToGenerateIn != null;
         }
 
@@ -82,11 +81,11 @@ internal sealed class CSharpGenerateConstructorService()
         CancellationToken cancellationToken,
         out SyntaxToken token,
         out ImmutableArray<Argument<ExpressionSyntax>> arguments,
-        out INamedTypeSymbol typeToGenerateIn)
+        [NotNullWhen(true)] out INamedTypeSymbol? typeToGenerateIn)
     {
         var simpleName = (SimpleNameSyntax)node;
         var fullName = simpleName.IsRightSideOfQualifiedName()
-            ? (NameSyntax)simpleName.Parent
+            ? (NameSyntax)simpleName.GetRequiredParent()
             : simpleName;
 
         if (fullName.Parent is ObjectCreationExpressionSyntax objectCreationExpression)
@@ -114,11 +113,11 @@ internal sealed class CSharpGenerateConstructorService()
         CancellationToken cancellationToken,
         out SyntaxToken token,
         out ImmutableArray<Argument<ExpressionSyntax>> arguments,
-        out INamedTypeSymbol typeToGenerateIn)
+        [NotNullWhen(true)] out INamedTypeSymbol? typeToGenerateIn)
     {
         var simpleName = (SimpleNameSyntax)node;
         var fullName = simpleName.IsRightSideOfQualifiedName()
-            ? (NameSyntax)simpleName.Parent
+            ? (NameSyntax)simpleName.GetRequiredParent()
             : simpleName;
 
         if (fullName.Parent is AttributeSyntax attribute)
@@ -132,7 +131,7 @@ internal sealed class CSharpGenerateConstructorService()
                     token = simpleName.Identifier;
                     arguments = GetArguments(attribute.ArgumentList.Arguments);
 
-                    typeToGenerateIn = symbolInfo.CandidateSymbols.FirstOrDefault().ContainingSymbol as INamedTypeSymbol;
+                    typeToGenerateIn = symbolInfo.CandidateSymbols.FirstOrDefault()?.ContainingSymbol as INamedTypeSymbol;
                     return typeToGenerateIn != null;
                 }
             }
@@ -149,7 +148,7 @@ internal sealed class CSharpGenerateConstructorService()
         CancellationToken cancellationToken,
         out SyntaxToken token,
         out ImmutableArray<Argument<ExpressionSyntax>> arguments,
-        out INamedTypeSymbol typeToGenerateIn)
+        [NotNullWhen(true)] out INamedTypeSymbol? typeToGenerateIn)
     {
         var implicitObjectCreation = (ImplicitObjectCreationExpressionSyntax)node;
         if (implicitObjectCreation.ArgumentList != null &&
@@ -175,15 +174,15 @@ internal sealed class CSharpGenerateConstructorService()
         => semanticModel.GenerateNameForExpression(expression, capitalize: false, cancellationToken: cancellationToken);
 
     protected override ITypeSymbol GetArgumentType(SemanticModel semanticModel, Argument<ExpressionSyntax> argument, CancellationToken cancellationToken)
-        => InternalExtensions.DetermineParameterType(argument.Expression, semanticModel, cancellationToken);
+        => InternalExtensions.DetermineParameterType(argument.Expression!, semanticModel, cancellationToken);
 
     protected override bool IsConversionImplicit(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType)
         => compilation.ClassifyConversion(sourceType, targetType).IsImplicit;
 
-    protected override IMethodSymbol GetCurrentConstructor(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
+    protected override IMethodSymbol? GetCurrentConstructor(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
         => token.GetAncestor<ConstructorDeclarationSyntax>() is { } constructor ? semanticModel.GetDeclaredSymbol(constructor, cancellationToken) : null;
 
-    protected override IMethodSymbol GetDelegatedConstructor(SemanticModel semanticModel, IMethodSymbol constructor, CancellationToken cancellationToken)
+    protected override IMethodSymbol? GetDelegatedConstructor(SemanticModel semanticModel, IMethodSymbol constructor, CancellationToken cancellationToken)
     {
         if (constructor.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken) is ConstructorDeclarationSyntax constructorDeclarationSyntax &&
             constructorDeclarationSyntax.Initializer.IsKind(SyntaxKind.ThisConstructorInitializer))

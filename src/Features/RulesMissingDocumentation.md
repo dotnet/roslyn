@@ -29,3 +29,4 @@ JSON001 |  | Invalid JSON pattern |
 JSON002 |  | Probable JSON string detected |
 RE0001 |  | Invalid regex pattern |
 RemoveUnnecessaryImportsFixable |  |  |
+IDE3000 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide3000> | Implement with Copilot |

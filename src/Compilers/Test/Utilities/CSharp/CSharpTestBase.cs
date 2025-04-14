@@ -37,6 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
     public abstract class CSharpTestBase : CommonTestBase
     {
+        public static readonly TheoryData<LanguageVersion> LanguageVersions13AndNewer = new TheoryData<LanguageVersion>([LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext]);
+
         protected static readonly string NullableAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
@@ -212,6 +214,22 @@ namespace System.Diagnostics.CodeAnalysis
     }
 }
 ";
+
+        protected static readonly string CallerArgumentExpressionAttributeDefinition = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = true, Inherited = false)]
+                public sealed class CallerArgumentExpressionAttribute : Attribute
+                {
+                    public CallerArgumentExpressionAttribute(string parameterName)
+                    {
+                        ParameterName = parameterName;
+                    }
+
+                    public string ParameterName { get; }
+                }
+            }
+            """;
 
         protected static readonly string IsExternalInitTypeDefinition = @"
 namespace System.Runtime.CompilerServices

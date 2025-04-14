@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -24,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp;
 
 internal partial class CSharpTypeInferenceService
 {
-    private class TypeInferrer : AbstractTypeInferrer
+    private sealed class TypeInferrer : AbstractTypeInferrer
     {
         internal TypeInferrer(
             SemanticModel semanticModel,

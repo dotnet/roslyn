@@ -7,25 +7,24 @@ using System.Threading;
 using System.Threading.Tasks;
 using MSB = Microsoft.Build;
 
-namespace Microsoft.CodeAnalysis.MSBuild
+namespace Microsoft.CodeAnalysis.MSBuild;
+
+internal abstract class ProjectFileLoader
 {
-    internal abstract class ProjectFileLoader
+    public abstract string Language { get; }
+
+    protected abstract ProjectFile CreateProjectFile(MSB.Evaluation.Project? project, ProjectBuildManager buildManager, DiagnosticLog log);
+
+    public async Task<ProjectFile> LoadProjectFileAsync(string path, ProjectBuildManager buildManager, CancellationToken cancellationToken)
     {
-        public abstract string Language { get; }
-
-        protected abstract ProjectFile CreateProjectFile(MSB.Evaluation.Project? project, ProjectBuildManager buildManager, DiagnosticLog log);
-
-        public async Task<ProjectFile> LoadProjectFileAsync(string path, ProjectBuildManager buildManager, CancellationToken cancellationToken)
+        if (path == null)
         {
-            if (path == null)
-            {
-                throw new ArgumentNullException(nameof(path));
-            }
-
-            // load project file async
-            var (project, log) = await buildManager.LoadProjectAsync(path, cancellationToken).ConfigureAwait(false);
-
-            return this.CreateProjectFile(project, buildManager, log);
+            throw new ArgumentNullException(nameof(path));
         }
+
+        // load project file async
+        var (project, log) = await buildManager.LoadProjectAsync(path, cancellationToken).ConfigureAwait(false);
+
+        return this.CreateProjectFile(project, buildManager, log);
     }
 }

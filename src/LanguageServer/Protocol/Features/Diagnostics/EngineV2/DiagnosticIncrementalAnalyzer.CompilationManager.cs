@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal partial class DiagnosticAnalyzerService
+internal sealed partial class DiagnosticAnalyzerService
 {
     /// <summary>
     /// Cached data from a <see cref="ProjectState"/> to the last <see cref="CompilationWithAnalyzersPair"/> instance

@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -24,7 +23,7 @@ internal abstract partial class AbstractEditorInlineRenameService
     /// <summary>
     /// Represents information about the ability to rename a particular location.
     /// </summary>
-    private partial class SymbolInlineRenameInfo : IInlineRenameInfo
+    private sealed partial class SymbolInlineRenameInfo : IInlineRenameInfo
     {
         private const string AttributeSuffix = "Attribute";
 

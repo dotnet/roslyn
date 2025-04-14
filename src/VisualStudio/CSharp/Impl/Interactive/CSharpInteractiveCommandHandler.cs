@@ -14,32 +14,31 @@ using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive;
+
+[ExportInteractive(typeof(IExecuteInInteractiveCommandHandler), ContentTypeNames.CSharpContentType)]
+internal sealed class CSharpInteractiveCommandHandler : InteractiveCommandHandler, IExecuteInInteractiveCommandHandler
 {
-    [ExportInteractive(typeof(IExecuteInInteractiveCommandHandler), ContentTypeNames.CSharpContentType)]
-    internal sealed class CSharpInteractiveCommandHandler : InteractiveCommandHandler, IExecuteInInteractiveCommandHandler
+    private readonly CSharpVsInteractiveWindowProvider _interactiveWindowProvider;
+
+    private readonly ISendToInteractiveSubmissionProvider _sendToInteractiveSubmissionProvider;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpInteractiveCommandHandler(
+        CSharpVsInteractiveWindowProvider interactiveWindowProvider,
+        ISendToInteractiveSubmissionProvider sendToInteractiveSubmissionProvider,
+        IContentTypeRegistryService contentTypeRegistryService,
+        EditorOptionsService editorOptionsService,
+        IEditorOperationsFactoryService editorOperationsFactoryService)
+        : base(contentTypeRegistryService, editorOptionsService, editorOperationsFactoryService)
     {
-        private readonly CSharpVsInteractiveWindowProvider _interactiveWindowProvider;
-
-        private readonly ISendToInteractiveSubmissionProvider _sendToInteractiveSubmissionProvider;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpInteractiveCommandHandler(
-            CSharpVsInteractiveWindowProvider interactiveWindowProvider,
-            ISendToInteractiveSubmissionProvider sendToInteractiveSubmissionProvider,
-            IContentTypeRegistryService contentTypeRegistryService,
-            EditorOptionsService editorOptionsService,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
-            : base(contentTypeRegistryService, editorOptionsService, editorOperationsFactoryService)
-        {
-            _interactiveWindowProvider = interactiveWindowProvider;
-            _sendToInteractiveSubmissionProvider = sendToInteractiveSubmissionProvider;
-        }
-
-        protected override ISendToInteractiveSubmissionProvider SendToInteractiveSubmissionProvider => _sendToInteractiveSubmissionProvider;
-
-        protected override IInteractiveWindow OpenInteractiveWindow(bool focus)
-            => _interactiveWindowProvider.Open(instanceId: 0, focus: focus).InteractiveWindow;
+        _interactiveWindowProvider = interactiveWindowProvider;
+        _sendToInteractiveSubmissionProvider = sendToInteractiveSubmissionProvider;
     }
+
+    protected override ISendToInteractiveSubmissionProvider SendToInteractiveSubmissionProvider => _sendToInteractiveSubmissionProvider;
+
+    protected override IInteractiveWindow OpenInteractiveWindow(bool focus)
+        => _interactiveWindowProvider.Open(instanceId: 0, focus: focus).InteractiveWindow;
 }

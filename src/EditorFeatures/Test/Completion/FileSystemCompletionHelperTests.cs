@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -12,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion;
 
-public class FileSystemCompletionHelperTests
+public sealed class FileSystemCompletionHelperTests
 {
     private static void AssertItemsEqual(ImmutableArray<CompletionItem> actual, params string[] expected)
     {

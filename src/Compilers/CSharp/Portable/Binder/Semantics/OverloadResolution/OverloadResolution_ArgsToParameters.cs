@@ -55,6 +55,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private static ImmutableArray<TypeWithAnnotations> GetParameterTypesIncludingReceiver(Symbol symbol)
+        {
+            Debug.Assert(symbol.GetIsNewExtensionMember());
+            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider optimizing
+            return [symbol.ContainingType.ExtensionParameter.TypeWithAnnotations, .. symbol.GetParameterTypes()];
+        }
+
         private static ArgumentAnalysisResult AnalyzeArguments(
             Symbol symbol,
             AnalyzedArguments arguments,
@@ -64,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)symbol != null);
             Debug.Assert(arguments != null);
 
-            ImmutableArray<ParameterSymbol> parameters = symbol.GetParameters();
+            ImmutableArray<ParameterSymbol> parameters = symbol.GetParametersIncludingExtensionParameter();
             bool isVararg = symbol.GetIsVararg();
 
             // The easy out is that we have no named arguments and are in normal form.

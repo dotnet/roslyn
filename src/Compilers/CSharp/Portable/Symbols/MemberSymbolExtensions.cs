@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -76,6 +77,177 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }
         }
+
+#nullable enable
+        internal static bool GetIsNewExtensionMember(this Symbol member)
+        {
+            switch (member.Kind)
+            {
+                case SymbolKind.Method:
+                case SymbolKind.Property:
+                    return member.ContainingSymbol is TypeSymbol { IsExtension: true };
+                default:
+                    return false;
+            }
+        }
+
+        internal static bool GetIsNewExtensionMember(this MethodSymbol member)
+        {
+            return member.ContainingSymbol is TypeSymbol { IsExtension: true };
+        }
+
+        internal static bool GetIsNewExtensionMember(this PropertySymbol member)
+        {
+            return member.ContainingSymbol is TypeSymbol { IsExtension: true };
+        }
+
+        internal static int GetMemberArityIncludingExtension(this Symbol member)
+        {
+            if (member.GetIsNewExtensionMember())
+            {
+                return member.ContainingType.Arity + member.GetMemberArity();
+            }
+
+            return member.GetMemberArity();
+        }
+
+        internal static ImmutableArray<ParameterSymbol> GetParametersIncludingExtensionParameter(this Symbol symbol)
+        {
+            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider optimizing
+            if (symbol.GetIsNewExtensionMember() && symbol.ContainingType.ExtensionParameter is { } extensionParameter)
+            {
+                return [extensionParameter, .. symbol.GetParameters()];
+            }
+
+            return symbol.GetParameters();
+        }
+
+        /// <summary>
+        /// For an extension member, we distribute the type arguments between the extension declaration and the member.
+        /// Otherwise, we just construct the member with the type arguments.
+        /// </summary>
+        internal static TMember ConstructIncludingExtension<TMember>(this TMember member, ImmutableArray<TypeWithAnnotations> typeArguments) where TMember : Symbol
+        {
+            if (member is MethodSymbol method)
+            {
+                if (method.GetIsNewExtensionMember())
+                {
+                    NamedTypeSymbol extension = method.ContainingType;
+                    if (extension.Arity > 0)
+                    {
+                        extension = extension.Construct(typeArguments[..extension.Arity]);
+                        method = method.AsMember(extension);
+                    }
+
+                    if (method.Arity > 0)
+                    {
+                        return (TMember)(Symbol)method.Construct(typeArguments[extension.Arity..]);
+                    }
+
+                    return (TMember)(Symbol)method;
+                }
+
+                return (TMember)(Symbol)method.Construct(typeArguments);
+            }
+
+            if (member is PropertySymbol property)
+            {
+                Debug.Assert(property.GetIsNewExtensionMember());
+                NamedTypeSymbol extension = property.ContainingType;
+                Debug.Assert(extension.Arity > 0);
+                Debug.Assert(extension.Arity == typeArguments.Length);
+
+                extension = extension.Construct(typeArguments);
+                property = property.AsMember(extension);
+
+                return (TMember)(Symbol)property;
+            }
+
+            throw ExceptionUtilities.UnexpectedValue(member);
+        }
+
+        // For lookup APIs in the semantic model, we can return symbols that aren't fully inferred.
+        // But for function type inference, if the symbol isn't fully inferred with the information we have (the receiver and any explicit type arguments)
+        // then we won't return it.
+        internal static Symbol? GetReducedAndFilteredSymbol(this Symbol member, ImmutableArray<TypeWithAnnotations> typeArguments, TypeSymbol receiverType, CSharpCompilation compilation, bool checkFullyInferred)
+        {
+            if (member is MethodSymbol method)
+            {
+                // 1. construct with explicit type arguments if provided
+                MethodSymbol? constructed;
+                if (!typeArguments.IsDefaultOrEmpty && method.GetMemberArityIncludingExtension() == typeArguments.Length)
+                {
+                    constructed = method.ConstructIncludingExtension(typeArguments);
+                    Debug.Assert((object)constructed != null);
+
+                    if (!checkConstraintsIncludingExtension(constructed, compilation, method.ContainingAssembly.CorLibrary.TypeConversions))
+                    {
+                        return null;
+                    }
+                }
+                else
+                {
+                    constructed = method;
+                }
+
+                // 2. infer type arguments based on the receiver type if needed, check applicability, reduce symbol (for classic extension methods), check whether fully inferred
+                if ((object)receiverType != null)
+                {
+                    if (method.IsExtensionMethod)
+                    {
+                        constructed = constructed.ReduceExtensionMethod(receiverType, compilation, out bool wasFullyInferred);
+
+                        if (checkFullyInferred && !wasFullyInferred)
+                        {
+                            return null;
+                        }
+                    }
+                    else
+                    {
+                        Debug.Assert(method.GetIsNewExtensionMember());
+                        constructed = (MethodSymbol?)SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(compilation, constructed, receiverType);
+
+                        if (checkFullyInferred && constructed?.IsGenericMethod == true && typeArguments.IsDefaultOrEmpty)
+                        {
+                            return null;
+                        }
+                    }
+                }
+
+                return constructed;
+            }
+            else if (member is PropertySymbol property)
+            {
+                // infer type arguments based off the receiver type if needed, check applicability
+                Debug.Assert(receiverType is not null);
+                Debug.Assert(property.GetIsNewExtensionMember());
+                return (PropertySymbol?)SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(compilation, property, receiverType);
+            }
+
+            throw ExceptionUtilities.UnexpectedValue(member.Kind);
+
+            static bool checkConstraintsIncludingExtension(MethodSymbol symbol, CSharpCompilation compilation, TypeConversions conversions)
+            {
+                var constraintArgs = new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false,
+                   NoLocation.Singleton, diagnostics: BindingDiagnosticBag.Discarded, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded);
+
+                bool success = true;
+
+                if (symbol.GetIsNewExtensionMember())
+                {
+                    NamedTypeSymbol extensionDeclaration = symbol.ContainingType;
+                    success = extensionDeclaration.CheckConstraints(constraintArgs);
+                }
+
+                if (success)
+                {
+                    success = symbol.CheckConstraints(constraintArgs);
+                }
+
+                return success;
+            }
+        }
+#nullable disable
 
         /// <summary>
         /// Get the ref kinds of the parameters of a member symbol.  Should be a method, property, or event.
@@ -551,7 +723,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return member
                 is SourceOrdinaryMethodSymbol { IsPartial: true }
                 or SourcePropertySymbol { IsPartial: true }
-                or SourcePropertyAccessorSymbol { IsPartial: true };
+                or SourcePropertyAccessorSymbol { IsPartial: true }
+                or SourceConstructorSymbol { IsPartial: true }
+                or SourceEventSymbol { IsPartial: true }
+                or SourceEventAccessorSymbol { IsPartial: true };
         }
 
         internal static bool IsPartialImplementation(this Symbol member)
@@ -560,7 +735,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return member
                 is SourceOrdinaryMethodSymbol { IsPartialImplementation: true }
                 or SourcePropertySymbol { IsPartialImplementation: true }
-                or SourcePropertyAccessorSymbol { IsPartialImplementation: true };
+                or SourcePropertyAccessorSymbol { IsPartialImplementation: true }
+                or SourceConstructorSymbol { IsPartialImplementation: true }
+                or SourceEventSymbol { IsPartialImplementation: true }
+                or SourceEventAccessorSymbol { IsPartialImplementation: true };
         }
 
         internal static bool IsPartialDefinition(this Symbol member)
@@ -569,8 +747,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return member
                 is SourceOrdinaryMethodSymbol { IsPartialDefinition: true }
                 or SourcePropertySymbol { IsPartialDefinition: true }
-                or SourcePropertyAccessorSymbol { IsPartialDefinition: true };
+                or SourcePropertyAccessorSymbol { IsPartialDefinition: true }
+                or SourceConstructorSymbol { IsPartialDefinition: true }
+                or SourceEventSymbol { IsPartialDefinition: true }
+                or SourceEventAccessorSymbol { IsPartialDefinition: true };
         }
+
+#nullable enable
+        internal static Symbol? GetPartialImplementationPart(this Symbol member)
+        {
+            Debug.Assert(member.IsDefinition);
+            return member switch
+            {
+                MethodSymbol method => method.PartialImplementationPart,
+                SourcePropertySymbol property => property.PartialImplementationPart,
+                SourceEventSymbol ev => ev.PartialImplementationPart,
+                _ => null,
+            };
+        }
+
+        internal static Symbol? GetPartialDefinitionPart(this Symbol member)
+        {
+            Debug.Assert(member.IsDefinition);
+            return member switch
+            {
+                MethodSymbol method => method.PartialDefinitionPart,
+                SourcePropertySymbol property => property.PartialDefinitionPart,
+                SourceEventSymbol ev => ev.PartialDefinitionPart,
+                _ => null,
+            };
+        }
+#nullable disable
 
         internal static bool ContainsTupleNames(this Symbol member)
         {

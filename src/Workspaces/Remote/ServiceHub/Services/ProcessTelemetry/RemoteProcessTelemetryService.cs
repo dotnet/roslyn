@@ -55,11 +55,11 @@ internal sealed partial class RemoteProcessTelemetryService(
             FaultReporter.InitializeFatalErrorHandlers();
 
             // log telemetry that service hub started
-            RoslynLogger.Log(FunctionId.RemoteHost_Connect, KeyValueLogMessage.Create(m =>
+            RoslynLogger.Log(FunctionId.RemoteHost_Connect, KeyValueLogMessage.Create(static (m, hostProcessId) =>
             {
                 m["Host"] = hostProcessId;
                 m["Framework"] = RuntimeInformation.FrameworkDescription;
-            }));
+            }, hostProcessId));
 
             // start performance reporter
             var diagnosticAnalyzerPerformanceTracker = services.GetService<IPerformanceTrackerService>();

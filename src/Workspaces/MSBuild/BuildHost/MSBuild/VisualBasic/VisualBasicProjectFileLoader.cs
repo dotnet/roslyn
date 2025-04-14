@@ -4,19 +4,18 @@
 
 using MSB = Microsoft.Build;
 
-namespace Microsoft.CodeAnalysis.MSBuild
+namespace Microsoft.CodeAnalysis.MSBuild;
+
+internal sealed partial class VisualBasicProjectFileLoader : ProjectFileLoader
 {
-    internal partial class VisualBasicProjectFileLoader : ProjectFileLoader
+    public override string Language => LanguageNames.VisualBasic;
+
+    internal VisualBasicProjectFileLoader()
     {
-        public override string Language => LanguageNames.VisualBasic;
+    }
 
-        internal VisualBasicProjectFileLoader()
-        {
-        }
-
-        protected override ProjectFile CreateProjectFile(MSB.Evaluation.Project? project, ProjectBuildManager buildManager, DiagnosticLog log)
-        {
-            return new VisualBasicProjectFile(this, project, buildManager, log);
-        }
+    protected override ProjectFile CreateProjectFile(MSB.Evaluation.Project? project, ProjectBuildManager buildManager, DiagnosticLog log)
+    {
+        return new VisualBasicProjectFile(this, project, buildManager, log);
     }
 }

@@ -6,37 +6,36 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.Remote
-{
-    internal static class CancellationTokenSourceExtensions
-    {
-        /// <summary>
-        /// Automatically cancels the <paramref name="cancellationTokenSource"/> if the input <paramref name="task"/>
-        /// completes in a <see cref="TaskStatus.Canceled"/> or <see cref="TaskStatus.Faulted"/> state.
-        /// </summary>
-        /// <param name="cancellationTokenSource">The cancellation token source.</param>
-        /// <param name="task">The task to monitor.</param>
-        public static void CancelOnAbnormalCompletion(this CancellationTokenSource cancellationTokenSource, Task task)
-        {
-            if (cancellationTokenSource is null)
-                throw new ArgumentNullException(nameof(cancellationTokenSource));
+namespace Microsoft.CodeAnalysis.Remote;
 
-            _ = task.ContinueWith(
-                static (_, state) =>
+internal static class CancellationTokenSourceExtensions
+{
+    /// <summary>
+    /// Automatically cancels the <paramref name="cancellationTokenSource"/> if the input <paramref name="task"/>
+    /// completes in a <see cref="TaskStatus.Canceled"/> or <see cref="TaskStatus.Faulted"/> state.
+    /// </summary>
+    /// <param name="cancellationTokenSource">The cancellation token source.</param>
+    /// <param name="task">The task to monitor.</param>
+    public static void CancelOnAbnormalCompletion(this CancellationTokenSource cancellationTokenSource, Task task)
+    {
+        if (cancellationTokenSource is null)
+            throw new ArgumentNullException(nameof(cancellationTokenSource));
+
+        _ = task.ContinueWith(
+            static (_, state) =>
+            {
+                try
                 {
-                    try
-                    {
-                        ((CancellationTokenSource)state!).Cancel();
-                    }
-                    catch (ObjectDisposedException)
-                    {
-                        // cancellation source is already disposed
-                    }
-                },
-                state: cancellationTokenSource,
-                CancellationToken.None,
-                TaskContinuationOptions.NotOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
-                TaskScheduler.Default);
-        }
+                    ((CancellationTokenSource)state!).Cancel();
+                }
+                catch (ObjectDisposedException)
+                {
+                    // cancellation source is already disposed
+                }
+            },
+            state: cancellationTokenSource,
+            CancellationToken.None,
+            TaskContinuationOptions.NotOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
+            TaskScheduler.Default);
     }
 }

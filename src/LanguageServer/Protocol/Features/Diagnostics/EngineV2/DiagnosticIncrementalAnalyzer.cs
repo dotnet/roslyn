@@ -8,19 +8,17 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.SolutionCrawler;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal partial class DiagnosticAnalyzerService
+internal sealed partial class DiagnosticAnalyzerService
 {
     /// <summary>
     /// Diagnostic Analyzer Engine V2
     /// 
     /// This one follows pattern compiler has set for diagnostic analyzer.
     /// </summary>
-    private partial class DiagnosticIncrementalAnalyzer
+    private sealed partial class DiagnosticIncrementalAnalyzer
     {
         private readonly DiagnosticAnalyzerTelemetry _telemetry = new();
         private readonly StateManager _stateManager;
@@ -41,9 +39,7 @@ internal partial class DiagnosticAnalyzerService
 
             _stateManager = new StateManager(analyzerInfoCache);
 
-            var enabled = globalOptionService.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler);
-            _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(
-                enabled, analyzerInfoCache, analyzerService.Listener);
+            _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(analyzerInfoCache, analyzerService.Listener);
         }
 
         internal IGlobalOptionService GlobalOptions { get; }
@@ -52,7 +48,7 @@ internal partial class DiagnosticAnalyzerService
         public Task<ImmutableArray<DiagnosticAnalyzer>> GetAnalyzersForTestingPurposesOnlyAsync(Project project, CancellationToken cancellationToken)
             => _stateManager.GetOrCreateAnalyzersAsync(project.Solution.SolutionState, project.State, cancellationToken);
 
-        private static string GetProjectLogMessage(Project project, ImmutableArray<DiagnosticAnalyzer> analyzers)
+        private static string GetProjectLogMessage(Project project, ImmutableArray<DocumentDiagnosticAnalyzer> analyzers)
             => $"project: ({project.Id}), ({string.Join(Environment.NewLine, analyzers.Select(a => a.ToString()))})";
     }
 }

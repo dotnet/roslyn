@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -389,13 +388,33 @@ public class Document : TextDocument
     /// Creates a new instance of this document updated to have the text specified.
     /// </summary>
     public Document WithText(SourceText text)
-        => this.Project.Solution.WithDocumentText(this.Id, text, PreservationMode.PreserveIdentity).GetRequiredDocument(Id);
+    {
+        var solution = this.Project.Solution.WithDocumentText(this.Id, text, PreservationMode.PreserveIdentity);
+
+        if (Id.IsSourceGenerated)
+        {
+            // We just modified the text of the generated document, so it should be available synchronously, and throwing is appropriate if it isn't.
+            return solution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(Id);
+        }
+
+        return solution.GetRequiredDocument(Id);
+    }
 
     /// <summary>
     /// Creates a new instance of this document updated to have a syntax tree rooted by the specified syntax node.
     /// </summary>
     public Document WithSyntaxRoot(SyntaxNode root)
-        => this.Project.Solution.WithDocumentSyntaxRoot(this.Id, root, PreservationMode.PreserveIdentity).GetRequiredDocument(Id);
+    {
+        var solution = this.Project.Solution.WithDocumentSyntaxRoot(this.Id, root, PreservationMode.PreserveIdentity);
+
+        if (Id.IsSourceGenerated)
+        {
+            // We just modified the text of the generated document, so it should be available synchronously, and throwing is appropriate if it isn't.
+            return solution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(Id);
+        }
+
+        return solution.GetRequiredDocument(Id);
+    }
 
     /// <summary>
     /// Creates a new instance of this document updated to have the specified name.

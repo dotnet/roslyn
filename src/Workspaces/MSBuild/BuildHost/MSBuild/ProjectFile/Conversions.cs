@@ -4,65 +4,64 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.MSBuild
+namespace Microsoft.CodeAnalysis.MSBuild;
+
+/// <summary>
+/// Handles conversions from MSBuild values.
+/// </summary>
+internal static class Conversions
 {
-    /// <summary>
-    /// Handles conversions from MSBuild values.
-    /// </summary>
-    internal static class Conversions
+    public static bool ToBool(string? value)
+        => value != null
+        && (string.Equals(bool.TrueString, value, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals("On", value, StringComparison.OrdinalIgnoreCase));
+
+    public static int ToInt(string? value)
     {
-        public static bool ToBool(string? value)
-            => value != null
-            && (string.Equals(bool.TrueString, value, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals("On", value, StringComparison.OrdinalIgnoreCase));
-
-        public static int ToInt(string? value)
+        if (value == null)
         {
-            if (value == null)
-            {
-                return 0;
-            }
-            else
-            {
-                if (int.TryParse(value, out var result))
-                {
-                    return result;
-                }
-
-                return 0;
-            }
+            return 0;
         }
-
-        public static ulong ToULong(string? value)
+        else
         {
-            if (value == null)
+            if (int.TryParse(value, out var result))
             {
-                return 0;
+                return result;
             }
-            else
-            {
-                if (ulong.TryParse(value, out var result))
-                {
-                    return result;
-                }
 
-                return 0;
-            }
+            return 0;
         }
+    }
 
-        public static TEnum? ToEnum<TEnum>(string? value, bool ignoreCase)
-            where TEnum : struct
+    public static ulong ToULong(string? value)
+    {
+        if (value == null)
         {
-            if (value == null)
+            return 0;
+        }
+        else
+        {
+            if (ulong.TryParse(value, out var result))
             {
-                return null;
+                return result;
             }
-            else
-            {
-                return Enum.TryParse<TEnum>(value, ignoreCase, out var result)
-                    ? result
-                    : (TEnum?)null;
-            }
+
+            return 0;
+        }
+    }
+
+    public static TEnum? ToEnum<TEnum>(string? value, bool ignoreCase)
+        where TEnum : struct
+    {
+        if (value == null)
+        {
+            return null;
+        }
+        else
+        {
+            return Enum.TryParse<TEnum>(value, ignoreCase, out var result)
+                ? result
+                : (TEnum?)null;
         }
     }
 }

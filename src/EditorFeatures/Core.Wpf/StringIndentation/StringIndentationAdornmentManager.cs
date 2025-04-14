@@ -13,121 +13,119 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.StringIndentation
+namespace Microsoft.CodeAnalysis.Editor.StringIndentation;
+
+internal sealed partial class StringIndentationAdornmentManager : AbstractAdornmentManager<StringIndentationTag>
 {
-    internal partial class StringIndentationAdornmentManager : AbstractAdornmentManager<StringIndentationTag>
+    public StringIndentationAdornmentManager(
+        IThreadingContext threadingContext,
+        IWpfTextView textView,
+        IViewTagAggregatorFactoryService tagAggregatorFactoryService,
+        IAsynchronousOperationListener asyncListener,
+        string adornmentLayerName)
+        : base(threadingContext, textView, tagAggregatorFactoryService, asyncListener, adornmentLayerName)
     {
-        public StringIndentationAdornmentManager(
-            IThreadingContext threadingContext,
-            IWpfTextView textView,
-            IViewTagAggregatorFactoryService tagAggregatorFactoryService,
-            IAsynchronousOperationListener asyncListener,
-            string adornmentLayerName)
-            : base(threadingContext, textView, tagAggregatorFactoryService, asyncListener, adornmentLayerName)
+    }
+
+    protected override void AddAdornmentsToAdornmentLayer_CallOnlyOnUIThread(NormalizedSnapshotSpanCollection changedSpanCollection)
+    {
+        // this method should only run on UI thread as we do WPF here.
+        Contract.ThrowIfFalse(TextView.VisualElement.Dispatcher.CheckAccess());
+
+        var viewSnapshot = TextView.TextSnapshot;
+        var viewLines = TextView.TextViewLines;
+
+        foreach (var changedSpan in changedSpanCollection)
         {
-        }
+            // Don't do any work for a raw string if it doesn't at least intersect the view span. If it does
+            // intersect the view, then we'll want to draw whichever is in view.
+            if (!viewLines.IntersectsBufferSpan(changedSpan))
+                continue;
 
-        protected override void AddAdornmentsToAdornmentLayer_CallOnlyOnUIThread(NormalizedSnapshotSpanCollection changedSpanCollection)
-        {
-            // this method should only run on UI thread as we do WPF here.
-            Contract.ThrowIfFalse(TextView.VisualElement.Dispatcher.CheckAccess());
-
-            var viewSnapshot = TextView.TextSnapshot;
-            var viewLines = TextView.TextViewLines;
-
-            foreach (var changedSpan in changedSpanCollection)
+            var tagSpans = TagAggregator.GetTags(changedSpan);
+            foreach (var tagMappingSpan in tagSpans)
             {
-                // Don't do any work for a raw string if it doesn't at least intersect the view span. If it does
-                // intersect the view, then we'll want to draw whichever is in view.
-                if (!viewLines.IntersectsBufferSpan(changedSpan))
+                // Intentionally not calling TryGetViewLine like other adornment managers do.  That helper ensures
+                // that the end point of the tag maps to a line that is in view.  However, for raw-string
+                // indentation adornments it's fine for that point to be offscreen, and we still want to draw the
+                // indentation line in that case.
+                if (!TryGetMappedPoint(changedSpan, tagMappingSpan, out _))
                     continue;
 
-                var tagSpans = TagAggregator.GetTags(changedSpan);
-                foreach (var tagMappingSpan in tagSpans)
+                if (!ShouldDrawTag(tagMappingSpan))
+                    continue;
+
+                if (!TryMapToSingleSnapshotSpan(tagMappingSpan.Span, TextView.TextSnapshot, out var span))
+                    continue;
+
+                if (!TryMapHoleSpans(tagMappingSpan.Tag.OrderedHoleSpans, out var orderedHoleSpans))
+                    continue;
+
+                if (VisibleBlock.CreateVisibleBlock(span, orderedHoleSpans, TextView) is not VisibleBlock block)
+                    continue;
+
+                var brush = tagMappingSpan.Tag.GetBrush(TextView);
+
+                foreach (var (start, end) in block.YSegments)
                 {
-                    // Intentionally not calling TryGetViewLine like other adornment managers do.  That helper ensures
-                    // that the end point of the tag maps to a line that is in view.  However, for raw-string
-                    // indentation adornments it's fine for that point to be offscreen, and we still want to draw the
-                    // indentation line in that case.
-                    if (!TryGetMappedPoint(changedSpan, tagMappingSpan, out _))
-                        continue;
-
-                    if (!ShouldDrawTag(tagMappingSpan))
-                        continue;
-
-                    if (!TryMapToSingleSnapshotSpan(tagMappingSpan.Span, TextView.TextSnapshot, out var span))
-                        continue;
-
-                    if (!TryMapHoleSpans(tagMappingSpan.Tag.OrderedHoleSpans, out var orderedHoleSpans))
-                        continue;
-
-                    if (VisibleBlock.CreateVisibleBlock(span, orderedHoleSpans, TextView) is not VisibleBlock block)
-                        continue;
-
-                    var brush = tagMappingSpan.Tag.GetBrush(TextView);
-
-                    foreach (var (start, end) in block.YSegments)
+                    var line = new Line
                     {
-                        var line = new Line
-                        {
-                            SnapsToDevicePixels = true,
-                            StrokeThickness = 1.0,
-                            X1 = block.X,
-                            X2 = block.X,
-                            Y1 = start,
-                            Y2 = end,
-                            Stroke = brush,
-                        };
+                        SnapsToDevicePixels = true,
+                        StrokeThickness = 1.0,
+                        X1 = block.X,
+                        X2 = block.X,
+                        Y1 = start,
+                        Y2 = end,
+                        Stroke = brush,
+                    };
 
-                        AdornmentLayer.AddAdornment(
-                            behavior: AdornmentPositioningBehavior.TextRelative,
-                            visualSpan: span,
-                            tag: block,
-                            adornment: line,
-                            removedCallback: delegate { });
-                    }
+                    AdornmentLayer.AddAdornment(
+                        behavior: AdornmentPositioningBehavior.TextRelative,
+                        visualSpan: span,
+                        tag: block,
+                        adornment: line,
+                        removedCallback: delegate { });
                 }
             }
         }
+    }
 
-        protected override void RemoveAdornmentFromAdornmentLayer_CallOnlyOnUIThread(SnapshotSpan span)
-        {
-            AdornmentLayer.RemoveAdornmentsByVisualSpan(span);
-        }
+    protected override void RemoveAdornmentFromAdornmentLayer_CallOnlyOnUIThread(SnapshotSpan span)
+    {
+        AdornmentLayer.RemoveAdornmentsByVisualSpan(span);
+    }
 
-        private bool TryMapHoleSpans(
-            ImmutableArray<SnapshotSpan> spans,
-            out ImmutableArray<SnapshotSpan> result)
+    private bool TryMapHoleSpans(
+        ImmutableArray<SnapshotSpan> spans,
+        out ImmutableArray<SnapshotSpan> result)
+    {
+        using var _ = ArrayBuilder<SnapshotSpan>.GetInstance(out var builder);
+        foreach (var span in spans)
         {
-            using var _ = ArrayBuilder<SnapshotSpan>.GetInstance(out var builder);
-            foreach (var span in spans)
+            var mapped = MapUpToView(TextView, span);
+            if (mapped == null)
             {
-                var mapped = MapUpToView(TextView, span);
-                if (mapped == null)
-                {
-                    result = default;
-                    return false;
-                }
-
-                builder.Add(mapped.Value);
+                result = default;
+                return false;
             }
 
-            result = builder.ToImmutable();
-            return true;
+            builder.Add(mapped.Value);
         }
 
-        private static SnapshotSpan? MapUpToView(ITextView textView, SnapshotSpan span)
-        {
-            // Must be called from the UI thread.
-            var start = textView.GetPositionInView(span.Start);
-            var end = textView.GetPositionInView(span.End);
+        result = builder.ToImmutable();
+        return true;
+    }
 
-            if (start == null || end == null || end < start)
-                return null;
+    private static SnapshotSpan? MapUpToView(ITextView textView, SnapshotSpan span)
+    {
+        // Must be called from the UI thread.
+        var start = textView.GetPositionInView(span.Start);
+        var end = textView.GetPositionInView(span.End);
 
-            return new SnapshotSpan(start.Value, end.Value);
-        }
+        if (start == null || end == null || end < start)
+            return null;
+
+        return new SnapshotSpan(start.Value, end.Value);
     }
 }

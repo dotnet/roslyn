@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor;
 [Name(PredefinedCommandHandlerNames.GoToAdjacentMember)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class GoToAdjacentMemberCommandHandler(IOutliningManagerService outliningManagerService) :
+internal sealed class GoToAdjacentMemberCommandHandler(IOutliningManagerService outliningManagerService) :
     ICommandHandler<GoToNextMemberCommandArgs>,
     ICommandHandler<GoToPreviousMemberCommandArgs>
 {

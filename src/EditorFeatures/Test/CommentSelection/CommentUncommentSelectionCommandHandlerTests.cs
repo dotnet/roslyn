@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.CommentSelection)]
-public class CommentUncommentSelectionCommandHandlerTests
+public sealed class CommentUncommentSelectionCommandHandlerTests
 {
-    private class MockCommentSelectionService : AbstractCommentSelectionService
+    private sealed class MockCommentSelectionService : AbstractCommentSelectionService
     {
         public MockCommentSelectionService(bool supportsBlockComment)
             => SupportsBlockComment = supportsBlockComment;

@@ -323,6 +323,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
+        internal override string ExtensionName
+            => throw ExceptionUtilities.Unreachable();
+
         public sealed override bool IsReadOnly
         {
             get { return false; }
@@ -355,6 +358,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override bool IsRecordStruct => false;
         internal override bool HasPossibleWellKnownCloneMethod() => false;
         internal override bool IsInterpolatedStringHandlerType => false;
+
+        internal sealed override ParameterSymbol ExtensionParameter => null;
 
         [Conditional("DEBUG")]
         internal static void VerifyTypeParameters(Symbol container, ImmutableArray<TypeParameterSymbol> typeParameters)

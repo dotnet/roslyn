@@ -6,24 +6,23 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions;
 
-namespace Microsoft.CodeAnalysis.UnifiedSuggestions
-{
-    /// <summary>
-    /// Similar to FixAllCodeRefactoringSuggestedAction, but in a location that can be used by
-    /// both local Roslyn and LSP.
-    /// </summary>
-    internal class UnifiedFixAllCodeRefactoringSuggestedAction : UnifiedSuggestedAction, IFixAllCodeRefactoringSuggestedAction
-    {
-        public IFixAllState FixAllState { get; }
+namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
 
-        public UnifiedFixAllCodeRefactoringSuggestedAction(
-            Workspace workspace,
-            CodeAction codeAction,
-            CodeActionPriority codeActionPriority,
-            IFixAllState fixAllState)
-            : base(workspace, codeAction, codeActionPriority)
-        {
-            FixAllState = fixAllState;
-        }
+/// <summary>
+/// Similar to FixAllCodeRefactoringSuggestedAction, but in a location that can be used by
+/// both local Roslyn and LSP.
+/// </summary>
+internal sealed class UnifiedFixAllCodeRefactoringSuggestedAction : UnifiedSuggestedAction, IFixAllCodeRefactoringSuggestedAction
+{
+    public IFixAllState FixAllState { get; }
+
+    public UnifiedFixAllCodeRefactoringSuggestedAction(
+        Workspace workspace,
+        CodeAction codeAction,
+        CodeActionPriority codeActionPriority,
+        IFixAllState fixAllState)
+        : base(workspace, codeAction, codeActionPriority)
+    {
+        FixAllState = fixAllState;
     }
 }
