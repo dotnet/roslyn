@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Utilities;
@@ -166,13 +165,13 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
         public int IsMappedLocation(IVsTextBuffer pBuffer, int iLine, int iCol)
             => VSConstants.E_NOTIMPL;
 
-        public int ResolveName(string pszName, uint dwFlags, out IVsEnumDebugName? ppNames)
+        public int ResolveName(string? pszName, uint dwFlags, out IVsEnumDebugName? ppNames)
         {
             // In VS, this method frequently get's called with an empty string to test if the language service
             // supports this method (some language services, like F#, implement IVsLanguageDebugInfo but don't
             // implement this method).  In that scenario, there's no sense doing work, so we'll just return
             // S_FALSE (as the old VB language service did).
-            if (string.IsNullOrEmpty(pszName))
+            if (pszName is null or "")
             {
                 ppNames = null;
                 return VSConstants.S_FALSE;
@@ -227,7 +226,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
             if (mappedSpan != null)
                 span = mappedSpan.Value;
 
-            return new VsDebugName(breakpoint.LocationNameOpt, filePath, span);
+            return new VsDebugName(breakpoint.LocationNameOpt, filePath!, span);
         }
 
         public int ValidateBreakpointLocation(IVsTextBuffer pBuffer, int iLine, int iCol, VsTextSpan[] pCodeSpan)

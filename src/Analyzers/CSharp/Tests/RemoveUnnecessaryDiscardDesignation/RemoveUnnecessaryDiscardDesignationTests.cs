@@ -18,7 +18,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpRemoveUnnecessaryDiscardDesignationCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryDiscardDesignation)]
-public class RemoveUnnecessaryDiscardDesignationTests
+public sealed class RemoveUnnecessaryDiscardDesignationTests
 {
     [Fact]
     public async Task TestDeclarationPatternInSwitchStatement()

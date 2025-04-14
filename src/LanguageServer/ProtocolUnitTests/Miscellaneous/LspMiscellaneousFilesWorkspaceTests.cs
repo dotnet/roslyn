@@ -8,14 +8,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Miscellaneous;
 
-public class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServerProtocolTests
+public sealed class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServerProtocolTests
 {
     public LspMiscellaneousFilesWorkspaceTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {

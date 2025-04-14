@@ -8,7 +8,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
-public class ServerInitializationTests : AbstractLanguageServerHostTests
+public sealed class ServerInitializationTests : AbstractLanguageServerHostTests
 {
     public ServerInitializationTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {

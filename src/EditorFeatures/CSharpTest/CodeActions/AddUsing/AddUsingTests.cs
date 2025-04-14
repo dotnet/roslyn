@@ -3,13 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -21,7 +19,7 @@ using Basic.Reference.Assemblies;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-public partial class AddUsingTests : AbstractAddUsingTests
+public sealed partial class AddUsingTests : AbstractAddUsingTests
 {
     public AddUsingTests(ITestOutputHelper logger)
         : base(logger)

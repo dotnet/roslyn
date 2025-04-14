@@ -21,13 +21,12 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue;
 
 [UseExportProvider]
-public class RemoteEditAndContinueServiceTests
+public sealed class RemoteEditAndContinueServiceTests
 {
     private static string Inspect(DiagnosticData d)
         => $"[{d.ProjectId}] {d.Severity} {d.Id}:" +

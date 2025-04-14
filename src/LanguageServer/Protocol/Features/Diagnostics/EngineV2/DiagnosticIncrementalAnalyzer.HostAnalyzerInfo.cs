@@ -11,19 +11,20 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal partial class DiagnosticAnalyzerService
+internal sealed partial class DiagnosticAnalyzerService
 {
-    private partial class DiagnosticIncrementalAnalyzer
+    private sealed partial class DiagnosticIncrementalAnalyzer
     {
-        private partial class StateManager
+        private sealed partial class StateManager
         {
-            private HostAnalyzerInfo GetOrCreateHostAnalyzerInfo(Project project, ProjectAnalyzerInfo projectAnalyzerInfo)
+            private HostAnalyzerInfo GetOrCreateHostAnalyzerInfo(
+                SolutionState solution, ProjectState project, ProjectAnalyzerInfo projectAnalyzerInfo)
             {
-                var key = new HostAnalyzerInfoKey(project.Language, project.State.HasSdkCodeStyleAnalyzers, project.Solution.SolutionState.Analyzers.HostAnalyzerReferences);
+                var key = new HostAnalyzerInfoKey(project.Language, project.HasSdkCodeStyleAnalyzers, solution.Analyzers.HostAnalyzerReferences);
                 // Some Host Analyzers may need to be treated as Project Analyzers so that they do not have access to the
                 // Host fallback options. These ids will be used when building up the Host and Project analyzer collections.
-                var referenceIdsToRedirect = GetReferenceIdsToRedirectAsProjectAnalyzers(project);
-                var hostAnalyzerInfo = ImmutableInterlocked.GetOrAdd(ref _hostAnalyzerStateMap, key, CreateLanguageSpecificAnalyzerMap, (project.Solution.SolutionState.Analyzers, referenceIdsToRedirect));
+                var referenceIdsToRedirect = GetReferenceIdsToRedirectAsProjectAnalyzers(solution, project);
+                var hostAnalyzerInfo = ImmutableInterlocked.GetOrAdd(ref _hostAnalyzerStateMap, key, CreateLanguageSpecificAnalyzerMap, (solution.Analyzers, referenceIdsToRedirect));
                 return hostAnalyzerInfo.WithExcludedAnalyzers(projectAnalyzerInfo.SkippedAnalyzersInfo.SkippedAnalyzers);
 
                 static HostAnalyzerInfo CreateLanguageSpecificAnalyzerMap(HostAnalyzerInfoKey arg, (HostDiagnosticAnalyzers HostAnalyzers, ImmutableHashSet<object> ReferenceIdsToRedirect) state)
@@ -65,14 +66,15 @@ internal partial class DiagnosticAnalyzerService
                 }
             }
 
-            private static ImmutableHashSet<object> GetReferenceIdsToRedirectAsProjectAnalyzers(Project project)
+            private static ImmutableHashSet<object> GetReferenceIdsToRedirectAsProjectAnalyzers(
+                SolutionState solution, ProjectState project)
             {
-                if (project.State.HasSdkCodeStyleAnalyzers)
+                if (project.HasSdkCodeStyleAnalyzers)
                 {
                     // When a project uses CodeStyle analyzers added by the SDK, we remove them in favor of the
                     // Features analyzers. We need to then treat the Features analyzers as Project analyzers so
                     // they do not get access to the Host fallback options.
-                    return GetFeaturesAnalyzerReferenceIds(project.Solution.SolutionState.Analyzers);
+                    return GetFeaturesAnalyzerReferenceIds(solution.Analyzers);
                 }
 
                 return [];
@@ -95,8 +97,6 @@ internal partial class DiagnosticAnalyzerService
 
     private sealed class HostAnalyzerInfo
     {
-        private const int FileContentLoadAnalyzerPriority = -4;
-        private const int GeneratorDiagnosticsPlaceholderAnalyzerPriority = -3;
         private const int BuiltInCompilerPriority = -2;
         private const int RegularDiagnosticAnalyzerPriority = -1;
 
@@ -143,10 +143,7 @@ internal partial class DiagnosticAnalyzerService
 
             return state switch
             {
-                FileContentLoadAnalyzer _ => FileContentLoadAnalyzerPriority,
-                GeneratorDiagnosticsPlaceholderAnalyzer _ => GeneratorDiagnosticsPlaceholderAnalyzerPriority,
-                DocumentDiagnosticAnalyzer analyzer => Math.Max(0, analyzer.Priority),
-                ProjectDiagnosticAnalyzer analyzer => Math.Max(0, analyzer.Priority),
+                DocumentDiagnosticAnalyzer analyzer => analyzer.Priority,
                 _ => RegularDiagnosticAnalyzerPriority,
             };
         }

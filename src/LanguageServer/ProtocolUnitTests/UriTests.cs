@@ -20,7 +20,8 @@ using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
-public class UriTests : AbstractLanguageServerProtocolTests
+
+public sealed class UriTests : AbstractLanguageServerProtocolTests
 {
     public UriTests(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
     {
@@ -351,14 +352,14 @@ public class UriTests : AbstractLanguageServerProtocolTests
         Assert.Equal("hello", (await document!.GetTextAsync()).ToString());
     }
 
-    private record class ResolvedDocumentInfo(string WorkspaceKind, string ProjectLanguage);
-    private record class CustomResolveParams([property: JsonPropertyName("textDocument")] LSP.TextDocumentIdentifier TextDocument);
+    private sealed record class ResolvedDocumentInfo(string WorkspaceKind, string ProjectLanguage);
+    private sealed record class CustomResolveParams([property: JsonPropertyName("textDocument")] LSP.TextDocumentIdentifier TextDocument);
 
     [ExportCSharpVisualBasicStatelessLspService(typeof(CustomResolveHandler)), PartNotDiscoverable, Shared]
     [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    private class CustomResolveHandler() : ILspServiceDocumentRequestHandler<CustomResolveParams, ResolvedDocumentInfo>
+    private sealed class CustomResolveHandler() : ILspServiceDocumentRequestHandler<CustomResolveParams, ResolvedDocumentInfo>
     {
         public const string MethodName = nameof(CustomResolveHandler);
 

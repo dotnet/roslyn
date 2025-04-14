@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;

@@ -11,7 +11,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Workspaces;
 
-public class SourceGeneratedDocumentUrisTests : AbstractLanguageServerProtocolTests
+public sealed class SourceGeneratedDocumentUrisTests : AbstractLanguageServerProtocolTests
 {
     public SourceGeneratedDocumentUrisTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {

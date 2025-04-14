@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting;
 
 [Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
+public sealed class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
 {
     internal override Type GetHighlighterType()
         => typeof(SwitchStatementHighlighter);

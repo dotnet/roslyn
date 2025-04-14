@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-public class GenerateEqualsAndGetHashCodeFromMembersTests
+public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
 {
-    private class TestWithDialog : VerifyCS.Test
+    private sealed class TestWithDialog : VerifyCS.Test
     {
         private static readonly TestComposition s_composition =
             EditorTestCompositions.EditorFeatures.AddParts(typeof(TestPickMembersService));
@@ -4398,6 +4398,21 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
             },
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.Default,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76916")]
+    public async Task TestMissingWithPrimaryConstructorAndNoFields()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C(int a)
+                {
+                    [||]
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 }

@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 using Microsoft.Extensions.Logging;
 using Microsoft.TestPlatform.VsTestConsole.TranslationLayer;
-using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Testing;
@@ -18,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Testing;
 [Method(RunTestsMethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer testDiscoverer, TestRunner testRunner, ServerConfiguration serverConfiguration, ILoggerFactory loggerFactory)
+internal sealed class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer testDiscoverer, TestRunner testRunner, ServerConfiguration serverConfiguration, ILoggerFactory loggerFactory)
     : ILspServiceDocumentRequestHandler<RunTestsParams, RunTestsPartialResult[]>
 {
     private const string RunTestsMethodName = "textDocument/runTests";

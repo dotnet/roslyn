@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// Defines a MEF assembly loader that knows how to load assemblies from both the default assembly load context
 /// and from the assembly load contexts for any of our extensions.
 /// </summary>
-internal class CustomExportAssemblyLoader(ExtensionAssemblyManager extensionAssemblyManager, ILoggerFactory loggerFactory) : IAssemblyLoader
+internal sealed class CustomExportAssemblyLoader(ExtensionAssemblyManager extensionAssemblyManager, ILoggerFactory loggerFactory) : IAssemblyLoader
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger("MEF Assembly Loader");
 

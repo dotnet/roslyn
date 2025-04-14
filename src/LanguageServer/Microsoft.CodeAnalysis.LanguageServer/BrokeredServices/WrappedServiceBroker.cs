@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 #pragma warning restore RS0030 // Do not used banned APIs
@@ -21,7 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 [Export(typeof(WrappedServiceBroker))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class WrappedServiceBroker() : IServiceBroker
+internal sealed class WrappedServiceBroker() : IServiceBroker
 {
     private readonly TaskCompletionSource<IServiceBroker> _serviceBrokerTask = new(TaskCreationOptions.RunContinuationsAsynchronously);
 

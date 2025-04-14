@@ -7,13 +7,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities;
 
-public partial class LspTestWorkspace : TestWorkspace, ILspWorkspace
+public sealed partial class LspTestWorkspace : TestWorkspace, ILspWorkspace
 {
     private readonly bool _supportsLspMutation;
 

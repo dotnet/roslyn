@@ -7,11 +7,10 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-internal class AggregatedFormattingResult : AbstractAggregatedFormattingResult
+internal sealed class AggregatedFormattingResult : AbstractAggregatedFormattingResult
 {
     public AggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, TextSpanMutableIntervalTree? formattingSpans)
         : base(node, results, formattingSpans)

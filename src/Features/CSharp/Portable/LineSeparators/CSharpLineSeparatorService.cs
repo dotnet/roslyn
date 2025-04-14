@@ -14,12 +14,11 @@ using Microsoft.CodeAnalysis.LineSeparators;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.LineSeparators;
 
 [ExportLanguageService(typeof(ILineSeparatorService), LanguageNames.CSharp), Shared]
-internal class CSharpLineSeparatorService : ILineSeparatorService
+internal sealed class CSharpLineSeparatorService : ILineSeparatorService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

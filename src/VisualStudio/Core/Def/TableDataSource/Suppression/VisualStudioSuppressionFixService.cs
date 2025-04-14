@@ -18,12 +18,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Progress;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
-using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
@@ -66,9 +64,9 @@ internal sealed class VisualStudioSuppressionFixService(
 
     private IWpfTableControl? _tableControl;
 
-    public async Task InitializeAsync(IAsyncServiceProvider serviceProvider)
+    public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
     {
-        var errorList = await serviceProvider.GetServiceAsync<SVsErrorList, IErrorList>(_threadingContext.JoinableTaskFactory, throwOnFailure: false).ConfigureAwait(false);
+        var errorList = await serviceProvider.GetServiceAsync<SVsErrorList, IErrorList>(throwOnFailure: false, cancellationToken).ConfigureAwait(false);
         _tableControl = errorList?.TableControl;
     }
 
@@ -267,9 +265,9 @@ internal sealed class VisualStudioSuppressionFixService(
                 if (!documentDiagnosticsPerLanguage.IsEmpty)
                 {
                     var suppressionFixer = GetSuppressionFixer(documentDiagnosticsPerLanguage.SelectMany(kvp => kvp.Value), language, _codeFixService);
-                    if (suppressionFixer != null)
+                    var suppressionFixAllProvider = suppressionFixer?.GetFixAllProvider();
+                    if (suppressionFixer != null && suppressionFixAllProvider != null)
                     {
-                        var suppressionFixAllProvider = suppressionFixer.GetFixAllProvider();
                         newSolution = await _fixMultipleOccurencesService.GetFixAsync(
                             documentDiagnosticsPerLanguage,
                             _workspace,
@@ -292,9 +290,9 @@ internal sealed class VisualStudioSuppressionFixService(
                 if (!projectDiagnosticsPerLanguage.IsEmpty)
                 {
                     var suppressionFixer = GetSuppressionFixer(projectDiagnosticsPerLanguage.SelectMany(kvp => kvp.Value), language, _codeFixService);
-                    if (suppressionFixer != null)
+                    var suppressionFixAllProvider = suppressionFixer?.GetFixAllProvider();
+                    if (suppressionFixer != null && suppressionFixAllProvider != null)
                     {
-                        var suppressionFixAllProvider = suppressionFixer.GetFixAllProvider();
                         newSolution = await _fixMultipleOccurencesService.GetFixAsync(
                              projectDiagnosticsPerLanguage,
                              _workspace,
@@ -543,24 +541,12 @@ internal sealed class VisualStudioSuppressionFixService(
 
     private async Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(IEnumerable<DiagnosticData> diagnosticsToFix, Func<Project, bool> shouldFixInProject, bool filterStaleDiagnostics, CancellationToken cancellationToken)
     {
-        var builder = ImmutableDictionary.CreateBuilder<ProjectId, List<DiagnosticData>>();
+        using var _ = CodeAnalysis.PooledObjects.PooledDictionary<ProjectId, CodeAnalysis.PooledObjects.ArrayBuilder<DiagnosticData>>.GetInstance(out var builder);
         foreach (var diagnosticData in diagnosticsToFix.Where(IsProjectDiagnostic))
-        {
-            RoslynDebug.AssertNotNull(diagnosticData.ProjectId);
-
-            if (!builder.TryGetValue(diagnosticData.ProjectId, out var diagnosticsPerProject))
-            {
-                diagnosticsPerProject = [];
-                builder[diagnosticData.ProjectId] = diagnosticsPerProject;
-            }
-
-            diagnosticsPerProject.Add(diagnosticData);
-        }
+            builder.MultiAdd(diagnosticData.ProjectId, diagnosticData);
 
         if (builder.Count == 0)
-        {
             return ImmutableDictionary<Project, ImmutableArray<Diagnostic>>.Empty;
-        }
 
         var finalBuilder = ImmutableDictionary.CreateBuilder<Project, ImmutableArray<Diagnostic>>();
         var latestDiagnosticsToFix = filterStaleDiagnostics ? new HashSet<DiagnosticData>() : null;
@@ -601,6 +587,6 @@ internal sealed class VisualStudioSuppressionFixService(
         return finalBuilder.ToImmutableDictionary();
 
         // Local functions
-        static bool IsProjectDiagnostic(DiagnosticData d) => d.DataLocation == null && d.ProjectId != null;
+        static bool IsProjectDiagnostic(DiagnosticData d) => d.DataLocation == null;
     }
 }

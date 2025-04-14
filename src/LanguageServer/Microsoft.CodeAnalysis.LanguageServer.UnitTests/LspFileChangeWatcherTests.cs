@@ -14,7 +14,7 @@ using FileSystemWatcher = Roslyn.LanguageServer.Protocol.FileSystemWatcher;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
-public class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper)
+public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper)
     : AbstractLanguageServerHostTests(testOutputHelper)
 {
     private readonly ClientCapabilities _clientCapabilitiesWithFileWatcherSupport = new ClientCapabilities

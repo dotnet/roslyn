@@ -27,6 +27,8 @@ public abstract partial class Workspace
     private const string TextDocumentOpenedEventName = "TextDocumentOpened";
     private const string TextDocumentClosedEventName = "TextDocumentClosed";
 
+    private IWorkspaceEventListenerService _workspaceEventListenerService;
+
     /// <summary>
     /// An event raised whenever the current solution is changed.
     /// </summary>
@@ -78,17 +80,22 @@ public abstract partial class Workspace
             projectId = documentId.ProjectId;
         }
 
-        var args = new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
-
+        WorkspaceChangeEventArgs args = null;
         var ev = GetEventHandlers<WorkspaceChangeEventArgs>(WorkspaceChangedImmediateEventName);
-        RaiseEventForHandlers(ev, args, FunctionId.Workspace_EventsImmediate);
+
+        if (ev.HasHandlers)
+        {
+            args = new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
+            RaiseEventForHandlers(ev, sender: this, args, FunctionId.Workspace_EventsImmediate);
+        }
 
         ev = GetEventHandlers<WorkspaceChangeEventArgs>(WorkspaceChangeEventName);
         if (ev.HasHandlers)
         {
+            args ??= new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
             return this.ScheduleTask(() =>
             {
-                RaiseEventForHandlers(ev, args, FunctionId.Workspace_Events);
+                RaiseEventForHandlers(ev, sender: this, args, FunctionId.Workspace_Events);
             }, WorkspaceChangeEventName);
         }
         else
@@ -98,12 +105,13 @@ public abstract partial class Workspace
 
         static void RaiseEventForHandlers(
             EventMap.EventHandlerSet<EventHandler<WorkspaceChangeEventArgs>> handlers,
+            Workspace sender,
             WorkspaceChangeEventArgs args,
             FunctionId functionId)
         {
             using (Logger.LogBlock(functionId, (s, p, d, k) => $"{s.Id} - {p} - {d} {args.Kind.ToString()}", args.NewSolution, args.ProjectId, args.DocumentId, args.Kind, CancellationToken.None))
             {
-                handlers.RaiseEvent(static (handler, args) => handler(args.NewSolution.Workspace, args), args);
+                handlers.RaiseEvent(static (handler, arg) => handler(arg.sender, arg.args), (sender, args));
             }
         }
     }
@@ -283,6 +291,9 @@ public abstract partial class Workspace
 
     private void EnsureEventListeners()
     {
-        this.Services.GetService<IWorkspaceEventListenerService>()?.EnsureListeners();
+        // Cache this service so it doesn't need to be retrieved from MEF during disposal.
+        _workspaceEventListenerService ??= this.Services.GetService<IWorkspaceEventListenerService>();
+
+        _workspaceEventListenerService?.EnsureListeners();
     }
 }

@@ -12,11 +12,10 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-internal class TriviaRewriter : CSharpSyntaxRewriter
+internal sealed class TriviaRewriter : CSharpSyntaxRewriter
 {
     private readonly SyntaxNode _node;
     private readonly TextSpanMutableIntervalTree _spans;

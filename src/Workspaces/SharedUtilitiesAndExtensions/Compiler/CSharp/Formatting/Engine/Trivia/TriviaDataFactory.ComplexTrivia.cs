@@ -6,14 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-internal partial class TriviaDataFactory
+internal sealed partial class TriviaDataFactory
 {
     /// <summary>   
     /// represents a general trivia between two tokens. slightly more expensive than others since it

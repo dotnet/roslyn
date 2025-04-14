@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Composition;
 using System.IO;
 using System.Linq;
-using System.ServiceModel.Syndication;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -18,7 +17,6 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Nerdbank.Streams;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using StreamJsonRpc;
@@ -28,7 +26,7 @@ using System.Text.Json.Serialization;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.LanguageServer;
 
-public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
+public sealed class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
 {
     public VSTypeScriptHandlerTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
@@ -103,7 +101,7 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
         return await VSTypeScriptTestLspServer.CreateAsync(testWorkspace, new InitializationOptions(), TestOutputLspLogger);
     }
 
-    private class VSTypeScriptTestLspServer : AbstractTestLspServer<LspTestWorkspace, TestHostDocument, TestHostProject, TestHostSolution>
+    private sealed class VSTypeScriptTestLspServer : AbstractTestLspServer<LspTestWorkspace, TestHostDocument, TestHostProject, TestHostSolution>
     {
         public VSTypeScriptTestLspServer(LspTestWorkspace testWorkspace, Dictionary<string, IList<Roslyn.LanguageServer.Protocol.Location>> locations, InitializationOptions options, AbstractLspLogger logger) : base(testWorkspace, locations, options, logger)
         {
@@ -141,10 +139,10 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
         }
     }
 
-    internal record TSRequest([property: JsonConverter(typeof(DocumentUriConverter))] DocumentUri Document, string Project);
+    internal sealed record TSRequest([property: JsonConverter(typeof(DocumentUriConverter))] DocumentUri Document, string Project);
 
     [ExportTypeScriptLspServiceFactory(typeof(TypeScriptHandler)), PartNotDiscoverable, Shared]
-    internal class TypeScriptHandlerFactory : AbstractVSTypeScriptRequestHandlerFactory
+    internal sealed class TypeScriptHandlerFactory : AbstractVSTypeScriptRequestHandlerFactory
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -159,7 +157,7 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
     }
 
     [VSTypeScriptMethod(MethodName)]
-    internal class TypeScriptHandler : AbstractVSTypeScriptRequestHandler<TSRequest, int>
+    internal sealed class TypeScriptHandler : AbstractVSTypeScriptRequestHandler<TSRequest, int>
     {
         internal static int Response = 1;
 

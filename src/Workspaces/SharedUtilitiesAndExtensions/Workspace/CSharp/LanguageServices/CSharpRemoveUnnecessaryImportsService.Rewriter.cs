@@ -11,16 +11,15 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Helpers.RemoveUnnecessaryImports;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
 
-internal partial class CSharpRemoveUnnecessaryImportsService
+internal sealed partial class CSharpRemoveUnnecessaryImportsService
 {
-    private class Rewriter : CSharpSyntaxRewriter
+    private sealed class Rewriter : CSharpSyntaxRewriter
     {
         private readonly ISet<UsingDirectiveSyntax> _unnecessaryUsingsDoNotAccessDirectly;
         private readonly CancellationToken _cancellationToken;

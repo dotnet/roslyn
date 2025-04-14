@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// certain valid RFC spec URIs.  We do not want serialization / deserialization to fail if we cannot parse the URI.
 /// See https://github.com/dotnet/runtime/issues/64707
 /// </summary>
-internal class DocumentUriConverter : JsonConverter<DocumentUri>
+internal sealed class DocumentUriConverter : JsonConverter<DocumentUri>
 {
     public override DocumentUri Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     => new(reader.GetString());

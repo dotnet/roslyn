@@ -4,9 +4,7 @@
 
 using System;
 using System.Collections.Specialized;
-using System.Linq;
 using Roslyn.LanguageServer.Protocol;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 

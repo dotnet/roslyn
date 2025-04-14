@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.NewLines.ArrowExpressionClausePlacement;
-using Microsoft.CodeAnalysis.CSharp.NewLines.ConstructorInitializerPlacement;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Xunit;
 
@@ -17,7 +15,7 @@ using Verify = CSharpCodeFixVerifier<
     ArrowExpressionClausePlacementDiagnosticAnalyzer,
     ArrowExpressionClausePlacementCodeFixProvider>;
 
-public class ArrowExpressionClausePlacementTests
+public sealed class ArrowExpressionClausePlacementTests
 {
     [Fact]
     public async Task TestNotWithOptionOff()

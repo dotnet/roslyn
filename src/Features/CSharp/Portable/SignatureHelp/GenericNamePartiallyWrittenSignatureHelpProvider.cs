@@ -10,12 +10,11 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
 [ExportSignatureHelpProvider("GenericNamePartiallyWrittenSignatureHelpProvider", LanguageNames.CSharp), Shared]
-internal class GenericNamePartiallyWrittenSignatureHelpProvider : GenericNameSignatureHelpProvider
+internal sealed class GenericNamePartiallyWrittenSignatureHelpProvider : GenericNameSignatureHelpProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

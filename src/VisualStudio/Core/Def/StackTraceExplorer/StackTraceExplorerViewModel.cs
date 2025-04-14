@@ -9,11 +9,10 @@ using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Text.Classification;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 
-internal class StackTraceExplorerViewModel : ViewModelBase
+internal sealed class StackTraceExplorerViewModel : ViewModelBase
 {
     private readonly IThreadingContext _threadingContext;
     private readonly Workspace _workspace;

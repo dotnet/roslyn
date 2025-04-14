@@ -22,7 +22,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal sealed partial class ProjectState
+internal sealed partial class ProjectState : IComparable<ProjectState>
 {
     public readonly LanguageServices LanguageServices;
 
@@ -116,7 +116,7 @@ internal sealed partial class ProjectState
         DocumentStates = new TextDocumentStates<DocumentState>(projectInfoFixed.Documents, info => CreateDocument(info, parseOptions, loadTextOptions));
         AdditionalDocumentStates = new TextDocumentStates<AdditionalDocumentState>(projectInfoFixed.AdditionalDocuments, info => new AdditionalDocumentState(languageServices.SolutionServices, info, loadTextOptions));
 
-        _lazyLatestDocumentVersion = AsyncLazy.Create(static (self, c) => ComputeLatestDocumentVersionAsync(self.DocumentStates, self.AdditionalDocumentStates, c), arg: this);
+        _lazyLatestDocumentVersion = AsyncLazy.Create(static async (self, c) => await ComputeLatestDocumentVersionAsync(self.DocumentStates, self.AdditionalDocumentStates, c).ConfigureAwait(false), arg: this);
         _lazyLatestDocumentTopLevelChangeVersion = AsyncLazy.Create(static (self, c) => ComputeLatestDocumentTopLevelChangeVersionAsync(self.DocumentStates, self.AdditionalDocumentStates, c), arg: this);
 
         // ownership of information on document has moved to project state. clear out documentInfo the state is
@@ -220,7 +220,7 @@ internal sealed partial class ProjectState
         return projectInfo;
     }
 
-    private static async Task<VersionStamp> ComputeLatestDocumentVersionAsync(TextDocumentStates<DocumentState> documentStates, TextDocumentStates<AdditionalDocumentState> additionalDocumentStates, CancellationToken cancellationToken)
+    private static async ValueTask<VersionStamp> ComputeLatestDocumentVersionAsync(TextDocumentStates<DocumentState> documentStates, TextDocumentStates<AdditionalDocumentState> additionalDocumentStates, CancellationToken cancellationToken)
     {
         // this may produce a version that is out of sync with the actual Document versions.
         var latestVersion = VersionStamp.Default;
@@ -1090,8 +1090,8 @@ internal sealed partial class ProjectState
 
         if (recalculateDocumentVersion)
         {
-            dependentDocumentVersion = AsyncLazy.Create(static (arg, cancellationToken) =>
-                ComputeLatestDocumentVersionAsync(arg.newDocumentStates, arg.newAdditionalDocumentStates, cancellationToken),
+            dependentDocumentVersion = AsyncLazy.Create(static async (arg, cancellationToken) =>
+                await ComputeLatestDocumentVersionAsync(arg.newDocumentStates, arg.newAdditionalDocumentStates, cancellationToken).ConfigureAwait(false),
                 arg: (newDocumentStates, newAdditionalDocumentStates));
         }
         else if (contentChanged)
@@ -1140,5 +1140,13 @@ internal sealed partial class ProjectState
         return this.DocumentStates.GetFirstDocumentIdWithFilePath(filePath) ??
             this.AdditionalDocumentStates.GetFirstDocumentIdWithFilePath(filePath) ??
             this.AnalyzerConfigDocumentStates.GetFirstDocumentIdWithFilePath(filePath);
+    }
+
+    public int CompareTo(ProjectState? other)
+    {
+        if (other is null)
+            return 1;
+
+        return this.Id.CompareTo(other.Id);
     }
 }

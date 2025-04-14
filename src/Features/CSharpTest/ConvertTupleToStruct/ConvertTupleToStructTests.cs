@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.ConvertTupleToStruct;
@@ -28,7 +27,7 @@ using VerifyCS = CSharpCodeRefactoringVerifier<CSharpConvertTupleToStructCodeRef
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-public class ConvertTupleToStructTests
+public sealed class ConvertTupleToStructTests
 {
     private static OptionsCollection PreferImplicitTypeWithInfo()
         => new(LanguageNames.CSharp)
