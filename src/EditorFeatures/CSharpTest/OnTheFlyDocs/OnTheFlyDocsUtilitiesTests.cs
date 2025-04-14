@@ -642,7 +642,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
             return;
         }
 
-        var relevantInfo = resultIndex < 0 ? result.Last() : result[resultIndex];
+        var relevantInfo = result[resultIndex];
         Assert.NotNull(relevantInfo);
 
         if (expectedText != null)
