@@ -25,8 +25,8 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
             Dim projectVertex = Assert.Single(lsif.Vertices.OfType(Of Graph.LsifProject))
             Dim documentVertices = lsif.GetLinkedVertices(Of Graph.LsifDocument)(projectVertex, "contains")
 
-            Dim documentA = Assert.Single(documentVertices, Function(d) d.Uri.LocalPath = "Z:\A.cs")
-            Dim documentB = Assert.Single(documentVertices, Function(d) d.Uri.LocalPath = "Z:\B.cs")
+            Dim documentA = Assert.Single(documentVertices, Function(d) d.Uri.GetRequiredParsedUri().LocalPath = "Z:\A.cs")
+            Dim documentB = Assert.Single(documentVertices, Function(d) d.Uri.GetRequiredParsedUri().LocalPath = "Z:\B.cs")
 
             ' We don't include contents for normal files, just generated ones
             Assert.Null(documentA.Contents)
@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                 Dim contents = Encoding.UTF8.GetString(Convert.FromBase64String(contentBase64Encoded))
 
                 Dim compilation = Await workspace.CurrentSolution.Projects.Single().GetCompilationAsync()
-                Dim tree = Assert.Single(compilation.SyntaxTrees, Function(t) generatedDocumentVertex.Uri.OriginalString.Contains(Path.GetFileName(t.FilePath)))
+                Dim tree = Assert.Single(compilation.SyntaxTrees, Function(t) generatedDocumentVertex.Uri.GetRequiredParsedUri().OriginalString.Contains(Path.GetFileName(t.FilePath)))
 
                 Assert.Equal(tree.GetText().ToString(), contents)
             Next

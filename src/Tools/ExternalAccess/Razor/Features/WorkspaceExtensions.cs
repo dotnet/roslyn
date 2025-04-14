@@ -12,9 +12,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 
 internal static class WorkspaceExtensions
 {
+    [Obsolete("Use GetTextDocumentAsync with DocumentUri instead.")]
     public static ValueTask<TextDocument?> GetTextDocumentAsync(this Workspace workspace, Uri uri, CancellationToken cancellationToken)
     {
-        var identifier = new TextDocumentIdentifier() { Uri = uri };
+        return GetTextDocumentAsync(workspace, new DocumentUri(uri), cancellationToken);
+    }
+
+    public static ValueTask<TextDocument?> GetTextDocumentAsync(this Workspace workspace, DocumentUri uri, CancellationToken cancellationToken)
+    {
+        var identifier = new TextDocumentIdentifier() { DocumentUri = uri };
         return workspace.CurrentSolution.GetTextDocumentAsync(identifier, cancellationToken);
     }
 }

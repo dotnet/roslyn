@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 internal readonly struct RazorRequestContext(RequestContext context)
 {
     internal string Method => context.Method;
-    internal Uri? Uri => context.TextDocument?.GetURI();
+    internal Uri? Uri => context.TextDocument?.GetURI().ParsedUri;
     /// <inheritdoc cref="RequestContext.Workspace"/>
     internal Workspace? Workspace => context.Workspace;
     /// <inheritdoc cref="RequestContext.Solution"/>
