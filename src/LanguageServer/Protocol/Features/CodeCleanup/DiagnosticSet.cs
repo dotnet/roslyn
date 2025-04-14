@@ -30,7 +30,7 @@ internal sealed class DiagnosticSet
         IsAnyDiagnosticIdExplicitlyEnabled = isAnyDiagnosticIdExplicitlyEnabled;
     }
 
-    public DiagnosticSet(string description, params ReadOnlySpan<string> diagnosticIds)
+    public DiagnosticSet(string description, params string[] diagnosticIds)
         : this(description, [.. diagnosticIds], isAnyDiagnosticIdExplicitlyEnabled: true)
     {
     }
