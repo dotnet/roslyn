@@ -18,7 +18,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument;
 
-public class ImplementationAssemblyLookupServiceTests : AbstractPdbSourceDocumentTests
+public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSourceDocumentTests
 {
     [Fact]
     public async Task Net6SdkLayout_InvalidXml()
@@ -567,7 +567,7 @@ public class ImplementationAssemblyLookupServiceTests : AbstractPdbSourceDocumen
     /// <summary>
     /// Test logger that ensures we don't log the same message twice.
     /// </summary>
-    private class NoDuplicatesLogger : IPdbSourceDocumentLogger
+    private sealed class NoDuplicatesLogger : IPdbSourceDocumentLogger
     {
         private readonly HashSet<string> _logs = [];
         public void Clear()

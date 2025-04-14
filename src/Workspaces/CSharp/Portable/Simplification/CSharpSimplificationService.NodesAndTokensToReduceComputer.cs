@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification;
 
 internal partial class CSharpSimplificationService
 {
-    private class NodesAndTokensToReduceComputer : CSharpSyntaxRewriter
+    private sealed class NodesAndTokensToReduceComputer : CSharpSyntaxRewriter
     {
         private readonly List<NodeOrTokenToReduce> _nodesAndTokensToReduce = [];
         private readonly Func<SyntaxNodeOrToken, bool> _isNodeOrTokenOutsideSimplifySpans;

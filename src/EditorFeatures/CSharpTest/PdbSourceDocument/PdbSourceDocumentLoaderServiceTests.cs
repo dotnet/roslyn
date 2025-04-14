@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument;
 
-public class PdbSourceDocumentLoaderServiceTests : AbstractPdbSourceDocumentTests
+public sealed class PdbSourceDocumentLoaderServiceTests : AbstractPdbSourceDocumentTests
 {
     [Fact]
     public async Task ReturnsSourceFileFromSourceLink()

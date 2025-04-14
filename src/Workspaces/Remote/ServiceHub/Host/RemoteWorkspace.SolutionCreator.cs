@@ -82,12 +82,9 @@ internal partial class RemoteWorkspace
                         AssetPathKind.SolutionFallbackAnalyzerOptions, newSolutionChecksums.FallbackAnalyzerOptions, cancellationToken).ConfigureAwait(false));
                 }
 
-                if (newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentities.HasValue &&
-                    newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.HasValue &&
-                    !newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentGenerationDateTimes.IsDefault)
                 {
-                    var newSolutionFrozenSourceGeneratedDocumentIdentities = newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentities.Value;
-                    var newSolutionFrozenSourceGeneratedDocuments = newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.Value;
+                    var newSolutionFrozenSourceGeneratedDocumentIdentities = newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentities;
+                    var newSolutionFrozenSourceGeneratedDocuments = newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments;
                     var count = newSolutionFrozenSourceGeneratedDocuments.Ids.Length;
 
                     var frozenDocuments = new FixedSizeArrayBuilder<(SourceGeneratedDocumentIdentity identity, DateTime generationDateTime, SourceText text)>(count);

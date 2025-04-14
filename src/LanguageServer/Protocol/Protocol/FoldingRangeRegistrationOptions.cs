@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal class FoldingRangeRegistrationOptions : FoldingRangeOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
+internal sealed class FoldingRangeRegistrationOptions : FoldingRangeOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
 {
     /// <summary>
     /// A document selector to identify the scope of the registration. If set to

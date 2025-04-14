@@ -19,7 +19,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class SnippetCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class SnippetCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     public SnippetCompletionProviderTests()
     {
@@ -130,7 +130,7 @@ public class SnippetCompletionProviderTests : AbstractCSharpCompletionProviderTe
     }
 
     [ExportLanguageService(typeof(ISnippetInfoService), LanguageNames.CSharp, ServiceLayer.Test), Shared, PartNotDiscoverable]
-    private class MockSnippetInfoService : ISnippetInfoService
+    private sealed class MockSnippetInfoService : ISnippetInfoService
     {
         internal const string SnippetShortcut = nameof(SnippetShortcut);
         internal const string SnippetDescription = nameof(SnippetDescription);

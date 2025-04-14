@@ -307,6 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> argumentRefKindsOpt,
             ImmutableArray<string> argumentNamesOpt,
+            ImmutableArray<int> argsToParamsOpt,
             BitVector defaultArguments,
             BoundNode node)
         {
@@ -328,13 +329,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(ErrorCode.ERR_ExpressionTreeContainsIndexedProperty, node);
                 }
-                else if (hasDefaultArgument(arguments, defaultArguments))
+                else if (hasDefaultArgument(arguments, defaultArguments) &&
+                    !_compilation.IsFeatureEnabled(MessageID.IDS_FeatureExpressionOptionalAndNamedArguments))
                 {
                     Error(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, node);
                 }
-                else if (!argumentNamesOpt.IsDefaultOrEmpty)
+                else if (!argumentNamesOpt.IsDefaultOrEmpty &&
+                    !_compilation.IsFeatureEnabled(MessageID.IDS_FeatureExpressionOptionalAndNamedArguments))
                 {
                     Error(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, node);
+                }
+                else if (!argumentNamesOpt.IsDefaultOrEmpty &&
+                    hasNamedArgumentOutOfOrder(argsToParamsOpt))
+                {
+                    Debug.Assert(_compilation.IsFeatureEnabled(MessageID.IDS_FeatureExpressionOptionalAndNamedArguments));
+                    Error(ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition, node);
                 }
                 else if (IsComCallWithRefOmitted(method, arguments, argumentRefKindsOpt))
                 {
@@ -364,6 +373,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
+                return false;
+            }
+
+            static bool hasNamedArgumentOutOfOrder(ImmutableArray<int> argsToParamsOpt)
+            {
+                if (argsToParamsOpt.IsDefaultOrEmpty)
+                {
+                    return false;
+                }
+                for (int i = 0; i < argsToParamsOpt.Length; i++)
+                {
+                    if (argsToParamsOpt[i] != i)
+                    {
+                        return true;
+                    }
+                }
                 return false;
             }
         }
@@ -474,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 do
                 {
-                    VisitCall(node.Method, null, node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt, node.DefaultArguments, node);
+                    visitCall(node);
                     CheckReferenceToMethodIfLocalFunction(node, node.Method);
                     this.VisitList(node.Arguments);
                 }
@@ -484,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                VisitCall(node.Method, null, node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt, node.DefaultArguments, node);
+                visitCall(node);
                 CheckReceiverIfField(node.ReceiverOpt);
                 CheckReferenceToMethodIfLocalFunction(node, node.Method);
                 this.Visit(node.ReceiverOpt);
@@ -492,6 +517,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
+
+            void visitCall(BoundCall node)
+            {
+                VisitCall(node.Method, null, node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt, node.ArgsToParamsOpt, node.DefaultArguments, node);
+            }
         }
 
         /// <summary>
@@ -520,13 +550,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(ErrorCode.ERR_ExtensionCollectionElementInitializerInExpressionTree, node);
             }
 
-            VisitCall(node.AddMethod, null, node.Arguments, default(ImmutableArray<RefKind>), default(ImmutableArray<string>), node.DefaultArguments, node);
+            VisitCall(node.AddMethod, null, node.Arguments, default(ImmutableArray<RefKind>), default(ImmutableArray<string>), default(ImmutableArray<int>), node.DefaultArguments, node);
             return base.VisitCollectionElementInitializer(node);
         }
 
         public override BoundNode VisitObjectCreationExpression(BoundObjectCreationExpression node)
         {
-            VisitCall(node.Constructor, null, node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt, node.DefaultArguments, node);
+            VisitCall(node.Constructor, null, node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt, node.ArgsToParamsOpt, node.DefaultArguments, node);
             return base.VisitObjectCreationExpression(node);
         }
 
@@ -536,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = indexer.GetOwnOrInheritedGetMethod() ?? indexer.GetOwnOrInheritedSetMethod();
             if ((object)method != null)
             {
-                VisitCall(method, indexer, node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt, node.DefaultArguments, node);
+                VisitCall(method, indexer, node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt, node.ArgsToParamsOpt, node.DefaultArguments, node);
             }
             CheckReceiverIfField(node.ReceiverOpt);
             return base.VisitIndexerAccess(node);

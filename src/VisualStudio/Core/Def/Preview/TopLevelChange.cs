@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview;
 
-internal class TopLevelChange : AbstractChange
+internal sealed class TopLevelChange : AbstractChange
 {
     private readonly string _name;
     private readonly Solution _newSolution;

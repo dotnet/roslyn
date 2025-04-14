@@ -14,7 +14,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal class DocumentDiagnosticParams : ITextDocumentParams, IWorkDoneProgressParams, IPartialResultParams<SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport, DocumentDiagnosticReportPartialResult>>
+internal sealed class DocumentDiagnosticParams : ITextDocumentParams, IWorkDoneProgressParams, IPartialResultParams<SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport, DocumentDiagnosticReportPartialResult>>
 {
     /// <inheritdoc/>
     /// <remarks>

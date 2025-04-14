@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
-public class LocaleTests(ITestOutputHelper? testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
+public sealed class LocaleTests(ITestOutputHelper? testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
     protected override TestComposition Composition => base.Composition
             .AddParts(typeof(LocaleTestHandler));
@@ -80,7 +80,7 @@ public class LocaleTests(ITestOutputHelper? testOutputHelper) : AbstractLanguage
 
     [ExportCSharpVisualBasicStatelessLspService(typeof(LocaleTestHandler)), PartNotDiscoverable, Shared]
     [Method(MethodName)]
-    internal class LocaleTestHandler : ILspServiceRequestHandler<Request, Response>
+    internal sealed class LocaleTestHandler : ILspServiceRequestHandler<Request, Response>
     {
         public const string MethodName = nameof(LocaleTestHandler);
 
@@ -99,7 +99,7 @@ public class LocaleTests(ITestOutputHelper? testOutputHelper) : AbstractLanguage
         }
     }
 
-    internal record Request();
+    internal sealed record Request();
 
-    internal record Response(string HandlerCulture);
+    internal sealed record Response(string HandlerCulture);
 }

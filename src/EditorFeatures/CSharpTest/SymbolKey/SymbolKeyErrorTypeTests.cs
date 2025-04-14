@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId;
 
-public class SymbolKeyErrorTypeTests : SymbolKeyTestBase
+public sealed class SymbolKeyErrorTypeTests : SymbolKeyTestBase
 {
     [Fact]
     public void GenericType_NotMissingWithMissingTypeArgument()

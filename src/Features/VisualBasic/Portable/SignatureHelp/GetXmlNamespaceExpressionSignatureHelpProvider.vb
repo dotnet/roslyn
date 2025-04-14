@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -27,13 +28,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return token.IsChildToken(Of GetXmlNamespaceExpressionSyntax)(Function(ce) ce.OpenParenToken)
         End Function
 
-        Public Overrides Function IsTriggerCharacter(ch As Char) As Boolean
-            Return ch = "("c
-        End Function
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableArray(Of Char) = ImmutableArray.Create("("c)
 
-        Public Overrides Function IsRetriggerCharacter(ch As Char) As Boolean
-            Return ch = ")"c
-        End Function
+        Public Overrides ReadOnly Property RetriggerCharacters As ImmutableArray(Of Char) = ImmutableArray.Create(")"c)
 
         Protected Overrides Function IsArgumentListToken(node As GetXmlNamespaceExpressionSyntax, token As SyntaxToken) As Boolean
             Return node.GetXmlNamespaceKeyword <> token AndAlso

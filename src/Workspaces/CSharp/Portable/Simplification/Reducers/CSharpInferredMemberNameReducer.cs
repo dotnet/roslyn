@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification;
 /// class considers which ones of those can be simplified (after the refactoring was done).
 /// If the inferred name of the member matches, the explicit name (from Complexify) can be removed.
 /// </summary>
-internal partial class CSharpInferredMemberNameReducer : AbstractCSharpReducer
+internal sealed partial class CSharpInferredMemberNameReducer : AbstractCSharpReducer
 {
     private static readonly ObjectPool<IReductionRewriter> s_pool = new(
         () => new Rewriter(s_pool));

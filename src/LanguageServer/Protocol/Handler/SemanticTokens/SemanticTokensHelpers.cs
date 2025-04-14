@@ -366,7 +366,7 @@ internal static class SemanticTokensHelpers
         }
     }
 
-    private class ClassifiedSpanComparer : IComparer<ClassifiedSpan>
+    private sealed class ClassifiedSpanComparer : IComparer<ClassifiedSpan>
     {
         public static readonly ClassifiedSpanComparer Instance = new();
 

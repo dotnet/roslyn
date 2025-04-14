@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
 
 internal abstract partial class AbstractGenerateConversionService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>
 {
-    protected new class State : AbstractGenerateParameterizedMemberService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>.State
+    protected new sealed class State : AbstractGenerateParameterizedMemberService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>.State
     {
         public static async Task<State> GenerateConversionStateAsync(
            TService service,

@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
 [Trait(Traits.Feature, Traits.Features.Outlining)]
-public class ArgumentListSyntaxStructureTests : AbstractCSharpSyntaxNodeStructureTests<ArgumentListSyntax>
+public sealed class ArgumentListSyntaxStructureTests : AbstractCSharpSyntaxNodeStructureTests<ArgumentListSyntax>
 {
     internal override AbstractSyntaxStructureProvider CreateProvider() => new ArgumentListStructureProvider();
 

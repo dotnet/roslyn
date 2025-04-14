@@ -16575,6 +16575,65 @@ public sealed partial class ShebangDirectiveTriviaSyntax : DirectiveTriviaSyntax
 /// <remarks>
 /// <para>This node is associated with the following syntax kinds:</para>
 /// <list type="bullet">
+/// <item><description><see cref="SyntaxKind.IgnoredDirectiveTrivia"/></description></item>
+/// </list>
+/// </remarks>
+public sealed partial class IgnoredDirectiveTriviaSyntax : DirectiveTriviaSyntax
+{
+
+    internal IgnoredDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+      : base(green, parent, position)
+    {
+    }
+
+    public override SyntaxToken HashToken => new SyntaxToken(this, ((InternalSyntax.IgnoredDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+
+    public SyntaxToken ColonToken => new SyntaxToken(this, ((InternalSyntax.IgnoredDirectiveTriviaSyntax)this.Green).colonToken, GetChildPosition(1), GetChildIndex(1));
+
+    public SyntaxToken Content
+    {
+        get
+        {
+            var slot = ((Syntax.InternalSyntax.IgnoredDirectiveTriviaSyntax)this.Green).content;
+            return slot != null ? new SyntaxToken(this, slot, GetChildPosition(2), GetChildIndex(2)) : default;
+        }
+    }
+
+    public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((InternalSyntax.IgnoredDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
+
+    public override bool IsActive => ((InternalSyntax.IgnoredDirectiveTriviaSyntax)this.Green).IsActive;
+
+    internal override SyntaxNode? GetNodeSlot(int index) => null;
+
+    internal override SyntaxNode? GetCachedSlot(int index) => null;
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIgnoredDirectiveTrivia(this);
+    public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitIgnoredDirectiveTrivia(this);
+
+    public IgnoredDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken colonToken, SyntaxToken content, SyntaxToken endOfDirectiveToken, bool isActive)
+    {
+        if (hashToken != this.HashToken || colonToken != this.ColonToken || content != this.Content || endOfDirectiveToken != this.EndOfDirectiveToken)
+        {
+            var newNode = SyntaxFactory.IgnoredDirectiveTrivia(hashToken, colonToken, content, endOfDirectiveToken, isActive);
+            var annotations = GetAnnotations();
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+        }
+
+        return this;
+    }
+
+    internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
+    public new IgnoredDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken) => Update(hashToken, this.ColonToken, this.Content, this.EndOfDirectiveToken, this.IsActive);
+    public IgnoredDirectiveTriviaSyntax WithColonToken(SyntaxToken colonToken) => Update(this.HashToken, colonToken, this.Content, this.EndOfDirectiveToken, this.IsActive);
+    public IgnoredDirectiveTriviaSyntax WithContent(SyntaxToken content) => Update(this.HashToken, this.ColonToken, content, this.EndOfDirectiveToken, this.IsActive);
+    internal override DirectiveTriviaSyntax WithEndOfDirectiveTokenCore(SyntaxToken endOfDirectiveToken) => WithEndOfDirectiveToken(endOfDirectiveToken);
+    public new IgnoredDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken) => Update(this.HashToken, this.ColonToken, this.Content, endOfDirectiveToken, this.IsActive);
+    public IgnoredDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.ColonToken, this.Content, this.EndOfDirectiveToken, isActive);
+}
+
+/// <remarks>
+/// <para>This node is associated with the following syntax kinds:</para>
+/// <list type="bullet">
 /// <item><description><see cref="SyntaxKind.NullableDirectiveTrivia"/></description></item>
 /// </list>
 /// </remarks>

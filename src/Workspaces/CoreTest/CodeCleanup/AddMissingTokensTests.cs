@@ -13,72 +13,72 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
+namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup;
+
+[UseExportProvider]
+[Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+public sealed class AddMissingTokensTests
 {
-    [UseExportProvider]
-    [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-    public class AddMissingTokensTests
+    [Fact]
+    public async Task MultipleLineIfStatementThen()
     {
-        [Fact]
-        public async Task MultipleLineIfStatementThen()
-        {
-            var code = @"[|
+        var code = @"[|
         If True
             Dim a = 1
         End If|]";
 
-            var expected = @"
+        var expected = @"
         If True Then
             Dim a = 1
         End If";
 
-            await VerifyAsync(CreateMethod(code), CreateMethod(expected));
-        }
+        await VerifyAsync(CreateMethod(code), CreateMethod(expected));
+    }
 
-        [Fact]
-        public async Task TypeArgumentOf()
-        {
-            var code = @"[|
+    [Fact]
+    public async Task TypeArgumentOf()
+    {
+        var code = @"[|
         Dim a As List(Integer)|]";
 
-            var expected = @"
+        var expected = @"
         Dim a As List(Of Integer)";
 
-            await VerifyAsync(CreateMethod(code), CreateMethod(expected));
-        }
+        await VerifyAsync(CreateMethod(code), CreateMethod(expected));
+    }
 
-        [Fact]
-        public async Task TypeParameterOf()
-        {
-            var code = @"[|Class A(T)
+    [Fact]
+    public async Task TypeParameterOf()
+    {
+        var code = @"[|Class A(T)
 End Class|]";
 
-            var expected = @"Class A(Of T)
+        var expected = @"Class A(Of T)
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task MethodDeclaration()
-        {
-            var code = @"Class A
+    [Fact]
+    public async Task MethodDeclaration()
+    {
+        var code = @"Class A
     [|Sub Test
     End Sub|]
 End Class";
 
-            var expected = @"Class A
+        var expected = @"Class A
     Sub Test()
     End Sub
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544318")]
-        public async Task MethodInvocation_TypeArgParens()
-        {
-            var code = @"[|Imports System
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544318")]
+    public async Task MethodInvocation_TypeArgParens()
+    {
+        var code = @"[|Imports System
 Imports System.Collections.Generic
 Imports System.Linq
 Imports System.Threading
@@ -89,7 +89,7 @@ Module Program
 
     |]End Sub|]";
 
-            var expected = @"Imports System
+        var expected = @"Imports System
 Imports System.Collections.Generic
 Imports System.Linq
 Imports System.Threading
@@ -100,51 +100,51 @@ Module Program
 
     End Sub";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task MethodInvocation_Sub()
-        {
-            var code = @"Class A
+    [Fact]
+    public async Task MethodInvocation_Sub()
+    {
+        var code = @"Class A
     Sub Test
         [|Test|]
     End Sub
 End Class";
 
-            var expected = @"Class A
+        var expected = @"Class A
     Sub Test
         Test()
     End Sub
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task MethodInvocation_Function()
-        {
-            var code = @"Class A
+    [Fact]
+    public async Task MethodInvocation_Function()
+    {
+        var code = @"Class A
     Function Test() As Integer
         [|Test|]
         Return 1
     End Function
 End Class";
 
-            var expected = @"Class A
+        var expected = @"Class A
     Function Test() As Integer
         Test()
         Return 1
     End Function
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task IdentifierMethod_Return()
-        {
-            var code = @"Class A
+    [Fact]
+    public async Task IdentifierMethod_Return()
+    {
+        var code = @"Class A
     Function Test() As Integer
         Return [|Test2|]
     End Function
@@ -154,7 +154,7 @@ End Class";
     End Function
 End Class";
 
-            var expected = @"Class A
+        var expected = @"Class A
     Function Test() As Integer
         Return Test2()
     End Function
@@ -164,13 +164,13 @@ End Class";
     End Function
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task IdentifierMethod_Assign()
-        {
-            var code = @"Class A
+    [Fact]
+    public async Task IdentifierMethod_Assign()
+    {
+        var code = @"Class A
     Function Test() As Integer
         Dim a = [|Test2|]
         Return 1
@@ -181,7 +181,7 @@ End Class";
     End Function
 End Class";
 
-            var expected = @"Class A
+        var expected = @"Class A
     Function Test() As Integer
         Dim a = Test2()
         Return 1
@@ -192,13 +192,13 @@ End Class";
     End Function
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task IdentifierMethod_DotName_DoNotAdd()
-        {
-            var code = @"Class A
+    [Fact]
+    public async Task IdentifierMethod_DotName_DoNotAdd()
+    {
+        var code = @"Class A
     Function Test() As Integer
         Dim a = [|Me.Test2|]
         Return 1
@@ -209,7 +209,7 @@ End Class";
     End Function
 End Class";
 
-            var expected = @"Class A
+        var expected = @"Class A
     Function Test() As Integer
         Dim a = Me.Test2
         Return 1
@@ -220,13 +220,13 @@ End Class";
     End Function
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task MethodInvocation_DotName()
-        {
-            var code = @"Class A
+    [Fact]
+    public async Task MethodInvocation_DotName()
+    {
+        var code = @"Class A
     Function Test() As Integer
         [|Me.Test2|]
         Return 1
@@ -237,7 +237,7 @@ End Class";
     End Function
 End Class";
 
-            var expected = @"Class A
+        var expected = @"Class A
     Function Test() As Integer
         Me.Test2()
         Return 1
@@ -248,13 +248,13 @@ End Class";
     End Function
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task MethodInvocation_Generic()
-        {
-            var code = @"Class A
+    [Fact]
+    public async Task MethodInvocation_Generic()
+    {
+        var code = @"Class A
     Function Test() As Integer
         [|Me.Test2(Of Integer)|]
         Return 1
@@ -265,7 +265,7 @@ End Class";
     End Function
 End Class";
 
-            var expected = @"Class A
+        var expected = @"Class A
     Function Test() As Integer
         Me.Test2(Of Integer)()
         Return 1
@@ -276,13 +276,13 @@ End Class";
     End Function
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task MethodInvocation_Call()
-        {
-            var code = @"Class A
+    [Fact]
+    public async Task MethodInvocation_Call()
+    {
+        var code = @"Class A
     Function Test() As Integer
         Call [|Me.Test2|]
         Return 1
@@ -293,7 +293,7 @@ End Class";
     End Function
 End Class";
 
-            var expected = @"Class A
+        var expected = @"Class A
     Function Test() As Integer
         Call Me.Test2()
         Return 1
@@ -304,13 +304,13 @@ End Class";
     End Function
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task EventHandler_AddressOf1()
-        {
-            var code = @"Class A
+    [Fact]
+    public async Task EventHandler_AddressOf1()
+    {
+        var code = @"Class A
     Sub EventMethod()
         [|AddHandler TestEvent, AddressOf EventMethod|]
     End Sub
@@ -318,7 +318,7 @@ End Class";
     Public Event TestEvent()
 End Class";
 
-            var expected = @"Class A
+        var expected = @"Class A
     Sub EventMethod()
         AddHandler TestEvent, AddressOf EventMethod
     End Sub
@@ -326,13 +326,13 @@ End Class";
     Public Event TestEvent()
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task EventHandler_AddressOf2()
-        {
-            var code = @"Class A
+    [Fact]
+    public async Task EventHandler_AddressOf2()
+    {
+        var code = @"Class A
     Sub EventMethod()
         [|RemoveHandler TestEvent, AddressOf EventMethod|]
     End Sub
@@ -340,7 +340,7 @@ End Class";
     Public Event TestEvent()
 End Class";
 
-            var expected = @"Class A
+        var expected = @"Class A
     Sub EventMethod()
         RemoveHandler TestEvent, AddressOf EventMethod
     End Sub
@@ -348,31 +348,31 @@ End Class";
     Public Event TestEvent()
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task Delegate_AddressOf()
-        {
-            var code = @"Class A
+    [Fact]
+    public async Task Delegate_AddressOf()
+    {
+        var code = @"Class A
     Sub Method()
         [|Dim a As Action = New Action(AddressOf Method)|]
     End Sub
 End Class";
 
-            var expected = @"Class A
+        var expected = @"Class A
     Sub Method()
         Dim a As Action = New Action(AddressOf Method)
     End Sub
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task EventDeclaration()
-        {
-            var code = @"Class A
+    [Fact]
+    public async Task EventDeclaration()
+    {
+        var code = @"Class A
     Sub EventMethod()
         [|RaiseEvent TestEvent|]
     End Sub
@@ -380,7 +380,7 @@ End Class";
     Public Event TestEvent()
 End Class";
 
-            var expected = @"Class A
+        var expected = @"Class A
     Sub EventMethod()
         RaiseEvent TestEvent()
     End Sub
@@ -388,13 +388,13 @@ End Class";
     Public Event TestEvent()
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task RaiseEvent()
-        {
-            var code = @"Class A
+    [Fact]
+    public async Task RaiseEvent()
+    {
+        var code = @"Class A
     Sub EventMethod()
         RaiseEvent TestEvent
     End Sub
@@ -402,7 +402,7 @@ End Class";
     [|Public Event TestEvent|]
 End Class";
 
-            var expected = @"Class A
+        var expected = @"Class A
     Sub EventMethod()
         RaiseEvent TestEvent
     End Sub
@@ -410,47 +410,47 @@ End Class";
     Public Event TestEvent()
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task DelegateInvocation()
-        {
-            var code = @"
+    [Fact]
+    public async Task DelegateInvocation()
+    {
+        var code = @"
         Dim a As Action
         [|a|]";
 
-            var expected = @"
+        var expected = @"
         Dim a As Action
         a()";
 
-            await VerifyAsync(CreateMethod(code), CreateMethod(expected));
-        }
+        await VerifyAsync(CreateMethod(code), CreateMethod(expected));
+    }
 
-        [Fact]
-        public async Task Attribute()
-        {
-            var code = @"[|<Obsolete>
+    [Fact]
+    public async Task Attribute()
+    {
+        var code = @"[|<Obsolete>
 Class C(Of T)
     Sub Main
         Dim a = {1, 2, 3}
     End Sub
 End Class|]";
 
-            var expected = @"<Obsolete>
+        var expected = @"<Obsolete>
 Class C(Of T)
     Sub Main()
         Dim a = {1, 2, 3}
     End Sub
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task ObjectCreation()
-        {
-            var code = @"[|Module Program
+    [Fact]
+    public async Task ObjectCreation()
+    {
+        var code = @"[|Module Program
     Sub Main(args As String())
         Dim x As New ClassInNewFile
         Dim c As CustomClass = New CustomClass(""constructor"")
@@ -465,7 +465,7 @@ End Class
 Class ClassInNewFile
 End Class|]";
 
-            var expected = @"Module Program
+        var expected = @"Module Program
     Sub Main(args As String())
         Dim x As New ClassInNewFile
         Dim c As CustomClass = New CustomClass(""constructor"")
@@ -480,138 +480,138 @@ End Class
 Class ClassInNewFile
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task Constructor()
-        {
-            var code = @"[|Class C
+    [Fact]
+    public async Task Constructor()
+    {
+        var code = @"[|Class C
     Sub New
     End Sub
 End Class|]";
 
-            var expected = @"Class C
+        var expected = @"Class C
     Sub New()
     End Sub
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task DeclareStatement()
-        {
-            var code = @"[|Class C
+    [Fact]
+    public async Task DeclareStatement()
+    {
+        var code = @"[|Class C
     Declare Function getUserName Lib ""advapi32.dll"" Alias ""GetUserNameA"" 
 End Class|]";
 
-            var expected = @"Class C
+        var expected = @"Class C
     Declare Function getUserName Lib ""advapi32.dll"" Alias ""GetUserNameA"" ()
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task DelegateStatement()
-        {
-            var code = @"[|Class C
+    [Fact]
+    public async Task DelegateStatement()
+    {
+        var code = @"[|Class C
     Delegate Sub Test
 End Class|]";
 
-            var expected = @"Class C
+        var expected = @"Class C
     Delegate Sub Test()
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task MethodStatementWithComment()
-        {
-            var code = @"[|Class C
+    [Fact]
+    public async Task MethodStatementWithComment()
+    {
+        var code = @"[|Class C
     [|Sub Test ' test
     End Sub|]
 End Class|]";
 
-            var expected = @"Class C
+        var expected = @"Class C
     Sub Test() ' test
     End Sub
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task MultipleLineIfStatementThenWithComment()
-        {
-            var code = @"[|
+    [Fact]
+    public async Task MultipleLineIfStatementThenWithComment()
+    {
+        var code = @"[|
         If True ' test
             Dim a = 1
         End If|]";
 
-            var expected = @"
+        var expected = @"
         If True Then ' test
             Dim a = 1
         End If";
 
-            await VerifyAsync(CreateMethod(code), CreateMethod(expected));
-        }
+        await VerifyAsync(CreateMethod(code), CreateMethod(expected));
+    }
 
-        [Fact]
-        public async Task TypeArgumentOf_Comment_DoNotAdd()
-        {
-            var code = @"[|
+    [Fact]
+    public async Task TypeArgumentOf_Comment_DoNotAdd()
+    {
+        var code = @"[|
         Dim a As List( ' test
                       Integer)|]";
 
-            var expected = @"
+        var expected = @"
         Dim a As List( ' test
                       Integer)";
 
-            // parser doesn't recognize the broken list as Type Argument List
-            await VerifyAsync(CreateMethod(code), CreateMethod(expected));
-        }
+        // parser doesn't recognize the broken list as Type Argument List
+        await VerifyAsync(CreateMethod(code), CreateMethod(expected));
+    }
 
-        [Fact]
-        public async Task TypeParameterOf_Comment()
-        {
-            var code = @"[|Class A( ' test
+    [Fact]
+    public async Task TypeParameterOf_Comment()
+    {
+        var code = @"[|Class A( ' test
                                    T)
 End Class|]";
 
-            var expected = @"Class A(Of ' test
+        var expected = @"Class A(Of ' test
                                    T)
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task MethodInvocation_Function_Comment()
-        {
-            var code = @"Class A
+    [Fact]
+    public async Task MethodInvocation_Function_Comment()
+    {
+        var code = @"Class A
     Function Test() As Integer
         [|Test ' test|]
         Return 1
     End Function
 End Class";
 
-            var expected = @"Class A
+        var expected = @"Class A
     Function Test() As Integer
         Test() ' test
         Return 1
     End Function
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task IdentifierMethod_Return_Comment()
-        {
-            var code = @"Class A
+    [Fact]
+    public async Task IdentifierMethod_Return_Comment()
+    {
+        var code = @"Class A
     Function Test() As Integer
         Return [|Test2 ' test|]
     End Function
@@ -621,7 +621,7 @@ End Class";
     End Function
 End Class";
 
-            var expected = @"Class A
+        var expected = @"Class A
     Function Test() As Integer
         Return Test2() ' test
     End Function
@@ -631,13 +631,13 @@ End Class";
     End Function
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task ImplementsClause()
-        {
-            var code = @"Class Program
+    [Fact]
+    public async Task ImplementsClause()
+    {
+        var code = @"Class Program
     Implements I
     [|Public Sub Method() Implements I.Method
     End Sub|]
@@ -647,7 +647,7 @@ Interface I
     Sub Method()
 End Interface";
 
-            var expected = @"Class Program
+        var expected = @"Class Program
     Implements I
     Public Sub Method() Implements I.Method
     End Sub
@@ -657,13 +657,13 @@ Interface I
     Sub Method()
 End Interface";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task OperatorStatement()
-        {
-            var code = @"[|Public Structure abc
+    [Fact]
+    public async Task OperatorStatement()
+    {
+        var code = @"[|Public Structure abc
     Public Shared Operator And(ByVal x As abc, ByVal y As abc) As abc
         Dim r As New abc
         ' Insert code to calculate And of x and y.
@@ -671,7 +671,7 @@ End Interface";
     End Operator
 End Structure|]";
 
-            var expected = @"Public Structure abc
+        var expected = @"Public Structure abc
     Public Shared Operator And(ByVal x As abc, ByVal y As abc) As abc
         Dim r As New abc
         ' Insert code to calculate And of x and y.
@@ -679,13 +679,13 @@ End Structure|]";
     End Operator
 End Structure";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task PropertyAndAccessorStatement()
-        {
-            var code = @"[|Class Class1
+    [Fact]
+    public async Task PropertyAndAccessorStatement()
+    {
+        var code = @"[|Class Class1
     Private propertyValue As String
     Public Property prop1() As String
         Get
@@ -697,7 +697,7 @@ End Structure";
     End Property
 End Class|]";
 
-            var expected = @"Class Class1
+        var expected = @"Class Class1
     Private propertyValue As String
     Public Property prop1() As String
         Get
@@ -709,104 +709,104 @@ End Class|]";
     End Property
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task LambdaExpression()
-        {
-            var code = @"[|Class Class1
+    [Fact]
+    public async Task LambdaExpression()
+    {
+        var code = @"[|Class Class1
     Dim f as Action = Sub()
                       End Sub
 End Class|]";
 
-            var expected = @"Class Class1
+        var expected = @"Class Class1
     Dim f as Action = Sub()
                       End Sub
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544225")]
-        public async Task StructuredTrivia_Expression_DoNotCrash()
-        {
-            var code = @"[|#Const Goo1 = 1
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544225")]
+    public async Task StructuredTrivia_Expression_DoNotCrash()
+    {
+        var code = @"[|#Const Goo1 = 1
 #Const Goo2 = 2
 #If Goo1 Then
 #ElseIf Goo2 Then
 #Else
 #End If|]";
-            var expected = @"#Const Goo1 = 1
+        var expected = @"#Const Goo1 = 1
 #Const Goo2 = 2
 #If Goo1 Then
 #ElseIf Goo2 Then
 #Else
 #End If";
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544169")]
-        public async Task EventStatement_AsClause()
-        {
-            var code = @"[|Imports System.ComponentModel
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544169")]
+    public async Task EventStatement_AsClause()
+    {
+        var code = @"[|Imports System.ComponentModel
 Class Goo
     Public Event PropertyChanged As PropertyChangedEventHandler
 End Class|]";
-            var expected = @"Imports System.ComponentModel
+        var expected = @"Imports System.ComponentModel
 Class Goo
     Public Event PropertyChanged As PropertyChangedEventHandler
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544167")]
-        public async Task InvocationExpression_NoParenthesesForPredefinedCastExpression()
-        {
-            var code = @"[|Class Program
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544167")]
+    public async Task InvocationExpression_NoParenthesesForPredefinedCastExpression()
+    {
+        var code = @"[|Class Program
     Sub Main(args As String())
         CInt(5)
     End Sub
 End Class|]";
-            var expected = @"Class Program
+        var expected = @"Class Program
     Sub Main(args As String())
         CInt(5)
     End Sub
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544178")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544317")]
-        public async Task ObjectCreationExpression()
-        {
-            var code = @"[|Class C
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544178")]
+    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544317")]
+    public async Task ObjectCreationExpression()
+    {
+        var code = @"[|Class C
     Function F() As C
         Return New C
     End Function
 End Class|]";
-            var expected = @"Class C
+        var expected = @"Class C
     Function F() As C
         Return New C
     End Function
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544317")]
-        public async Task ObjectCreationExpression_Initializer()
-        {
-            var code = @"[|Public Class SomeClass
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544317")]
+    public async Task ObjectCreationExpression_Initializer()
+    {
+        var code = @"[|Public Class SomeClass
     Public goo As Integer
 
     Sub SomeSub()
         [|Dim c = New SomeClass With {.goo = 23}|]
     End Sub
 End Class|]";
-            var expected = @"Public Class SomeClass
+        var expected = @"Public Class SomeClass
     Public goo As Integer
 
     Sub SomeSub()
@@ -814,13 +814,13 @@ End Class|]";
     End Sub
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544178")]
-        public async Task ObjectCreationExpression_GenericName()
-        {
-            var code = @"[|Imports System
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544178")]
+    public async Task ObjectCreationExpression_GenericName()
+    {
+        var code = @"[|Imports System
 
 Module Program
     Sub Main(args As String())
@@ -828,7 +828,7 @@ Module Program
     End Sub
 End Module|]";
 
-            var expected = @"Imports System
+        var expected = @"Imports System
 
 Module Program
     Sub Main(args As String())
@@ -836,33 +836,33 @@ Module Program
     End Sub
 End Module";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544178")]
-        public async Task ObjectCreationExpression_AsNewClause()
-        {
-            var code = @"[|Class C
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544178")]
+    public async Task ObjectCreationExpression_AsNewClause()
+    {
+        var code = @"[|Class C
     Dim a As New C
 End Class|]";
-            var expected = @"Class C
+        var expected = @"Class C
     Dim a As New C
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544301")]
-        public async Task ContinueStatement_While()
-        {
-            var code = @"Module M
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544301")]
+    public async Task ContinueStatement_While()
+    {
+        var code = @"Module M
     Sub S()
         [|While True
             Continue
         End While|]
     End Sub
 End Module";
-            var expected = @"Module M
+        var expected = @"Module M
     Sub S()
         While True
             Continue While
@@ -870,20 +870,20 @@ End Module";
     End Sub
 End Module";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544301")]
-        public async Task ContinueStatement_For()
-        {
-            var code = @"Module M
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544301")]
+    public async Task ContinueStatement_For()
+    {
+        var code = @"Module M
     Sub S()
         [|For i = 1 to 10
             Continue
         Next|]
     End Sub
 End Module";
-            var expected = @"Module M
+        var expected = @"Module M
     Sub S()
         For i = 1 to 10
             Continue For
@@ -891,28 +891,28 @@ End Module";
     End Sub
 End Module";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544380")]
-        public async Task IfDirective()
-        {
-            var code = @"[|#If VBC_VER >= 9.0
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544380")]
+    public async Task IfDirective()
+    {
+        var code = @"[|#If VBC_VER >= 9.0
 
 Class C
 End Class|]";
-            var expected = @"#If VBC_VER >= 9.0 Then
+        var expected = @"#If VBC_VER >= 9.0 Then
 
 Class C
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544386")]
-        public async Task NamedFieldInitializer()
-        {
-            var code = @"[|Class S
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544386")]
+    public async Task NamedFieldInitializer()
+    {
+        var code = @"[|Class S
     Public Sub Goo()
     End Sub
     Property X
@@ -920,7 +920,7 @@ End Class";
         Dim x = New S With {.X = 0,.Goo}
     End Sub
 End Class|]";
-            var expected = @"Class S
+        var expected = @"Class S
     Public Sub Goo()
     End Sub
     Property X
@@ -929,30 +929,30 @@ End Class|]";
     End Sub
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544526")]
-        public async Task DoNotCrash_ImplementsStatement()
-        {
-            var code = @"[|Class C
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544526")]
+    public async Task DoNotCrash_ImplementsStatement()
+    {
+        var code = @"[|Class C
     Sub Main() 
         Implements IDisposable.Dispose
     End Sub
 End Class|]";
-            var expected = @"Class C
+        var expected = @"Class C
     Sub Main()
         Implements IDisposable.Dispose
     End Sub
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544525")]
-        public async Task AccessorStatement_AddRemoveHandler_RaiseEvent()
-        {
-            var code = @"[|Class C
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544525")]
+    public async Task AccessorStatement_AddRemoveHandler_RaiseEvent()
+    {
+        var code = @"[|Class C
     Public Custom Event E1 As Action
         AddHandler
         End AddHandler
@@ -962,7 +962,7 @@ End Class";
         End RaiseEvent
     End Event
 End Class|]";
-            var expected = @"Class C
+        var expected = @"Class C
     Public Custom Event E1 As Action
         AddHandler()
         End AddHandler
@@ -973,47 +973,47 @@ End Class|]";
     End Event
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545176")]
-        public async Task CallStatement_Lambda()
-        {
-            var code = @"[|Module Program
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545176")]
+    public async Task CallStatement_Lambda()
+    {
+        var code = @"[|Module Program
     Sub Main()
         Call Sub() Console.WriteLine(1)
     End Sub
 End Module|]";
-            var expected = @"Module Program
+        var expected = @"Module Program
     Sub Main()
         Call Sub() Console.WriteLine(1)
     End Sub
 End Module";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545256")]
-        public async Task HandlesClauseItem_DoNotAddParentheses()
-        {
-            var code = @"[|Structure s1
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545256")]
+    public async Task HandlesClauseItem_DoNotAddParentheses()
+    {
+        var code = @"[|Structure s1
     Sub Goo() Handles Me.Goo
  
     End Sub
 End Structure|]";
-            var expected = @"Structure s1
+        var expected = @"Structure s1
     Sub Goo() Handles Me.Goo
 
     End Sub
 End Structure";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545380")]
-        public async Task DoNotAddParenthesesInForEachControlVariable()
-        {
-            var code = @"[|Module Module1
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545380")]
+    public async Task DoNotAddParenthesesInForEachControlVariable()
+    {
+        var code = @"[|Module Module1
     Sub Main()
         For Each goo in {} 
     End Sub
@@ -1021,7 +1021,7 @@ End Structure";
     Sub Goo()
     End Sub
 End Module|]";
-            var expected = @"Module Module1
+        var expected = @"Module Module1
     Sub Main()
         For Each goo in {}
     End Sub
@@ -1030,13 +1030,13 @@ End Module|]";
     End Sub
 End Module";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545380")]
-        public async Task DoNotAddParenthesesInForControlVariable()
-        {
-            var code = @"[|Module Module1
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545380")]
+    public async Task DoNotAddParenthesesInForControlVariable()
+    {
+        var code = @"[|Module Module1
     Sub Main()
         For goo to 
     End Sub
@@ -1044,7 +1044,7 @@ End Module";
     Sub Goo()
     End Sub
 End Module|]";
-            var expected = @"Module Module1
+        var expected = @"Module Module1
     Sub Main()
         For goo to 
     End Sub
@@ -1053,24 +1053,24 @@ End Module|]";
     End Sub
 End Module";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545483")]
-        public async Task DoNotAddParenthesesForMissingName()
-        {
-            var code = @"[|Class C
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545483")]
+    public async Task DoNotAddParenthesesForMissingName()
+    {
+        var code = @"[|Class C
     Public Overrides Function|]";
-            var expected = @"Class C
+        var expected = @"Class C
     Public Overrides Function";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545483")]
-        public async Task CombinedDelegates()
-        {
-            var code = @"[|Imports System
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545483")]
+    public async Task CombinedDelegates()
+    {
+        var code = @"[|Imports System
 Class A
     Public Shared Operator +(x As A, y As A) As Action
     End Operator
@@ -1079,7 +1079,7 @@ Class A
         Call x + x
     End Sub
 End Class|]";
-            var expected = @"Imports System
+        var expected = @"Imports System
 Class A
     Public Shared Operator +(x As A, y As A) As Action
     End Operator
@@ -1089,59 +1089,59 @@ Class A
     End Sub
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546581")]
-        public async Task ThenOmittedWithSurroundingErrors()
-        {
-            var code = @"[|
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546581")]
+    public async Task ThenOmittedWithSurroundingErrors()
+    {
+        var code = @"[|
         If True OrElse|]";
-            var expected = @"
+        var expected = @"
         If True OrElse";
 
-            await VerifyAsync(CreateMethod(code), CreateMethod(expected));
-        }
+        await VerifyAsync(CreateMethod(code), CreateMethod(expected));
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546581")]
-        public async Task ThenOmittedWithSurroundingErrors1()
-        {
-            var code = @"[|
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546581")]
+    public async Task ThenOmittedWithSurroundingErrors1()
+    {
+        var code = @"[|
         If True|]";
-            var expected = @"
+        var expected = @"
         If True Then";
 
-            await VerifyAsync(CreateMethod(code), CreateMethod(expected));
-        }
+        await VerifyAsync(CreateMethod(code), CreateMethod(expected));
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546797")]
-        public async Task ParenthesisWithLineContinuation()
-        {
-            var code = @"[|
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546797")]
+    public async Task ParenthesisWithLineContinuation()
+    {
+        var code = @"[|
             System.Diagnostics.Debug.Assert _ (True)|]";
-            var expected = @"
+        var expected = @"
         System.Diagnostics.Debug.Assert _ (True)";
-            await VerifyAsync(CreateMethod(code), CreateMethod(expected));
-        }
+        await VerifyAsync(CreateMethod(code), CreateMethod(expected));
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546806")]
-        public async Task ThenWithLineContinuation()
-        {
-            var code = @"[|
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546806")]
+    public async Task ThenWithLineContinuation()
+    {
+        var code = @"[|
 #If Condition _ Then
             ' blah
 #End If|]";
-            var expected = @"
+        var expected = @"
 #If Condition _ Then
         ' blah
 #End If";
-            await VerifyAsync(CreateMethod(code), CreateMethod(expected));
-        }
+        await VerifyAsync(CreateMethod(code), CreateMethod(expected));
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531278")]
-        public async Task ThenInIfDirective()
-        {
-            var code = @"#Const ccConst = 0
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531278")]
+    public async Task ThenInIfDirective()
+    {
+        var code = @"#Const ccConst = 0
 [|#If ccConst
 #End If|]
 Imports System
@@ -1151,7 +1151,7 @@ Module Program
     Sub Main(args As String())
     End Sub
 End Module";
-            var expected = @"#Const ccConst = 0
+        var expected = @"#Const ccConst = 0
 #If ccConst Then
 #End If
 Imports System
@@ -1161,13 +1161,13 @@ Module Program
     Sub Main(args As String())
     End Sub
 End Module";
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607792")]
-        public async Task CaseKeywordInSelectStatement()
-        {
-            var code = @"
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607792")]
+    public async Task CaseKeywordInSelectStatement()
+    {
+        var code = @"
 Module Program
     Sub Main()
 [|
@@ -1184,7 +1184,7 @@ Module Program
     End Sub
 End Module";
 
-            var expected = @"
+        var expected = @"
 Module Program
     Sub Main()
 
@@ -1201,53 +1201,53 @@ Module Program
     End Sub
 End Module";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530789")]
-        public async Task Bug530789()
-        {
-            var code = @"Imports System
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530789")]
+    public async Task Bug530789()
+    {
+        var code = @"Imports System
 Module Program
     Sub Main()
         [|If True Then Console.WriteLine else If False Then Console.WriteLine else Console.writeline|]
     End Sub
 End Module";
 
-            var expected = @"Imports System
+        var expected = @"Imports System
 Module Program
     Sub Main()
         If True Then Console.WriteLine() else If False Then Console.WriteLine() else Console.writeline()
     End Sub
 End Module";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530039")]
-        public async Task TestArraySyntax()
-        {
-            var code = @"[|Module TestMod
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530039")]
+    public async Task TestArraySyntax()
+    {
+        var code = @"[|Module TestMod
 Sub Main()
 Dim y As Object
 Dim x As cls2(Of y.gettype())
 End Sub
 End Module|]";
 
-            var expected = @"Module TestMod
+        var expected = @"Module TestMod
     Sub Main()
         Dim y As Object
         Dim x As cls2(Of y.gettype())
     End Sub
 End Module";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        public async Task TestAsyncFunctionWithoutAsClause()
-        {
-            var code = @"[|
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+    public async Task TestAsyncFunctionWithoutAsClause()
+    {
+        var code = @"[|
 Interface I
     Function Goo() As System.Threading.Tasks.Task
 End Interface
@@ -1287,7 +1287,7 @@ Class Test
 
 End Class|]";
 
-            var expected = @"
+        var expected = @"
 Interface I
     Function Goo() As System.Threading.Tasks.Task
 End Interface
@@ -1327,13 +1327,13 @@ Class Test
 
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        public async Task TestAsyncFunctionWithoutAsClause_WithAddedImports()
-        {
-            var code = @"[|
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+    public async Task TestAsyncFunctionWithoutAsClause_WithAddedImports()
+    {
+        var code = @"[|
 Imports System
 Imports System.Threading.Tasks
 
@@ -1376,7 +1376,7 @@ Class Test
 
 End Class|]";
 
-            var expected = @"
+        var expected = @"
 Imports System
 Imports System.Threading.Tasks
 
@@ -1419,13 +1419,13 @@ Class Test
 
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        public async Task TestIteratorFunctionWithoutAsClause()
-        {
-            var code = @"[|
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+    public async Task TestIteratorFunctionWithoutAsClause()
+    {
+        var code = @"[|
 Interface I
     Function Goo() As System.Collections.IEnumerable
 End Interface
@@ -1462,7 +1462,7 @@ Class Test
 
 End Class|]";
 
-            var expected = @"
+        var expected = @"
 Interface I
     Function Goo() As System.Collections.IEnumerable
 End Interface
@@ -1499,13 +1499,13 @@ Class Test
 
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        public async Task TestIteratorFunctionWithoutAsClause_WithAddedImports()
-        {
-            var code = @"[|
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+    public async Task TestIteratorFunctionWithoutAsClause_WithAddedImports()
+    {
+        var code = @"[|
 Imports System
 Imports System.Collections
 Imports System.Collections.Generic
@@ -1546,7 +1546,7 @@ Class Test
 
 End Class|]";
 
-            var expected = @"
+        var expected = @"
 Imports System
 Imports System.Collections
 Imports System.Collections.Generic
@@ -1587,13 +1587,13 @@ Class Test
 
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        public async Task TestAsyncFunctionWithAsClause()
-        {
-            var code = @"[|
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+    public async Task TestAsyncFunctionWithAsClause()
+    {
+        var code = @"[|
 Interface I
     Function Goo() As System.Threading.Tasks.Task
 End Interface
@@ -1674,7 +1674,7 @@ Class Test(Of T)
 
 End Class|]";
 
-            var expected = @"
+        var expected = @"
 Interface I
     Function Goo() As System.Threading.Tasks.Task
 End Interface
@@ -1755,13 +1755,13 @@ Class Test(Of T)
 
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        public async Task TestAsyncFunctionWithAsClause_WithAddedImports()
-        {
-            var code = @"[|
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+    public async Task TestAsyncFunctionWithAsClause_WithAddedImports()
+    {
+        var code = @"[|
 Imports System
 Imports System.Threading.Tasks
 
@@ -1845,7 +1845,7 @@ Class Test(Of T)
 
 End Class|]";
 
-            var expected = @"
+        var expected = @"
 Imports System
 Imports System.Threading.Tasks
 
@@ -1929,13 +1929,13 @@ Class Test(Of T)
 
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        public async Task TestIteratorFunctionWithAsClause()
-        {
-            var code = @"[|
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+    public async Task TestIteratorFunctionWithAsClause()
+    {
+        var code = @"[|
 Interface I
     Function Goo() As System.Collections.IEnumerable
 End Interface
@@ -2029,7 +2029,7 @@ Class Test(Of T)
 
 End Class|]";
 
-            var expected = @"
+        var expected = @"
 Interface I
     Function Goo() As System.Collections.IEnumerable
 End Interface
@@ -2123,13 +2123,13 @@ Class Test(Of T)
 
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        public async Task TestIteratorFunctionWithAsClause_WithAddedImports()
-        {
-            var code = @"[|
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+    public async Task TestIteratorFunctionWithAsClause_WithAddedImports()
+    {
+        var code = @"[|
 Imports System
 Imports System.Collections.Generic
 
@@ -2226,7 +2226,7 @@ Class Test(Of T)
 
 End Class|]";
 
-            var expected = @"
+        var expected = @"
 Imports System
 Imports System.Collections.Generic
 
@@ -2323,13 +2323,13 @@ Class Test(Of T)
 
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        public async Task TestAsyncFunctionWithAliasedReturnType()
-        {
-            var code = @"[|
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+    public async Task TestAsyncFunctionWithAliasedReturnType()
+    {
+        var code = @"[|
 Imports System
 Imports System.Threading.Tasks
 Imports X = System.Threading.Tasks.Task
@@ -2340,7 +2340,7 @@ Class Test
     Async Function Bar() As Y.Tasks.Task
 End Class|]";
 
-            var expected = @"
+        var expected = @"
 Imports System
 Imports System.Threading.Tasks
 Imports X = System.Threading.Tasks.Task
@@ -2351,13 +2351,13 @@ Class Test
     Async Function Bar() As Y.Tasks.Task
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        public async Task TestIteratorFunctionWithAliasedReturnType()
-        {
-            var code = @"[|
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+    public async Task TestIteratorFunctionWithAliasedReturnType()
+    {
+        var code = @"[|
 Imports System
 Imports System.Collections
 Imports X = System.Collections.IEnumerable
@@ -2368,7 +2368,7 @@ Class Test
     Iterator Function Bar() As Y.IEnumerable
 End Class|]";
 
-            var expected = @"
+        var expected = @"
 Imports System
 Imports System.Collections
 Imports X = System.Collections.IEnumerable
@@ -2379,13 +2379,13 @@ Class Test
     Iterator Function Bar() As Y.IEnumerable
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        public async Task TestAsyncFunctionWithAliasedReturnType_2()
-        {
-            var code = @"[|
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+    public async Task TestAsyncFunctionWithAliasedReturnType_2()
+    {
+        var code = @"[|
 Imports System
 Imports System.Threading.Tasks
 Imports Y = System.Int32
@@ -2395,7 +2395,7 @@ Class Test
     End Function
 End Class|]";
 
-            var expected = @"
+        var expected = @"
 Imports System
 Imports System.Threading.Tasks
 Imports Y = System.Int32
@@ -2405,13 +2405,13 @@ Class Test
     End Function
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        public async Task TestIteratorFunctionWithAliasedReturnType_2()
-        {
-            var code = @"[|
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+    public async Task TestIteratorFunctionWithAliasedReturnType_2()
+    {
+        var code = @"[|
 Imports System
 Imports System.Threading.Tasks
 Imports Y = System.Int32
@@ -2421,7 +2421,7 @@ Class Test
     End Function
 End Class|]";
 
-            var expected = @"
+        var expected = @"
 Imports System
 Imports System.Threading.Tasks
 Imports Y = System.Int32
@@ -2431,13 +2431,13 @@ Class Test
     End Function
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        public async Task TestAsyncFunctionWithQualifiedNameReturnType()
-        {
-            var code = @"[|
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+    public async Task TestAsyncFunctionWithQualifiedNameReturnType()
+    {
+        var code = @"[|
 Imports System
 Imports System.Threading.Tasks
 
@@ -2446,7 +2446,7 @@ Class Test
     End Function
 End Class|]";
 
-            var expected = @"
+        var expected = @"
 Imports System
 Imports System.Threading.Tasks
 
@@ -2455,13 +2455,13 @@ Class Test
     End Function
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        public async Task TestIteratorFunctionWithQualifiedNameReturnType()
-        {
-            var code = @"[|
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+    public async Task TestIteratorFunctionWithQualifiedNameReturnType()
+    {
+        var code = @"[|
 Imports System
 Imports System.Collections
 
@@ -2470,7 +2470,7 @@ Class Test
     End Function
 End Class|]";
 
-            var expected = @"
+        var expected = @"
 Imports System
 Imports System.Collections
 
@@ -2479,13 +2479,13 @@ Class Test
     End Function
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        public async Task TestAsyncLambdaFunction()
-        {
-            var code = @"[|
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+    public async Task TestAsyncLambdaFunction()
+    {
+        var code = @"[|
 Imports System
 Imports System.Threading.Tasks
 
@@ -2515,7 +2515,7 @@ Class Test
     End Function
 End Class|]";
 
-            var expected = @"
+        var expected = @"
 Imports System
 Imports System.Threading.Tasks
 
@@ -2545,13 +2545,13 @@ Class Test
                    End Function
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        public async Task TestIteratorLambdaFunction()
-        {
-            var code = @"[|
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
+    public async Task TestIteratorLambdaFunction()
+    {
+        var code = @"[|
 Imports System
 Imports System.Collections.Generic
 
@@ -2581,7 +2581,7 @@ Class Test
     End Function
 End Class|]";
 
-            var expected = @"
+        var expected = @"
 Imports System
 Imports System.Collections.Generic
 
@@ -2611,17 +2611,17 @@ Class Test
                    End Function
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task TestNoParenthesesForArgument()
-        {
-            // making roslyn behavior same as dev12
-            // also, this is one of most expensive one to check whether
-            // parentheses needs to be inserted or not.
+    [Fact]
+    public async Task TestNoParenthesesForArgument()
+    {
+        // making roslyn behavior same as dev12
+        // also, this is one of most expensive one to check whether
+        // parentheses needs to be inserted or not.
 
-            var code = @"[|
+        var code = @"[|
 Imports System
 Imports System.Collections.Generic
 
@@ -2635,7 +2635,7 @@ Class Test
     End Sub
 End Class|]";
 
-            var expected = @"
+        var expected = @"
 Imports System
 Imports System.Collections.Generic
 
@@ -2649,88 +2649,87 @@ Class Test
     End Sub
 End Class";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task TestNoParenthesesForNameOf()
-        {
-            var code = @"[|
+    [Fact]
+    public async Task TestNoParenthesesForNameOf()
+    {
+        var code = @"[|
 Module M
     Sub Main()
         Dim s = NameOf(Main)
     End Sub
 End Module|]";
 
-            var expected = @"
+        var expected = @"
 Module M
     Sub Main()
         Dim s = NameOf(Main)
     End Sub
 End Module";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task OptionExplicitOn()
-        {
-            var code = @"[|Option Explicit|]";
-            var expected = @"Option Explicit On
+    [Fact]
+    public async Task OptionExplicitOn()
+    {
+        var code = @"[|Option Explicit|]";
+        var expected = @"Option Explicit On
 ";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task OptionInferOn()
-        {
-            var code = @"[|Option Infer|]";
-            var expected = @"Option Infer On
+    [Fact]
+    public async Task OptionInferOn()
+    {
+        var code = @"[|Option Infer|]";
+        var expected = @"Option Infer On
 ";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        [Fact]
-        public async Task OptionStrictOn()
-        {
-            var code = @"[|Option Strict|]";
-            var expected = @"Option Strict On
+    [Fact]
+    public async Task OptionStrictOn()
+    {
+        var code = @"[|Option Strict|]";
+        var expected = @"Option Strict On
 ";
 
-            await VerifyAsync(code, expected);
-        }
+        await VerifyAsync(code, expected);
+    }
 
-        private static string CreateMethod(string body)
-        {
-            return @"Imports System
+    private static string CreateMethod(string body)
+    {
+        return @"Imports System
 Class C
     Public Sub Method()" + body + @"
     End Sub
 End Class";
-        }
+    }
 
-        private static async Task VerifyAsync(string codeWithMarker, string expectedResult)
-        {
-            MarkupTestFile.GetSpans(codeWithMarker, out var codeWithoutMarker, out var textSpans);
+    private static async Task VerifyAsync(string codeWithMarker, string expectedResult)
+    {
+        MarkupTestFile.GetSpans(codeWithMarker, out var codeWithoutMarker, out var textSpans);
 
-            var document = CreateDocument(codeWithoutMarker, LanguageNames.VisualBasic);
-            var codeCleanups = CodeCleaner.GetDefaultProviders(document).WhereAsArray(p => p.Name is PredefinedCodeCleanupProviderNames.AddMissingTokens or PredefinedCodeCleanupProviderNames.Format or PredefinedCodeCleanupProviderNames.Simplification);
+        var document = CreateDocument(codeWithoutMarker, LanguageNames.VisualBasic);
+        var codeCleanups = CodeCleaner.GetDefaultProviders(document).WhereAsArray(p => p.Name is PredefinedCodeCleanupProviderNames.AddMissingTokens or PredefinedCodeCleanupProviderNames.Format or PredefinedCodeCleanupProviderNames.Simplification);
 
-            var cleanDocument = await CodeCleaner.CleanupAsync(document, textSpans[0], await document.GetCodeCleanupOptionsAsync(CancellationToken.None), codeCleanups);
+        var cleanDocument = await CodeCleaner.CleanupAsync(document, textSpans[0], await document.GetCodeCleanupOptionsAsync(CancellationToken.None), codeCleanups);
 
-            Assert.Equal(expectedResult, (await cleanDocument.GetSyntaxRootAsync()).ToFullString());
-        }
+        Assert.Equal(expectedResult, (await cleanDocument.GetSyntaxRootAsync()).ToFullString());
+    }
 
-        private static Document CreateDocument(string code, string language)
-        {
-            var solution = new AdhocWorkspace().CurrentSolution;
-            var projectId = ProjectId.CreateNewId();
-            var project = solution.AddProject(projectId, "Project", "Project.dll", language).GetProject(projectId);
+    private static Document CreateDocument(string code, string language)
+    {
+        var solution = new AdhocWorkspace().CurrentSolution;
+        var projectId = ProjectId.CreateNewId();
+        var project = solution.AddProject(projectId, "Project", "Project.dll", language).GetProject(projectId);
 
-            return project.AddMetadataReference(NetFramework.mscorlib)
-                          .AddDocument("Document", SourceText.From(code));
-        }
+        return project.AddMetadataReference(NetFramework.mscorlib)
+                      .AddDocument("Document", SourceText.From(code));
     }
 }

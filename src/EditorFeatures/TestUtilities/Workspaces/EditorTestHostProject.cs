@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities;
 
-public class EditorTestHostProject : TestHostProject<EditorTestHostDocument>
+public sealed class EditorTestHostProject : TestHostProject<EditorTestHostDocument>
 {
     internal EditorTestHostProject(
         HostLanguageServices languageServices,

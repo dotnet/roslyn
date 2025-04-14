@@ -18,7 +18,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTypeNames;
 
-public partial class BatchFixerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+public sealed partial class BatchFixerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
 {
     public BatchFixerTests(ITestOutputHelper logger)
          : base(logger)
@@ -29,7 +29,7 @@ public partial class BatchFixerTests : AbstractCSharpDiagnosticProviderBasedUser
         => (new QualifyWithThisAnalyzer(), new QualifyWithThisFixer());
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    private class QualifyWithThisAnalyzer : DiagnosticAnalyzer
+    private sealed class QualifyWithThisAnalyzer : DiagnosticAnalyzer
     {
         public static readonly DiagnosticDescriptor Descriptor = DescriptorFactory.CreateSimpleDescriptor("QualifyWithThis");
 
@@ -58,7 +58,7 @@ public partial class BatchFixerTests : AbstractCSharpDiagnosticProviderBasedUser
         }
     }
 
-    private class QualifyWithThisFixer : CodeFixProvider
+    private sealed class QualifyWithThisFixer : CodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds
         {

@@ -13,14 +13,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings;
 [ExportWorkspaceServiceFactory(typeof(ICodeRefactoringHelpersService), ServiceLayer.Editor), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class EditorLayerCodeActionHelpersService(IInlineRenameService renameService) : IWorkspaceServiceFactory
+internal sealed class EditorLayerCodeActionHelpersService(IInlineRenameService renameService) : IWorkspaceServiceFactory
 {
     private readonly IInlineRenameService _renameService = renameService;
 
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         => new CodeActionHelpersService(this);
 
-    private class CodeActionHelpersService(EditorLayerCodeActionHelpersService service) : ICodeRefactoringHelpersService
+    private sealed class CodeActionHelpersService(EditorLayerCodeActionHelpersService service) : ICodeRefactoringHelpersService
     {
         private readonly EditorLayerCodeActionHelpersService _service = service;
 

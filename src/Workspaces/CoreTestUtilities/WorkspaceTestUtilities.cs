@@ -7,20 +7,19 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace Microsoft.CodeAnalysis.UnitTests;
+
+public static class WorkspaceTestUtilities
 {
-    public static class WorkspaceTestUtilities
+    public static Workspace CreateWorkspaceWithPartialSemantics(Type[]? additionalParts = null, TestHost testHost = TestHost.InProcess)
+        => new WorkspaceWithPartialSemantics(FeaturesTestCompositions.Features.AddParts(additionalParts).WithTestHostParts(testHost).GetHostServices());
+
+    private sealed class WorkspaceWithPartialSemantics : Workspace
     {
-        public static Workspace CreateWorkspaceWithPartialSemantics(Type[]? additionalParts = null, TestHost testHost = TestHost.InProcess)
-            => new WorkspaceWithPartialSemantics(FeaturesTestCompositions.Features.AddParts(additionalParts).WithTestHostParts(testHost).GetHostServices());
-
-        private class WorkspaceWithPartialSemantics : Workspace
+        public WorkspaceWithPartialSemantics(HostServices hostServices) : base(hostServices, workspaceKind: nameof(WorkspaceWithPartialSemantics))
         {
-            public WorkspaceWithPartialSemantics(HostServices hostServices) : base(hostServices, workspaceKind: nameof(WorkspaceWithPartialSemantics))
-            {
-            }
-
-            protected internal override bool PartialSemanticsEnabled => true;
         }
+
+        protected internal override bool PartialSemanticsEnabled => true;
     }
 }

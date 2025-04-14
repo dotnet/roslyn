@@ -18,7 +18,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing;
 
-public class OrganizeTypeDeclarationTests : AbstractOrganizerTests
+public sealed class OrganizeTypeDeclarationTests : AbstractOrganizerTests
 {
     [Theory, Trait(Traits.Feature, Traits.Features.Organizing)]
     [InlineData("class")]

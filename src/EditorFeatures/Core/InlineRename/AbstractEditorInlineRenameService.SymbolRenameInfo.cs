@@ -23,7 +23,7 @@ internal abstract partial class AbstractEditorInlineRenameService
     /// <summary>
     /// Represents information about the ability to rename a particular location.
     /// </summary>
-    private partial class SymbolInlineRenameInfo : IInlineRenameInfo
+    private sealed partial class SymbolInlineRenameInfo : IInlineRenameInfo
     {
         private const string AttributeSuffix = "Attribute";
 

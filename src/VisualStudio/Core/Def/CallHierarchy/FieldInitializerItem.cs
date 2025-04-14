@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Language.CallHierarchy;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy;
 
-internal class FieldInitializerItem : ICallHierarchyNameItem
+internal sealed class FieldInitializerItem : ICallHierarchyNameItem
 {
     public FieldInitializerItem(string name, string sortText, ImageSource displayGlyph, IEnumerable<CallHierarchyDetail> details)
     {

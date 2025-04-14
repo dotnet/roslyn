@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
-public class NameResolverTests
+public sealed class NameResolverTests
 {
     private static async Task TestAsync(string text, string searchText, params string[] expectedNames)
     {
