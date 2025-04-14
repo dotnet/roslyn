@@ -1775,17 +1775,15 @@ partial interface I
 
 class C : I
 {
-    public void M(string s1) { } // 2
+    public void M(string s1) { }
 }
 ";
+            // note that I.M is not virtual so C.M does not implement it
             var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (10,13): warning CS8602: Dereference of a possibly null reference.
-                //         _ = s1.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s1").WithLocation(10, 13),
-                // (16,17): warning CS8767: Nullability of reference types in type of parameter 's1' of 'void C.M(string s1)' doesn't match implicitly implemented member 'void I.M(string s1)' (possibly because of nullability attributes).
-                //     public void M(string s1) { } // 2
-                Diagnostic(ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation, "M").WithArguments("s1", "void C.M(string s1)", "void I.M(string s1)").WithLocation(16, 17)
+                //         _ = s1.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s1").WithLocation(10, 13)
             );
         }
 
