@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.QuickInfo;
@@ -29,22 +30,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
             }
             """;
 
-        using var workspace = EditorTestWorkspace.CreateCSharp(testCode);
-        var solution = workspace.CurrentSolution;
-        var document = solution.Projects.First().Documents.First();
-
-        var syntaxTree = await document.GetSyntaxTreeAsync();
-        var semanticModel = await document.GetSemanticModelAsync();
-
-        var methodDeclaration = syntaxTree!.GetRoot()
-            .DescendantNodes()
-            .OfType<MethodDeclarationSyntax>()
-            .First();
-
-        var methodSymbol = semanticModel!.GetDeclaredSymbol(methodDeclaration);
-
-        var result = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, methodSymbol!);
-        Assert.True(result.All(item => item == null));
+        await TestMethodContextAsync(testCode, expectAllNull: true);
     }
 
     [Fact]
@@ -65,31 +51,14 @@ public sealed class OnTheFlyDocsUtilitiesTests
             }
             """;
 
-        using var workspace = EditorTestWorkspace.CreateCSharp(testCode);
-        var solution = workspace.CurrentSolution;
-        var document = solution.Projects.First().Documents.First();
-
-        var syntaxTree = await document.GetSyntaxTreeAsync();
-        var semanticModel = await document.GetSemanticModelAsync();
-
-        var methodDeclaration = syntaxTree!.GetRoot()
-            .DescendantNodes()
-            .OfType<MethodDeclarationSyntax>()
-            .First();
-
-        var methodSymbol = semanticModel!.GetDeclaredSymbol(methodDeclaration);
-
-        var result = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, methodSymbol!);
-        Assert.NotNull(result.First());
-        Assert.Null(result.Last());
-
         var actualSymbolText = """
             class A
             {
                 public int x;
             }
             """;
-        await AssertSymbolTextMatchesAsync(result.First()!, actualSymbolText);
+
+        await TestMethodContextAsync(testCode, actualSymbolText);
     }
 
     [Fact]
@@ -119,23 +88,6 @@ public sealed class OnTheFlyDocsUtilitiesTests
             }
             """;
 
-        using var workspace = EditorTestWorkspace.CreateCSharp(testCode);
-        var solution = workspace.CurrentSolution;
-        var document = solution.Projects.First().Documents.First();
-
-        var syntaxTree = await document.GetSyntaxTreeAsync();
-        var semanticModel = await document.GetSemanticModelAsync();
-
-        var methodInvocation = syntaxTree!.GetRoot()
-            .DescendantNodes()
-            .OfType<InvocationExpressionSyntax>()
-            .First();
-
-        var methodSymbol = semanticModel!.GetSymbolInfo(methodInvocation).Symbol;
-
-        var result = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, methodSymbol!);
-        Assert.True(result.All(item => item is not null));
-
         var customTypeText = """
             class CustomClass
             {
@@ -150,8 +102,8 @@ public sealed class OnTheFlyDocsUtilitiesTests
             }
             """;
 
-        await AssertSymbolTextMatchesAsync(result.First()!, customTypeText);
-        await AssertSymbolTextMatchesAsync(result.Last()!, customStructText);
+        await TestInvocationContextAsync(testCode, customTypeText, resultIndex: 0);
+        await TestInvocationContextAsync(testCode, customStructText, resultIndex: 1);
     }
 
     [Fact]
@@ -174,24 +126,6 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        using var workspace = EditorTestWorkspace.CreateCSharp(testCode);
-        var solution = workspace.CurrentSolution;
-        var document = solution.Projects.First().Documents.First();
-
-        var syntaxTree = await document.GetSyntaxTreeAsync();
-        var semanticModel = await document.GetSemanticModelAsync();
-
-        var objectCreation = syntaxTree!.GetRoot()
-            .DescendantNodes()
-            .OfType<ObjectCreationExpressionSyntax>()
-            .First();
-
-        var listType = semanticModel!.GetTypeInfo(objectCreation).Type;
-
-        var result = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, listType!);
-
-        Assert.NotNull(result.First());
-
         var customClassText = """
         class CustomClass
         {
@@ -199,7 +133,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        await AssertSymbolTextMatchesAsync(result.First()!, customClassText);
+        await TestObjectCreationTypeContextAsync(testCode, customClassText);
     }
 
     [Fact]
@@ -220,22 +154,6 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        using var workspace = EditorTestWorkspace.CreateCSharp(testCode);
-        var solution = workspace.CurrentSolution;
-        var document = solution.Projects.First().Documents.First();
-
-        var syntaxTree = await document.GetSyntaxTreeAsync();
-        var semanticModel = await document.GetSemanticModelAsync();
-
-        var methodDeclaration = syntaxTree!.GetRoot()
-            .DescendantNodes()
-            .OfType<MethodDeclarationSyntax>()
-            .First();
-
-        var methodSymbol = semanticModel!.GetDeclaredSymbol(methodDeclaration);
-
-        var result = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, methodSymbol!);
-
         var customClassText = """
         class CustomClass
         {
@@ -243,7 +161,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        await AssertSymbolTextMatchesAsync(result.First()!, customClassText);
+        await TestMethodContextAsync(testCode, customClassText);
     }
 
     [Fact]
@@ -265,22 +183,6 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        using var workspace = EditorTestWorkspace.CreateCSharp(testCode);
-        var solution = workspace.CurrentSolution;
-        var document = solution.Projects.First().Documents.First();
-
-        var syntaxTree = await document.GetSyntaxTreeAsync();
-        var semanticModel = await document.GetSemanticModelAsync();
-
-        var methodDeclaration = syntaxTree!.GetRoot()
-            .DescendantNodes()
-            .OfType<MethodDeclarationSyntax>()
-            .First();
-
-        var methodSymbol = semanticModel!.GetDeclaredSymbol(methodDeclaration);
-
-        var result = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, methodSymbol!);
-
         var customClassText = """
         class CustomClass
         {
@@ -288,7 +190,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        await AssertSymbolTextMatchesAsync(result.Last()!, customClassText);
+        await TestMethodContextAsync(testCode, customClassText, resultIndex: 1);
     }
 
     [Fact]
@@ -314,22 +216,6 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        using var workspace = EditorTestWorkspace.CreateCSharp(testCode);
-        var solution = workspace.CurrentSolution;
-        var document = solution.Projects.First().Documents.First();
-
-        var syntaxTree = await document.GetSyntaxTreeAsync();
-        var semanticModel = await document.GetSemanticModelAsync();
-
-        var methodDeclaration = syntaxTree!.GetRoot()
-            .DescendantNodes()
-            .OfType<MethodDeclarationSyntax>()
-            .First();
-
-        var methodSymbol = semanticModel!.GetDeclaredSymbol(methodDeclaration);
-
-        var result = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, methodSymbol!);
-
         var customStructText = """
         readonly struct CustomStruct
         {
@@ -342,7 +228,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        await AssertSymbolTextMatchesAsync(result.First()!, customStructText);
+        await TestMethodContextAsync(testCode, customStructText);
     }
 
     [Fact]
@@ -366,22 +252,6 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        using var workspace = EditorTestWorkspace.CreateCSharp(testCode);
-        var solution = workspace.CurrentSolution;
-        var document = solution.Projects.First().Documents.First();
-
-        var syntaxTree = await document.GetSyntaxTreeAsync();
-        var semanticModel = await document.GetSemanticModelAsync();
-
-        var methodDeclaration = syntaxTree!.GetRoot()
-            .DescendantNodes()
-            .OfType<MethodDeclarationSyntax>()
-            .First();
-
-        var methodSymbol = semanticModel!.GetDeclaredSymbol(methodDeclaration);
-
-        var result = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, methodSymbol!);
-
         var customMessageText = """
         class CustomMessage
         {
@@ -389,7 +259,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        await AssertSymbolTextMatchesAsync(result.Last()!, customMessageText);
+        await TestMethodContextAsync(testCode, customMessageText, resultIndex: 1);
     }
 
     [Fact]
@@ -411,22 +281,6 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        using var workspace = EditorTestWorkspace.CreateCSharp(testCode);
-        var solution = workspace.CurrentSolution;
-        var document = solution.Projects.First().Documents.First();
-
-        var syntaxTree = await document.GetSyntaxTreeAsync();
-        var semanticModel = await document.GetSemanticModelAsync();
-
-        var methodDeclaration = syntaxTree!.GetRoot()
-            .DescendantNodes()
-            .OfType<MethodDeclarationSyntax>()
-            .First();
-
-        var methodSymbol = semanticModel!.GetDeclaredSymbol(methodDeclaration);
-
-        var result = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, methodSymbol!);
-
         var customConfigText = """
         class CustomConfig
         {
@@ -434,7 +288,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        await AssertSymbolTextMatchesAsync(result.First()!, customConfigText);
+        await TestMethodContextAsync(testCode, customConfigText);
     }
 
     [Fact]
@@ -462,22 +316,6 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        using var workspace = EditorTestWorkspace.CreateCSharp(testCode);
-        var solution = workspace.CurrentSolution;
-        var document = solution.Projects.First().Documents.First();
-
-        var syntaxTree = await document.GetSyntaxTreeAsync();
-        var semanticModel = await document.GetSemanticModelAsync();
-
-        var methodDeclaration = syntaxTree!.GetRoot()
-            .DescendantNodes()
-            .OfType<MethodDeclarationSyntax>()
-            .First();
-
-        var methodSymbol = semanticModel!.GetDeclaredSymbol(methodDeclaration);
-
-        var result = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, methodSymbol!);
-
         var customRefText = """
         ref struct CustomRef
         {
@@ -490,7 +328,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        await AssertSymbolTextMatchesAsync(result.First()!, customRefText);
+        await TestMethodContextAsync(testCode, customRefText);
     }
 
     [Fact]
@@ -516,22 +354,6 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        using var workspace = EditorTestWorkspace.CreateCSharp(testCode);
-        var solution = workspace.CurrentSolution;
-        var document = solution.Projects.First().Documents.First();
-
-        var syntaxTree = await document.GetSyntaxTreeAsync();
-        var semanticModel = await document.GetSemanticModelAsync();
-
-        var methodDeclaration = syntaxTree!.GetRoot()
-            .DescendantNodes()
-            .OfType<MethodDeclarationSyntax>()
-            .First();
-
-        var methodSymbol = semanticModel!.GetDeclaredSymbol(methodDeclaration);
-
-        var result = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, methodSymbol!);
-
         var customPersonText = """
         class CustomPerson
         {
@@ -539,7 +361,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        await AssertSymbolTextMatchesAsync(result.First()!, customPersonText);
+        await TestMethodContextAsync(testCode, customPersonText);
     }
 
     [Fact]
@@ -563,22 +385,6 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        using var workspace = EditorTestWorkspace.CreateCSharp(testCode);
-        var solution = workspace.CurrentSolution;
-        var document = solution.Projects.First().Documents.First();
-
-        var syntaxTree = await document.GetSyntaxTreeAsync();
-        var semanticModel = await document.GetSemanticModelAsync();
-
-        var methodDeclaration = syntaxTree!.GetRoot()
-            .DescendantNodes()
-            .OfType<MethodDeclarationSyntax>()
-            .First();
-
-        var methodSymbol = semanticModel!.GetDeclaredSymbol(methodDeclaration);
-
-        var result = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, methodSymbol!);
-
         var customValueText = """
         struct CustomValue
         {
@@ -586,7 +392,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        await AssertSymbolTextMatchesAsync(result.First()!, customValueText);
+        await TestMethodContextAsync(testCode, customValueText);
     }
 
     [Fact]
@@ -607,22 +413,6 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        using var workspace = EditorTestWorkspace.CreateCSharp(testCode);
-        var solution = workspace.CurrentSolution;
-        var document = solution.Projects.First().Documents.First();
-
-        var syntaxTree = await document.GetSyntaxTreeAsync();
-        var semanticModel = await document.GetSemanticModelAsync();
-
-        var methodDeclaration = syntaxTree!.GetRoot()
-            .DescendantNodes()
-            .OfType<MethodDeclarationSyntax>()
-            .First();
-
-        var methodSymbol = semanticModel!.GetDeclaredSymbol(methodDeclaration);
-
-        var result = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, methodSymbol!);
-
         var customBaseText = """
         class CustomBase
         {
@@ -630,7 +420,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        await AssertSymbolTextMatchesAsync(result.First()!, customBaseText);
+        await TestMethodContextAsync(testCode, customBaseText);
     }
 
     [Fact]
@@ -651,22 +441,6 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        using var workspace = EditorTestWorkspace.CreateCSharp(testCode);
-        var solution = workspace.CurrentSolution;
-        var document = solution.Projects.First().Documents.First();
-
-        var syntaxTree = await document.GetSyntaxTreeAsync();
-        var semanticModel = await document.GetSemanticModelAsync();
-
-        var methodDeclaration = syntaxTree!.GetRoot()
-            .DescendantNodes()
-            .OfType<MethodDeclarationSyntax>()
-            .First();
-
-        var methodSymbol = semanticModel!.GetDeclaredSymbol(methodDeclaration);
-
-        var result = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, methodSymbol!);
-
         var customUserText = """
         class CustomUser
         {
@@ -674,7 +448,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        await AssertSymbolTextMatchesAsync(result.First()!, customUserText);
+        await TestMethodContextAsync(testCode, customUserText);
     }
 
     [Fact]
@@ -695,22 +469,6 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        using var workspace = EditorTestWorkspace.CreateCSharp(testCode);
-        var solution = workspace.CurrentSolution;
-        var document = solution.Projects.First().Documents.First();
-
-        var syntaxTree = await document.GetSyntaxTreeAsync();
-        var semanticModel = await document.GetSemanticModelAsync();
-
-        var methodDeclaration = syntaxTree!.GetRoot()
-            .DescendantNodes()
-            .OfType<MethodDeclarationSyntax>()
-            .First();
-
-        var methodSymbol = semanticModel!.GetDeclaredSymbol(methodDeclaration);
-
-        var result = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, methodSymbol!);
-
         var interfaceText = """
         interface ICustomInterface
         {
@@ -718,7 +476,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        await AssertSymbolTextMatchesAsync(result.First()!, interfaceText);
+        await TestMethodContextAsync(testCode, interfaceText);
     }
 
     [Fact]
@@ -739,22 +497,6 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        using var workspace = EditorTestWorkspace.CreateCSharp(testCode);
-        var solution = workspace.CurrentSolution;
-        var document = solution.Projects.First().Documents.First();
-
-        var syntaxTree = await document.GetSyntaxTreeAsync();
-        var semanticModel = await document.GetSemanticModelAsync();
-
-        var methodDeclaration = syntaxTree!.GetRoot()
-            .DescendantNodes()
-            .OfType<MethodDeclarationSyntax>()
-            .First();
-
-        var methodSymbol = semanticModel!.GetDeclaredSymbol(methodDeclaration);
-
-        var result = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, methodSymbol!);
-
         var helperText = """
         class CustomHelper
         {
@@ -762,7 +504,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        await AssertSymbolTextMatchesAsync(result.Last()!, helperText);
+        await TestMethodContextAsync(testCode, helperText, resultIndex: 1);
     }
 
     [Fact]
@@ -789,22 +531,6 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        using var workspace = EditorTestWorkspace.CreateCSharp(testCode);
-        var solution = workspace.CurrentSolution;
-        var document = solution.Projects.First().Documents.First();
-
-        var syntaxTree = await document.GetSyntaxTreeAsync();
-        var semanticModel = await document.GetSemanticModelAsync();
-
-        var methodDeclaration = syntaxTree!.GetRoot()
-            .DescendantNodes()
-            .OfType<MethodDeclarationSyntax>()
-            .First();
-
-        var methodSymbol = semanticModel!.GetDeclaredSymbol(methodDeclaration);
-
-        var result = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, methodSymbol!);
-
         var nestedText = """
         public class DeepNested
                 {
@@ -812,7 +538,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
                 }
         """;
 
-        await AssertSymbolTextMatchesAsync(result.First()!, nestedText);
+        await TestMethodContextAsync(testCode, nestedText);
     }
 
     [Fact]
@@ -845,27 +571,6 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        using var workspace = EditorTestWorkspace.CreateCSharp(testCode);
-        var solution = workspace.CurrentSolution;
-        var document = solution.Projects.First().Documents.First();
-
-        var syntaxTree = await document.GetSyntaxTreeAsync();
-        var semanticModel = await document.GetSemanticModelAsync();
-
-        // Get the indexer property symbol
-        var classDeclaration = syntaxTree!.GetRoot()
-            .DescendantNodes()
-            .OfType<ClassDeclarationSyntax>()
-            .FirstOrDefault(c => c.Identifier.Text == "CustomCollection");
-
-        var indexerDeclaration = classDeclaration!.Members
-            .OfType<IndexerDeclarationSyntax>()
-            .First();
-
-        var indexerSymbol = semanticModel!.GetDeclaredSymbol(indexerDeclaration);
-
-        var result = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, indexerSymbol!);
-
         var keyText = """
         class CustomKey
         {
@@ -878,7 +583,116 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        await AssertSymbolTextMatchesAsync(result.First()!, keyText);
+        await TestSymbolContextAsync(
+            testCode,
+            (syntaxTree, semanticModel) =>
+            {
+                var classDeclaration = syntaxTree.GetRoot()
+                    .DescendantNodes()
+                    .OfType<ClassDeclarationSyntax>()
+                    .FirstOrDefault(c => c.Identifier.Text == "CustomCollection");
+
+                var indexerDeclaration = classDeclaration!.Members
+                    .OfType<IndexerDeclarationSyntax>()
+                    .First();
+
+                return semanticModel.GetDeclaredSymbol(indexerDeclaration)!;
+            },
+            keyText);
+    }
+
+    private static async Task<(Solution Solution, Document Document, SemanticModel SemanticModel, SyntaxTree SyntaxTree)>
+        SetupWorkspaceAsync(string testCode)
+    {
+        var workspace = EditorTestWorkspace.CreateCSharp(testCode);
+        var solution = workspace.CurrentSolution;
+        var document = solution.Projects.First().Documents.First();
+
+        var syntaxTree = await document.GetSyntaxTreeAsync();
+        var semanticModel = await document.GetSemanticModelAsync();
+
+        return (solution, document, semanticModel!, syntaxTree!);
+    }
+
+    private static ISymbol GetMethodSymbol(SyntaxTree syntaxTree, SemanticModel semanticModel)
+    {
+        var methodDeclaration = syntaxTree.GetRoot()
+            .DescendantNodes()
+            .OfType<MethodDeclarationSyntax>()
+            .First();
+
+        return semanticModel.GetDeclaredSymbol(methodDeclaration)!;
+    }
+
+    private static async Task TestSymbolContextAsync(
+        string testCode,
+        Func<SyntaxTree, SemanticModel, ISymbol> getSymbol,
+        string? expectedText = null,
+        bool expectAllNull = false,
+        int resultIndex = 0)
+    {
+        var (solution, _, semanticModel, syntaxTree) = await SetupWorkspaceAsync(testCode);
+
+        var symbol = getSymbol(syntaxTree, semanticModel);
+        var result = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, symbol);
+
+        if (expectAllNull)
+        {
+            Assert.True(result.All(item => item == null));
+            return;
+        }
+
+        var relevantInfo = resultIndex < 0 ? result.Last() : result[resultIndex];
+        Assert.NotNull(relevantInfo);
+
+        if (expectedText != null)
+        {
+            await AssertSymbolTextMatchesAsync(relevantInfo!, expectedText);
+        }
+    }
+
+    private static Task TestMethodContextAsync(string testCode, string? expectedText = null, bool expectAllNull = false, int resultIndex = 0)
+    {
+        return TestSymbolContextAsync(
+            testCode,
+            (syntaxTree, semanticModel) => GetMethodSymbol(syntaxTree, semanticModel),
+            expectedText,
+            expectAllNull,
+            resultIndex);
+    }
+
+    private static Task TestObjectCreationTypeContextAsync(string testCode, string expectedText)
+    {
+        return TestSymbolContextAsync(
+            testCode,
+            (syntaxTree, semanticModel) =>
+            {
+                var objectCreation = syntaxTree.GetRoot()
+                    .DescendantNodes()
+                    .OfType<ObjectCreationExpressionSyntax>()
+                    .First();
+
+                return semanticModel.GetTypeInfo(objectCreation).Type!;
+            },
+            expectedText);
+    }
+
+    private static Task TestInvocationContextAsync(string testCode, string? expectedText = null, bool expectAllNull = false, int resultIndex = 0)
+    {
+        return TestSymbolContextAsync(
+            testCode,
+            (syntaxTree, semanticModel) =>
+            {
+                var methodInvocation = syntaxTree.GetRoot()
+                    .DescendantNodes()
+                    .OfType<InvocationExpressionSyntax>()
+                    .First();
+
+                return semanticModel.GetSymbolInfo(methodInvocation).Symbol!;
+            },
+            expectedText,
+            expectAllNull,
+            resultIndex);
     }
 
     private static async Task AssertSymbolTextMatchesAsync(OnTheFlyDocsRelevantFileInfo onTheFlyDocsRelevantFileInfo, string actualSymbolText)
