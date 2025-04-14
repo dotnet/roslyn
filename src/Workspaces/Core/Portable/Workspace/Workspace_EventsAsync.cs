@@ -15,45 +15,45 @@ public abstract partial class Workspace
     /// <summary>
     /// Registers a handler that is fired whenever the current solution is changed.
     /// </summary>
-    internal WorkspaceEventRegistration RegisterWorkspaceChangedHandler(Func<WorkspaceChangeEventArgs, Task> handler)
-        => RegisterAsyncHandler(WorkspaceChangeEventName, handler);
+    internal WorkspaceEventRegistration RegisterWorkspaceChangedHandler(Action<WorkspaceChangeEventArgs> handler, bool requiresMainThread)
+        => RegisterAsyncHandler(WorkspaceChangeEventName, handler, requiresMainThread);
 
     /// <summary>
     /// Registers a handler that is fired when a <see cref="Document"/> is opened in the editor.
     /// </summary>
-    internal WorkspaceEventRegistration RegisterDocumentOpenedHandler(Func<DocumentEventArgs, Task> handler)
-        => RegisterAsyncHandler(DocumentOpenedEventName, handler);
+    internal WorkspaceEventRegistration RegisterDocumentOpenedHandler(Action<DocumentEventArgs> handler, bool requiresMainThread)
+        => RegisterAsyncHandler(DocumentOpenedEventName, handler, requiresMainThread);
 
     /// <summary>
     /// Registers a handler that is fired when a <see cref="Document"/> is closed in the editor.
     /// </summary>
-    internal WorkspaceEventRegistration RegisterDocumentClosedHandler(Func<DocumentEventArgs, Task> handler)
-        => RegisterAsyncHandler(DocumentClosedEventName, handler);
+    internal WorkspaceEventRegistration RegisterDocumentClosedHandler(Action<DocumentEventArgs> handler, bool requiresMainThread)
+        => RegisterAsyncHandler(DocumentClosedEventName, handler, requiresMainThread);
 
     /// <summary>
     /// Registers a handler that is fired when any <see cref="TextDocument"/> is opened in the editor.
     /// </summary>
-    internal WorkspaceEventRegistration RegisterTextDocumentOpenedHandler(Func<TextDocumentEventArgs, Task> handler)
-        => RegisterAsyncHandler(TextDocumentOpenedEventName, handler);
+    internal WorkspaceEventRegistration RegisterTextDocumentOpenedHandler(Action<TextDocumentEventArgs> handler, bool requiresMainThread)
+        => RegisterAsyncHandler(TextDocumentOpenedEventName, handler, requiresMainThread);
 
     /// <summary>
     /// Registers a handler that is fired when any <see cref="TextDocument"/> is closed in the editor.
     /// </summary>
-    internal WorkspaceEventRegistration RegisterTextDocumentClosedHandler(Func<TextDocumentEventArgs, Task> handler)
-        => RegisterAsyncHandler(TextDocumentClosedEventName, handler);
+    internal WorkspaceEventRegistration RegisterTextDocumentClosedHandler(Action<TextDocumentEventArgs> handler, bool requiresMainThread)
+        => RegisterAsyncHandler(TextDocumentClosedEventName, handler, requiresMainThread);
 
     /// <summary>
     /// Registers a handler that is fired when the active context document associated with a buffer 
     /// changes.
     /// </summary>
-    internal WorkspaceEventRegistration RegisterDocumentActiveContextChangedHandler(Func<DocumentActiveContextChangedEventArgs, Task> handler)
-        => RegisterAsyncHandler(DocumentActiveContextChangedName, handler);
+    internal WorkspaceEventRegistration RegisterDocumentActiveContextChangedHandler(Action<DocumentActiveContextChangedEventArgs> handler, bool requiresMainThread)
+        => RegisterAsyncHandler(DocumentActiveContextChangedName, handler, requiresMainThread);
 
-    private WorkspaceEventRegistration RegisterAsyncHandler<TEventArgs>(string eventName, Func<TEventArgs, Task> handler)
+    private WorkspaceEventRegistration RegisterAsyncHandler<TEventArgs>(string eventName, Action<TEventArgs> handler, bool requiresMainThread)
         where TEventArgs : EventArgs
     {
-        _asyncEventMap.AddAsyncEventHandler(eventName, handler);
+        _asyncEventMap.AddHandler(eventName, handler, requiresMainThread);
 
-        return WorkspaceEventRegistration.Create(_asyncEventMap, eventName, handler);
+        return WorkspaceEventRegistration.Create(_asyncEventMap, eventName, handler, requiresMainThread);
     }
 }

@@ -108,7 +108,7 @@ public abstract partial class Workspace
         if (asyncEv.HasHandlers)
         {
             args ??= new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
-            var asyncEventHandlersTask = this.ScheduleBackgroundTask(() => RaiseEventForAsyncHandlersAsync(asyncEv, args, FunctionId.Workspace_Events));
+            var asyncEventHandlersTask = this.ScheduleTask(() => RaiseEventForAsyncHandlersAsync(asyncEv, args, FunctionId.Workspace_Events));
 
             eventHandlerTasks.Add(asyncEventHandlersTask);
         }

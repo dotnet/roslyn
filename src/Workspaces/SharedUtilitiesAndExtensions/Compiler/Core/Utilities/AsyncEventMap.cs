@@ -15,28 +15,28 @@ internal sealed class AsyncEventMap
     private readonly SemaphoreSlim _guard = new(initialCount: 1);
     private readonly Dictionary<string, object> _eventNameToHandlerSet = [];
 
-    public void AddAsyncEventHandler<TEventArgs>(string eventName, Func<TEventArgs, Task> asyncHandler)
+    public void AddHandler<TEventArgs>(string eventName, Action<TEventArgs> handler, bool requiresMainThread)
         where TEventArgs : EventArgs
     {
         using (_guard.DisposableWait())
         {
             _eventNameToHandlerSet[eventName] = _eventNameToHandlerSet.TryGetValue(eventName, out var handlers)
-                ? ((AsyncEventHandlerSet<TEventArgs>)handlers).AddHandler(asyncHandler)
-                : new AsyncEventHandlerSet<TEventArgs>([asyncHandler]);
+                ? ((AsyncEventHandlerSet<TEventArgs>)handlers).AddHandler(handler, requiresMainThread)
+                : new AsyncEventHandlerSet<TEventArgs>([(handler, requiresMainThread)]);
         }
     }
 
-    public void RemoveAsyncEventHandler<TEventArgs>(string eventName, Func<TEventArgs, Task> asyncHandler)
+    public void RemoveHandler<TEventArgs>(string eventName, Action<TEventArgs> handler, bool requiresMainThread)
         where TEventArgs : EventArgs
     {
         using (_guard.DisposableWait())
         {
             if (_eventNameToHandlerSet.TryGetValue(eventName, out var handlers))
-                _eventNameToHandlerSet[eventName] = ((AsyncEventHandlerSet<TEventArgs>)handlers).RemoveHandler(asyncHandler);
+                _eventNameToHandlerSet[eventName] = ((AsyncEventHandlerSet<TEventArgs>)handlers).RemoveHandler(handler, requiresMainThread);
         }
     }
 
-    public AsyncEventHandlerSet<TEventArgs> GetEventHandlerSet<TEventArgs>(string eventName)
+    public AsyncEventHandlerSet<TEventArgs> GetHandlerSet<TEventArgs>(string eventName)
         where TEventArgs : EventArgs
     {
         using (_guard.DisposableWait())
@@ -47,28 +47,31 @@ internal sealed class AsyncEventMap
         }
     }
 
-    public sealed class AsyncEventHandlerSet<TEventArgs>(ImmutableArray<Func<TEventArgs, Task>> asyncHandlers)
+    public sealed class AsyncEventHandlerSet<TEventArgs>(ImmutableArray<(Action<TEventArgs>, bool)> handlers)
         where TEventArgs : EventArgs
     {
-        private readonly ImmutableArray<Func<TEventArgs, Task>> _asyncHandlers = asyncHandlers;
+        private readonly ImmutableArray<(Action<TEventArgs> Handler, bool RequiresMainThread)> _handlers = handlers;
         public static readonly AsyncEventHandlerSet<TEventArgs> Empty = new([]);
 
-        public AsyncEventHandlerSet<TEventArgs> AddHandler(Func<TEventArgs, Task> asyncHandler)
-            => new(_asyncHandlers.Add(asyncHandler));
+        public AsyncEventHandlerSet<TEventArgs> AddHandler(Action<TEventArgs> handler, bool requiresMainThread)
+            => new(_handlers.Add((handler, requiresMainThread)));
 
-        public AsyncEventHandlerSet<TEventArgs> RemoveHandler(Func<TEventArgs, Task> asyncHandler)
+        public AsyncEventHandlerSet<TEventArgs> RemoveHandler(Action<TEventArgs> handler, bool requiresMainThread)
         {
-            var newAsyncHandlers = _asyncHandlers.RemoveAll(r => r.Equals(asyncHandler));
+            var newAsyncHandlers = _handlers.RemoveAll(arg => arg.Handler.Equals(handler) && arg.RequiresMainThread == requiresMainThread);
 
             return newAsyncHandlers.IsEmpty ? Empty : new(newAsyncHandlers);
         }
 
-        public bool HasHandlers => !_asyncHandlers.IsEmpty;
+        public bool HasHandlers => !_handlers.IsEmpty;
 
-        public async Task RaiseEventAsync(TEventArgs arg)
+        public void RaiseHandlers(TEventArgs arg, bool requiresMainThread)
         {
-            foreach (var asyncHandler in _asyncHandlers)
-                await asyncHandler(arg).ConfigureAwait(false);
+            foreach (var handler in _handlers)
+            {
+                if (handler.RequiresMainThread == requiresMainThread)
+                    handler.Handler(arg);
+            }
         }
     }
 }

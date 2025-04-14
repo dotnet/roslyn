@@ -10,23 +10,24 @@ namespace Microsoft.CodeAnalysis;
 
 internal abstract class WorkspaceEventRegistration : IDisposable
 {
-    public static WorkspaceEventRegistration Create<TEventArgs>(AsyncEventMap asyncEventMap, string eventName, Func<TEventArgs, Task> handler)
+    public static WorkspaceEventRegistration Create<TEventArgs>(AsyncEventMap asyncEventMap, string eventName, Action<TEventArgs> handler, bool requiresMainThread)
         where TEventArgs : EventArgs
     {
-        return new WorkspaceEventRegistrationImpl<TEventArgs>(asyncEventMap, eventName, handler);
+        return new WorkspaceEventRegistrationImpl<TEventArgs>(asyncEventMap, eventName, handler, requiresMainThread);
     }
 
     public abstract void Dispose();
 
-    private sealed class WorkspaceEventRegistrationImpl<TEventArgs>(AsyncEventMap asyncEventMap, string eventName, Func<TEventArgs, Task> handler)
+    private sealed class WorkspaceEventRegistrationImpl<TEventArgs>(AsyncEventMap asyncEventMap, string eventName, Action<TEventArgs> handler, bool requiresMainThread)
         : WorkspaceEventRegistration
         where TEventArgs : EventArgs
     {
         private readonly AsyncEventMap _asyncEventMap = asyncEventMap;
         private readonly string _eventName = eventName;
-        private readonly Func<TEventArgs, Task> _handler = handler;
+        private readonly Action<TEventArgs> _handler = handler;
+        private readonly bool _requiresMainThread = requiresMainThread;
 
         public override void Dispose()
-             => _asyncEventMap.RemoveAsyncEventHandler(_eventName, _handler);
+             => _asyncEventMap.RemoveHandler(_eventName, _handler, _requiresMainThread);
     }
 }

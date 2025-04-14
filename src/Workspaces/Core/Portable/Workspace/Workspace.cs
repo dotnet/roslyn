@@ -39,8 +39,7 @@ public abstract partial class Workspace : IDisposable
 
     private readonly IAsynchronousOperationListener _asyncOperationListener;
 
-    private readonly AsyncBatchingWorkQueue<Action> _workQueue;
-    private readonly AsyncBatchingWorkQueue<Func<Task>> _backgroundAsyncWorkQueue;
+    private readonly AsyncBatchingWorkQueue<(Action Action, bool RequiresMainThread)> _workQueue;
     private readonly CancellationTokenSource _workQueueTokenSource = new();
     private readonly ITaskSchedulerProvider _taskSchedulerProvider;
 
@@ -84,12 +83,6 @@ public abstract partial class Workspace : IDisposable
         _workQueue = new(
             TimeSpan.Zero,
             ProcessWorkQueueAsync,
-            _asyncOperationListener,
-            _workQueueTokenSource.Token);
-
-        _backgroundAsyncWorkQueue = new(
-            TimeSpan.Zero,
-            ProcessBackgroundWorkQueueAsync,
             _asyncOperationListener,
             _workQueueTokenSource.Token);
 
@@ -598,16 +591,13 @@ public abstract partial class Workspace : IDisposable
     [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
 #pragma warning disable IDE0060 // Remove unused parameter
     protected internal Task ScheduleTask(Action action, string? taskName = "Workspace.Task")
-    {
-        _workQueue.AddWork(action);
-        return _workQueue.WaitUntilCurrentBatchCompletesAsync();
-    }
+        => ScheduleTask(action, requiresMainThread: true);
 
     [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-    internal Task ScheduleBackgroundTask(Func<Task> action)
+    internal Task ScheduleTask(Action action, bool requiresMainThread)
     {
-        _backgroundAsyncWorkQueue.AddWork(action);
-        return _backgroundAsyncWorkQueue.WaitUntilCurrentBatchCompletesAsync();
+        _workQueue.AddWork((Action: action, RequiresMainThread: requiresMainThread));
+        return _workQueue.WaitUntilCurrentBatchCompletesAsync();
     }
 
     /// <summary>
@@ -617,8 +607,7 @@ public abstract partial class Workspace : IDisposable
     protected internal async Task<T> ScheduleTask<T>(Func<T> func, string? taskName = "Workspace.Task")
     {
         T? result = default;
-        _workQueue.AddWork(() => result = func());
-        await _workQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
+        await ScheduleTask(action: () => result = func(), requiresMainThread: true).ConfigureAwait(false);
         return result!;
     }
 #pragma warning restore IDE0060 // Remove unused parameter
@@ -730,40 +719,37 @@ public abstract partial class Workspace : IDisposable
         _workQueueTokenSource.Cancel();
     }
 
-    private async ValueTask ProcessWorkQueueAsync(ImmutableSegmentedList<Action> list, CancellationToken cancellationToken)
+    private async ValueTask ProcessWorkQueueAsync(ImmutableSegmentedList<(Action Action, bool RequiresMainThread)> list, CancellationToken cancellationToken)
     {
-        // Hop over to the right scheduler to execute all this work.
-        await Task.Factory.StartNew(() =>
+        ProcessItems(list, isOnMainThread: false, cancellationToken);
+
+        if (list.Any(static (item) => item.RequiresMainThread))
         {
-            foreach (var item in list)
+            // Hop over to the right scheduler to execute all this work.
+            await Task.Factory.StartNew(() =>
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                ProcessItems(list, isOnMainThread: true, cancellationToken);
+            }, cancellationToken, TaskCreationOptions.None, _taskSchedulerProvider.CurrentContextScheduler).ConfigureAwait(false);
+        }
 
-                try
-                {
-                    item();
-                }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
-                {
-                    // Ensure we continue onto further items, even if one particular item fails.
-                }
-            }
-        }, cancellationToken, TaskCreationOptions.None, _taskSchedulerProvider.CurrentContextScheduler).ConfigureAwait(false);
-    }
-
-    private static async ValueTask ProcessBackgroundWorkQueueAsync(ImmutableSegmentedList<Func<Task>> list, CancellationToken cancellationToken)
-    {
-        foreach (var item in list)
+        static void ProcessItems(ImmutableSegmentedList<(Action, bool)> list, bool isOnMainThread, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            foreach (var (item, requiresMainThread) in list)
+            {
+                if (requiresMainThread == isOnMainThread)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
 
-            try
-            {
-                await item().ConfigureAwait(false);
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
-            {
-                // Ensure we continue onto further items, even if one particular item fails.
+                    try
+                    {
+                        if (!requiresMainThread)
+                            item();
+                    }
+                    catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+                    {
+                        // Ensure we continue onto further items, even if one particular item fails.
+                    }
+                }
             }
         }
     }
