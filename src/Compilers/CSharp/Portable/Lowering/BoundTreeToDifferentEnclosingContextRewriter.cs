@@ -57,9 +57,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var newType = VisitType(local.Type);
-            if (AllowReuseOfLocalsWithIncorrectContainingSymbol && TypeSymbol.Equals(newType, local.Type, TypeCompareKind.ConsiderEverything2))
+            if (TypeSymbol.Equals(newType, local.Type, TypeCompareKind.ConsiderEverything2))
             {
-                newLocal = local;
+                if (AllowReuseOfLocalsWithIncorrectContainingSymbol)
+                {
+                    newLocal = local;
+                }
+                else
+                {
+                    if (local.ContainingSymbol == CurrentMethod)
+                    {
+                        newLocal = local;
+                    }
+                    else
+                    {
+                        newLocal = new TypeSubstitutedLocalSymbol(local, local.TypeWithAnnotations, CurrentMethod);
+                        localMap.Add(local, newLocal);
+                    }
+                }
             }
             else
             {
