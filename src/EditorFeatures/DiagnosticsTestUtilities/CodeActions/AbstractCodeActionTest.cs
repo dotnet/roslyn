@@ -155,7 +155,7 @@ public abstract partial class AbstractCodeActionTest : AbstractCodeActionOrUserD
 
     internal static void EnableOptions(
         ImmutableArray<PickMembersOption> options,
-        params string[] ids)
+        params ReadOnlySpan<string> ids)
     {
         foreach (var id in ids)
         {
