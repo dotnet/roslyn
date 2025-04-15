@@ -20,21 +20,22 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 [ExportCSharpVisualBasicLspServiceFactory(typeof(RazorDynamicRegistrationService), WellKnownLspServerKinds.Any), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class RazorDynamicRegistrationServiceFactory(
+internal sealed class RazorStartupServiceFactory(
     [Import(AllowDefault = true)] IUIContextActivationService? uIContextActivationService,
-    [Import(AllowDefault = true)] Lazy<IRazorCohostDynamicRegistrationService>? dynamicRegistrationService) : ILspServiceFactory
+    [Import(AllowDefault = true)] Lazy<IRazorCohostDynamicRegistrationService>? dynamicRegistrationService,
+    [Import(AllowDefault = true)] Lazy<ICohostStartupService>? cohostStartupService) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
-        var clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
-
-        return new RazorDynamicRegistrationService(uIContextActivationService, dynamicRegistrationService, clientLanguageServerManager);
+        return new RazorDynamicRegistrationService(uIContextActivationService, dynamicRegistrationService, cohostStartupService);
     }
 
     private class RazorDynamicRegistrationService(
         IUIContextActivationService? uIContextActivationService,
+#pragma warning disable CS0618 // Type or member is obsolete
         Lazy<IRazorCohostDynamicRegistrationService>? dynamicRegistrationService,
-        IClientLanguageServerManager? clientLanguageServerManager) : ILspService, IOnInitialized, IDisposable
+#pragma warning restore CS0618 // Type or member is obsolete
+        Lazy<ICohostStartupService>? cohostStartupService) : ILspService, IOnInitialized, IDisposable
     {
         private readonly CancellationTokenSource _disposalTokenSource = new();
         private IDisposable? _activation;
@@ -54,7 +55,7 @@ internal sealed class RazorDynamicRegistrationServiceFactory(
                 return Task.CompletedTask;
             }
 
-            if (dynamicRegistrationService is null || clientLanguageServerManager is null)
+            if (dynamicRegistrationService is null && cohostStartupService is null)
             {
                 return Task.CompletedTask;
             }
@@ -88,10 +89,18 @@ internal sealed class RazorDynamicRegistrationServiceFactory(
 
             // We use a string to pass capabilities to/from Razor to avoid version issues with the Protocol DLL
             var serializedClientCapabilities = JsonSerializer.Serialize(clientCapabilities, ProtocolConversions.LspJsonSerializerOptions);
-            var razorCohostClientLanguageServerManager = new RazorClientLanguageServerManager(clientLanguageServerManager!);
 
             var requestContext = new RazorCohostRequestContext(context);
-            await dynamicRegistrationService!.Value.RegisterAsync(serializedClientCapabilities, requestContext, cancellationToken).ConfigureAwait(false);
+
+            if (cohostStartupService is not null)
+            {
+                await cohostStartupService.Value.StartupAsync(serializedClientCapabilities, requestContext, cancellationToken).ConfigureAwait(false);
+            }
+
+            if (dynamicRegistrationService is not null)
+            {
+                await dynamicRegistrationService.Value.RegisterAsync(serializedClientCapabilities, requestContext, cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 }
