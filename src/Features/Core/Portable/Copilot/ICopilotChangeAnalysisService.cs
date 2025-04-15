@@ -54,7 +54,7 @@ internal sealed class DefaultCopilotChangeAnalysisServiceFactory(
             ImmutableArray<TextChange> changes,
             CancellationToken cancellationToken)
         {
-            if (_codeFixService is null || _diagnosticAnalyzerService is null || !document.SupportsSemanticModel)
+            if (!document.SupportsSemanticModel)
                 return default;
 
             Contract.ThrowIfTrue(!changes.IsSorted(static (c1, c2) => c1.Span.Start - c2.Span.Start), "'changes' was not sorted.");
