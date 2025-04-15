@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Tags;
 
@@ -16,7 +17,7 @@ internal static class GlyphExtensions
 
     public static ImmutableArray<Glyph> GetGlyphs(this ReadOnlySpan<string> tags)
     {
-        var builder = ImmutableArray.CreateBuilder<Glyph>(initialCapacity: tags.Length);
+        using var _ = ArrayBuilder<Glyph>.GetInstance(tags.Length, out var builder);
 
         foreach (var tag in tags)
         {
@@ -25,7 +26,7 @@ internal static class GlyphExtensions
                 builder.Add(glyph);
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     public static Glyph GetFirstGlyph(this ImmutableArray<string> tags)
