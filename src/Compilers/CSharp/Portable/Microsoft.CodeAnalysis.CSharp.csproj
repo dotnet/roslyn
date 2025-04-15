@@ -41,6 +41,9 @@
     <None Include="FlowAnalysis\Flow Analysis Design.docx" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
+    <!-- The following are included in DesignTimeBuild so they show up in Solution Explorer. -->
+    <PublicAPI Include="PublicAPI.Shipped.net9.txt" Condition="'$(DesignTimeBuild)' == 'true' or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' and $([MSBuild]::VersionGreaterThanOrEquals($(TargetFrameworkVersion), 9.0)))" />
+    <PublicAPI Include="PublicAPI.Unshipped.net9.txt" Condition="'$(DesignTimeBuild)' == 'true' or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' and $([MSBuild]::VersionGreaterThanOrEquals($(TargetFrameworkVersion), 9.0)))" />
 
     <!-- Don't include the output from a previous source generator execution into future runs; the */** trick here ensures that there's
          at least one subdirectory, which is our key that it's coming from a source generator as opposed to something that is coming from

@@ -1,0 +1,5 @@
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.DiagnosticException
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.VirtualProjectGenerator
+[RSEXPERIMENTAL006]static Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.VirtualProjectGenerator.GetArtifactsPath(string! entryPointFilePath) -> string!
+[RSEXPERIMENTAL006]static Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.VirtualProjectGenerator.WriteConvertedProjectFile<TArg>(string! entryPointFileFullPath, Microsoft.CodeAnalysis.Text.SourceText! entryPointFileText, TArg arg, System.Func<TArg, System.IO.TextWriter!>! writerFactory, bool force) -> Microsoft.CodeAnalysis.Text.SourceText?
+[RSEXPERIMENTAL006]static Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.VirtualProjectGenerator.WriteVirtualProjectFile(string! entryPointFileFullPath, Microsoft.CodeAnalysis.Text.SourceText! entryPointFileText, System.IO.TextWriter! writer, string! artifactsPath) -> void
