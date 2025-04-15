@@ -986,8 +986,8 @@ public static class Extensions
         var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().First();
         var symbol1 = model.GetDeclaredSymbol(extension1);
         var sourceExtension1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
-        Assert.Equal("<>E__0`1", symbol1.MetadataName);
-        Assert.Equal("Extensions.<>E__0<T>", symbol1.ToTestDisplayString());
+        Assert.Equal("<>E__0", symbol1.MetadataName);
+        Assert.Equal("Extensions.<>E__0", symbol1.ToTestDisplayString());
     }
 
     [Fact]
