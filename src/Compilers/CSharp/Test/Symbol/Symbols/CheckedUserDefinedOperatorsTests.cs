@@ -273,7 +273,10 @@ class C
                 Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(4, 23),
                 // (4,23): error CS9501: User-defined operator 'C.operator checked --(C)' must be declared public
                 //     C operator checked--(C x) => default;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBePublic, op).WithArguments("C.operator checked " + op + "(C)").WithLocation(4, 23)
+                Diagnostic(ErrorCode.ERR_OperatorsMustBePublic, op).WithArguments("C.operator checked " + op + "(C)").WithLocation(4, 23),
+                // (4,23): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute..ctor'
+                //     C operator checked--(C x) => default;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, op).WithArguments("System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute", ".ctor").WithLocation(4, 23)
                 );
         }
 

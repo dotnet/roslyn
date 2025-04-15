@@ -181,6 +181,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // SPEC: It is an error for the same modifier to appear multiple times in an
             // SPEC: operator declaration.
             ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation: false, diagnostics, location);
+
+            if (!IsStatic && (isIncrementDecrement || isCompoundAssignment))
+            {
+                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor, diagnostics, location);
+            }
         }
 
         private static (bool isIncrementDecrement, bool isCompoundAssignment) IsAssignmentOperatorDeclaration(CSharpSyntaxNode syntax)

@@ -707,6 +707,8 @@ namespace System.Diagnostics.CodeAnalysis
 ";
 
         internal static readonly string CompilerFeatureRequiredAttribute = """
+            #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+
             namespace System.Runtime.CompilerServices
             {
                 [AttributeUsage(AttributeTargets.All, AllowMultiple = true, Inherited = false)]
@@ -720,6 +722,8 @@ namespace System.Diagnostics.CodeAnalysis
                     public bool IsOptional { get; set; }
                 }
             }
+
+            #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
             """;
 
         internal static readonly string CollectionBuilderAttributeDefinition = """

@@ -17728,7 +17728,7 @@ public interface I2<T> where T : I2<T>
 }
 ";
 
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
@@ -17984,7 +17984,7 @@ public interface I2<T> where T : I2<T>
 }
 ";
 
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
@@ -18519,7 +18519,7 @@ interface I14 : I1
 }
 ";
 
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
@@ -18813,7 +18813,7 @@ interface I14 : I1
 }
 ";
 
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
