@@ -108,6 +108,7 @@ internal static partial class ProtocolConversions
     {
         LSP.VSInternalExtensionUtilities.AddVSInternalExtensionConverters(options);
         options.Converters.Add(new LSP.NaturalObjectConverter());
+        options.Converters.Add(new DocumentUriConverter());
         return options;
     }
 

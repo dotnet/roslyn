@@ -1,4 +1,4 @@
-﻿﻿// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -658,7 +658,7 @@ class {|Identifier:A|}
 
         private static ImmutableArray<(string resultId, DocumentUri uri)> CreateParamsFromPreviousReports(VSInternalWorkspaceSpellCheckableReport[] results)
         {
-            return [.. results.Select(r => (r.ResultId!, Uri:r.TextDocument.DocumentUri))];
+            return [.. results.Select(r => (r.ResultId!, Uri: r.TextDocument.DocumentUri))];
         }
     }
 }

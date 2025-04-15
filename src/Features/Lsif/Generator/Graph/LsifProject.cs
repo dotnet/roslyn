@@ -13,10 +13,10 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
 internal sealed class LsifProject : Vertex
 {
     public string Kind { get; }
-    public DocumentUri? Resource { get; }
+    public Uri? Resource { get; }
     public string Name { get; }
 
-    public LsifProject(string kind, DocumentUri? resource, string name, IdFactory idFactory)
+    public LsifProject(string kind, Uri? resource, string name, IdFactory idFactory)
         : base(label: "project", idFactory)
     {
         Kind = kind;

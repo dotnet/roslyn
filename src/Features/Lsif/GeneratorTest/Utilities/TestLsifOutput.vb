@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
             For Each testDocument In _workspace.Documents
                 Dim documentVertex = _testLsifJsonWriter.Vertices _
                                                         .OfType(Of Graph.LsifDocument) _
-                                                        .Where(Function(d) d.Uri.GetRequiredParsedUri().LocalPath = testDocument.FilePath) _
+                                                        .Where(Function(d) d.Uri.LocalPath = testDocument.FilePath) _
                                                         .Single()
                 Dim rangeVertices = GetLinkedVertices(Of Range)(documentVertex, "contains")
 
@@ -165,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
         Public Function GetFoldingRanges(document As Document) As LSP.FoldingRange()
             Dim documentVertex = _testLsifJsonWriter.Vertices.
                                                         OfType(Of LsifDocument).
-                                                        Where(Function(d) d.Uri.GetRequiredParsedUri().LocalPath = document.FilePath).
+                                                        Where(Function(d) d.Uri.LocalPath = document.FilePath).
                                                         Single()
             Dim foldingRangeVertex = GetLinkedVertices(Of FoldingRangeResult)(documentVertex, "textDocument/foldingRange").Single()
             Return foldingRangeVertex.Result
@@ -174,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
         Public Function GetSemanticTokens(document As Document) As LSP.SemanticTokens
             Dim documentVertex = _testLsifJsonWriter.Vertices.
                 OfType(Of LsifDocument).
-                Where(Function(d) d.Uri.GetRequiredParsedUri().LocalPath = document.FilePath).
+                Where(Function(d) d.Uri.LocalPath = document.FilePath).
                 Single()
 
             Dim semanticTokensVertex = GetLinkedVertices(Of SemanticTokensResult)(documentVertex, "textDocument/semanticTokens/full").Single()

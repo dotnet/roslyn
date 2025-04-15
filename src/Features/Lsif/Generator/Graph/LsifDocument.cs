@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
 /// </summary>
 internal sealed class LsifDocument : Vertex
 {
-    public DocumentUri Uri { get; }
+    public Uri Uri { get; }
     public string LanguageId { get; }
 
     /// <summary>
@@ -23,7 +23,7 @@ internal sealed class LsifDocument : Vertex
     /// </remarks>
     public string? Contents { get; }
 
-    public LsifDocument(DocumentUri uri, string languageId, string? contents, IdFactory idFactory)
+    public LsifDocument(Uri uri, string languageId, string? contents, IdFactory idFactory)
         : base(label: "document", idFactory)
     {
         this.Uri = uri;
