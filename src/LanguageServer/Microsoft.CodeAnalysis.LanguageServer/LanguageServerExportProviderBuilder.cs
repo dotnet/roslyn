@@ -47,7 +47,7 @@ internal sealed class LanguageServerExportProviderBuilder
             Resolver: new Resolver(assemblyLoader),
             CacheDirectory: cacheDirectory,
             CatalogPrefix: "c#-languageserver",
-            ExpectedErrorParts: ["PythiaSignatureHelpProvider"],
+            ExpectedErrorParts: ["CSharpMapCodeService", "PythiaSignatureHelpProvider", "CopilotSemanticSearchQueryExecutor"],
             PerformCleanup: false,
             LogError: text => logger.LogError(text),
             LogTrace: text => logger.LogTrace(text));

@@ -42,7 +42,7 @@ internal static class RemoteExportProvider
             Resolver: new Resolver(SimpleAssemblyLoader.Instance),
             CacheDirectory: Path.Combine(localSettingsDirectory, "Roslyn", "RemoteHost", "Cache"),
             CatalogPrefix: "RoslynRemoteHost",
-            ExpectedErrorParts: ["PythiaSignatureHelpProvider", "VSTypeScriptAnalyzerService", "RazorTestLanguageServerFactory"],
+            ExpectedErrorParts: ["PythiaSignatureHelpProvider", "VSTypeScriptAnalyzerService", "RazorTestLanguageServerFactory", "CodeFixService"],
             PerformCleanup: true,
             LogError: static _ => { },
             LogTrace: static _ => { });
