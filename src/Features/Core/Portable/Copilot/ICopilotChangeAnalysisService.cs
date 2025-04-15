@@ -329,4 +329,8 @@ internal sealed class DefaultCopilotChangeAnalysisServiceFactory(
                         message[$"{diagnosticKind}_{group.Key}"] = group.Count();
                 }, (diagnosticKind, diagnostics)));
 
+            return default;
+        }
+    }
+}
 #endif

@@ -645,9 +645,9 @@ internal enum FunctionId
     Copilot_Implement_NotImplementedException_Failed = 831,
     Copilot_Implement_NotImplementedException_Completed = 832,
 
-    Copilot_Rename = 851,
+    Copilot_AnalyzeChange = 840,
 
-    Copilot_AnalyzeChange = 860,
+    Copilot_Rename = 851,
 
     VSCode_LanguageServer_Started = 860,
     VSCode_Project_Load_Started = 861,
