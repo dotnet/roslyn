@@ -979,9 +979,123 @@ public static class Extensions
 """;
 
         var comp = CreateCompilation(src);
-        CompileAndVerify(comp, expectedOutput: """
+        var verifier = CompileAndVerify(comp, expectedOutput: """
             Info: 
             """, expectedReturnCode: 0, trimOutput: false);
+
+        VerifyTypeIL(verifier, "Extensions",
+            """
+            .class public auto ansi abstract sealed beforefieldinit Extensions
+                extends [netstandard]System.Object
+            {
+                .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Nested Types
+                .class nested public auto ansi sealed beforefieldinit '<>E__0'
+                    extends [netstandard]System.Object
+                {
+                    // Methods
+                    .method private hidebysig specialname static 
+                        void '<Extension>$' (
+                            class [netstandard]System.Text.StringBuilder ''
+                        ) cil managed 
+                    {
+                        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                        // Method begins at RVA 0x20a5
+                        // Code size 1 (0x1)
+                        .maxstack 8
+                        IL_0000: ret
+                    } // end of method '<>E__0'::'<Extension>$'
+                    .method public hidebysig static 
+                        class [netstandard]System.Text.StringBuilder Inspect (
+                            class [netstandard]System.Text.StringBuilder sb
+                        ) cil managed 
+                    {
+                        // Method begins at RVA 0x20a7
+                        // Code size 2 (0x2)
+                        .maxstack 8
+                        IL_0000: ldnull
+                        IL_0001: throw
+                    } // end of method '<>E__0'::Inspect
+                } // end of class <>E__0
+                .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
+                    extends [netstandard]System.Object
+                {
+                    .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    // Fields
+                    .field public class [netstandard]System.Text.StringBuilder sb
+                    // Methods
+                    .method public hidebysig specialname rtspecialname 
+                        instance void .ctor () cil managed 
+                    {
+                        // Method begins at RVA 0x2079
+                        // Code size 7 (0x7)
+                        .maxstack 8
+                        IL_0000: ldarg.0
+                        IL_0001: call instance void [netstandard]System.Object::.ctor()
+                        IL_0006: ret
+                    } // end of method '<>c__DisplayClass1_0'::.ctor
+                    .method assembly hidebysig 
+                        instance void '<Inspect>b__0' () cil managed 
+                    {
+                        // Method begins at RVA 0x20ac
+                        // Code size 42 (0x2a)
+                        .maxstack 2
+                        .locals init (
+                            [0] string,
+                            [1] int32
+                        )
+                        IL_0000: ldarg.0
+                        IL_0001: ldfld class [netstandard]System.Text.StringBuilder Extensions/'<>c__DisplayClass1_0'::sb
+                        IL_0006: callvirt instance string [netstandard]System.Object::ToString()
+                        IL_000b: stloc.0
+                        IL_000c: ldc.i4.0
+                        IL_000d: stloc.1
+                        IL_000e: br.s IL_0020
+                        // loop start (head: IL_0020)
+                            IL_0010: ldloc.0
+                            IL_0011: ldloc.1
+                            IL_0012: callvirt instance char [netstandard]System.String::get_Chars(int32)
+                            IL_0017: call void [netstandard]System.Console::Write(char)
+                            IL_001c: ldloc.1
+                            IL_001d: ldc.i4.1
+                            IL_001e: add
+                            IL_001f: stloc.1
+                            IL_0020: ldloc.1
+                            IL_0021: ldloc.0
+                            IL_0022: callvirt instance int32 [netstandard]System.String::get_Length()
+                            IL_0027: blt.s IL_0010
+                        // end loop
+                        IL_0029: ret
+                    } // end of method '<>c__DisplayClass1_0'::'<Inspect>b__0'
+                } // end of class <>c__DisplayClass1_0
+                // Methods
+                .method public hidebysig specialname static 
+                    class [netstandard]System.Text.StringBuilder Inspect (
+                        class [netstandard]System.Text.StringBuilder sb
+                    ) cil managed 
+                {
+                    // Method begins at RVA 0x2081
+                    // Code size 35 (0x23)
+                    .maxstack 8
+                    IL_0000: newobj instance void Extensions/'<>c__DisplayClass1_0'::.ctor()
+                    IL_0005: dup
+                    IL_0006: ldarg.0
+                    IL_0007: stfld class [netstandard]System.Text.StringBuilder Extensions/'<>c__DisplayClass1_0'::sb
+                    IL_000c: dup
+                    IL_000d: ldftn instance void Extensions/'<>c__DisplayClass1_0'::'<Inspect>b__0'()
+                    IL_0013: newobj instance void [netstandard]System.Action::.ctor(object, native int)
+                    IL_0018: callvirt instance void [netstandard]System.Action::Invoke()
+                    IL_001d: ldfld class [netstandard]System.Text.StringBuilder Extensions/'<>c__DisplayClass1_0'::sb
+                    IL_0022: ret
+                } // end of method Extensions::Inspect
+            } // end of class Extensions
+            """);
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -1025,12 +1139,127 @@ public static class IntExt
 """;
 
         var comp = CreateCompilation(src);
-        CompileAndVerify(comp, expectedOutput: """
+        var verifier = CompileAndVerify(comp, expectedOutput: """
             Foo()
             123
             9
 
             """, expectedReturnCode: 0, trimOutput: false);
+
+        VerifyTypeIL(verifier, "IntExt",
+            """
+            .class public auto ansi abstract sealed beforefieldinit IntExt
+                extends [netstandard]System.Object
+            {
+                .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Nested Types
+                .class nested public auto ansi sealed beforefieldinit '<>E__0'
+                    extends [netstandard]System.Object
+                {
+                    // Methods
+                    .method private hidebysig specialname static 
+                        void '<Extension>$' (
+                            int32 ''
+                        ) cil managed 
+                    {
+                        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                        // Method begins at RVA 0x20bc
+                        // Code size 1 (0x1)
+                        .maxstack 8
+                        IL_0000: ret
+                    } // end of method '<>E__0'::'<Extension>$'
+                    .method public hidebysig static 
+                        class [netstandard]System.Action Foo () cil managed 
+                    {
+                        // Method begins at RVA 0x20be
+                        // Code size 2 (0x2)
+                        .maxstack 8
+                        IL_0000: ldnull
+                        IL_0001: throw
+                    } // end of method '<>E__0'::Foo
+                } // end of class <>E__0
+                .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
+                    extends [netstandard]System.Object
+                {
+                    .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    // Fields
+                    .field public int32 b
+                    // Methods
+                    .method public hidebysig specialname rtspecialname 
+                        instance void .ctor () cil managed 
+                    {
+                        // Method begins at RVA 0x2073
+                        // Code size 7 (0x7)
+                        .maxstack 8
+                        IL_0000: ldarg.0
+                        IL_0001: call instance void [netstandard]System.Object::.ctor()
+                        IL_0006: ret
+                    } // end of method '<>c__DisplayClass1_0'::.ctor
+                    .method assembly hidebysig 
+                        instance void '<Foo>b__0' () cil managed 
+                    {
+                        // Method begins at RVA 0x20c4
+                        // Code size 35 (0x23)
+                        .maxstack 3
+                        .locals init (
+                            [0] int32
+                        )
+                        IL_0000: ldc.i4.s 123
+                        IL_0002: call void [netstandard]System.Console::WriteLine(int32)
+                        IL_0007: ldarg.0
+                        IL_0008: ldfld int32 IntExt/'<>c__DisplayClass1_0'::b
+                        IL_000d: stloc.0
+                        IL_000e: ldarg.0
+                        IL_000f: ldloc.0
+                        IL_0010: ldc.i4.1
+                        IL_0011: add
+                        IL_0012: stfld int32 IntExt/'<>c__DisplayClass1_0'::b
+                        IL_0017: ldarg.0
+                        IL_0018: ldfld int32 IntExt/'<>c__DisplayClass1_0'::b
+                        IL_001d: call void [netstandard]System.Console::WriteLine(int32)
+                        IL_0022: ret
+                    } // end of method '<>c__DisplayClass1_0'::'<Foo>b__0'
+                } // end of class <>c__DisplayClass1_0
+                // Methods
+                .method public hidebysig specialname static 
+                    class [netstandard]System.Action Foo () cil managed 
+                {
+                    // Method begins at RVA 0x207c
+                    // Code size 52 (0x34)
+                    .maxstack 3
+                    .locals init (
+                        [0] class [netstandard]System.Action,
+                        [1] int32
+                    )
+                    IL_0000: newobj instance void IntExt/'<>c__DisplayClass1_0'::.ctor()
+                    IL_0005: dup
+                    IL_0006: ldc.i4.7
+                    IL_0007: stfld int32 IntExt/'<>c__DisplayClass1_0'::b
+                    IL_000c: dup
+                    IL_000d: ldftn instance void IntExt/'<>c__DisplayClass1_0'::'<Foo>b__0'()
+                    IL_0013: newobj instance void [netstandard]System.Action::.ctor(object, native int)
+                    IL_0018: stloc.0
+                    IL_0019: ldstr "Foo()"
+                    IL_001e: call void [netstandard]System.Console::WriteLine(string)
+                    IL_0023: dup
+                    IL_0024: ldfld int32 IntExt/'<>c__DisplayClass1_0'::b
+                    IL_0029: ldc.i4.1
+                    IL_002a: add
+                    IL_002b: stloc.1
+                    IL_002c: ldloc.1
+                    IL_002d: stfld int32 IntExt/'<>c__DisplayClass1_0'::b
+                    IL_0032: ldloc.0
+                    IL_0033: ret
+                } // end of method IntExt::Foo
+            } // end of class IntExt
+            """
+        );
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
