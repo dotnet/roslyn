@@ -4,13 +4,15 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis;
 
 public abstract partial class Workspace
 {
-    // Allows conversion of legacy event handlers to the new event system.
-    private readonly ConcurrentDictionary<(object, WorkspaceEventType), IDisposable> _disposableEventHandlers = new();
+    // Allows conversion of legacy event handlers to the new event system. The first item in
+    // the key's tuple is an EventHandler<TEventArgs> and thus stored as an object.
+    private readonly ConcurrentDictionary<(object EventHandler, WorkspaceEventType EventType), IDisposable> _disposableEventHandlers = new();
 
     /// <summary>
     /// An event raised whenever the current solution is changed.
@@ -80,13 +82,13 @@ public abstract partial class Workspace
     private void AddEventHandler<TEventArgs>(EventHandler<TEventArgs> eventHandler, WorkspaceEventType eventType)
         where TEventArgs : EventArgs
     {
-        // Require main thread on the callback as this is used from publicly exposed eventss
+        // Require main thread on the callback as this is used from publicly exposed events
         // and those callbacks may have main thread dependencies.
-        var disposer = RegisterHandler(eventType, (Action<EventArgs>)handler, WorkspaceEventOptions.RequiresMainThreadOptions);
+        var disposer = RegisterHandler(eventType, (Action<EventArgs>)Handler, WorkspaceEventOptions.RequiresMainThreadOptions);
 
         _disposableEventHandlers[(eventHandler, eventType)] = disposer;
 
-        void handler(EventArgs arg)
+        void Handler(EventArgs arg)
             => eventHandler(sender: this, (TEventArgs)arg);
     }
 
@@ -94,6 +96,8 @@ public abstract partial class Workspace
         where TEventArgs : EventArgs
     {
         _disposableEventHandlers.TryRemove((eventHandler, eventType), out var disposer);
+
+        Debug.Assert(disposer != null, $"Event handler for event type {eventType} was not registered.");
 
         disposer?.Dispose();
     }
