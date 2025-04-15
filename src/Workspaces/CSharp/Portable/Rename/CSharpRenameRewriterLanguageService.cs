@@ -923,34 +923,6 @@ internal sealed class CSharpRenameConflictLanguageService() : AbstractRenameRewr
         }
     }
 
-    private static async Task<ISymbol?> GetVBPropertyFromAccessorOrAnOverrideAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
-    {
-        try
-        {
-            if (symbol.IsPropertyAccessor())
-            {
-                var property = ((IMethodSymbol)symbol).AssociatedSymbol!;
-
-                return property.Language == LanguageNames.VisualBasic ? property : null;
-            }
-
-            if (symbol.IsOverride && symbol.GetOverriddenMember() != null)
-            {
-                var originalSourceSymbol = SymbolFinder.FindSourceDefinition(symbol.GetOverriddenMember(), solution, cancellationToken);
-                if (originalSourceSymbol != null)
-                {
-                    return await GetVBPropertyFromAccessorOrAnOverrideAsync(originalSourceSymbol, solution, cancellationToken).ConfigureAwait(false);
-                }
-            }
-
-            return null;
-        }
-        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
-        {
-            throw ExceptionUtilities.Unreachable();
-        }
-    }
-
     private static void AddSymbolSourceSpans(
         ArrayBuilder<Location> conflicts, IEnumerable<ISymbol> symbols,
         IDictionary<Location, Location> reverseMappedLocations)
