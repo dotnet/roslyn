@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract MethodSymbol CurrentMethod { get; }
 
-        protected virtual bool AllowReuseOfLocalsWithIncorrectContainingSymbol => true;
+        protected virtual bool EnforceAccurateContainerForLocals => false;
 
         public override BoundNode DefaultVisit(BoundNode node)
         {
@@ -59,11 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var newType = VisitType(local.Type);
             if (TypeSymbol.Equals(newType, local.Type, TypeCompareKind.ConsiderEverything2))
             {
-                if (AllowReuseOfLocalsWithIncorrectContainingSymbol)
-                {
-                    newLocal = local;
-                }
-                else
+                if (EnforceAccurateContainerForLocals)
                 {
                     if (local.ContainingSymbol == CurrentMethod)
                     {
@@ -74,6 +70,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         newLocal = new TypeSubstitutedLocalSymbol(local, local.TypeWithAnnotations, CurrentMethod);
                         localMap.Add(local, newLocal);
                     }
+                }
+                else
+                {
+                    newLocal = local;
                 }
             }
             else

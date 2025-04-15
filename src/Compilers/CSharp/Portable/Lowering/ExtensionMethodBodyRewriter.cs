@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// To allow regular capture analysis we do not want to reuse locals with an incorrect containing symbol
         /// </summary>
-        protected override bool AllowReuseOfLocalsWithIncorrectContainingSymbol => false;
+        protected override bool EnforceAccurateContainerForLocals => true;
 
         public ExtensionMethodBodyRewriter(MethodSymbol sourceMethod, SourceExtensionImplementationMethodSymbol implementationMethod)
         {
