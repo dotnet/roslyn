@@ -103,8 +103,8 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
         private readonly CancellationTokenSource _cancellationSource = new();
         private readonly IActiveStatementSpanFactory _spanProvider;
         private readonly ICompileTimeSolutionProvider _compileTimeSolutionProvider;
-        private readonly IDisposable _documentOpenedHandlerDisposer;
-        private readonly IDisposable _documentClosedHandlerDisposer;
+        private readonly WorkspaceEventRegistration _documentOpenedHandlerDisposer;
+        private readonly WorkspaceEventRegistration _documentClosedHandlerDisposer;
 
         #region lock(_trackingSpans)
 

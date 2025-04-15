@@ -31,7 +31,7 @@ internal abstract class AbstractCreateServicesOnTextViewConnection : IWpfTextVie
     private readonly string _languageName;
     private readonly AsyncBatchingWorkQueue<ProjectId?> _workQueue;
     private bool _initialized = false;
-    private readonly IDisposable _workspaceDocumentOpenedDisposer;
+    private readonly WorkspaceEventRegistration _workspaceDocumentOpenedDisposer;
 
     protected VisualStudioWorkspace Workspace { get; }
     protected IGlobalOptionService GlobalOptions { get; }

@@ -9,14 +9,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
     Friend Class WorkspaceChangeWatcher
         Implements IDisposable
 
-        Private ReadOnly _environment As TestEnvironment
         Private ReadOnly _asynchronousOperationWaiter As IAsynchronousOperationWaiter
         Private _changeEvents As New List(Of WorkspaceChangeEventArgs)
-        Private ReadOnly _workspaceChangedDisposer As IDisposable
+        Private ReadOnly _workspaceChangedDisposer As WorkspaceEventRegistration
 
         Public Sub New(environment As TestEnvironment)
-            _environment = environment
-
             Dim listenerProvider = environment.ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)()
             _asynchronousOperationWaiter = listenerProvider.GetWaiter(FeatureAttribute.Workspace)
 

@@ -16,7 +16,7 @@ internal static class UnitTestingWorkspaceExtensions
 
     private sealed class EventHandlerWrapper : IDisposable
     {
-        private readonly IDisposable _textDocumentOperationDisposer;
+        private readonly WorkspaceEventRegistration _textDocumentOperationDisposer;
 
         internal EventHandlerWrapper(Workspace workspace, Action<UnitTestingTextDocumentEventArgsWrapper> action, bool opened)
         {

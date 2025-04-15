@@ -44,8 +44,8 @@ internal sealed class SolutionChecksumUpdater
 
     private readonly object _gate = new();
     private bool _isSynchronizeWorkspacePaused;
-    private readonly IDisposable _workspaceChangedDisposer;
-    private readonly IDisposable _workspaceChangedImmediateDisposer;
+    private readonly WorkspaceEventRegistration _workspaceChangedDisposer;
+    private readonly WorkspaceEventRegistration _workspaceChangedImmediateDisposer;
 
     private readonly CancellationToken _shutdownToken;
 
