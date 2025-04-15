@@ -2649,7 +2649,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        ArrayBuilder<MethodSymbol>? LookupUserDefinedInstanceOperators(TypeSymbol lookupInType, string? checkedName, string ordinaryName, int parameterCount, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private ArrayBuilder<MethodSymbol>? LookupUserDefinedInstanceOperators(TypeSymbol lookupInType, string? checkedName, string ordinaryName, int parameterCount, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(parameterCount is 0 or 1);
 
