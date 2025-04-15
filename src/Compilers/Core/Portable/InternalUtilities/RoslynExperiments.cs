@@ -21,5 +21,5 @@ internal static class RoslynExperiments
     // Previously taken: RSEXPERIMENTAL005 - https://github.com/dotnet/roslyn/issues/77697
 
     internal const string VirtualProjectGenerator = "RSEXPERIMENTAL006";
-    internal const string VirtualProjectGenerator_Url = "TBD";
+    internal const string VirtualProjectGenerator_Url = "https://github.com/dotnet/roslyn/issues/78159";
 }

@@ -336,6 +336,9 @@ public static class VirtualProjectGenerator
         static string escapeValue(string value) => SecurityElement.Escape(value);
     }
 
+    /// <summary>
+    /// Computes a path to a directory where build artifacts should be placed.
+    /// </summary>
     public static string GetArtifactsPath(string entryPointFilePath)
     {
         // We want a location where permissions are expected to be restricted to the current user.
