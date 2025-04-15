@@ -28,69 +28,57 @@ internal interface ICopilotChangeAnalysisService : IWorkspaceService
     Task<CopilotChangeAnalysis> AnalyzeChangeAsync(Document document, ImmutableArray<TextChange> changes, CancellationToken cancellationToken);
 }
 
-[ExportWorkspaceServiceFactory(typeof(ICopilotChangeAnalysisService)), Shared]
+[ExportWorkspaceService(typeof(ICopilotChangeAnalysisService)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class DefaultCopilotChangeAnalysisServiceFactory(
+internal sealed class DefaultCopilotChangeAnalysisService(
     [Import(AllowDefault = true)] ICodeFixService? codeFixService,
-    [Import(AllowDefault = true)] IDiagnosticAnalyzerService? diagnosticAnalyzerService) : IWorkspaceServiceFactory
+    [Import(AllowDefault = true)] IDiagnosticAnalyzerService? diagnosticAnalyzerService) : ICopilotChangeAnalysisService
 {
-    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        => new DefaultCopilotChangeAnalysisService(codeFixService, diagnosticAnalyzerService, workspaceServices);
-
-    private sealed class DefaultCopilotChangeAnalysisService(
-        ICodeFixService? codeFixService,
-        IDiagnosticAnalyzerService? diagnosticAnalyzerService,
-        HostWorkspaceServices workspaceServices) : ICopilotChangeAnalysisService
-    {
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly ICodeFixService? _codeFixService = codeFixService;
-        private readonly IDiagnosticAnalyzerService? _diagnosticAnalyzerService = diagnosticAnalyzerService;
+    private readonly ICodeFixService? _codeFixService = codeFixService;
+    private readonly IDiagnosticAnalyzerService? _diagnosticAnalyzerService = diagnosticAnalyzerService;
 #pragma warning restore IDE0052 // Remove unread private members
-        private readonly HostWorkspaceServices _workspaceServices = workspaceServices;
 
-        public async Task<CopilotChangeAnalysis> AnalyzeChangeAsync(
-            Document document,
-            ImmutableArray<TextChange> changes,
-            CancellationToken cancellationToken)
+    public async Task<CopilotChangeAnalysis> AnalyzeChangeAsync(
+        Document document,
+        ImmutableArray<TextChange> changes,
+        CancellationToken cancellationToken)
+    {
+        if (!document.SupportsSemanticModel)
+            return default;
+
+        Contract.ThrowIfTrue(!changes.IsSorted(static (c1, c2) => c1.Span.Start - c2.Span.Start), "'changes' was not sorted.");
+        Contract.ThrowIfTrue(new NormalizedTextSpanCollection(changes.Select(c => c.Span)).Count != changes.Length, "'changes' was not normalized.");
+
+        var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
+
+        if (client != null)
         {
-            if (!document.SupportsSemanticModel)
-                return default;
-
-            Contract.ThrowIfTrue(!changes.IsSorted(static (c1, c2) => c1.Span.Start - c2.Span.Start), "'changes' was not sorted.");
-            Contract.ThrowIfTrue(new NormalizedTextSpanCollection(changes.Select(c => c.Span)).Count != changes.Length, "'changes' was not normalized.");
-            Contract.ThrowIfTrue(document.Project.Solution.Workspace != _workspaceServices.Workspace);
-
-            var client = await RemoteHostClient.TryGetClientAsync(
-                _workspaceServices.Workspace, cancellationToken).ConfigureAwait(false);
-
-            if (client != null)
-            {
-                var value = await client.TryInvokeAsync<IRemoteCopilotChangeAnalysisService, CopilotChangeAnalysis>(
-                    // Don't need to sync the entire solution over.  Just the cone of projects this document it contained within.
-                    document.Project,
-                    (service, checksum, cancellationToken) => service.AnalyzeChangeAsync(checksum, document.Id, changes, cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
-                return value.HasValue ? value.Value : default;
-            }
-            else
-            {
-                return await AnalyzeChangeInCurrentProcessAsync(document, changes, cancellationToken).ConfigureAwait(false);
-            }
+            var value = await client.TryInvokeAsync<IRemoteCopilotChangeAnalysisService, CopilotChangeAnalysis>(
+                // Don't need to sync the entire solution over.  Just the cone of projects this document it contained within.
+                document.Project,
+                (service, checksum, cancellationToken) => service.AnalyzeChangeAsync(checksum, document.Id, changes, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+            return value.HasValue ? value.Value : default;
         }
+        else
+        {
+            return await AnalyzeChangeInCurrentProcessAsync(document, changes, cancellationToken).ConfigureAwait(false);
+        }
+    }
 
 #pragma warning disable CA1822 // Mark members as static
 #pragma warning disable IDE0060 // Remove unused parameter
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-        private async Task<CopilotChangeAnalysis> AnalyzeChangeInCurrentProcessAsync(
-            Document document,
-            ImmutableArray<TextChange> changes,
-            CancellationToken cancellationToken)
-        {
-            return default;
-        }
+    private async Task<CopilotChangeAnalysis> AnalyzeChangeInCurrentProcessAsync(
+        Document document,
+        ImmutableArray<TextChange> changes,
+        CancellationToken cancellationToken)
+    {
+        return default;
+    }
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
 #pragma warning restore IDE0060 // Remove unused parameter
 #pragma warning restore CA1822 // Mark members as static
-    }
 }
