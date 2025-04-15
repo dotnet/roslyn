@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal abstract class BoundTreeToDifferentEnclosingContextRewriter : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
     {
         // A mapping from every local variable to its replacement local variable.  Local variables are replaced when
-        // their types change due to being inside of a generic method.  Otherwise we reuse the original local (even
+        // their types change due to being inside of a generic method.  Otherwise we may reuse the original local (even
         // though its containing method is not correct because the code is moved into another method)
         private readonly Dictionary<LocalSymbol, LocalSymbol> localMap = new Dictionary<LocalSymbol, LocalSymbol>();
 
