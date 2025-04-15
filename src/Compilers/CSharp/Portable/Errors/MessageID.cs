@@ -302,6 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureExtensions = MessageBase + 12853,
         IDS_FeatureNullConditionalAssignment = MessageBase + 12854,
         IDS_FeatureExpressionOptionalAndNamedArguments = MessageBase + 12855,
+        IDS_CollectionExpression = MessageBase + 12856,
     }
 
     // Message IDs may refer to strings that need to be localized.
