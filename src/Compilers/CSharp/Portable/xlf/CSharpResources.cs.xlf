@@ -12,11 +12,6 @@
         <target state="translated">Pokud {1} není SignatureCallingConvention.Unmanaged, předání hodnoty {0} není platné.</target>
         <note />
       </trans-unit>
-      <trans-unit id="CannotConvertDirective">
-        <source>Some directives cannot be converted: the first error is at {0}. Run the file to see all compilation errors. Specify '--force' to convert anyway.</source>
-        <target state="new">Some directives cannot be converted: the first error is at {0}. Run the file to see all compilation errors. Specify '--force' to convert anyway.</target>
-        <note>{Locked="--force"}. {0} is the file path and line number.</note>
-      </trans-unit>
       <trans-unit id="CannotCreateConstructedFromConstructed">
         <source>Cannot create constructed generic type from another constructed generic type.</source>
         <target state="translated">Konstruovaný obecný typ nejde vytvořit z jiného konstruovaného obecného typu.</target>
@@ -365,6 +360,11 @@
       <trans-unit id="ERR_CannotConvertAddressOfToDelegate">
         <source>Cannot convert &amp;method group '{0}' to delegate type '{1}'.</source>
         <target state="translated">Skupina &amp;metody {0} se nedá převést na typ delegáta {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotConvertDirective">
+        <source>This directive cannot be converted. Run the file to see more details.</source>
+        <target state="new">This directive cannot be converted. Run the file to see more details.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotDynamicInvokeOnExpression">
@@ -1487,6 +1487,11 @@
         <target state="translated">Skupina metod se nedá převést na ukazatel na funkci (nechybí &amp;)?</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MissingDirectiveName">
+        <source>Missing name of '{0}'.</source>
+        <target state="new">Missing name of '{0}'.</target>
+        <note>{0} is the directive name like 'package' or 'sdk'.</note>
+      </trans-unit>
       <trans-unit id="ERR_MissingPattern">
         <source>Pattern missing</source>
         <target state="translated">Chybějící vzor</target>
@@ -1935,6 +1940,16 @@
       <trans-unit id="ERR_PossibleAsyncIteratorWithoutYieldOrAwait">
         <source>The body of an async-iterator method must contain a 'yield' statement. Consider removing 'async' from the method declaration or adding a 'yield' statement.</source>
         <target state="translated">Tělo metody async-iterator musí obsahovat příkaz yield. Zvažte odebrání položky async z deklarace metody nebo přidání příkazu yield.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PropertyDirectiveInvalidName">
+        <source>Invalid property name: {0}</source>
+        <target state="new">Invalid property name: {0}</target>
+        <note>{0} is an inner exception message.</note>
+      </trans-unit>
+      <trans-unit id="ERR_PropertyDirectiveMissingParts">
+        <source>The property directive needs to have two parts separated by a space like 'PropertyName PropertyValue'</source>
+        <target state="new">The property directive needs to have two parts separated by a space like 'PropertyName PropertyValue'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PropertyPatternNameMissing">
@@ -2442,6 +2457,11 @@
         <target state="translated">{0} má atribut UnmanagedCallersOnly a nedá se převést na typ delegáta. Pro tuto metodu získejte ukazatel na funkci.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnrecognizedDirective">
+        <source>Unrecognized directive '{0}'.</source>
+        <target state="new">Unrecognized directive '{0}'.</target>
+        <note>{0} is the directive name like 'package' or 'sdk'.</note>
+      </trans-unit>
       <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
         <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
         <target state="translated">{0} se definuje v modulu s nerozpoznanou verzí RefSafetyRulesAttribute, očekává se hodnota 11.</target>
@@ -2876,26 +2896,6 @@
         <source>{0} is not a valid C# spread operation</source>
         <target state="translated">{0} není platná operace šíření v jazyce C#</target>
         <note />
-      </trans-unit>
-      <trans-unit id="MissingDirectiveName">
-        <source>Missing name of '{0}' at {1}.</source>
-        <target state="new">Missing name of '{0}' at {1}.</target>
-        <note>{0} is the directive name like 'package' or 'sdk', {1} is the file path and line number.</note>
-      </trans-unit>
-      <trans-unit id="PropertyDirectiveInvalidName">
-        <source>Invalid property name at {0}. {1}</source>
-        <target state="new">Invalid property name at {0}. {1}</target>
-        <note>{0} is the file path and line number. {1} is an inner exception message.</note>
-      </trans-unit>
-      <trans-unit id="PropertyDirectiveMissingParts">
-        <source>The property directive needs to have two parts separated by a space like 'PropertyName PropertyValue': {0}</source>
-        <target state="new">The property directive needs to have two parts separated by a space like 'PropertyName PropertyValue': {0}</target>
-        <note>{0} is the file path and line number.</note>
-      </trans-unit>
-      <trans-unit id="UnrecognizedDirective">
-        <source>Unrecognized directive '{0}' at {1}.</source>
-        <target state="new">Unrecognized directive '{0}' at {1}.</target>
-        <note>{0} is the directive name like 'package' or 'sdk', {1} is the file path and line number.</note>
       </trans-unit>
       <trans-unit id="WRN_AccessorDoesNotUseBackingField">
         <source>The '{0}' accessor of property '{1}' should use 'field' because the other accessor is using it.</source>

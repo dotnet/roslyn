@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 #if NET9_0_OR_GREATER
-#pragma warning disable RSEXPERIMENTAL006
 
 using System;
 using System.Xml;
@@ -24,21 +23,34 @@ internal abstract class VirtualProjectDirective
     /// </summary>
     public required TextSpan Span { get; init; }
 
-    public static VirtualProjectDirective Parse(SourceFile sourceFile, TextSpan span, string directiveKind, string directiveText)
+    /// <param name="span">
+    /// See <see cref="Span"/>. This is the full span that will be removed during file-based to project-based conversion
+    /// unlike in <paramref name="locationInfo"/> which is only used for diagnostics and can contain any user-friendly span.
+    /// </param>
+    public static VirtualProjectDirective? TryParse(in LocationInfo locationInfo, TextSpan span, string directiveKind, string directiveText, DiagnosticBag diagnostics)
     {
-        return directiveKind switch
+        switch (directiveKind)
         {
-            "sdk" => Sdk.Parse(sourceFile, span, directiveKind, directiveText),
-            "property" => Property.Parse(sourceFile, span, directiveKind, directiveText),
-            "package" => Package.Parse(sourceFile, span, directiveKind, directiveText),
-            _ => throw new DiagnosticException(CSharpResources.UnrecognizedDirective, directiveKind, sourceFile.GetLocationString(span)),
-        };
+            case "sdk": return Sdk.TryParseOne(locationInfo, span, directiveKind, directiveText, diagnostics);
+            case "property": return Property.TryParseOne(locationInfo, span, directiveKind, directiveText, diagnostics);
+            case "package": return Package.TryParseOne(locationInfo, span, directiveKind, directiveText, diagnostics);
+            default:
+                diagnostics.Add(ErrorCode.ERR_UnrecognizedDirective, locationInfo.ToLocation(), directiveKind);
+                return null;
+        }
     }
 
-    private static (string, string?) ParseOptionalTwoParts(SourceFile sourceFile, TextSpan span, string directiveKind, string directiveText)
+    private static (string, string?)? TryParseOptionalTwoParts(in LocationInfo locationInfo, string directiveKind, string directiveText, DiagnosticBag diagnostics)
     {
         var i = directiveText.IndexOf(' ', StringComparison.Ordinal);
-        var firstPart = checkFirstPart(i < 0 ? directiveText : directiveText[..i]);
+        var firstPart = i < 0 ? directiveText : directiveText[..i];
+
+        if (string.IsNullOrWhiteSpace(firstPart))
+        {
+            diagnostics.Add(ErrorCode.ERR_MissingDirectiveName, locationInfo.ToLocation(), directiveKind);
+            return null;
+        }
+
         var secondPart = i < 0 ? [] : directiveText.AsSpan(i + 1).TrimStart();
         if (i < 0 || secondPart.IsWhiteSpace())
         {
@@ -46,16 +58,6 @@ internal abstract class VirtualProjectDirective
         }
 
         return (firstPart, secondPart.ToString());
-
-        string checkFirstPart(string firstPart)
-        {
-            if (string.IsNullOrWhiteSpace(firstPart))
-            {
-                throw new DiagnosticException(CSharpResources.MissingDirectiveName, directiveKind, sourceFile.GetLocationString(span));
-            }
-
-            return firstPart;
-        }
     }
 
     /// <summary>
@@ -73,9 +75,14 @@ internal abstract class VirtualProjectDirective
         public required string Name { get; init; }
         public string? Version { get; init; }
 
-        public static new Sdk Parse(SourceFile sourceFile, TextSpan span, string directiveKind, string directiveText)
+        public static Sdk? TryParseOne(in LocationInfo locationInfo, TextSpan span, string directiveKind, string directiveText, DiagnosticBag diagnostics)
         {
-            var (sdkName, sdkVersion) = ParseOptionalTwoParts(sourceFile, span, directiveKind, directiveText);
+            var parts = TryParseOptionalTwoParts(locationInfo, directiveKind, directiveText, diagnostics);
+
+            if (parts is not var (sdkName, sdkVersion))
+            {
+                return null;
+            }
 
             return new Sdk
             {
@@ -101,13 +108,19 @@ internal abstract class VirtualProjectDirective
         public required string Name { get; init; }
         public required string Value { get; init; }
 
-        public static new Property Parse(SourceFile sourceFile, TextSpan span, string directiveKind, string directiveText)
+        public static Property? TryParseOne(in LocationInfo locationInfo, TextSpan span, string directiveKind, string directiveText, DiagnosticBag diagnostics)
         {
-            var (propertyName, propertyValue) = ParseOptionalTwoParts(sourceFile, span, directiveKind, directiveText);
+            var parts = TryParseOptionalTwoParts(locationInfo, directiveKind, directiveText, diagnostics);
+
+            if (parts is not var (propertyName, propertyValue))
+            {
+                return null;
+            }
 
             if (propertyValue is null)
             {
-                throw new DiagnosticException(CSharpResources.PropertyDirectiveMissingParts, sourceFile.GetLocationString(span));
+                diagnostics.Add(ErrorCode.ERR_PropertyDirectiveMissingParts, locationInfo.ToLocation());
+                return null;
             }
 
             try
@@ -116,7 +129,8 @@ internal abstract class VirtualProjectDirective
             }
             catch (XmlException ex)
             {
-                throw new DiagnosticException(string.Format(CSharpResources.PropertyDirectiveInvalidName, sourceFile.GetLocationString(span), ex.Message), ex);
+                diagnostics.Add(ErrorCode.ERR_PropertyDirectiveInvalidName, locationInfo.ToLocation(), ex.Message);
+                return null;
             }
 
             return new Property
@@ -138,9 +152,14 @@ internal abstract class VirtualProjectDirective
         public required string Name { get; init; }
         public string? Version { get; init; }
 
-        public static new Package Parse(SourceFile sourceFile, TextSpan span, string directiveKind, string directiveText)
+        public static Package? TryParseOne(in LocationInfo locationInfo, TextSpan span, string directiveKind, string directiveText, DiagnosticBag diagnostics)
         {
-            var (packageName, packageVersion) = ParseOptionalTwoParts(sourceFile, span, directiveKind, directiveText);
+            var parts = TryParseOptionalTwoParts(locationInfo, directiveKind, directiveText, diagnostics);
+
+            if (parts is not var (packageName, packageVersion))
+            {
+                return null;
+            }
 
             return new Package
             {

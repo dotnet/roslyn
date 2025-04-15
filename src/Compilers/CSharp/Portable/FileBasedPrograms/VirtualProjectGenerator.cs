@@ -35,9 +35,12 @@ public static class VirtualProjectGenerator
     /// <param name="arg">
     /// Argument for <paramref name="writerFactory"/>.
     /// </param>
+    /// <param name="diagnostics">
+    /// Destination for any errors about malformed directives.
+    /// </param>
     /// <param name="force">
     /// Whether malformed directives should be ignored.
-    /// Otherwise, the first malformed directive encountered throws <see cref="DiagnosticException"/>.
+    /// Otherwise, any <paramref name="diagnostics"/> cause the conversion to end early (without invoking <paramref name="writerFactory"/>).
     /// </param>
     /// <returns>
     /// The entry point file content with directives removed or <see langword="null"/> if no conversion is necessary.
@@ -47,6 +50,7 @@ public static class VirtualProjectGenerator
         SourceText entryPointFileText,
         TArg arg,
         Func<TArg, TextWriter> writerFactory,
+        out ImmutableArray<Diagnostic> diagnostics,
         bool force)
     {
         return WriteProjectFileImpl(
@@ -55,6 +59,7 @@ public static class VirtualProjectGenerator
             arg,
             writerFactory,
             artifactsPath: null,
+            out diagnostics,
             convert: true,
             force);
     }
@@ -66,13 +71,19 @@ public static class VirtualProjectGenerator
     /// Destination for the generated project file XML content.
     /// </param>
     /// <param name="artifactsPath">
-    /// Path to a directory where build artifacts should be placed. It is recommended to use <see cref="GetArtifactsPath(string)"/>.
+    /// Path to a directory where build artifacts should be placed. It is recommended to use <see cref="GetArtifactsPath"/>.
+    /// </param>
+    /// <param name="diagnostics">
+    /// Destination for any errors about malformed directives.
+    /// To speed up success scenarios, only directives up to the first token are checked by this method
+    /// (unlike <see cref="WriteConvertedProjectFile"/>), the rest will result in <see cref="ErrorCode.ERR_PPIgnoredFollowsToken"/>.
     /// </param>
     public static void WriteVirtualProjectFile(
         string entryPointFileFullPath,
         SourceText entryPointFileText,
         TextWriter writer,
-        string artifactsPath)
+        string artifactsPath,
+        out ImmutableArray<Diagnostic> diagnostics)
     {
         WriteProjectFileImpl(
             entryPointFileFullPath,
@@ -80,6 +91,7 @@ public static class VirtualProjectGenerator
             writer,
             static (writer) => writer,
             artifactsPath,
+            out diagnostics,
             convert: false,
             force: false);
     }
@@ -90,11 +102,22 @@ public static class VirtualProjectGenerator
         TArg arg,
         Func<TArg, TextWriter> writerFactory,
         string? artifactsPath,
+        out ImmutableArray<Diagnostic> diagnostics,
         bool convert,
         bool force)
     {
-        var sourceFile = new SourceFile(entryPointFileFullPath, entryPointFileText);
-        var directives = FindDirectives(sourceFile, reportErrors: convert && !force);
+        Debug.Assert(!force || convert);
+
+        var directives = FindDirectives(
+            entryPointFileFullPath,
+            entryPointFileText,
+            out diagnostics,
+            reportAllErrors: convert && !force);
+
+        if (!force && diagnostics.Length != 0)
+        {
+            return null;
+        }
 
         using var writer = writerFactory(arg);
 
@@ -336,10 +359,15 @@ public static class VirtualProjectGenerator
     }
 
 #pragma warning disable RSEXPERIMENTAL003 // 'SyntaxTokenParser' is experimental
-    private static ImmutableArray<VirtualProjectDirective> FindDirectives(SourceFile sourceFile, bool reportErrors)
+    private static ImmutableArray<VirtualProjectDirective> FindDirectives(
+        string entryPointFileFullPath,
+        SourceText entryPointFileText,
+        out ImmutableArray<Diagnostic> diagnostics,
+        bool reportAllErrors)
     {
+        var diagnosticBag = DiagnosticBag.GetInstance();
         var builder = ImmutableArray.CreateBuilder<VirtualProjectDirective>();
-        SyntaxTokenParser tokenizer = SyntaxFactory.CreateTokenParser(sourceFile.Text,
+        SyntaxTokenParser tokenizer = SyntaxFactory.CreateTokenParser(entryPointFileText,
             CSharpParseOptions.Default.WithFeatures([new("FileBasedProgram", "true")]));
 
         var result = tokenizer.ParseLeadingTrivia();
@@ -376,7 +404,13 @@ public static class VirtualProjectGenerator
                 var name = parts.MoveNext() ? message[parts.Current] : default;
                 var value = parts.MoveNext() ? message[parts.Current] : default;
                 Debug.Assert(!parts.MoveNext());
-                builder.Add(VirtualProjectDirective.Parse(sourceFile, span, name.ToString(), value.ToString()));
+
+                var locationInfo = new LocationInfo(entryPointFileFullPath, entryPointFileText, trivia.Span);
+                var parsed = VirtualProjectDirective.TryParse(locationInfo, span, name.ToString(), value.ToString(), diagnosticBag);
+                if (parsed != null)
+                {
+                    builder.Add(parsed);
+                }
             }
 
             previousWhiteSpaceSpan = default;
@@ -384,7 +418,7 @@ public static class VirtualProjectGenerator
 
         // In conversion mode, we want to report errors for any invalid directives in the rest of the file
         // so users don't end up with invalid directives in the converted project.
-        if (reportErrors)
+        if (reportAllErrors)
         {
             tokenizer.ResetTo(result);
 
@@ -394,16 +428,18 @@ public static class VirtualProjectGenerator
 
                 foreach (var trivia in result.Token.LeadingTrivia)
                 {
-                    reportErrorFor(sourceFile, trivia);
+                    reportErrorFor(entryPointFileFullPath, entryPointFileText, trivia, diagnosticBag);
                 }
 
                 foreach (var trivia in result.Token.TrailingTrivia)
                 {
-                    reportErrorFor(sourceFile, trivia);
+                    reportErrorFor(entryPointFileFullPath, entryPointFileText, trivia, diagnosticBag);
                 }
             }
             while (!result.Token.IsKind(SyntaxKind.EndOfFileToken));
         }
+
+        diagnostics = diagnosticBag.ToReadOnlyAndFree();
 
         // The result should be ordered by source location, RemoveDirectivesFromFile depends on that.
         return builder.ToImmutable();
@@ -414,11 +450,12 @@ public static class VirtualProjectGenerator
             return previousWhiteSpaceSpan.IsEmpty ? trivia.FullSpan : TextSpan.FromBounds(previousWhiteSpaceSpan.Start, trivia.FullSpan.End);
         }
 
-        static void reportErrorFor(SourceFile sourceFile, SyntaxTrivia trivia)
+        static void reportErrorFor(string path, SourceText text, SyntaxTrivia trivia, DiagnosticBag diagnosticBag)
         {
             if (trivia.ContainsDiagnostics && trivia.IsKind(SyntaxKind.IgnoredDirectiveTrivia))
             {
-                throw new DiagnosticException(CSharpResources.CannotConvertDirective, sourceFile.GetLocationString(trivia.Span));
+                Location location = new LocationInfo(path, text, trivia.Span).ToLocation();
+                diagnosticBag.Add(ErrorCode.ERR_CannotConvertDirective, location);
             }
         }
     }
@@ -447,6 +484,18 @@ internal static partial class Patterns
 {
     [GeneratedRegex("""\s+""")]
     public static partial Regex Whitespace { get; }
+}
+
+internal readonly struct LocationInfo(string path, SourceText text, TextSpan span)
+{
+    public string Path { get; } = path;
+    public SourceText Text { get; } = text;
+    public TextSpan Span { get; } = span;
+
+    public Location ToLocation()
+    {
+        return Location.Create(Path, Span, Text.Lines.GetLinePositionSpan(Span));
+    }
 }
 
 #endif

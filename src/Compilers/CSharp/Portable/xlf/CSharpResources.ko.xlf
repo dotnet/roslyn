@@ -12,11 +12,6 @@
         <target state="translated">'{1}'이(가) 'SignatureCallingConvention.Unmanaged'가 아닌 한 '{0}' 전달은 유효하지 않습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="CannotConvertDirective">
-        <source>Some directives cannot be converted: the first error is at {0}. Run the file to see all compilation errors. Specify '--force' to convert anyway.</source>
-        <target state="new">Some directives cannot be converted: the first error is at {0}. Run the file to see all compilation errors. Specify '--force' to convert anyway.</target>
-        <note>{Locked="--force"}. {0} is the file path and line number.</note>
-      </trans-unit>
       <trans-unit id="CannotCreateConstructedFromConstructed">
         <source>Cannot create constructed generic type from another constructed generic type.</source>
         <target state="translated">다른 생성된 제네릭 형식에서 생성된 제네릭 형식을 만들 수 없습니다.</target>
@@ -365,6 +360,11 @@
       <trans-unit id="ERR_CannotConvertAddressOfToDelegate">
         <source>Cannot convert &amp;method group '{0}' to delegate type '{1}'.</source>
         <target state="translated">메서드 그룹 '{0}'을(를) 대리자 형식 '{1}'(으)로 변환할 수 없습니다(&amp;M).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotConvertDirective">
+        <source>This directive cannot be converted. Run the file to see more details.</source>
+        <target state="new">This directive cannot be converted. Run the file to see more details.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotDynamicInvokeOnExpression">
@@ -1487,6 +1487,11 @@
         <target state="translated">메서드 그룹을 함수 포인터로 변환할 수 없습니다. ('&amp;'가 누락되었습니까?)</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MissingDirectiveName">
+        <source>Missing name of '{0}'.</source>
+        <target state="new">Missing name of '{0}'.</target>
+        <note>{0} is the directive name like 'package' or 'sdk'.</note>
+      </trans-unit>
       <trans-unit id="ERR_MissingPattern">
         <source>Pattern missing</source>
         <target state="translated">패턴이 없습니다.</target>
@@ -1935,6 +1940,16 @@
       <trans-unit id="ERR_PossibleAsyncIteratorWithoutYieldOrAwait">
         <source>The body of an async-iterator method must contain a 'yield' statement. Consider removing 'async' from the method declaration or adding a 'yield' statement.</source>
         <target state="translated">비동기 반복기 메서드의 본문에는 'yield' 문이 포함되어야 합니다. 메서드 선언에서 'async'를 제거하거나 'yield' 문을 추가하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PropertyDirectiveInvalidName">
+        <source>Invalid property name: {0}</source>
+        <target state="new">Invalid property name: {0}</target>
+        <note>{0} is an inner exception message.</note>
+      </trans-unit>
+      <trans-unit id="ERR_PropertyDirectiveMissingParts">
+        <source>The property directive needs to have two parts separated by a space like 'PropertyName PropertyValue'</source>
+        <target state="new">The property directive needs to have two parts separated by a space like 'PropertyName PropertyValue'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PropertyPatternNameMissing">
@@ -2442,6 +2457,11 @@
         <target state="translated">'{0}'에는 'UnmanagedCallersOnly' 특성이 지정되어 있으며 이 항목은 대리자 형식으로 변환할 수 없습니다. 이 메서드에 대한 함수 포인터를 가져오세요.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnrecognizedDirective">
+        <source>Unrecognized directive '{0}'.</source>
+        <target state="new">Unrecognized directive '{0}'.</target>
+        <note>{0} is the directive name like 'package' or 'sdk'.</note>
+      </trans-unit>
       <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
         <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
         <target state="translated">'{0}'은(는) 인식할 수 없는 RefSafetyRulesAttribute 버전이 있는 모듈에 정의되어 있으며 '11'이 필요합니다.</target>
@@ -2876,26 +2896,6 @@
         <source>{0} is not a valid C# spread operation</source>
         <target state="translated">{0}은(는) 유효한 C# 확산 작업이 아닙니다.</target>
         <note />
-      </trans-unit>
-      <trans-unit id="MissingDirectiveName">
-        <source>Missing name of '{0}' at {1}.</source>
-        <target state="new">Missing name of '{0}' at {1}.</target>
-        <note>{0} is the directive name like 'package' or 'sdk', {1} is the file path and line number.</note>
-      </trans-unit>
-      <trans-unit id="PropertyDirectiveInvalidName">
-        <source>Invalid property name at {0}. {1}</source>
-        <target state="new">Invalid property name at {0}. {1}</target>
-        <note>{0} is the file path and line number. {1} is an inner exception message.</note>
-      </trans-unit>
-      <trans-unit id="PropertyDirectiveMissingParts">
-        <source>The property directive needs to have two parts separated by a space like 'PropertyName PropertyValue': {0}</source>
-        <target state="new">The property directive needs to have two parts separated by a space like 'PropertyName PropertyValue': {0}</target>
-        <note>{0} is the file path and line number.</note>
-      </trans-unit>
-      <trans-unit id="UnrecognizedDirective">
-        <source>Unrecognized directive '{0}' at {1}.</source>
-        <target state="new">Unrecognized directive '{0}' at {1}.</target>
-        <note>{0} is the directive name like 'package' or 'sdk', {1} is the file path and line number.</note>
       </trans-unit>
       <trans-unit id="WRN_AccessorDoesNotUseBackingField">
         <source>The '{0}' accessor of property '{1}' should use 'field' because the other accessor is using it.</source>

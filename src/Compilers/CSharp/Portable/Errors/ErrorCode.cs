@@ -2399,6 +2399,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExtensionTypeNameDisallowed = 9306,
         ERR_ExpressionTreeContainsNamedArgumentOutOfPosition = 9307,
 
+        ERR_UnrecognizedDirective = 9308,
+        ERR_MissingDirectiveName = 9309,
+        ERR_PropertyDirectiveMissingParts = 9310,
+        ERR_PropertyDirectiveInvalidName = 9311,
+        ERR_CannotConvertDirective = 9312,
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  2) Add message to CSharpResources.resx

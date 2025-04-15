@@ -12,11 +12,6 @@
         <target state="translated">'{1}' が 'SignatureCallingConvention.Unmanaged' でない限り、'{0}' を渡すことは無効です。</target>
         <note />
       </trans-unit>
-      <trans-unit id="CannotConvertDirective">
-        <source>Some directives cannot be converted: the first error is at {0}. Run the file to see all compilation errors. Specify '--force' to convert anyway.</source>
-        <target state="new">Some directives cannot be converted: the first error is at {0}. Run the file to see all compilation errors. Specify '--force' to convert anyway.</target>
-        <note>{Locked="--force"}. {0} is the file path and line number.</note>
-      </trans-unit>
       <trans-unit id="CannotCreateConstructedFromConstructed">
         <source>Cannot create constructed generic type from another constructed generic type.</source>
         <target state="translated">別の構築済みジェネリック型から、構築済みジェネリック型を作成できません。</target>
@@ -365,6 +360,11 @@
       <trans-unit id="ERR_CannotConvertAddressOfToDelegate">
         <source>Cannot convert &amp;method group '{0}' to delegate type '{1}'.</source>
         <target state="translated">メソッド グループ '{0}' をデリゲート型 '{1}' に変換することはできません。(&amp;M)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotConvertDirective">
+        <source>This directive cannot be converted. Run the file to see more details.</source>
+        <target state="new">This directive cannot be converted. Run the file to see more details.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotDynamicInvokeOnExpression">
@@ -1487,6 +1487,11 @@
         <target state="translated">メソッド グループを関数ポインターに変換できません ('&amp;' が抜けていないか確認してください)</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MissingDirectiveName">
+        <source>Missing name of '{0}'.</source>
+        <target state="new">Missing name of '{0}'.</target>
+        <note>{0} is the directive name like 'package' or 'sdk'.</note>
+      </trans-unit>
       <trans-unit id="ERR_MissingPattern">
         <source>Pattern missing</source>
         <target state="translated">パターンがありません</target>
@@ -1935,6 +1940,16 @@
       <trans-unit id="ERR_PossibleAsyncIteratorWithoutYieldOrAwait">
         <source>The body of an async-iterator method must contain a 'yield' statement. Consider removing 'async' from the method declaration or adding a 'yield' statement.</source>
         <target state="translated">非同期反復子メソッドの本体には 'yield' ステートメントを含める必要があります。メソッド宣言から 'async' を削除するか、'yield' ステートメントを追加することをご検討ください。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PropertyDirectiveInvalidName">
+        <source>Invalid property name: {0}</source>
+        <target state="new">Invalid property name: {0}</target>
+        <note>{0} is an inner exception message.</note>
+      </trans-unit>
+      <trans-unit id="ERR_PropertyDirectiveMissingParts">
+        <source>The property directive needs to have two parts separated by a space like 'PropertyName PropertyValue'</source>
+        <target state="new">The property directive needs to have two parts separated by a space like 'PropertyName PropertyValue'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PropertyPatternNameMissing">
@@ -2442,6 +2457,11 @@
         <target state="translated">'{0}' は 'UnmanagedCallersOnly' 属性が設定されているため、デリゲート型に変換できません。このメソッドへの関数ポインターを取得してください。</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnrecognizedDirective">
+        <source>Unrecognized directive '{0}'.</source>
+        <target state="new">Unrecognized directive '{0}'.</target>
+        <note>{0} is the directive name like 'package' or 'sdk'.</note>
+      </trans-unit>
       <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
         <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
         <target state="translated">'{0}' は、認識されない RefSafetyRulesAttribute バージョンを持つモジュールで定義され、'11' が必要です。</target>
@@ -2876,26 +2896,6 @@
         <source>{0} is not a valid C# spread operation</source>
         <target state="translated">{0} は有効な C# 分散演算ではありません</target>
         <note />
-      </trans-unit>
-      <trans-unit id="MissingDirectiveName">
-        <source>Missing name of '{0}' at {1}.</source>
-        <target state="new">Missing name of '{0}' at {1}.</target>
-        <note>{0} is the directive name like 'package' or 'sdk', {1} is the file path and line number.</note>
-      </trans-unit>
-      <trans-unit id="PropertyDirectiveInvalidName">
-        <source>Invalid property name at {0}. {1}</source>
-        <target state="new">Invalid property name at {0}. {1}</target>
-        <note>{0} is the file path and line number. {1} is an inner exception message.</note>
-      </trans-unit>
-      <trans-unit id="PropertyDirectiveMissingParts">
-        <source>The property directive needs to have two parts separated by a space like 'PropertyName PropertyValue': {0}</source>
-        <target state="new">The property directive needs to have two parts separated by a space like 'PropertyName PropertyValue': {0}</target>
-        <note>{0} is the file path and line number.</note>
-      </trans-unit>
-      <trans-unit id="UnrecognizedDirective">
-        <source>Unrecognized directive '{0}' at {1}.</source>
-        <target state="new">Unrecognized directive '{0}' at {1}.</target>
-        <note>{0} is the directive name like 'package' or 'sdk', {1} is the file path and line number.</note>
       </trans-unit>
       <trans-unit id="WRN_AccessorDoesNotUseBackingField">
         <source>The '{0}' accessor of property '{1}' should use 'field' because the other accessor is using it.</source>
