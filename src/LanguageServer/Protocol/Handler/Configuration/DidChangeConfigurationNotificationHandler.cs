@@ -187,9 +187,10 @@ internal sealed partial class DidChangeConfigurationNotificationHandler : ILspSe
     {
         var optionGroupName = GenerateOptionGroupName(option);
         // All options send to the client should have group name and config name.
-        RoslynDebug.Assert(!string.IsNullOrEmpty(optionGroupName));
         RoslynDebug.Assert(!string.IsNullOrEmpty(option.Definition.ConfigName));
-        return string.Concat(optionGroupName, '.', option.Definition.ConfigName);
+        return string.IsNullOrEmpty(optionGroupName)
+            ? option.Definition.ConfigName
+            : string.Concat(optionGroupName, '.', option.Definition.ConfigName);
     }
 
     private static string GenerateOptionGroupName(IOption2 option)
