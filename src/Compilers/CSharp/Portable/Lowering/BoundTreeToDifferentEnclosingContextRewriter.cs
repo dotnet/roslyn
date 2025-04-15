@@ -30,6 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract MethodSymbol CurrentMethod { get; }
 
+        protected virtual bool AllowReuseOfLocalsWithIncorrectContainingSymbol => true;
+
         public override BoundNode DefaultVisit(BoundNode node)
         {
             Debug.Fail($"Override the visitor for {node.Kind}");

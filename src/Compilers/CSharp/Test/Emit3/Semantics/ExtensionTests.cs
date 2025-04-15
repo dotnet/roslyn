@@ -948,6 +948,49 @@ public static class Extensions
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78135")]
+    public void ExtensionWithCapturing()
+    {
+        var src = """
+using System;
+using System.Text;
+
+var sb = new StringBuilder("Info: ");
+Extensions.Inspect(sb);
+
+public static class Extensions
+{
+    extension(StringBuilder)
+    {
+        public static StringBuilder Inspect(StringBuilder sb)
+        {
+            var s = () =>
+            {
+                foreach (char c in sb.ToString())
+                {
+                    Console.Write(c);
+                }
+            };
+            s();
+            return sb;
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().First();
+        var symbol1 = model.GetDeclaredSymbol(extension1);
+        var sourceExtension1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
+        Assert.Equal("<>E__0`1", symbol1.MetadataName);
+        Assert.Equal("Extensions.<>E__0<T>", symbol1.ToTestDisplayString());
+    }
+
+    [Fact]
     public void ExtensionIndex_TwoExtensions_SameSignatures_02()
     {
         var src = """
