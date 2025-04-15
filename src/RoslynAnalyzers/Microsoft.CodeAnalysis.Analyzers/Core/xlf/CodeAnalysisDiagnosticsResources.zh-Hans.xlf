@@ -4,172 +4,172 @@
     <body>
       <trans-unit id="AddCompilationEndCustomTagDescription">
         <source>'DiagnosticDescriptor' assigned to field is used to report a compilation end diagnostic, but the 'DiagnosticDescriptor' constructor used to initialize it does not pass in the required custom tag "CompilationEnd". See documentation for 'WellKnownDiagnosticTags.CompilationEnd' for details.</source>
-        <target state="translated">分配给字段的 "DiagnosticDescriptor" 用于报告编译结束诊断，但用于初始化它的 "DiagnosticDescriptor" 构造函数未传入所需的自定义标记 "CompilationEnd"。有关详细信息，请参阅 "WellKnownDiagnosticTags.CompilationEnd" 的文档。</target>
+        <target state="new">'DiagnosticDescriptor' assigned to field is used to report a compilation end diagnostic, but the 'DiagnosticDescriptor' constructor used to initialize it does not pass in the required custom tag "CompilationEnd". See documentation for 'WellKnownDiagnosticTags.CompilationEnd' for details.</target>
         <note />
       </trans-unit>
       <trans-unit id="AddCompilationEndCustomTagMessage">
         <source>Add "CompilationEnd" custom tag to the diagnostic descriptor used to initialize field '{0}' as it is used to report a compilation end diagnostic</source>
-        <target state="translated">将 "CompilationEnd" 自定义标记添加到用于初始化字段 "{0}" 的诊断描述符，因为它用于报告编译结束诊断</target>
+        <target state="new">Add "CompilationEnd" custom tag to the diagnostic descriptor used to initialize field '{0}' as it is used to report a compilation end diagnostic</target>
         <note />
       </trans-unit>
       <trans-unit id="AddCompilationEndCustomTagTitle">
         <source>Add "CompilationEnd" custom tag to compilation end diagnostic descriptor</source>
-        <target state="translated">将 "CompilationEnd" 自定义标记添加到编译结束诊断描述符</target>
+        <target state="new">Add "CompilationEnd" custom tag to compilation end diagnostic descriptor</target>
         <note />
       </trans-unit>
       <trans-unit id="AddEntryForDiagnosticIdInAnalyzerReleaseCodeFixTitle">
         <source>Add rule entry to unshipped release file</source>
-        <target state="translated">将规则项添加到未提供的版本文件</target>
+        <target state="new">Add rule entry to unshipped release file</target>
         <note />
       </trans-unit>
       <trans-unit id="ClassIsNotDiagnosticAnalyzerMessage">
         <source>Inherit type '{0}' from DiagnosticAnalyzer or remove the DiagnosticAnalyzerAttribute(s)</source>
-        <target state="translated">从 DiagnosticAnalyzer 继承类型“{0}”，或者删除 DiagnosticAnalyzerAttribute</target>
+        <target state="new">Inherit type '{0}' from DiagnosticAnalyzer or remove the DiagnosticAnalyzerAttribute(s)</target>
         <note />
       </trans-unit>
       <trans-unit id="ClassIsNotDiagnosticAnalyzerTitle">
         <source>Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer</source>
-        <target state="translated">标有 DiagnosticAnalyzerAttribute 的类型应继承自 DiagnosticAnalyzer</target>
+        <target state="new">Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyCodeFix">
         <source>Use a 'SymbolEqualityComparer' for symbol comparison</source>
-        <target state="translated">使用 “SymbolEqualityComparer” 进行符号比较</target>
+        <target state="new">Use a 'SymbolEqualityComparer' for symbol comparison</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyDescription">
         <source>Symbols should be compared for equality, not identity. Use an overload accepting an 'IEqualityComparer' and pass 'SymbolEqualityComparer'.</source>
-        <target state="translated">应比较符号是否相等，而不是比较标识。使用重载接受 "IEqualityComparer" 并传递 "SymbolEqualityComparer"。</target>
+        <target state="new">Symbols should be compared for equality, not identity. Use an overload accepting an 'IEqualityComparer' and pass 'SymbolEqualityComparer'.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyDescriptionGetHashCode">
         <source>Symbols should be compared for equality, not identity. An explicit call to 'GetHashCode' will likely result in the wrong behavior.</source>
-        <target state="translated">应比较符号是否相等，而不是比较标识。对 "GetHashCode" 的显式调用可能会导致错误的行为。</target>
+        <target state="new">Symbols should be compared for equality, not identity. An explicit call to 'GetHashCode' will likely result in the wrong behavior.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyMessage">
         <source>Use 'SymbolEqualityComparer' when comparing symbols</source>
-        <target state="translated">比较符号时使用 “SymbolEqualityComparer”</target>
+        <target state="new">Use 'SymbolEqualityComparer' when comparing symbols</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyTitle">
         <source>Symbols should be compared for equality</source>
-        <target state="translated">应比较符号是否相等</target>
+        <target state="new">Symbols should be compared for equality</target>
         <note />
       </trans-unit>
       <trans-unit id="ConfigureGeneratedCodeAnalysisFix">
         <source>Configure generated code analysis</source>
-        <target state="translated">配置生成的代码分析</target>
+        <target state="new">Configure generated code analysis</target>
         <note />
       </trans-unit>
       <trans-unit id="ConfigureGeneratedCodeAnalysisMessage">
         <source>Configure generated code analysis</source>
-        <target state="translated">配置生成的代码分析</target>
+        <target state="new">Configure generated code analysis</target>
         <note />
       </trans-unit>
       <trans-unit id="ConfigureGeneratedCodeAnalysisTitle">
         <source>Configure generated code analysis</source>
-        <target state="translated">配置生成的代码分析</target>
+        <target state="new">Configure generated code analysis</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclareDiagnosticIdInAnalyzerReleaseDescription">
         <source>All supported analyzer diagnostic IDs should be part of an analyzer release.</source>
-        <target state="translated">所有受支持的分析器诊断 ID 都应是分析器版本的一部分。</target>
+        <target state="new">All supported analyzer diagnostic IDs should be part of an analyzer release.</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclareDiagnosticIdInAnalyzerReleaseMessage">
         <source>Rule '{0}' is not part of any analyzer release</source>
-        <target state="translated">规则“{0}”不是分析器版本的一部分</target>
+        <target state="new">Rule '{0}' is not part of any analyzer release</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclareDiagnosticIdInAnalyzerReleaseTitle">
         <source>Add analyzer diagnostic IDs to analyzer release</source>
-        <target state="translated">向分析器版本添加分析器诊断 ID</target>
+        <target state="new">Add analyzer diagnostic IDs to analyzer release</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticDescriptionCorrectlyMessage">
         <source>The diagnostic description should be one or multiple sentences ending with a punctuation sign and should not have any leading or trailing whitespaces</source>
-        <target state="translated">诊断说明应为以标点符号结尾的一个或多个句子，且不应包含任何前导空格或尾随空格</target>
+        <target state="new">The diagnostic description should be one or multiple sentences ending with a punctuation sign and should not have any leading or trailing whitespaces</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticDescriptionCorrectlyTitle">
         <source>Define diagnostic description correctly</source>
-        <target state="translated">正确定义诊断说明</target>
+        <target state="new">Define diagnostic description correctly</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticMessageCorrectlyMessage">
         <source>The diagnostic message should not contain any line return character nor any leading or trailing whitespaces and should either be a single sentence without a trailing period or a multi-sentences with a trailing period</source>
-        <target state="translated">诊断消息不应包含任何行回车符，也不应包含任何前导或尾随空格，应为不带尾随句点的单个句子或带有一个尾随句点的多个句子</target>
+        <target state="new">The diagnostic message should not contain any line return character nor any leading or trailing whitespaces and should either be a single sentence without a trailing period or a multi-sentences with a trailing period</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticMessageCorrectlyTitle">
         <source>Define diagnostic message correctly</source>
-        <target state="translated">正确定义诊断消息</target>
+        <target state="new">Define diagnostic message correctly</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticTitleCorrectlyMessage">
         <source>The diagnostic title should not contain a period, nor any line return character, nor any leading or trailing whitespaces</source>
-        <target state="translated">诊断标题不应包含句点，也不应包含任何行回车符和任何前导空格或尾随空格</target>
+        <target state="new">The diagnostic title should not contain a period, nor any line return character, nor any leading or trailing whitespaces</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticTitleCorrectlyTitle">
         <source>Define diagnostic title correctly</source>
-        <target state="translated">正确定义诊断标题</target>
+        <target state="new">Define diagnostic title correctly</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotDeclareCSharpCompilerFeatureInAssemblyWithVisualBasicReferenceMessage">
         <source>This C# compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.VisualBasic. The Microsoft.CodeAnalysis.VisualBasic assembly is not always provided during C# compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</source>
-        <target state="translated">不应在包含对 Microsoft.CodeAnalysis.VisualBasic 的引用的程序集中实现此 C# 编译器扩展。在 C# 编译方案期间，不会始终提供 Microsoft.CodeAnalysis.VisualBasic 程序集，因此对它的引用可能导致编译器扩展的行为不可预测。</target>
+        <target state="new">This C# compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.VisualBasic. The Microsoft.CodeAnalysis.VisualBasic assembly is not always provided during C# compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkMessage">
         <source>This compiler extension should not be implemented in an assembly with target framework '{0}'. References to other target frameworks will cause the compiler to behave unpredictably.</source>
-        <target state="translated">不应在具有目标框架“{0}”的程序集中实现此编译器扩展。引用其他目标框架将导致编译器的行为不可预测。</target>
+        <target state="new">This compiler extension should not be implemented in an assembly with target framework '{0}'. References to other target frameworks will cause the compiler to behave unpredictably.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkRuleDescription">
         <source>Types which implement compiler extension points should only be declared in assemblies targeting netstandard2.0. More specific target frameworks are only available in a subset of supported compilation scenarios, so targeting them may cause the feature to behave unpredictably.</source>
-        <target state="translated">实现编译器扩展点的类型只应在面向 netstandard2.0 的程序集中声明。更具体的目标框架仅在受支持的编译方案的子集中可用，因此面向这些框架可能会导致该功能的行为不可预测。</target>
+        <target state="new">Types which implement compiler extension points should only be declared in assemblies targeting netstandard2.0. More specific target frameworks are only available in a subset of supported compilation scenarios, so targeting them may cause the feature to behave unpredictably.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkRuleTitle">
         <source>Compiler extensions should be implemented in assemblies targeting netstandard2.0</source>
-        <target state="translated">应在面向 netstandard2.0 的程序集中实现编译器扩展</target>
+        <target state="new">Compiler extensions should be implemented in assemblies targeting netstandard2.0</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithWorkspacesReferenceMessage">
         <source>This compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.Workspaces. The Microsoft.CodeAnalysis.Workspaces assembly is not provided during command line compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</source>
-        <target state="translated">不应在包含对 Microsoft.CodeAnalysis.Workspaces 的引用的程序集中实现此编译器扩展。在命令行编译方案期间未提供 Microsoft.CodeAnalysis.Workspaces 程序集，因此对它的引用可能导致编译器扩展的行为不可预测。</target>
+        <target state="new">This compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.Workspaces. The Microsoft.CodeAnalysis.Workspaces assembly is not provided during command line compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotDeclareVisualBasicCompilerFeatureInAssemblyWithCSharpReferenceMessage">
         <source>This Visual Basic compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.CSharp. The Microsoft.CodeAnalysis.CSharp assembly is not always provided during Visual Basic compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</source>
-        <target state="translated">不应在包含对 Microsoft.CodeAnalysis.CSharp 的引用的程序集中实现此 Visual Basic 编译器扩展。Microsoft.CodeAnalysis.CSharp 程序集并非始终在 Visual Basic 编译方案中提供，因此对它的引用可能导致编译器扩展的行为不可预测。</target>
+        <target state="new">This Visual Basic compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.CSharp. The Microsoft.CodeAnalysis.CSharp assembly is not always provided during Visual Basic compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleDescription">
         <source>Types which implement compiler extension points should not be declared in assemblies that contain references to assemblies which are not provided by all compilation scenarios. Doing so may cause the feature to behave unpredictably.</source>
-        <target state="translated">在包含对并非由所有编译方案提供的程序集的引用的程序集中，不应声明实现编译器扩展点的类型。这样做可能会导致该功能的行为不可预测。</target>
+        <target state="new">Types which implement compiler extension points should not be declared in assemblies that contain references to assemblies which are not provided by all compilation scenarios. Doing so may cause the feature to behave unpredictably.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleTitle">
         <source>Compiler extensions should be implemented in assemblies with compiler-provided references</source>
-        <target state="translated">应在具有编译器提供的引用的程序集中实现编译器扩展</target>
+        <target state="new">Compiler extensions should be implemented in assemblies with compiler-provided references</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseCompilationGetSemanticModelDescription">
         <source>'GetSemanticModel' is an expensive method to invoke within a diagnostic analyzer because it creates a completely new semantic model, which does not share compilation data with the compiler or other analyzers. This incurs an additional performance cost during semantic analysis. Instead, consider registering a different analyzer action which allows used of a shared 'SemanticModel', such as 'RegisterOperationAction', 'RegisterSyntaxNodeAction', or 'RegisterSemanticModelAction'.</source>
-        <target state="translated">"GetSemanticModel" 是在诊断分析器中调用的昂贵方法，因为它创建了一个全新的语义模型，该语义模型不与编译器或其他分析器共享编译数据。这会在语义分析期间产生额外的性能开销。请考虑改为注册允许使用共享 "SemanticModel" (如 "RegisterOperationAction"、"RegisterSyntaxNodeAction" 或 "RegisterSemanticModelAction")的其他分析器操作。</target>
+        <target state="new">'GetSemanticModel' is an expensive method to invoke within a diagnostic analyzer because it creates a completely new semantic model, which does not share compilation data with the compiler or other analyzers. This incurs an additional performance cost during semantic analysis. Instead, consider registering a different analyzer action which allows used of a shared 'SemanticModel', such as 'RegisterOperationAction', 'RegisterSyntaxNodeAction', or 'RegisterSemanticModelAction'.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseCompilationGetSemanticModelMessage">
         <source>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</source>
-        <target state="translated">请勿在诊断分析器中调用 Compilation.GetSemanticModel() 方法</target>
+        <target state="new">Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseCompilationGetSemanticModelTitle">
         <source>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</source>
-        <target state="translated">请勿在诊断分析器中调用 Compilation.GetSemanticModel() 方法</target>
+        <target state="new">Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseFileTypesForAnalyzersOrGeneratorsDescription">
@@ -189,47 +189,47 @@
       </trans-unit>
       <trans-unit id="DoNotUseReservedDiagnosticIdDescription">
         <source>DiagnosticId for analyzers should not use reserved IDs.</source>
-        <target state="translated">分析器的 DiagnosticId 不应使用保留 ID。</target>
+        <target state="new">DiagnosticId for analyzers should not use reserved IDs.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseReservedDiagnosticIdMessage">
         <source>'{0}' is a reserved diagnostic ID</source>
-        <target state="translated">“{0}”是保留的诊断 ID</target>
+        <target state="new">'{0}' is a reserved diagnostic ID</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseReservedDiagnosticIdTitle">
         <source>Do not use reserved diagnostic IDs</source>
-        <target state="translated">不要使用保留的诊断 ID</target>
+        <target state="new">Do not use reserved diagnostic IDs</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableAnalyzerReleaseTrackingRuleDescription">
         <source>Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</source>
-        <target state="translated">为分析器包启用发布跟踪有助于跟踪和记录每次分析器发布时附带/或更改的分析器诊断。有关详细信息，请访问 https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md。</target>
+        <target state="new">Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableAnalyzerReleaseTrackingRuleMessage">
         <source>Enable analyzer release tracking for the analyzer project containing rule '{0}'</source>
-        <target state="translated">为包含规则“{0}”的分析器项目启用分析器发布跟踪</target>
+        <target state="new">Enable analyzer release tracking for the analyzer project containing rule '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableAnalyzerReleaseTrackingRuleTitle">
         <source>Enable analyzer release tracking</source>
-        <target state="translated">启用分析器发布跟踪</target>
+        <target state="new">Enable analyzer release tracking</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableConcurrentExecutionFix">
         <source>Enable concurrent execution</source>
-        <target state="translated">启用并发执行</target>
+        <target state="new">Enable concurrent execution</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableConcurrentExecutionMessage">
         <source>Enable concurrent execution</source>
-        <target state="translated">启用并发执行</target>
+        <target state="new">Enable concurrent execution</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableConcurrentExecutionTitle">
         <source>Enable concurrent execution</source>
-        <target state="translated">启用并发执行</target>
+        <target state="new">Enable concurrent execution</target>
         <note />
       </trans-unit>
       <trans-unit id="ImplementationIsObsoleteDescription">
@@ -249,322 +249,322 @@
       </trans-unit>
       <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleDescription">
         <source>Invalid entry in analyzer release file.</source>
-        <target state="translated">分析器版本文件中的条目无效。</target>
+        <target state="new">Invalid entry in analyzer release file.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleMessage">
         <source>Analyzer release file '{0}' has an invalid entry '{1}'</source>
-        <target state="translated">分析器版本文件“{0}”具有无效条目“{1}”</target>
+        <target state="new">Analyzer release file '{0}' has an invalid entry '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleTitle">
         <source>Invalid entry in analyzer release file</source>
-        <target state="translated">分析器版本文件中的条目无效</target>
+        <target state="new">Invalid entry in analyzer release file</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidHeaderInAnalyzerReleasesFileRuleMessage">
         <source>Analyzer release file '{0}' has a missing or invalid release header '{1}'</source>
-        <target state="translated">分析器版本文件“{0}”缺少版本标头“{1}”或该标头无效</target>
+        <target state="new">Analyzer release file '{0}' has a missing or invalid release header '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRuleMessageMessage">
         <source>Analyzer release file '{0}' has an invalid '{1}' entry without a prior shipped release for the rule '{2}'. Instead, add a separate '{1}' entry for the rule in unshipped release file.</source>
-        <target state="translated">分析器版本文件“{0}”具有不包含针对规则“{2}”的以前已提供版本的无效“{1}”项。请改为在未提供的版本文件中添加针对规则的单独的“{1}”项。</target>
+        <target state="new">Analyzer release file '{0}' has an invalid '{1}' entry without a prior shipped release for the rule '{2}'. Instead, add a separate '{1}' entry for the rule in unshipped release file.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidUndetectedEntryInAnalyzerReleasesFileRuleMessage">
         <source>Analyzer release file '{0}' has an entry with one or more 'Undetected' fields that need to be manually filled in '{1}'</source>
-        <target state="translated">分析器版本文件“{0}”包含具有一个或多个“未检测到”字段的项，这些字段需要在“{1}”中手动填充</target>
+        <target state="new">Analyzer release file '{0}' has an entry with one or more 'Undetected' fields that need to be manually filled in '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingAttributeMessage">
         <source>Missing '{0}' attribute</source>
-        <target state="translated">缺少“{0}”特性</target>
+        <target state="new">Missing '{0}' attribute</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingDiagnosticAnalyzerAttributeTitle">
         <source>Missing diagnostic analyzer attribute</source>
-        <target state="translated">缺少诊断分析器特性</target>
+        <target state="new">Missing diagnostic analyzer attribute</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingDiagnosticAnalyzerAttributeDescription">
         <source>Non-abstract sub-types of DiagnosticAnalyzer should be marked with DiagnosticAnalyzerAttribute(s). The argument to this attribute(s), if any, determine the supported languages for the analyzer. Analyzer types without this attribute will be ignored by the analysis engine.</source>
-        <target state="translated">DiagnosticAnalyzer 的非抽象子类型应使用 DiagnosticAnalyzerAttribute 标记。此特性的参数；如果有，则可确定分析器支持的语言。分析引擎将忽略未带此特性的分析器类型。</target>
+        <target state="new">Non-abstract sub-types of DiagnosticAnalyzer should be marked with DiagnosticAnalyzerAttribute(s). The argument to this attribute(s), if any, determine the supported languages for the analyzer. Analyzer types without this attribute will be ignored by the analysis engine.</target>
         <note />
       </trans-unit>
       <trans-unit id="AddLanguageSupportToAnalyzerMessage">
         <source>Diagnostic analyzer '{0}' may be able to support both C# and Visual Basic. Consider adding an argument to DiagnosticAnalyzerAttribute for '{1}' language support.</source>
-        <target state="translated">诊断分析器“{0}”可能可以支持 C# 和 Visual Basic。请考虑向“{1}”语言支持的 DiagnosticAnalyzerAttribute 添加一个参数。</target>
+        <target state="new">Diagnostic analyzer '{0}' may be able to support both C# and Visual Basic. Consider adding an argument to DiagnosticAnalyzerAttribute for '{1}' language support.</target>
         <note />
       </trans-unit>
       <trans-unit id="AddLanguageSupportToAnalyzerTitle">
         <source>Recommend adding language support to diagnostic analyzer</source>
-        <target state="translated">建议向诊断分析器添加语言支持</target>
+        <target state="new">Recommend adding language support to diagnostic analyzer</target>
         <note />
       </trans-unit>
       <trans-unit id="AddLanguageSupportToAnalyzerDescription">
         <source>Diagnostic analyzer is marked as supporting only one language, but the analyzer assembly doesn't seem to refer to any language specific CodeAnalysis assemblies, and so is likely to work for more than one language. Consider adding an additional language argument to DiagnosticAnalyzerAttribute.</source>
-        <target state="translated">诊断分析器标记为仅支持一种语言，但分析器程序集貌似未引用语言特定的任何 CodeAnalysis 程序集，因此可能会适用于多种语言。请考虑向 DiagnosticAnalyzerAttribute 添加其他语言参数。</target>
+        <target state="new">Diagnostic analyzer is marked as supporting only one language, but the analyzer assembly doesn't seem to refer to any language specific CodeAnalysis assemblies, and so is likely to work for more than one language. Consider adding an additional language argument to DiagnosticAnalyzerAttribute.</target>
         <note />
       </trans-unit>
       <trans-unit id="ApplyDiagnosticAnalyzerAttribute_1">
         <source>Apply DiagnosticAnalyzer attribute for '{0}'.</source>
-        <target state="translated">为“{0}”应用 DiagnosticAnalyzer 特性。</target>
+        <target state="new">Apply DiagnosticAnalyzer attribute for '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ApplyDiagnosticAnalyzerAttribute_2">
         <source>Apply DiagnosticAnalyzer attribute for both '{0}' and '{1}'.</source>
-        <target state="translated">为“{0}”和“{1}”应用 DiagnosticAnalyzer 特性。</target>
+        <target state="new">Apply DiagnosticAnalyzer attribute for both '{0}' and '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingSymbolKindArgumentToRegisterActionMessage">
         <source>Specify at least one SymbolKind of interest when registering a symbol analyzer action</source>
-        <target state="translated">注册符号分析器操作时，至少指定一个感兴趣的 SymbolKind</target>
+        <target state="new">Specify at least one SymbolKind of interest when registering a symbol analyzer action</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingSyntaxKindArgumentToRegisterActionMessage">
         <source>Specify at least one SyntaxKind of interest when registering a syntax node analyzer action</source>
-        <target state="translated">注册语法节点分析器操作时，至少指定一个感兴趣的 SyntaxKind</target>
+        <target state="new">Specify at least one SyntaxKind of interest when registering a syntax node analyzer action</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingOperationKindArgumentToRegisterActionMessage">
         <source>Specify at least one OperationKind of interest when registering an operation analyzer action</source>
-        <target state="translated">注册操作分析器操作时，至少指定一个感兴趣的 OperationKind</target>
+        <target state="new">Specify at least one OperationKind of interest when registering an operation analyzer action</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingKindArgumentToRegisterActionTitle">
         <source>Missing kind argument when registering an analyzer action</source>
-        <target state="translated">注册分析器操作时缺少 kind 参数</target>
+        <target state="new">Missing kind argument when registering an analyzer action</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingKindArgumentToRegisterActionDescription">
         <source>You must specify at least one syntax, symbol or operation kind when registering a syntax, symbol, or operation analyzer action respectively. Otherwise, the registered action will never be invoked during analysis.</source>
-        <target state="translated">分别注册语法、符号或操作分析器动作时，必须至少指定一种语法、符号或操作类型。否则，分析过程中将不会调用已注册的操作。</target>
+        <target state="new">You must specify at least one syntax, symbol or operation kind when registering a syntax, symbol, or operation analyzer action respectively. Otherwise, the registered action will never be invoked during analysis.</target>
         <note />
       </trans-unit>
       <trans-unit id="NoSettingSpecifiedSymbolIsBannedInAnalyzersDescription">
         <source>A project containing analyzers or source generators should specify the property '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'.</source>
-        <target state="translated">包含分析器或源生成器的项目应指定属性“&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;”。</target>
+        <target state="new">A project containing analyzers or source generators should specify the property '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'.</target>
         <note />
       </trans-unit>
       <trans-unit id="NoSettingSpecifiedSymbolIsBannedInAnalyzersMessage">
         <source>'{0}': A project containing analyzers or source generators should specify the property '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'</source>
-        <target state="translated">“{0}”: 包含分析器或源生成器的项目应指定属性“&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;”</target>
+        <target state="new">'{0}': A project containing analyzers or source generators should specify the property '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'</target>
         <note />
       </trans-unit>
       <trans-unit id="NoSettingSpecifiedSymbolIsBannedInAnalyzersTitle">
         <source>Specify analyzer banned API enforcement setting</source>
-        <target state="translated">指定分析器禁止的 API 强制设置</target>
+        <target state="new">Specify analyzer banned API enforcement setting</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferIsKindDescription">
         <source>Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.</source>
-        <target state="translated">检查语法类型时，首选 "syntax.IsKind(kind)" 而不是 "syntax.Kind() == kind"。使用 "IsKind" 的代码在运行时更加高效一些，因此在适用时始终使用此形式有助于提高复杂分析方案中的性能。</target>
+        <target state="new">Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferIsKindFix">
         <source>Use 'IsKind' instead of 'Kind'</source>
-        <target state="translated">使用 "IsKind" 而不是 "Kind"</target>
+        <target state="new">Use 'IsKind' instead of 'Kind'</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferIsKindMessage">
         <source>Prefer 'IsKind' for checking syntax kinds</source>
-        <target state="translated">首选 "IsKind" 来检查语法类型</target>
+        <target state="new">Prefer 'IsKind' for checking syntax kinds</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferIsKindTitle">
         <source>Prefer 'IsKind' for checking syntax kinds</source>
-        <target state="translated">首选 "IsKind" 来检查语法类型</target>
+        <target state="new">Prefer 'IsKind' for checking syntax kinds</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorDescription">
         <source>The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.</source>
-        <target state="translated">"CustomTags" 值用作根据标记的特定值在诊断描述符上启用特定操作和筛选器的方法。每个 Roslyn 分析器都应至少有一个来自 "WellKnownDiagnosticTags" 类的标记。</target>
+        <target state="new">The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorMessage">
         <source>Consider providing a non-null 'customTags' to diagnostic descriptor constructor to enable metatada filtering of diagnostic descriptors</source>
-        <target state="translated">请考虑向诊断描述符构造函数提供一个非 null "customTags"，以启用诊断描述符的元数据筛选</target>
+        <target state="new">Consider providing a non-null 'customTags' to diagnostic descriptor constructor to enable metatada filtering of diagnostic descriptors</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorTitle">
         <source>Provide non-null 'customTags' value to diagnostic descriptor constructor</source>
-        <target state="translated">向诊断描述符构造函数提供非 null "customTags" 值</target>
+        <target state="new">Provide non-null 'customTags' value to diagnostic descriptor constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleDescription">
         <source>Remove duplicate entries for diagnostic ID between analyzer releases.</source>
-        <target state="translated">删除分析器版本之间的诊断 ID 的重复条目。</target>
+        <target state="new">Remove duplicate entries for diagnostic ID between analyzer releases.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleMessage">
         <source>Rule '{0}' has duplicate entry between release '{1}' and release '{2}'</source>
-        <target state="translated">规则“{0}”在版本“{1}”和版本“{2}”之间有重复项</target>
+        <target state="new">Rule '{0}' has duplicate entry between release '{1}' and release '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleTitle">
         <source>Remove duplicate entries for diagnostic ID between analyzer releases</source>
-        <target state="translated">删除分析器版本之间的诊断 ID 的重复条目</target>
+        <target state="new">Remove duplicate entries for diagnostic ID between analyzer releases</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleDescription">
         <source>Remove duplicate entries for diagnostic ID in the same analyzer release.</source>
-        <target state="translated">删除同一分析器版本中诊断 ID 的重复条目。</target>
+        <target state="new">Remove duplicate entries for diagnostic ID in the same analyzer release.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleMessage">
         <source>Rule '{0}' has more then one entry for release '{1}' in analyzer release file '{2}'</source>
-        <target state="translated">在分析器版本文件“{2}”中，规则“{0}”具有版本“{1}”的多个项</target>
+        <target state="new">Rule '{0}' has more then one entry for release '{1}' in analyzer release file '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleTitle">
         <source>Remove duplicate entries for diagnostic ID in the same analyzer release</source>
-        <target state="translated">删除同一分析器版本中诊断 ID 的重复条目</target>
+        <target state="new">Remove duplicate entries for diagnostic ID in the same analyzer release</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveShippedDeletedDiagnosticIdDescription">
         <source>Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.</source>
-        <target state="translated">不再报告的已提供的诊断 ID 应该在未提供的文件的“已删除规则”表中有一个条目。</target>
+        <target state="new">Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveShippedDeletedDiagnosticIdMessage">
         <source>Rule '{0}' was shipped in analyzer release '{1}', but is no longer a supported diagnostic for any analyzer. Add an entry for this rule in a 'Removed Rules' table to unshipped file.</source>
-        <target state="translated">规则“{0}”已在分析器版本“{1}”中提供，但不再是任何分析器支持的诊断。将“已删除规则”表中此规则的项添加到未提供的文件。</target>
+        <target state="new">Rule '{0}' was shipped in analyzer release '{1}', but is no longer a supported diagnostic for any analyzer. Add an entry for this rule in a 'Removed Rules' table to unshipped file.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveShippedDeletedDiagnosticIdTitle">
         <source>Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file</source>
-        <target state="translated">不再报告但已提供的诊断 ID 应该在未提供的文件的“已删除规则”表中有一个条目</target>
+        <target state="new">Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveUnshippedDeletedDiagnosticIdDescription">
         <source>Entries for analyzer diagnostic IDs that are no longer reported and never shipped can be removed from unshipped analyzer release.</source>
-        <target state="translated">可以将不再报告和从未提供的分析器诊断 ID 的项从未提供的版本中删除。</target>
+        <target state="new">Entries for analyzer diagnostic IDs that are no longer reported and never shipped can be removed from unshipped analyzer release.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveUnshippedDeletedDiagnosticIdMessage">
         <source>Rule '{0}' is part of the next unshipped analyzer release, but is not a supported diagnostic for any analyzer</source>
-        <target state="translated">规则“{0}”是下一个未提供的分析器版本的一部分，但它不是任何分析器支持的诊断</target>
+        <target state="new">Rule '{0}' is part of the next unshipped analyzer release, but is not a supported diagnostic for any analyzer</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveUnshippedDeletedDiagnosticIdTitle">
         <source>Do not add removed analyzer diagnostic IDs to unshipped analyzer release</source>
-        <target state="translated">请勿将已删除的分析器诊断 ID 添加到未提供的分析器版本中</target>
+        <target state="new">Do not add removed analyzer diagnostic IDs to unshipped analyzer release</target>
         <note />
       </trans-unit>
       <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullDescription">
         <source>Calling 'SemanticModel.GetDeclaredSymbol' with on certain types inheriting from 'SyntaxNode', for example 'GlobalStatementSyntax' and 'IncompleteMemberSyntax' will always return 'null'.</source>
-        <target state="translated">对从“SyntaxNode”继承的某些类型(例如“GlobalStatementSyntax”和“IncompleteMemberSyntax”)调用“SemanticModel.GetDeclaredSymbol”将始终返回“null”。</target>
+        <target state="new">Calling 'SemanticModel.GetDeclaredSymbol' with on certain types inheriting from 'SyntaxNode', for example 'GlobalStatementSyntax' and 'IncompleteMemberSyntax' will always return 'null'.</target>
         <note />
       </trans-unit>
       <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullForFieldDescription">
         <source>Calling 'SemanticModel.GetDeclaredSymbol' with an argument of type 'FieldDeclarationSyntax' or 'EventFieldDeclarationSyntax' will always return 'null'. Call 'GetDeclaredSymbol' with the variable declarators from the field instead.</source>
-        <target state="translated">使用类型为“FieldDeclarationSyntax”或“EventFieldDeclarationSyntax”的参数调用“SemanticModel.GetDeclaredSymbol”将始终返回“null”。改为使用字段中的变量声明符调用“GetDeclaredSymbol”。</target>
+        <target state="new">Calling 'SemanticModel.GetDeclaredSymbol' with an argument of type 'FieldDeclarationSyntax' or 'EventFieldDeclarationSyntax' will always return 'null'. Call 'GetDeclaredSymbol' with the variable declarators from the field instead.</target>
         <note />
       </trans-unit>
       <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullForFieldMessage">
         <source>A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</source>
-        <target state="translated">对“SemanticModel.GetDeclaredSymbol({0})'”的调用将始终返回“null”</target>
+        <target state="new">A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</target>
         <note />
       </trans-unit>
       <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullMessage">
         <source>A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</source>
-        <target state="translated">对“SemanticModel.GetDeclaredSymbol({0})'”的调用将始终返回“null”</target>
+        <target state="new">A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</target>
         <note />
       </trans-unit>
       <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullTitle">
         <source>This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'</source>
-        <target state="translated">对“SemanticModel.GetDeclaredSymbol()”的调用将始终返回“null”</target>
+        <target state="new">This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedInAnalyzersDescription">
         <source>The symbol has been marked as banned for use in analyzers, and an alternate should be used instead.</source>
-        <target state="translated">已将该符号标记为禁止在分析器中使用，并应改用备用符号。</target>
+        <target state="new">The symbol has been marked as banned for use in analyzers, and an alternate should be used instead.</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedInAnalyzersMessage">
         <source>The symbol '{0}' is banned for use by analyzers{1}</source>
-        <target state="translated">已禁止分析器 {1} 使用符号“{0}”</target>
+        <target state="new">The symbol '{0}' is banned for use by analyzers{1}</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedInAnalyzersTitle">
         <source>Do not use APIs banned for analyzers</source>
-        <target state="translated">不要使用禁用于分析器的 API</target>
+        <target state="new">Do not use APIs banned for analyzers</target>
         <note />
       </trans-unit>
       <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdDescription">
         <source>Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers.</source>
-        <target state="translated">分析器版本文件中标记为已删除的诊断 ID 不应由分析器报告。</target>
+        <target state="new">Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdMessage">
         <source>Rule '{0}' is marked as removed in the latest analyzer release, but is still being reported</source>
-        <target state="translated">规则“{0}”在最新的分析器版本中标记为“已删除”，但它仍在报告中</target>
+        <target state="new">Rule '{0}' is marked as removed in the latest analyzer release, but is still being reported</target>
         <note />
       </trans-unit>
       <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdTitle">
         <source>Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers</source>
-        <target state="translated">分析器版本文件中标记为“已删除”的诊断 ID 不得由分析器报告</target>
+        <target state="new">Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers</target>
         <note />
       </trans-unit>
       <trans-unit id="UnsupportedSymbolKindArgumentToRegisterActionMessage">
         <source>SymbolKind '{0}' is not supported for symbol analyzer actions</source>
-        <target state="translated">符号分析器操作不支持 SymbolKind“{0}”</target>
+        <target state="new">SymbolKind '{0}' is not supported for symbol analyzer actions</target>
         <note />
       </trans-unit>
       <trans-unit id="UnsupportedSymbolKindArgumentToRegisterActionTitle">
         <source>Unsupported SymbolKind argument when registering a symbol analyzer action</source>
-        <target state="translated">注册符号分析器操作时使用了不受支持的 SymbolKind 实参</target>
+        <target state="new">Unsupported SymbolKind argument when registering a symbol analyzer action</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidReportDiagnosticMessage">
         <source>ReportDiagnostic invoked with an unsupported DiagnosticDescriptor '{0}'</source>
-        <target state="translated">使用不受支持的 DiagnosticDescriptor“{0}”调用了 ReportDiagnostic</target>
+        <target state="new">ReportDiagnostic invoked with an unsupported DiagnosticDescriptor '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidReportDiagnosticTitle">
         <source>ReportDiagnostic invoked with an unsupported DiagnosticDescriptor</source>
-        <target state="translated">使用不受支持的 DiagnosticDescriptor 调用了 ReportDiagnostic</target>
+        <target state="new">ReportDiagnostic invoked with an unsupported DiagnosticDescriptor</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidReportDiagnosticDescription">
         <source>ReportDiagnostic should only be invoked with supported DiagnosticDescriptors that are returned from DiagnosticAnalyzer.SupportedDiagnostics property. Otherwise, the reported diagnostic will be filtered out by the analysis engine.</source>
-        <target state="translated">仅应使用从 DiagnosticAnalyzer.SupportedDiagnostics 属性返回的受支持的 DiagnosticDescriptors 调用 ReportDiagnostic。否则，分析引擎将过滤掉所报告的诊断。</target>
+        <target state="new">ReportDiagnostic should only be invoked with supported DiagnosticDescriptors that are returned from DiagnosticAnalyzer.SupportedDiagnostics property. Otherwise, the reported diagnostic will be filtered out by the analysis engine.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidSyntaxKindTypeArgumentMessage">
         <source>Type argument '{0}' for type parameter '{1}' of method '{2}' is not a SyntaxKind enum</source>
-        <target state="translated">方法“{2}”的类型形参“{1}”的类型实参“{0}”不是 SyntaxKind 枚举</target>
+        <target state="new">Type argument '{0}' for type parameter '{1}' of method '{2}' is not a SyntaxKind enum</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidSyntaxKindTypeArgumentTitle">
         <source>Invalid type argument for DiagnosticAnalyzer's Register method</source>
-        <target state="translated">DiagnosticAnalyzer 的 Register 方法的类型参数无效</target>
+        <target state="new">Invalid type argument for DiagnosticAnalyzer's Register method</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidSyntaxKindTypeArgumentDescription">
         <source>DiagnosticAnalyzer's language-specific Register methods, such as RegisterSyntaxNodeAction, RegisterCodeBlockStartAction and RegisterCodeBlockEndAction, expect a language-specific 'SyntaxKind' type argument for it's '{0}' type parameter. Otherwise, the registered analyzer action can never be invoked during analysis.</source>
-        <target state="translated">DiagnosticAnalyzer 的语言特定的 Register 方法，例如 RegisterSyntaxNodeAction、RegisterCodeBlockStartAction 和 RegisterCodeBlockEndAction，需要一个语言特定的 "SyntaxKind" 类型实参用于“{0}”类型形参。否则，分析过程中将不会调用已注册的分析器操作。</target>
+        <target state="new">DiagnosticAnalyzer's language-specific Register methods, such as RegisterSyntaxNodeAction, RegisterCodeBlockStartAction and RegisterCodeBlockEndAction, expect a language-specific 'SyntaxKind' type argument for it's '{0}' type parameter. Otherwise, the registered analyzer action can never be invoked during analysis.</target>
         <note />
       </trans-unit>
       <trans-unit id="StartActionWithOnlyEndActionTitle">
         <source>Start action has no registered non-end actions</source>
-        <target state="translated">启动操作未注册有任何非结束操作</target>
+        <target state="new">Start action has no registered non-end actions</target>
         <note />
       </trans-unit>
       <trans-unit id="StartActionWithNoRegisteredActionsMessage">
         <source>'{0}' does not register any analyzer actions. Consider moving actions registered in '{1}' that depend on this start action to '{0}'.</source>
-        <target state="translated">“{0}”没有注册任何分析器操作。请考虑将“{1}”中注册的依赖于此启动操作的操作移动到“{0}”。</target>
+        <target state="new">'{0}' does not register any analyzer actions. Consider moving actions registered in '{1}' that depend on this start action to '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="StartActionWithNoRegisteredActionsTitle">
         <source>Start action has no registered actions</source>
-        <target state="translated">启动操作未注册有任何操作</target>
+        <target state="new">Start action has no registered actions</target>
         <note />
       </trans-unit>
       <trans-unit id="StartActionWithOnlyEndActionMessage">
         <source>'{0}' does not register any analyzer actions, except for a '{1}'. Consider replacing this start/end action pair with a '{2}' or moving actions registered in '{3}' that depend on this start action to '{0}'.</source>
-        <target state="translated">“{0}”没有注册除“{1}”以外的任何分析器操作。请考虑将此启动/结束操作对替换为“{2}”，或将“{3}”中注册的依赖于此启动操作的操作移动到“{0}”。</target>
+        <target state="new">'{0}' does not register any analyzer actions, except for a '{1}'. Consider replacing this start/end action pair with a '{2}' or moving actions registered in '{3}' that depend on this start action to '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="StatefulAnalyzerRegisterActionsDescription">
@@ -573,261 +573,261 @@
 2. If required, define and initialize state in the start action.
 3. Register at least one non-end action that refers to this state in the start action. If no such action is necessary, consider replacing the start action with a non-start action. For example, a CodeBlockStartAction with no registered actions or only a registered CodeBlockEndAction should be replaced with a CodeBlockAction.
 4. If required, register an end action to report diagnostics based on the final state.</source>
-        <target state="translated">分析器启动操作可以对给定的代码单元(如代码块、编译等)执行有状态分析。细致的设计是实现分析器高效执行和保证内存不泄露的必要条件。使用以下准则编写此类分析器:
-1.为已注册的启动操作定义新的作用域，可能需要一个私有嵌套类型用于分析每个代码单元。
-2.必要时，请在启动操作中定义和初始化状态。
-3.至少在启动操作中注册一个引用此状态的非结束操作。如果不需要此类操作，请考虑将启动操作替换为非启动操作。例如，未注册有操作或仅注册了一个 CodeBlockEndAction 的 CodeBlockStartAction 应替换为 CodeBlockAction。
-4.必要时，请注册一个结束操作，根据最终状态对诊断进行报告。</target>
+        <target state="new">An analyzer start action enables performing stateful analysis over a given code unit, such as a code block, compilation, etc. Careful design is necessary to achieve efficient analyzer execution without memory leaks. Use the following guidelines for writing such analyzers:
+1. Define a new scope for the registered start action, possibly with a private nested type for analyzing each code unit.
+2. If required, define and initialize state in the start action.
+3. Register at least one non-end action that refers to this state in the start action. If no such action is necessary, consider replacing the start action with a non-start action. For example, a CodeBlockStartAction with no registered actions or only a registered CodeBlockEndAction should be replaced with a CodeBlockAction.
+4. If required, register an end action to report diagnostics based on the final state.</target>
         <note />
       </trans-unit>
       <trans-unit id="UpdateDiagnosticIdInAnalyzerReleaseDescription">
         <source>Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release.</source>
-        <target state="translated">确保将分析器诊断 ID 的最新条目添加到分析器版本中。</target>
+        <target state="new">Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release.</target>
         <note />
       </trans-unit>
       <trans-unit id="UpdateDiagnosticIdInAnalyzerReleaseMessage">
         <source>Rule '{0}' has a changed 'Category' or 'Severity' from the last release. Either revert the update(s) in source or add a new up-to-date entry to unshipped release file.</source>
-        <target state="translated">与上一个版本相比，规则“{0}”更改了一个“类别”或“严重级别”。请还原源中的更新或将新的最新项添加到 未提供的版本文件。</target>
+        <target state="new">Rule '{0}' has a changed 'Category' or 'Severity' from the last release. Either revert the update(s) in source or add a new up-to-date entry to unshipped release file.</target>
         <note />
       </trans-unit>
       <trans-unit id="UpdateDiagnosticIdInAnalyzerReleaseTitle">
         <source>Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release</source>
-        <target state="translated">确保将分析器诊断 ID 的最新条目添加到分析器版本中</target>
+        <target state="new">Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release</target>
         <note />
       </trans-unit>
       <trans-unit id="UpdateEntryForDiagnosticIdInAnalyzerReleaseCodeFixTitle">
         <source>Update rule entry in unshipped release file</source>
-        <target state="translated">在未提供的版本文件中更新规则项</target>
+        <target state="new">Update rule entry in unshipped release file</target>
         <note />
       </trans-unit>
       <trans-unit id="UseLocalizableStringsInDescriptorMessage">
         <source>Consider providing localizable arguments of type '{0}' to diagnostic descriptor constructor to ensure the descriptor is localizable</source>
-        <target state="translated">请考虑为诊断描述符构造函数提供类型“{0}”的可本地化参数，以确保描述符可本地化</target>
+        <target state="new">Consider providing localizable arguments of type '{0}' to diagnostic descriptor constructor to ensure the descriptor is localizable</target>
         <note />
       </trans-unit>
       <trans-unit id="UseLocalizableStringsInDescriptorTitle">
         <source>Provide localizable arguments to diagnostic descriptor constructor</source>
-        <target state="translated">为诊断描述符构造函数提供可本地化的参数</target>
+        <target state="new">Provide localizable arguments to diagnostic descriptor constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="UseLocalizableStringsInDescriptorDescription">
         <source>If your diagnostic analyzer and it's reported diagnostics need to be localizable, then the supported DiagnosticDescriptors used for constructing the diagnostics must also be localizable. If so, then localizable argument(s) must be provided for parameter 'title' (and optionally 'description') to the diagnostic descriptor constructor to ensure that the descriptor is localizable.</source>
-        <target state="translated">如果诊断分析器及其报告的诊断需要能够本地化，则用于构建诊断的受支持 DiagnosticDescriptors 也必须可本地化。若是如此，必须为诊断描述符构造函数的 “title” 形参(和可选 “description”)提供可本地化的实参，确保描述符可本地化。</target>
+        <target state="new">If your diagnostic analyzer and it's reported diagnostics need to be localizable, then the supported DiagnosticDescriptors used for constructing the diagnostics must also be localizable. If so, then localizable argument(s) must be provided for parameter 'title' (and optionally 'description') to the diagnostic descriptor constructor to ensure that the descriptor is localizable.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotStorePerCompilationDataOntoFieldsMessage">
         <source>Avoid storing per-compilation data of type '{0}' into the fields of a diagnostic analyzer</source>
-        <target state="translated">不要将类型为“{0}”的每次编译的数据存储到诊断分析器的字段中</target>
+        <target state="new">Avoid storing per-compilation data of type '{0}' into the fields of a diagnostic analyzer</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotStorePerCompilationDataOntoFieldsTitle">
         <source>Avoid storing per-compilation data into the fields of a diagnostic analyzer</source>
-        <target state="translated">不要将每次编译的数据存储到诊断分析器的字段中</target>
+        <target state="new">Avoid storing per-compilation data into the fields of a diagnostic analyzer</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotStorePerCompilationDataOntoFieldsDescription">
         <source>Instance of a diagnostic analyzer might outlive the lifetime of compilation. Hence, storing per-compilation data, such as symbols, into the fields of a diagnostic analyzer might cause stale compilations to stay alive and cause memory leaks.  Instead, you should store this data on a separate type instantiated in a compilation start action, registered using '{0}.{1}' API. An instance of this type will be created per-compilation and it won't outlive compilation's lifetime, hence avoiding memory leaks.</source>
-        <target state="translated">诊断分析器实例可能会超出编译的生存期。因此，如果将每次编译的数据(如符号)存储到诊断分析器的字段中，这可能导致过时的编译保持活动状态并导致内存泄漏。相反，应将此数据存储在使用“{0}.{1}”API 注册且在编译启动操作中实例化的单独类型中。此类型的实例将在每次编译时创建，并且它不会超出编译的生存期，因此避免了内存泄漏。</target>
+        <target state="new">Instance of a diagnostic analyzer might outlive the lifetime of compilation. Hence, storing per-compilation data, such as symbols, into the fields of a diagnostic analyzer might cause stale compilations to stay alive and cause memory leaks.  Instead, you should store this data on a separate type instantiated in a compilation start action, registered using '{0}.{1}' API. An instance of this type will be created per-compilation and it won't outlive compilation's lifetime, hence avoiding memory leaks.</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalImplementationOnlyDescription">
         <source>The author of this interface did not intend to have third party implementations of this interface and reserves the right to change it. Implementing this interface could therefore result in a source or binary compatibility issue with a future version of this interface.</source>
-        <target state="translated">此接口的作者不允许此接口的第三方实现，并保留更改此接口的权利。因此，实现此接口可能会导致此接口的未来版本发生源或二进制的兼容性问题。</target>
+        <target state="new">The author of this interface did not intend to have third party implementations of this interface and reserves the right to change it. Implementing this interface could therefore result in a source or binary compatibility issue with a future version of this interface.</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalImplementationOnlyMessage">
         <source>Type {0} cannot implement interface {1} because {1} is not available for public implementation</source>
-        <target state="translated">类型 {0} 无法实现接口 {1}，因为 {1} 不适用于公共实现</target>
+        <target state="new">Type {0} cannot implement interface {1} because {1} is not available for public implementation</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalImplementationOnlyTitle">
         <source>Only internal implementations of this interface are allowed</source>
-        <target state="translated">只允许此接口的内部实现</target>
+        <target state="new">Only internal implementations of this interface are allowed</target>
         <note />
       </trans-unit>
       <trans-unit id="CodeActionNeedsEquivalenceKeyDescription">
         <source>A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique for each kind of code action created by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</source>
-        <target state="translated">支持修复所有事件的 CodeFixProvider 必须将注册的代码操作划分为等效类，方法是为其分配一个非 null 的显式等效键，且该键对于此修复程序创建的各种代码操作都是唯一的。这样，FixAllProvider 即可通过应用此修复程序的代码操作解决所有诊断问题，其中这些操作位于触发器代码操作的等效类中。</target>
+        <target state="new">A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique for each kind of code action created by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyMessage">
         <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique for each kind of code action created by this fixer</source>
-        <target state="translated">为可选形参“{0}”提供一个显式实参，该形参对于此修复程序创建的各种代码操作均为非 null 且是唯一的</target>
+        <target state="new">Provide an explicit argument for optional parameter '{0}', which is non-null and unique for each kind of code action created by this fixer</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyTitle">
         <source>Create code actions should have a unique EquivalenceKey for FixAll occurrences support</source>
-        <target state="translated">创建代码操作应具备唯一 EquivalenceKey，以支持 FixAll 事件</target>
+        <target state="new">Create code actions should have a unique EquivalenceKey for FixAll occurrences support</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideCodeActionEquivalenceKeyMessage">
         <source>'{0}' has the default value of 'null' for property '{1}'. Either override this property on '{0}' to return a non-null and unique value across all code actions per-fixer or use such an existing code action.</source>
-        <target state="translated">“{0}”具有适用于属性“{1}”的默认值 "null"。可重写“{0}”上的此属性，以返回每个修复程序的所有代码操作中的唯一非 null 值，也可使用此类现有代码操作。</target>
+        <target state="new">'{0}' has the default value of 'null' for property '{1}'. Either override this property on '{0}' to return a non-null and unique value across all code actions per-fixer or use such an existing code action.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideCodeActionEquivalenceKeyTitle">
         <source>Use code actions that have a unique EquivalenceKey for FixAll occurrences support</source>
-        <target state="translated">使用具备 FixAll 事件支持的唯一 EquivalenceKey 的代码操作</target>
+        <target state="new">Use code actions that have a unique EquivalenceKey for FixAll occurrences support</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationDescription">
         <source>Many objects exposed by Roslyn are immutable. The return value from a method invocation on these objects should not be ignored.</source>
-        <target state="translated">由 Roslyn 公开的多个对象不可变。通过对这些对象的方法调用得到的返回值不应被忽略。</target>
+        <target state="new">Many objects exposed by Roslyn are immutable. The return value from a method invocation on these objects should not be ignored.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationMessage">
         <source>'{0}' is immutable and '{1}' will not have any effect on it. Consider using the return value from '{1}'.</source>
-        <target state="translated">“{0}”不可变且“{1}”不对它产生任何影响。请考虑使用来自“{1}”的返回值。</target>
+        <target state="new">'{0}' is immutable and '{1}' will not have any effect on it. Consider using the return value from '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationTitle">
         <source>Do not ignore values returned by methods on immutable objects</source>
-        <target state="translated">不要忽略通过不可变对象上的方法返回的值</target>
+        <target state="new">Do not ignore values returned by methods on immutable objects</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderTitle">
         <source>Code fix providers should provide FixAll support</source>
-        <target state="translated">代码修复提供程序应提供 FixAll 支持</target>
+        <target state="new">Code fix providers should provide FixAll support</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderMessage">
         <source>'{0}' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.</source>
-        <target state="translated">“{0}”注册了一个或多个代码修复程序，但是未重写方法 "CodeFixProvider.GetFixAllProvider"。请重写该方法并向 FixAll 支持提供非 null 型 FixAllProvider (可能为 "WellKnownFixAllProviders.BatchFixer")或提供 "null" 以显式启用 FixAll 支持。</target>
+        <target state="new">'{0}' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderDescription">
         <source>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md for further details.</source>
-        <target state="translated">CodeFixProvider 应提供 FixAll 支持，以允许用户通过单个代码修补程序修复基础诊断的多个实例。有关更多详细信息，请参阅 https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md 中的文档。</target>
+        <target state="new">A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md for further details.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderCodeFixTitle">
         <source>Override GetFixAllProvider.</source>
-        <target state="translated">重写 GetFixAllProvider。</target>
+        <target state="new">Override GetFixAllProvider.</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideHelpUriInDescriptorMessage">
         <source>Consider providing a non-null 'helpLinkUri' to diagnostic descriptor constructor to show information when this diagnostic appears in the error list</source>
-        <target state="translated">请考虑向诊断描述符构造函数提供一个非 null 型 "helpLinkUri"，以在错误列表中出现该诊断时显示信息</target>
+        <target state="new">Consider providing a non-null 'helpLinkUri' to diagnostic descriptor constructor to show information when this diagnostic appears in the error list</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideHelpUriInDescriptorTitle">
         <source>Provide non-null 'helpLinkUri' value to diagnostic descriptor constructor</source>
-        <target state="translated">向诊断描述符构造函数提供非 null 型 "helpLinkUri" 值</target>
+        <target state="new">Provide non-null 'helpLinkUri' value to diagnostic descriptor constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideHelpUriInDescriptorDescription">
         <source>The 'helpLinkUri' value is used to show information when this diagnostic in the error list. Every analyzer should have a helpLinkUri specified which points to a help page that does not change over time.</source>
-        <target state="translated">"helpLinkUri" 值用于在错误列表中出现该诊断时显示信息。应对每个分析器指定一个 helpLinkUri，用于指向一个不会随时间推移而更改的帮助页面。</target>
+        <target state="new">The 'helpLinkUri' value is used to show information when this diagnostic in the error list. Every analyzer should have a helpLinkUri specified which points to a help page that does not change over time.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatTitle">
         <source>DiagnosticId for analyzers must be in specified format</source>
-        <target state="translated">分析器的 DiagnosticId 必须为指定格式</target>
+        <target state="new">DiagnosticId for analyzers must be in specified format</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatMessage">
         <source>Diagnostic Id '{0}' belonging to category '{1}' is not in the required range and/or format '{2}' specified in the file '{3}'</source>
-        <target state="translated">属于类别“{1}”的诊断 Id“{0}”不符合文件“{3}”中指定的要求范围和/或格式“{2}”</target>
+        <target state="new">Diagnostic Id '{0}' belonging to category '{1}' is not in the required range and/or format '{2}' specified in the file '{3}'</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatDescription">
         <source>DiagnosticId for analyzers must be in specified format.</source>
-        <target state="translated">分析器的 DiagnosticId 必须为指定格式。</target>
+        <target state="new">DiagnosticId for analyzers must be in specified format.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseUniqueDiagnosticIdTitle">
         <source>DiagnosticId must be unique across analyzers</source>
-        <target state="translated">分析器的 DiagnosticId 必须唯一</target>
+        <target state="new">DiagnosticId must be unique across analyzers</target>
         <note />
       </trans-unit>
       <trans-unit id="UseUniqueDiagnosticIdMessage">
         <source>Diagnostic Id '{0}' is already used by analyzer '{1}'. Please use a different diagnostic ID.</source>
-        <target state="translated">诊断 Id“{0}”已被分析器“{1}”使用。请使用其他诊断 ID。</target>
+        <target state="new">Diagnostic Id '{0}' is already used by analyzer '{1}'. Please use a different diagnostic ID.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseUniqueDiagnosticIdDescription">
         <source>DiagnosticId must be unique across analyzers.</source>
-        <target state="translated">分析器的 DiagnosticId 必须唯一。</target>
+        <target state="new">DiagnosticId must be unique across analyzers.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseCategoriesFromSpecifiedRangeTitle">
         <source>Category for analyzers must be from the specified values</source>
-        <target state="translated">分析器的类别必须源自指定的值</target>
+        <target state="new">Category for analyzers must be from the specified values</target>
         <note />
       </trans-unit>
       <trans-unit id="UseCategoriesFromSpecifiedRangeMessage">
         <source>Category '{0}' is not from the allowed categories specified in the file '{1}'</source>
-        <target state="translated">类别“{0}”不属于文件“{1}”中指定的允许类别</target>
+        <target state="new">Category '{0}' is not from the allowed categories specified in the file '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="UseCategoriesFromSpecifiedRangeDescription">
         <source>Category for analyzers must be from the specified values.</source>
-        <target state="translated">分析器的类别必须源自指定的值。</target>
+        <target state="new">Category for analyzers must be from the specified values.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidTitle">
         <source>Invalid entry in analyzer category and diagnostic ID range specification file</source>
-        <target state="translated">分析器类别和诊断 ID 范围规定文件中的条目无效</target>
+        <target state="new">Invalid entry in analyzer category and diagnostic ID range specification file</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidMessage">
         <source>Invalid entry '{0}' in analyzer category and diagnostic ID range specification file '{1}'</source>
-        <target state="translated">分析器类别和诊断 ID 范围规定文件“{1}”中的条目“{0}”无效</target>
+        <target state="new">Invalid entry '{0}' in analyzer category and diagnostic ID range specification file '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidDescription">
         <source>Invalid entry in analyzer category and diagnostic ID range specification file.</source>
-        <target state="translated">分析器类别和诊断 ID 范围规定文件中的条目无效。</target>
+        <target state="new">Invalid entry in analyzer category and diagnostic ID range specification file.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeAConstantTitle">
         <source>DiagnosticId for analyzers must be a non-null constant</source>
-        <target state="translated">分析器的 DiagnosticId 必须为非 null 常量</target>
+        <target state="new">DiagnosticId for analyzers must be a non-null constant</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeAConstantMessage">
         <source>Diagnostic Id for rule '{0}' must be a non-null constant</source>
-        <target state="translated">规则“{0}”的诊断 ID 必须为非 null 常量</target>
+        <target state="new">Diagnostic Id for rule '{0}' must be a non-null constant</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeAConstantDescription">
         <source>DiagnosticId for analyzers must be a non-null constant.</source>
-        <target state="translated">分析器的 DiagnosticId 必须为非 null 常量。</target>
+        <target state="new">DiagnosticId for analyzers must be a non-null constant.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseTypesFromAssemblyRuleDescription">
         <source>Diagnostic analyzer types should not use types from Workspaces assemblies. Workspaces assemblies are only available when the analyzer executes in Visual Studio IDE live analysis, but are not available during command line build. Referencing types from Workspaces assemblies will lead to runtime exception during analyzer execution in command line build.</source>
-        <target state="translated">诊断分析器类型不应使用 Workspaces 程序集中的类型。分析器在 Visual Studio IDE 实时分析中执行时，Workspaces 程序集才可用，但在命令行生成期间不可用。命令行生成中的分析器执行期间，从 Workspaces 程序集引用类型将导致运行时异常。</target>
+        <target state="new">Diagnostic analyzer types should not use types from Workspaces assemblies. Workspaces assemblies are only available when the analyzer executes in Visual Studio IDE live analysis, but are not available during command line build. Referencing types from Workspaces assemblies will lead to runtime exception during analyzer execution in command line build.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseTypesFromAssemblyRuleTitle">
         <source>Do not use types from Workspaces assembly in an analyzer</source>
-        <target state="translated">不要在分析器中使用来自 Workspaces 程序集的类型</target>
+        <target state="new">Do not use types from Workspaces assembly in an analyzer</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseTypesFromAssemblyRuleIndirectMessage">
         <source>Change diagnostic analyzer type '{0}' to remove all direct and/or indirect accesses to type(s) '{1}', which access type(s) '{2}'</source>
-        <target state="translated">更改诊断分析器类型“{0}”，删除对访问类型“{2}”的类型“{1}”的所有的直接和/或间接访问</target>
+        <target state="new">Change diagnostic analyzer type '{0}' to remove all direct and/or indirect accesses to type(s) '{1}', which access type(s) '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseTypesFromAssemblyRuleDirectMessage">
         <source>Change diagnostic analyzer type '{0}' to remove all direct accesses to type(s) '{1}'</source>
-        <target state="translated">更改诊断分析器类型“{0}”以删除对类型“{1}”的所有直接访问</target>
+        <target state="new">Change diagnostic analyzer type '{0}' to remove all direct accesses to type(s) '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="UpgradeMSBuildWorkspaceDescription">
         <source>MSBuildWorkspace has moved to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package and there are breaking API changes.</source>
-        <target state="translated">MSBuildWorkspace 已经转移到了 Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet 包，并且存在中断的 API 更改。</target>
+        <target state="new">MSBuildWorkspace has moved to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package and there are breaking API changes.</target>
         <note />
       </trans-unit>
       <trans-unit id="UpgradeMSBuildWorkspaceMessage">
         <source>Please upgrade MSBuildWorkspace by adding a package reference to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package. See https://go.microsoft.com/fwlink/?linkid=874285 for details on using MSBuildWorkspace successfully.</source>
-        <target state="translated">请通过向 Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet 包添加包引用来升级 MSBuildWorkspace。有关成功使用 MSBuildWorkspace 的详细信息，请参阅 https://go.microsoft.com/fwlink/?linkid=874285。</target>
+        <target state="new">Please upgrade MSBuildWorkspace by adding a package reference to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package. See https://go.microsoft.com/fwlink/?linkid=874285 for details on using MSBuildWorkspace successfully.</target>
         <note />
       </trans-unit>
       <trans-unit id="UpgradeMSBuildWorkspaceTitle">
         <source>Upgrade MSBuildWorkspace</source>
-        <target state="translated">升级 MSBuildWorkspace</target>
+        <target state="new">Upgrade MSBuildWorkspace</target>
         <note />
       </trans-unit>
     </body>
