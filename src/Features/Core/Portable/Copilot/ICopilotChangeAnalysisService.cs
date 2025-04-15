@@ -32,20 +32,20 @@ internal interface ICopilotChangeAnalysisService : IWorkspaceService
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class DefaultCopilotChangeAnalysisServiceFactory(
-    ICodeFixService codeFixService,
-    IDiagnosticAnalyzerService diagnosticAnalyzerService) : IWorkspaceServiceFactory
+    [Import(AllowDefault = true)] ICodeFixService? codeFixService,
+    [Import(AllowDefault = true)] IDiagnosticAnalyzerService? diagnosticAnalyzerService) : IWorkspaceServiceFactory
 {
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         => new DefaultCopilotChangeAnalysisService(codeFixService, diagnosticAnalyzerService, workspaceServices);
 
     private sealed class DefaultCopilotChangeAnalysisService(
-        ICodeFixService codeFixService,
-        IDiagnosticAnalyzerService diagnosticAnalyzerService,
+        ICodeFixService? codeFixService,
+        IDiagnosticAnalyzerService? diagnosticAnalyzerService,
         HostWorkspaceServices workspaceServices) : ICopilotChangeAnalysisService
     {
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly ICodeFixService _codeFixService = codeFixService;
-        private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService = diagnosticAnalyzerService;
+        private readonly ICodeFixService? _codeFixService = codeFixService;
+        private readonly IDiagnosticAnalyzerService? _diagnosticAnalyzerService = diagnosticAnalyzerService;
 #pragma warning restore IDE0052 // Remove unread private members
         private readonly HostWorkspaceServices _workspaceServices = workspaceServices;
 
@@ -54,7 +54,7 @@ internal sealed class DefaultCopilotChangeAnalysisServiceFactory(
             ImmutableArray<TextChange> changes,
             CancellationToken cancellationToken)
         {
-            if (!document.SupportsSemanticModel)
+            if (_codeFixService is null || _diagnosticAnalyzerService is null || !document.SupportsSemanticModel)
                 return default;
 
             Contract.ThrowIfTrue(!changes.IsSorted(static (c1, c2) => c1.Span.Start - c2.Span.Start), "'changes' was not sorted.");
