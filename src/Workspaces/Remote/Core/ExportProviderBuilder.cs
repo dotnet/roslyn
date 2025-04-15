@@ -5,12 +5,12 @@
 using System;
 using System.Collections.Immutable;
 using System.IO;
-using System.IO.Hashing;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
 
@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.Remote;
 
 internal sealed class ExportProviderBuilder
 {
+    private const string CatalogSuffix = ".mef-composition";
+
+    // For testing purposes, track the last cache write task.
+    private static Task? s_cacheWriteTask;
+
     public record struct ExportProviderCreationArguments(
         ImmutableArray<string> AssemblyPaths,
         Resolver Resolver,
@@ -28,17 +33,13 @@ internal sealed class ExportProviderBuilder
         Action<string> LogError,
         Action<string> LogTrace);
 
-    // For testing purposes, track the last cache write task.
-    private static Task? _cacheWriteTask;
-    private const string CatalogSuffix = ".mef-composition";
-
     public static async Task<ExportProvider> CreateExportProviderAsync(
         ExportProviderCreationArguments args,
         CancellationToken cancellationToken)
     {
         // Clear any previous cache write task, so that it is easy to discern whether
         // a cache write was attempted.
-        _cacheWriteTask = null;
+        s_cacheWriteTask = null;
 
         // Get the cached MEF composition or create a new one.
         var exportProviderFactory = await GetCompositionConfigurationAsync(args, cancellationToken).ConfigureAwait(false);
@@ -54,6 +55,7 @@ internal sealed class ExportProviderBuilder
         ExportProviderCreationArguments args,
         CancellationToken cancellationToken)
     {
+        // Determine the path to the MEF composition cache file for the given assembly paths.
         var compositionCacheFile = GetCompositionCacheFilePath(args.CacheDirectory, args.CatalogPrefix, args.AssemblyPaths);
 
         // Try to load a cached composition.
@@ -95,12 +97,18 @@ internal sealed class ExportProviderBuilder
         ThrowOnUnexpectedErrors(config, catalog, args.ExpectedErrorParts, args.LogError);
 
         // Try to cache the composition.
-        _cacheWriteTask = WriteCompositionCacheAsync(compositionCacheFile, config, args.PerformCleanup, args.LogError, cancellationToken).ReportNonFatalErrorAsync();
+        s_cacheWriteTask = WriteCompositionCacheAsync(compositionCacheFile, config, args.PerformCleanup, args.LogError, cancellationToken).ReportNonFatalErrorAsync();
 
         // Prepare an ExportProvider factory based on this graph.
         return config.CreateExportProviderFactory();
     }
 
+    /// <summary>
+    /// Returns the path to the MEF composition cache file. Inputs used to determine the file name include:
+    /// 1) The given assembly paths
+    /// 2) The last write times of the given assembly paths
+    /// 3) The .NET runtime major version
+    /// </summary>
     private static string GetCompositionCacheFilePath(string cacheDirectory, string catalogPrefix, ImmutableArray<string> assemblyPaths)
     {
         return Path.Combine(cacheDirectory, $"{catalogPrefix}.{ComputeAssemblyHash(assemblyPaths)}{CatalogSuffix}");
@@ -128,9 +136,11 @@ internal sealed class ExportProviderBuilder
                 hashContents.Append(File.GetLastWriteTimeUtc(assemblyPath).ToString("F"));
             }
 
-            var hash = XxHash128.Hash(Encoding.UTF8.GetBytes(hashContents.ToString()));
+            // Create base64 string of the hash.
+            var hashAsBase64String = Checksum.Create(hashContents.ToString()).ToString();
+
             // Convert to filename safe base64 string.
-            return Convert.ToBase64String(hash).Replace('+', '-').Replace('/', '_').TrimEnd('=');
+            return hashAsBase64String.Replace('+', '-').Replace('/', '_').TrimEnd('=');
         }
     }
 
@@ -138,7 +148,7 @@ internal sealed class ExportProviderBuilder
     {
         try
         {
-            await Task.Yield();
+            await Task.Yield().ConfigureAwait(false);
 
             if (Path.GetDirectoryName(compositionCacheFile) is string directory)
             {
@@ -204,7 +214,7 @@ internal sealed class ExportProviderBuilder
     internal static class TestAccessor
     {
 #pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        public static Task? GetCacheWriteTask() => _cacheWriteTask;
+        public static Task? GetCacheWriteTask() => s_cacheWriteTask;
 #pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
     }
 }

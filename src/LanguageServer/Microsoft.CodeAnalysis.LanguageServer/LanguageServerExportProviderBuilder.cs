@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
@@ -25,25 +24,24 @@ internal sealed class LanguageServerExportProviderBuilder
         var baseDirectory = AppContext.BaseDirectory;
 
         // Load any Roslyn assemblies from the extension directory
-        var assemblyPaths = Directory.EnumerateFiles(baseDirectory, "Microsoft.CodeAnalysis*.dll");
-        assemblyPaths = assemblyPaths.Concat(Directory.EnumerateFiles(baseDirectory, "Microsoft.ServiceHub*.dll"));
+        using var _ = ArrayBuilder<string>.GetInstance(out var assemblyPathsBuilder);
+        assemblyPathsBuilder.AddRange(Directory.EnumerateFiles(baseDirectory, "Microsoft.CodeAnalysis*.dll"));
+        assemblyPathsBuilder.AddRange(Directory.EnumerateFiles(baseDirectory, "Microsoft.ServiceHub*.dll"));
 
         // DevKit assemblies are not shipped in the main language server folder
         // and not included in ExtensionAssemblyPaths (they get loaded into the default ALC).
         // So manually add them to the MEF catalog here.
         if (devKitDependencyPath != null)
-        {
-            assemblyPaths = assemblyPaths.Concat(devKitDependencyPath);
-        }
+            assemblyPathsBuilder.AddRange(devKitDependencyPath);
 
         // Add the extension assemblies to the MEF catalog.
-        assemblyPaths = assemblyPaths.Concat(extensionManager.ExtensionAssemblyPaths);
+        assemblyPathsBuilder.AddRange(extensionManager.ExtensionAssemblyPaths);
 
         var logger = loggerFactory.CreateLogger<ExportProviderBuilder>();
 
         // Create a MEF resolver that can resolve assemblies in the extension contexts.
         var args = new ExportProviderBuilder.ExportProviderCreationArguments(
-            AssemblyPaths: assemblyPaths.ToImmutableArray(),
+            AssemblyPaths: assemblyPathsBuilder.ToImmutableAndClear(),
             Resolver: new Resolver(assemblyLoader),
             CacheDirectory: cacheDirectory,
             CatalogPrefix: "c#-languageserver",

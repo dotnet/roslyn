@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Reflection;
@@ -27,13 +28,7 @@ internal static class RemoteExportProvider
 
     private static ExportProvider? s_instance;
     internal static ExportProvider ExportProvider
-    {
-        get
-        {
-            Contract.ThrowIfNull(s_instance, "Default export provider not initialized. Call InitializeAsync first.");
-            return s_instance;
-        }
-    }
+        => s_instance ?? throw new InvalidOperationException("Default export provider not initialized. Call InitializeAsync first.");
 
     public static async Task InitializeAsync(string localSettingsDirectory, CancellationToken cancellationToken)
     {
@@ -62,6 +57,7 @@ internal static class RemoteExportProvider
             var assemblyName = new AssemblyName(assemblyFullName);
             if (!string.IsNullOrEmpty(codeBasePath))
             {
+                // Set the codebase path, if known, as a hint for the assembly loader.
 #pragma warning disable SYSLIB0044 // https://github.com/dotnet/roslyn/issues/71510
                 assemblyName.CodeBase = codeBasePath;
 #pragma warning restore SYSLIB0044
