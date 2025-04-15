@@ -750,7 +750,7 @@ public abstract partial class Workspace : IDisposable
             }, cancellationToken, TaskCreationOptions.None, _taskSchedulerProvider.CurrentContextScheduler).ConfigureAwait(false);
         }
 
-        void ProcessWorkQueueHelper(
+        static void ProcessWorkQueueHelper(
             ImmutableSegmentedList<(EventArgs Args, EventHandlerSet handlerSet)> list,
             Func<WorkspaceEventOptions, bool> shouldRaise,
             CancellationToken cancellationToken)

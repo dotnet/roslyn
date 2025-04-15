@@ -10,31 +10,32 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.Workspace;
 
 namespace Microsoft.CodeAnalysis;
 
 internal sealed class WorkspaceEventMap
 {
     private readonly SemaphoreSlim _guard = new(initialCount: 1);
-    private readonly Dictionary<string, EventHandlerSet> _eventNameToHandlerSet = [];
+    private readonly Dictionary<WorkspaceEventType, EventHandlerSet> _eventTypeToHandlerSet = [];
 
-    public WorkspaceEventRegistration AddEventHandler(string eventName, WorkspaceEventHandlerAndOptions handlerAndOptions)
+    public WorkspaceEventRegistration AddEventHandler(WorkspaceEventType eventType, WorkspaceEventHandlerAndOptions handlerAndOptions)
     {
         using (_guard.DisposableWait())
         {
-            _eventNameToHandlerSet[eventName] = _eventNameToHandlerSet.TryGetValue(eventName, out var handlers)
+            _eventTypeToHandlerSet[eventType] = _eventTypeToHandlerSet.TryGetValue(eventType, out var handlers)
                 ? handlers.AddHandler(handlerAndOptions)
                 : EventHandlerSet.Empty.AddHandler(handlerAndOptions);
         }
 
-        return new WorkspaceEventRegistration(this, eventName, handlerAndOptions);
+        return new WorkspaceEventRegistration(this, eventType, handlerAndOptions);
     }
 
-    public void RemoveEventHandler(string eventName, WorkspaceEventHandlerAndOptions handlerAndOptions)
+    public void RemoveEventHandler(WorkspaceEventType eventType, WorkspaceEventHandlerAndOptions handlerAndOptions)
     {
         using (_guard.DisposableWait())
         {
-            _eventNameToHandlerSet.TryGetValue(eventName, out var originalHandlers);
+            _eventTypeToHandlerSet.TryGetValue(eventType, out var originalHandlers);
 
             // An earlier AddEventHandler call would have created the WorkspaceEventRegistration whose
             // disposal would have called this method.
@@ -45,16 +46,16 @@ internal sealed class WorkspaceEventMap
                 var newHandlers = originalHandlers.RemoveHandler(handlerAndOptions);
                 Debug.Assert(originalHandlers != newHandlers);
 
-                _eventNameToHandlerSet[eventName] = newHandlers;
+                _eventTypeToHandlerSet[eventType] = newHandlers;
             }
         }
     }
 
-    public EventHandlerSet GetEventHandlerSet(string eventName)
+    public EventHandlerSet GetEventHandlerSet(WorkspaceEventType eventType)
     {
         using (_guard.DisposableWait())
         {
-            return _eventNameToHandlerSet.TryGetValue(eventName, out var handlers)
+            return _eventTypeToHandlerSet.TryGetValue(eventType, out var handlers)
                 ? handlers
                 : EventHandlerSet.Empty;
         }
@@ -107,7 +108,7 @@ internal sealed class WorkspaceEventMap
 
     public sealed class Registry(WorkspaceEventHandlerAndOptions handlerAndOptions)
     {
-        private WorkspaceEventHandlerAndOptions _handlerAndOptions = handlerAndOptions;
+        private readonly WorkspaceEventHandlerAndOptions _handlerAndOptions = handlerAndOptions;
         private bool _disableHandler = false;
 
         public void Unregister()

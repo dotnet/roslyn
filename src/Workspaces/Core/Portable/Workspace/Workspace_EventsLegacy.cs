@@ -10,15 +10,15 @@ namespace Microsoft.CodeAnalysis;
 public abstract partial class Workspace
 {
     // Allows conversion of legacy event handlers to the new event system.
-    private readonly ConcurrentDictionary<(object, string), IDisposable> _disposableEventHandlers = new();
+    private readonly ConcurrentDictionary<(object, WorkspaceEventType), IDisposable> _disposableEventHandlers = new();
 
     /// <summary>
     /// An event raised whenever the current solution is changed.
     /// </summary>
     public event EventHandler<WorkspaceChangeEventArgs> WorkspaceChanged
     {
-        add => AddEventHandler(value, WorkspaceChangeEventName);
-        remove => RemoveEventHandler(value, WorkspaceChangeEventName);
+        add => AddEventHandler(value, WorkspaceEventType.WorkspaceChange);
+        remove => RemoveEventHandler(value, WorkspaceEventType.WorkspaceChange);
     }
 
     /// <summary>
@@ -27,8 +27,8 @@ public abstract partial class Workspace
     /// </summary>
     public event EventHandler<WorkspaceDiagnosticEventArgs> WorkspaceFailed
     {
-        add => AddEventHandler(value, WorkspaceFailedEventName);
-        remove => RemoveEventHandler(value, WorkspaceFailedEventName);
+        add => AddEventHandler(value, WorkspaceEventType.WorkspaceFailed);
+        remove => RemoveEventHandler(value, WorkspaceEventType.WorkspaceFailed);
     }
 
     /// <summary>
@@ -36,8 +36,8 @@ public abstract partial class Workspace
     /// </summary>
     public event EventHandler<DocumentEventArgs> DocumentOpened
     {
-        add => AddEventHandler(value, DocumentOpenedEventName);
-        remove => RemoveEventHandler(value, DocumentOpenedEventName);
+        add => AddEventHandler(value, WorkspaceEventType.DocumentOpened);
+        remove => RemoveEventHandler(value, WorkspaceEventType.DocumentOpened);
     }
 
     /// <summary>
@@ -45,8 +45,8 @@ public abstract partial class Workspace
     /// </summary>
     public event EventHandler<TextDocumentEventArgs> TextDocumentOpened
     {
-        add => AddEventHandler(value, TextDocumentOpenedEventName);
-        remove => RemoveEventHandler(value, TextDocumentOpenedEventName);
+        add => AddEventHandler(value, WorkspaceEventType.TextDocumentOpened);
+        remove => RemoveEventHandler(value, WorkspaceEventType.TextDocumentOpened);
     }
 
     /// <summary>
@@ -54,8 +54,8 @@ public abstract partial class Workspace
     /// </summary>
     public event EventHandler<DocumentEventArgs> DocumentClosed
     {
-        add => AddEventHandler(value, DocumentClosedEventName);
-        remove => RemoveEventHandler(value, DocumentClosedEventName);
+        add => AddEventHandler(value, WorkspaceEventType.DocumentClosed);
+        remove => RemoveEventHandler(value, WorkspaceEventType.DocumentClosed);
     }
 
     /// <summary>
@@ -63,8 +63,8 @@ public abstract partial class Workspace
     /// </summary>
     public event EventHandler<TextDocumentEventArgs> TextDocumentClosed
     {
-        add => AddEventHandler(value, TextDocumentClosedEventName);
-        remove => RemoveEventHandler(value, TextDocumentClosedEventName);
+        add => AddEventHandler(value, WorkspaceEventType.TextDocumentClosed);
+        remove => RemoveEventHandler(value, WorkspaceEventType.TextDocumentClosed);
     }
 
     /// <summary>
@@ -73,26 +73,27 @@ public abstract partial class Workspace
     /// </summary>
     public event EventHandler<DocumentActiveContextChangedEventArgs> DocumentActiveContextChanged
     {
-        add => AddEventHandler(value, DocumentActiveContextChangedName);
-        remove => RemoveEventHandler(value, DocumentActiveContextChangedName);
+        add => AddEventHandler(value, WorkspaceEventType.DocumentActiveContextChanged);
+        remove => RemoveEventHandler(value, WorkspaceEventType.DocumentActiveContextChanged);
     }
 
-    private void AddEventHandler<TEventArgs>(EventHandler<TEventArgs> eventHandler, string eventName)
+    private void AddEventHandler<TEventArgs>(EventHandler<TEventArgs> eventHandler, WorkspaceEventType eventType)
         where TEventArgs : EventArgs
     {
-        Action<EventArgs> handler = arg => eventHandler(sender: this, (TEventArgs)arg);
-
         // Require main thread on the callback as this is used from publicly exposed eventss
         // and those callbacks may have main thread dependencies.
-        var disposer = RegisterHandler(eventName, handler, WorkspaceEventOptions.RequiresMainThreadOptions);
+        var disposer = RegisterHandler(eventType, (Action<EventArgs>)handler, WorkspaceEventOptions.RequiresMainThreadOptions);
 
-        _disposableEventHandlers[(eventHandler, eventName)] = disposer;
+        _disposableEventHandlers[(eventHandler, eventType)] = disposer;
+
+        void handler(EventArgs arg)
+            => eventHandler(sender: this, (TEventArgs)arg);
     }
 
-    private void RemoveEventHandler<TEventArgs>(EventHandler<TEventArgs> eventHandler, string eventName)
+    private void RemoveEventHandler<TEventArgs>(EventHandler<TEventArgs> eventHandler, WorkspaceEventType eventType)
         where TEventArgs : EventArgs
     {
-        _disposableEventHandlers.TryRemove((eventHandler, eventName), out var disposer);
+        _disposableEventHandlers.TryRemove((eventHandler, eventType), out var disposer);
 
         disposer?.Dispose();
     }
