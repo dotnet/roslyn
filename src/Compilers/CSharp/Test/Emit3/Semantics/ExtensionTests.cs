@@ -956,7 +956,7 @@ using System;
 using System.Text;
 
 var sb = new StringBuilder("Info: ");
-Extensions.Inspect(sb);
+StringBuilder.Inspect(sb);
 
 public static class Extensions
 {
@@ -979,7 +979,9 @@ public static class Extensions
 """;
 
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: """
+            Info: 
+            """, expectedReturnCode: 0, trimOutput: false);
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
