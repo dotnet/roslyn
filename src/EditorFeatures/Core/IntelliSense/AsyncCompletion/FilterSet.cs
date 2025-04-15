@@ -121,9 +121,9 @@ internal sealed class FilterSet(bool supportExpander)
     }
 
     private static CompletionFilter CreateCompletionFilter(
-        string displayText, string[] tags, char accessKey)
+        string displayText, ReadOnlySpan<string> tags, char accessKey)
     {
-        var imageId = tags.ToImmutableArray().GetFirstGlyph().GetImageId();
+        var imageId = tags.GetFirstGlyph().GetImageId();
         return new CompletionFilter(
             displayText,
             accessKey.ToString(),

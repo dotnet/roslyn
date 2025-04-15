@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Tags;
 
 namespace Microsoft.CodeAnalysis;
@@ -10,6 +12,9 @@ namespace Microsoft.CodeAnalysis;
 internal static class GlyphExtensions
 {
     public static ImmutableArray<Glyph> GetGlyphs(this ImmutableArray<string> tags)
+        => GetGlyphs(tags.AsSpan());
+
+    public static ImmutableArray<Glyph> GetGlyphs(this ReadOnlySpan<string> tags)
     {
         var builder = ImmutableArray.CreateBuilder<Glyph>(initialCapacity: tags.Length);
 
@@ -17,15 +22,16 @@ internal static class GlyphExtensions
         {
             var glyph = GetGlyph(tag, tags);
             if (glyph != Glyph.None)
-            {
                 builder.Add(glyph);
-            }
         }
 
         return builder.ToImmutable();
     }
 
     public static Glyph GetFirstGlyph(this ImmutableArray<string> tags)
+        => tags.AsSpan().GetFirstGlyph();
+
+    public static Glyph GetFirstGlyph(this ReadOnlySpan<string> tags)
     {
         foreach (var tag in tags)
         {
@@ -37,7 +43,7 @@ internal static class GlyphExtensions
         return Glyph.None;
     }
 
-    private static Glyph GetGlyph(string tag, ImmutableArray<string> allTags)
+    private static Glyph GetGlyph(string tag, ReadOnlySpan<string> allTags)
     {
         switch (tag)
         {
@@ -210,6 +216,9 @@ internal static class GlyphExtensions
     }
 
     public static Accessibility GetAccessibility(ImmutableArray<string> tags)
+        => GetAccessibility(tags.AsSpan());
+
+    public static Accessibility GetAccessibility(ReadOnlySpan<string> tags)
     {
         foreach (var tag in tags)
         {
