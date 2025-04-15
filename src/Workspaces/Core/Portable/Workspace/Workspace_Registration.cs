@@ -6,7 +6,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Text;
-using static Roslyn.Utilities.EventMap;
+using static Microsoft.CodeAnalysis.EventMap;
 
 namespace Microsoft.CodeAnalysis;
 

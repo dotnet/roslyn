@@ -22,7 +22,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
-using static Roslyn.Utilities.EventMap;
+using static Microsoft.CodeAnalysis.EventMap;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 

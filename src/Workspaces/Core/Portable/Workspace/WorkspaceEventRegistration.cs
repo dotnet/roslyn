@@ -3,8 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Roslyn.Utilities;
-using static Roslyn.Utilities.EventMap;
+using static Microsoft.CodeAnalysis.EventMap;
 
 namespace Microsoft.CodeAnalysis;
 

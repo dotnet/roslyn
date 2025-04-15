@@ -8,15 +8,16 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Roslyn.Utilities;
 
-namespace Roslyn.Utilities;
+namespace Microsoft.CodeAnalysis;
 
 internal sealed class EventMap
 {
     private readonly SemaphoreSlim _guard = new(initialCount: 1);
     private readonly Dictionary<string, EventHandlerSet> _eventNameToHandlerSet = [];
 
-    public void AddEventHandler(string eventName, WorkspaceEventHandlerAndOptions handlerAndOptions)
+    public WorkspaceEventRegistration AddEventHandler(string eventName, WorkspaceEventHandlerAndOptions handlerAndOptions)
     {
         using (_guard.DisposableWait())
         {
@@ -24,6 +25,8 @@ internal sealed class EventMap
                 ? handlers.AddHandler(handlerAndOptions)
                 : EventHandlerSet.Empty.AddHandler(handlerAndOptions);
         }
+
+        return new WorkspaceEventRegistration(this, eventName, handlerAndOptions);
     }
 
     public void RemoveEventHandler(string eventName, WorkspaceEventHandlerAndOptions handlerAndOptions)

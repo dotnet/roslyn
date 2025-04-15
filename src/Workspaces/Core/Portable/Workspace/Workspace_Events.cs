@@ -8,8 +8,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
-using static Roslyn.Utilities.EventMap;
+using static Microsoft.CodeAnalysis.EventMap;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -84,9 +83,8 @@ public abstract partial class Workspace
         where TEventArgs : EventArgs
     {
         var handlerAndOptions = new WorkspaceEventHandlerAndOptions(args => handler((TEventArgs)args), options ?? WorkspaceEventOptions.Default);
-        _eventMap.AddEventHandler(eventName, handlerAndOptions);
 
-        return new WorkspaceEventRegistration(_eventMap, eventName, handlerAndOptions);
+        return _eventMap.AddEventHandler(eventName, handlerAndOptions);
     }
 
     #endregion
@@ -179,7 +177,7 @@ public abstract partial class Workspace
         return Task.CompletedTask;
     }
 
-    private EventMap.EventHandlerSet GetEventHandlers(string eventName)
+    private EventHandlerSet GetEventHandlers(string eventName)
     {
         // this will register features that want to listen to workspace events
         // lazily first time workspace event is actually fired

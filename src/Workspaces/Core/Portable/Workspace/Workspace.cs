@@ -23,7 +23,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
-using static Roslyn.Utilities.EventMap;
+using static Microsoft.CodeAnalysis.EventMap;
 
 namespace Microsoft.CodeAnalysis;
 
