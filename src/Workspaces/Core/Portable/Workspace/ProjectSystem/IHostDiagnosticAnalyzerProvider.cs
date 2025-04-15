@@ -15,5 +15,8 @@ internal interface IHostDiagnosticAnalyzerProvider
 {
     ImmutableArray<(AnalyzerFileReference reference, string extensionId)> GetAnalyzerReferencesInExtensions();
 
-    ImmutableArray<(string path, string extensionId)> GetRazorReferencesInExtensions();
+    /// <summary>
+    /// Gets the path to any assemblies that represent the closure of razor compiler.
+    /// </summary>
+    ImmutableArray<(string path, string extensionId)> GetRazorAssembliesInExtensions();
 }

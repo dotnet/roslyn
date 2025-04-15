@@ -67,7 +67,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 New MockExtensionManager({({"razorPath1", "razorPath2"}, "RazorVsix")}, contentType:="Microsoft.VisualStudio.RazorAssembly"),
                 GetType(MockExtensionManager.MockContent))
 
-            Dim references = extensionManager.GetRazorReferencesInExtensions()
+            Dim references = extensionManager.GetRazorAssembliesInExtensions()
 
             AssertEx.SetEqual(
             {

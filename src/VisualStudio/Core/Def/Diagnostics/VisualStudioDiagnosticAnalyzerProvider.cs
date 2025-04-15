@@ -50,7 +50,7 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerProvider : IHostDiag
     public ImmutableArray<(AnalyzerFileReference reference, string extensionId)> GetAnalyzerReferencesInExtensions()
         => _lazyAnalyzerReferences.Value;
 
-    public ImmutableArray<(string path, string extensionId)> GetRazorReferencesInExtensions()
+    public ImmutableArray<(string path, string extensionId)> GetRazorAssembliesInExtensions()
         => _lazyRazorReferences.Value;
 
     private ImmutableArray<(string path, string extensionId)> GetExtensionContent(string contentTypeName)

@@ -13,7 +13,7 @@ internal sealed class HostDiagnosticAnalyzerProvider(string? razorSourceGenerato
 {
     public ImmutableArray<(AnalyzerFileReference reference, string extensionId)> GetAnalyzerReferencesInExtensions() => [];
 
-    public ImmutableArray<(string path, string extensionId)> GetRazorReferencesInExtensions()
+    public ImmutableArray<(string path, string extensionId)> GetRazorAssembliesInExtensions()
     {
         if (razorSourceGenerator is not null)
         {
