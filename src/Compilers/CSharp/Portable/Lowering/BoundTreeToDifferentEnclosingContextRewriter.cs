@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var newType = VisitType(local.Type);
-            if (TypeSymbol.Equals(newType, local.Type, TypeCompareKind.ConsiderEverything2))
+            if (AllowReuseOfLocalsWithIncorrectContainingSymbol && TypeSymbol.Equals(newType, local.Type, TypeCompareKind.ConsiderEverything2))
             {
                 newLocal = local;
             }
