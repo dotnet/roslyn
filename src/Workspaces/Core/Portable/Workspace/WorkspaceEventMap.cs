@@ -7,8 +7,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Workspace;
 
@@ -16,16 +16,14 @@ namespace Microsoft.CodeAnalysis;
 
 internal sealed class WorkspaceEventMap
 {
-    private readonly SemaphoreSlim _guard = new(initialCount: 1);
+    private readonly object _guard = new();
     private readonly Dictionary<WorkspaceEventType, EventHandlerSet> _eventTypeToHandlerSet = [];
 
     public WorkspaceEventRegistration AddEventHandler(WorkspaceEventType eventType, WorkspaceEventHandlerAndOptions handlerAndOptions)
     {
-        using (_guard.DisposableWait())
+        lock (_guard)
         {
-            _eventTypeToHandlerSet[eventType] = _eventTypeToHandlerSet.TryGetValue(eventType, out var handlers)
-                ? handlers.AddHandler(handlerAndOptions)
-                : EventHandlerSet.Empty.AddHandler(handlerAndOptions);
+            _eventTypeToHandlerSet[eventType] = GetEventHandlerSet_NoLock(eventType).AddHandler(handlerAndOptions);
         }
 
         return new WorkspaceEventRegistration(this, eventType, handlerAndOptions);
@@ -33,37 +31,35 @@ internal sealed class WorkspaceEventMap
 
     public void RemoveEventHandler(WorkspaceEventType eventType, WorkspaceEventHandlerAndOptions handlerAndOptions)
     {
-        using (_guard.DisposableWait())
+        lock (_guard)
         {
-            _eventTypeToHandlerSet.TryGetValue(eventType, out var originalHandlers);
+            var originalHandlers = GetEventHandlerSet_NoLock(eventType);
+            var newHandlers = originalHandlers.RemoveHandler(handlerAndOptions);
 
             // An earlier AddEventHandler call would have created the WorkspaceEventRegistration whose
             // disposal would have called this method.
-            Debug.Assert(originalHandlers != null);
+            Debug.Assert(originalHandlers != newHandlers);
 
-            if (originalHandlers != null)
-            {
-                var newHandlers = originalHandlers.RemoveHandler(handlerAndOptions);
-                Debug.Assert(originalHandlers != newHandlers);
-
-                _eventTypeToHandlerSet[eventType] = newHandlers;
-            }
+            _eventTypeToHandlerSet[eventType] = newHandlers;
         }
     }
 
     public EventHandlerSet GetEventHandlerSet(WorkspaceEventType eventType)
     {
-        using (_guard.DisposableWait())
+        lock (_guard)
         {
-            return _eventTypeToHandlerSet.TryGetValue(eventType, out var handlers)
-                ? handlers
-                : EventHandlerSet.Empty;
+            return GetEventHandlerSet_NoLock(eventType);
         }
     }
 
-    public readonly record struct WorkspaceEventHandlerAndOptions(Action<EventArgs> Handler, WorkspaceEventOptions Options)
+    private EventHandlerSet GetEventHandlerSet_NoLock(WorkspaceEventType eventType)
     {
+        return _eventTypeToHandlerSet.TryGetValue(eventType, out var handlers)
+            ? handlers
+            : EventHandlerSet.Empty;
     }
+
+    public readonly record struct WorkspaceEventHandlerAndOptions(Action<EventArgs> Handler, WorkspaceEventOptions Options);
 
     public sealed class EventHandlerSet(ImmutableArray<Registry> registries)
     {
@@ -80,6 +76,7 @@ internal sealed class WorkspaceEventMap
         {
             var registry = _registries.FirstOrDefault(static (r, handlerAndOptions) => r.HasHandlerAndOptions(handlerAndOptions), handlerAndOptions);
 
+            Debug.Assert(registry != null, "Expected to find a registry for the handler and options.");
             if (registry == null)
                 return this;
 
@@ -93,7 +90,7 @@ internal sealed class WorkspaceEventMap
         }
 
         public bool HasHandlers
-            => _registries.Any(static r => true);
+            => !_registries.IsEmpty;
 
         public bool HasMatchingOptions(Func<WorkspaceEventOptions, bool> isMatch)
             => _registries.Any(static (r, hasOptions) => r.HasMatchingOptions(hasOptions), isMatch);
@@ -102,7 +99,16 @@ internal sealed class WorkspaceEventMap
             where TEventArgs : EventArgs
         {
             foreach (var registry in _registries)
-                registry.RaiseEvent(arg, shouldRaiseEvent);
+            {
+                try
+                {
+                    registry.RaiseEvent(arg, shouldRaiseEvent);
+                }
+                catch (Exception e) when (FatalError.ReportAndCatch(e))
+                {
+                    // Ensure we continue onto further items, even if one particular item fails.
+                }
+            }
         }
     }
 

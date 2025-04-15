@@ -759,14 +759,7 @@ public abstract partial class Workspace : IDisposable
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                try
-                {
-                    handlerSet.RaiseEvent(args, shouldRaise);
-                }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
-                {
-                    // Ensure we continue onto further items, even if one particular item fails.
-                }
+                handlerSet.RaiseEvent(args, shouldRaise);
             }
         }
     }

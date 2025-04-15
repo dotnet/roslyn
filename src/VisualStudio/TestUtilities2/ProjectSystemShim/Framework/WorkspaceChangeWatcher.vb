@@ -10,8 +10,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         Implements IDisposable
 
         Private ReadOnly _asynchronousOperationWaiter As IAsynchronousOperationWaiter
-        Private _changeEvents As New List(Of WorkspaceChangeEventArgs)
         Private ReadOnly _workspaceChangedDisposer As WorkspaceEventRegistration
+        Private _changeEvents As New List(Of WorkspaceChangeEventArgs)
 
         Public Sub New(environment As TestEnvironment)
             Dim listenerProvider = environment.ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)()

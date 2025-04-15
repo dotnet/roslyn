@@ -46,8 +46,6 @@ internal partial class SyntacticClassificationTaggerProvider
         private readonly SyntacticClassificationTaggerProvider _taggerProvider;
         private readonly ITextBuffer2 _subjectBuffer;
         private readonly WorkspaceRegistration _workspaceRegistration;
-        private WorkspaceEventRegistration? _workspaceChangedDisposer;
-        private WorkspaceEventRegistration? _workspaceDocumentActiveContextChangedDisposer;
 
         private readonly CancellationTokenSource _disposalCancellationSource = new();
 
@@ -64,6 +62,8 @@ internal partial class SyntacticClassificationTaggerProvider
         private readonly TimeSpan _diffTimeout;
 
         private Workspace? _workspace;
+        private WorkspaceEventRegistration? _workspaceChangedDisposer;
+        private WorkspaceEventRegistration? _workspaceDocumentActiveContextChangedDisposer;
 
         /// <summary>
         /// Cached values for the last services we computed for a particular <see cref="Workspace"/> and <see

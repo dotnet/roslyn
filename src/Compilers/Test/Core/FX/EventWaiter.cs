@@ -53,7 +53,7 @@ namespace Roslyn.Test.Utilities
 
         public Action<TEventArgs> Wrap<TEventArgs>(Action<TEventArgs> input)
         {
-            return (args) =>
+            return args =>
             {
                 try
                 {

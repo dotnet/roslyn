@@ -43,7 +43,6 @@ internal sealed class SolutionChecksumUpdater
     private readonly AsyncBatchingWorkQueue _synchronizeActiveDocumentQueue;
 
     private readonly object _gate = new();
-    private bool _isSynchronizeWorkspacePaused;
     private readonly WorkspaceEventRegistration _workspaceChangedDisposer;
     private readonly WorkspaceEventRegistration _workspaceChangedImmediateDisposer;
 
@@ -53,6 +52,8 @@ internal sealed class SolutionChecksumUpdater
     private const string SynchronizeTextChangesStatusFailedMetricName = "FailedCount";
     private const string SynchronizeTextChangesStatusSucceededKeyName = nameof(SolutionChecksumUpdater) + "." + SynchronizeTextChangesStatusSucceededMetricName;
     private const string SynchronizeTextChangesStatusFailedKeyName = nameof(SolutionChecksumUpdater) + "." + SynchronizeTextChangesStatusFailedMetricName;
+
+    private bool _isSynchronizeWorkspacePaused;
 
     public SolutionChecksumUpdater(
         Workspace workspace,
