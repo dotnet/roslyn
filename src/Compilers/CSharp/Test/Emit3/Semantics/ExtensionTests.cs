@@ -993,6 +993,55 @@ public static class Extensions
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78135")]
+    public void ExtensionWithCapturing2()
+    {
+        var src = """
+using System;
+
+var a = int.Foo();
+a();
+
+public static class IntExt
+{
+    extension(int)
+    {
+        public static Action Foo()
+        {
+            var b = 7;
+            Action a = () =>
+            {
+                int a = 123;
+                Console.WriteLine(a);
+                b++;
+                Console.WriteLine(b);
+            };
+            Console.WriteLine("Foo()");
+            ++b;
+            return a;
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: """
+            Foo()
+            123
+            9
+
+            """, expectedReturnCode: 0, trimOutput: false);
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().First();
+        var symbol1 = model.GetDeclaredSymbol(extension1);
+        var sourceExtension1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
+        Assert.Equal("<>E__0", symbol1.MetadataName);
+        Assert.Equal("IntExt.<>E__0", symbol1.ToTestDisplayString());
+    }
+
+    [Fact]
     public void ExtensionIndex_TwoExtensions_SameSignatures_02()
     {
         var src = """
