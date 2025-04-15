@@ -81,7 +81,10 @@ public abstract partial class Workspace
         where TEventArgs : EventArgs
     {
         Action<EventArgs> handler = arg => eventHandler(sender: this, (TEventArgs)arg);
-        var disposer = RegisterHandler(eventName, handler, WorkspaceEventOptions.MainThreadDependent);
+
+        // Require main thread on the callback as this is used from publicly exposed eventss
+        // and those callbacks may have main thread dependencies.
+        var disposer = RegisterHandler(eventName, handler, WorkspaceEventOptions.RequiresMainThreadOptions);
 
         _disposableEventHandlers[(eventHandler, eventName)] = disposer;
     }

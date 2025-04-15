@@ -59,7 +59,8 @@ internal sealed partial class XamlProjectService : IDisposable
 
         AnalyzerService = analyzerService;
 
-        _documentClosedHandlerDisposer = _workspace.RegisterDocumentClosedHandler(OnDocumentClosed, WorkspaceEventOptions.MainThreadDependent);
+        // Require main thread on the callback as OnDocumentClosed is not thread safe.
+        _documentClosedHandlerDisposer = _workspace.RegisterDocumentClosedHandler(OnDocumentClosed, WorkspaceEventOptions.RequiresMainThreadOptions);
     }
 
     public void Dispose()

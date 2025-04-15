@@ -23,7 +23,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.EventMap;
+using static Microsoft.CodeAnalysis.WorkspaceEventMap;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -593,7 +593,8 @@ public abstract partial class Workspace : IDisposable
 #pragma warning disable IDE0060 // Remove unused parameter
     protected internal Task ScheduleTask(Action action, string? taskName = "Workspace.Task")
     {
-        var handlerAndOptions = new WorkspaceEventHandlerAndOptions(args => action(), WorkspaceEventOptions.MainThreadDependent);
+        // Require main thread on the callback as this is publicly exposed and the given actions may have main thread dependencies.
+        var handlerAndOptions = new WorkspaceEventHandlerAndOptions(args => action(), WorkspaceEventOptions.RequiresMainThreadOptions);
         var handlerSet = EventHandlerSet.Create(handlerAndOptions);
 
         return ScheduleTask(EventArgs.Empty, handlerSet);
@@ -614,7 +615,8 @@ public abstract partial class Workspace : IDisposable
     {
         T? result = default;
 
-        var handlerAndOptions = new WorkspaceEventHandlerAndOptions(args => result = func(), WorkspaceEventOptions.MainThreadDependent);
+        // Require main thread on the callback as this is publicly exposed and the given actions may have main thread dependencies.
+        var handlerAndOptions = new WorkspaceEventHandlerAndOptions(args => result = func(), WorkspaceEventOptions.RequiresMainThreadOptions);
         var handlerSet = EventHandlerSet.Create(handlerAndOptions);
 
         await ScheduleTask(EventArgs.Empty, handlerSet).ConfigureAwait(false);
@@ -729,21 +731,30 @@ public abstract partial class Workspace : IDisposable
         _workQueueTokenSource.Cancel();
     }
 
-    private async ValueTask ProcessEventHandlerWorkQueueAsync(ImmutableSegmentedList<(EventArgs Args, EventHandlerSet handlerSet)> list, CancellationToken cancellationToken)
+    private async ValueTask ProcessEventHandlerWorkQueueAsync(ImmutableSegmentedList<(EventArgs Args, EventHandlerSet HandlerSet)> list, CancellationToken cancellationToken)
     {
+        // Currently, this method maintains ordering of events to their callbacks. If that were no longer necessary,
+        // further performance optimizations of this method could be considered, such as grouping together 
+        // callbacks by eventargs/registries or parallelizing callbacks.
+
+        // ABWQ callbacks occur on threadpool threads, so we can process the handlers immediately that don't require the main thread.
         ProcessWorkQueueHelper(list, shouldRaise: static options => !options.RequiresMainThread, cancellationToken);
 
-        await Task.Factory.StartNew(() =>
+        // Verify there are handlers which require the main thread before performing the thread switch.
+        if (list.Any(static x => x.HandlerSet.HasMatchingOptions(isMatch: static options => options.RequiresMainThread)))
         {
-            ProcessWorkQueueHelper(list, shouldRaise: static options => options.RequiresMainThread, cancellationToken);
-        }, cancellationToken, TaskCreationOptions.None, _taskSchedulerProvider.CurrentContextScheduler).ConfigureAwait(false);
+            await Task.Factory.StartNew(() =>
+            {
+                // As the scheduler has moved us to the main thread, we can now process the handlers that require the main thread.
+                ProcessWorkQueueHelper(list, shouldRaise: static options => options.RequiresMainThread, cancellationToken);
+            }, cancellationToken, TaskCreationOptions.None, _taskSchedulerProvider.CurrentContextScheduler).ConfigureAwait(false);
+        }
 
         void ProcessWorkQueueHelper(
             ImmutableSegmentedList<(EventArgs Args, EventHandlerSet handlerSet)> list,
             Func<WorkspaceEventOptions, bool> shouldRaise,
             CancellationToken cancellationToken)
         {
-
             foreach (var (args, handlerSet) in list)
             {
                 cancellationToken.ThrowIfCancellationRequested();

@@ -8,13 +8,13 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
-using static Microsoft.CodeAnalysis.EventMap;
+using static Microsoft.CodeAnalysis.WorkspaceEventMap;
 
 namespace Microsoft.CodeAnalysis;
 
 public abstract partial class Workspace
 {
-    private readonly EventMap _eventMap = new();
+    private readonly WorkspaceEventMap _eventMap = new();
 
     private const string WorkspaceChangeEventName = "WorkspaceChanged";
     private const string WorkspaceChangedImmediateEventName = "WorkspaceChangedImmediate";
@@ -82,7 +82,7 @@ public abstract partial class Workspace
     private WorkspaceEventRegistration RegisterHandler<TEventArgs>(string eventName, Action<TEventArgs> handler, WorkspaceEventOptions? options = null)
         where TEventArgs : EventArgs
     {
-        var handlerAndOptions = new WorkspaceEventHandlerAndOptions(args => handler((TEventArgs)args), options ?? WorkspaceEventOptions.Default);
+        var handlerAndOptions = new WorkspaceEventHandlerAndOptions(args => handler((TEventArgs)args), options ?? WorkspaceEventOptions.DefaultOptions);
 
         return _eventMap.AddEventHandler(eventName, handlerAndOptions);
     }

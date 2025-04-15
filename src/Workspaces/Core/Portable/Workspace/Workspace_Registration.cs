@@ -6,7 +6,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Text;
-using static Microsoft.CodeAnalysis.EventMap;
+using static Microsoft.CodeAnalysis.WorkspaceEventMap;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -44,7 +44,9 @@ public abstract partial class Workspace
         var registration = GetWorkspaceRegistration(textContainer);
         registration.SetWorkspace(this);
 
-        var handlerAndOptions = new WorkspaceEventHandlerAndOptions(args => registration.RaiseEvents(), WorkspaceEventOptions.MainThreadDependent);
+        // Require main thread on the callback as WorkspaceRegistration.RaiseEvents invokes Workspace.WorkspaecChanges which is publicly exposed
+        // and the event handlers may have main thread dependencies.
+        var handlerAndOptions = new WorkspaceEventHandlerAndOptions(args => registration.RaiseEvents(), WorkspaceEventOptions.RequiresMainThreadOptions);
         var handlerSet = EventHandlerSet.Create(handlerAndOptions);
         this.ScheduleTask(EventArgs.Empty, handlerSet);
     }

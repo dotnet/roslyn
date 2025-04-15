@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -12,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal sealed class EventMap
+internal sealed class WorkspaceEventMap
 {
     private readonly SemaphoreSlim _guard = new(initialCount: 1);
     private readonly Dictionary<string, EventHandlerSet> _eventNameToHandlerSet = [];
@@ -33,8 +34,19 @@ internal sealed class EventMap
     {
         using (_guard.DisposableWait())
         {
-            if (_eventNameToHandlerSet.TryGetValue(eventName, out var handlers))
-                _eventNameToHandlerSet[eventName] = handlers.RemoveHandler(handlerAndOptions);
+            _eventNameToHandlerSet.TryGetValue(eventName, out var originalHandlers);
+
+            // An earlier AddEventHandler call would have created the WorkspaceEventRegistration whose
+            // disposal would have called this method.
+            Debug.Assert(originalHandlers != null);
+
+            if (originalHandlers != null)
+            {
+                var newHandlers = originalHandlers.RemoveHandler(handlerAndOptions);
+                Debug.Assert(originalHandlers != newHandlers);
+
+                _eventNameToHandlerSet[eventName] = newHandlers;
+            }
         }
     }
 
@@ -48,7 +60,7 @@ internal sealed class EventMap
         }
     }
 
-    public record struct WorkspaceEventHandlerAndOptions(Action<EventArgs> Handler, WorkspaceEventOptions Options)
+    public readonly record struct WorkspaceEventHandlerAndOptions(Action<EventArgs> Handler, WorkspaceEventOptions Options)
     {
     }
 
@@ -65,20 +77,25 @@ internal sealed class EventMap
 
         public EventHandlerSet RemoveHandler(WorkspaceEventHandlerAndOptions handlerAndOptions)
         {
-            var newRegistries = _registries.RemoveAll(r => r.HasHandlerAndOptions(handlerAndOptions));
+            var registry = _registries.FirstOrDefault(static (r, handlerAndOptions) => r.HasHandlerAndOptions(handlerAndOptions), handlerAndOptions);
 
-            if (newRegistries == _registries)
+            if (registry == null)
                 return this;
 
-            // disable all registrations of this handler (so pending raise events can be squelched)
+            // disable this handler (so pending raise events can be squelched)
             // This does not guarantee no race condition between Raise and Remove but greatly reduces it.
-            foreach (var registry in _registries.Where(r => r.HasHandlerAndOptions(handlerAndOptions)))
-                registry.Unregister();
+            registry.Unregister();
+
+            var newRegistries = _registries.Remove(registry);
 
             return newRegistries.IsEmpty ? Empty : new(newRegistries);
         }
 
-        public bool HasHandlers => _registries.Length > 0;
+        public bool HasHandlers
+            => _registries.Any(static r => true);
+
+        public bool HasMatchingOptions(Func<WorkspaceEventOptions, bool> isMatch)
+            => _registries.Any(static (r, hasOptions) => r.HasMatchingOptions(hasOptions), isMatch);
 
         public void RaiseEvent<TEventArgs>(TEventArgs arg, Func<WorkspaceEventOptions, bool> shouldRaiseEvent)
             where TEventArgs : EventArgs
@@ -99,9 +116,12 @@ internal sealed class EventMap
         public bool HasHandlerAndOptions(WorkspaceEventHandlerAndOptions handlerAndOptions)
             => _handlerAndOptions.Equals(handlerAndOptions);
 
+        public bool HasMatchingOptions(Func<WorkspaceEventOptions, bool> isMatch)
+            => !_disableHandler && isMatch(_handlerAndOptions.Options);
+
         public void RaiseEvent(EventArgs args, Func<WorkspaceEventOptions, bool> shouldRaiseEvent)
         {
-            if (shouldRaiseEvent(_handlerAndOptions.Options) && !_disableHandler)
+            if (!_disableHandler && shouldRaiseEvent(_handlerAndOptions.Options))
                 _handlerAndOptions.Handler(args);
         }
     }
