@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             validateExpected(output.ToString());
         }
 
-        public void Emit(
+        public void EmitAndVerify(
             string? expectedOutput,
             bool trimOutput,
             int? expectedReturnCode,

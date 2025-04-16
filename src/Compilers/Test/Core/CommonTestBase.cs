@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var verifier = new CompilationVerifier(compilation, VisualizeRealIL, dependencies);
 
-            verifier.Emit(expectedOutput, trimOutput, expectedReturnCode, args, manifestResources, emitOptions, verify, expectedSignatures);
+            verifier.EmitAndVerify(expectedOutput, trimOutput, expectedReturnCode, args, manifestResources, emitOptions, verify, expectedSignatures);
 
             if (assemblyValidator != null || symbolValidator != null)
             {

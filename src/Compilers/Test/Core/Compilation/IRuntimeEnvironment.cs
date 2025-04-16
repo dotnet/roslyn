@@ -20,6 +20,9 @@ using Roslyn.Utilities;
 
 namespace Roslyn.Test.Utilities
 {
+    /// <summary>
+    /// This a factory type for creating <see cref="IRuntimeEnvironment" /> instances for the current runtime.
+    /// </summary>
     public static class RuntimeEnvironmentFactory
     {
         private static IRuntimeEnvironmentFactory Instance { get; } = RuntimeUtilities.GetRuntimeEnvironmentFactory();
@@ -37,6 +40,10 @@ namespace Roslyn.Test.Utilities
         (string Output, string ErrorOutput) CaptureOutput(Action action, int? maxOutputLength);
     }
 
+    /// <summary>
+    /// This is used for executing a set of modules in an isolated runtime environment for the current .NET
+    /// runtime.
+    /// </summary>
     public interface IRuntimeEnvironment : IDisposable
     {
         (int ExitCode, string Output, string ErrorOutput) Execute(string[] args, int? maxOutputLength);
