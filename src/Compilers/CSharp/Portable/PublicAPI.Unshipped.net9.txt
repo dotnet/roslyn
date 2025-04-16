@@ -1,4 +1,8 @@
-[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.VirtualProjectGenerator
-[RSEXPERIMENTAL006]static Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.VirtualProjectGenerator.GetArtifactsPath(string! entryPointFilePath) -> string!
-[RSEXPERIMENTAL006]static Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.VirtualProjectGenerator.WriteConvertedProjectFile<TArg>(string! entryPointFileFullPath, Microsoft.CodeAnalysis.Text.SourceText! entryPointFileText, TArg arg, System.Func<TArg, System.IO.TextWriter!>! writerFactory, out System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!> diagnostics, bool force) -> Microsoft.CodeAnalysis.Text.SourceText?
-[RSEXPERIMENTAL006]static Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.VirtualProjectGenerator.WriteVirtualProjectFile(string! entryPointFileFullPath, Microsoft.CodeAnalysis.Text.SourceText! entryPointFileText, System.IO.TextWriter! writer, string! artifactsPath, out System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!> diagnostics) -> void
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.VirtualProject
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.VirtualProject.ConvertSourceText(string! path) -> Microsoft.CodeAnalysis.Text.SourceText?
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.VirtualProject.Emit(System.IO.TextWriter! csprojWriter, string! artifactsPath) -> void
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.VirtualProject.EmitConverted(System.IO.TextWriter! csprojWriter) -> void
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.VirtualProject.EntryPointFileFullPath.get -> string!
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.VirtualProject.ParseDirectives(string! filePath, Microsoft.CodeAnalysis.Text.SourceText! text, bool reportAllErrors) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.VirtualProject.VirtualProject(string! entryPointFileFullPath) -> void
+[RSEXPERIMENTAL006]static Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.VirtualProject.GetArtifactsPath(string! entryPointFilePath) -> string!

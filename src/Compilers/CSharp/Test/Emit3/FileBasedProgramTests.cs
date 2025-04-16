@@ -484,24 +484,26 @@ public sealed class FileBasedProgramTests : TestBase
         out ImmutableArray<Diagnostic> actualDiagnostics,
         bool force)
     {
-        StringWriter? projectWriter = null;
-        string entryPointFileFullPath = "/app/Program.cs";
-#pragma warning disable RSEXPERIMENTAL006 // 'VirtualProjectGenerator' is experimental
-        SourceText? convertedCSharp = FileBasedPrograms.VirtualProjectGenerator.WriteConvertedProjectFile(
-            entryPointFileFullPath: entryPointFileFullPath,
-            entryPointFileText: SourceText.From(inputCSharp, Encoding.UTF8),
-            arg: 0,
-            writerFactory: _ =>
-            {
-                Assert.Null(projectWriter);
-                projectWriter = new StringWriter();
-                return projectWriter;
-            },
-            out actualDiagnostics,
-            force: force);
-#pragma warning restore RSEXPERIMENTAL006 // 'VirtualProjectGenerator' is experimental
-        actualProject = projectWriter?.ToString();
-        actualCSharp = convertedCSharp?.ToString();
+#pragma warning disable RSEXPERIMENTAL006 // 'VirtualProject' is experimental
+        var virtualProject = new FileBasedPrograms.VirtualProject("/app/Program.cs");
+        actualDiagnostics = virtualProject.ParseDirectives(
+            virtualProject.EntryPointFileFullPath,
+            SourceText.From(inputCSharp, Encoding.UTF8),
+            reportAllErrors: true);
+        if (force || actualDiagnostics.Length == 0)
+        {
+            var csprojWriter = new StringWriter();
+            virtualProject.EmitConverted(csprojWriter);
+            actualProject = csprojWriter.ToString();
+
+            actualCSharp = virtualProject.ConvertSourceText(virtualProject.EntryPointFileFullPath)?.ToString();
+        }
+        else
+        {
+            actualProject = null;
+            actualCSharp = null;
+        }
+#pragma warning restore RSEXPERIMENTAL006 // 'VirtualProject' is experimental
     }
 #endif
 
