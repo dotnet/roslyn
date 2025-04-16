@@ -58,7 +58,21 @@ internal sealed class CommittedSolution
 
     private readonly DebuggingSession _debuggingSession;
 
+    /// <summary>
+    /// Current solution snapshot used as a baseline for calculating EnC delta.
+    /// </summary>
     private Solution _solution;
+
+    /// <summary>
+    /// Tracks stale projects. Changes in these projects are ignored and their representation in the <see cref="_solution"/> does not match the binaries on disk.
+    /// 
+    /// Build of a multi-targeted project that sets <c>SingleTargetBuildForStartupProjects</c> msbuild property (e.g. MAUI) only 
+    /// builds TFM that's active. Other TFMs of the projects remain unbuilt or stale (from previous build).
+    /// 
+    /// A project is removed from this set if it's rebuilt.
+    /// 
+    /// Lock <see cref="_guard"/> to access.
+    /// </summary>
     private readonly HashSet<ProjectId> _staleProjects = [];
 
     /// <summary>
@@ -86,6 +100,8 @@ internal sealed class CommittedSolution
     /// A document state can only change from <see cref="DocumentState.OutOfSync"/> to <see cref="DocumentState.MatchesBuildOutput"/>.
     /// Once a document state is <see cref="DocumentState.MatchesBuildOutput"/> or <see cref="DocumentState.DesignTimeOnly"/>
     /// it will never change.
+    /// 
+    /// Lock <see cref="_guard"/> to access.
     /// </summary>
     private readonly Dictionary<DocumentId, DocumentState> _documentState = [];
 
@@ -438,19 +454,14 @@ internal sealed class CommittedSolution
 
     public void CommitChanges(Solution solution, ImmutableArray<ProjectId> projectsToStale, ImmutableArray<ProjectId> projectsToUnstale)
     {
+        Contract.ThrowIfFalse(projectsToStale is [] || projectsToUnstale is []);
+
         lock (_guard)
         {
             _solution = solution;
             _staleProjects.AddRange(projectsToStale);
             _staleProjects.RemoveRange(projectsToUnstale);
-
-            foreach (var documentId in _documentState.Keys)
-            {
-                if (projectsToUnstale.Contains(documentId.ProjectId))
-                {
-                    _documentState.Remove(documentId);
-                }
-            }
+            _documentState.Remove(static (documentId, _, projectsToUnstale) => projectsToUnstale.Contains(documentId.ProjectId), projectsToUnstale);
         }
     }
 
