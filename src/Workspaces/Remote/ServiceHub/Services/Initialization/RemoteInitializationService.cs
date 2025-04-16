@@ -25,8 +25,9 @@ internal sealed class RemoteInitializationService(
     /// </summary>
     public async ValueTask<int> InitializeAsync(WorkspaceConfigurationOptions options, string localSettingsDirectory, CancellationToken cancellationToken)
     {
-        // Performed before RunServiceAsync to ensure that the export provider is initialized before the RemoteWorkspaceManager is created.
-        await RemoteExportProvider.InitializeAsync(localSettingsDirectory, cancellationToken).ConfigureAwait(false);
+        // Performed before RunServiceAsync to ensure that the export provider is initialized before the RemoteWorkspaceManager is created
+        // as part of the RunServiceAsync call.
+        await RemoteExportProviderBuilder.InitializeAsync(localSettingsDirectory, cancellationToken).ConfigureAwait(false);
 
         return await RunServiceAsync(cancellationToken =>
         {

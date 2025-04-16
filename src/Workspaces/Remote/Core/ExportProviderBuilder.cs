@@ -16,33 +16,28 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
-internal sealed class ExportProviderBuilder
+internal abstract class ExportProviderBuilder(
+    ImmutableArray<string> assemblyPaths,
+    Resolver resolver,
+    string cacheDirectory,
+    string catalogPrefix,
+    ImmutableArray<string> expectedErrorParts)
 {
     private const string CatalogSuffix = ".mef-composition";
 
-    // For testing purposes, track the last cache write task.
-    private static Task? s_cacheWriteTask;
+    protected ImmutableArray<string> _assemblyPaths = assemblyPaths;
+    protected Resolver _resolver = resolver;
+    protected string _cacheDirectory = cacheDirectory;
+    protected string _catalogPrefix = catalogPrefix;
+    protected ImmutableArray<string> _expectedErrorParts = expectedErrorParts;
 
-    public record struct ExportProviderCreationArguments(
-        ImmutableArray<string> AssemblyPaths,
-        Resolver Resolver,
-        string CacheDirectory,
-        string CatalogPrefix,
-        ImmutableArray<string> ExpectedErrorParts,
-        bool PerformCleanup,
-        Action<string> LogError,
-        Action<string> LogTrace);
+    protected abstract void LogError(string message);
+    protected abstract void LogTrace(string message);
 
-    public static async Task<ExportProvider> CreateExportProviderAsync(
-        ExportProviderCreationArguments args,
-        CancellationToken cancellationToken)
+    protected virtual async Task<ExportProvider> CreateExportProviderAsync(CancellationToken cancellationToken)
     {
-        // Clear any previous cache write task, so that it is easy to discern whether
-        // a cache write was attempted.
-        s_cacheWriteTask = null;
-
         // Get the cached MEF composition or create a new one.
-        var exportProviderFactory = await GetCompositionConfigurationAsync(args, cancellationToken).ConfigureAwait(false);
+        var exportProviderFactory = await GetCompositionConfigurationAsync(cancellationToken).ConfigureAwait(false);
 
         // Create an export provider, which represents a unique container of values.
         // You can create as many of these as you want, but typically an app needs just one.
@@ -51,23 +46,21 @@ internal sealed class ExportProviderBuilder
         return exportProvider;
     }
 
-    private static async Task<IExportProviderFactory> GetCompositionConfigurationAsync(
-        ExportProviderCreationArguments args,
-        CancellationToken cancellationToken)
+    private async Task<IExportProviderFactory> GetCompositionConfigurationAsync(CancellationToken cancellationToken)
     {
         // Determine the path to the MEF composition cache file for the given assembly paths.
-        var compositionCacheFile = GetCompositionCacheFilePath(args.CacheDirectory, args.CatalogPrefix, args.AssemblyPaths);
+        var compositionCacheFile = GetCompositionCacheFilePath();
 
         // Try to load a cached composition.
         try
         {
             if (File.Exists(compositionCacheFile))
             {
-                args.LogTrace($"Loading cached MEF catalog: {compositionCacheFile}");
+                LogTrace($"Loading cached MEF catalog: {compositionCacheFile}");
 
                 CachedComposition cachedComposition = new();
                 using FileStream cacheStream = new(compositionCacheFile, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 4096, useAsync: true);
-                var exportProviderFactory = await cachedComposition.LoadExportProviderFactoryAsync(cacheStream, args.Resolver, cancellationToken).ConfigureAwait(false);
+                var exportProviderFactory = await cachedComposition.LoadExportProviderFactoryAsync(cacheStream, _resolver, cancellationToken).ConfigureAwait(false);
 
                 return exportProviderFactory;
             }
@@ -75,18 +68,18 @@ internal sealed class ExportProviderBuilder
         catch (Exception ex)
         {
             // Log the error, and move on to recover by recreating the MEF composition.
-            args.LogError($"Loading cached MEF composition failed: {ex}");
+            LogError($"Loading cached MEF composition failed: {ex}");
         }
 
-        args.LogTrace($"Composing MEF catalog using:{Environment.NewLine}{string.Join($"    {Environment.NewLine}", args.AssemblyPaths)}.");
+        LogTrace($"Composing MEF catalog using:{Environment.NewLine}{string.Join($"    {Environment.NewLine}", _assemblyPaths)}.");
 
         var discovery = PartDiscovery.Combine(
-            args.Resolver,
-            new AttributedPartDiscovery(args.Resolver, isNonPublicSupported: true), // "NuGet MEF" attributes (Microsoft.Composition)
-            new AttributedPartDiscoveryV1(args.Resolver));
+            _resolver,
+            new AttributedPartDiscovery(_resolver, isNonPublicSupported: true), // "NuGet MEF" attributes (Microsoft.Composition)
+            new AttributedPartDiscoveryV1(_resolver));
 
-        var parts = await discovery.CreatePartsAsync(args.AssemblyPaths, progress: null, cancellationToken).ConfigureAwait(false);
-        var catalog = ComposableCatalog.Create(args.Resolver)
+        var parts = await discovery.CreatePartsAsync(_assemblyPaths, progress: null, cancellationToken).ConfigureAwait(false);
+        var catalog = ComposableCatalog.Create(_resolver)
             .AddParts(parts)
             .WithCompositionService(); // Makes an ICompositionService export available to MEF parts to import
 
@@ -94,10 +87,10 @@ internal sealed class ExportProviderBuilder
         var config = CompositionConfiguration.Create(catalog);
 
         // Verify we only have expected errors.
-        ThrowOnUnexpectedErrors(config, catalog, args.ExpectedErrorParts, args.LogError);
+        ThrowOnUnexpectedErrors(config, catalog);
 
         // Try to cache the composition.
-        s_cacheWriteTask = WriteCompositionCacheAsync(compositionCacheFile, config, args.PerformCleanup, args.LogError, cancellationToken).ReportNonFatalErrorAsync();
+        _ = WriteCompositionCacheAsync(compositionCacheFile, config, cancellationToken).ReportNonFatalErrorAsync();
 
         // Prepare an ExportProvider factory based on this graph.
         return config.CreateExportProviderFactory();
@@ -109,9 +102,9 @@ internal sealed class ExportProviderBuilder
     /// 2) The last write times of the given assembly paths
     /// 3) The .NET runtime major version
     /// </summary>
-    private static string GetCompositionCacheFilePath(string cacheDirectory, string catalogPrefix, ImmutableArray<string> assemblyPaths)
+    private string GetCompositionCacheFilePath()
     {
-        return Path.Combine(cacheDirectory, $"{catalogPrefix}.{ComputeAssemblyHash(assemblyPaths)}{CatalogSuffix}");
+        return Path.Combine(_cacheDirectory, $"{_catalogPrefix}.{ComputeAssemblyHash(_assemblyPaths)}{CatalogSuffix}");
 
         static string ComputeAssemblyHash(ImmutableArray<string> assemblyPaths)
         {
@@ -144,7 +137,7 @@ internal sealed class ExportProviderBuilder
         }
     }
 
-    private static async Task WriteCompositionCacheAsync(string compositionCacheFile, CompositionConfiguration config, bool performCleanup, Action<string> logError, CancellationToken cancellationToken)
+    protected virtual async Task WriteCompositionCacheAsync(string compositionCacheFile, CompositionConfiguration config, CancellationToken cancellationToken)
     {
         try
         {
@@ -153,16 +146,7 @@ internal sealed class ExportProviderBuilder
             if (Path.GetDirectoryName(compositionCacheFile) is string directory)
             {
                 var directoryInfo = Directory.CreateDirectory(directory);
-
-                if (performCleanup)
-                {
-                    // Delete any existing cached files.
-                    foreach (var fileInfo in directoryInfo.EnumerateFiles($"*{CatalogSuffix}"))
-                    {
-                        fileInfo.Delete();
-                        cancellationToken.ThrowIfCancellationRequested();
-                    }
-                }
+                PerformCacheDirectoryCleanup(directoryInfo, cancellationToken);
             }
 
             CachedComposition cachedComposition = new();
@@ -184,15 +168,25 @@ internal sealed class ExportProviderBuilder
         }
         catch (Exception ex)
         {
-            logError($"Failed to save MEF cache: {ex}");
+            LogError($"Failed to save MEF cache: {ex}");
         }
     }
 
-    private static void ThrowOnUnexpectedErrors(CompositionConfiguration configuration, ComposableCatalog catalog, ImmutableArray<string> expectedErrorParts, Action<string> logError)
+    protected virtual void PerformCacheDirectoryCleanup(DirectoryInfo directoryInfo, CancellationToken cancellationToken)
+    {
+        // Delete any existing cached files.
+        foreach (var fileInfo in directoryInfo.EnumerateFiles($"*{CatalogSuffix}"))
+        {
+            fileInfo.Delete();
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+    }
+
+    private void ThrowOnUnexpectedErrors(CompositionConfiguration configuration, ComposableCatalog catalog)
     {
         // Verify that we have exactly the MEF errors that we expect.  If we have less or more this needs to be updated to assert the expected behavior.
         var erroredParts = configuration.CompositionErrors.FirstOrDefault()?.SelectMany(error => error.Parts).Select(part => part.Definition.Type.Name) ?? [];
-        var expectedErrorPartsSet = expectedErrorParts.ToSet();
+        var expectedErrorPartsSet = _expectedErrorParts.ToSet();
         var hasUnexpectedErroredParts = erroredParts.Any(part => !expectedErrorPartsSet.Contains(part));
 
         if (hasUnexpectedErroredParts || !catalog.DiscoveredParts.DiscoveryErrors.IsEmpty)
@@ -205,16 +199,9 @@ internal sealed class ExportProviderBuilder
             catch (CompositionFailedException ex)
             {
                 // The ToString for the composition failed exception doesn't output a nice set of errors by default, so log it separately
-                logError($"Encountered errors in the MEF composition:{Environment.NewLine}{ex.ErrorsAsString}");
+                LogError($"Encountered errors in the MEF composition:{Environment.NewLine}{ex.ErrorsAsString}");
                 throw;
             }
         }
-    }
-
-    internal static class TestAccessor
-    {
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        public static Task? GetCacheWriteTask() => s_cacheWriteTask;
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
     }
 }

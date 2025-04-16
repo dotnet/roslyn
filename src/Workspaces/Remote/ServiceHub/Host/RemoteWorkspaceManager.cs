@@ -73,7 +73,7 @@ internal class RemoteWorkspaceManager
 
     private static RemoteWorkspace CreatePrimaryWorkspace()
     {
-        var exportProvider = RemoteExportProvider.ExportProvider;
+        var exportProvider = RemoteExportProviderBuilder.ExportProvider;
         return new RemoteWorkspace(VisualStudioMefHostServices.Create(exportProvider));
     }
 

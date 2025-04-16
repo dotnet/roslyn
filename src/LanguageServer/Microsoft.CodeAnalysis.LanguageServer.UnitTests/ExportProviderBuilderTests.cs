@@ -4,7 +4,6 @@
 
 using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -149,7 +148,7 @@ public sealed class ExportProviderBuilderTests(ITestOutputHelper testOutputHelpe
 
     private async Task AssertCacheWriteWasAttemptedAsync()
     {
-        var cacheWriteTask = ExportProviderBuilder.TestAccessor.GetCacheWriteTask();
+        var cacheWriteTask = LanguageServerExportProviderBuilder.TestAccessor.GetCacheWriteTask();
         Assert.NotNull(cacheWriteTask);
 
         await cacheWriteTask;
@@ -157,7 +156,7 @@ public sealed class ExportProviderBuilderTests(ITestOutputHelper testOutputHelpe
 
     private void AssertNoCacheWriteWasAttempted()
     {
-        var cacheWriteTask2 = ExportProviderBuilder.TestAccessor.GetCacheWriteTask();
+        var cacheWriteTask2 = LanguageServerExportProviderBuilder.TestAccessor.GetCacheWriteTask();
         Assert.Null(cacheWriteTask2);
     }
 

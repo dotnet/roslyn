@@ -16,33 +16,50 @@ using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
-internal static class RemoteExportProvider
+internal sealed class RemoteExportProviderBuilder : ExportProviderBuilder
 {
     internal static readonly ImmutableArray<Assembly> RemoteHostAssemblies =
         MefHostServices.DefaultAssemblies
-            .Add(typeof(AspNetCoreEmbeddedLanguageClassifier).Assembly)
-            .Add(typeof(BrokeredServiceBase).Assembly)
-            .Add(typeof(IRazorLanguageServerTarget).Assembly)
-            .Add(typeof(RemoteWorkspacesResources).Assembly)
-            .Add(typeof(IExtensionWorkspaceMessageHandler<,>).Assembly);
+            .Add(typeof(AspNetCoreEmbeddedLanguageClassifier).Assembly)     // Microsoft.CodeAnalysis.ExternalAccess.AspNetCore
+            .Add(typeof(BrokeredServiceBase).Assembly)                      // Microsoft.CodeAnalysis.Remote.ServiceHub
+            .Add(typeof(IRazorLanguageServerTarget).Assembly)               // Microsoft.CodeAnalysis.ExternalAccess.Razor.Features
+            .Add(typeof(RemoteWorkspacesResources).Assembly)                // Microsoft.CodeAnalysis.Remote.Workspaces
+            .Add(typeof(IExtensionWorkspaceMessageHandler<,>).Assembly);    // Microsoft.CodeAnalysis.ExternalAccess.Extensions
 
     private static ExportProvider? s_instance;
     internal static ExportProvider ExportProvider
         => s_instance ?? throw new InvalidOperationException("Default export provider not initialized. Call InitializeAsync first.");
 
+    private RemoteExportProviderBuilder(
+        ImmutableArray<string> assemblyPaths,
+        Resolver resolver,
+        string cacheDirectory,
+        string catalogPrefix,
+        ImmutableArray<string> expectedErrorParts)
+        : base(assemblyPaths, resolver, cacheDirectory, catalogPrefix, expectedErrorParts)
+    {
+    }
+
     public static async Task InitializeAsync(string localSettingsDirectory, CancellationToken cancellationToken)
     {
-        var args = new ExportProviderBuilder.ExportProviderCreationArguments(
-            AssemblyPaths: RemoteHostAssemblies.SelectAsArray(static a => a.Location),
-            Resolver: new Resolver(SimpleAssemblyLoader.Instance),
-            CacheDirectory: Path.Combine(localSettingsDirectory, "Roslyn", "RemoteHost", "Cache"),
-            CatalogPrefix: "RoslynRemoteHost",
-            ExpectedErrorParts: ["PythiaSignatureHelpProvider", "VSTypeScriptAnalyzerService", "RazorTestLanguageServerFactory", "CodeFixService"],
-            PerformCleanup: true,
-            LogError: static _ => { },
-            LogTrace: static _ => { });
+        System.Diagnostics.Debugger.Launch();
 
-        s_instance = await ExportProviderBuilder.CreateExportProviderAsync(args, cancellationToken).ConfigureAwait(false);
+        var builder = new RemoteExportProviderBuilder(
+            assemblyPaths: RemoteHostAssemblies.SelectAsArray(static a => a.Location),
+            resolver: new Resolver(SimpleAssemblyLoader.Instance),
+            cacheDirectory: Path.Combine(localSettingsDirectory, "Roslyn", "RemoteHost", "Cache"),
+            catalogPrefix: "RoslynRemoteHost",
+            expectedErrorParts: ["PythiaSignatureHelpProvider", "VSTypeScriptAnalyzerService", "RazorTestLanguageServerFactory", "CodeFixService"]);
+
+        s_instance = await builder.CreateExportProviderAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    protected override void LogError(string message)
+    {
+    }
+
+    protected override void LogTrace(string message)
+    {
     }
 
     private sealed class SimpleAssemblyLoader : IAssemblyLoader

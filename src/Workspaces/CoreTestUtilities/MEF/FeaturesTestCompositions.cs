@@ -21,7 +21,7 @@ public static class FeaturesTestCompositions
                                                                 // We need to update tests to handle the options correctly before enabling the default provider.
 
     public static readonly TestComposition RemoteHost = TestComposition.Empty
-        .AddAssemblies(RemoteExportProvider.RemoteHostAssemblies)
+        .AddAssemblies(RemoteExportProviderBuilder.RemoteHostAssemblies)
         .AddParts(typeof(TestSerializerService.Factory));
 
     public static TestComposition WithTestHostParts(this TestComposition composition, TestHost host)

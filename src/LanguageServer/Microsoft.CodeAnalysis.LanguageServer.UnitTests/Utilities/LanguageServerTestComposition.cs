@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.LanguageServer.Services;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 
