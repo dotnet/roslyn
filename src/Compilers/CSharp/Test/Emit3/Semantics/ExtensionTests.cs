@@ -1108,6 +1108,7 @@ public static class Extensions
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78135")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78042")]
     public void ExtensionWithCapturing2()
     {
         var src = """
@@ -1271,792 +1272,155 @@ public static class IntExt
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78135")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78042")]
-    public void ExtensionWithCapturing3()
+    public void ExtensionWithCapturing_LocalFunction()
     {
         var src = """
-using System.Runtime.CompilerServices;
-using System.Collections.Generic;
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 
-Console.WriteLine("Hello, World!");
+var a = int.DoSomething();
+a();
 
-namespace System.Linq
+public static class IntExt
 {
-    public static partial class AsyncEnumerable
+    extension(int)
     {
-        extension<TSource>(IAsyncEnumerable<TSource> source)
+        public static Action DoSomething()
         {
-            /// <summary>
-            /// Casts the elements of an <see cref="IAsyncEnumerable{Object}"/> to the specified type.
-            /// </summary>
-            /// <typeparam name="TResult">The type to cast the elements of source to.</typeparam>
-            /// <returns>An <see cref="IAsyncEnumerable{TResult}"/> that contains each element of the source sequence cast to the <typeparamref name="TResult"/> type.</returns>
-            public IAsyncEnumerable<TResult> Cast<TResult>() // satisfies the C# query-expression pattern
-            {
-                return Impl(source, default);
+            var b = 7;
+            Console.WriteLine("Some data");
+            ++b;
+            return Do;
 
-                static async IAsyncEnumerable<TResult> Impl(
-                    IAsyncEnumerable<TSource?> source,
-                    [EnumeratorCancellation] CancellationToken cancellationToken)
-                {
-                    await foreach (object? item in source.WithCancellation(cancellationToken))
-                    {
-                        yield return (TResult)item!;
-                    }
-                }
+            void Do(){
+                int a = 123;
+                Console.WriteLine(a);
+                b++;
+                Console.WriteLine(b);
             }
         }
     }
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        var comp = CreateCompilation(src);
         var verifier = CompileAndVerify(comp, expectedOutput: """
-            Hello, World!
+            Some data
+            123
+            9
 
             """, expectedReturnCode: 0, trimOutput: false);
 
-        VerifyTypeIL(verifier, "AsyncEnumerable",
+        VerifyTypeIL(verifier, "IntExt",
             """
-             .class public auto ansi abstract sealed beforefieldinit System.Linq.AsyncEnumerable
-                extends [System.Runtime]System.Object
+            .class public auto ansi abstract sealed beforefieldinit IntExt
+                extends [netstandard]System.Object
             {
-                .custom instance void [System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+                .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
                     01 00 00 00
                 )
                 // Nested Types
-                .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<TSource>
-                    extends [System.Runtime]System.Object
+                .class nested public auto ansi sealed beforefieldinit '<>E__0'
+                    extends [netstandard]System.Object
                 {
                     // Methods
                     .method private hidebysig specialname static 
                         void '<Extension>$' (
-                            class [System.Runtime]System.Collections.Generic.IAsyncEnumerable`1<!TSource> source
+                            int32 ''
                         ) cil managed 
                     {
-                        .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                             01 00 00 00
                         )
-                        // Method begins at RVA 0x2097
+                        // Method begins at RVA 0x20ba
                         // Code size 1 (0x1)
                         .maxstack 8
                         IL_0000: ret
-                    } // end of method '<>E__0`1'::'<Extension>$'
-                    .method public hidebysig 
-                        instance class [System.Runtime]System.Collections.Generic.IAsyncEnumerable`1<!!TResult> Cast<TResult> () cil managed 
+                    } // end of method '<>E__0'::'<Extension>$'
+                    .method public hidebysig static 
+                        class [netstandard]System.Action DoSomething () cil managed 
                     {
-                        // Method begins at RVA 0x2099
+                        // Method begins at RVA 0x20bc
                         // Code size 2 (0x2)
                         .maxstack 8
                         IL_0000: ldnull
                         IL_0001: throw
-                    } // end of method '<>E__0`1'::Cast
-                } // end of class <>E__0`1
-                .class nested private auto ansi sealed beforefieldinit '<<Cast>b__1_0>d`2'<TSource, TResult>
-                    extends [System.Runtime]System.Object
-                    implements class [System.Runtime]System.Collections.Generic.IAsyncEnumerable`1<!TResult>,
-                               class [System.Runtime]System.Collections.Generic.IAsyncEnumerator`1<!TResult>,
-                               [System.Runtime]System.IAsyncDisposable,
-                               class [System.Runtime]System.Threading.Tasks.Sources.IValueTaskSource`1<bool>,
-                               [System.Runtime]System.Threading.Tasks.Sources.IValueTaskSource,
-                               [System.Runtime]System.Runtime.CompilerServices.IAsyncStateMachine
+                    } // end of method '<>E__0'::DoSomething
+                } // end of class <>E__0
+                .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
+                    extends [netstandard]System.Object
                 {
-                    .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                         01 00 00 00
                     )
                     // Fields
-                    .field public int32 '<>1__state'
-                    .field public valuetype [System.Runtime]System.Runtime.CompilerServices.AsyncIteratorMethodBuilder '<>t__builder'
-                    .field public valuetype [System.Runtime]System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1<bool> '<>v__promiseOfValueOrEnd'
-                    .field private !TResult '<>2__current'
-                    .field private bool '<>w__disposeMode'
-                    .field private int32 '<>l__initialThreadId'
-                    .field private class [System.Runtime]System.Collections.Generic.IAsyncEnumerable`1<!TSource> source
-                    .custom instance void [System.Runtime]System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = (
-                        01 00 02 00 00 00 00 02 00 00
-                    )
-                    .field public class [System.Runtime]System.Collections.Generic.IAsyncEnumerable`1<!TSource> '<>3__source'
-                    .custom instance void [System.Runtime]System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = (
-                        01 00 02 00 00 00 00 02 00 00
-                    )
-                    .field private valuetype [System.Runtime]System.Threading.CancellationToken cancellationToken
-                    .field public valuetype [System.Runtime]System.Threading.CancellationToken '<>3__cancellationToken'
-                    .field private valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredCancelableAsyncEnumerable`1/Enumerator<!TSource> '<>7__wrap1'
-                    .field private object '<>7__wrap2'
-                    .field private int32 '<>7__wrap3'
-                    .field private valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable`1/ConfiguredValueTaskAwaiter<bool> '<>u__1'
-                    .field private valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable/ConfiguredValueTaskAwaiter '<>u__2'
+                    .field public int32 b
                     // Methods
                     .method public hidebysig specialname rtspecialname 
-                        instance void .ctor (
-                            int32 '<>1__state'
-                        ) cil managed 
+                        instance void .ctor () cil managed 
                     {
-                        .custom instance void [System.Runtime]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
-                            01 00 00 00
-                        )
-                        // Method begins at RVA 0x209c
-                        // Code size 36 (0x24)
-                        .maxstack 8
-                        IL_0000: ldarg.0
-                        IL_0001: call instance void [System.Runtime]System.Object::.ctor()
-                        IL_0006: ldarg.0
-                        IL_0007: call valuetype [System.Runtime]System.Runtime.CompilerServices.AsyncIteratorMethodBuilder [System.Runtime]System.Runtime.CompilerServices.AsyncIteratorMethodBuilder::Create()
-                        IL_000c: stfld valuetype [System.Runtime]System.Runtime.CompilerServices.AsyncIteratorMethodBuilder class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>t__builder'
-                        IL_0011: ldarg.0
-                        IL_0012: ldarg.1
-                        IL_0013: stfld int32 class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>1__state'
-                        IL_0018: ldarg.0
-                        IL_0019: call int32 [System.Runtime]System.Environment::get_CurrentManagedThreadId()
-                        IL_001e: stfld int32 class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>l__initialThreadId'
-                        IL_0023: ret
-                    } // end of method '<<Cast>b__1_0>d`2'::.ctor
-                    .method private final hidebysig newslot virtual 
-                        instance void MoveNext () cil managed 
-                    {
-                        .override method instance void [System.Runtime]System.Runtime.CompilerServices.IAsyncStateMachine::MoveNext()
-                        // Method begins at RVA 0x20c4
-                        // Code size 657 (0x291)
-                        .maxstack 3
-                        .locals init (
-                            [0] int32,
-                            [1] valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredCancelableAsyncEnumerable`1<!TSource>,
-                            [2] object,
-                            [3] valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable`1/ConfiguredValueTaskAwaiter<bool>,
-                            [4] valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable`1<bool>,
-                            [5] class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>,
-                            [6] object,
-                            [7] valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable/ConfiguredValueTaskAwaiter,
-                            [8] valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable,
-                            [9] class [System.Runtime]System.Exception
-                        )
-                        IL_0000: ldarg.0
-                        IL_0001: ldfld int32 class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>1__state'
-                        IL_0006: stloc.0
-                        .try
-                        {
-                            IL_0007: ldloc.0
-                            IL_0008: ldc.i4.s -4
-                            IL_000a: sub
-                            IL_000b: switch (IL_006b, IL_0028, IL_0028, IL_0028, IL_006b, IL_0195)
-                            IL_0028: ldarg.0
-                            IL_0029: ldfld bool class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>w__disposeMode'
-                            IL_002e: brfalse.s IL_0035
-                            IL_0030: leave IL_0245
-                            IL_0035: ldarg.0
-                            IL_0036: ldc.i4.m1
-                            IL_0037: dup
-                            IL_0038: stloc.0
-                            IL_0039: stfld int32 class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>1__state'
-                            IL_003e: ldarg.0
-                            IL_003f: ldarg.0
-                            IL_0040: ldfld class [System.Runtime]System.Collections.Generic.IAsyncEnumerable`1<!0> class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::source
-                            IL_0045: ldarg.0
-                            IL_0046: ldfld valuetype [System.Runtime]System.Threading.CancellationToken class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::cancellationToken
-                            IL_004b: call valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredCancelableAsyncEnumerable`1<!!0> [System.Runtime]System.Threading.Tasks.TaskAsyncEnumerableExtensions::WithCancellation<!TSource>(class [System.Runtime]System.Collections.Generic.IAsyncEnumerable`1<!!0>, valuetype [System.Runtime]System.Threading.CancellationToken)
-                            IL_0050: stloc.1
-                            IL_0051: ldloca.s 1
-                            IL_0053: call instance valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredCancelableAsyncEnumerable`1/Enumerator<!0> valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredCancelableAsyncEnumerable`1<!TSource>::GetAsyncEnumerator()
-                            IL_0058: stfld valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredCancelableAsyncEnumerable`1/Enumerator<!0> class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>7__wrap1'
-                            IL_005d: ldarg.0
-                            IL_005e: ldnull
-                            IL_005f: stfld object class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>7__wrap2'
-                            IL_0064: ldarg.0
-                            IL_0065: ldc.i4.0
-                            IL_0066: stfld int32 class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>7__wrap3'
-                            IL_006b: nop
-                            .try
-                            {
-                                IL_006c: ldloc.0
-                                IL_006d: ldc.i4.s -4
-                                IL_006f: beq.s IL_00a5
-                                IL_0071: ldloc.0
-                                IL_0072: brfalse IL_010c
-                                IL_0077: br.s IL_00bb
-                                IL_0079: ldarg.0
-                                IL_007a: ldflda valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredCancelableAsyncEnumerable`1/Enumerator<!0> class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>7__wrap1'
-                                IL_007f: call instance !0 valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredCancelableAsyncEnumerable`1/Enumerator<!TSource>::get_Current()
-                                IL_0084: box !TSource
-                                IL_0089: stloc.2
-                                IL_008a: ldarg.0
-                                IL_008b: ldloc.2
-                                IL_008c: unbox.any !TResult
-                                IL_0091: stfld !1 class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>2__current'
-                                IL_0096: ldarg.0
-                                IL_0097: ldc.i4.s -4
-                                IL_0099: dup
-                                IL_009a: stloc.0
-                                IL_009b: stfld int32 class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>1__state'
-                                IL_00a0: leave IL_0284
-                                IL_00a5: ldarg.0
-                                IL_00a6: ldc.i4.m1
-                                IL_00a7: dup
-                                IL_00a8: stloc.0
-                                IL_00a9: stfld int32 class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>1__state'
-                                IL_00ae: ldarg.0
-                                IL_00af: ldfld bool class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>w__disposeMode'
-                                IL_00b4: brfalse.s IL_00bb
-                                IL_00b6: leave IL_0142
-                                IL_00bb: ldarg.0
-                                IL_00bc: ldflda !1 class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>2__current'
-                                IL_00c1: initobj !TResult
-                                IL_00c7: ldarg.0
-                                IL_00c8: ldflda valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredCancelableAsyncEnumerable`1/Enumerator<!0> class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>7__wrap1'
-                                IL_00cd: call instance valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable`1<bool> valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredCancelableAsyncEnumerable`1/Enumerator<!TSource>::MoveNextAsync()
-                                IL_00d2: stloc.s 4
-                                IL_00d4: ldloca.s 4
-                                IL_00d6: call instance valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable`1/ConfiguredValueTaskAwaiter<!0> valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable`1<bool>::GetAwaiter()
-                                IL_00db: stloc.3
-                                IL_00dc: ldloca.s 3
-                                IL_00de: call instance bool valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable`1/ConfiguredValueTaskAwaiter<bool>::get_IsCompleted()
-                                IL_00e3: brtrue.s IL_0128
-                                IL_00e5: ldarg.0
-                                IL_00e6: ldc.i4.0
-                                IL_00e7: dup
-                                IL_00e8: stloc.0
-                                IL_00e9: stfld int32 class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>1__state'
-                                IL_00ee: ldarg.0
-                                IL_00ef: ldloc.3
-                                IL_00f0: stfld valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable`1/ConfiguredValueTaskAwaiter<bool> class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>u__1'
-                                IL_00f5: ldarg.0
-                                IL_00f6: stloc.s 5
-                                IL_00f8: ldarg.0
-                                IL_00f9: ldflda valuetype [System.Runtime]System.Runtime.CompilerServices.AsyncIteratorMethodBuilder class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>t__builder'
-                                IL_00fe: ldloca.s 3
-                                IL_0100: ldloca.s 5
-                                IL_0102: call instance void [System.Runtime]System.Runtime.CompilerServices.AsyncIteratorMethodBuilder::AwaitUnsafeOnCompleted<valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable`1/ConfiguredValueTaskAwaiter<bool>, class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>>(!!0&, !!1&)
-                                IL_0107: leave IL_0290
-                                IL_010c: ldarg.0
-                                IL_010d: ldfld valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable`1/ConfiguredValueTaskAwaiter<bool> class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>u__1'
-                                IL_0112: stloc.3
-                                IL_0113: ldarg.0
-                                IL_0114: ldflda valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable`1/ConfiguredValueTaskAwaiter<bool> class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>u__1'
-                                IL_0119: initobj valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable`1/ConfiguredValueTaskAwaiter<bool>
-                                IL_011f: ldarg.0
-                                IL_0120: ldc.i4.m1
-                                IL_0121: dup
-                                IL_0122: stloc.0
-                                IL_0123: stfld int32 class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>1__state'
-                                IL_0128: ldloca.s 3
-                                IL_012a: call instance !0 valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable`1/ConfiguredValueTaskAwaiter<bool>::GetResult()
-                                IL_012f: brtrue IL_0079
-                                IL_0134: leave.s IL_0142
-                            } // end .try
-                            catch [System.Runtime]System.Object
-                            {
-                                IL_0136: stloc.s 6
-                                IL_0138: ldarg.0
-                                IL_0139: ldloc.s 6
-                                IL_013b: stfld object class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>7__wrap2'
-                                IL_0140: leave.s IL_0142
-                            } // end handler
-                            IL_0142: ldarg.0
-                            IL_0143: ldflda !1 class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>2__current'
-                            IL_0148: initobj !TResult
-                            IL_014e: ldarg.0
-                            IL_014f: ldflda valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredCancelableAsyncEnumerable`1/Enumerator<!0> class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>7__wrap1'
-                            IL_0154: call instance valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredCancelableAsyncEnumerable`1/Enumerator<!TSource>::DisposeAsync()
-                            IL_0159: stloc.s 8
-                            IL_015b: ldloca.s 8
-                            IL_015d: call instance valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable/ConfiguredValueTaskAwaiter [System.Runtime]System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable::GetAwaiter()
-                            IL_0162: stloc.s 7
-                            IL_0164: ldloca.s 7
-                            IL_0166: call instance bool [System.Runtime]System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable/ConfiguredValueTaskAwaiter::get_IsCompleted()
-                            IL_016b: brtrue.s IL_01b2
-                            IL_016d: ldarg.0
-                            IL_016e: ldc.i4.1
-                            IL_016f: dup
-                            IL_0170: stloc.0
-                            IL_0171: stfld int32 class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>1__state'
-                            IL_0176: ldarg.0
-                            IL_0177: ldloc.s 7
-                            IL_0179: stfld valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable/ConfiguredValueTaskAwaiter class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>u__2'
-                            IL_017e: ldarg.0
-                            IL_017f: stloc.s 5
-                            IL_0181: ldarg.0
-                            IL_0182: ldflda valuetype [System.Runtime]System.Runtime.CompilerServices.AsyncIteratorMethodBuilder class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>t__builder'
-                            IL_0187: ldloca.s 7
-                            IL_0189: ldloca.s 5
-                            IL_018b: call instance void [System.Runtime]System.Runtime.CompilerServices.AsyncIteratorMethodBuilder::AwaitUnsafeOnCompleted<valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable/ConfiguredValueTaskAwaiter, class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>>(!!0&, !!1&)
-                            IL_0190: leave IL_0290
-                            IL_0195: ldarg.0
-                            IL_0196: ldfld valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable/ConfiguredValueTaskAwaiter class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>u__2'
-                            IL_019b: stloc.s 7
-                            IL_019d: ldarg.0
-                            IL_019e: ldflda valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable/ConfiguredValueTaskAwaiter class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>u__2'
-                            IL_01a3: initobj [System.Runtime]System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable/ConfiguredValueTaskAwaiter
-                            IL_01a9: ldarg.0
-                            IL_01aa: ldc.i4.m1
-                            IL_01ab: dup
-                            IL_01ac: stloc.0
-                            IL_01ad: stfld int32 class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>1__state'
-                            IL_01b2: ldloca.s 7
-                            IL_01b4: call instance void [System.Runtime]System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable/ConfiguredValueTaskAwaiter::GetResult()
-                            IL_01b9: ldarg.0
-                            IL_01ba: ldfld object class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>7__wrap2'
-                            IL_01bf: stloc.s 6
-                            IL_01c1: ldloc.s 6
-                            IL_01c3: brfalse.s IL_01dc
-                            IL_01c5: ldloc.s 6
-                            IL_01c7: isinst [System.Runtime]System.Exception
-                            IL_01cc: dup
-                            IL_01cd: brtrue.s IL_01d2
-                            IL_01cf: ldloc.s 6
-                            IL_01d1: throw
-                            IL_01d2: call class [System.Runtime]System.Runtime.ExceptionServices.ExceptionDispatchInfo [System.Runtime]System.Runtime.ExceptionServices.ExceptionDispatchInfo::Capture(class [System.Runtime]System.Exception)
-                            IL_01d7: callvirt instance void [System.Runtime]System.Runtime.ExceptionServices.ExceptionDispatchInfo::Throw()
-                            IL_01dc: ldarg.0
-                            IL_01dd: ldfld int32 class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>7__wrap3'
-                            IL_01e2: pop
-                            IL_01e3: ldarg.0
-                            IL_01e4: ldfld bool class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>w__disposeMode'
-                            IL_01e9: brfalse.s IL_01ed
-                            IL_01eb: leave.s IL_0245
-                            IL_01ed: ldarg.0
-                            IL_01ee: ldnull
-                            IL_01ef: stfld object class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>7__wrap2'
-                            IL_01f4: ldarg.0
-                            IL_01f5: ldflda valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredCancelableAsyncEnumerable`1/Enumerator<!0> class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>7__wrap1'
-                            IL_01fa: initobj valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredCancelableAsyncEnumerable`1/Enumerator<!TSource>
-                            IL_0200: leave.s IL_0245
-                        } // end .try
-                        catch [System.Runtime]System.Exception
-                        {
-                            IL_0202: stloc.s 9
-                            IL_0204: ldarg.0
-                            IL_0205: ldc.i4.s -2
-                            IL_0207: stfld int32 class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>1__state'
-                            IL_020c: ldarg.0
-                            IL_020d: ldflda valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredCancelableAsyncEnumerable`1/Enumerator<!0> class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>7__wrap1'
-                            IL_0212: initobj valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredCancelableAsyncEnumerable`1/Enumerator<!TSource>
-                            IL_0218: ldarg.0
-                            IL_0219: ldnull
-                            IL_021a: stfld object class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>7__wrap2'
-                            IL_021f: ldarg.0
-                            IL_0220: ldflda !1 class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>2__current'
-                            IL_0225: initobj !TResult
-                            IL_022b: ldarg.0
-                            IL_022c: ldflda valuetype [System.Runtime]System.Runtime.CompilerServices.AsyncIteratorMethodBuilder class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>t__builder'
-                            IL_0231: call instance void [System.Runtime]System.Runtime.CompilerServices.AsyncIteratorMethodBuilder::Complete()
-                            IL_0236: ldarg.0
-                            IL_0237: ldflda valuetype [System.Runtime]System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1<bool> class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>v__promiseOfValueOrEnd'
-                            IL_023c: ldloc.s 9
-                            IL_023e: call instance void valuetype [System.Runtime]System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1<bool>::SetException(class [System.Runtime]System.Exception)
-                            IL_0243: leave.s IL_0290
-                        } // end handler
-                        IL_0245: ldarg.0
-                        IL_0246: ldc.i4.s -2
-                        IL_0248: stfld int32 class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>1__state'
-                        IL_024d: ldarg.0
-                        IL_024e: ldflda valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredCancelableAsyncEnumerable`1/Enumerator<!0> class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>7__wrap1'
-                        IL_0253: initobj valuetype [System.Runtime]System.Runtime.CompilerServices.ConfiguredCancelableAsyncEnumerable`1/Enumerator<!TSource>
-                        IL_0259: ldarg.0
-                        IL_025a: ldnull
-                        IL_025b: stfld object class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>7__wrap2'
-                        IL_0260: ldarg.0
-                        IL_0261: ldflda !1 class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>2__current'
-                        IL_0266: initobj !TResult
-                        IL_026c: ldarg.0
-                        IL_026d: ldflda valuetype [System.Runtime]System.Runtime.CompilerServices.AsyncIteratorMethodBuilder class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>t__builder'
-                        IL_0272: call instance void [System.Runtime]System.Runtime.CompilerServices.AsyncIteratorMethodBuilder::Complete()
-                        IL_0277: ldarg.0
-                        IL_0278: ldflda valuetype [System.Runtime]System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1<bool> class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>v__promiseOfValueOrEnd'
-                        IL_027d: ldc.i4.0
-                        IL_027e: call instance void valuetype [System.Runtime]System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1<bool>::SetResult(!0)
-                        IL_0283: ret
-                        IL_0284: ldarg.0
-                        IL_0285: ldflda valuetype [System.Runtime]System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1<bool> class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>v__promiseOfValueOrEnd'
-                        IL_028a: ldc.i4.1
-                        IL_028b: call instance void valuetype [System.Runtime]System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1<bool>::SetResult(!0)
-                        IL_0290: ret
-                    } // end of method '<<Cast>b__1_0>d`2'::MoveNext
-                    .method private final hidebysig newslot virtual 
-                        instance void SetStateMachine (
-                            class [System.Runtime]System.Runtime.CompilerServices.IAsyncStateMachine stateMachine
-                        ) cil managed 
-                    {
-                        .custom instance void [System.Runtime]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
-                            01 00 00 00
-                        )
-                        .override method instance void [System.Runtime]System.Runtime.CompilerServices.IAsyncStateMachine::SetStateMachine(class [System.Runtime]System.Runtime.CompilerServices.IAsyncStateMachine)
-                        .param [1]
-                            .custom instance void [System.Runtime]System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
-                                01 00 01 00 00
-                            )
-                        // Method begins at RVA 0x2097
-                        // Code size 1 (0x1)
-                        .maxstack 8
-                        IL_0000: ret
-                    } // end of method '<<Cast>b__1_0>d`2'::SetStateMachine
-                    .method private final hidebysig newslot virtual 
-                        instance class [System.Runtime]System.Collections.Generic.IAsyncEnumerator`1<!TResult> 'System.Collections.Generic.IAsyncEnumerable<TResult>.GetAsyncEnumerator' (
-                            [opt] valuetype [System.Runtime]System.Threading.CancellationToken cancellationToken
-                        ) cil managed 
-                    {
-                        .custom instance void [System.Runtime]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
-                            01 00 00 00
-                        )
-                        .override method instance class [System.Runtime]System.Collections.Generic.IAsyncEnumerator`1<!0> class [System.Runtime]System.Collections.Generic.IAsyncEnumerable`1<!TResult>::GetAsyncEnumerator(valuetype [System.Runtime]System.Threading.CancellationToken)
-                        .param [0]
-                            .custom instance void [System.Runtime]System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = (
-                                01 00 02 00 00 00 01 00 00 00
-                            )
-                        .param [1] = nullref
-                        // Method begins at RVA 0x2398
-                        // Code size 87 (0x57)
-                        .maxstack 2
-                        .locals init (
-                            [0] class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>
-                        )
-                        IL_0000: ldarg.0
-                        IL_0001: ldfld int32 class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>1__state'
-                        IL_0006: ldc.i4.s -2
-                        IL_0008: bne.un.s IL_0035
-                        IL_000a: ldarg.0
-                        IL_000b: ldfld int32 class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>l__initialThreadId'
-                        IL_0010: call int32 [System.Runtime]System.Environment::get_CurrentManagedThreadId()
-                        IL_0015: bne.un.s IL_0035
-                        IL_0017: ldarg.0
-                        IL_0018: ldc.i4.s -3
-                        IL_001a: stfld int32 class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>1__state'
-                        IL_001f: ldarg.0
-                        IL_0020: call valuetype [System.Runtime]System.Runtime.CompilerServices.AsyncIteratorMethodBuilder [System.Runtime]System.Runtime.CompilerServices.AsyncIteratorMethodBuilder::Create()
-                        IL_0025: stfld valuetype [System.Runtime]System.Runtime.CompilerServices.AsyncIteratorMethodBuilder class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>t__builder'
-                        IL_002a: ldarg.0
-                        IL_002b: ldc.i4.0
-                        IL_002c: stfld bool class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>w__disposeMode'
-                        IL_0031: ldarg.0
-                        IL_0032: stloc.0
-                        IL_0033: br.s IL_003d
-                        IL_0035: ldc.i4.s -3
-                        IL_0037: newobj instance void class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::.ctor(int32)
-                        IL_003c: stloc.0
-                        IL_003d: ldloc.0
-                        IL_003e: ldarg.0
-                        IL_003f: ldfld class [System.Runtime]System.Collections.Generic.IAsyncEnumerable`1<!0> class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>3__source'
-                        IL_0044: stfld class [System.Runtime]System.Collections.Generic.IAsyncEnumerable`1<!0> class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::source
-                        IL_0049: ldloc.0
-                        IL_004a: ldarg.0
-                        IL_004b: ldfld valuetype [System.Runtime]System.Threading.CancellationToken class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>3__cancellationToken'
-                        IL_0050: stfld valuetype [System.Runtime]System.Threading.CancellationToken class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::cancellationToken
-                        IL_0055: ldloc.0
-                        IL_0056: ret
-                    } // end of method '<<Cast>b__1_0>d`2'::'System.Collections.Generic.IAsyncEnumerable<TResult>.GetAsyncEnumerator'
-                    .method private final hidebysig newslot virtual 
-                        instance valuetype [System.Runtime]System.Threading.Tasks.ValueTask`1<bool> 'System.Collections.Generic.IAsyncEnumerator<TResult>.MoveNextAsync' () cil managed 
-                    {
-                        .custom instance void [System.Runtime]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
-                            01 00 00 00
-                        )
-                        .override method instance valuetype [System.Runtime]System.Threading.Tasks.ValueTask`1<bool> class [System.Runtime]System.Collections.Generic.IAsyncEnumerator`1<!TResult>::MoveNextAsync()
-                        // Method begins at RVA 0x23fc
-                        // Code size 99 (0x63)
-                        .maxstack 2
-                        .locals init (
-                            [0] class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>,
-                            [1] int16,
-                            [2] valuetype [System.Runtime]System.Threading.Tasks.ValueTask`1<bool>
-                        )
-                        IL_0000: ldarg.0
-                        IL_0001: ldfld int32 class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>1__state'
-                        IL_0006: ldc.i4.s -2
-                        IL_0008: bne.un.s IL_0014
-                        IL_000a: ldloca.s 2
-                        IL_000c: initobj valuetype [System.Runtime]System.Threading.Tasks.ValueTask`1<bool>
-                        IL_0012: ldloc.2
-                        IL_0013: ret
-                        IL_0014: ldarg.0
-                        IL_0015: ldflda valuetype [System.Runtime]System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1<bool> class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>v__promiseOfValueOrEnd'
-                        IL_001a: call instance void valuetype [System.Runtime]System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1<bool>::Reset()
-                        IL_001f: ldarg.0
-                        IL_0020: stloc.0
-                        IL_0021: ldarg.0
-                        IL_0022: ldflda valuetype [System.Runtime]System.Runtime.CompilerServices.AsyncIteratorMethodBuilder class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>t__builder'
-                        IL_0027: ldloca.s 0
-                        IL_0029: call instance void [System.Runtime]System.Runtime.CompilerServices.AsyncIteratorMethodBuilder::MoveNext<class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>>(!!0&)
-                        IL_002e: ldarg.0
-                        IL_002f: ldflda valuetype [System.Runtime]System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1<bool> class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>v__promiseOfValueOrEnd'
-                        IL_0034: call instance int16 valuetype [System.Runtime]System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1<bool>::get_Version()
-                        IL_0039: stloc.1
-                        IL_003a: ldarg.0
-                        IL_003b: ldflda valuetype [System.Runtime]System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1<bool> class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>v__promiseOfValueOrEnd'
-                        IL_0040: ldloc.1
-                        IL_0041: call instance valuetype [System.Runtime]System.Threading.Tasks.Sources.ValueTaskSourceStatus valuetype [System.Runtime]System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1<bool>::GetStatus(int16)
-                        IL_0046: ldc.i4.1
-                        IL_0047: bne.un.s IL_005b
-                        IL_0049: ldarg.0
-                        IL_004a: ldflda valuetype [System.Runtime]System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1<bool> class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>v__promiseOfValueOrEnd'
-                        IL_004f: ldloc.1
-                        IL_0050: call instance !0 valuetype [System.Runtime]System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1<bool>::GetResult(int16)
-                        IL_0055: newobj instance void valuetype [System.Runtime]System.Threading.Tasks.ValueTask`1<bool>::.ctor(!0)
-                        IL_005a: ret
-                        IL_005b: ldarg.0
-                        IL_005c: ldloc.1
-                        IL_005d: newobj instance void valuetype [System.Runtime]System.Threading.Tasks.ValueTask`1<bool>::.ctor(class [System.Runtime]System.Threading.Tasks.Sources.IValueTaskSource`1<!0>, int16)
-                        IL_0062: ret
-                    } // end of method '<<Cast>b__1_0>d`2'::'System.Collections.Generic.IAsyncEnumerator<TResult>.MoveNextAsync'
-                    .method private final hidebysig specialname newslot virtual 
-                        instance !TResult 'System.Collections.Generic.IAsyncEnumerator<TResult>.get_Current' () cil managed 
-                    {
-                        .custom instance void [System.Runtime]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
-                            01 00 00 00
-                        )
-                        .override method instance !0 class [System.Runtime]System.Collections.Generic.IAsyncEnumerator`1<!TResult>::get_Current()
-                        // Method begins at RVA 0x246b
+                        // Method begins at RVA 0x2073
                         // Code size 7 (0x7)
                         .maxstack 8
                         IL_0000: ldarg.0
-                        IL_0001: ldfld !1 class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>2__current'
+                        IL_0001: call instance void [netstandard]System.Object::.ctor()
                         IL_0006: ret
-                    } // end of method '<<Cast>b__1_0>d`2'::'System.Collections.Generic.IAsyncEnumerator<TResult>.get_Current'
-                    .method private final hidebysig newslot virtual 
-                        instance bool 'System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetResult' (
-                            int16 token
-                        ) cil managed 
+                    } // end of method '<>c__DisplayClass1_0'::.ctor
+                    .method assembly hidebysig 
+                        instance void '<DoSomething>b__0' () cil managed 
                     {
-                        .custom instance void [System.Runtime]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
-                            01 00 00 00
-                        )
-                        .override method instance !0 class [System.Runtime]System.Threading.Tasks.Sources.IValueTaskSource`1<bool>::GetResult(int16)
-                        // Method begins at RVA 0x2473
-                        // Code size 13 (0xd)
-                        .maxstack 8
-                        IL_0000: ldarg.0
-                        IL_0001: ldflda valuetype [System.Runtime]System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1<bool> class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>v__promiseOfValueOrEnd'
-                        IL_0006: ldarg.1
-                        IL_0007: call instance !0 valuetype [System.Runtime]System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1<bool>::GetResult(int16)
-                        IL_000c: ret
-                    } // end of method '<<Cast>b__1_0>d`2'::'System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetResult'
-                    .method private final hidebysig newslot virtual 
-                        instance valuetype [System.Runtime]System.Threading.Tasks.Sources.ValueTaskSourceStatus 'System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetStatus' (
-                            int16 token
-                        ) cil managed 
-                    {
-                        .custom instance void [System.Runtime]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
-                            01 00 00 00
-                        )
-                        .override method instance valuetype [System.Runtime]System.Threading.Tasks.Sources.ValueTaskSourceStatus class [System.Runtime]System.Threading.Tasks.Sources.IValueTaskSource`1<bool>::GetStatus(int16)
-                        // Method begins at RVA 0x2481
-                        // Code size 13 (0xd)
-                        .maxstack 8
-                        IL_0000: ldarg.0
-                        IL_0001: ldflda valuetype [System.Runtime]System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1<bool> class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>v__promiseOfValueOrEnd'
-                        IL_0006: ldarg.1
-                        IL_0007: call instance valuetype [System.Runtime]System.Threading.Tasks.Sources.ValueTaskSourceStatus valuetype [System.Runtime]System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1<bool>::GetStatus(int16)
-                        IL_000c: ret
-                    } // end of method '<<Cast>b__1_0>d`2'::'System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetStatus'
-                    .method private final hidebysig newslot virtual 
-                        instance void 'System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.OnCompleted' (
-                            class [System.Runtime]System.Action`1<object> continuation,
-                            object state,
-                            int16 token,
-                            valuetype [System.Runtime]System.Threading.Tasks.Sources.ValueTaskSourceOnCompletedFlags 'flags'
-                        ) cil managed 
-                    {
-                        .custom instance void [System.Runtime]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
-                            01 00 00 00
-                        )
-                        .override method instance void class [System.Runtime]System.Threading.Tasks.Sources.IValueTaskSource`1<bool>::OnCompleted(class [System.Runtime]System.Action`1<object>, object, int16, valuetype [System.Runtime]System.Threading.Tasks.Sources.ValueTaskSourceOnCompletedFlags)
-                        .param [1]
-                            .custom instance void [System.Runtime]System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = (
-                                01 00 02 00 00 00 01 02 00 00
-                            )
-                        .param [2]
-                            .custom instance void [System.Runtime]System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
-                                01 00 02 00 00
-                            )
-                        // Method begins at RVA 0x248f
-                        // Code size 17 (0x11)
-                        .maxstack 8
-                        IL_0000: ldarg.0
-                        IL_0001: ldflda valuetype [System.Runtime]System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1<bool> class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>v__promiseOfValueOrEnd'
-                        IL_0006: ldarg.1
-                        IL_0007: ldarg.2
-                        IL_0008: ldarg.3
-                        IL_0009: ldarg.s 'flags'
-                        IL_000b: call instance void valuetype [System.Runtime]System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1<bool>::OnCompleted(class [System.Runtime]System.Action`1<object>, object, int16, valuetype [System.Runtime]System.Threading.Tasks.Sources.ValueTaskSourceOnCompletedFlags)
-                        IL_0010: ret
-                    } // end of method '<<Cast>b__1_0>d`2'::'System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.OnCompleted'
-                    .method private final hidebysig newslot virtual 
-                        instance void System.Threading.Tasks.Sources.IValueTaskSource.GetResult (
-                            int16 token
-                        ) cil managed 
-                    {
-                        .custom instance void [System.Runtime]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
-                            01 00 00 00
-                        )
-                        .override method instance void [System.Runtime]System.Threading.Tasks.Sources.IValueTaskSource::GetResult(int16)
-                        // Method begins at RVA 0x24a1
-                        // Code size 14 (0xe)
-                        .maxstack 8
-                        IL_0000: ldarg.0
-                        IL_0001: ldflda valuetype [System.Runtime]System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1<bool> class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>v__promiseOfValueOrEnd'
-                        IL_0006: ldarg.1
-                        IL_0007: call instance !0 valuetype [System.Runtime]System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1<bool>::GetResult(int16)
-                        IL_000c: pop
-                        IL_000d: ret
-                    } // end of method '<<Cast>b__1_0>d`2'::System.Threading.Tasks.Sources.IValueTaskSource.GetResult
-                    .method private final hidebysig newslot virtual 
-                        instance valuetype [System.Runtime]System.Threading.Tasks.Sources.ValueTaskSourceStatus System.Threading.Tasks.Sources.IValueTaskSource.GetStatus (
-                            int16 token
-                        ) cil managed 
-                    {
-                        .custom instance void [System.Runtime]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
-                            01 00 00 00
-                        )
-                        .override method instance valuetype [System.Runtime]System.Threading.Tasks.Sources.ValueTaskSourceStatus [System.Runtime]System.Threading.Tasks.Sources.IValueTaskSource::GetStatus(int16)
-                        // Method begins at RVA 0x2481
-                        // Code size 13 (0xd)
-                        .maxstack 8
-                        IL_0000: ldarg.0
-                        IL_0001: ldflda valuetype [System.Runtime]System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1<bool> class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>v__promiseOfValueOrEnd'
-                        IL_0006: ldarg.1
-                        IL_0007: call instance valuetype [System.Runtime]System.Threading.Tasks.Sources.ValueTaskSourceStatus valuetype [System.Runtime]System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1<bool>::GetStatus(int16)
-                        IL_000c: ret
-                    } // end of method '<<Cast>b__1_0>d`2'::System.Threading.Tasks.Sources.IValueTaskSource.GetStatus
-                    .method private final hidebysig newslot virtual 
-                        instance void System.Threading.Tasks.Sources.IValueTaskSource.OnCompleted (
-                            class [System.Runtime]System.Action`1<object> continuation,
-                            object state,
-                            int16 token,
-                            valuetype [System.Runtime]System.Threading.Tasks.Sources.ValueTaskSourceOnCompletedFlags 'flags'
-                        ) cil managed 
-                    {
-                        .custom instance void [System.Runtime]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
-                            01 00 00 00
-                        )
-                        .override method instance void [System.Runtime]System.Threading.Tasks.Sources.IValueTaskSource::OnCompleted(class [System.Runtime]System.Action`1<object>, object, int16, valuetype [System.Runtime]System.Threading.Tasks.Sources.ValueTaskSourceOnCompletedFlags)
-                        .param [1]
-                            .custom instance void [System.Runtime]System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = (
-                                01 00 02 00 00 00 01 02 00 00
-                            )
-                        .param [2]
-                            .custom instance void [System.Runtime]System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
-                                01 00 02 00 00
-                            )
-                        // Method begins at RVA 0x248f
-                        // Code size 17 (0x11)
-                        .maxstack 8
-                        IL_0000: ldarg.0
-                        IL_0001: ldflda valuetype [System.Runtime]System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1<bool> class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>v__promiseOfValueOrEnd'
-                        IL_0006: ldarg.1
-                        IL_0007: ldarg.2
-                        IL_0008: ldarg.3
-                        IL_0009: ldarg.s 'flags'
-                        IL_000b: call instance void valuetype [System.Runtime]System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1<bool>::OnCompleted(class [System.Runtime]System.Action`1<object>, object, int16, valuetype [System.Runtime]System.Threading.Tasks.Sources.ValueTaskSourceOnCompletedFlags)
-                        IL_0010: ret
-                    } // end of method '<<Cast>b__1_0>d`2'::System.Threading.Tasks.Sources.IValueTaskSource.OnCompleted
-                    .method private final hidebysig newslot virtual 
-                        instance valuetype [System.Runtime]System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync () cil managed 
-                    {
-                        .custom instance void [System.Runtime]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
-                            01 00 00 00
-                        )
-                        .override method instance valuetype [System.Runtime]System.Threading.Tasks.ValueTask [System.Runtime]System.IAsyncDisposable::DisposeAsync()
-                        // Method begins at RVA 0x24b0
-                        // Code size 86 (0x56)
-                        .maxstack 2
+                        // Method begins at RVA 0x20c0
+                        // Code size 35 (0x23)
+                        .maxstack 3
                         .locals init (
-                            [0] class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>,
-                            [1] valuetype [System.Runtime]System.Threading.Tasks.ValueTask
+                            [0] int32
                         )
-                        IL_0000: ldarg.0
-                        IL_0001: ldfld int32 class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>1__state'
-                        IL_0006: ldc.i4.m1
-                        IL_0007: blt.s IL_000f
-                        IL_0009: newobj instance void [System.Runtime]System.NotSupportedException::.ctor()
-                        IL_000e: throw
-                        IL_000f: ldarg.0
-                        IL_0010: ldfld int32 class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>1__state'
-                        IL_0015: ldc.i4.s -2
-                        IL_0017: bne.un.s IL_0023
-                        IL_0019: ldloca.s 1
-                        IL_001b: initobj [System.Runtime]System.Threading.Tasks.ValueTask
-                        IL_0021: ldloc.1
+                        IL_0000: ldc.i4.s 123
+                        IL_0002: call void [netstandard]System.Console::WriteLine(int32)
+                        IL_0007: ldarg.0
+                        IL_0008: ldfld int32 IntExt/'<>c__DisplayClass1_0'::b
+                        IL_000d: stloc.0
+                        IL_000e: ldarg.0
+                        IL_000f: ldloc.0
+                        IL_0010: ldc.i4.1
+                        IL_0011: add
+                        IL_0012: stfld int32 IntExt/'<>c__DisplayClass1_0'::b
+                        IL_0017: ldarg.0
+                        IL_0018: ldfld int32 IntExt/'<>c__DisplayClass1_0'::b
+                        IL_001d: call void [netstandard]System.Console::WriteLine(int32)
                         IL_0022: ret
-                        IL_0023: ldarg.0
-                        IL_0024: ldc.i4.1
-                        IL_0025: stfld bool class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>w__disposeMode'
-                        IL_002a: ldarg.0
-                        IL_002b: ldflda valuetype [System.Runtime]System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1<bool> class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>v__promiseOfValueOrEnd'
-                        IL_0030: call instance void valuetype [System.Runtime]System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1<bool>::Reset()
-                        IL_0035: ldarg.0
-                        IL_0036: stloc.0
-                        IL_0037: ldarg.0
-                        IL_0038: ldflda valuetype [System.Runtime]System.Runtime.CompilerServices.AsyncIteratorMethodBuilder class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>t__builder'
-                        IL_003d: ldloca.s 0
-                        IL_003f: call instance void [System.Runtime]System.Runtime.CompilerServices.AsyncIteratorMethodBuilder::MoveNext<class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>>(!!0&)
-                        IL_0044: ldarg.0
-                        IL_0045: ldarg.0
-                        IL_0046: ldflda valuetype [System.Runtime]System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1<bool> class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!TSource, !TResult>::'<>v__promiseOfValueOrEnd'
-                        IL_004b: call instance int16 valuetype [System.Runtime]System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1<bool>::get_Version()
-                        IL_0050: newobj instance void [System.Runtime]System.Threading.Tasks.ValueTask::.ctor(class [System.Runtime]System.Threading.Tasks.Sources.IValueTaskSource, int16)
-                        IL_0055: ret
-                    } // end of method '<<Cast>b__1_0>d`2'::System.IAsyncDisposable.DisposeAsync
-                    // Properties
-                    .property instance !TResult 'System.Collections.Generic.IAsyncEnumerator<TResult>.Current'()
-                    {
-                        .get instance !1 System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'::'System.Collections.Generic.IAsyncEnumerator<TResult>.get_Current'()
-                    }
-                } // end of class <<Cast>b__1_0>d`2
+                    } // end of method '<>c__DisplayClass1_0'::'<DoSomething>b__0'
+                } // end of class <>c__DisplayClass1_0
                 // Methods
                 .method public hidebysig specialname static 
-                    class [System.Runtime]System.Collections.Generic.IAsyncEnumerable`1<!!TResult> Cast<TSource, TResult> (
-                        class [System.Runtime]System.Collections.Generic.IAsyncEnumerable`1<!!TSource> source
-                    ) cil managed 
+                    class [netstandard]System.Action DoSomething () cil managed 
                 {
-                    .custom instance void [System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
-                        01 00 00 00
-                    )
-                    // Method begins at RVA 0x2064
-                    // Code size 16 (0x10)
-                    .maxstack 2
+                    // Method begins at RVA 0x207c
+                    // Code size 50 (0x32)
+                    .maxstack 3
                     .locals init (
-                        [0] valuetype [System.Runtime]System.Threading.CancellationToken
+                        [0] int32
                     )
-                    IL_0000: ldarg.0
-                    IL_0001: ldloca.s 0
-                    IL_0003: initobj [System.Runtime]System.Threading.CancellationToken
-                    IL_0009: ldloc.0
-                    IL_000a: call class [System.Runtime]System.Collections.Generic.IAsyncEnumerable`1<!!1> System.Linq.AsyncEnumerable::'<Cast>b__1_0'<!!TSource, !!TResult>(class [System.Runtime]System.Collections.Generic.IAsyncEnumerable`1<!!0>, valuetype [System.Runtime]System.Threading.CancellationToken)
-                    IL_000f: ret
-                } // end of method AsyncEnumerable::Cast
-                .method assembly hidebysig static 
-                    class [System.Runtime]System.Collections.Generic.IAsyncEnumerable`1<!!TResult> '<Cast>b__1_0'<TSource, TResult> (
-                        class [System.Runtime]System.Collections.Generic.IAsyncEnumerable`1<!!TSource> source,
-                        valuetype [System.Runtime]System.Threading.CancellationToken cancellationToken
-                    ) cil managed 
-                {
-                    .custom instance void [System.Runtime]System.Runtime.CompilerServices.AsyncIteratorStateMachineAttribute::.ctor(class [System.Runtime]System.Type) = (
-                        01 00 2d 53 79 73 74 65 6d 2e 4c 69 6e 71 2e 41
-                        73 79 6e 63 45 6e 75 6d 65 72 61 62 6c 65 2b 3c
-                        3c 43 61 73 74 3e 62 5f 5f 31 5f 30 3e 64 60 32
-                        00 00
-                    )
-                    .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                        01 00 00 00
-                    )
-                    .param [1]
-                        .custom instance void [System.Runtime]System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = (
-                            01 00 02 00 00 00 00 02 00 00
-                        )
-                    // Method begins at RVA 0x2080
-                    // Code size 22 (0x16)
-                    .maxstack 8
-                    IL_0000: ldc.i4.s -2
-                    IL_0002: newobj instance void class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!!TSource, !!TResult>::.ctor(int32)
-                    IL_0007: dup
-                    IL_0008: ldarg.0
-                    IL_0009: stfld class [System.Runtime]System.Collections.Generic.IAsyncEnumerable`1<!0> class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!!TSource, !!TResult>::'<>3__source'
-                    IL_000e: dup
-                    IL_000f: ldarg.1
-                    IL_0010: stfld valuetype [System.Runtime]System.Threading.CancellationToken class System.Linq.AsyncEnumerable/'<<Cast>b__1_0>d`2'<!!TSource, !!TResult>::'<>3__cancellationToken'
-                    IL_0015: ret
-                } // end of method AsyncEnumerable::'<Cast>b__1_0'
-            } // end of class System.Linq.AsyncEnumerable
+                    IL_0000: newobj instance void IntExt/'<>c__DisplayClass1_0'::.ctor()
+                    IL_0005: dup
+                    IL_0006: ldc.i4.7
+                    IL_0007: stfld int32 IntExt/'<>c__DisplayClass1_0'::b
+                    IL_000c: ldstr "Some data"
+                    IL_0011: call void [netstandard]System.Console::WriteLine(string)
+                    IL_0016: dup
+                    IL_0017: ldfld int32 IntExt/'<>c__DisplayClass1_0'::b
+                    IL_001c: ldc.i4.1
+                    IL_001d: add
+                    IL_001e: stloc.0
+                    IL_001f: dup
+                    IL_0020: ldloc.0
+                    IL_0021: stfld int32 IntExt/'<>c__DisplayClass1_0'::b
+                    IL_0026: ldftn instance void IntExt/'<>c__DisplayClass1_0'::'<DoSomething>b__0'()
+                    IL_002c: newobj instance void [netstandard]System.Action::.ctor(object, native int)
+                    IL_0031: ret
+                } // end of method IntExt::DoSomething
+            } // end of class IntExt
             """
         );
 
@@ -2065,8 +1429,8 @@ namespace System.Linq
         var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().First();
         var symbol1 = model.GetDeclaredSymbol(extension1);
         var sourceExtension1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
-        Assert.Equal("<>E__0`1", symbol1.MetadataName);
-        Assert.Equal("System.Linq.AsyncEnumerable.<>E__0<TSource>", symbol1.ToTestDisplayString());
+        Assert.Equal("<>E__0", symbol1.MetadataName);
+        Assert.Equal("IntExt.<>E__0", symbol1.ToTestDisplayString());
     }
 
     [Fact]
