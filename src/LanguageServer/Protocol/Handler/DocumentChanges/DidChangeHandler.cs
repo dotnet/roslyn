@@ -56,7 +56,7 @@ internal class DidChangeHandler() : ILspServiceDocumentRequestHandler<DidChangeT
 
     private static SourceText GetUpdatedSourceText(SumType<TextDocumentContentChangeEvent, TextDocumentContentChangeFullReplacementEvent>[] contentChanges, SourceText text)
     {
-        (var remainingContentChanges, text) = GetUpdatedSouorceTextAndChangesAfterFullTextReplacementHandled(contentChanges, text);
+        (var remainingContentChanges, text) = GetUpdatedSourceTextAndChangesAfterFullTextReplacementHandled(contentChanges, text);
 
         // No range-based changes to apply.
         if (remainingContentChanges.IsEmpty)
@@ -87,7 +87,7 @@ internal class DidChangeHandler() : ILspServiceDocumentRequestHandler<DidChangeT
         return text;
     }
 
-    private static (ImmutableArray<TextDocumentContentChangeEvent>, SourceText) GetUpdatedSouorceTextAndChangesAfterFullTextReplacementHandled(SumType<TextDocumentContentChangeEvent, TextDocumentContentChangeFullReplacementEvent>[] contentChanges, SourceText text)
+    private static (ImmutableArray<TextDocumentContentChangeEvent>, SourceText) GetUpdatedSourceTextAndChangesAfterFullTextReplacementHandled(SumType<TextDocumentContentChangeEvent, TextDocumentContentChangeFullReplacementEvent>[] contentChanges, SourceText text)
     {
         // Per the LSP spec, each content change can be either a TextDocumentContentChangeEvent or TextDocumentContentChangeFullReplacementEvent.
         // The former is a range-based change while the latter is a full text replacement. If a TextDocumentContentChangeFullReplacementEvent is found,
