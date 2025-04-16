@@ -25,7 +25,10 @@ internal interface IUnitTestingFeaturesReferencesServiceCallback
 
 internal static class UnitTestingFeaturesReferencesService
 {
-    internal static async Task<ImmutableArray<(string MethodFullyQualifedName, string MethodOutputFilePath)>> GetCallerMethodsAsync(
+    public static DocumentId? GetSourceGeneratorDocumentId(IDictionary<object, object> descriptorProperties)
+        => CodeLensHelpers.GetSourceGeneratorDocumentId(descriptorProperties);
+
+    public static async Task<ImmutableArray<(string MethodFullyQualifedName, string MethodOutputFilePath)>> GetCallerMethodsAsync(
         Guid projectGuid,
         string filePath,
         TextSpan span,

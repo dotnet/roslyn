@@ -27,6 +27,8 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.CodeLens;
 
+using static CodeLensHelpers;
+
 /// <summary>
 /// This is used by new codelens API to get extra data from VS if it is needed.
 /// </summary>
@@ -78,26 +80,6 @@ internal sealed class CodeLensCallbackListener :
         return builder.ToImmutable();
     }
 
-    private static DocumentId? GetSourceGeneratorDocumentId(CodeLensDescriptorContext descriptorContext)
-    {
-        if (TryGetGuid("RoslynDocumentIdGuid", out var documentIdGuid) &&
-            TryGetGuid("RoslynProjectIdGuid", out var projectIdGuid))
-        {
-            var projectId = ProjectId.CreateFromSerialized(projectIdGuid);
-            return DocumentId.CreateFromSerialized(projectId, documentIdGuid);
-        }
-
-        return null;
-
-        bool TryGetGuid(string key, out Guid guid)
-        {
-            guid = Guid.Empty;
-            return descriptorContext.Properties.TryGetValue(key, out var guidStringUntyped) &&
-                guidStringUntyped is string guidString &&
-                Guid.TryParse(guidString, out guid);
-        }
-    }
-
     public async Task<ReferenceCount?> GetReferenceCountAsync(
         CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, ReferenceCount? previousCount, CancellationToken cancellationToken)
     {
@@ -108,7 +90,7 @@ internal sealed class CodeLensCallbackListener :
         var (documentId, node) = await GetDocumentIdAndNodeAsync(
             solution, descriptor.ProjectGuid, descriptor.FilePath,
             descriptorContext.ApplicableSpan.Value.ToTextSpan(),
-            GetSourceGeneratorDocumentId(descriptorContext),
+            GetSourceGeneratorDocumentId(descriptorContext.Properties),
             cancellationToken).ConfigureAwait(false);
         if (documentId == null)
         {
@@ -140,7 +122,7 @@ internal sealed class CodeLensCallbackListener :
         var (documentId, node) = await GetDocumentIdAndNodeAsync(
             solution, descriptor.ProjectGuid, descriptor.FilePath,
             descriptorContext.ApplicableSpan.Value.ToTextSpan(),
-            GetSourceGeneratorDocumentId(descriptorContext),
+            GetSourceGeneratorDocumentId(descriptorContext.Properties),
             cancellationToken).ConfigureAwait(false);
         if (documentId == null)
         {
@@ -168,7 +150,7 @@ internal sealed class CodeLensCallbackListener :
             descriptor.ProjectGuid,
             descriptor.FilePath,
             descriptorContext.ApplicableSpan.Value.ToTextSpan(),
-            GetSourceGeneratorDocumentId(descriptorContext),
+            GetSourceGeneratorDocumentId(descriptorContext.Properties),
             cancellationToken).ConfigureAwait(false);
     }
 
