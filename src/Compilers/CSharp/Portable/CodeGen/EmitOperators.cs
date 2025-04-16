@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 EmitBox(comparandType, comparand.Syntax);
             }
 
-            _builder.EmitConstantValue(nullOrZero);
+            _builder.EmitConstantValue(nullOrZero, comparand.Syntax);
             _builder.EmitOpCode(ILOpCode.Cgt_un);
         }
 
@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 EmitBox(comparandType, comparand.Syntax);
             }
 
-            _builder.EmitConstantValue(nullOrZero);
+            _builder.EmitConstantValue(nullOrZero, comparand.Syntax);
             _builder.EmitOpCode(ILOpCode.Ceq);
         }
 

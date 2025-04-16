@@ -444,15 +444,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (_savedSequencePoints is null || !_savedSequencePoints.TryGetValue(node.Identifier, out var span))
                 return;
 
-            EmitStepThroughSequencePoint(node.Syntax.SyntaxTree, span);
+            EmitStepThroughSequencePoint(node.Syntax, span);
         }
 
         private void EmitStepThroughSequencePoint(BoundStepThroughSequencePoint node)
         {
-            EmitStepThroughSequencePoint(node.Syntax.SyntaxTree, node.Span);
+            EmitStepThroughSequencePoint(node.Syntax, node.Span);
         }
 
-        private void EmitStepThroughSequencePoint(SyntaxTree syntaxTree, TextSpan span)
+        private void EmitStepThroughSequencePoint(SyntaxNode syntaxNode, TextSpan span)
         {
             if (!_emitPdbSequencePoints)
                 return;
@@ -460,9 +460,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var label = new object();
             // The IL builder is eager to discard unreachable code, so
             // we fool it by branching on a condition that is always true at runtime.
-            _builder.EmitConstantValue(ConstantValue.Create(true));
+            _builder.EmitConstantValue(ConstantValue.Create(true), syntaxNode);
             _builder.EmitBranch(ILOpCode.Brtrue, label);
-            EmitSequencePoint(syntaxTree, span);
+            EmitSequencePoint(syntaxNode.SyntaxTree, span);
             _builder.EmitOpCode(ILOpCode.Nop);
             _builder.MarkLabel(label);
             EmitHiddenSequencePoint();

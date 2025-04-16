@@ -1734,7 +1734,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 If ((type IsNot Nothing) AndAlso (type.TypeKind = TypeKind.TypeParameter) AndAlso constantValue.IsNull) Then
                     EmitInitObj(type, used, syntaxNode)
                 Else
-                    _builder.EmitConstantValue(constantValue)
+                    _builder.EmitConstantValue(constantValue, syntaxNode)
                 End If
             End If
         End Sub

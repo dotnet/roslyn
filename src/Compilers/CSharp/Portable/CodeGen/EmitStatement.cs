@@ -1321,7 +1321,7 @@ oneMoreTime:
             }
             else
             {
-                _builder.EmitIntegerSwitchJumpTable(switchCaseLabels, fallThroughLabel, key, expression.Type.EnumUnderlyingTypeOrSelf().PrimitiveTypeCode);
+                _builder.EmitIntegerSwitchJumpTable(switchCaseLabels, fallThroughLabel, key, expression.Type.EnumUnderlyingTypeOrSelf().PrimitiveTypeCode, expression.Syntax);
             }
 
             if (temp != null)
@@ -1408,7 +1408,10 @@ oneMoreTime:
                 //   lengthConstant -> corresponding label
                 _builder.EmitIntegerSwitchJumpTable(
                     lengthBasedSwitchInfo.LengthBasedJumpTable.LengthCaseLabels.Select(p => new KeyValuePair<ConstantValue, object>(ConstantValue.Create(p.value), p.label)).ToArray(),
-                    fallThroughLabel, stringLength, int32Type.PrimitiveTypeCode);
+                    fallThroughLabel,
+                    stringLength,
+                    int32Type.PrimitiveTypeCode,
+                    syntaxNode);
 
                 FreeTemp(stringLength);
             }
@@ -1445,7 +1448,10 @@ oneMoreTime:
                     //   charConstant -> corresponding label
                     _builder.EmitIntegerSwitchJumpTable(
                         charJumpTable.CharCaseLabels.Select(p => new KeyValuePair<ConstantValue, object>(ConstantValue.Create(p.value), p.label)).ToArray(),
-                        fallThroughLabel, charTemp, charType.PrimitiveTypeCode);
+                        fallThroughLabel,
+                        charTemp,
+                        charType.PrimitiveTypeCode,
+                        syntaxNode);
                 }
 
                 FreeTemp(charTemp);
@@ -1607,6 +1613,7 @@ oneMoreTime:
                 };
 
             _builder.EmitStringSwitchJumpTable(
+                syntaxNode,
                 caseLabels: switchCaseLabels,
                 fallThroughLabel: fallThroughLabel,
                 key: key,
@@ -1702,7 +1709,7 @@ oneMoreTime:
             // stackAdjustment = (pushCount - popCount) = -1
 
             _builder.EmitLoad(key);
-            _builder.EmitConstantValue(stringConstant);
+            _builder.EmitConstantValue(stringConstant, syntaxNode);
             _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: -1);
             _builder.EmitToken(stringEqualityMethodRef, syntaxNode, _diagnostics.DiagnosticBag);
 
@@ -1729,7 +1736,7 @@ oneMoreTime:
             Debug.Assert(asSpanRef != null);
 
             _builder.EmitLoad(key);
-            _builder.EmitConstantValue(stringConstant);
+            _builder.EmitConstantValue(stringConstant, syntaxNode);
             _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
             _builder.EmitToken(asSpanRef, syntaxNode, _diagnostics.DiagnosticBag);
             _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: -1);

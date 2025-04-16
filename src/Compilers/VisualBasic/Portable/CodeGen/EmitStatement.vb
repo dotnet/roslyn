@@ -1048,32 +1048,33 @@ OtherExpressions:
             Else
 
                 Dim exprType = selectExpression.Type
+                Dim syntax As SyntaxNode = selectExpression.Syntax
                 Dim temp As LocalDefinition = Nothing
 
                 If exprType.SpecialType <> SpecialType.System_String Then
                     If selectExpression.Kind = BoundKind.Local AndAlso Not DirectCast(selectExpression, BoundLocal).LocalSymbol.IsByRef Then
-                        _builder.EmitIntegerSwitchJumpTable(caseLabels, fallThroughLabel, GetLocal(DirectCast(selectExpression, BoundLocal)), keyTypeCode:=exprType.GetEnumUnderlyingTypeOrSelf.PrimitiveTypeCode)
+                        _builder.EmitIntegerSwitchJumpTable(caseLabels, fallThroughLabel, GetLocal(DirectCast(selectExpression, BoundLocal)), keyTypeCode:=exprType.GetEnumUnderlyingTypeOrSelf.PrimitiveTypeCode, syntax)
 
                     ElseIf selectExpression.Kind = BoundKind.Parameter AndAlso Not DirectCast(selectExpression, BoundParameter).ParameterSymbol.IsByRef Then
-                        _builder.EmitIntegerSwitchJumpTable(caseLabels, fallThroughLabel, ParameterSlot(DirectCast(selectExpression, BoundParameter)), keyTypeCode:=exprType.GetEnumUnderlyingTypeOrSelf.PrimitiveTypeCode)
+                        _builder.EmitIntegerSwitchJumpTable(caseLabels, fallThroughLabel, ParameterSlot(DirectCast(selectExpression, BoundParameter)), keyTypeCode:=exprType.GetEnumUnderlyingTypeOrSelf.PrimitiveTypeCode, syntax)
 
                     Else
                         EmitExpression(selectExpression, True)
-                        temp = AllocateTemp(exprType, selectExpression.Syntax)
+                        temp = AllocateTemp(exprType, syntax)
                         _builder.EmitLocalStore(temp)
 
-                        _builder.EmitIntegerSwitchJumpTable(caseLabels, fallThroughLabel, temp, keyTypeCode:=exprType.GetEnumUnderlyingTypeOrSelf.PrimitiveTypeCode)
+                        _builder.EmitIntegerSwitchJumpTable(caseLabels, fallThroughLabel, temp, keyTypeCode:=exprType.GetEnumUnderlyingTypeOrSelf.PrimitiveTypeCode, syntax)
                     End If
                 Else
                     If selectExpression.Kind = BoundKind.Local AndAlso Not DirectCast(selectExpression, BoundLocal).LocalSymbol.IsByRef Then
-                        EmitStringSwitchJumpTable(caseLabels, fallThroughLabel, GetLocal(DirectCast(selectExpression, BoundLocal)), selectExpression.Syntax)
+                        EmitStringSwitchJumpTable(caseLabels, fallThroughLabel, GetLocal(DirectCast(selectExpression, BoundLocal)), syntax)
 
                     Else
                         EmitExpression(selectExpression, True)
-                        temp = AllocateTemp(exprType, selectExpression.Syntax)
+                        temp = AllocateTemp(exprType, syntax)
                         _builder.EmitLocalStore(temp)
 
-                        EmitStringSwitchJumpTable(caseLabels, fallThroughLabel, temp, selectExpression.Syntax)
+                        EmitStringSwitchJumpTable(caseLabels, fallThroughLabel, temp, syntax)
                     End If
                 End If
 
@@ -1123,6 +1124,7 @@ OtherExpressions:
                 End Sub
 
             _builder.EmitStringSwitchJumpTable(
+                            syntaxNode,
                             caseLabels,
                             fallThroughLabel,
                             key,
@@ -1171,8 +1173,8 @@ OtherExpressions:
             ' NOTE: We generate string switch table only for Option Compare Binary, i.e. TextCompare = False
 
             _builder.EmitLoad(key)
-            _builder.EmitConstantValue(stringConstant)
-            _builder.EmitConstantValue(ConstantValue.False)
+            _builder.EmitConstantValue(stringConstant, syntaxNode)
+            _builder.EmitConstantValue(ConstantValue.False, syntaxNode)
             _builder.EmitOpCode(ILOpCode.Call, stackAdjustment:=-2)
             _builder.EmitToken(stringCompareMethodRef, syntaxNode, _diagnostics)
 

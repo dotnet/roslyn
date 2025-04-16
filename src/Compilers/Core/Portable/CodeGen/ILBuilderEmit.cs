@@ -211,6 +211,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// Primary method for emitting string switch jump table
         /// </summary>
+        /// <param name="syntax">Associated syntax for diagnostic reporting.</param>
         /// <param name="caseLabels">switch case labels</param>
         /// <param name="fallThroughLabel">fall through label for the jump table</param>
         /// <param name="key">Local holding the value to switch on.
@@ -227,6 +228,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// Delegate to compute string hash consistent with value of keyHash.
         /// </param>
         internal void EmitStringSwitchJumpTable(
+            SyntaxNode syntax,
             KeyValuePair<ConstantValue, object>[] caseLabels,
             object fallThroughLabel,
             LocalOrParameter key,
@@ -238,6 +240,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             var emitter = new SwitchStringJumpTableEmitter(
                 this,
+                syntax,
                 key,
                 caseLabels,
                 fallThroughLabel,
@@ -257,11 +260,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// This value has already been loaded onto the execution stack.
         /// </param>
         /// <param name="keyTypeCode">Primitive type code of switch key.</param>
+        /// <param name="syntax">Associated syntax for error reporting.</param>
         internal void EmitIntegerSwitchJumpTable(
             KeyValuePair<ConstantValue, object>[] caseLabels,
             object fallThroughLabel,
             LocalOrParameter key,
-            Cci.PrimitiveTypeCode keyTypeCode)
+            Cci.PrimitiveTypeCode keyTypeCode,
+            SyntaxNode syntax)
         {
             Debug.Assert(caseLabels.Length > 0);
             Debug.Assert(keyTypeCode != Cci.PrimitiveTypeCode.String);
@@ -270,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             // CONSIDER: Currently, only purpose of creating this caseLabels array is for Emitting the jump table.
             // CONSIDER: If this requirement changes, we may want to pass in ArrayBuilder<KeyValuePair<ConstantValue, object>> instead.
 
-            var emitter = new SwitchIntegralJumpTableEmitter(this, caseLabels, fallThroughLabel, keyTypeCode, key);
+            var emitter = new SwitchIntegralJumpTableEmitter(this, syntax, caseLabels, fallThroughLabel, keyTypeCode, key);
             emitter.EmitJumpTable();
         }
 
@@ -563,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        internal void EmitConstantValue(ConstantValue value)
+        internal void EmitConstantValue(ConstantValue value, SyntaxNode syntaxNode)
         {
             ConstantValueTypeDiscriminator discriminator = value.Discriminator;
 
@@ -608,7 +613,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     EmitDoubleConstant(value.DoubleValue);
                     break;
                 case ConstantValueTypeDiscriminator.String:
-                    EmitStringConstant(value.StringValue);
+                    EmitStringConstant(value.StringValue, syntaxNode);
                     break;
                 case ConstantValueTypeDiscriminator.Boolean:
                     EmitBoolConstant(value.BooleanValue);
@@ -734,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             EmitOpCode(ILOpCode.Ldnull);
         }
 
-        internal void EmitStringConstant(string? value)
+        internal void EmitStringConstant(string? value, SyntaxNode syntax)
         {
             if (value == null)
             {
