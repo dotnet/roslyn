@@ -82,3 +82,17 @@ Configuration is in the `.github/renovate.json` file.
 When changing the renovate.json file, follow [these validation steps](https://docs.renovatebot.com/config-validation/).
 
 If Renovate is not creating pull requests when you expect it to, check that the [Renovate GitHub App](https://github.com/apps/renovate) is configured for your account or repo.
+
+## Merging latest from Library.Template
+
+### Maintaining your repo based on this template
+
+The best way to keep your repo in sync with Library.Template's evolving features and best practices is to periodically merge the template into your repo:
+`
+```ps1
+git fetch
+git checkout origin/main
+.\tools\MergeFrom-Template.ps1
+# resolve any conflicts, then commit the merge commit.
+git push origin -u HEAD
+```
