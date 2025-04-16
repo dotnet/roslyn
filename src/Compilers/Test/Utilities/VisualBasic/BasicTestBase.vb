@@ -28,6 +28,11 @@ End Namespace
         Return data?.Value.Replace(vbLf, Environment.NewLine)
     End Function
 
+    Public Function CreateExecutionValidator(data As XCData, Optional flags As ExecutionValidators.NormalizeOutputFlags = Nothing) As Action(Of Integer, String, String)
+        Dim output = XCDataToString(data)
+        Return ExecutionValidators.Create(output, flags)
+    End Function
+
     Private Function Translate(action As Action(Of ModuleSymbol)) As Action(Of IModuleSymbol)
         If action IsNot Nothing Then
             Return Sub(m) action(DirectCast(m, ModuleSymbol))
@@ -72,6 +77,28 @@ End Namespace
             verify)
     End Function
 
+    Friend Shadows Function CompileAndVerifyBaseline(
+        compilation As Compilation,
+        expectedOutput As XCData,
+        Optional emitOptions As EmitOptions = Nothing,
+        Optional verify As Verification = Nothing) As CompilationVerifier
+
+        Return CompileAndVerifyBaseline(compilation, XCDataToString(expectedOutput), emitOptions, verify)
+    End Function
+
+    Friend Shadows Function CompileAndVerifyBaseline(
+        compilation As Compilation,
+        expectedOutput As String,
+        Optional emitOptions As EmitOptions = Nothing,
+        Optional verify As Verification = Nothing) As CompilationVerifier
+
+        Return MyBase.CompileAndVerifyCommon(
+            compilation,
+            executionValidator:=ExecutionValidators.CreateBaseLine(expectedOutput),
+            emitOptions:=emitOptions,
+            verify:=verify)
+    End Function
+
     Friend Shadows Function CompileAndVerify(
         compilation As Compilation,
         Optional manifestResources As IEnumerable(Of ResourceDescription) = Nothing,
@@ -94,10 +121,8 @@ End Namespace
             Translate(sourceSymbolValidator),
             validator,
             Translate(symbolValidator),
+            ExecutionValidators.TryCreate(expectedReturnCode, expectedOutput, trimOutput),
             expectedSignatures,
-            expectedOutput,
-            trimOutput,
-            expectedReturnCode,
             args,
             emitOptions,
             verify)
@@ -206,10 +231,74 @@ End Namespace
             Translate(sourceSymbolValidator),
             validator,
             Translate(symbolValidator),
+            ExecutionValidators.TryCreate(expectedReturnCode, expectedOutput, trimOutput),
             expectedSignatures,
-            expectedOutput,
-            trimOutput,
-            expectedReturnCode,
+            args,
+            emitOptions,
+            verify)
+    End Function
+
+    Friend Shadows Function CompileAndVerify(
+        source As XElement,
+        executionValidator As Action(Of Integer, String, String),
+        Optional args As String() = Nothing,
+        Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
+        Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
+        Optional validator As Action(Of PEAssembly) = Nothing,
+        Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
+        Optional expectedSignatures As SignatureDescription() = Nothing,
+        Optional options As VisualBasicCompilationOptions = Nothing,
+        Optional parseOptions As VisualBasicParseOptions = Nothing,
+        Optional emitOptions As EmitOptions = Nothing,
+        Optional verify As Verification = Nothing,
+        Optional targetFramework As TargetFramework = TargetFramework.Standard
+    ) As CompilationVerifier
+
+        If options Is Nothing Then
+            options = If(executionValidator Is Nothing, TestOptions.ReleaseDll, TestOptions.ReleaseExe)
+        End If
+
+        Dim assemblyName As String = Nothing
+        Dim sourceTrees = ParseSourceXml(source, parseOptions, assemblyName)
+        Dim allReferences = TargetFrameworkUtil.GetReferences(targetFramework)
+        Dim compilation = CreateEmptyCompilation(sourceTrees.ToArray(), allReferences, options, assemblyName:=assemblyName)
+
+        Return MyBase.CompileAndVerifyCommon(
+            compilation,
+            Nothing,
+            dependencies,
+            Translate(sourceSymbolValidator),
+            validator,
+            Translate(symbolValidator),
+            executionValidator,
+            expectedSignatures,
+            args,
+            emitOptions,
+            verify)
+    End Function
+
+    Friend Shadows Function CompileAndVerify(
+        compilation As Compilation,
+        executionValidator As Action(Of Integer, String, String),
+        Optional args As String() = Nothing,
+        Optional manifestResources As IEnumerable(Of ResourceDescription) = Nothing,
+        Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
+        Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
+        Optional validator As Action(Of PEAssembly) = Nothing,
+        Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
+        Optional expectedSignatures As SignatureDescription() = Nothing,
+        Optional emitOptions As EmitOptions = Nothing,
+        Optional verify As Verification = Nothing) As CompilationVerifier
+
+        Return MyBase.CompileAndVerifyCommon(
+            compilation,
+            manifestResources,
+            dependencies,
+            Translate(sourceSymbolValidator),
+            validator,
+            Translate(symbolValidator),
+            executionValidator,
+            expectedSignatures,
             args,
             emitOptions,
             verify)
@@ -342,10 +431,8 @@ End Namespace
             Translate(sourceSymbolValidator),
             validator,
             Translate(symbolValidator),
+            ExecutionValidators.TryCreate(expectedReturnCode, expectedOutput, trimOutput),
             expectedSignatures,
-            expectedOutput,
-            trimOutput,
-            expectedReturnCode,
             args,
             emitOptions,
             verify)

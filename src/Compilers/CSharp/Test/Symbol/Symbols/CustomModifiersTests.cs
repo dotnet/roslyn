@@ -2386,8 +2386,11 @@ internal class Program
 }";
             var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
-            CompileAndVerifyCommon(compilation, expectedOutput: @"Implemented A
-Implemented B",
+            CompileAndVerifyCommon(compilation,
+                executionValidator: ExecutionValidators.Create("""
+                    Implemented A
+                    Implemented B
+                    """),
                 assemblyValidator: assembly =>
                 {
                     var reader = assembly.GetMetadataReader();
@@ -2423,7 +2426,8 @@ Implemented B",
     }
 }";
             var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
-            CompileAndVerifyCommon(compilation, expectedOutput: "2",
+            CompileAndVerifyCommon(compilation,
+                executionValidator: ExecutionValidators.Create("2"),
                 assemblyValidator: assembly =>
                 {
                     var reader = assembly.GetMetadataReader();

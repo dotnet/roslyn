@@ -7,6 +7,7 @@
 #if NET
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -17,6 +18,8 @@ namespace Roslyn.Test.Utilities.CoreClr
 {
     internal static class SharedConsole
     {
+        private static readonly object s_guard = new object();
+
         private static TextWriter s_savedConsoleOut;
         private static TextWriter s_savedConsoleError;
 
@@ -25,18 +28,31 @@ namespace Roslyn.Test.Utilities.CoreClr
 
         internal static void OverrideConsole()
         {
-            s_savedConsoleOut = Console.Out;
-            s_savedConsoleError = Console.Error;
+            if (s_savedConsoleOut is null)
+            {
+                lock (s_guard)
+                {
+                    if (s_savedConsoleOut is not null)
+                    {
+                        return;
+                    }
 
-            s_currentOut = new AsyncLocal<StringWriter>();
-            s_currentError = new AsyncLocal<StringWriter>();
+                    s_savedConsoleOut = Console.Out;
+                    s_savedConsoleError = Console.Error;
 
-            Console.SetOut(new SharedConsoleOutWriter());
-            Console.SetError(new SharedConsoleErrorWriter());
+                    s_currentOut = new AsyncLocal<StringWriter>();
+                    s_currentError = new AsyncLocal<StringWriter>();
+
+                    Console.SetOut(new SharedConsoleOutWriter());
+                    Console.SetError(new SharedConsoleErrorWriter());
+                }
+            }
         }
 
-        public static void CaptureOutput(Action action, int expectedLength, out string output, out string errorOutput)
+        public static void CaptureOutput(Action action, int? expectedLength, out string output, out string errorOutput)
         {
+            OverrideConsole();
+
             var outputWriter = new CappedStringWriter(expectedLength);
             var errorOutputWriter = new CappedStringWriter(expectedLength);
 

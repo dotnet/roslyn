@@ -362,7 +362,8 @@ stages:
 
   # https://github.com/dotnet/runtime/issues/97186
   # Disabled until runtime can track down the crash
-  - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+  # PROTOTYPE: just verifying the fix here
+  - ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-unix-job.yml
       parameters:
         testRunName: 'Test macOS Debug'
