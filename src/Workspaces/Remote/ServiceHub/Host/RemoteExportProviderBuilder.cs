@@ -42,8 +42,6 @@ internal sealed class RemoteExportProviderBuilder : ExportProviderBuilder
 
     public static async Task InitializeAsync(string localSettingsDirectory, CancellationToken cancellationToken)
     {
-        System.Diagnostics.Debugger.Launch();
-
         var builder = new RemoteExportProviderBuilder(
             assemblyPaths: RemoteHostAssemblies.SelectAsArray(static a => a.Location),
             resolver: new Resolver(SimpleAssemblyLoader.Instance),
