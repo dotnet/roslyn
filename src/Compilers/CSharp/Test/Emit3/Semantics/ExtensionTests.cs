@@ -34690,17 +34690,36 @@ iNull.ToString();
 
 static class E
 {
-    extension([System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(o))] ref int? i)
+    extension([ /*<bind>*/ System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(o)) /*</bind>*/ ] ref int? i)
     {
         public void M(object? o)  => throw null!;
     }
 }
 """;
+        var expectedDiagnostics = new[] {
+            // (13,84): error CS0103: The name 'o' does not exist in the current context
+            //     extension([ /*<bind>*/ System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(o)) /*</bind>*/ ] ref int? i)
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "o").WithArguments("o").WithLocation(13, 84)
+            };
+
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
-        comp.VerifyEmitDiagnostics(
-            // (13,72): error CS0103: The name 'o' does not exist in the current context
-            //     extension([System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(o))] ref int? i)
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "o").WithArguments("o").WithLocation(13, 72));
+        comp.VerifyEmitDiagnostics(expectedDiagnostics);
+
+        string expectedOperationTree = """
+IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'System.Diag ... (nameof(o))')
+IObjectCreationOperation (Constructor: System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute..ctor(System.String parameterName)) (OperationKind.ObjectCreation, Type: System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute, IsInvalid, IsImplicit) (Syntax: 'System.Diag ... (nameof(o))')
+  Arguments(1):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: parameterName) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'nameof(o)')
+        INameOfOperation (OperationKind.NameOf, Type: System.String, Constant: "o", IsInvalid) (Syntax: 'nameof(o)')
+          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'o')
+            Children(0)
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Initializer:
+    null
+""";
+
+        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(src, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net90);
 
         src = """
 #nullable enable

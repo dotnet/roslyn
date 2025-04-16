@@ -330,6 +330,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return method.Parameters;
                     case PropertySymbol property:
                         return property.Parameters;
+                    case TypeSymbol type:
+                        Debug.Assert(type.IsExtension);
+                        if (type.ExtensionParameter is { } extensionParameter)
+                        {
+                            return [extensionParameter];
+                        }
+                        else
+                        {
+                            return default;
+                        }
                     default:
                         Debug.Assert(false);
                         return default;
