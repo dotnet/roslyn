@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis;
@@ -12,7 +12,8 @@ public abstract partial class Workspace
 {
     // Allows conversion of legacy event handlers to the new event system. The first item in
     // the key's tuple is an EventHandler<TEventArgs> and thus stored as an object.
-    private readonly ConcurrentDictionary<(object EventHandler, WorkspaceEventType EventType), IDisposable> _disposableEventHandlers = new();
+    private readonly Dictionary<(object EventHandler, WorkspaceEventType EventType), (int AdviseCount, IDisposable Disposer)> _disposableEventHandlers = new();
+    private readonly object _gate = new();
 
     /// <summary>
     /// An event raised whenever the current solution is changed.
@@ -84,9 +85,28 @@ public abstract partial class Workspace
     {
         // Require main thread on the callback as this is used from publicly exposed events
         // and those callbacks may have main thread dependencies.
-        var disposer = RegisterHandler(eventType, (Action<EventArgs>)Handler, WorkspaceEventOptions.RequiresMainThreadOptions);
+        IDisposable? disposer = null;
 
-        _disposableEventHandlers[(eventHandler, eventType)] = disposer;
+        lock (_gate)
+        {
+            if (_disposableEventHandlers.TryGetValue((eventHandler, eventType), out var adviseCountAndDisposer))
+            {
+                (var adviseCount, disposer) = adviseCountAndDisposer;
+
+                // If we already have a handler for this event type, update the map with the new advise count
+                _disposableEventHandlers[(eventHandler, eventType)] = (adviseCount + 1, disposer);
+            }
+        }
+
+        if (disposer == null)
+        {
+            disposer = RegisterHandler(eventType, (Action<EventArgs>)Handler, WorkspaceEventOptions.RequiresMainThreadOptions);
+
+            lock (_gate)
+            {
+                _disposableEventHandlers[(eventHandler, eventType)] = (AdviseCount: 1, disposer);
+            }
+        }
 
         void Handler(EventArgs arg)
             => eventHandler(sender: this, (TEventArgs)arg);
@@ -95,10 +115,26 @@ public abstract partial class Workspace
     private void RemoveEventHandler<TEventArgs>(EventHandler<TEventArgs> eventHandler, WorkspaceEventType eventType)
         where TEventArgs : EventArgs
     {
-        _disposableEventHandlers.TryRemove((eventHandler, eventType), out var disposer);
+        var existingAdviseCount = 0;
+        IDisposable? disposer = null;
 
-        Debug.Assert(disposer != null, $"Event handler for event type {eventType} was not registered.");
+        lock (_gate)
+        {
+            if (_disposableEventHandlers.TryGetValue((eventHandler, eventType), out var adviseCountAndDisposer))
+            {
+                // If we already have a handler for this event type, just increment the advise count
+                // and return.
+                (existingAdviseCount, disposer) = adviseCountAndDisposer;
+                if (existingAdviseCount == 1)
+                    _disposableEventHandlers.Remove((eventHandler, eventType));
+                else
+                    _disposableEventHandlers[(eventHandler, eventType)] = (existingAdviseCount - 1, disposer);
+            }
+        }
 
-        disposer?.Dispose();
+        Debug.Assert(existingAdviseCount > 0, $"Event handler for event type {eventType} was not registered.");
+
+        if (existingAdviseCount == 1)
+            disposer?.Dispose();
     }
 }
