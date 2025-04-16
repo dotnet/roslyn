@@ -1113,14 +1113,14 @@ public static class Extensions
         var src = """
 using System;
 
-var a = int.Foo();
+var a = int.DoSomething();
 a();
 
 public static class IntExt
 {
     extension(int)
     {
-        public static Action Foo()
+        public static Action DoSomething()
         {
             var b = 7;
             Action a = () =>
@@ -1130,7 +1130,7 @@ public static class IntExt
                 b++;
                 Console.WriteLine(b);
             };
-            Console.WriteLine("Foo()");
+            Console.WriteLine("Some data");
             ++b;
             return a;
         }
@@ -1140,7 +1140,7 @@ public static class IntExt
 
         var comp = CreateCompilation(src);
         var verifier = CompileAndVerify(comp, expectedOutput: """
-            Foo()
+            Some data
             123
             9
 
@@ -1173,14 +1173,14 @@ public static class IntExt
                         IL_0000: ret
                     } // end of method '<>E__0'::'<Extension>$'
                     .method public hidebysig static 
-                        class [netstandard]System.Action Foo () cil managed 
+                        class [netstandard]System.Action DoSomething () cil managed 
                     {
                         // Method begins at RVA 0x20be
                         // Code size 2 (0x2)
                         .maxstack 8
                         IL_0000: ldnull
                         IL_0001: throw
-                    } // end of method '<>E__0'::Foo
+                    } // end of method '<>E__0'::DoSomething
                 } // end of class <>E__0
                 .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
                     extends [netstandard]System.Object
@@ -1202,7 +1202,7 @@ public static class IntExt
                         IL_0006: ret
                     } // end of method '<>c__DisplayClass1_0'::.ctor
                     .method assembly hidebysig 
-                        instance void '<Foo>b__0' () cil managed 
+                        instance void '<DoSomething>b__0' () cil managed 
                     {
                         // Method begins at RVA 0x20c4
                         // Code size 35 (0x23)
@@ -1224,11 +1224,11 @@ public static class IntExt
                         IL_0018: ldfld int32 IntExt/'<>c__DisplayClass1_0'::b
                         IL_001d: call void [netstandard]System.Console::WriteLine(int32)
                         IL_0022: ret
-                    } // end of method '<>c__DisplayClass1_0'::'<Foo>b__0'
+                    } // end of method '<>c__DisplayClass1_0'::'<DoSomething>b__0'
                 } // end of class <>c__DisplayClass1_0
                 // Methods
                 .method public hidebysig specialname static 
-                    class [netstandard]System.Action Foo () cil managed 
+                    class [netstandard]System.Action DoSomething () cil managed 
                 {
                     // Method begins at RVA 0x207c
                     // Code size 52 (0x34)
@@ -1242,10 +1242,10 @@ public static class IntExt
                     IL_0006: ldc.i4.7
                     IL_0007: stfld int32 IntExt/'<>c__DisplayClass1_0'::b
                     IL_000c: dup
-                    IL_000d: ldftn instance void IntExt/'<>c__DisplayClass1_0'::'<Foo>b__0'()
+                    IL_000d: ldftn instance void IntExt/'<>c__DisplayClass1_0'::'<DoSomething>b__0'()
                     IL_0013: newobj instance void [netstandard]System.Action::.ctor(object, native int)
                     IL_0018: stloc.0
-                    IL_0019: ldstr "Foo()"
+                    IL_0019: ldstr "Some data"
                     IL_001e: call void [netstandard]System.Console::WriteLine(string)
                     IL_0023: dup
                     IL_0024: ldfld int32 IntExt/'<>c__DisplayClass1_0'::b
@@ -1256,7 +1256,7 @@ public static class IntExt
                     IL_002d: stfld int32 IntExt/'<>c__DisplayClass1_0'::b
                     IL_0032: ldloc.0
                     IL_0033: ret
-                } // end of method IntExt::Foo
+                } // end of method IntExt::DoSomething
             } // end of class IntExt
             """
         );
