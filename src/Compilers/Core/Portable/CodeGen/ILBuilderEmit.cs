@@ -40,13 +40,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal void EmitToken(string value)
         {
-            uint token = module?.GetFakeStringTokenForIL(value) ?? 0xFFFF;
+            uint token = module.GetFakeStringTokenForIL(value);
             this.GetCurrentWriter().WriteUInt32(token);
         }
 
         internal void EmitToken(Cci.IReference value, SyntaxNode? syntaxNode, Cci.MetadataWriter.RawTokenEncoding encoding = 0)
         {
-            uint token = module?.GetFakeSymbolTokenForIL(value, syntaxNode, _diagnostics) ?? 0xFFFF;
+            uint token = module.GetFakeSymbolTokenForIL(value, syntaxNode, _diagnostics);
             if (encoding != Cci.MetadataWriter.RawTokenEncoding.None)
             {
                 token = Cci.MetadataWriter.GetRawToken(encoding, token);
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal void EmitToken(Cci.ISignature value, SyntaxNode? syntaxNode)
         {
-            uint token = module?.GetFakeSymbolTokenForIL(value, syntaxNode, _diagnostics) ?? 0xFFFF;
+            uint token = module.GetFakeSymbolTokenForIL(value, syntaxNode, _diagnostics);
             this.GetCurrentWriter().WriteUInt32(token);
         }
 
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal void EmitSourceDocumentIndexToken(Cci.DebugSourceDocument document)
         {
-            var token = Cci.MetadataWriter.GetRawToken(Cci.MetadataWriter.RawTokenEncoding.DocumentRowId, module?.GetSourceDocumentIndexForIL(document) ?? 0xFFFF);
+            var token = Cci.MetadataWriter.GetRawToken(Cci.MetadataWriter.RawTokenEncoding.DocumentRowId, module.GetSourceDocumentIndexForIL(document));
             this.GetCurrentWriter().WriteUInt32(token);
         }
 
