@@ -38,12 +38,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _emitState.InstructionAdded();
         }
 
-        internal void EmitToken(string value)
-        {
-            uint token = module.GetFakeStringTokenForIL(value);
-            this.GetCurrentWriter().WriteUInt32(token);
-        }
-
         internal void EmitToken(Cci.IReference value, SyntaxNode? syntaxNode, Cci.MetadataWriter.RawTokenEncoding encoding = 0)
         {
             uint token = module.GetFakeSymbolTokenForIL(value, syntaxNode, _diagnostics);
@@ -742,11 +736,64 @@ namespace Microsoft.CodeAnalysis.CodeGen
             if (value == null)
             {
                 EmitNullConstant();
+                return;
             }
-            else
+
+            int? threshold = module.CommonCompilation.DataSectionStringLiteralThreshold;
+
+            // Try allocate token if no threshold is given or the value is within the threshold.
+            // The token allocation can still fail, if the string doesn't fit to the UserString heap.
+            if (threshold == null || value.Length <= threshold)
             {
-                EmitOpCode(ILOpCode.Ldstr);
-                EmitToken(value);
+                if (module.TryGetFakeStringTokenForIL(value, out uint token))
+                {
+                    EmitOpCode(ILOpCode.Ldstr);
+                    GetCurrentWriter().WriteUInt32(token);
+                    return;
+                }
+
+                // If emitting EnC delta we fall back to data section literal
+                // regardless of whether the feature is enabled or not.
+                if (module.PreviousGeneration == null)
+                {
+                    reportError();
+                    return;
+                }
+            }
+
+            // Try to emit the string literal to data section.
+            var field = tryGetOrCreateField();
+            if (field == null)
+            {
+                reportError();
+                return;
+            }
+
+            EmitOpCode(ILOpCode.Ldsfld);
+            EmitToken(field, syntax);
+
+            void reportError()
+            {
+                var messageProvider = module.CommonCompilation.MessageProvider;
+                int code = module.PreviousGeneration != null ? messageProvider.ERR_TooManyUserStrings_RestartRequired : messageProvider.ERR_TooManyUserStrings;
+                _diagnostics.Add(messageProvider.CreateDiagnostic(code, syntax.Location));
+            }
+
+            Cci.IFieldReference? tryGetOrCreateField()
+            {
+                if (!module.FieldRvaSupported)
+                {
+                    return null;
+                }
+
+                // Binder should have reported use-site errors for these members.
+                if (module.CommonCompilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Text_Encoding__get_UTF8) == null ||
+                    module.CommonCompilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Text_Encoding__GetString) == null)
+                {
+                    return null;
+                }
+
+                return module.TryGetOrCreateFieldForStringValue(value, syntax, _diagnostics);
             }
         }
 

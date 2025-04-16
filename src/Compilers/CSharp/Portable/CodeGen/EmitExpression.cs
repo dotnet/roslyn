@@ -3474,67 +3474,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitConstantExpression(TypeSymbol type, ConstantValue constantValue, bool used, SyntaxNode syntaxNode)
         {
-            if (used)  // unused constant has no side-effects
+            // unused constant has no side-effects
+            if (!used)
             {
-                // Null type parameter values must be emitted as 'initobj' rather than 'ldnull'.
-                if (((object)type != null) && (type.TypeKind == TypeKind.TypeParameter) && constantValue.IsNull)
-                {
-                    EmitInitObj(type, used, syntaxNode);
-                }
-                else if (!TryEmitStringLiteralAsUtf8Encoded(constantValue, syntaxNode))
-                {
-                    _builder.EmitConstantValue(constantValue, syntaxNode);
-                }
-            }
-        }
-
-        private bool TryEmitStringLiteralAsUtf8Encoded(ConstantValue constantValue, SyntaxNode syntaxNode)
-        {
-            // Emit long strings into data section so they don't overflow the UserString heap.
-            if (!constantValue.IsString)
-            {
-                return false;
+                return;
             }
 
-            bool utf8Required = _module.PreviousGeneration != null && _module.PreviousGeneration.UserStringStreamLength > EmitBaseline.UserStringHeapSizeLimit;
-            if (!utf8Required)
+            // Null type parameter values must be emitted as 'initobj' rather than 'ldnull'.
+            if (type is { TypeKind: TypeKind.TypeParameter } && constantValue.IsNull)
             {
-                var threshold = _module.Compilation.DataSectionStringLiteralThreshold;
-                if (threshold == null || constantValue.StringValue.Length <= threshold)
+                EmitInitObj(type, used, syntaxNode);
+            }
+            else
+            {
+                // TODO: use-site dependencies are not reported to UsedAssemblyReferences https://github.com/dotnet/roslyn/issues/78172
+                if (constantValue.IsString && constantValue.StringValue.Length <= _module.Compilation.DataSectionStringLiteralThreshold)
                 {
-                    return false;
-                }
-            }
-
-            var field = tryGetOrCreateField();
-            if (field != null)
-            {
-                _builder.EmitOpCode(ILOpCode.Ldsfld);
-                _builder.EmitToken(field, syntaxNode);
-                return true;
-            }
-
-            if (utf8Required)
-            {
-                _diagnostics.Add(ErrorCode.ERR_TooManyUserStrings_RestartRequired, syntaxNode);
-            }
-
-            return false;
-
-            Cci.IFieldReference tryGetOrCreateField()
-            {
-                if (!_module.FieldRvaSupported)
-                {
-                    return null;
+                    _ = Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_Text_Encoding__get_UTF8, _diagnostics, syntax: syntaxNode);
+                    _ = Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_Text_Encoding__GetString, _diagnostics, syntax: syntaxNode);
                 }
 
-                if (GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_Text_Encoding__get_UTF8, _diagnostics, syntax: syntaxNode) == null |
-                    GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_Text_Encoding__GetString, _diagnostics, syntax: syntaxNode) == null)
-                {
-                    return null;
-                }
-
-                return _module.TryGetOrCreateFieldForStringValue(constantValue.StringValue, syntaxNode, _diagnostics.DiagnosticBag);
+                _builder.EmitConstantValue(constantValue, syntaxNode);
             }
         }
 

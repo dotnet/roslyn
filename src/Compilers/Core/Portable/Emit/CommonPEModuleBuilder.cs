@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private readonly ConcurrentDictionary<IMethodSymbolInternal, Cci.IMethodBody> _methodBodyMap;
         private readonly TokenMap _referencesInILMap = new();
-        private readonly ItemTokenMap<string> _stringsInILMap = new();
+        private readonly Lazy<StringTokenMap> _stringsInILMap;
         private readonly ItemTokenMap<Cci.DebugSourceDocument> _sourceDocumentsInILMap = new();
 
         private ImmutableArray<Cci.AssemblyReferenceAlias> _lazyAssemblyReferenceAliases;
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal EmitOptions EmitOptions { get; }
 
-        public CommonPEModuleBuilder(
+        protected CommonPEModuleBuilder(
             IEnumerable<ResourceDescription> manifestResources,
             EmitOptions emitOptions,
             OutputKind outputKind,
@@ -64,6 +65,7 @@ namespace Microsoft.CodeAnalysis.Emit
             OutputKind = outputKind;
             SerializationProperties = serializationProperties;
             _methodBodyMap = new ConcurrentDictionary<IMethodSymbolInternal, Cci.IMethodBody>(ReferenceEqualityComparer.Instance);
+            _stringsInILMap = new Lazy<StringTokenMap>(() => new StringTokenMap(PreviousGeneration?.UserStringStreamLength ?? 0));
             EmitOptions = emitOptions;
         }
 
@@ -205,6 +207,12 @@ namespace Microsoft.CodeAnalysis.Emit
                 return result;
             }
         }
+
+        /// <summary>
+        /// <see cref="PrivateImplementationDetails.TryGetOrCreateFieldForStringValue"/>
+        /// </summary>
+        public Cci.IFieldReference? TryGetOrCreateFieldForStringValue(string text, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+            => PrivateImplementationDetails.TryGetOrCreateFieldForStringValue(text, this, syntaxNode, diagnostics);
 
         public abstract IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypeDefinitions(EmitContext context);
 
@@ -421,7 +429,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         public string[] CopyStrings()
         {
-            return _stringsInILMap.CopyItems();
+            return _stringsInILMap.Value.CopyValues();
         }
 
         public uint GetFakeSymbolTokenForIL(Cci.IReference symbol, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
@@ -459,15 +467,11 @@ namespace Microsoft.CodeAnalysis.Emit
             return _referencesInILMap.GetItem(token);
         }
 
-        public uint GetFakeStringTokenForIL(string str)
-        {
-            return _stringsInILMap.GetOrAddTokenFor(str);
-        }
+        public bool TryGetFakeStringTokenForIL(string str, out uint token)
+            => _stringsInILMap.Value.TryGetOrAddToken(str, out token);
 
         public string GetStringFromToken(uint token)
-        {
-            return _stringsInILMap.GetItem(token);
-        }
+            => _stringsInILMap.Value.GetValue(token);
 
         public ReadOnlySpan<object> ReferencesInIL()
         {
@@ -1073,14 +1077,6 @@ namespace Microsoft.CodeAnalysis.Emit
             var privateImpl = GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
             var emitContext = new EmitContext(this, syntaxNode, diagnostics, metadataOnly: false, includePrivateMembers: true);
             return privateImpl.CreateArrayCachingField(constants, arrayType, emitContext);
-        }
-
-        /// <summary>
-        /// <see cref="PrivateImplementationDetails.TryGetOrCreateFieldForStringValue"/>
-        /// </summary>
-        public Cci.IFieldReference TryGetOrCreateFieldForStringValue(string text, TSyntaxNode syntaxNode, DiagnosticBag diagnostics)
-        {
-            return PrivateImplementationDetails.TryGetOrCreateFieldForStringValue(text, this, syntaxNode, diagnostics);
         }
 
         #endregion

@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         ''' </remarks>
         Private ReadOnly _metadataName As String
 
-        Public Sub New(sourceAssembly As SourceAssemblySymbol,
+        Friend Sub New(sourceAssembly As SourceAssemblySymbol,
                        emitOptions As EmitOptions,
                        outputKind As OutputKind,
                        serializationProperties As Cci.ModulePropertiesForSerialization,

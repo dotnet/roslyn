@@ -62,14 +62,6 @@ namespace Microsoft.CodeAnalysis.Emit
     /// </summary>
     public sealed class EmitBaseline
     {
-        /// <summary>
-        /// Once the baseline #UserString heap reaches this size, we can't emit any more string literals to it.
-        /// We need to switch to using FieldRVAs for any new string literals, if the runtime supports it.
-        /// 
-        /// See https://github.com/dotnet/runtime/blob/2bd17019c1c01a6bf17a2de244ff92591fc3c334/src/libraries/System.Reflection.Metadata/src/System/Reflection/Metadata/Ecma335/MetadataBuilder.Heaps.cs#L82
-        /// </summary>
-        internal const int UserStringHeapSizeLimit = 0xfffffe;
-
         private static readonly ImmutableArray<int> s_emptyTableSizes = ImmutableArray.Create(new int[MetadataTokens.TableCount]);
 
         internal sealed class MetadataSymbols(

@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// </remarks>
         private readonly string _metadataName;
 #nullable enable
-        public PEAssemblyBuilderBase(
+        protected PEAssemblyBuilderBase(
             SourceAssemblySymbol sourceAssembly,
             EmitOptions emitOptions,
             OutputKind outputKind,

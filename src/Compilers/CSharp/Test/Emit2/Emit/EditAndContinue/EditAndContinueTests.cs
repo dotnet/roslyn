@@ -19869,10 +19869,10 @@ file class C
         [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
         public void PrivateImplDetails_DataSectionStringLiterals_HeapOverflow_FieldRvaSupported()
         {
-            // The max number of bytes that can fit into #US the heap is 2^29 - 1,
-            // but each string also needs to have an offset < 0x1000000 (2^24) to be addressable by a token.
-            // If the string is larger than that the next string can't be emitted.
-            var baseString = new string('x', 1 << 23);
+            // The longest string that can fit in the #US heap. The next string would overflow the heap.
+            var baseString = new string('x', (1 << 23) - 3);
+
+            var size = MetadataHelpers.GetUserStringBlobSize(baseString);
 
             using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.Skipped)
                 .AddBaseline(
@@ -19886,7 +19886,7 @@ file class C
                     {
                         g.VerifyTypeDefNames("<Module>", "C");
                         g.VerifyFieldDefNames();
-                        g.VerifyMethodDefNames("F", ".ctor");
+                        g.VerifyMethodDefNames("G", "F", ".ctor");
                     })
                 .AddGeneration(
                     source: """
