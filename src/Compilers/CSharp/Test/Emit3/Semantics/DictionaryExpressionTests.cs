@@ -4573,29 +4573,94 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void IReadOnlyDictionary_02()
         {
-            // PROTOTYPE: Test for all expected interface implementations.
-            // PROTOTYPE: Test all members. See CollectionExpressionTests.SynthesizedReadOnlyArray().
             string source = """
                 using System;
                 using static System.Console;
+                using System.Collections;
                 using System.Collections.Generic;
                 class Program
                 {
                     static void Main()
                     {
-                        Report<int, string>([]);
                         var x = new KeyValuePair<int, string>(2, "two");
                         var y = new[] { new KeyValuePair<int, string>(3, "three") };
-                        Report([1:"one", x, ..y]);
+                        ReportDictionary<int, string>([], 2, "two");
+                        ReportDictionary([1:"one", x, ..y], 2, "two");
                     }
-                    static void Report<K, V>(IReadOnlyDictionary<K, V> d)
+                    static void ReportDictionary<K, V>(IReadOnlyDictionary<K, V> x, K k, V v)
                     {
-                        Write("{0}: ", d.GetType().GetTypeName());
-                        d.Report();
+                        int length = x.Count;
+                        KeyValuePair<K, V>[] a;
+                        Write("{0}: ", x.GetType().GetTypeName());
+                        ReportCollection(x, new KeyValuePair<K, V>(k, v));
+                        WriteLine("IDictionary.IsFixedSize: {0}", ((IDictionary)x).IsFixedSize);
+                        WriteLine("IDictionary.IsReadOnly: {0}", ((IDictionary)x).IsReadOnly);
+                        WriteLine("IDictionary.this[k]: {0}", Invoke(() => { _ = ((IDictionary)x)[k]; }));
+                        WriteLine("IDictionary.this[k] = v: {0}", Invoke(() => { ((IDictionary)x)[k] = v; }));
+                        ((IDictionary)x).Keys.Report(includeType: true);
+                        ((IDictionary)x).Values.Report(includeType: true);
+                        WriteLine("IDictionary.Add(k, v): {0}", Invoke(() => ((IDictionary)x).Add(k, v)));
+                        WriteLine("IDictionary.Clear(): {0}", Invoke(() => ((IDictionary)x).Clear()));
+                        WriteLine("IDictionary.Contains(k): {0}", Invoke(() => ((IDictionary)x).Contains(k)));
+                        Write("IDictionary.CopyTo(..., 0): ");
+                        a = new KeyValuePair<K, V>[length];
+                        ((IDictionary)x).CopyTo(a, 0);
+                        a.Report(includeType: true);
                         WriteLine();
-                        var c = (ICollection<KeyValuePair<K, V>>)d;
-                        WriteLine("ICollection<T>.IsReadOnly: {0}", c.IsReadOnly);
-                        WriteLine("ICollection<T>.Clear(): {0}", Invoke(() => c.Clear()));
+                        WriteLine("IDictionary.Remove(k): {0}", Invoke(() => ((IDictionary)x).Remove(k)));
+                        WriteLine("IDictionary<K, V>.Count: {0}", ((IDictionary<K, V>)x).Count);
+                        WriteLine("IDictionary<K, V>.IsReadOnly: {0}", ((IDictionary<K, V>)x).IsReadOnly);
+                        WriteLine("IDictionary<K, V>.this[k]: {0}", Invoke(() => { _ = ((IDictionary<K, V>)x)[k]; }));
+                        WriteLine("IDictionary<K, V>.this[k] = v: {0}", Invoke(() => { ((IDictionary<K, V>)x)[k] = v; }));
+                        ((IDictionary<K, V>)x).Keys.Report(includeType: true);
+                        ((IDictionary<K, V>)x).Values.Report(includeType: true);
+                        WriteLine("IDictionary<K, V>.Add(k, v): {0}", Invoke(() => ((IDictionary<K, V>)x).Add(k, v)));
+                        WriteLine("IDictionary<K, V>.Clear(): {0}", Invoke(() => ((IDictionary<K, V>)x).Clear()));
+                        WriteLine("IDictionary<K, V>.ContainsKey(k): {0}", Invoke(() => ((IDictionary<K, V>)x).ContainsKey(k)));
+                        Write("IDictionary<K, V>.CopyTo(..., 0): ");
+                        a = new KeyValuePair<K, V>[length];
+                        ((IDictionary<K, V>)x).CopyTo(a, 0);
+                        a.Report(includeType: true);
+                        WriteLine();
+                        WriteLine("IDictionary<K, V>.Remove(k): {0}", Invoke(() => ((IDictionary<K, V>)x).Remove(k)));
+                        WriteLine("IDictionary<K, V>.TryGetValue(k, out v): {0}", Invoke(() => ((IDictionary<K, V>)x).TryGetValue(k, out _)));
+                        WriteLine("IReadOnlyDictionary<K, V>.Count: {0}", ((IReadOnlyDictionary<K, V>)x).Count);
+                        WriteLine("IReadOnlyDictionary<K, V>.this[k]: {0}", Invoke(() => { _ = ((IReadOnlyDictionary<K, V>)x)[k]; }));
+                        ((IReadOnlyDictionary<K, V>)x).Keys.Report(includeType: true);
+                        ((IReadOnlyDictionary<K, V>)x).Values.Report(includeType: true);
+                        WriteLine("IReadOnlyDictionary<K, V>.ContainsKey(k): {0}", Invoke(() => ((IReadOnlyDictionary<K, V>)x).ContainsKey(k)));
+                        WriteLine("IReadOnlyDictionary<K, V>.TryGetValue(k, out v): {0}", Invoke(() => ((IReadOnlyDictionary<K, V>)x).TryGetValue(k, out _)));
+                    }
+                    static void ReportCollection<T>(IReadOnlyCollection<T> x, T value)
+                    {
+                        int length = x.Count;
+                        T[] a;
+                        Write("IEnumerable.GetEnumerator(): ");
+                        ((IEnumerable)x).Report(includeType: true);
+                        WriteLine();
+                        WriteLine("ICollection.Count: {0}", ((ICollection)x).Count);
+                        WriteLine("ICollection.IsSynchronized: {0}", ((ICollection)x).IsSynchronized);
+                        WriteLine("ICollection.SyncRoot == (object)x: {0}", ((ICollection)x).SyncRoot == (object)x);
+                        Write("ICollection.CopyTo(..., 0): ");
+                        a = new T[length];
+                        ((ICollection)x).CopyTo(a, 0);
+                        a.Report(includeType: true);
+                        WriteLine();
+                        Write("IEnumerable<T>.GetEnumerator(): ");
+                        ((IEnumerable<T>)x).Report(includeType: true);
+                        WriteLine();
+                        WriteLine("IReadOnlyCollection<T>.Count: {0}", ((IReadOnlyCollection<T>)x).Count);
+                        WriteLine("ICollection<T>.Count: {0}", ((ICollection<T>)x).Count);
+                        WriteLine("ICollection<T>.IsReadOnly: {0}", ((ICollection<T>)x).IsReadOnly);
+                        WriteLine("ICollection<T>.Add(value): {0}", Invoke(() => ((ICollection<T>)x).Add(value)));
+                        WriteLine("ICollection<T>.Clear(): {0}", Invoke(() => ((ICollection<T>)x).Clear()));
+                        WriteLine("ICollection<T>.Contains(value): {0}", ((ICollection<T>)x).Contains(value));
+                        Write("ICollection<T>.CopyTo(..., 0): ");
+                        a = new T[length];
+                        ((ICollection<T>)x).CopyTo(a, 0);
+                        a.Report(includeType: true);
+                        WriteLine();
+                        WriteLine("ICollection<T>.Remove(value): {0}", Invoke(() => ((ICollection<T>)x).Remove(value)));
                     }
                     static string Invoke(Action a)
                     {
@@ -4612,14 +4677,82 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var verifier = CompileAndVerify(
-                [source, s_collectionExtensions, s_dictionaryExtensions],
+                [source, s_collectionExtensions],
                 expectedOutput: """
-                    System.Collections.ObjectModel.ReadOnlyDictionary<System.Int32, System.String>: [], 
+                    System.Collections.ObjectModel.ReadOnlyDictionary<System.Int32, System.String>: IEnumerable.GetEnumerator(): (System.Collections.ObjectModel.ReadOnlyDictionary<System.Int32, System.String>) [], 
+                    ICollection.Count: 0
+                    ICollection.IsSynchronized: False
+                    ICollection.SyncRoot == (object)x: False
+                    ICollection.CopyTo(..., 0): (System.Collections.Generic.KeyValuePair<System.Int32, System.String>[]) [], 
+                    IEnumerable<T>.GetEnumerator(): (System.Collections.ObjectModel.ReadOnlyDictionary<System.Int32, System.String>) [], 
+                    IReadOnlyCollection<T>.Count: 0
+                    ICollection<T>.Count: 0
                     ICollection<T>.IsReadOnly: True
+                    ICollection<T>.Add(value): System.NotSupportedException
                     ICollection<T>.Clear(): System.NotSupportedException
-                    System.Collections.ObjectModel.ReadOnlyDictionary<System.Int32, System.String>: [1:one, 2:two, 3:three], 
+                    ICollection<T>.Contains(value): False
+                    ICollection<T>.CopyTo(..., 0): (System.Collections.Generic.KeyValuePair<System.Int32, System.String>[]) [], 
+                    ICollection<T>.Remove(value): System.NotSupportedException
+                    IDictionary.IsFixedSize: True
+                    IDictionary.IsReadOnly: True
+                    IDictionary.this[k]: completed
+                    IDictionary.this[k] = v: System.NotSupportedException
+                    (System.Collections.ObjectModel.ReadOnlyDictionary<TKey, TValue>.KeyCollection<System.Int32, System.String>) [], (System.Collections.ObjectModel.ReadOnlyDictionary<TKey, TValue>.ValueCollection<System.Int32, System.String>) [], IDictionary.Add(k, v): System.NotSupportedException
+                    IDictionary.Clear(): System.NotSupportedException
+                    IDictionary.Contains(k): completed
+                    IDictionary.CopyTo(..., 0): (System.Collections.Generic.KeyValuePair<System.Int32, System.String>[]) [], 
+                    IDictionary.Remove(k): System.NotSupportedException
+                    IDictionary<K, V>.Count: 0
+                    IDictionary<K, V>.IsReadOnly: True
+                    IDictionary<K, V>.this[k]: System.Collections.Generic.KeyNotFoundException
+                    IDictionary<K, V>.this[k] = v: System.NotSupportedException
+                    (System.Collections.ObjectModel.ReadOnlyDictionary<TKey, TValue>.KeyCollection<System.Int32, System.String>) [], (System.Collections.ObjectModel.ReadOnlyDictionary<TKey, TValue>.ValueCollection<System.Int32, System.String>) [], IDictionary<K, V>.Add(k, v): System.NotSupportedException
+                    IDictionary<K, V>.Clear(): System.NotSupportedException
+                    IDictionary<K, V>.ContainsKey(k): completed
+                    IDictionary<K, V>.CopyTo(..., 0): (System.Collections.Generic.KeyValuePair<System.Int32, System.String>[]) [], 
+                    IDictionary<K, V>.Remove(k): System.NotSupportedException
+                    IDictionary<K, V>.TryGetValue(k, out v): completed
+                    IReadOnlyDictionary<K, V>.Count: 0
+                    IReadOnlyDictionary<K, V>.this[k]: System.Collections.Generic.KeyNotFoundException
+                    (System.Collections.ObjectModel.ReadOnlyDictionary<TKey, TValue>.KeyCollection<System.Int32, System.String>) [], (System.Collections.ObjectModel.ReadOnlyDictionary<TKey, TValue>.ValueCollection<System.Int32, System.String>) [], IReadOnlyDictionary<K, V>.ContainsKey(k): completed
+                    IReadOnlyDictionary<K, V>.TryGetValue(k, out v): completed
+                    System.Collections.ObjectModel.ReadOnlyDictionary<System.Int32, System.String>: IEnumerable.GetEnumerator(): (System.Collections.ObjectModel.ReadOnlyDictionary<System.Int32, System.String>) [[1, one], [2, two], [3, three]], 
+                    ICollection.Count: 3
+                    ICollection.IsSynchronized: False
+                    ICollection.SyncRoot == (object)x: False
+                    ICollection.CopyTo(..., 0): (System.Collections.Generic.KeyValuePair<System.Int32, System.String>[]) [[1, one], [2, two], [3, three]], 
+                    IEnumerable<T>.GetEnumerator(): (System.Collections.ObjectModel.ReadOnlyDictionary<System.Int32, System.String>) [[1, one], [2, two], [3, three]], 
+                    IReadOnlyCollection<T>.Count: 3
+                    ICollection<T>.Count: 3
                     ICollection<T>.IsReadOnly: True
+                    ICollection<T>.Add(value): System.NotSupportedException
                     ICollection<T>.Clear(): System.NotSupportedException
+                    ICollection<T>.Contains(value): True
+                    ICollection<T>.CopyTo(..., 0): (System.Collections.Generic.KeyValuePair<System.Int32, System.String>[]) [[1, one], [2, two], [3, three]], 
+                    ICollection<T>.Remove(value): System.NotSupportedException
+                    IDictionary.IsFixedSize: True
+                    IDictionary.IsReadOnly: True
+                    IDictionary.this[k]: completed
+                    IDictionary.this[k] = v: System.NotSupportedException
+                    (System.Collections.ObjectModel.ReadOnlyDictionary<TKey, TValue>.KeyCollection<System.Int32, System.String>) [1, 2, 3], (System.Collections.ObjectModel.ReadOnlyDictionary<TKey, TValue>.ValueCollection<System.Int32, System.String>) [one, two, three], IDictionary.Add(k, v): System.NotSupportedException
+                    IDictionary.Clear(): System.NotSupportedException
+                    IDictionary.Contains(k): completed
+                    IDictionary.CopyTo(..., 0): (System.Collections.Generic.KeyValuePair<System.Int32, System.String>[]) [[1, one], [2, two], [3, three]], 
+                    IDictionary.Remove(k): System.NotSupportedException
+                    IDictionary<K, V>.Count: 3
+                    IDictionary<K, V>.IsReadOnly: True
+                    IDictionary<K, V>.this[k]: completed
+                    IDictionary<K, V>.this[k] = v: System.NotSupportedException
+                    (System.Collections.ObjectModel.ReadOnlyDictionary<TKey, TValue>.KeyCollection<System.Int32, System.String>) [1, 2, 3], (System.Collections.ObjectModel.ReadOnlyDictionary<TKey, TValue>.ValueCollection<System.Int32, System.String>) [one, two, three], IDictionary<K, V>.Add(k, v): System.NotSupportedException
+                    IDictionary<K, V>.Clear(): System.NotSupportedException
+                    IDictionary<K, V>.ContainsKey(k): completed
+                    IDictionary<K, V>.CopyTo(..., 0): (System.Collections.Generic.KeyValuePair<System.Int32, System.String>[]) [[1, one], [2, two], [3, three]], 
+                    IDictionary<K, V>.Remove(k): System.NotSupportedException
+                    IDictionary<K, V>.TryGetValue(k, out v): completed
+                    IReadOnlyDictionary<K, V>.Count: 3
+                    IReadOnlyDictionary<K, V>.this[k]: completed
+                    (System.Collections.ObjectModel.ReadOnlyDictionary<TKey, TValue>.KeyCollection<System.Int32, System.String>) [1, 2, 3], (System.Collections.ObjectModel.ReadOnlyDictionary<TKey, TValue>.ValueCollection<System.Int32, System.String>) [one, two, three], IReadOnlyDictionary<K, V>.ContainsKey(k): completed
+                    IReadOnlyDictionary<K, V>.TryGetValue(k, out v): completed
                     """);
             verifier.VerifyDiagnostics();
         }
