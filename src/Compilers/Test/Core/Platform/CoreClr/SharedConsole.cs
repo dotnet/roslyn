@@ -18,80 +18,38 @@ namespace Roslyn.Test.Utilities.CoreClr
 {
     internal static class SharedConsole
     {
-        private static readonly object s_guard = new object();
+        private static readonly object s_guard = new();
 
-        private static TextWriter s_savedConsoleOut;
-        private static TextWriter s_savedConsoleError;
-
-        private static AsyncLocal<StringWriter> s_currentOut;
-        private static AsyncLocal<StringWriter> s_currentError;
-
-        internal static void OverrideConsole()
+        public static (string Output, string ErrorOutput) CaptureOutput(Action action)
         {
-            if (s_savedConsoleOut is null)
+            lock (s_guard)
             {
-                lock (s_guard)
-                {
-                    if (s_savedConsoleOut is not null)
-                    {
-                        return;
-                    }
-
-                    s_savedConsoleOut = Console.Out;
-                    s_savedConsoleError = Console.Error;
-
-                    s_currentOut = new AsyncLocal<StringWriter>();
-                    s_currentError = new AsyncLocal<StringWriter>();
-
-                    Console.SetOut(new SharedConsoleOutWriter());
-                    Console.SetError(new SharedConsoleErrorWriter());
-                }
+                return CaptureOutputCore(action);
             }
         }
 
-        public static void CaptureOutput(Action action, int? expectedLength, out string output, out string errorOutput)
+        public static (string Output, string ErrorOutput) CaptureOutputCore(Action action)
         {
-            OverrideConsole();
+            var savedConsoleOut = Console.Out;
+            var savedConsoleError = Console.Error;
 
-            var outputWriter = new CappedStringWriter(expectedLength);
-            var errorOutputWriter = new CappedStringWriter(expectedLength);
-
-            var savedOutput = s_currentOut.Value;
-            var savedError = s_currentError.Value;
-
+            using var outputWriter = new StringWriter();
+            using var errorWriter = new StringWriter();
             try
             {
-                s_currentOut.Value = outputWriter;
-                s_currentError.Value = errorOutputWriter;
+                Console.SetOut(outputWriter);
+                Console.SetError(errorWriter);
                 action();
             }
             finally
             {
-                s_currentOut.Value = savedOutput;
-                s_currentError.Value = savedError;
+                Console.SetOut(savedConsoleOut);
+                Console.SetError(savedConsoleError);
             }
 
-            output = outputWriter.ToString();
-            errorOutput = errorOutputWriter.ToString();
-        }
-
-        private sealed class SharedConsoleOutWriter : SharedConsoleWriter
-        {
-            public override TextWriter Underlying => s_currentOut.Value ?? s_savedConsoleOut;
-        }
-
-        private sealed class SharedConsoleErrorWriter : SharedConsoleWriter
-        {
-            public override TextWriter Underlying => s_currentError.Value ?? s_savedConsoleError;
-        }
-
-        private abstract class SharedConsoleWriter : TextWriter
-        {
-            public override Encoding Encoding => Underlying.Encoding;
-
-            public abstract TextWriter Underlying { get; }
-
-            public override void Write(char value) => Underlying.Write(value);
+            var output = outputWriter.ToString();
+            var errorOutput = errorWriter.ToString();
+            return (output, errorOutput);
         }
     }
 }

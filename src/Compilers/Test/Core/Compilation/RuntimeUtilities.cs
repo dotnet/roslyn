@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -58,12 +59,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 #endif
         }
 
-        internal static IRuntimeEnvironmentFactory GetRuntimeEnvironmentFactory()
+        internal static IRuntimeEnvironment CreateRuntimeEnvironment(ModuleData mainModule, ImmutableArray<ModuleData> modules = default)
         {
 #if NET472
-            return new Roslyn.Test.Utilities.Desktop.DesktopRuntimeEnvironmentFactory();
+            return new Roslyn.Test.Utilities.Desktop.DesktopRuntimeEnvironment(mainModule, modules);
 #elif NETCOREAPP
-            return new Roslyn.Test.Utilities.CoreClr.CoreCLRRuntimeEnvironmentFactory();
+            return new Roslyn.Test.Utilities.CoreClr.CoreCLRRuntimeEnvironment(mainModule, modules);
+#else
+#error Unsupported configuration
+#endif
+        }
+
+        internal static (string Output, string ErrorOutput) CaptureOutput(Action action)
+        {
+#if NET472
+            return Roslyn.Test.Utilities.Desktop.DesktopRuntimeEnvironment.CaptureOutput(action);
+#elif NETCOREAPP
+            return Roslyn.Test.Utilities.CoreClr.CoreCLRRuntimeEnvironment.CaptureOutput(action);
 #else
 #error Unsupported configuration
 #endif

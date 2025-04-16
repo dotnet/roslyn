@@ -60,14 +60,14 @@ namespace Roslyn.Test.Utilities.CoreClr
             return LoadFromStream(assemblyStream);
         }
 
-        internal (int ExitCode, string Output, string ErrorOutput) Execute(ModuleData mainModuleData, string[] mainArgs, int? maxOutputLength)
+        internal (int ExitCode, string Output, string ErrorOutput) Execute(ModuleData mainModuleData, string[] mainArgs)
         {
             var mainAssembly = LoadImageAsAssembly(mainModuleData.Image);
             var entryPoint = mainAssembly.EntryPoint;
             Debug.Assert(entryPoint is not null);
 
             int exitCode = 0;
-            SharedConsole.CaptureOutput(() =>
+            var (output, errorOutput) = SharedConsole.CaptureOutput(() =>
             {
                 var count = entryPoint.GetParameters().Length;
                 object[] args;
@@ -85,9 +85,9 @@ namespace Roslyn.Test.Utilities.CoreClr
                 }
 
                 exitCode = entryPoint.Invoke(null, args) is int exit ? exit : 0;
-            }, maxOutputLength, out var stdOut, out var stdErr);
+            });
 
-            return (exitCode, stdOut, stdErr);
+            return (exitCode, output, errorOutput);
         }
 
         public SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName, IEnumerable<ModuleDataId> searchModules)
