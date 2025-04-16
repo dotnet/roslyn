@@ -8,26 +8,25 @@ using System.Collections.Immutable;
 using System.Reflection.Emit;
 using System.Reflection.Metadata;
 using System.Text;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.Metadata.Tools;
 using Roslyn.Utilities;
 using Cci = Microsoft.Cci;
-using Microsoft.CodeAnalysis.Symbols;
-using System.Diagnostics;
-using System.Reflection.Metadata.Ecma335;
 
 namespace Roslyn.Test.Utilities
 {
     internal sealed class ILBuilderVisualizer : ILVisualizer
     {
-        private readonly ITokenDeferral _tokenDeferral;
+        private readonly CommonPEModuleBuilder _module;
         private readonly SymbolDisplayFormat _symbolDisplayFormat;
 
         public ILBuilderVisualizer(ITokenDeferral tokenDeferral, SymbolDisplayFormat? symbolDisplayFormat = null)
         {
-            _tokenDeferral = tokenDeferral;
+            _module = module;
             _symbolDisplayFormat = symbolDisplayFormat ?? SymbolDisplayFormat.ILVisualizationFormat;
         }
 
@@ -39,7 +38,7 @@ namespace Roslyn.Test.Utilities
                 return "##MVID##";
             }
 
-            return "\"" + _tokenDeferral.GetStringFromToken(token) + "\"";
+            return "\"" + _module.GetStringFromToken(token) + "\"";
         }
 
         public override string VisualizeSymbol(uint token, OperandType operandType)
@@ -58,7 +57,7 @@ namespace Roslyn.Test.Utilities
                 token &= 0xffffff;
             }
 
-            object reference = _tokenDeferral.GetReferenceFromToken(token);
+            object reference = _module.GetReferenceFromToken(token);
             ISymbol? symbol = ((reference as ISymbolInternal) ?? (reference as Cci.IReference)?.GetInternalSymbol())?.GetISymbol();
             return string.Format("\"{0}\"", symbol == null ? (object)reference : symbol.ToDisplayString(_symbolDisplayFormat));
         }
