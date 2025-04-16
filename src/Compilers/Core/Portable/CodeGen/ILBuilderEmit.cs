@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        internal void EmitConstantValue(ConstantValue value, SyntaxNode syntaxNode)
+        internal void EmitConstantValue(ConstantValue value, SyntaxNode? syntaxNode)
         {
             ConstantValueTypeDiscriminator discriminator = value.Discriminator;
 
@@ -731,7 +731,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             EmitOpCode(ILOpCode.Ldnull);
         }
 
-        internal void EmitStringConstant(string? value, SyntaxNode syntax)
+        internal void EmitStringConstant(string? value, SyntaxNode? syntax)
         {
             if (value == null)
             {
@@ -739,44 +739,45 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 return;
             }
 
-            int? threshold = module.CommonCompilation.DataSectionStringLiteralThreshold;
+            // If the length is greater than the specified threshold try lfsfld first and fall back to ldstr.
+            // Otherwise, try emit ldstr and fall back to ldsfld if emitting EnC delta and the heap is already full.
+            bool success = (value.Length >= module.CommonCompilation.DataSectionStringLiteralThreshold)
+                ? tryEmitLoadField() || tryEmitLoadString()
+                : tryEmitLoadString() || module.PreviousGeneration != null && tryEmitLoadField();
 
-            // Try allocate token if no threshold is given or the value is within the threshold.
-            // The token allocation can still fail, if the string doesn't fit to the UserString heap.
-            if (threshold == null || value.Length <= threshold)
+            if (!success)
+            {
+                // emit null to balance eval stack
+                EmitNullConstant();
+
+                var messageProvider = module.CommonCompilation.MessageProvider;
+                int code = module.PreviousGeneration != null ? messageProvider.ERR_TooManyUserStrings_RestartRequired : messageProvider.ERR_TooManyUserStrings;
+                _diagnostics.Add(messageProvider.CreateDiagnostic(code, syntax?.Location ?? Location.None));
+            }
+
+            bool tryEmitLoadString()
             {
                 if (module.TryGetFakeStringTokenForIL(value, out uint token))
                 {
                     EmitOpCode(ILOpCode.Ldstr);
                     GetCurrentWriter().WriteUInt32(token);
-                    return;
+                    return true;
                 }
 
-                // If emitting EnC delta we fall back to data section literal
-                // regardless of whether the feature is enabled or not.
-                if (module.PreviousGeneration == null)
+                return false;
+            }
+
+            bool tryEmitLoadField()
+            {
+                var field = tryGetOrCreateField();
+                if (field != null)
                 {
-                    reportError();
-                    return;
+                    EmitOpCode(ILOpCode.Ldsfld);
+                    EmitToken(field, syntax);
+                    return true;
                 }
-            }
 
-            // Try to emit the string literal to data section.
-            var field = tryGetOrCreateField();
-            if (field == null)
-            {
-                reportError();
-                return;
-            }
-
-            EmitOpCode(ILOpCode.Ldsfld);
-            EmitToken(field, syntax);
-
-            void reportError()
-            {
-                var messageProvider = module.CommonCompilation.MessageProvider;
-                int code = module.PreviousGeneration != null ? messageProvider.ERR_TooManyUserStrings_RestartRequired : messageProvider.ERR_TooManyUserStrings;
-                _diagnostics.Add(messageProvider.CreateDiagnostic(code, syntax.Location));
+                return false;
             }
 
             Cci.IFieldReference? tryGetOrCreateField()

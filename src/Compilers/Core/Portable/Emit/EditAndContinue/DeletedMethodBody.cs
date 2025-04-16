@@ -85,7 +85,6 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
             }
 
             var syntaxNode = context.SyntaxNode;
-            Debug.Assert(syntaxNode != null);
 
             builder.EmitStringConstant(message, syntaxNode);
             builder.EmitIntConstant(codeValue);

@@ -19886,7 +19886,7 @@ file class C
                     {
                         g.VerifyTypeDefNames("<Module>", "C");
                         g.VerifyFieldDefNames();
-                        g.VerifyMethodDefNames("G", "F", ".ctor");
+                        g.VerifyMethodDefNames("F", ".ctor");
                     })
                 .AddGeneration(
                     source: """
@@ -19961,6 +19961,112 @@ file class C
                         // TODO: better test would be to specify FieldDef -> data.
                         // Trailing zero for alignment.
                         g.VerifyEncFieldRvaData([.. Encoding.UTF8.GetBytes("0123456789"), 0x00, 0x00]);
+                    },
+                    options: new EmitDifferenceOptions() { EmitFieldRva = true })
+                .Verify();
+        }
+
+        [Fact]
+        public void PrivateImplDetails_DataSectionStringLiterals_StringReuse_FieldRvaSupported()
+        {
+            // Literals are currently only reused within generation.
+
+            var baseString = new string('x', (1 << 23) - 100);
+            var newString1 = new string('1', 40);
+            var newString2 = new string('2', 80);
+
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            void G(string a, string b, string c) {}
+                        
+                            void F() => G("{{baseString}}", "{{newString1}}", "");
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyFieldDefNames();
+                        g.VerifyMethodDefNames("G", "F", ".ctor");
+                    })
+                .AddGeneration(
+                    source: $$"""
+                        class C
+                        {
+                            void G(string a, string b, string c) {}
+
+                            void F() => G("{{newString2}}", "{{newString2}}", "{{newString1}}");
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "__StaticArrayInitTypeSize=40", "<S>62CF64E173E5BF9EF5312BB6D57CC26C");
+                        g.VerifyFieldDefNames("468D019EA81224AECA7EE270B11959D8A187F6F0B6A3FEBFF1C34DC1D66C8D85", "s");
+                        g.VerifyMethodDefNames("F", "BytesToString", ".cctor");
+
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(4, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(5, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.ClassLayout, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.FieldRva, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.NestedClass, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.NestedClass, EditAndContinueOperation.Default)
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(3, TableIndex.TypeDef),
+                            Handle(4, TableIndex.TypeDef),
+                            Handle(5, TableIndex.TypeDef),
+                            Handle(1, TableIndex.Field),
+                            Handle(2, TableIndex.Field),
+                            Handle(2, TableIndex.MethodDef),
+                            Handle(4, TableIndex.MethodDef),
+                            Handle(5, TableIndex.MethodDef),
+                            Handle(4, TableIndex.Param),
+                            Handle(5, TableIndex.Param),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.ClassLayout),
+                            Handle(1, TableIndex.FieldRva),
+                            Handle(1, TableIndex.NestedClass),
+                            Handle(2, TableIndex.NestedClass)
+                        ]);
+
+                        g.VerifyIL("C.F", """
+                        {
+                          // Code size       23 (0x17)
+                          .maxstack  4
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldstr      "22222222222222222222222222222222222222222222222222222222222222222222222222222222"
+                          IL_0006:  ldstr      "22222222222222222222222222222222222222222222222222222222222222222222222222222222"
+                          IL_000b:  ldsfld     "string <PrivateImplementationDetails>#1.<S>62CF64E173E5BF9EF5312BB6D57CC26C.s"
+                          IL_0010:  call       "void C.G(string, string, string)"
+                          IL_0015:  nop
+                          IL_0016:  ret
+                        }
+                        """);
                     },
                     options: new EmitDifferenceOptions() { EmitFieldRva = true })
                 .Verify();

@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             {
                 Debug.Assert(_allocatedILMarkers != null);
 
-                if (_allocatedILMarkers[_lastCompleteBlock.LastILMarker].BlockOffset != _lastCompleteBlock.RegularInstructionsLength)
+                if (_allocatedILMarkers![_lastCompleteBlock.LastILMarker].BlockOffset == _lastCompleteBlock.RegularInstructionsLength)
                 {
                     int startMarker = -1;
                     int endMarker = -1;

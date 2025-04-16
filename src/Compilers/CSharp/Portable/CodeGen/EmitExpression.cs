@@ -3488,7 +3488,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             else
             {
                 // TODO: use-site dependencies are not reported to UsedAssemblyReferences https://github.com/dotnet/roslyn/issues/78172
-                if (constantValue.IsString && constantValue.StringValue.Length <= _module.Compilation.DataSectionStringLiteralThreshold)
+                if (constantValue.IsString && constantValue.StringValue.Length > _module.Compilation.DataSectionStringLiteralThreshold)
                 {
                     _ = Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_Text_Encoding__get_UTF8, _diagnostics, syntax: syntaxNode);
                     _ = Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_Text_Encoding__GetString, _diagnostics, syntax: syntaxNode);
