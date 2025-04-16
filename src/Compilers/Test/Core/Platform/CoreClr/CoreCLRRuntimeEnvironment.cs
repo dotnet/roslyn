@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Roslyn.Test.Utilities.CoreClr
 {
-    public class CoreCLRRuntimeEnvironment(ModuleData mainModule, ImmutableArray<ModuleData> modules) : IRuntimeEnvironment
+    public sealed class CoreCLRRuntimeEnvironment(ModuleData mainModule, ImmutableArray<ModuleData> modules) : IRuntimeEnvironment
     {
         public ModuleData MainModule { get; } = mainModule;
         public ImmutableArray<ModuleData> Modules { get; } = modules;
