@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Debugging;
@@ -21,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     internal sealed partial class ILBuilder
     {
         private readonly OptimizationLevel _optimizations;
-        internal readonly LocalSlotManager LocalSlotManager;
+        internal readonly LocalSlotManager? LocalSlotManager;
         private readonly DiagnosticBag _diagnostics;
         private readonly LocalScopeManager _scopeManager;
 
@@ -32,10 +30,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal readonly BasicBlock leaderBlock;
 
         private EmitState _emitState;
-        private BasicBlock _lastCompleteBlock;
-        private BasicBlock _currentBlock;
+        private BasicBlock? _lastCompleteBlock;
+        private BasicBlock? _currentBlock;
 
-        private SyntaxTree _lastSeqPointTree;
+        private SyntaxTree? _lastSeqPointTree;
 
         private readonly SmallDictionary<object, LabelInfo> _labelInfos;
         private readonly bool _areLocalsZeroed;
@@ -44,11 +42,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
         // This data is only relevant when builder has been realized.
         internal ImmutableArray<byte> RealizedIL;
         internal ImmutableArray<Cci.ExceptionHandlerRegion> RealizedExceptionHandlers;
-        internal SequencePointList RealizedSequencePoints;
+        internal SequencePointList? RealizedSequencePoints;
 
         // debug sequence points from all blocks, note that each
         // sequence point references absolute IL offset via IL marker
-        public ArrayBuilder<RawSequencePoint> SeqPointsOpt;
+        public ArrayBuilder<RawSequencePoint>? SeqPointsOpt;
 
         /// <summary>
         /// In some cases we have to get a final IL offset during emit phase, for example for
@@ -62,14 +60,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// will be put into <see cref="_allocatedILMarkers"/> array. Note that only markers from reachable blocks
         /// are materialized, the rest will have offset -1.
         /// </summary>
-        private ArrayBuilder<ILMarker> _allocatedILMarkers;
+        private ArrayBuilder<ILMarker>? _allocatedILMarkers;
 
         // Since blocks are created lazily in GetCurrentBlock,
         // pendingBlockCreate is set to true when a block must be
         // created, in particular for leader blocks in exception handlers.
         private bool _pendingBlockCreate;
 
-        internal ILBuilder(CommonPEModuleBuilder module, LocalSlotManager localSlotManager, DiagnosticBag diagnostics, OptimizationLevel optimizations, bool areLocalsZeroed)
+        internal ILBuilder(CommonPEModuleBuilder module, LocalSlotManager? localSlotManager, DiagnosticBag diagnostics, OptimizationLevel optimizations, bool areLocalsZeroed)
         {
             this.module = module;
             this.LocalSlotManager = localSlotManager;
@@ -99,6 +97,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return _currentBlock;
         }
 
+        [MemberNotNull(nameof(_currentBlock))]
         private void CreateBlock()
         {
             Debug.Assert(_currentBlock == null);
@@ -107,6 +106,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             UpdatesForCreatedBlock(block);
         }
 
+        [MemberNotNull(nameof(_currentBlock))]
         private SwitchBlock CreateSwitchBlock()
         {
             // end the current block
@@ -117,10 +117,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return switchBlock;
         }
 
+        [MemberNotNull(nameof(_currentBlock))]
         private void UpdatesForCreatedBlock(BasicBlock block)
         {
-            _currentBlock = block;
+            Debug.Assert(_lastCompleteBlock != null);
             Debug.Assert(_lastCompleteBlock.NextBlock == null);
+
+            _currentBlock = block;
             _lastCompleteBlock.NextBlock = block;
             _pendingBlockCreate = false;
             ReconcileTrailingMarkers();
@@ -157,29 +160,33 @@ namespace Microsoft.CodeAnalysis.CodeGen
             //  should be moved to the next block
             if (_lastCompleteBlock != null &&
                 _lastCompleteBlock.BranchCode == ILOpCode.Nop &&
-                _lastCompleteBlock.LastILMarker >= 0 &&
-                _allocatedILMarkers[_lastCompleteBlock.LastILMarker].BlockOffset == _lastCompleteBlock.RegularInstructionsLength)
+                _lastCompleteBlock.LastILMarker >= 0)
             {
-                int startMarker = -1;
-                int endMarker = -1;
+                Debug.Assert(_allocatedILMarkers != null);
 
-                while (_lastCompleteBlock.LastILMarker >= 0 &&
-                      _allocatedILMarkers[_lastCompleteBlock.LastILMarker].BlockOffset == _lastCompleteBlock.RegularInstructionsLength)
+                if (_allocatedILMarkers[_lastCompleteBlock.LastILMarker].BlockOffset != _lastCompleteBlock.RegularInstructionsLength)
                 {
-                    Debug.Assert((startMarker < 0) || (startMarker == (_lastCompleteBlock.LastILMarker + 1)));
-                    startMarker = _lastCompleteBlock.LastILMarker;
-                    if (endMarker < 0)
+                    int startMarker = -1;
+                    int endMarker = -1;
+
+                    while (_lastCompleteBlock.LastILMarker >= 0 &&
+                          _allocatedILMarkers[_lastCompleteBlock.LastILMarker].BlockOffset == _lastCompleteBlock.RegularInstructionsLength)
                     {
-                        endMarker = _lastCompleteBlock.LastILMarker;
+                        Debug.Assert((startMarker < 0) || (startMarker == (_lastCompleteBlock.LastILMarker + 1)));
+                        startMarker = _lastCompleteBlock.LastILMarker;
+                        if (endMarker < 0)
+                        {
+                            endMarker = _lastCompleteBlock.LastILMarker;
+                        }
+                        _lastCompleteBlock.RemoveTailILMarker(_lastCompleteBlock.LastILMarker);
                     }
-                    _lastCompleteBlock.RemoveTailILMarker(_lastCompleteBlock.LastILMarker);
-                }
 
-                BasicBlock current = this.GetCurrentBlock();
-                for (int marker = startMarker; marker <= endMarker; marker++)
-                {
-                    current.AddILMarker(marker);
-                    _allocatedILMarkers[marker] = new ILMarker() { BlockOffset = (int)current.RegularInstructionsLength, AbsoluteOffset = -1 };
+                    BasicBlock current = this.GetCurrentBlock();
+                    for (int marker = startMarker; marker <= endMarker; marker++)
+                    {
+                        current.AddILMarker(marker);
+                        _allocatedILMarkers[marker] = new ILMarker() { BlockOffset = (int)current.RegularInstructionsLength, AbsoluteOffset = -1 };
+                    }
                 }
             }
         }
@@ -373,7 +380,7 @@ tryAgain:
         // if branch is blocked by a nonterminating finally,
         // returns label for a landing block used as a target of blocked branches
         // Otherwise returns null
-        private static object BlockedBranchDestination(BasicBlock src, BasicBlock dest)
+        private static object? BlockedBranchDestination(BasicBlock src, BasicBlock dest)
         {
             var srcHandler = src.EnclosingHandler;
 
@@ -386,9 +393,9 @@ tryAgain:
             return BlockedBranchDestinationSlow(dest.EnclosingHandler, srcHandler);
         }
 
-        private static object BlockedBranchDestinationSlow(ExceptionHandlerScope destHandler, ExceptionHandlerScope srcHandler)
+        private static object? BlockedBranchDestinationSlow(ExceptionHandlerScope destHandler, ExceptionHandlerScope srcHandler)
         {
-            ScopeInfo destHandlerScope = null;
+            ScopeInfo? destHandlerScope = null;
             if (destHandler != null)
             {
                 destHandlerScope = destHandler.ContainingExceptionScope;
@@ -520,11 +527,11 @@ tryAgain:
                     var labelInfo = _labelInfos[label];
                     var targetBlock = labelInfo.bb;
 
-                    Debug.Assert(!IsSpecialEndHandlerBlock(targetBlock));
+                    Debug.Assert(targetBlock != null && !IsSpecialEndHandlerBlock(targetBlock));
 
                     if (targetBlock.HasNoRegularInstructions)
                     {
-                        BasicBlock targetsTarget = null;
+                        BasicBlock? targetsTarget = null;
                         switch (targetBlock.BranchCode)
                         {
                             case ILOpCode.Br:
@@ -580,11 +587,11 @@ tryAgain:
 
                     var targetBlock = labelInfo.bb;
 
-                    Debug.Assert(!IsSpecialEndHandlerBlock(targetBlock));
+                    Debug.Assert(targetBlock != null && !IsSpecialEndHandlerBlock(targetBlock));
 
                     if (targetBlock.HasNoRegularInstructions)
                     {
-                        BasicBlock targetsTarget = null;
+                        BasicBlock? targetsTarget = null;
                         switch (targetBlock.BranchCode)
                         {
                             case ILOpCode.Br:
@@ -902,6 +909,8 @@ tryAgain:
                     Debug.Assert(blockLastMarker >= blockFirstMarker);
                     for (int i = blockFirstMarker; i <= blockLastMarker; i++)
                     {
+                        Debug.Assert(_allocatedILMarkers != null);
+
                         int blockOffset = _allocatedILMarkers[i].BlockOffset;
                         int absoluteOffset = writer.Count + blockOffset;
                         _allocatedILMarkers[i] = new ILMarker() { BlockOffset = blockOffset, AbsoluteOffset = absoluteOffset };
@@ -1103,7 +1112,7 @@ tryAgain:
             return _emitState.InstructionsEmitted == _instructionCountAtLastLabel;
         }
 
-        internal void OpenLocalScope(ScopeType scopeType = ScopeType.Variable, Cci.ITypeReference exceptionType = null)
+        internal void OpenLocalScope(ScopeType scopeType = ScopeType.Variable, Cci.ITypeReference? exceptionType = null)
         {
             if (scopeType == ScopeType.TryCatchFinally && IsJustPastLabel())
             {
@@ -1271,7 +1280,7 @@ tryAgain:
             if (visType != null)
             {
                 var method = visType.GetTypeInfo().GetDeclaredMethod("ILBuilderToString");
-                return (string)method.Invoke(null, new object[] { this, null, null });
+                return (string)method!.Invoke(null, [this, null, null])!;
             }
 #endif
 

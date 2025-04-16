@@ -27,17 +27,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class MethodCompiler : CSharpSymbolVisitor<TypeCompilationState, object>
     {
+#nullable enable
         private readonly CSharpCompilation _compilation;
         private readonly bool _emittingPdb;
         private readonly CancellationToken _cancellationToken;
         private readonly BindingDiagnosticBag _diagnostics;
         private readonly bool _hasDeclarationErrors;
         private readonly bool _emitMethodBodies;
-        private readonly PEModuleBuilder _moduleBeingBuiltOpt; // Null if compiling for diagnostics
-        private readonly Predicate<Symbol> _filterOpt;         // If not null, limit analysis to specific symbols
-        private readonly SynthesizedEntryPointSymbol.AsyncForwardEntryPoint _entryPointOpt;
+        private readonly PEModuleBuilder? _moduleBeingBuiltOpt; // Null if compiling for diagnostics
+        private readonly Predicate<Symbol>? _filterOpt;         // If not null, limit analysis to specific symbols
+        private readonly SynthesizedEntryPointSymbol.AsyncForwardEntryPoint? _entryPointOpt;
 
-        private DebugDocumentProvider _lazyDebugDocumentProvider;
+        private DebugDocumentProvider? _lazyDebugDocumentProvider;
 
         //
         // MethodCompiler employs concurrency by following flattened fork/join pattern.
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //
         // Stack is used so that the wait would observe the most recently added task and have
         // more chances to do inlined execution.
-        private ConcurrentStack<Task> _compilerTasks;
+        private ConcurrentStack<Task>? _compilerTasks;
 
         // This field tracks whether any bound method body had hasErrors set or whether any constant field had a bad value.
         // We track it so that we can abort emission in the event that an error occurs without a corresponding diagnostic
@@ -83,8 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Internal for testing only.
-        internal MethodCompiler(CSharpCompilation compilation, PEModuleBuilder moduleBeingBuiltOpt, bool emittingPdb, bool hasDeclarationErrors, bool emitMethodBodies,
-            BindingDiagnosticBag diagnostics, Predicate<Symbol> filterOpt, SynthesizedEntryPointSymbol.AsyncForwardEntryPoint entryPointOpt, CancellationToken cancellationToken)
+        internal MethodCompiler(CSharpCompilation compilation, PEModuleBuilder? moduleBeingBuiltOpt, bool emittingPdb, bool hasDeclarationErrors, bool emitMethodBodies,
+            BindingDiagnosticBag diagnostics, Predicate<Symbol>? filterOpt, SynthesizedEntryPointSymbol.AsyncForwardEntryPoint? entryPointOpt, CancellationToken cancellationToken)
         {
             Debug.Assert(compilation != null);
             Debug.Assert(diagnostics != null);
@@ -107,12 +108,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static void CompileMethodBodies(
             CSharpCompilation compilation,
-            PEModuleBuilder moduleBeingBuiltOpt,
+            PEModuleBuilder? moduleBeingBuiltOpt,
             bool emittingPdb,
             bool hasDeclarationErrors,
             bool emitMethodBodies,
             BindingDiagnosticBag diagnostics,
-            Predicate<Symbol> filterOpt,
+            Predicate<Symbol>? filterOpt,
             CancellationToken cancellationToken)
         {
             Debug.Assert(compilation != null);
@@ -132,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // TODO: revise to use a loop instead of a recursion
             }
 
-            MethodSymbol entryPoint = null;
+            MethodSymbol? entryPoint = null;
             if (filterOpt is null)
             {
                 entryPoint = GetEntryPoint(compilation, moduleBeingBuiltOpt, hasDeclarationErrors, emitMethodBodies, diagnostics, cancellationToken);
@@ -197,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (moduleBeingBuiltOpt != null && (methodCompiler._globalHasErrors || moduleBeingBuiltOpt.SourceModule.HasBadAttributes) && !diagnostics.HasAnyErrors() && !hasDeclarationErrors)
             {
                 var messageResourceName = methodCompiler._globalHasErrors ? nameof(CodeAnalysisResources.UnableToDetermineSpecificCauseOfFailure) : nameof(CodeAnalysisResources.ModuleHasInvalidAttributes);
-                diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, NoLocation.Singleton, ((Cci.INamedEntity)moduleBeingBuiltOpt).Name,
+                diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, NoLocation.Singleton, ((Cci.INamedEntity)moduleBeingBuiltOpt).Name!,
                     new LocalizableResourceString(messageResourceName, CodeAnalysisResources.ResourceManager, typeof(CodeAnalysisResources)));
             }
 
@@ -214,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
-
+#nullable disable
         // Returns the MethodSymbol for the assembly entrypoint.  If the user has a Task returning main,
         // this function returns the synthesized Main MethodSymbol.
         internal static MethodSymbol GetEntryPoint(CSharpCompilation compilation, PEModuleBuilder moduleBeingBuilt, bool hasDeclarationErrors, bool emitMethodBodies, BindingDiagnosticBag diagnostics, CancellationToken cancellationToken)
@@ -1385,6 +1386,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
         private void EmitSkeletonMethodInExtension(MethodSymbol methodSymbol)
         {
             if (!_emitMethodBodies)
@@ -1393,6 +1395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(_diagnostics.DiagnosticBag != null);
+            Debug.Assert(_moduleBeingBuiltOpt != null);
 
             ILBuilder builder = new ILBuilder(_moduleBeingBuiltOpt, new LocalSlotManager(slotAllocator: null), _diagnostics.DiagnosticBag, OptimizationLevel.Release, areLocalsZeroed: false);
 
@@ -1425,15 +1428,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     orderedLambdaRuntimeRudeEdits: ImmutableArray<LambdaRuntimeRudeEditInfo>.Empty,
                     closureDebugInfo: ImmutableArray<EncClosureInfo>.Empty,
                     stateMachineTypeNameOpt: null,
-                    stateMachineHoistedLocalScopes: default(ImmutableArray<StateMachineHoistedLocalScope>),
-                    stateMachineHoistedLocalSlots: default(ImmutableArray<EncHoistedLocalInfo>),
-                    stateMachineAwaiterSlots: default(ImmutableArray<Cci.ITypeReference>),
+                    stateMachineHoistedLocalScopes: default,
+                    stateMachineHoistedLocalSlots: default,
+                    stateMachineAwaiterSlots: default,
                     StateMachineStatesDebugInfo.Create(variableSlotAllocator: null, ImmutableArray<StateMachineStateDebugInfo>.Empty),
                     stateMachineMoveNextDebugInfoOpt: null,
                     codeCoverageSpans: ImmutableArray<SourceSpan>.Empty,
                     isPrimaryConstructor: false));
         }
-
+#nullable disable
         private static MethodSymbol GetSymbolForEmittedBody(MethodSymbol methodSymbol)
         {
             return methodSymbol.PartialDefinitionPart ?? methodSymbol;
