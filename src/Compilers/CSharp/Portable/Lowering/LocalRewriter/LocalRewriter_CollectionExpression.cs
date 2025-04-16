@@ -499,8 +499,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)interfaceType.OriginalDefinition == _compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IReadOnlyDictionary_KV))
             {
                 // new ReadOnlyDictionary<K, V>((IDictionary<K, V>)dictionary)
-                // PROTOTYPE: Verify System_Collections_ObjectModel_ReadOnlyDictionary_KV and
-                // System_Collections_ObjectModel_ReadOnlyDictionary_KV__ctor exist in initial binding.
                 var readOnlyDictionaryType = _factory.WellKnownType(WellKnownType.System_Collections_ObjectModel_ReadOnlyDictionary_KV).Construct(typeArguments);
                 var readOnlyDictionaryConstructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_ObjectModel_ReadOnlyDictionary_KV__ctor)).AsMember(readOnlyDictionaryType);
                 collection = _factory.New(

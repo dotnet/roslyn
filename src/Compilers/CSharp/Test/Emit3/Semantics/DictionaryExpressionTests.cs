@@ -1149,6 +1149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void DictionaryNotImplementingIDictionary(string typeName)
         {
             string sourceA = """
+                using System.Collections.Generic;
                 namespace System
                 {
                     public class Object { }
@@ -1209,6 +1210,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         public Dictionary() { }
                         public TValue this[TKey key] { get { return default; } set { } }
+                        IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator() => null;
+                        IEnumerator IEnumerable.GetEnumerator() => null;
+                    }
+                }
+                namespace System.Collections.ObjectModel
+                {
+                    public sealed class ReadOnlyDictionary<TKey, TValue> : IReadOnlyDictionary<TKey, TValue>
+                    {
+                        public ReadOnlyDictionary(IDictionary<TKey, TValue> d) { }
                         IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator() => null;
                         IEnumerator IEnumerable.GetEnumerator() => null;
                     }
@@ -4612,6 +4622,66 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     ICollection<T>.Clear(): System.NotSupportedException
                     """);
             verifier.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("Dictionary")]
+        [InlineData("IDictionary")]
+        [InlineData("IReadOnlyDictionary")]
+        public void IReadOnlyDictionary_MissingMembers(string typeName)
+        {
+            string source = $$"""
+                using System.Collections.Generic;
+                {{typeName}}<int, string> d;
+                var x = new KeyValuePair<int, string>(2, "two");
+                var y = new[] { new KeyValuePair<int, string>(3, "three") };
+                d = [];
+                d = [1:"one"];
+                d = [x, ..y];
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Collections_ObjectModel_ReadOnlyDictionary_KV);
+            if (typeName == "IReadOnlyDictionary")
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (5,5): error CS0656: Missing compiler required member 'System.Collections.ObjectModel.ReadOnlyDictionary`2..ctor'
+                    // d = [];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.ObjectModel.ReadOnlyDictionary`2", ".ctor").WithLocation(5, 5),
+                    // (6,5): error CS0656: Missing compiler required member 'System.Collections.ObjectModel.ReadOnlyDictionary`2..ctor'
+                    // d = [1:"one"];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[1:""one""]").WithArguments("System.Collections.ObjectModel.ReadOnlyDictionary`2", ".ctor").WithLocation(6, 5),
+                    // (7,5): error CS0656: Missing compiler required member 'System.Collections.ObjectModel.ReadOnlyDictionary`2..ctor'
+                    // d = [x, ..y];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[x, ..y]").WithArguments("System.Collections.ObjectModel.ReadOnlyDictionary`2", ".ctor").WithLocation(7, 5));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+
+            comp = CreateCompilation(source);
+            comp.MakeMemberMissing(WellKnownMember.System_Collections_ObjectModel_ReadOnlyDictionary_KV__ctor);
+            if (typeName == "IReadOnlyDictionary")
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (5,5): error CS0656: Missing compiler required member 'System.Collections.ObjectModel.ReadOnlyDictionary`2..ctor'
+                    // d = [];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.ObjectModel.ReadOnlyDictionary`2", ".ctor").WithLocation(5, 5),
+                    // (6,5): error CS0656: Missing compiler required member 'System.Collections.ObjectModel.ReadOnlyDictionary`2..ctor'
+                    // d = [1:"one"];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[1:""one""]").WithArguments("System.Collections.ObjectModel.ReadOnlyDictionary`2", ".ctor").WithLocation(6, 5),
+                    // (7,5): error CS0656: Missing compiler required member 'System.Collections.ObjectModel.ReadOnlyDictionary`2..ctor'
+                    // d = [x, ..y];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[x, ..y]").WithArguments("System.Collections.ObjectModel.ReadOnlyDictionary`2", ".ctor").WithLocation(7, 5));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
         }
 
         [Fact]

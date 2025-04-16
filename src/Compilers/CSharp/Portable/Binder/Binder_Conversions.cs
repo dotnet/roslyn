@@ -945,6 +945,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor, diagnostics, syntax: syntax);
 
+                if ((object)targetType.OriginalDefinition == Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IReadOnlyDictionary_KV))
+                {
+                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_ObjectModel_ReadOnlyDictionary_KV__ctor, diagnostics, syntax: syntax);
+                }
+
                 implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, dictionaryType) { WasCompilerGenerated = true };
                 setMethod = ((MethodSymbol)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__set_Item, diagnostics, syntax: syntax))?.AsMember(dictionaryType);
             }
