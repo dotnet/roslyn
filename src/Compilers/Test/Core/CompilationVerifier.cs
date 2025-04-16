@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             // Limit the number of dumps to 10. After 10 we're likely in a bad state and are 
             // dumping lots of unnecessary data to disk.
-            if (dumpCount > 10 || !DumpAssembliesOnFailure)
+            if (dumpCount > 10)
             {
                 return dumpDirectory;
             }
@@ -337,16 +337,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Verification peVerify,
             SignatureDescription[]? expectedSignatures)
         {
-            var emitData = Emit(manifestResources, emitOptions);
 
+            var emitData = Emit(manifestResources, emitOptions);
             using var testEnvironment = CreateRuntimeEnvironment(emitData.EmittedModule, emitData.Modules);
+
             try
             {
                 testEnvironment.Verify(peVerify);
             }
             catch (Exception)
             {
-                DumpAssemblyData(emitData.Modules);
+                if (DumpAssembliesOnFailure)
+                {
+                    DumpAssemblyData(emitData.Modules);
+                }
 
                 if (peVerify.Status.HasFlag(VerificationStatus.PassesOrFailFast))
                 {
@@ -611,9 +615,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
             else
             {
-                var dumpDir = DumpAssemblyData(dependencyList);
-                var message = ExceptionHelper.GetMessageFromResult(diagnostics.ToReadOnlyAndFree(), dumpDir);
-                throw new Exception(message);
+                var dumpDir = DumpAssembliesOnFailure ? DumpAssemblyData(dependencyList) : null;
+                throw new EmitException(diagnostics.ToReadOnlyAndFree(), dumpDir);
             }
         }
 
