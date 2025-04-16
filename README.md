@@ -46,12 +46,13 @@ Further customize your repo by:
 ### Maintaining your repo based on this template
 
 The best way to keep your repo in sync with this template's evolving features and best practices is to periodically merge the template into your repo:
-
+`
 ```ps1
-git checkout main          # your default branch
-git pull                   # make sure you're at tip
-git fetch libtemplate      # fetch latest Library.Template
-git merge libtemplate/microbuild
+git fetch
+git checkout origin/main
+.\tools\MergeFrom-Template.ps1
+# resolve any conflicts, then commit the merge commit.
+git push origin -u HEAD
 ```
 
 There will frequently be merge conflicts to work out, but they will be easier to resolve than running the `Apply-Template.ps1` script every time, which simply blows away all your local changes with the latest from the template.
