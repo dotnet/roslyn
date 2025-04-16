@@ -147,19 +147,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.UnexpectedValue(member);
         }
 
-        internal static PooledDictionary<object, int>? MakeAdjustedTypeParameterOrdinalsIfNeeded<TMember>(this TMember member, ImmutableArray<TypeParameterSymbol> originalTypeParameters)
+        internal static Dictionary<TypeParameterSymbol, int>? MakeAdjustedTypeParameterOrdinalsIfNeeded<TMember>(this TMember member, ImmutableArray<TypeParameterSymbol> originalTypeParameters)
             where TMember : Symbol
         {
             if (member is MethodSymbol method)
             {
-                PooledDictionary<object, int>? ordinals = null;
+                Dictionary<TypeParameterSymbol, int>? ordinals = null;
                 if (method.GetIsNewExtensionMember() && method.Arity > 0 && method.ContainingType.Arity > 0)
                 {
                     Debug.Assert(originalTypeParameters.Length == method.Arity + method.ContainingType.Arity);
 
                     // Since we're concatenating type parameters from the extension and from the method together
                     // we need to control the ordinals that are used
-                    ordinals = PooledDictionary<object, int>.GetInstance();
+                    ordinals = new Dictionary<TypeParameterSymbol, int>(Roslyn.Utilities.ReferenceEqualityComparer.Instance);
                     for (int i = 0; i < originalTypeParameters.Length; i++)
                     {
                         ordinals.Add(originalTypeParameters[i], i);
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var constraintArgs = new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false,
                    NoLocation.Singleton, diagnostics: BindingDiagnosticBag.Discarded, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded);
 
-                return symbol.CheckConstraintsIncludingExtension(constraintArgs);
+                return symbol.CheckConstraints(constraintArgs);
             }
         }
 #nullable disable

@@ -803,14 +803,6 @@ hasRelatedInterfaces:
             this MethodSymbol method,
             in CheckConstraintsArgs args)
         {
-            Debug.Assert(!method.GetIsNewExtensionMember());
-            return CheckConstraintsIncludingExtension(method, in args);
-        }
-
-        public static bool CheckConstraintsIncludingExtension(
-            this MethodSymbol method,
-            in CheckConstraintsArgs args)
-        {
             if (!RequiresCheckingIncludingExtension(method))
             {
                 return true;
@@ -818,7 +810,7 @@ hasRelatedInterfaces:
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = CheckMethodConstraintsIncludingExtension(
+            var result = CheckMethodConstraints(
                 method,
                 in args,
                 diagnosticsBuilder,
@@ -858,7 +850,7 @@ hasRelatedInterfaces:
                 ref useSiteDiagnosticsBuilder);
         }
 
-        public static bool CheckMethodConstraintsIncludingExtension(
+        public static bool CheckMethodConstraints(
             MethodSymbol method,
             in CheckConstraintsArgs args,
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,

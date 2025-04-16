@@ -34674,7 +34674,7 @@ static class E
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(7, 1));
     }
 
-    [Fact]
+    [Fact(Skip = "Tracked by https://github.com/dotnet/roslyn/issues/76130 : failure in creating binder in GetEnclosingBinder")]
     public void Nullability_Attribute_11()
     {
         var src = """

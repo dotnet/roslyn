@@ -8092,7 +8092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             var typeParameters = definition.GetTypeParametersIncludingExtension();
-            PooledDictionary<object, int>? ordinals = definition.MakeAdjustedTypeParameterOrdinalsIfNeeded(typeParameters);
+            Dictionary<TypeParameterSymbol, int>? ordinals = definition.MakeAdjustedTypeParameterOrdinalsIfNeeded(typeParameters);
 
             var result = MethodTypeInferrer.Infer(
                 _binder,
@@ -8257,7 +8257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var nullabilityBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo>? useSiteDiagnosticsBuilder = null;
 
-            ConstraintsHelper.CheckMethodConstraintsIncludingExtension(
+            ConstraintsHelper.CheckMethodConstraints(
                 method,
                 new ConstraintsHelper.CheckConstraintsArgs(compilation, _conversions, includeNullability: true, NoLocation.Singleton, diagnostics: null, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded),
                 diagnosticsBuilder,

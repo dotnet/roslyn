@@ -804,7 +804,7 @@ outerDefault:
             bool constraintsSatisfied = true;
             if (member is MethodSymbol method)
             {
-                constraintsSatisfied = ConstraintsHelper.CheckMethodConstraintsIncludingExtension(
+                constraintsSatisfied = ConstraintsHelper.CheckMethodConstraints(
                     method,
                     constraintsArgs,
                     diagnosticsBuilder,
@@ -4405,7 +4405,7 @@ outerDefault:
             // a possibly constructed generic type, is exceedingly subtle. See the comments
             // in "Infer" for details.
 
-            PooledDictionary<object, int> ordinals = member.MakeAdjustedTypeParameterOrdinalsIfNeeded(originalTypeParameters);
+            Dictionary<TypeParameterSymbol, int> ordinals = member.MakeAdjustedTypeParameterOrdinalsIfNeeded(originalTypeParameters);
 
             var inferenceResult = MethodTypeInferrer.Infer(
                 _binder,
@@ -4417,8 +4417,6 @@ outerDefault:
                 args,
                 ref useSiteInfo,
                 ordinals: ordinals);
-
-            ordinals?.Free();
 
             if (inferenceResult.Success)
             {
