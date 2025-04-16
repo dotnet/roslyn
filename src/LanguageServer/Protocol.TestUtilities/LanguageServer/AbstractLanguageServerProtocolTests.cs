@@ -502,12 +502,13 @@ public abstract partial class AbstractLanguageServerProtocolTests
         Uri documentUri,
         ImmutableArray<(LSP.Range? Range, string Text)> changes)
     {
-        var changeEvents = new List<LSP.SumType<LSP.TextDocumentContentChangeEvent, LSP.TextDocumentContentChangeFullReplacementEvent>>(changes.Length);
-        foreach (var (range, text) in changes)
+        var changeEvents = new LSP.SumType<LSP.TextDocumentContentChangeEvent, LSP.TextDocumentContentChangeFullReplacementEvent>[changes.Length];
+        for (var i = 0; i < changes.Length; i++)
         {
-            changeEvents.Add(range != null
+            var (range, text) = changes[i];
+            changeEvents[i] = range != null
                 ? new LSP.TextDocumentContentChangeEvent { Text = text, Range = range }
-                : new LSP.TextDocumentContentChangeFullReplacementEvent { Text = text });
+                : new LSP.TextDocumentContentChangeFullReplacementEvent { Text = text };
         }
 
         return new LSP.DidChangeTextDocumentParams()
@@ -516,7 +517,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
             {
                 Uri = documentUri
             },
-            ContentChanges = [.. changeEvents]
+            ContentChanges = changeEvents
         };
     }
 
