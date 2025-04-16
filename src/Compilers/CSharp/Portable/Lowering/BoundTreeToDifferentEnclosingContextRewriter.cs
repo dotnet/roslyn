@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract MethodSymbol CurrentMethod { get; }
 
-        protected virtual bool EnforceAccurateContainerForLocals => false;
+        protected abstract bool EnforceAccurateContainerForLocals { get; }
 
         public override BoundNode DefaultVisit(BoundNode node)
         {
