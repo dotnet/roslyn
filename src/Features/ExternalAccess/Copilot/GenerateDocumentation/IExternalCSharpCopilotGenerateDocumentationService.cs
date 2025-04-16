@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,6 +10,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot
 {
     internal interface IExternalCSharpCopilotGenerateDocumentationService
     {
-        Task<ImmutableArray<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)>> GetDocumentationCommentAsync(ImmutableArray<CopilotDocumentationCommentProposalWrapper> proposals, CancellationToken cancellationToken);
+        Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentAsync(CopilotDocumentationCommentProposalWrapper proposal, CancellationToken cancellationToken);
     }
 }
