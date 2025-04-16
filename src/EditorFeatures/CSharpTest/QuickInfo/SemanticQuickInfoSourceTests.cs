@@ -5548,7 +5548,6 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
     public async Task TestPreprocessingSymbol()
     {
         var markup = """
-
             using System.Threading;
             using System.Threading.Tasks;
 
