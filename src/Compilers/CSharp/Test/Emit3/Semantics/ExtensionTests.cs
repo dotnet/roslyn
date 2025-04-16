@@ -35089,4 +35089,25 @@ static class E
             // (b switch { true => 1, false => null}).M(ERROR);
             Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(5, 42));
     }
+
+    [Fact]
+    public void BuildArgumentsForErrorRecovery_04()
+    {
+        var source = @"
+object.M(ERROR);
+
+static class E
+{
+    extension(object)
+    {
+        public static void M(object o) => throw null!;
+    }
+}
+";
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (2,10): error CS0103: The name 'ERROR' does not exist in the current context
+            // object.M(ERROR);
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(2, 10));
+    }
 }

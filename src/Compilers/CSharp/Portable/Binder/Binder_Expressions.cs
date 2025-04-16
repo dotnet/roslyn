@@ -11146,7 +11146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool satisfiesConstraintChecks(MethodSymbol method)
             {
                 Debug.Assert(!method.GetIsNewExtensionMember());
-                if (!ConstraintsHelper.RequiresCheckingIncludingExtension(method))
+                if (!ConstraintsHelper.RequiresChecking(method))
                 {
                     return true;
                 }

@@ -7057,10 +7057,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         parametersOpt = method.GetParametersIncludingExtensionParameter();
                     }
 
-                    if (ConstraintsHelper.RequiresCheckingIncludingExtension(method))
+                    if (ConstraintsHelper.RequiresChecking(method))
                     {
                         var syntax = node.Syntax;
-                        CheckMethodConstraintsIncludingExtension(
+                        CheckMethodConstraints(
                             syntax switch
                             {
                                 InvocationExpressionSyntax { Expression: var expression } => expression,
@@ -8246,7 +8246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void CheckMethodConstraintsIncludingExtension(SyntaxNode syntax, MethodSymbol method)
+        private void CheckMethodConstraints(SyntaxNode syntax, MethodSymbol method)
         {
             if (_disableDiagnostics)
             {
@@ -10100,9 +10100,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (ConstraintsHelper.RequiresCheckingIncludingExtension(method))
+                if (ConstraintsHelper.RequiresChecking(method))
                 {
-                    CheckMethodConstraintsIncludingExtension(syntax, method);
+                    CheckMethodConstraints(syntax, method);
                 }
             }
             return method;
@@ -10464,9 +10464,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     deconstructMethod = InferMethodTypeArguments(deconstructMethod, placeholderArgs.ToImmutableAndFree(), argumentRefKinds, argsToParams, invocation.Expanded);
 
                     // check the constraints remain valid with the re-inferred parameter types
-                    if (ConstraintsHelper.RequiresCheckingIncludingExtension(deconstructMethod))
+                    if (ConstraintsHelper.RequiresChecking(deconstructMethod))
                     {
-                        CheckMethodConstraintsIncludingExtension(invocation.Syntax, deconstructMethod);
+                        CheckMethodConstraints(invocation.Syntax, deconstructMethod);
                     }
                 }
 
