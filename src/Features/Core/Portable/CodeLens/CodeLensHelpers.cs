@@ -11,6 +11,8 @@ internal static class CodeLensHelpers
 {
     public static DocumentId? GetSourceGeneratorDocumentId(IDictionary<object, object> descriptorProperties)
     {
+        // Undocumented contract here:'
+        // https://devdiv.visualstudio.com/DevDiv/_git/VS?path=/src/CodeSense/Framework/Roslyn/Roslyn/Editor/CodeElementTag.cs&version=GBmain&_a=contents&line=84&lineStyle=plain&lineEnd=85&lineStartColumn=1&lineEndColumn=96
         if (TryGetGuid("RoslynDocumentIdGuid", out var documentIdGuid) &&
             TryGetGuid("RoslynProjectIdGuid", out var projectIdGuid))
         {
