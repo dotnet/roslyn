@@ -60,6 +60,5 @@ internal sealed partial class DidChangeConfigurationNotificationHandler
         LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore,
         MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources,
         LspOptionsStorage.LspOrganizeImportsOnFormat,
-        WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, // Temporarily added to enable Razor cohosting dogfooding. Not exposed in the VS Code UI
     ];
 }
