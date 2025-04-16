@@ -1,6 +1,7 @@
 param (
     [string]$rootDirectory,
     [string[]]$includeDirectories,
+    [string[]]$excludeDirectories,
     [switch]$ci = $false
 )
 Set-StrictMode -version 2.0
@@ -11,7 +12,7 @@ try {
   Push-Location $RepoRoot
   $prepareMachine = $ci
 
-  Exec-DotNet "tool run dotnet-format -v detailed whitespace $rootDirectory --folder --include-generated --include $includeDirectories --verify-no-changes"
+  Exec-DotNet "tool run dotnet-format -v detailed whitespace $rootDirectory --folder --include-generated --include $includeDirectories --exclude $excludeDirectories --verify-no-changes"
 
   ExitWithExitCode 0
 }

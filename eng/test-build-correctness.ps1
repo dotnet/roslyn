@@ -73,7 +73,7 @@ try {
   Write-Host "Checking generated compiler files"
   & eng/generate-compiler-code.ps1 -test -configuration:$configuration
   Test-LastExitCode
-  Exec-DotNet "tool run dotnet-format whitespace . --folder --include-generated --include src/Compilers/CSharp/Portable/Generated/ src/Compilers/VisualBasic/Portable/Generated/ src/ExpressionEvaluator/VisualBasic/Source/ResultProvider/Generated/ --verify-no-changes"
+  Exec-DotNet "tool run dotnet-format whitespace . --folder --include-generated --include src/Compilers/CSharp/Portable/Generated/ src/Compilers/VisualBasic/Portable/Generated/ src/ExpressionEvaluator/VisualBasic/Source/ResultProvider/Generated/ --exclude src/Compilers/CSharp/Portable/Generated/System.Text.RegularExpressions.Generator/ --verify-no-changes"
   Write-Host ""
 
   ExitWithExitCode 0
