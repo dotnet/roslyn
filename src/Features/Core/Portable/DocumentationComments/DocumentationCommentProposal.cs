@@ -11,19 +11,13 @@ namespace Microsoft.CodeAnalysis.DocumentationComments;
 /// </summary>
 internal sealed record DocumentationCommentProposal
 {
-    public Document Document { get; }
-
-    /// <summary>
-    /// Represents the node that is getting an auto-inserted documentation comment.
-    /// </summary>
-    public SyntaxNode MemberNode { get; }
+    public string SymbolToAnalyze { get; }
 
     public ImmutableArray<DocumentationCommentProposedEdit> ProposedEdits { get; }
 
-    public DocumentationCommentProposal(Document document, SyntaxNode memberNode, ImmutableArray<DocumentationCommentProposedEdit> proposedEdits)
+    public DocumentationCommentProposal(string symbolToAnalyze, ImmutableArray<DocumentationCommentProposedEdit> proposedEdits)
     {
-        Document = document;
-        MemberNode = memberNode;
+        SymbolToAnalyze = symbolToAnalyze;
         ProposedEdits = proposedEdits;
     }
 }
