@@ -5544,6 +5544,32 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78171")]
+    public async Task TestPreprocessingSymbol()
+    {
+        var markup = """
+
+            using System.Threading;
+            using System.Threading.Tasks;
+
+            class Program
+            {
+                async Task Process(CancellationToken cancellationToken = default)
+                {
+            #if N$$ET
+                    // .NET requires 100ms delay in this fictional example
+                    await Task.Delay(100, cancellationToken);
+            #else
+                    // .NET Framework requires 200ms delay in this fictional example, and we can't pass a CT on it
+                    await Task.Delay(200);
+            #endif
+                }
+            }
+            """;
+
+        await TestAsync(markup, MainDescription("NET"));
+    }
+
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546849")]
     public async Task TestIndexedProperty()
     {
