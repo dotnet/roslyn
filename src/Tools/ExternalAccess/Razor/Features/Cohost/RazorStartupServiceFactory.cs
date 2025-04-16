@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 
-[ExportCSharpVisualBasicLspServiceFactory(typeof(RazorDynamicRegistrationService), WellKnownLspServerKinds.Any), Shared]
+[ExportCSharpVisualBasicLspServiceFactory(typeof(RazorStartupService), WellKnownLspServerKinds.Any), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class RazorStartupServiceFactory(
@@ -27,10 +27,10 @@ internal sealed class RazorStartupServiceFactory(
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
-        return new RazorDynamicRegistrationService(uIContextActivationService, dynamicRegistrationService, cohostStartupService);
+        return new RazorStartupService(uIContextActivationService, dynamicRegistrationService, cohostStartupService);
     }
 
-    private class RazorDynamicRegistrationService(
+    private class RazorStartupService(
         IUIContextActivationService? uIContextActivationService,
 #pragma warning disable CS0618 // Type or member is obsolete
         Lazy<IRazorCohostDynamicRegistrationService>? dynamicRegistrationService,
