@@ -161,9 +161,9 @@ namespace Roslyn.Test.Utilities.Desktop
             }
         }
 
-        public (int ExitCode, string Output, string ErrorOutput) Execute(string[] args, int? maxOutputLength)
+        public (int ExitCode, string Output, string ErrorOutput) Execute(string[] args)
         {
-            var exitCode = Data.Manager.Execute(MainModule.FullName, args, maxOutputLength, out string output, out string errorOutput);
+            var exitCode = Data.Manager.Execute(MainModule.FullName, args, out string output, out string errorOutput);
             return (exitCode, output, errorOutput);
         }
 
@@ -252,10 +252,10 @@ namespace Roslyn.Test.Utilities.Desktop
 
         private static readonly object s_consoleGuard = new object();
 
-        internal static void Capture(Action action, int? maxOutputLength, out string output, out string errorOutput)
+        internal static (string Output, string ErrorOutput) CaptureOutput(Action action)
         {
-            TextWriter errorOutputWriter = new CappedStringWriter(maxOutputLength);
-            TextWriter outputWriter = new CappedStringWriter(maxOutputLength);
+            using var outputWriter = new StringWriter(CultureInfo.InvariantCulture);
+            using var errorWriter = new StringWriter(CultureInfo.InvariantCulture);
 
             lock (s_consoleGuard)
             {
@@ -264,7 +264,7 @@ namespace Roslyn.Test.Utilities.Desktop
                 try
                 {
                     Console.SetOut(outputWriter);
-                    Console.SetError(errorOutputWriter);
+                    Console.SetError(errorWriter);
                     action();
                 }
                 finally
@@ -274,12 +274,10 @@ namespace Roslyn.Test.Utilities.Desktop
                 }
             }
 
-            output = outputWriter.ToString();
-            errorOutput = errorOutputWriter.ToString();
+            var output = outputWriter.ToString();
+            var errorOutput = errorWriter.ToString();
+            return (output, errorOutput);
         }
-
-        public void CaptureOutput(Action action, int? maxOutputLength, out string output, out string errorOutput) =>
-            Capture(action, maxOutputLength, out output, out errorOutput);
     }
 }
 #endif

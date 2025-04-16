@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (expectedOutput != null || expectedReturnCode != null)
             {
-                var (exitCode, output, errorOutput) = testEnvironment.Execute(args ?? [], expectedOutput?.Length);
+                var (exitCode, output, errorOutput) = testEnvironment.Execute(args ?? []);
                 if (expectedReturnCode.HasValue)
                 {
                     Assert.Equal(expectedReturnCode.Value, exitCode);
@@ -627,7 +627,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 modules = [.. modules, .. _dependencies];
             }
 
-            return RuntimeEnvironmentFactory.Create(mainModule, modules);
+            return RuntimeUtilities.CreateRuntimeEnvironment(mainModule, modules);
         }
 
         /// <summary>
