@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,5 +16,5 @@ internal interface IRemoteCopilotChangeAnalysisService : IWorkspaceService
 {
     /// <inheritdoc cref="ICopilotChangeAnalysisService.AnalyzeChangeAsync"/>
     ValueTask<CopilotChangeAnalysis> AnalyzeChangeAsync(
-        Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TextChange> edits, CancellationToken cancellationToken);
+        Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TextChange> edits, Guid correlationId, CancellationToken cancellationToken);
 }
