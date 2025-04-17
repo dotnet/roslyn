@@ -324,16 +324,18 @@ public sealed class FileBasedProgramTests : TestBase
             #:property Prop 3
             """;
 
+        var expectedDiagnostics = new[]
+        {
+            // /app/Program.cs(5,1): error CS9312: This directive cannot be converted. Run the file to see more details.
+            // #:property Prop 3
+            Diagnostic(ErrorCode.ERR_CannotConvertDirective).WithLocation(5, 1),
+        };
+
         VerifyConversion(
             inputCSharp: source,
             expectedProject: null,
             expectedCSharp: null,
-            expectedDiagnostics:
-            [
-                // /app/Program.cs(5,1): error CS9312: This directive cannot be converted. Run the file to see more details.
-                // #:property Prop 3
-                Diagnostic(ErrorCode.ERR_CannotConvertDirective).WithLocation(5, 1),
-            ]);
+            expectedDiagnostics: expectedDiagnostics);
 
         VerifyConversion(
             inputCSharp: source,
@@ -360,7 +362,8 @@ public sealed class FileBasedProgramTests : TestBase
                 #define X
                 Console.WriteLine();
                 #:property Prop 3
-                """);
+                """,
+            expectedDiagnostics: expectedDiagnostics);
     }
 
     /// <summary>
@@ -379,19 +382,21 @@ public sealed class FileBasedProgramTests : TestBase
             #:property Prop 4
             """;
 
+        var expectedDiagnostics = new[]
+        {
+            // /app/Program.cs(5,1): error CS9312: This directive cannot be converted. Run the file to see more details.
+            // #:property Prop 3
+            Diagnostic(ErrorCode.ERR_CannotConvertDirective).WithLocation(5, 1),
+            // /app/Program.cs(7,1): error CS9312: This directive cannot be converted. Run the file to see more details.
+            // #:property Prop 4
+            Diagnostic(ErrorCode.ERR_CannotConvertDirective).WithLocation(7, 1),
+        };
+
         VerifyConversion(
             inputCSharp: source,
             expectedProject: null,
             expectedCSharp: null,
-            expectedDiagnostics:
-            [
-                // /app/Program.cs(5,1): error CS9312: This directive cannot be converted. Run the file to see more details.
-                // #:property Prop 3
-                Diagnostic(ErrorCode.ERR_CannotConvertDirective).WithLocation(5, 1),
-                // /app/Program.cs(7,1): error CS9312: This directive cannot be converted. Run the file to see more details.
-                // #:property Prop 4
-                Diagnostic(ErrorCode.ERR_CannotConvertDirective).WithLocation(7, 1),
-            ]);
+            expectedDiagnostics: expectedDiagnostics);
 
         VerifyConversion(
             inputCSharp: source,
@@ -420,7 +425,8 @@ public sealed class FileBasedProgramTests : TestBase
                 #:property Prop 3
                 #endif
                 #:property Prop 4
-                """);
+                """,
+            expectedDiagnostics: expectedDiagnostics);
     }
 
     /// <summary>
