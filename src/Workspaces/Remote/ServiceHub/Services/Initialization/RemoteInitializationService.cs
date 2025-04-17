@@ -23,18 +23,20 @@ internal sealed class RemoteInitializationService(
     /// <summary>
     /// Remote API.
     /// </summary>
-    public async ValueTask<int> InitializeAsync(WorkspaceConfigurationOptions options, string localSettingsDirectory, CancellationToken cancellationToken)
+    public async ValueTask<(int ProcessId, string? ErrorMessage)> InitializeAsync(WorkspaceConfigurationOptions options, string localSettingsDirectory, CancellationToken cancellationToken)
     {
         // Performed before RunServiceAsync to ensure that the export provider is initialized before the RemoteWorkspaceManager is created
         // as part of the RunServiceAsync call.
-        await RemoteExportProviderBuilder.InitializeAsync(localSettingsDirectory, cancellationToken).ConfigureAwait(false);
+        var errorMessage = await RemoteExportProviderBuilder.InitializeAsync(localSettingsDirectory, cancellationToken).ConfigureAwait(false);
 
-        return await RunServiceAsync(cancellationToken =>
+        var processId = await RunServiceAsync(cancellationToken =>
         {
             var service = (RemoteWorkspaceConfigurationService)GetWorkspaceServices().GetRequiredService<IWorkspaceConfigurationService>();
             service.InitializeOptions(options);
 
             return ValueTaskFactory.FromResult(Process.GetCurrentProcess().Id);
         }, cancellationToken).ConfigureAwait(false);
+
+        return (processId, errorMessage);
     }
 }

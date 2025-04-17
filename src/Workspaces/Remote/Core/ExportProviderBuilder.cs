@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
@@ -109,7 +110,7 @@ internal abstract class ExportProviderBuilder(
         static string ComputeAssemblyHash(ImmutableArray<string> assemblyPaths)
         {
             // Ensure AssemblyPaths are always in the same order.
-            assemblyPaths = assemblyPaths.Sort();
+            assemblyPaths = assemblyPaths.Sort(StringComparer.Ordinal);
 
             var hashContents = new StringBuilder();
 
@@ -143,28 +144,18 @@ internal abstract class ExportProviderBuilder(
         {
             await Task.Yield().ConfigureAwait(false);
 
-            if (Path.GetDirectoryName(compositionCacheFile) is string directory)
-            {
-                var directoryInfo = Directory.CreateDirectory(directory);
-                PerformCacheDirectoryCleanup(directoryInfo, cancellationToken);
-            }
+            var directory = Path.GetDirectoryName(compositionCacheFile)!;
+            var directoryInfo = Directory.CreateDirectory(directory);
+            PerformCacheDirectoryCleanup(directoryInfo, cancellationToken);
 
             CachedComposition cachedComposition = new();
-            var tempFilePath = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
+            var tempFilePath = Path.Combine(directory, Path.GetRandomFileName());
             using (FileStream cacheStream = new(tempFilePath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true))
             {
                 await cachedComposition.SaveAsync(config, cacheStream, cancellationToken).ConfigureAwait(false);
             }
 
-#if NET
-            File.Move(tempFilePath, compositionCacheFile, overwrite: true);
-#else
-            // On .NET Framework, File.Move doesn't support overwriting the destination file. Use File.Delete first
-            // to ensure the destination file is removed before moving the temp file. File.Delete will not throw if
-            // the file doesn't exist.
-            File.Delete(compositionCacheFile);
             File.Move(tempFilePath, compositionCacheFile);
-#endif
         }
         catch (Exception ex)
         {
@@ -175,9 +166,9 @@ internal abstract class ExportProviderBuilder(
     protected virtual void PerformCacheDirectoryCleanup(DirectoryInfo directoryInfo, CancellationToken cancellationToken)
     {
         // Delete any existing cached files.
-        foreach (var fileInfo in directoryInfo.EnumerateFiles($"*{CatalogSuffix}"))
+        foreach (var fileInfo in directoryInfo.EnumerateFiles())
         {
-            fileInfo.Delete();
+            IOUtilities.PerformIO(fileInfo.Delete);
             cancellationToken.ThrowIfCancellationRequested();
         }
     }

@@ -73,15 +73,18 @@ internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
 
             var workspaceConfigurationService = services.GetRequiredService<IWorkspaceConfigurationService>();
 
-            var remoteProcessId = await client.TryInvokeAsync<IRemoteInitializationService, int>(
+            var remoteProcessIdAnderrorMessage = await client.TryInvokeAsync<IRemoteInitializationService, (int ProcessId, string? ErrorMessage)>(
                 (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, localSettingsDirectory, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
-            if (remoteProcessId.HasValue)
+            if (remoteProcessIdAnderrorMessage.HasValue)
             {
+                if (remoteProcessIdAnderrorMessage.Value.ErrorMessage != null)
+                    hubClient.Logger.TraceEvent(TraceEventType.Error, 1, $"ServiceHub initializion error: {remoteProcessIdAnderrorMessage.Value.ErrorMessage}");
+
                 try
                 {
-                    client._remoteProcess = Process.GetProcessById(remoteProcessId.Value);
+                    client._remoteProcess = Process.GetProcessById(remoteProcessIdAnderrorMessage.Value.ProcessId);
                 }
                 catch (Exception e)
                 {

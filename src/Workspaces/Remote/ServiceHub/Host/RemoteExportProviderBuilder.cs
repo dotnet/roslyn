@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Extensions;
@@ -28,7 +29,9 @@ internal sealed class RemoteExportProviderBuilder : ExportProviderBuilder
 
     private static ExportProvider? s_instance;
     internal static ExportProvider ExportProvider
-        => s_instance ?? throw new InvalidOperationException("Default export provider not initialized. Call InitializeAsync first.");
+        => s_instance ?? throw new InvalidOperationException($"Default export provider not initialized. Call {nameof(InitializeAsync)} first.");
+
+    private StringBuilder? _errorMessages;
 
     private RemoteExportProviderBuilder(
         ImmutableArray<string> assemblyPaths,
@@ -40,7 +43,7 @@ internal sealed class RemoteExportProviderBuilder : ExportProviderBuilder
     {
     }
 
-    public static async Task InitializeAsync(string localSettingsDirectory, CancellationToken cancellationToken)
+    public static async Task<string?> InitializeAsync(string localSettingsDirectory, CancellationToken cancellationToken)
     {
         var builder = new RemoteExportProviderBuilder(
             assemblyPaths: RemoteHostAssemblies.SelectAsArray(static a => a.Location),
@@ -50,10 +53,14 @@ internal sealed class RemoteExportProviderBuilder : ExportProviderBuilder
             expectedErrorParts: ["PythiaSignatureHelpProvider", "VSTypeScriptAnalyzerService", "RazorTestLanguageServerFactory", "CodeFixService"]);
 
         s_instance = await builder.CreateExportProviderAsync(cancellationToken).ConfigureAwait(false);
+
+        return builder._errorMessages?.ToString();
     }
 
     protected override void LogError(string message)
     {
+        _errorMessages ??= new StringBuilder();
+        _errorMessages.AppendLine(message);
     }
 
     protected override void LogTrace(string message)
