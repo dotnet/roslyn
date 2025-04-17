@@ -15,7 +15,7 @@ internal sealed class HostDiagnosticAnalyzerProvider(string? razorSourceGenerato
 
     public ImmutableArray<(string path, string extensionId)> GetRazorAssembliesInExtensions()
     {
-        if (razorSourceGenerator is not null)
+        if (File.Exists(razorSourceGenerator))
         {
             return [(razorSourceGenerator, ProjectSystemProject.RazorVsixExtensionId)];
         }
