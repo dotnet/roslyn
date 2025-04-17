@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
@@ -43,6 +44,9 @@ namespace Microsoft.CodeAnalysis.Emit
         private ImmutableArray<Cci.ManagedResource> _lazyManagedResources;
         private IEnumerable<EmbeddedText> _embeddedTexts = SpecializedCollections.EmptyEnumerable<EmbeddedText>();
         private ArrayMethods? _lazyArrayMethods;
+
+        // Calculted when emitting EnC deltas.
+        private IReadOnlyDictionary<Cci.ITypeDefinition, ArrayBuilder<Cci.IMethodDefinition>>? _encDeletedMethodDefinitions;
 
         // Only set when running tests to allow inspection of the emitted data.
         internal CompilationTestData? TestData { get; private set; }
@@ -112,6 +116,27 @@ namespace Microsoft.CodeAnalysis.Emit
         /// Returns the HotReloadException type symbol if it has been used in this compilation, null otherwise.
         /// </summary>
         public abstract INamedTypeSymbolInternal? GetUsedSynthesizedHotReloadExceptionType();
+
+        /// <summary>
+        /// Creates definitions for deleted methods based on symbol changes if emitting EnC delta.
+        /// Must be called before <see cref="PrivateImplementationDetails.Freeze"/>.
+        /// </summary>
+        public void CreateDeletedMethodDefinitions(DiagnosticBag diagnosticBag)
+        {
+            Debug.Assert(_encDeletedMethodDefinitions == null);
+
+            if (EncSymbolChanges != null)
+            {
+                var context = new EmitContext(this, diagnosticBag, metadataOnly: false, includePrivateMembers: true);
+                _encDeletedMethodDefinitions = DeltaMetadataWriter.CreateDeletedMethodsDefs(context, EncSymbolChanges);
+            }
+        }
+
+        public IReadOnlyDictionary<Cci.ITypeDefinition, ArrayBuilder<Cci.IMethodDefinition>> GetDeletedMethodDefinitions()
+        {
+            Debug.Assert(_encDeletedMethodDefinitions != null);
+            return _encDeletedMethodDefinitions;
+        }
 
 #nullable disable
 
@@ -211,12 +236,12 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <summary>
         /// <see cref="PrivateImplementationDetails.TryGetOrCreateFieldForStringValue"/>
         /// </summary>
-        public Cci.IFieldReference? TryGetOrCreateFieldForStringValue(string text, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        public Cci.IFieldReference? TryGetOrCreateFieldForStringValue(string text, SyntaxNode? syntaxNode, DiagnosticBag diagnostics)
             => PrivateImplementationDetails.TryGetOrCreateFieldForStringValue(text, this, syntaxNode, diagnostics);
 
         public abstract IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypeDefinitions(EmitContext context);
 
-        public IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypeDefinitionsCore(EmitContext context)
+        public IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypeDefinitionsExcludingNoPiaAndRootModule(EmitContext context, bool includePrivateImplementationDetails)
         {
             foreach (var typeDef in GetAnonymousTypeDefinitions(context))
             {
@@ -238,14 +263,17 @@ namespace Microsoft.CodeAnalysis.Emit
                 yield return typeDef;
             }
 
-            var privateImpl = GetFrozenPrivateImplementationDetails();
-            if (privateImpl != null)
+            if (includePrivateImplementationDetails)
             {
-                yield return privateImpl;
-
-                foreach (var typeDef in privateImpl.GetAdditionalTopLevelTypes())
+                var privateImpl = GetFrozenPrivateImplementationDetails();
+                if (privateImpl != null)
                 {
-                    yield return typeDef;
+                    yield return privateImpl;
+
+                    foreach (var typeDef in privateImpl.GetAdditionalTopLevelTypes())
+                    {
+                        yield return typeDef;
+                    }
                 }
             }
         }
@@ -720,7 +748,7 @@ namespace Microsoft.CodeAnalysis.Emit
             VisitTopLevelType(typeReferenceIndexer, RootModuleType);
             yield return RootModuleType;
 
-            foreach (var typeDef in GetTopLevelTypeDefinitionsCore(context))
+            foreach (var typeDef in GetTopLevelTypeDefinitionsExcludingNoPiaAndRootModule(context, includePrivateImplementationDetails: true))
             {
                 AddTopLevelType(names, typeDef);
                 VisitTopLevelType(typeReferenceIndexer, typeDef);

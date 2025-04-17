@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal static Cci.IFieldReference? TryGetOrCreateFieldForStringValue(
             string text,
             CommonPEModuleBuilder moduleBuilder,
-            SyntaxNode syntaxNode,
+            SyntaxNode? syntaxNode,
             DiagnosticBag diagnostics)
         {
             if (!text.TryGetUtf8ByteRepresentation(out byte[]? data, out _))
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     var messageProvider = @this.ModuleBuilder.CommonCompilation.MessageProvider;
                     diagnostics.Add(messageProvider.CreateDiagnostic(
                         messageProvider.ERR_DataSectionStringLiteralHashCollision,
-                        syntaxNode.GetLocation(),
+                        syntaxNode?.GetLocation() ?? Location.None,
                         previousText[..Math.Min(previousText.Length, 500)]));
                 }
 

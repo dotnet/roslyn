@@ -269,6 +269,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     compiler.ProcessEmbeddedMethods()
                 End If
 
+                ' Deleted definitions must be emitted before PrivateImplementationDetails are frozen since
+                ' it may add new members to it. All changes to PrivateImplementationDetails are additions,
+                ' so we don't need to create deleted method defs for those.
+                moduleBeingBuiltOpt.CreateDeletedMethodDefinitions(diagnostics.DiagnosticBag)
+
                 ' all threads that were adding methods must be finished now, we can freeze the class:
                 Dim privateImplClass = moduleBeingBuiltOpt.FreezePrivateImplementationDetails()
                 If privateImplClass IsNot Nothing Then

@@ -3442,7 +3442,6 @@ namespace Microsoft.CodeAnalysis
         internal EmitBaseline? SerializeToDeltaStreams(
             CommonPEModuleBuilder moduleBeingBuilt,
             DefinitionMap definitionMap,
-            SymbolChanges changes,
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
@@ -3462,7 +3461,6 @@ namespace Microsoft.CodeAnalysis
             using (nativePdbWriter)
             {
                 var context = new EmitContext(moduleBeingBuilt, diagnostics, metadataOnly: false, includePrivateMembers: true);
-                var deletedMethodDefs = DeltaMetadataWriter.CreateDeletedMethodsDefs(context, changes);
 
                 // Map the definitions from the previous compilation to the current compilation.
                 // This must be done after compiling since synthesized definitions (generated when compiling method bodies)
@@ -3480,8 +3478,6 @@ namespace Microsoft.CodeAnalysis
                         baseline,
                         encId,
                         definitionMap,
-                        changes,
-                        deletedMethodDefs,
                         cancellationToken);
 
                     moduleBeingBuilt.TestData?.SetMetadataWriter(writer);
@@ -3517,7 +3513,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 finally
                 {
-                    foreach (var (_, builder) in deletedMethodDefs)
+                    foreach (var (_, builder) in moduleBeingBuilt.GetDeletedMethodDefinitions())
                     {
                         builder.Free();
                     }

@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
 
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypeDefinitions(EmitContext context)
-            => GetTopLevelTypeDefinitionsCore(context);
+            => GetTopLevelTypeDefinitionsExcludingNoPiaAndRootModule(context, includePrivateImplementationDetails: true);
 
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelSourceTypeDefinitions(EmitContext context)
         {

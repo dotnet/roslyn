@@ -181,11 +181,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             internal void VerifyCustomDebugInformation(string qualifiedMemberName, string expectedPdb)
                 => VerifyPdb(qualifiedMemberName, expectedPdb, PdbValidationOptions.ExcludeDocuments | PdbValidationOptions.ExcludeSequencePoints | PdbValidationOptions.ExcludeScopes);
 
-            internal void VerifyIL(string expectedIL)
+            internal void VerifyEncFieldRvaData(string expected)
                 => Verify(() =>
                 {
                     Debug.Assert(generationInfo.CompilationDifference != null);
-                    generationInfo.CompilationDifference.VerifyIL(expectedIL);
+
+                    var actual = ILValidation.DumpEncDeltaFieldData(generationInfo.CompilationDifference.ILDelta, readers);
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, actual, escapeQuotes: false);
+                });
+
+            internal void VerifyIL(string expected)
+                => Verify(() =>
+                {
+                    Debug.Assert(generationInfo.CompilationDifference != null);
+
+                    var actual = ILValidation.DumpEncDeltaMethodBodies(generationInfo.CompilationDifference.ILDelta, readers);
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, actual, escapeQuotes: false);
                 });
 
             internal void VerifyIL(string qualifiedMemberName, string expectedIL)
@@ -200,13 +211,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                         Debug.Assert(generationInfo.CompilationDifference != null);
                         generationInfo.CompilationDifference.VerifyIL(qualifiedMemberName, expectedIL);
                     }
-                });
-
-            internal void VerifyEncFieldRvaData(byte[] expected)
-                => Verify(() =>
-                {
-                    Debug.Assert(generationInfo.CompilationDifference != null);
-                    AssertEx.SequenceEqual(expected, generationInfo.CompilationDifference.ILDelta[^expected.Length..]);
                 });
 
             public void VerifyLocalSignature(string qualifiedMethodName, string expectedSignature)

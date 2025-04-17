@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly EmitBaseline _previousGeneration;
         private readonly Guid _encId;
         private readonly DefinitionMap _definitionMap;
-        private readonly SymbolChanges _changes;
 
         /// <summary>
         /// Type definitions containing any changes (includes added types).
@@ -73,8 +72,6 @@ namespace Microsoft.CodeAnalysis.Emit
             EmitBaseline previousGeneration,
             Guid encId,
             DefinitionMap definitionMap,
-            SymbolChanges changes,
-            IReadOnlyDictionary<ITypeDefinition, ArrayBuilder<IMethodDefinition>> deletedMethodDefs,
             CancellationToken cancellationToken)
             : base(metadata: MakeTablesBuilder(previousGeneration),
                    debugMetadataOpt: (context.Module.DebugInformationFormat == DebugInformationFormat.PortablePdb) ? new MetadataBuilder() : null,
@@ -87,20 +84,20 @@ namespace Microsoft.CodeAnalysis.Emit
                    cancellationToken: cancellationToken)
         {
             Debug.Assert(previousGeneration != null);
-            Debug.Assert(encId != default(Guid));
+            Debug.Assert(encId != default);
             Debug.Assert(encId != previousGeneration.EncId);
             Debug.Assert(context.Module.DebugInformationFormat != DebugInformationFormat.Embedded);
+            Debug.Assert(context.Module.EncSymbolChanges != null);
 
             _previousGeneration = previousGeneration;
             _encId = encId;
             _definitionMap = definitionMap;
-            _changes = changes;
 
             var sizes = previousGeneration.TableSizes;
 
             _changedTypeDefs = new List<ITypeDefinition>();
             _deletedTypeMembers = new Dictionary<ITypeDefinition, ImmutableArray<IMethodDefinition>>(ReferenceEqualityComparer.Instance);
-            _deletedMethodDefs = deletedMethodDefs;
+            _deletedMethodDefs = context.Module.GetDeletedMethodDefinitions();
             _typeDefs = new DefinitionIndex<ITypeDefinition>(this.TryGetExistingTypeDefIndex, sizes[(int)TableIndex.TypeDef]);
             _eventDefs = new DefinitionIndex<IEventDefinition>(this.TryGetExistingEventDefIndex, sizes[(int)TableIndex.Event]);
             _fieldDefs = new DefinitionIndex<IFieldDefinition>(this.TryGetExistingFieldDefIndex, sizes[(int)TableIndex.Field]);
@@ -128,6 +125,16 @@ namespace Microsoft.CodeAnalysis.Emit
             _standAloneSignatureIndex = new HeapOrReferenceIndex<BlobHandle>(this, lastRowId: sizes[(int)TableIndex.StandAloneSig]);
 
             _addedOrChangedMethods = new Dictionary<IMethodDefinition, AddedOrChangedMethodInfo>(Cci.SymbolEquivalentEqualityComparer.Instance);
+        }
+
+        public SymbolChanges Changes
+        {
+            get
+            {
+                var changes = Context.Module.EncSymbolChanges;
+                Debug.Assert(changes != null);
+                return changes;
+            }
         }
 
         private static MetadataBuilder MakeTablesBuilder(EmitBaseline previousGeneration)
@@ -200,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Emit
             var generationOrdinals = CreateDictionary(_previousGeneration.GenerationOrdinals, SymbolEquivalentEqualityComparer.Instance);
             foreach (var (addedType, _) in addedTypes)
             {
-                if (_changes.IsReplacedDef(addedType))
+                if (Changes.IsReplacedDef(addedType))
                 {
                     generationOrdinals[addedType] = currentGenerationOrdinal;
                 }
@@ -500,7 +507,9 @@ namespace Microsoft.CodeAnalysis.Emit
             var result = new Dictionary<ITypeDefinition, ArrayBuilder<IMethodDefinition>>(ReferenceEqualityComparer.Instance);
             var typesUsedByDeletedMembers = new Dictionary<ITypeDefinition, DeletedSourceTypeDefinition>(ReferenceEqualityComparer.Instance);
 
-            foreach (var typeDef in context.Module.GetTopLevelTypeDefinitions(context))
+            // Skip PrivateImplementationDetails - we should only be adding new members to it.
+            // Emitting deleted method body may also produce new PrivateImplementationDetails members.
+            foreach (var typeDef in context.Module.GetTopLevelTypeDefinitionsExcludingNoPiaAndRootModule(context, includePrivateImplementationDetails: false))
             {
                 recurse(typeDef);
             }
@@ -592,7 +601,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         protected override void CreateIndicesForNonTypeMembers(ITypeDefinition typeDef)
         {
-            var change = _changes.GetChange(typeDef);
+            var change = Changes.GetChange(typeDef);
             switch (change)
             {
                 case SymbolChange.Added:
@@ -640,19 +649,19 @@ namespace Microsoft.CodeAnalysis.Emit
                     _eventMap.Add(typeRowId);
                 }
 
-                var eventChange = _changes.GetChangeForPossibleReAddedMember(eventDef, DefinitionExistsInAnyPreviousGeneration);
+                var eventChange = Changes.GetChangeForPossibleReAddedMember(eventDef, DefinitionExistsInAnyPreviousGeneration);
                 this.AddDefIfNecessary(_eventDefs, eventDef, eventChange);
             }
 
             foreach (var fieldDef in typeDef.GetFields(this.Context))
             {
-                var fieldChange = _changes.GetChangeForPossibleReAddedMember(fieldDef, DefinitionExistsInAnyPreviousGeneration);
+                var fieldChange = Changes.GetChangeForPossibleReAddedMember(fieldDef, DefinitionExistsInAnyPreviousGeneration);
                 this.AddDefIfNecessary(_fieldDefs, fieldDef, fieldChange);
             }
 
             foreach (var methodDef in typeDef.GetMethods(this.Context))
             {
-                var methodChange = _changes.GetChangeForPossibleReAddedMember(methodDef, DefinitionExistsInAnyPreviousGeneration);
+                var methodChange = Changes.GetChangeForPossibleReAddedMember(methodDef, DefinitionExistsInAnyPreviousGeneration);
                 this.AddDefIfNecessary(_methodDefs, methodDef, methodChange);
                 CreateIndicesForMethod(methodDef, methodChange);
             }
@@ -675,7 +684,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     _propertyMap.Add(typeRowId);
                 }
 
-                var propertyChange = _changes.GetChangeForPossibleReAddedMember(propertyDef, DefinitionExistsInAnyPreviousGeneration);
+                var propertyChange = Changes.GetChangeForPossibleReAddedMember(propertyDef, DefinitionExistsInAnyPreviousGeneration);
                 this.AddDefIfNecessary(_propertyDefs, propertyDef, propertyChange);
             }
 
@@ -842,7 +851,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private void ReportReferencesToAddedSymbol(ISymbolInternal? symbol)
         {
-            if (symbol != null && _changes.IsAdded(symbol.GetISymbol()))
+            if (symbol != null && Changes.IsAdded(symbol.GetISymbol()))
             {
                 Context.Diagnostics.Add(messageProvider.CreateDiagnostic(
                     messageProvider.ERR_EncReferenceToAddedMember,
@@ -1826,7 +1835,7 @@ namespace Microsoft.CodeAnalysis.Emit
             public DeltaReferenceIndexer(DeltaMetadataWriter writer)
                 : base(writer)
             {
-                _changes = writer._changes;
+                _changes = writer.Changes;
                 _deletedTypeMembers = writer._deletedTypeMembers;
             }
 

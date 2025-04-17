@@ -120,7 +120,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 newBaseline = compilation.SerializeToDeltaStreams(
                     moduleBeingBuilt,
                     definitionMap,
-                    changes,
                     metadataStream,
                     ilStream,
                     pdbStream,
