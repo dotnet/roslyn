@@ -177,12 +177,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.UnexpectedValue(member);
         }
 
-        internal static ImmutableArray<ParameterSymbol> GetParametersIncludingExtensionParameter(this Symbol symbol)
+        internal static ImmutableArray<ParameterSymbol> GetParametersIncludingExtensionParameter(this Symbol symbol, bool skipExtensionIfStatic)
         {
             // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider optimizing
-            if (symbol.GetIsNewExtensionMember() && symbol.ContainingType.ExtensionParameter is { } extensionParameter)
+            if (!skipExtensionIfStatic || !symbol.IsStatic)
             {
-                return [extensionParameter, .. symbol.GetParameters()];
+                if (symbol.GetIsNewExtensionMember() && symbol.ContainingType.ExtensionParameter is { } extensionParameter)
+                {
+                    return [extensionParameter, .. symbol.GetParameters()];
+                }
             }
 
             return symbol.GetParameters();

@@ -1233,7 +1233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            ImmutableArray<ParameterSymbol> parameters = method.IsStatic ? method.Parameters : method.GetParametersIncludingExtensionParameter();
+            ImmutableArray<ParameterSymbol> parameters = method.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: true);
 
             if (!parameters.IsEmpty)
             {
@@ -1281,7 +1281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            ImmutableArray<ParameterSymbol> parameters = method.IsStatic ? method.Parameters : method.GetParametersIncludingExtensionParameter();
+            ImmutableArray<ParameterSymbol> parameters = method.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: true);
             foreach (var parameter in parameters)
             {
                 var slot = GetOrCreateSlot(parameter);
@@ -3071,7 +3071,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Unsplit();
             if (CurrentSymbol is MethodSymbol method)
             {
-                ImmutableArray<ParameterSymbol> parameters = method.IsStatic ? method.Parameters : method.GetParametersIncludingExtensionParameter();
+                ImmutableArray<ParameterSymbol> parameters = method.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: true);
                 EnforceNotNullIfNotNull(node.Syntax, this.State, parameters, method.ReturnNotNullIfParameterNotNull, ResultType.State, outputParam: null);
             }
 
@@ -6343,8 +6343,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     VisitExpressionWithoutStackGuardEpilogue(receiver); // VisitExpressionWithoutStackGuard does this after visiting each node
 
+                    bool isNewExtensionMethod = node.Method.GetIsNewExtensionMember();
+
                     // Only instance receivers go through VisitRvalue; arguments go through VisitArgumentEvaluate.
-                    if (node.ReceiverOpt is not null)
+                    if (node.ReceiverOpt is not null && !isNewExtensionMethod)
                     {
                         VisitRvalueEpilogue(receiver); // VisitRvalue does this after visiting each node
                         receiverType = ResultType;
@@ -6353,10 +6355,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        Debug.Assert(node.InvokedAsExtensionMethod);
-                        var refKind = GetRefKind(node.ArgumentRefKindsOpt, 0);
-                        TypeWithAnnotations paramsIterationType = default;
-                        var annotations = GetCorrespondingParameter(0, node.Method.Parameters, node.ArgsToParamsOpt, node.Expanded, ref paramsIterationType).Annotations;
+                        // The receiver for new extension methods is analyzed as an argument
+                        Debug.Assert(node.InvokedAsExtensionMethod || isNewExtensionMethod);
+
+                        var refKind = isNewExtensionMethod ? GetExtensionReceiverRefKind(node.Method) : GetRefKind(node.ArgumentRefKindsOpt, 0);
+
+                        FlowAnalysisAnnotations annotations;
+                        if (isNewExtensionMethod)
+                        {
+                            Debug.Assert(node.Method.ContainingType.ExtensionParameter is not null);
+                            annotations = node.Method.ContainingType.ExtensionParameter.FlowAnalysisAnnotations;
+                        }
+                        else
+                        {
+                            TypeWithAnnotations paramsIterationType = default;
+                            annotations = GetCorrespondingParameter(0, node.Method.Parameters, node.ArgsToParamsOpt, node.Expanded, ref paramsIterationType).Annotations;
+                        }
+
                         extensionReceiverResult = VisitArgumentEvaluateEpilogue(receiver, refKind, annotations);
                         receiverType = default;
                     }
@@ -6425,6 +6440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     method = (MethodSymbol)AsMemberOfType(receiverType.Type, method);
                 }
 
+                // TODO2 this will cause the receiver to be visited again...
                 ImmutableArray<BoundExpression> arguments = getArguments(node.Arguments, adjustForNewExtension, node.ReceiverOpt);
                 ImmutableArray<ParameterSymbol> parameters = getParameters(method.Parameters, adjustForNewExtension, method);
                 ImmutableArray<int> argsToParamsOpt = GetArgsToParamsOpt(node.ArgsToParamsOpt, adjustForNewExtension);
@@ -6482,13 +6498,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return argumentRefKindsOpt;
             }
 
-            ParameterSymbol? extensionParameter = method.ContainingType.ExtensionParameter;
-            Debug.Assert(extensionParameter is not null);
-            var receiverRefKind = extensionParameter.RefKind == RefKind.Ref ? RefKind.Ref : RefKind.None;
+            RefKind receiverRefKind = GetExtensionReceiverRefKind(method);
 
             if (argumentRefKindsOpt.IsDefault)
             {
-                if (extensionParameter.RefKind == RefKind.None)
+                if (receiverRefKind == RefKind.None)
                 {
                     return argumentRefKindsOpt;
                 }
@@ -6499,6 +6513,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return [receiverRefKind, .. argumentRefKindsOpt];
+        }
+
+        private static RefKind GetExtensionReceiverRefKind(MethodSymbol method)
+        {
+            ParameterSymbol? extensionParameter = method.ContainingType.ExtensionParameter;
+            Debug.Assert(extensionParameter is not null);
+            // See "OverloadResolution.IsApplicable": we only give an implicit `ref` on the receiver for a `ref` parameter
+            // For `ref readonly` or `in`, we use "none"
+            // `out` is a declaration error
+            return extensionParameter.RefKind == RefKind.Ref ? RefKind.Ref : RefKind.None;
         }
 
         private static ImmutableArray<int> GetArgsToParamsOpt(ImmutableArray<int> argsToParamsOpt, bool isNewExtension)
@@ -7054,7 +7078,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (HasImplicitTypeArguments(node))
                     {
                         method = InferMethodTypeArguments(method, GetArgumentsForMethodTypeInference(results, argumentsNoConversions), refKindsOpt, argsToParamsOpt, expanded);
-                        parametersOpt = method.GetParametersIncludingExtensionParameter();
+                        parametersOpt = method.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: false);
                     }
 
                     if (ConstraintsHelper.RequiresChecking(method))
@@ -7377,6 +7401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(receiverSlot >= 0);
             if (method.GetIsNewExtensionMember())
             {
+                // Tracked by https://github.com/dotnet/roslyn/issues/76130 : should we extend member post-conditions to work with extension members?
                 return;
             }
 

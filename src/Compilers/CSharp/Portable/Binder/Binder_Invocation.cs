@@ -2049,7 +2049,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!IsUnboundGeneric(m) && m.GetParameterCountIncludingExtensionParameter() > 0)
                 {
-                    parameterListList.Add(m.GetParametersIncludingExtensionParameter());
+                    parameterListList.Add(m.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: false));
                     if (parameterListList.Count == MaxParameterListsForErrorRecovery)
                     {
                         break;
