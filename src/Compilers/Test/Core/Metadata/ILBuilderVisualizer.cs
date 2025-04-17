@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Reflection.Emit;
 using System.Reflection.Metadata;
 using System.Text;
@@ -24,7 +25,7 @@ namespace Roslyn.Test.Utilities
         private readonly CommonPEModuleBuilder _module;
         private readonly SymbolDisplayFormat _symbolDisplayFormat;
 
-        public ILBuilderVisualizer(ITokenDeferral tokenDeferral, SymbolDisplayFormat? symbolDisplayFormat = null)
+        public ILBuilderVisualizer(CommonPEModuleBuilder module, SymbolDisplayFormat? symbolDisplayFormat = null)
         {
             _module = module;
             _symbolDisplayFormat = symbolDisplayFormat ?? SymbolDisplayFormat.ILVisualizationFormat;
@@ -139,6 +140,8 @@ namespace Roslyn.Test.Utilities
             IReadOnlyDictionary<int, string>? markers = null,
             SymbolDisplayFormat? ilFormat = null)
         {
+            Debug.Assert(builder.LocalSlotManager != null);
+
             var sb = new StringBuilder();
 
             var ilStream = builder.RealizedIL;
@@ -177,6 +180,8 @@ namespace Roslyn.Test.Utilities
             ILBuilder builder,
             Func<Cci.ILocalDefinition, LocalInfo>? mapLocal = null)
         {
+            Debug.Assert(builder.LocalSlotManager != null);
+
             var sb = new StringBuilder();
 
             if (mapLocal == null)

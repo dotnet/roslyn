@@ -4634,6 +4634,7 @@ class C
                         ]);
 
                         var expectedIL = """
+                            get_P
                             {
                               // Code size        7 (0x7)
                               .maxstack  8
@@ -4641,6 +4642,7 @@ class C
                               IL_0001:  ldfld      0x04000001
                               IL_0006:  ret
                             }
+                            set_P
                             {
                               // Code size        8 (0x8)
                               .maxstack  8
@@ -4719,6 +4721,7 @@ class C
                         ]);
 
                         var expectedIL = """
+                            get_P
                             {
                               // Code size        7 (0x7)
                               .maxstack  8
@@ -4726,6 +4729,7 @@ class C
                               IL_0001:  ldfld      0x04000001
                               IL_0006:  ret
                             }
+                            set_P
                             {
                               // Code size        8 (0x8)
                               .maxstack  8
@@ -4799,6 +4803,7 @@ class C
                         ]);
 
                         var expectedIL = """
+                            get_P
                             {
                               // Code size        7 (0x7)
                               .maxstack  8
@@ -4806,6 +4811,7 @@ class C
                               IL_0001:  ldfld      0x04000001
                               IL_0006:  ret
                             }
+                            set_P
                             {
                               // Code size        8 (0x8)
                               .maxstack  8

@@ -741,7 +741,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             // If the length is greater than the specified threshold try lfsfld first and fall back to ldstr.
             // Otherwise, try emit ldstr and fall back to ldsfld if emitting EnC delta and the heap is already full.
-            bool success = (value.Length >= module.CommonCompilation.DataSectionStringLiteralThreshold)
+            bool success = (value.Length > module.CommonCompilation.DataSectionStringLiteralThreshold)
                 ? tryEmitLoadField() || tryEmitLoadString()
                 : tryEmitLoadString() || module.PreviousGeneration != null && tryEmitLoadField();
 

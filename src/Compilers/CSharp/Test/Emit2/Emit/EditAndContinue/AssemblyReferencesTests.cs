@@ -84,6 +84,7 @@ class C
             compilation1.EmitDifference(baseline, edits, s => false, mdStream, ilStream, pdbStream, EmitDifferenceOptions.Default, CancellationToken.None);
 
             var il = ImmutableArray.Create(ilStream.ToArray());
+            mdStream.Position = 0;
             using var mdReaderProvider = MetadataReaderProvider.FromMetadataStream(mdStream);
 
             var actualIL = ILValidation.DumpEncDeltaMethodBodies(il, [mdReaderProvider.GetMetadataReader()]);
@@ -159,6 +160,7 @@ class C
             compilation1.EmitDifference(baseline, edits, s => false, mdStream, ilStream, pdbStream, EmitDifferenceOptions.Default, CancellationToken.None);
 
             var il = ImmutableArray.Create(ilStream.ToArray());
+            mdStream.Position = 0;
             using var mdReaderProvider = MetadataReaderProvider.FromMetadataStream(mdStream);
 
             var actualIL = ILValidation.DumpEncDeltaMethodBodies(il, [mdReaderProvider.GetMetadataReader()]);
