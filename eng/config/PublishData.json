@@ -78,6 +78,7 @@
       "Microsoft.CodeAnalysis.ExternalAccess.OmniSharp": "arcade",
       "Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp": "arcade",
       "Microsoft.CodeAnalysis.ExternalAccess.AspNetCore": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.Razor": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.Razor.Features": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler": "vs-impl",
