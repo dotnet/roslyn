@@ -36,16 +36,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             '  remove fake dummies and variable that cannot be scheduled
             Dim dummies As New List(Of LocalDefUseInfo)
 
-            For Each local In info.Keys.ToArray()
-                Dim locInfo = info(local)
+            info.RemoveAll(
+                Function(local, locInfo, dummiesList)
+                    If TypeOf local Is DummyLocal Then
+                        dummiesList.Add(locInfo)
+                        Return True
+                    ElseIf locInfo.CannotSchedule Then
+                        Return True
+                    End If
 
-                If TypeOf local Is DummyLocal Then
-                    dummies.Add(locInfo)
-                    info.Remove(local)
-                ElseIf locInfo.CannotSchedule Then
-                    info.Remove(local)
-                End If
-            Next
+                    Return False
+                End Function,
+                dummies)
 
             If info.Count = 0 Then
                 ' nothing to filter

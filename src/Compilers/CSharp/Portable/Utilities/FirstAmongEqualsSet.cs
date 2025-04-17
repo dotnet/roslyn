@@ -80,18 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // is a hash set; in practice it will not typically be.)
             _hashSet.UnionWith(items);
 
-            // Remove from the dictionary all items that are not
-            // in the input item set.
-
-            // Make a copy of the keys so that we are not changing the 
-            // dictionary as we enumerate it.
-            foreach (var key in _dictionary.Keys.ToList())
-            {
-                if (!_hashSet.Contains(key))
-                {
-                    _dictionary.Remove(key);
-                }
-            }
+            _dictionary.RemoveAll(static (key, value, hashSet) => !hashSet.Contains(key), _hashSet);
 
             // Now update the dictionary so that it contains the more
             // canonical of the items that are in both sets.
