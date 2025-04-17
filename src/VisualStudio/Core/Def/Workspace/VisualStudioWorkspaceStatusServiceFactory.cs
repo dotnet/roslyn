@@ -117,7 +117,8 @@ internal sealed class VisualStudioWorkspaceStatusServiceFactory(
                 }
 
                 var completionTask = status.WaitForCompletionAsync();
-                Logger.Log(FunctionId.PartialLoad_FullyLoaded, KeyValueLogMessage.Create(LogType.Trace, m => m["AlreadyFullyLoaded"] = completionTask.IsCompleted, LogLevel.Debug));
+                Logger.Log(FunctionId.PartialLoad_FullyLoaded, KeyValueLogMessage.Create(
+                    LogType.Trace, static (m, completionTask) => m["AlreadyFullyLoaded"] = completionTask.IsCompleted, completionTask, LogLevel.Debug));
 
                 // TODO: WaitForCompletionAsync should accept cancellation directly.
                 //       for now, use WithCancellation to indirectly add cancellation

@@ -54,9 +54,6 @@ public abstract partial class Workspace : IDisposable
     /// </summary>
     private Solution _latestSolution;
 
-    // test hooks.
-    internal static bool TestHookStandaloneProjectsDoNotHoldReferences = false;
-
     /// <summary>
     /// Determines whether changes made to unchangeable documents will be silently ignored or cause exceptions to be thrown
     /// when they are applied to workspace via <see cref="TryApplyChanges(Solution, IProgress{CodeAnalysisProgress})"/>. 

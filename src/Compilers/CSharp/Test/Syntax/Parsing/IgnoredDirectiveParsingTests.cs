@@ -5,6 +5,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -26,7 +27,7 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
 
         VerifyTrivia();
         UsingTree(source, options,
-            // (2,2): error CS9282: '#:' directives can be only used in file-based programs ('/feature:FileBasedProgram')
+            // (2,2): error CS9282: '#:' directives can be only used in file-based programs ('-features:FileBasedProgram')
             // #:name value
             Diagnostic(ErrorCode.ERR_PPIgnoredNeedsFileBasedProgram, ":").WithLocation(2, 2));
 
@@ -48,10 +49,8 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
                 {
                     N(SyntaxKind.HashToken);
                     N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.StringLiteralToken, "name value");
                     N(SyntaxKind.EndOfDirectiveToken);
-                    {
-                        L(SyntaxKind.PreprocessingMessageTrivia, "name value");
-                    }
                 }
             }
         }
@@ -77,10 +76,8 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
                 {
                     N(SyntaxKind.HashToken);
                     N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.StringLiteralToken, "name value");
                     N(SyntaxKind.EndOfDirectiveToken);
-                    {
-                        L(SyntaxKind.PreprocessingMessageTrivia, "name value");
-                    }
                 }
             }
         }
@@ -113,9 +110,10 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
         Assert.True(SyntaxFacts.IsTrivia(trivia.Kind()));
         var structure = (IgnoredDirectiveTriviaSyntax)trivia.GetStructure()!;
         Assert.Equal(":", structure.DirectiveNameToken.ToFullString());
-        var messageTrivia = structure.EndOfDirectiveToken.GetLeadingTrivia().Single();
-        Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, messageTrivia.Kind());
-        Assert.Equal("abc", messageTrivia.ToString());
+        Assert.Empty(structure.EndOfDirectiveToken.GetLeadingTrivia());
+        var content = structure.Content;
+        Assert.Equal(SyntaxKind.StringLiteralToken, content.Kind());
+        Assert.Equal("abc", content.ToString());
         trivia.GetDiagnostics().Verify();
     }
 
@@ -134,13 +132,27 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
         Assert.True(SyntaxFacts.IsTrivia(trivia.Kind()));
         var structure = (IgnoredDirectiveTriviaSyntax)trivia.GetStructure()!;
         Assert.Equal(":", structure.DirectiveNameToken.ToFullString());
-        var messageTrivia = structure.EndOfDirectiveToken.GetLeadingTrivia().Single();
-        Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, messageTrivia.Kind());
-        Assert.Equal("abc", messageTrivia.ToString());
+        Assert.Empty(structure.EndOfDirectiveToken.GetLeadingTrivia());
+        var content = structure.Content;
+        Assert.Equal(SyntaxKind.StringLiteralToken, content.Kind());
+        Assert.Equal("abc", content.ToString());
         trivia.GetDiagnostics().Verify(
             // (3,2): error CS9283: '#:' directives cannot be after '#if' directive
             // #:abc
             Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(3, 2));
+    }
+
+    [Fact]
+    public void Api_Shebang()
+    {
+        var root = SyntaxFactory.ParseCompilationUnit("#!abc", options: TestOptions.Regular.WithFeature(FeatureName));
+        var trivia = root.EndOfFileToken.GetLeadingTrivia().Last();
+        Assert.Equal(SyntaxKind.ShebangDirectiveTrivia, trivia.Kind());
+        var structure = (ShebangDirectiveTriviaSyntax)trivia.GetStructure()!;
+        var xyz = SyntaxFactory.Token(default, SyntaxKind.StringLiteralToken, "xyz", "xyz", default);
+        var ijk = SyntaxFactory.Token(default, SyntaxKind.StringLiteralToken, "ijk", "ijk", default);
+        AssertEx.Equal("#!xyz", structure.WithContent(xyz).ToFullString());
+        AssertEx.Equal("#!ijk", structure.WithContent(xyz).WithContent(ijk).ToFullString());
     }
 
     [Theory, CombinatorialData]
@@ -217,9 +229,9 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
                                 {
                                     N(SyntaxKind.HashToken);
                                     N(SyntaxKind.ColonToken);
+                                    N(SyntaxKind.StringLiteralToken, "x");
                                     N(SyntaxKind.EndOfDirectiveToken);
                                     {
-                                        L(SyntaxKind.PreprocessingMessageTrivia, "x");
                                         T(SyntaxKind.EndOfLineTrivia, "\n");
                                     }
                                 }
@@ -243,10 +255,8 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
                 {
                     N(SyntaxKind.HashToken);
                     N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.StringLiteralToken, "y");
                     N(SyntaxKind.EndOfDirectiveToken);
-                    {
-                        L(SyntaxKind.PreprocessingMessageTrivia, "y");
-                    }
                 }
             }
         }
@@ -281,9 +291,9 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
                 {
                     N(SyntaxKind.HashToken);
                     N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.StringLiteralToken, "x");
                     N(SyntaxKind.EndOfDirectiveToken);
                     {
-                        L(SyntaxKind.PreprocessingMessageTrivia, "x");
                         T(SyntaxKind.EndOfLineTrivia, "\n");
                     }
                 }
@@ -307,9 +317,9 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
                 {
                     N(SyntaxKind.HashToken);
                     N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.StringLiteralToken, "y");
                     N(SyntaxKind.EndOfDirectiveToken);
                     {
-                        L(SyntaxKind.PreprocessingMessageTrivia, "y");
                         T(SyntaxKind.EndOfLineTrivia, "\n");
                     }
                 }
@@ -326,10 +336,8 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
                 {
                     N(SyntaxKind.HashToken);
                     N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.StringLiteralToken, "z");
                     N(SyntaxKind.EndOfDirectiveToken);
-                    {
-                        L(SyntaxKind.PreprocessingMessageTrivia, "z");
-                    }
                 }
             }
         }
@@ -356,9 +364,9 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
                 {
                     N(SyntaxKind.HashToken);
                     N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.StringLiteralToken, "x");
                     N(SyntaxKind.EndOfDirectiveToken);
                     {
-                        L(SyntaxKind.PreprocessingMessageTrivia, "x");
                         T(SyntaxKind.EndOfLineTrivia, "\n");
                     }
                 }
@@ -368,10 +376,8 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
                 {
                     N(SyntaxKind.HashToken);
                     N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.StringLiteralToken, "y");
                     N(SyntaxKind.EndOfDirectiveToken);
-                    {
-                        L(SyntaxKind.PreprocessingMessageTrivia, "y");
-                    }
                 }
             }
         }
@@ -398,9 +404,9 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
                 {
                     N(SyntaxKind.HashToken);
                     N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.StringLiteralToken, "x");
                     N(SyntaxKind.EndOfDirectiveToken);
                     {
-                        L(SyntaxKind.PreprocessingMessageTrivia, "x");
                         T(SyntaxKind.EndOfLineTrivia, "\n");
                     }
                 }
@@ -421,10 +427,8 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
                 {
                     N(SyntaxKind.HashToken);
                     N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.StringLiteralToken, "y");
                     N(SyntaxKind.EndOfDirectiveToken);
-                    {
-                        L(SyntaxKind.PreprocessingMessageTrivia, "y");
-                    }
                 }
             }
         }
@@ -450,10 +454,8 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
                 {
                     N(SyntaxKind.HashToken);
                     N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.StringLiteralToken, "x");
                     N(SyntaxKind.EndOfDirectiveToken);
-                    {
-                        L(SyntaxKind.PreprocessingMessageTrivia, "x");
-                    }
                 }
             }
         }

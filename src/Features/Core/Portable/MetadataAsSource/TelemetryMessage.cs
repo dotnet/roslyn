@@ -21,7 +21,7 @@ internal sealed class TelemetryMessage : IDisposable
 
     public TelemetryMessage(CancellationToken cancellationToken)
     {
-        var logMessage = KeyValueLogMessage.Create(LogType.UserAction, SetLogProperties);
+        var logMessage = KeyValueLogMessage.Create(LogType.UserAction, static (m, @this) => @this.SetLogProperties(m), this);
         _logBlock = Logger.LogBlock(FunctionId.NavigateToExternalSources, logMessage, cancellationToken);
     }
 
