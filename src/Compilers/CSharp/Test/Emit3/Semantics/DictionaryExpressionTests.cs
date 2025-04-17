@@ -1834,6 +1834,412 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "sz").WithArguments("MyKeyValuePair<int, object>", "System.Collections.Generic.KeyValuePair<int, string>").WithLocation(14, 28));
         }
 
+        // PROTOTYPE: Test error cases for k:v and kvp. See GenerateImplicitConversionErrorForCollectionExpression().
+
+        [Theory]
+        [CombinatorialData]
+        public void KeyValuePairConversions_09(
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(
+                "System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<K, V>>",
+                "System.Collections.Generic.KeyValuePair<K, V>[]",
+                "System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<K, V>>")] string typeName)
+        {
+            string typeName1 = typeName.Replace("K, V", "int, string");
+            string typeName2 = typeName.Replace("K, V", "int?, object");
+            string source = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        int k = 1;
+                        string v = "one";
+                        {{typeName1}} c1;
+                        c1 = [k:v];
+                        c1.Report();
+                        {{typeName2}} c2;
+                        c2 = /*<bind>*/[k:v]/*</bind>*/;
+                        c2.Report();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                [source, s_collectionExtensions],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe);
+            if (languageVersion == LanguageVersion.CSharp12)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (9,15): error CS9300: Collection expression type 'IEnumerable<KeyValuePair<int, string>>' does not support key-value pair elements.
+                    //         c1 = [k:v];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "k:v").WithArguments(typeName1).WithLocation(9, 15),
+                    // (9,16): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         c1 = [k:v];
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, ":").WithArguments("dictionary expressions").WithLocation(9, 16),
+                    // (12,25): error CS9300: Collection expression type 'IEnumerable<KeyValuePair<int?, object>>' does not support key-value pair elements.
+                    //         c2 = /*<bind>*/[k:v]/*</bind>*/;
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "k:v").WithArguments(typeName2).WithLocation(12, 25),
+                    // (12,26): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         c2 = /*<bind>*/[k:v]/*</bind>*/;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, ":").WithArguments("dictionary expressions").WithLocation(12, 26));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(comp, expectedOutput: "[1:one], [1:one], ");
+                verifier.VerifyDiagnostics();
+            }
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var element = tree.GetRoot().DescendantNodes().OfType<KeyValuePairElementSyntax>().Last();
+            var typeInfo = model.GetTypeInfo(element.KeyExpression);
+            Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString()); // https://github.com/dotnet/roslyn/issues/77872: Should be System.Nullable<System.Int32>.
+            typeInfo = model.GetTypeInfo(element.ValueExpression);
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.String", typeInfo.ConvertedType.ToTestDisplayString()); // https://github.com/dotnet/roslyn/issues/77872: Should be System.Object.
+
+            string collectionTypeName = typeName.Replace("K, V", "System.Int32?, System.Object");
+            // https://github.com/dotnet/roslyn/issues/77872: Include IOperation support for implicit Key and Value conversions.
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                $$"""
+                ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: {{collectionTypeName}}, IsInvalid) (Syntax: '[k:v]')
+                  Elements(1):
+                      IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'k:v')
+                """);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void KeyValuePairConversions_10(
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(
+                "System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<K, V>>",
+                "System.Collections.Generic.KeyValuePair<K, V>[]",
+                "System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<K, V>>")] string typeName)
+        {
+            string typeName1 = typeName.Replace("K, V", "int, string");
+            string typeName2 = typeName.Replace("K, V", "int?, object");
+            string source = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = new KeyValuePair<int, string>(2, "two");
+                        var y = new[] { new KeyValuePair<int, string>(3, "three") };
+                        {{typeName1}} c1;
+                        c1 = [x, ..y];
+                        c1.Report();
+                        {{typeName2}} c2;
+                        c2 = /*<bind>*/[x, ..y]/*</bind>*/;
+                        c2.Report();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                [source, s_collectionExtensions],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe);
+            if (languageVersion == LanguageVersion.CSharp12)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (12,25): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
+                    //         c2 = /*<bind>*/[x, ..y]/*</bind>*/;
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(12, 25),
+                    // (12,30): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
+                    //         c2 = /*<bind>*/[x, ..y]/*</bind>*/;
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "y").WithArguments("System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(12, 30));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(comp, expectedOutput: "[2:two, 3:three], [2:two, 3:three], ");
+                verifier.VerifyDiagnostics();
+            }
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var element = tree.GetRoot().DescendantNodes().OfType<ExpressionElementSyntax>().Last();
+            // https://github.com/dotnet/roslyn/issues/77872: Implement GetTypeInfo() support.
+            var typeInfo = model.GetTypeInfo(element.Expression);
+            Assert.Equal("System.Collections.Generic.KeyValuePair<System.Int32, System.String>", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Collections.Generic.KeyValuePair<System.Int32, System.String>", typeInfo.ConvertedType.ToTestDisplayString());
+
+            string collectionTypeName = typeName.Replace("K, V", "System.Int32?, System.Object");
+            // https://github.com/dotnet/roslyn/issues/77872: Include IOperation support for implicit Key and Value conversions.
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                $$"""
+                ICollectionExpressionOperation (2 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: {{collectionTypeName}}, IsInvalid) (Syntax: '[x, ..y]')
+                  Elements(2):
+                      ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Collections.Generic.KeyValuePair<System.Int32, System.String>, IsInvalid) (Syntax: 'x')
+                      ISpreadOperation (ElementType: System.Collections.Generic.KeyValuePair<System.Int32, System.String>) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '..y')
+                        Operand:
+                          ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Collections.Generic.KeyValuePair<System.Int32, System.String>[], IsInvalid) (Syntax: 'y')
+                        ElementConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (NoConversion)
+                """);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void KeyValuePairConversions_11(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(
+                "System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<K, V>>",
+                "System.Collections.Generic.KeyValuePair<K, V>[]",
+                "System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<K, V>>")] string typeName)
+        {
+            string sourceA = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = new KeyValuePair<int, string>(2, "two");
+                        Params(x);
+                        Params<int, string>(x);
+                        /*<bind>*/Params<int?, object>(x)/*</bind>*/;
+                    }
+                    static void Params<K, V>(params {{typeName}} args)
+                    {
+                        args.Report();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                [sourceA, s_collectionExtensions],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe);
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (9,40): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
+                    //         /*<bind>*/Params<int?, object>(x)/*</bind>*/;
+                    Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(9, 40));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(comp, expectedOutput: "[[2, two]], [[2, two]], [[2, two]], ");
+                verifier.VerifyDiagnostics();
+            }
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var node = GetSyntaxNodeOfTypeForBinding<InvocationExpressionSyntax>(tree.GetRoot().DescendantNodes().ToList());
+            var expression = node.ArgumentList.Arguments[0];
+            // https://github.com/dotnet/roslyn/issues/77872: Implement GetTypeInfo() support.
+            //var typeInfo = model.GetTypeInfo(expression);
+            //Assert.Equal("System.Collections.Generic.KeyValuePair<System.Int32, System.String>", typeInfo.Type.ToTestDisplayString());
+            //Assert.Equal("System.Collections.Generic.KeyValuePair<System.Int32, System.String>", typeInfo.ConvertedType.ToTestDisplayString());
+
+            // https://github.com/dotnet/roslyn/issues/77872: Include IOperation support for implicit Key and Value conversions.
+            VerifyOperationTreeForTest<InvocationExpressionSyntax>(comp,
+                """
+                IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'Params<int?, object>(x)')
+                  Children(1):
+                      ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Collections.Generic.KeyValuePair<System.Int32, System.String>, IsInvalid) (Syntax: 'x')
+                """);
+
+            string collectionTypeName = typeName.Replace("K, V", "int, string");
+            string sourceB = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        {{collectionTypeName}} args = [new KeyValuePair<int, string>(3, "three")];
+                        Params(args);
+                        Params<int, string>(args);
+                        Params<int?, object>(args);
+                    }
+                    static void Params<K, V>(params {{typeName}} args)
+                    {
+                    }
+                }
+                """;
+            comp = CreateCompilation(
+                sourceB,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                targetFramework: typeName == "System.ReadOnlySpan<KeyValuePair<K, V>>" ? TargetFramework.Net80 : TargetFramework.Standard);
+            // PROTOTYPE: Should report diagnostics for Params<int?, object>().
+            comp.VerifyEmitDiagnostics(
+                // (9,30): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<int, string>>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
+                //         Params<int?, object>(args);
+                Diagnostic(ErrorCode.ERR_BadArgType, "args").WithArguments("1", collectionTypeName, "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(9, 30));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void KeyValuePairConversions_Span(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        int k = 1;
+                        string v = "one";
+                        var x = new KeyValuePair<int, string>(2, "two");
+                        var y = new[] { new KeyValuePair<int, string>(3, "three") };
+                        ReadOnlySpan<KeyValuePair<int, string>> c1;
+                        c1 = [k:v, x, ..y];
+                        c1.ToArray().Report();
+                        ReadOnlySpan<KeyValuePair<int?, object>> c2;
+                        c2 = [k:v, x, ..y];
+                        c2.ToArray().Report();
+                        Params(x);
+                        Params<int, string>(x);
+                        Params<int?, object>(x);
+                    }
+                    static void Params<K, V>(params ReadOnlySpan<KeyValuePair<K, V>> args)
+                    {
+                        args.ToArray().Report();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                [source, s_collectionExtensions],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe,
+                targetFramework: TargetFramework.Net80);
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (12,15): error CS9300: Collection expression type 'ReadOnlySpan<KeyValuePair<int, string>>' does not support key-value pair elements.
+                    //         c1 = [k:v, x, ..y];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "k:v").WithArguments("System.ReadOnlySpan<System.Collections.Generic.KeyValuePair<int, string>>").WithLocation(12, 15),
+                    // (12,16): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         c1 = [k:v, x, ..y];
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, ":").WithArguments("dictionary expressions").WithLocation(12, 16),
+                    // (15,15): error CS9300: Collection expression type 'ReadOnlySpan<KeyValuePair<int?, object>>' does not support key-value pair elements.
+                    //         c2 = [k:v, x, ..y];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "k:v").WithArguments("System.ReadOnlySpan<System.Collections.Generic.KeyValuePair<int?, object>>").WithLocation(15, 15),
+                    // (15,16): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         c2 = [k:v, x, ..y];
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, ":").WithArguments("dictionary expressions").WithLocation(15, 16),
+                    // (15,20): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
+                    //         c2 = [k:v, x, ..y];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(15, 20),
+                    // (15,25): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
+                    //         c2 = [k:v, x, ..y];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "y").WithArguments("System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(15, 25),
+                    // (19,30): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
+                    //         Params<int?, object>(x);
+                    Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(19, 30));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[1:one, 2:two, 3:three], "));
+                verifier.VerifyDiagnostics();
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void KeyValuePairConversions_CustomType(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            bool useCollectionBuilder)
+        {
+            string sourceA = useCollectionBuilder ?
+                """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _items;
+                    internal MyCollection(ReadOnlySpan<T> items) { _items = new(items.ToArray()); }
+                    public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                class MyBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => new(items);
+                }
+                """ :
+                """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _items;
+                    internal MyCollection() { _items = new(); }
+                    public void Add(T t) { _items.Add(t); }
+                    public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                """;
+            string sourceB = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        int k = 1;
+                        string v = "one";
+                        var x = new KeyValuePair<int, string>(2, "two");
+                        var y = new[] { new KeyValuePair<int, string>(3, "three") };
+                        MyCollection<KeyValuePair<int, string>> c1;
+                        c1 = [k:v, x, ..y];
+                        c1.Report();
+                        MyCollection<KeyValuePair<int?, object>> c2;
+                        c2 = [k:v, x, ..y];
+                        c2.Report();
+                        Params(x);
+                        Params<int, string>(x);
+                        Params<int?, object>(x);
+                    }
+                    static void Params<K, V>(params MyCollection<KeyValuePair<K, V>> args)
+                    {
+                        args.Report();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                [sourceA, sourceB, s_collectionExtensions],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe,
+                targetFramework: TargetFramework.Net80);
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (11,15): error CS9500: Collection expression type 'MyCollection<KeyValuePair<int, string>>' does not support key-value pair elements.
+                    //         c1 = [k:v, x, ..y];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "k:v").WithArguments("MyCollection<System.Collections.Generic.KeyValuePair<int, string>>").WithLocation(11, 15),
+                    // (11,16): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         c1 = [k:v, x, ..y];
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, ":").WithArguments("dictionary expressions").WithLocation(11, 16),
+                    // (14,15): error CS9500: Collection expression type 'MyCollection<KeyValuePair<int?, object>>' does not support key-value pair elements.
+                    //         c2 = [k:v, x, ..y];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "k:v").WithArguments("MyCollection<System.Collections.Generic.KeyValuePair<int?, object>>").WithLocation(14, 15),
+                    // (14,16): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         c2 = [k:v, x, ..y];
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, ":").WithArguments("dictionary expressions").WithLocation(14, 16),
+                    // (14,20): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
+                    //         c2 = [k:v, x, ..y];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(14, 20),
+                    // (14,25): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
+                    //         c2 = [k:v, x, ..y];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "y").WithArguments("System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(14, 25),
+                    // (18,30): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
+                    //         Params<int?, object>(x);
+                    Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(18, 30));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[1:one, 2:two, 3:three], "));
+                verifier.VerifyDiagnostics();
+            }
+        }
+
         [Theory]
         [InlineData(LanguageVersion.CSharp12, "IEnumerable<KeyValuePair<int, string>>")]
         [InlineData(LanguageVersion.Preview, "IEnumerable<KeyValuePair<int, string>>")]

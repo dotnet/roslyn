@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var elementKeyValueTypes = TryGetCollectionKeyValuePairTypes(Compilation, collectionTypeKind, elementType);
+            var elementKeyValueTypes = TryGetCollectionKeyValuePairTypes(Compilation, elementType);
             var builder = ArrayBuilder<Conversion>.GetInstance(elements.Length);
             foreach (var element in elements)
             {

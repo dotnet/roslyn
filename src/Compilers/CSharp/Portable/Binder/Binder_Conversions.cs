@@ -1070,7 +1070,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.Add(convertedElement);
                 }
             }
-            else if (elementType is { } && ConversionsBase.TryGetCollectionKeyValuePairTypes(Compilation, collectionTypeKind, elementType) is (var elementKeyType, var elementValueType))
+            else if (elementType is { } && ConversionsBase.TryGetCollectionKeyValuePairTypes(Compilation, elementType) is (var elementKeyType, var elementValueType))
             {
                 var elementConversions = conversion.UnderlyingConversions;
 
@@ -2198,7 +2198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Compare with similar loop in Conversions.GetCollectionExpressionConversion().
-                var keyValueTypes = ConversionsBase.TryGetCollectionKeyValuePairTypes(Compilation, collectionTypeKind, elementType);
+                var keyValueTypes = ConversionsBase.TryGetCollectionKeyValuePairTypes(Compilation, elementType);
                 var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 foreach (var element in elements)
                 {
