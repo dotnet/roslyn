@@ -738,7 +738,7 @@ public sealed partial class ServiceHubServicesTests
 
         var workspaceConfigurationService = workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
 
-        var remoteProcessId = await client.TryInvokeAsync<IRemoteInitializationService, int>(
+        _ = await client.TryInvokeAsync<IRemoteInitializationService, (int, string)>(
             (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, TempRoot.Root, cancellationToken),
             CancellationToken.None).ConfigureAwait(false);
 
@@ -822,7 +822,7 @@ public sealed partial class ServiceHubServicesTests
 
         var workspaceConfigurationService = workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
 
-        var remoteProcessId = await client.TryInvokeAsync<IRemoteInitializationService, int>(
+        _ = await client.TryInvokeAsync<IRemoteInitializationService, (int, string)>(
             (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, TempRoot.Root, cancellationToken),
             CancellationToken.None).ConfigureAwait(false);
 
@@ -877,7 +877,7 @@ public sealed partial class ServiceHubServicesTests
 
         var workspaceConfigurationService = workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
 
-        var remoteProcessId = await client.TryInvokeAsync<IRemoteInitializationService, int>(
+        _ = await client.TryInvokeAsync<IRemoteInitializationService, (int, string)>(
             (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, TempRoot.Root, cancellationToken),
             CancellationToken.None).ConfigureAwait(false);
 
@@ -1686,7 +1686,7 @@ public sealed partial class ServiceHubServicesTests
         ],
         [
             "vb additional file content"
-        ], [solution.ProjectIds.First()]);
+        ], [solution.ProjectIds[0]]);
 
         solution = AddProject(solution, LanguageNames.CSharp,
         [

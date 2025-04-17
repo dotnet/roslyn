@@ -26,11 +26,11 @@ internal abstract class ExportProviderBuilder(
 {
     private const string CatalogSuffix = ".mef-composition";
 
-    protected ImmutableArray<string> _assemblyPaths = assemblyPaths;
-    protected Resolver _resolver = resolver;
-    protected string _cacheDirectory = cacheDirectory;
-    protected string _catalogPrefix = catalogPrefix;
-    protected ImmutableArray<string> _expectedErrorParts = expectedErrorParts;
+    protected ImmutableArray<string> AssemblyPaths { get; } = assemblyPaths;
+    protected Resolver Resolver { get; } = resolver;
+    protected string CacheDirectory { get; } = cacheDirectory;
+    protected string CatalogPrefix { get; } = catalogPrefix;
+    protected ImmutableArray<string> ExpectedErrorParts { get; } = expectedErrorParts;
 
     protected abstract void LogError(string message);
     protected abstract void LogTrace(string message);
@@ -61,7 +61,7 @@ internal abstract class ExportProviderBuilder(
 
                 CachedComposition cachedComposition = new();
                 using FileStream cacheStream = new(compositionCacheFile, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 4096, useAsync: true);
-                var exportProviderFactory = await cachedComposition.LoadExportProviderFactoryAsync(cacheStream, _resolver, cancellationToken).ConfigureAwait(false);
+                var exportProviderFactory = await cachedComposition.LoadExportProviderFactoryAsync(cacheStream, Resolver, cancellationToken).ConfigureAwait(false);
 
                 return exportProviderFactory;
             }
@@ -72,15 +72,15 @@ internal abstract class ExportProviderBuilder(
             LogError($"Loading cached MEF composition failed: {ex}");
         }
 
-        LogTrace($"Composing MEF catalog using:{Environment.NewLine}{string.Join($"    {Environment.NewLine}", _assemblyPaths)}.");
+        LogTrace($"Composing MEF catalog using:{Environment.NewLine}{string.Join($"    {Environment.NewLine}", AssemblyPaths)}.");
 
         var discovery = PartDiscovery.Combine(
-            _resolver,
-            new AttributedPartDiscovery(_resolver, isNonPublicSupported: true), // "NuGet MEF" attributes (Microsoft.Composition)
-            new AttributedPartDiscoveryV1(_resolver));
+            Resolver,
+            new AttributedPartDiscovery(Resolver, isNonPublicSupported: true), // "NuGet MEF" attributes (Microsoft.Composition)
+            new AttributedPartDiscoveryV1(Resolver));
 
-        var parts = await discovery.CreatePartsAsync(_assemblyPaths, progress: null, cancellationToken).ConfigureAwait(false);
-        var catalog = ComposableCatalog.Create(_resolver)
+        var parts = await discovery.CreatePartsAsync(AssemblyPaths, progress: null, cancellationToken).ConfigureAwait(false);
+        var catalog = ComposableCatalog.Create(Resolver)
             .AddParts(parts)
             .WithCompositionService(); // Makes an ICompositionService export available to MEF parts to import
 
@@ -105,7 +105,7 @@ internal abstract class ExportProviderBuilder(
     /// </summary>
     private string GetCompositionCacheFilePath()
     {
-        return Path.Combine(_cacheDirectory, $"{_catalogPrefix}.{ComputeAssemblyHash(_assemblyPaths)}{CatalogSuffix}");
+        return Path.Combine(CacheDirectory, $"{CatalogPrefix}.{ComputeAssemblyHash(AssemblyPaths)}{CatalogSuffix}");
 
         static string ComputeAssemblyHash(ImmutableArray<string> assemblyPaths)
         {
@@ -177,7 +177,7 @@ internal abstract class ExportProviderBuilder(
     {
         // Verify that we have exactly the MEF errors that we expect.  If we have less or more this needs to be updated to assert the expected behavior.
         var erroredParts = configuration.CompositionErrors.FirstOrDefault()?.SelectMany(error => error.Parts).Select(part => part.Definition.Type.Name) ?? [];
-        var expectedErrorPartsSet = _expectedErrorParts.ToSet();
+        var expectedErrorPartsSet = ExpectedErrorParts.ToSet();
         var hasUnexpectedErroredParts = erroredParts.Any(part => !expectedErrorPartsSet.Contains(part));
 
         if (hasUnexpectedErroredParts || !catalog.DiscoveredParts.DiscoveryErrors.IsEmpty)

@@ -1387,7 +1387,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
 
         var workspaceConfigurationService = workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
 
-        var remoteProcessId = await client.TryInvokeAsync<IRemoteInitializationService, int>(
+        _ = await client.TryInvokeAsync<IRemoteInitializationService, (int, string?)>(
             (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options with { SourceGeneratorExecution = executionPreference }, TempRoot.Root, cancellationToken),
             CancellationToken.None).ConfigureAwait(false);
 
