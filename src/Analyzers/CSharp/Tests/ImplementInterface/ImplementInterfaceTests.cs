@@ -26,6 +26,19 @@ public sealed class ImplementInterfaceTests
 {
     private readonly NamingStylesTestOptionSets _options = new(LanguageNames.CSharp);
 
+    private const string CompilerFeatureRequiredAttribute = """
+
+        namespace System.Runtime.CompilerServices
+        {
+            public sealed class CompilerFeatureRequiredAttribute : Attribute
+            {
+                public CompilerFeatureRequiredAttribute(string featureName)
+                {
+                }
+            }
+        }
+        """;
+
     private static OptionsCollection AllOptionsOff
         => new(LanguageNames.CSharp)
         {
@@ -11259,16 +11272,7 @@ interface I
             class C : {|CS0535:ITest|}
             {
             }
-            namespace System.Runtime.CompilerServices
-            {
-                public sealed class CompilerFeatureRequiredAttribute : Attribute
-                {
-                    public CompilerFeatureRequiredAttribute(string featureName)
-                    {
-                    }
-                }
-            }
-            """,
+            """ + CompilerFeatureRequiredAttribute,
             FixedCode = $$$"""
             interface ITest
             {
@@ -11281,16 +11285,7 @@ interface I
                     throw new System.NotImplementedException();
                 }
             }
-            namespace System.Runtime.CompilerServices
-            {
-                public sealed class CompilerFeatureRequiredAttribute : Attribute
-                {
-                    public CompilerFeatureRequiredAttribute(string featureName)
-                    {
-                    }
-                }
-            }
-            """,
+            """ + CompilerFeatureRequiredAttribute,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(CodeFixesResources.Implement_all_members_explicitly, codeAction.Title),
             CodeActionEquivalenceKey = "True;False;False:global::ITest;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 0,
@@ -11313,16 +11308,7 @@ interface I
             class C : {|CS0535:ITest|}
             {
             }
-            namespace System.Runtime.CompilerServices
-            {
-                public sealed class CompilerFeatureRequiredAttribute : Attribute
-                {
-                    public CompilerFeatureRequiredAttribute(string featureName)
-                    {
-                    }
-                }
-            }
-            """,
+            """ + CompilerFeatureRequiredAttribute,
             FixedCode = $$$"""
             interface ITest
             {
@@ -11335,16 +11321,7 @@ interface I
                     throw new System.NotImplementedException();
                 }
             }
-            namespace System.Runtime.CompilerServices
-            {
-                public sealed class CompilerFeatureRequiredAttribute : Attribute
-                {
-                    public CompilerFeatureRequiredAttribute(string featureName)
-                    {
-                    }
-                }
-            }
-            """,
+            """ + CompilerFeatureRequiredAttribute,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(CodeFixesResources.Implement_all_members_explicitly, codeAction.Title),
             CodeActionEquivalenceKey = "True;False;False:global::ITest;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 0,
@@ -11444,16 +11421,7 @@ interface I
             class C : {|CS0535:ITest<C>|}
             {
             }
-            namespace System.Runtime.CompilerServices
-            {
-                public sealed class CompilerFeatureRequiredAttribute : Attribute
-                {
-                    public CompilerFeatureRequiredAttribute(string featureName)
-                    {
-                    }
-                }
-            }
-            """,
+            """ + CompilerFeatureRequiredAttribute,
             // PROTOTYPE: The 'static' modifier shouldn't be added
             FixedCode = $$$"""
             interface ITest<T> where T : ITest<T>
@@ -11467,16 +11435,7 @@ interface I
                     throw new System.NotImplementedException();
                 }
             }
-            namespace System.Runtime.CompilerServices
-            {
-                public sealed class CompilerFeatureRequiredAttribute : Attribute
-                {
-                    public CompilerFeatureRequiredAttribute(string featureName)
-                    {
-                    }
-                }
-            }
-            """,
+            """ + CompilerFeatureRequiredAttribute,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(CodeFixesResources.Implement_interface, codeAction.Title),
             CodeActionEquivalenceKey = "False;False;True:global::ITest<global::C>;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 0,
@@ -11499,16 +11458,7 @@ interface I
             class C : {|CS0535:ITest<C>|}
             {
             }
-            namespace System.Runtime.CompilerServices
-            {
-                public sealed class CompilerFeatureRequiredAttribute : Attribute
-                {
-                    public CompilerFeatureRequiredAttribute(string featureName)
-                    {
-                    }
-                }
-            }
-            """,
+            """ + CompilerFeatureRequiredAttribute,
             // PROTOTYPE: The 'static' modifier shouldn't be added
             FixedCode = $$$"""
             interface ITest<T> where T : ITest<T>
@@ -11522,16 +11472,7 @@ interface I
                     throw new System.NotImplementedException();
                 }
             }
-            namespace System.Runtime.CompilerServices
-            {
-                public sealed class CompilerFeatureRequiredAttribute : Attribute
-                {
-                    public CompilerFeatureRequiredAttribute(string featureName)
-                    {
-                    }
-                }
-            }
-            """,
+            """ + CompilerFeatureRequiredAttribute,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(CodeFixesResources.Implement_interface, codeAction.Title),
             CodeActionEquivalenceKey = "False;False;True:global::ITest<global::C>;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 0,
