@@ -22,7 +22,7 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerProvider : IHostDiag
 {
     private const string AnalyzerContentTypeName = "Microsoft.VisualStudio.Analyzer";
 
-    private const string RazorContentTypeName = "Microsoft.VisualStudio.RazorAssembly";
+    internal const string RazorContentTypeName = "Microsoft.VisualStudio.RazorAssembly";
 
     /// <summary>
     /// Loader for VSIX-based analyzers.
