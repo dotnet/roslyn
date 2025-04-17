@@ -94,21 +94,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // remove fake dummies and variable that cannot be scheduled
             var dummies = ArrayBuilder<LocalDefUseInfo>.GetInstance();
 
-            foreach (var local in info.Keys.ToArray())
+            info.RemoveAll(static (local, locInfo, dummies) =>
             {
-                var locInfo = info[local];
-
                 if (local.SynthesizedKind == SynthesizedLocalKind.OptimizerTemp)
                 {
                     dummies.Add(locInfo);
-                    info.Remove(local);
+                    return true;
                 }
-                else if (locInfo.CannotSchedule)
+
+                if (locInfo.CannotSchedule)
                 {
                     locInfo.Free();
-                    info.Remove(local);
+                    return true;
                 }
-            }
+
+                return false;
+            }, dummies);
 
             if (info.Count != 0)
             {

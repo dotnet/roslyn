@@ -181,13 +181,7 @@ internal static class EditorConfigValueSerializer
         if (value is NamingStylePreferences preferences)
         {
             // remove existing naming style values:
-            foreach (var name in builder.Keys)
-            {
-                if (name.StartsWith("dotnet_naming_rule.") || name.StartsWith("dotnet_naming_symbols.") || name.StartsWith("dotnet_naming_style."))
-                {
-                    builder.Remove(name);
-                }
-            }
+            builder.RemoveAll(static (name, _) => name.StartsWith("dotnet_naming_rule.") || name.StartsWith("dotnet_naming_symbols.") || name.StartsWith("dotnet_naming_style."));
 
             NamingStylePreferencesEditorConfigSerializer.WriteNamingStylePreferencesToEditorConfig(
                 preferences.SymbolSpecifications,
