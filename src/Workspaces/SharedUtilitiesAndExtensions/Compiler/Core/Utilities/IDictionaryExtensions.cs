@@ -229,7 +229,7 @@ internal static class IDictionaryExtensions
     /// Removes entries from a dictionary based on a specified condition. The condition is defined by a function that
     /// evaluates each key-value pair.
     /// </summary>
-    public static void Remove<TKey, TValue, TArg>(this IDictionary<TKey, TValue> dictionary, Func<TKey, TValue, TArg, bool> predicate, TArg arg)
+    public static void RemoveAll<TKey, TValue, TArg>(this Dictionary<TKey, TValue> dictionary, Func<TKey, TValue, TArg, bool> predicate, TArg arg)
         where TKey : notnull
     {
 #if NET
@@ -242,7 +242,7 @@ internal static class IDictionaryExtensions
             }
         }
 #else
-        if (dictionary.IsEmpty())
+        if (dictionary.Count == 0)
         {
             return;
         }

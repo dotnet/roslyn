@@ -461,7 +461,7 @@ internal sealed class CommittedSolution
             _solution = solution;
             _staleProjects.AddRange(projectsToStale);
             _staleProjects.RemoveRange(projectsToUnstale);
-            _documentState.Remove(static (documentId, _, projectsToUnstale) => projectsToUnstale.Contains(documentId.ProjectId), projectsToUnstale);
+            _documentState.RemoveAll(static (documentId, _, projectsToUnstale) => projectsToUnstale.Contains(documentId.ProjectId), projectsToUnstale);
         }
     }
 

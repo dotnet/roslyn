@@ -11,15 +11,15 @@ namespace Microsoft.CodeAnalysis.UnitTests;
 public class DictionaryExtensionsTests
 {
     [Fact]
-    public void Remove_Empty()
+    public void RemoveAll_Empty()
     {
         var dictionary = new Dictionary<int, string>();
-        dictionary.Remove((_, _, _) => true, 0);
+        dictionary.RemoveAll((_, _, _) => true, 0);
         Assert.Empty(dictionary);
     }
 
     [Fact]
-    public void Remove_RemovesMatchingEntries()
+    public void RemoveAll_RemovesMatchingEntries()
     {
         var dictionary = new Dictionary<int, string>
         {
@@ -28,7 +28,7 @@ public class DictionaryExtensionsTests
             { 3, "three" }
         };
 
-        dictionary.Remove((key, value, arg) => value.StartsWith(arg), "t");
+        dictionary.RemoveAll((key, value, arg) => value.StartsWith(arg), "t");
 
         Assert.Equal(1, dictionary.Count);
         Assert.True(dictionary.ContainsKey(1));
@@ -37,7 +37,7 @@ public class DictionaryExtensionsTests
     }
 
     [Fact]
-    public void Remove_NoMatching()
+    public void RemoveAll_NoMatching()
     {
         var dictionary = new Dictionary<int, string>
         {
@@ -46,7 +46,7 @@ public class DictionaryExtensionsTests
             { 3, "three" }
         };
 
-        dictionary.Remove((key, value, arg) => value.StartsWith(arg), "z");
+        dictionary.RemoveAll((key, value, arg) => value.StartsWith(arg), "z");
 
         Assert.Equal(3, dictionary.Count);
         Assert.True(dictionary.ContainsKey(1));
@@ -55,7 +55,7 @@ public class DictionaryExtensionsTests
     }
 
     [Fact]
-    public void Remove_AllMatching()
+    public void RemoveAll_AllMatching()
     {
         var dictionary = new Dictionary<int, string>
         {
@@ -64,7 +64,7 @@ public class DictionaryExtensionsTests
             { 3, "test3" }
         };
 
-        dictionary.Remove((key, value, arg) => value.StartsWith(arg), "t");
+        dictionary.RemoveAll((key, value, arg) => value.StartsWith(arg), "t");
 
         Assert.Empty(dictionary);
     }
