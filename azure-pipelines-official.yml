@@ -44,6 +44,8 @@ parameters:
   type: boolean
   default: true
 
+# An optional VS commit SHA that will be automatically cherry-picked
+# to the insertion PR created by this build.
 - name: VisualStudioCherryPickSHA
   type: string
   default: '(default)'
