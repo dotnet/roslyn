@@ -12,5 +12,6 @@ namespace Xunit
         VS2017,
         VS2019,
         VS2022,
+        VS18,
     }
 }

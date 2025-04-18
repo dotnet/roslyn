@@ -359,6 +359,9 @@ namespace Xunit.Harness
             case VisualStudioVersion.VS2022:
                 return new Version(17, 0);
 
+            case VisualStudioVersion.VS18:
+                return new Version(18, 0);
+
             default:
                 throw new ArgumentException();
             }
