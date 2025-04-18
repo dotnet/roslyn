@@ -548,6 +548,41 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
         {
             base.VisitCompoundAssignmentOperator(node);
+
+            if (!node.HasErrors && node.Operator.Method is { } compoundMethod)
+            {
+                if (compoundMethod.IsStatic)
+                {
+                    CheckInvocationArgMixing(
+                        node.Syntax,
+                        MethodInfo.Create(compoundMethod),
+                        receiverOpt: null,
+                        receiverIsSubjectToCloning: ThreeState.Unknown,
+                        compoundMethod.Parameters,
+                        argsOpt: [node.Left, node.Right],
+                        argRefKindsOpt: default,
+                        argsToParamsOpt: default,
+                        _localScopeDepth,
+                        _diagnostics);
+                }
+                else
+                {
+                    CheckInvocationArgMixing(
+                        node.Syntax,
+                        MethodInfo.Create(compoundMethod),
+                        receiverOpt: node.Left,
+                        receiverIsSubjectToCloning: ThreeState.False,
+                        compoundMethod.Parameters,
+                        argsOpt: [node.Right],
+                        argRefKindsOpt: default,
+                        argsToParamsOpt: default,
+                        _localScopeDepth,
+                        _diagnostics);
+
+                    return null;
+                }
+            }
+
             ValidateAssignment(node.Syntax, node.Left, node, isRef: false, _diagnostics);
             return null;
         }

@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         leftPlaceholder: null, leftConversion: null, finalPlaceholder: null, finalConversion: null,
                         resultKind: LookupResultKind.Viable,
                         originalUserDefinedOperatorsOpt: ImmutableArray<MethodSymbol>.Empty,
-                        leftType);
+                        getResultType(node, leftType, diagnostics));
 
                     methods.Free();
                 }
@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         leftPlaceholder: null, leftConversion: null, finalPlaceholder: null, finalConversion: null,
                         resultKind: LookupResultKind.OverloadResolutionFailure,
                         originalUserDefinedOperatorsOpt: methodsArray,
-                        leftType);
+                        getResultType(node, leftType, diagnostics));
                 }
                 else
                 {
@@ -382,6 +382,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 overloadResolutionResult.Free();
 
                 return inPlaceResult;
+            }
+
+            TypeSymbol getResultType(ExpressionSyntax node, TypeSymbol leftType, BindingDiagnosticBag diagnostics)
+            {
+                return ResultIsUsed(node) ? leftType : GetSpecialType(SpecialType.System_Void, diagnostics, node);
             }
         }
 
@@ -2609,7 +2614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         resultConversion: null,
                         LookupResultKind.Viable,
                         ImmutableArray<MethodSymbol>.Empty,
-                        resultIsUsed ? operandType : GetSpecialType(SpecialType.System_Void, diagnostics, node));
+                        getResultType(node, operandType, resultIsUsed, diagnostics));
 
                     methods.Free();
                 }
@@ -2634,7 +2639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         resultConversion: null,
                         LookupResultKind.OverloadResolutionFailure,
                         methodsArray,
-                        resultIsUsed ? operandType : GetSpecialType(SpecialType.System_Void, diagnostics, node));
+                        getResultType(node, operandType, resultIsUsed, diagnostics));
                 }
                 else
                 {
@@ -2646,6 +2651,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 overloadResolutionResult.Free();
 
                 return inPlaceResult;
+            }
+
+            TypeSymbol getResultType(ExpressionSyntax node, TypeSymbol operandType, bool resultIsUsed, BindingDiagnosticBag diagnostics)
+            {
+                return resultIsUsed ? operandType : GetSpecialType(SpecialType.System_Void, diagnostics, node);
             }
         }
 
