@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -697,6 +698,249 @@ public sealed partial class MetadataAsSourceTests
                     public static C operator [|>>>|](C x, int y)
                     {
                         return x;
+                    }
+                }
+                #if false // {{FeaturesResources.Decompilation_log}}
+                {{string.Format(FeaturesResources._0_items_in_cache, 6)}}
+                ------------------
+                {{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}}
+                {{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}}
+                {{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}}
+                #endif
+                """,
+            };
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected: expected, signaturesOnly: signaturesOnly, languageVersion: "Preview", metadataLanguageVersion: "Preview");
+        }
+
+        private const string CompilerFeatureRequiredAttribute = """
+            namespace System.Runtime.CompilerServices
+            {
+                public sealed class CompilerFeatureRequiredAttribute : Attribute
+                {
+                    public CompilerFeatureRequiredAttribute(string featureName)
+                    {
+                    }
+                }
+            }
+            """;
+
+        [Theory(Skip = "Depends on https://github.com/dotnet/roslyn/pull/78163")] // PROTOTYPE: Enable once https://github.com/dotnet/roslyn/pull/78163 is merged
+        [CombinatorialData]
+        public async Task InstanceIncrementOperators(bool signaturesOnly, [CombinatorialValues("++", "--")] string op)
+        {
+            var metadataSource = "public class C { public void operator " + op + "() {} }" + CompilerFeatureRequiredAttribute;
+            var symbolName = "C." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName);
+
+            var expected = signaturesOnly switch
+            {
+                // PROTOTYPE: The 'static' modifier shouldn't be added
+                true => $$"""
+                #region {{FeaturesResources.Assembly}} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+                // {{CodeAnalysisResources.InMemoryAssembly}}
+                #endregion
+
+                public class C
+                {
+                    public C();
+
+                    public static void operator [|{{op}}|]();
+                }
+                """,
+                // PROTOTYPE: Not sure whether 'CompilerFeatureRequired' attribute is expected
+                false => $$"""
+                #region {{FeaturesResources.Assembly}} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+                // {{CodeAnalysisResources.InMemoryAssembly}}
+                // Decompiled with ICSharpCode.Decompiler {{ICSharpCodeDecompilerVersion}}
+                #endregion
+
+                using System.Runtime.CompilerServices;
+                
+                public class C
+                {
+                    [CompilerFeatureRequired("UserDefinedCompoundAssignmentOperators")]
+                    public void operator [|{{op}}|]()
+                    {
+                    }
+                }
+                #if false // {{FeaturesResources.Decompilation_log}}
+                {{string.Format(FeaturesResources._0_items_in_cache, 6)}}
+                ------------------
+                {{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}}
+                {{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}}
+                {{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}}
+                #endif
+                """,
+            };
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected: expected, signaturesOnly: signaturesOnly, languageVersion: "Preview", metadataLanguageVersion: "Preview");
+        }
+
+        [Theory(Skip = "Depends on https://github.com/dotnet/roslyn/pull/78163")] // PROTOTYPE: Enable once https://github.com/dotnet/roslyn/pull/78163 is merged
+        [CombinatorialData]
+        public async Task InstanceIncrementOperators_Checked(bool signaturesOnly, [CombinatorialValues("++", "--")] string op)
+        {
+            var metadataSource = "public class C { public void operator " + op + "() {} public void operator checked " + op + "() {} }" + CompilerFeatureRequiredAttribute;
+            var symbolName = "C." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName);
+
+            var expected = signaturesOnly switch
+            {
+                // PROTOTYPE: The 'static' modifier shouldn't be added
+                true => $$"""
+                #region {{FeaturesResources.Assembly}} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+                // {{CodeAnalysisResources.InMemoryAssembly}}
+                #endregion
+
+                public class C
+                {
+                    public C();
+
+                    public static void operator checked [|{{op}}|]();
+                    public static void operator {{op}}();
+                }
+                """,
+                // PROTOTYPE: Not sure whether 'CompilerFeatureRequired' attribute is expected
+                false => $$"""
+                #region {{FeaturesResources.Assembly}} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+                // {{CodeAnalysisResources.InMemoryAssembly}}
+                // Decompiled with ICSharpCode.Decompiler {{ICSharpCodeDecompilerVersion}}
+                #endregion
+
+                using System.Runtime.CompilerServices;
+                
+                public class C
+                {
+                    [CompilerFeatureRequired("UserDefinedCompoundAssignmentOperators")]
+                    public void operator {{op}}()
+                    {
+                    }
+
+                    [CompilerFeatureRequired("UserDefinedCompoundAssignmentOperators")]
+                    public void operator checked [|{{op}}|]()
+                    {
+                    }
+                }
+                #if false // {{FeaturesResources.Decompilation_log}}
+                {{string.Format(FeaturesResources._0_items_in_cache, 6)}}
+                ------------------
+                {{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}}
+                {{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}}
+                {{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}}
+                #endif
+                """,
+            };
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected: expected, signaturesOnly: signaturesOnly, languageVersion: "Preview", metadataLanguageVersion: "Preview");
+        }
+
+        [Theory(Skip = "Depends on https://github.com/dotnet/roslyn/pull/78163")] // PROTOTYPE: Enable once https://github.com/dotnet/roslyn/pull/78163 is merged
+        [CombinatorialData]
+        public async Task InstanceCompoundAssignmentOperators(bool signaturesOnly, [CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var metadataSource = "public class C { public void operator " + op + "(int x) {} }" + CompilerFeatureRequiredAttribute;
+            var symbolName = "C." + CompoundAssignmentOperatorName(op);
+
+            var expected = signaturesOnly switch
+            {
+                // PROTOTYPE: The 'static' modifier shouldn't be added
+                true => $$"""
+                #region {{FeaturesResources.Assembly}} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+                // {{CodeAnalysisResources.InMemoryAssembly}}
+                #endregion
+
+                public class C
+                {
+                    public C();
+
+                    public static void operator [|{{op}}|](int x);
+                }
+                """,
+                // PROTOTYPE: Expected an operator declaration syntax
+                false => $$"""
+                #region {{FeaturesResources.Assembly}} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+                // {{CodeAnalysisResources.InMemoryAssembly}}
+                // Decompiled with ICSharpCode.Decompiler {{ICSharpCodeDecompilerVersion}}
+                #endregion
+                
+                using System.Runtime.CompilerServices;
+                
+                public class C
+                {
+                    [SpecialName]
+                    [CompilerFeatureRequired("UserDefinedCompoundAssignmentOperators")]
+                    public void [|{{CompoundAssignmentOperatorName(op)}}|](int x)
+                    {
+                    }
+                }
+                #if false // {{FeaturesResources.Decompilation_log}}
+                {{string.Format(FeaturesResources._0_items_in_cache, 6)}}
+                ------------------
+                {{string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}}
+                {{string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}}
+                {{string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}}
+                #endif
+                """,
+            };
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected: expected, signaturesOnly: signaturesOnly, languageVersion: "Preview", metadataLanguageVersion: "Preview");
+        }
+
+        private static string CompoundAssignmentOperatorName(string op, bool isChecked = false)
+        {
+            var kind = op switch
+            {
+                ">>=" => SyntaxKind.GreaterThanGreaterThanEqualsToken,
+                ">>>=" => SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken,
+                _ => SyntaxFactory.ParseToken(op).Kind(),
+            };
+
+            return OperatorFacts.CompoundAssignmentOperatorNameFromSyntaxKind(kind, isChecked);
+        }
+
+        [Theory(Skip = "Depends on https://github.com/dotnet/roslyn/pull/78163")] // PROTOTYPE: Enable once https://github.com/dotnet/roslyn/pull/78163 is merged
+        [CombinatorialData]
+        public async Task InstanceCompoundAssignmentOperators_Checked(bool signaturesOnly, [CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var metadataSource = "public class C { public void operator " + op + "(int x) {} public void operator checked " + op + "(int x) {} }" + CompilerFeatureRequiredAttribute;
+            var symbolName = "C." + CompoundAssignmentOperatorName(op, isChecked: true);
+
+            var expected = signaturesOnly switch
+            {
+                // PROTOTYPE: The 'static' modifier shouldn't be added
+                true => $$"""
+                #region {{FeaturesResources.Assembly}} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+                // {{CodeAnalysisResources.InMemoryAssembly}}
+                #endregion
+
+                public class C
+                {
+                    public C();
+
+                    public static void operator checked [|{{op}}|](int x);
+                    public static void operator {{op}}(int x);
+                }
+                """,
+                // PROTOTYPE: Expected an operator declaration syntax
+                false => $$"""
+                #region {{FeaturesResources.Assembly}} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+                // {{CodeAnalysisResources.InMemoryAssembly}}
+                // Decompiled with ICSharpCode.Decompiler {{ICSharpCodeDecompilerVersion}}
+                #endregion
+                
+                using System.Runtime.CompilerServices;
+                
+                public class C
+                {
+                    [SpecialName]
+                    [CompilerFeatureRequired("UserDefinedCompoundAssignmentOperators")]
+                    public void {{CompoundAssignmentOperatorName(op)}}(int x)
+                    {
+                    }
+
+                    [SpecialName]
+                    [CompilerFeatureRequired("UserDefinedCompoundAssignmentOperators")]
+                    public void [|{{CompoundAssignmentOperatorName(op, isChecked: true)}}|](int x)
+                    {
                     }
                 }
                 #if false // {{FeaturesResources.Decompilation_log}}
