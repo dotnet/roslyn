@@ -111,7 +111,7 @@ namespace Xunit.Threading
                 settingsAttributes,
                 nameof(IIdeSettingsAttribute.MaxVersion),
                 static value => value is not VisualStudioVersion.Unspecified,
-                defaultValue: VisualStudioVersion.VS2022);
+                defaultValue: VisualStudioVersion.VS18);
 
             for (var version = minVersion; version <= maxVersion; version++)
             {
