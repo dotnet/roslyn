@@ -35072,6 +35072,33 @@ static class E
             Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(4, 6));
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78182")]
+    public void Nullability_Attribute_21()
+    {
+        var source = @"
+#nullable enable
+
+static class Strings
+{
+    extension([System.Diagnostics.CodeAnalysis.MaybeNullWhen(true), System.Diagnostics.CodeAnalysis.NotNullWhen(false)] string? s)
+    {
+        public bool IsEmpty() => string.IsNullOrEmpty(s);
+    }
+
+    public static bool IsEmpty2([System.Diagnostics.CodeAnalysis.MaybeNullWhen(true), System.Diagnostics.CodeAnalysis.NotNullWhen(false)] this string? s)
+        => string.IsNullOrEmpty(s);
+}
+
+class C
+{
+    public string? TextKey { get; set; }
+    bool IsValid => !TextKey.IsEmpty();
+    bool IsValid2 => !TextKey.IsEmpty2();
+}
+";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+    }
 
     [Fact]
     public void BuildArgumentsForErrorRecovery_01()
@@ -35209,33 +35236,5 @@ static class E
             // (2,10): error CS0103: The name 'ERROR' does not exist in the current context
             // object.M(ERROR);
             Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(2, 10));
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78182")]
-    public void TODO2()
-    {
-        var source = @"
-#nullable enable
-
-static class Strings
-{
-    extension([System.Diagnostics.CodeAnalysis.MaybeNullWhen(true), System.Diagnostics.CodeAnalysis.NotNullWhen(false)] string? s)
-    {
-        public bool IsEmpty() => string.IsNullOrEmpty(s);
-    }
-
-    public static bool IsEmpty2([System.Diagnostics.CodeAnalysis.MaybeNullWhen(true), System.Diagnostics.CodeAnalysis.NotNullWhen(false)] this string? s)
-        => string.IsNullOrEmpty(s);
-}
-
-class C
-{
-    public string? TextKey { get; set; }
-    bool IsValid => !TextKey.IsEmpty();
-    bool IsValid2 => !TextKey.IsEmpty2();
-}
-";
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
-        comp.VerifyEmitDiagnostics();
     }
 }

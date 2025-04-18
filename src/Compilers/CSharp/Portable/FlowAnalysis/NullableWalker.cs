@@ -6440,7 +6440,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     method = (MethodSymbol)AsMemberOfType(receiverType.Type, method);
                 }
 
-                // TODO2 this will cause the receiver to be visited again...
                 ImmutableArray<BoundExpression> arguments = getArguments(node.Arguments, adjustForNewExtension, node.ReceiverOpt);
                 ImmutableArray<ParameterSymbol> parameters = getParameters(method.Parameters, adjustForNewExtension, method);
                 ImmutableArray<int> argsToParamsOpt = GetArgsToParamsOpt(node.ArgsToParamsOpt, adjustForNewExtension);
