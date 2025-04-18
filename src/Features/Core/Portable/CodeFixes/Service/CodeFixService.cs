@@ -28,7 +28,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Threading;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes;
@@ -157,7 +157,7 @@ internal sealed partial class CodeFixService : ICodeFixService
             CancellationToken cancellationToken)
         {
             // Ensure we yield here so the caller can continue on.
-            await TaskScheduler.Default.SwitchTo(alwaysYield: true);
+            await Task.Yield().ConfigureAwait(false);
 
             await foreach (var collection in StreamFixesAsync(
                 document, spanToDiagnostics, fixAllForInSpan: false,
@@ -331,9 +331,6 @@ internal sealed partial class CodeFixService : ICodeFixService
 
         return null;
     }
-
-    public Task<TDocument> ApplyCodeFixesForSpecificDiagnosticIdAsync<TDocument>(TDocument document, string diagnosticId, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken) where TDocument : TextDocument
-        => ApplyCodeFixesForSpecificDiagnosticIdAsync(document, diagnosticId, DiagnosticSeverity.Hidden, progressTracker, cancellationToken);
 
     public async Task<TDocument> ApplyCodeFixesForSpecificDiagnosticIdAsync<TDocument>(
         TDocument document,
@@ -535,11 +532,12 @@ internal sealed partial class CodeFixService : ICodeFixService
                     const int CodeFixTelemetryDelay = 500;
 
                     var fixerName = fixer.GetType().Name;
-                    var logMessage = KeyValueLogMessage.Create(m =>
+                    var logMessage = KeyValueLogMessage.Create(static (m, args) =>
                     {
+                        var (fixerName, document) = args;
                         m[TelemetryLogging.KeyName] = fixerName;
                         m[TelemetryLogging.KeyLanguageName] = document.Project.Language;
-                    });
+                    }, (fixerName, document));
 
                     using var _ = TelemetryLogging.LogBlockTime(FunctionId.CodeFix_Delay, logMessage, CodeFixTelemetryDelay);
 

@@ -18,6 +18,7 @@ internal sealed class TextDocumentContentChangeEvent
     /// Gets or sets the range of the text that was changed.
     /// </summary>
     [JsonPropertyName("range")]
+    [JsonRequired]
     public Range Range
     {
         get;
@@ -39,6 +40,7 @@ internal sealed class TextDocumentContentChangeEvent
     /// Gets or sets the new text of the range/document.
     /// </summary>
     [JsonPropertyName("text")]
+    [JsonRequired]
     public string Text
     {
         get;

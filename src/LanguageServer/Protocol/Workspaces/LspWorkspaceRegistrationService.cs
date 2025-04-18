@@ -31,13 +31,13 @@ internal abstract class LspWorkspaceRegistrationService : IDisposable
         if (workspace is null)
             return;
 
-        Logger.Log(FunctionId.RegisterWorkspace, KeyValueLogMessage.Create(LogType.Trace, m =>
+        Logger.Log(FunctionId.RegisterWorkspace, KeyValueLogMessage.Create(LogType.Trace, static (m, workspace) =>
         {
             m["WorkspaceKind"] = workspace.Kind;
             m["WorkspaceCanOpenDocuments"] = workspace.CanOpenDocuments;
             m["WorkspaceCanChangeActiveContextDocument"] = workspace.CanChangeActiveContextDocument;
             m["WorkspacePartialSemanticsEnabled"] = workspace.PartialSemanticsEnabled;
-        }));
+        }, workspace));
 
         // Forward workspace change events for all registered LSP workspaces. Requires main thread as it
         // fires LspSolutionChanged which hasn't been guaranteed to be thread safe.
