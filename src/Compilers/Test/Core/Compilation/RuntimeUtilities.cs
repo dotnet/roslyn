@@ -81,7 +81,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public static (string Output, string ErrorOutput) CaptureOutput(Action action, IFormatProvider? formatProvider = null)
         {
-            formatProvider ??= CultureInfo.InvariantCulture;
             lock (s_outputGuard)
             {
                 var savedConsoleOut = Console.Out;
