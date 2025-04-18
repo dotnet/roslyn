@@ -968,6 +968,70 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             "explicit operator bool (global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
     }
 
+    [Fact]
+    public void TestInstanceOperatorsDeclaration()
+    {
+        var returnType = Generator.TypeExpression(SpecialType.System_Void);
+
+        VerifySyntax<OperatorDeclarationSyntax>(
+            Generator.OperatorDeclaration(OperatorKind.Increment, [], returnType),
+            "void operator ++()\r\n{\r\n}");
+
+        VerifySyntax<OperatorDeclarationSyntax>(
+            Generator.OperatorDeclaration(OperatorKind.Decrement, [], returnType),
+            "void operator --()\r\n{\r\n}");
+
+        var parameterTypes = new[]
+        {
+            _emptyCompilation.GetSpecialType(SpecialType.System_Int32)
+        };
+        var parameters = parameterTypes.Select((t, i) => Generator.ParameterDeclaration("p" + i, Generator.TypeExpression(t))).ToList();
+
+        VerifySyntax<OperatorDeclarationSyntax>(
+            Generator.OperatorDeclaration(OperatorKind.AdditionAssignment, parameters, returnType),
+            "void operator +=(global::System.Int32 p0)\r\n{\r\n}");
+
+        VerifySyntax<OperatorDeclarationSyntax>(
+            Generator.OperatorDeclaration(OperatorKind.SubtractionAssignment, parameters, returnType),
+            "void operator -=(global::System.Int32 p0)\r\n{\r\n}");
+
+        VerifySyntax<OperatorDeclarationSyntax>(
+            Generator.OperatorDeclaration(OperatorKind.MultiplicationAssignment, parameters, returnType),
+            "void operator *=(global::System.Int32 p0)\r\n{\r\n}");
+
+        VerifySyntax<OperatorDeclarationSyntax>(
+            Generator.OperatorDeclaration(OperatorKind.DivisionAssignment, parameters, returnType),
+            "void operator /=(global::System.Int32 p0)\r\n{\r\n}");
+
+        VerifySyntax<OperatorDeclarationSyntax>(
+            Generator.OperatorDeclaration(OperatorKind.ModulusAssignment, parameters, returnType),
+            "void operator %=(global::System.Int32 p0)\r\n{\r\n}");
+
+        VerifySyntax<OperatorDeclarationSyntax>(
+            Generator.OperatorDeclaration(OperatorKind.ExclusiveOrAssignment, parameters, returnType),
+            "void operator ^=(global::System.Int32 p0)\r\n{\r\n}");
+
+        VerifySyntax<OperatorDeclarationSyntax>(
+            Generator.OperatorDeclaration(OperatorKind.BitwiseAndAssignment, parameters, returnType),
+            "void operator &=(global::System.Int32 p0)\r\n{\r\n}");
+
+        VerifySyntax<OperatorDeclarationSyntax>(
+            Generator.OperatorDeclaration(OperatorKind.BitwiseOrAssignment, parameters, returnType),
+            "void operator |=(global::System.Int32 p0)\r\n{\r\n}");
+
+        VerifySyntax<OperatorDeclarationSyntax>(
+            Generator.OperatorDeclaration(OperatorKind.LeftShiftAssignment, parameters, returnType),
+            "void operator <<=(global::System.Int32 p0)\r\n{\r\n}");
+
+        VerifySyntax<OperatorDeclarationSyntax>(
+            Generator.OperatorDeclaration(OperatorKind.RightShiftAssignment, parameters, returnType),
+            "void operator >>=(global::System.Int32 p0)\r\n{\r\n}");
+
+        VerifySyntax<OperatorDeclarationSyntax>(
+            Generator.OperatorDeclaration(OperatorKind.UnsignedRightShiftAssignment, parameters, returnType),
+            "void operator >>>=(global::System.Int32 p0)\r\n{\r\n}");
+    }
+
     [Fact, WorkItem(63410, "https://github.com/dotnet/roslyn/issues/63410")]
     public void TestCheckedOperator()
     {
