@@ -65,11 +65,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Exte
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests", "src\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests.csproj", "{DA9797F0-F158-42AB-BE2B-922588756941}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.VsixInstaller.18", "src\Microsoft.VisualStudio.VsixInstaller.18\Microsoft.VisualStudio.VsixInstaller.18.csproj", "{45749C3E-7511-8C1B-06FF-6330B67C1433}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared.projitems*{346081a2-a088-4486-94b3-b586bd6fd888}*SharedItemsImports = 5
 		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{4232a7ba-a7b7-4c65-b7a1-17fb5cded299}*SharedItemsImports = 5
 		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{43cc037c-8ebc-424c-ab73-9dd4047924a1}*SharedItemsImports = 5
+		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{45749c3e-7511-8c1b-06ff-6330b67c1433}*SharedItemsImports = 5
 		src\Microsoft.VisualStudio.IntegrationTestService.Shared\Microsoft.VisualStudio.IntegrationTestService.Shared.projitems*{56550d99-71d3-44fe-804c-944d82d639f6}*SharedItemsImports = 5
 		src\Microsoft.VisualStudio.IntegrationTestService.Shared\Microsoft.VisualStudio.IntegrationTestService.Shared.projitems*{5a516b07-7b9c-4ce1-9ddc-e59800919d64}*SharedItemsImports = 5
 		src\Microsoft.VisualStudio.IntegrationTestService.Shared\Microsoft.VisualStudio.IntegrationTestService.Shared.projitems*{629938e1-1c2c-4f01-8038-90a34a940ac8}*SharedItemsImports = 13
@@ -145,6 +148,10 @@ Global
 		{DA9797F0-F158-42AB-BE2B-922588756941}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DA9797F0-F158-42AB-BE2B-922588756941}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DA9797F0-F158-42AB-BE2B-922588756941}.Release|Any CPU.Build.0 = Release|Any CPU
+		{45749C3E-7511-8C1B-06FF-6330B67C1433}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{45749C3E-7511-8C1B-06FF-6330B67C1433}.Debug|Any CPU.Build.0 = Debug|x64
+		{45749C3E-7511-8C1B-06FF-6330B67C1433}.Release|Any CPU.ActiveCfg = Release|x64
+		{45749C3E-7511-8C1B-06FF-6330B67C1433}.Release|Any CPU.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -168,6 +175,7 @@ Global
 		{CE32D863-E8C3-461F-80C7-32D0B0853217} = {7A983C88-A0B8-4A6C-8837-E45ADD6C01EE}
 		{25E61E07-E449-4ABB-A197-BD5C8EE3347F} = {D2869BF7-27E8-42B9-BF23-8790C0CE08C2}
 		{DA9797F0-F158-42AB-BE2B-922588756941} = {D2869BF7-27E8-42B9-BF23-8790C0CE08C2}
+		{45749C3E-7511-8C1B-06FF-6330B67C1433} = {37C00986-FB67-46DA-8B12-6CF99786ECC6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BEAADCC8-C5EB-46B6-8AA8-0242304BE240}

@@ -33,11 +33,13 @@
     <ProjectReference Include="..\Microsoft.VisualStudio.IntegrationTestService.Dev17\Microsoft.VisualStudio.IntegrationTestService.Dev17.csproj" Private="false" PrivateAssets="all" />
 
     <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.17\Microsoft.VisualStudio.VsixInstaller.17.csproj" ReferenceOutputAssembly="False" SkipGetTargetFrameworkProperties="true" PrivateAssets="all" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.18\Microsoft.VisualStudio.VsixInstaller.18.csproj" ReferenceOutputAssembly="False" SkipGetTargetFrameworkProperties="true" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
     <!-- Embedded assemblies -->
     <EmbeddedResource Include="$(RepoRootPath)bin\Microsoft.VisualStudio.VsixInstaller.17\x64\$(Configuration)\net472\Microsoft.VisualStudio.VsixInstaller.17.exe" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.17.exe" />
+    <EmbeddedResource Include="$(RepoRootPath)bin\Microsoft.VisualStudio.VsixInstaller.18\x64\$(Configuration)\net472\Microsoft.VisualStudio.VsixInstaller.18.exe" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.18.exe" />
     <EmbeddedResource Include="$(RepoRootPath)bin\Microsoft.VisualStudio.IntegrationTestService.Dev17\$(Configuration)\net472\Microsoft.VisualStudio.IntegrationTestService.dll" Visible="false" ManifestResourceName="Microsoft.VisualStudio.IntegrationTestService.dll" />
 
     <!-- Embedded extensions -->
