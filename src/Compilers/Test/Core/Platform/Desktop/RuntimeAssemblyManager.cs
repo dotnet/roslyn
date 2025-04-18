@@ -377,7 +377,7 @@ namespace Roslyn.Test.Utilities.Desktop
             Debug.Assert(entryPoint != null, "Attempting to execute an assembly that has no entrypoint; is your test trying to execute a DLL?");
 
             object result = null;
-            (output, errorOutput) = DesktopRuntimeEnvironment.CaptureOutput(() =>
+            (output, errorOutput) = RuntimeUtilities.CaptureOutput(() =>
             {
                 var count = entryPoint.GetParameters().Length;
                 object[] args;

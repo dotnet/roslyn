@@ -249,35 +249,6 @@ namespace Roslyn.Test.Utilities.Desktop
             Data = null;
             _disposed = true;
         }
-
-        private static readonly object s_consoleGuard = new object();
-
-        internal static (string Output, string ErrorOutput) CaptureOutput(Action action)
-        {
-            using var outputWriter = new StringWriter(CultureInfo.InvariantCulture);
-            using var errorWriter = new StringWriter(CultureInfo.InvariantCulture);
-
-            lock (s_consoleGuard)
-            {
-                TextWriter originalOut = Console.Out;
-                TextWriter originalError = Console.Error;
-                try
-                {
-                    Console.SetOut(outputWriter);
-                    Console.SetError(errorWriter);
-                    action();
-                }
-                finally
-                {
-                    Console.SetOut(originalOut);
-                    Console.SetError(originalError);
-                }
-            }
-
-            var output = outputWriter.ToString();
-            var errorOutput = errorWriter.ToString();
-            return (output, errorOutput);
-        }
     }
 }
 #endif

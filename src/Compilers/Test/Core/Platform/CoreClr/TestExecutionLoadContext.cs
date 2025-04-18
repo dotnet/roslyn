@@ -16,6 +16,7 @@ using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.Loader;
 using System.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
@@ -67,7 +68,7 @@ namespace Roslyn.Test.Utilities.CoreClr
             Debug.Assert(entryPoint is not null);
 
             int exitCode = 0;
-            var (output, errorOutput) = SharedConsole.CaptureOutput(() =>
+            var (output, errorOutput) = RuntimeUtilities.CaptureOutput(() =>
             {
                 var count = entryPoint.GetParameters().Length;
                 object[] args;

@@ -22,9 +22,6 @@ namespace Roslyn.Test.Utilities.CoreClr
         public ImmutableArray<ModuleData> Modules { get; } = modules;
         internal TestExecutionLoadContext LoadContext { get; } = new TestExecutionLoadContext(modules);
 
-        public static (string Output, string ErrorOutput) CaptureOutput(Action action) =>
-            SharedConsole.CaptureOutput(action);
-
         public (int ExitCode, string Output, string ErrorOutput) Execute(string[] args) =>
             LoadContext.Execute(MainModule, args);
 
