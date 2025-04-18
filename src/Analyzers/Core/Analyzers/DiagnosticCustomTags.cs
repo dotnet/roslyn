@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -58,7 +59,7 @@ internal static class DiagnosticCustomTags
     } = [WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry];
 
     [Conditional("DEBUG")]
-    private static void Assert(string[] customTags, params string[] tags)
+    private static void Assert(string[] customTags, params ReadOnlySpan<string> tags)
     {
         Debug.Assert(customTags.Length == tags.Length);
 

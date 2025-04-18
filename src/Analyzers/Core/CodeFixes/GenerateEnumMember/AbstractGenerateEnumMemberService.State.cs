@@ -4,6 +4,7 @@
 
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -23,17 +24,17 @@ internal abstract partial class AbstractGenerateEnumMemberService<TService, TSim
         public TSimpleNameSyntax SimpleName { get; private set; } = null!;
         public TExpressionSyntax SimpleNameOrMemberAccessExpression { get; private set; } = null!;
 
-        public static State? Generate(
+        public static async Task<State?> GenerateAsync(
             TService service,
             SemanticDocument document,
             SyntaxNode node,
             CancellationToken cancellationToken)
         {
             var state = new State();
-            return state.TryInitialize(service, document, node, cancellationToken) ? state : null;
+            return await state.TryInitializeAsync(service, document, node, cancellationToken).ConfigureAwait(false) ? state : null;
         }
 
-        private bool TryInitialize(
+        private async ValueTask<bool> TryInitializeAsync(
             TService service,
             SemanticDocument document,
             SyntaxNode node,
@@ -63,7 +64,7 @@ internal abstract partial class AbstractGenerateEnumMemberService<TService, TSim
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-            var sourceType = SymbolFinderInternal.FindSourceDefinition(TypeToGenerateIn, document.Project.Solution, cancellationToken) as INamedTypeSymbol;
+            var sourceType = (await SymbolFinderInternal.FindSourceDefinitionAsync(TypeToGenerateIn, document.Project.Solution, cancellationToken).ConfigureAwait(false)) as INamedTypeSymbol;
             if (!ValidateTypeToGenerateIn(sourceType, true, EnumType))
                 return false;
 

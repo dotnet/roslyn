@@ -56,7 +56,7 @@ internal sealed class TypeKindOptionsHelper
     public static bool IsModule(TypeKindOptions option)
         => (option & TypeKindOptions.Module) != 0 ? true : false;
 
-    public static TypeKindOptions RemoveOptions(TypeKindOptions fromValue, params TypeKindOptions[] removeValues)
+    public static TypeKindOptions RemoveOptions(TypeKindOptions fromValue, params ReadOnlySpan<TypeKindOptions> removeValues)
     {
         var tempReturnValue = fromValue;
         foreach (var removeValue in removeValues)

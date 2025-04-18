@@ -383,9 +383,8 @@ class C {
             testContainsHelper1("#undef x", SyntaxKind.UndefDirectiveTrivia);
             testContainsHelper1("#warning", SyntaxKind.WarningDirectiveTrivia);
 
-            // #! is special and is only recognized at start of a file and nowhere else.
             testContainsHelper2(new[] { SyntaxKind.ShebangDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit("#!command", options: TestOptions.Script));
-            testContainsHelper2(new[] { SyntaxKind.BadDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit(" #!command", options: TestOptions.Script));
+            testContainsHelper2(new[] { SyntaxKind.ShebangDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit(" #!command", options: TestOptions.Script));
             testContainsHelper2(new[] { SyntaxKind.ShebangDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit("#!command", options: TestOptions.Regular));
             testContainsHelper2([SyntaxKind.IgnoredDirectiveTrivia], SyntaxFactory.ParseCompilationUnit("#:x"));
 

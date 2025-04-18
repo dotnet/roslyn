@@ -38,7 +38,7 @@ public static partial class SymbolFinder
             throw new System.ArgumentNullException(nameof(solution));
 
         symbol = symbol.OriginalDefinition;
-        var foundSymbol = FindSourceDefinition(symbol, solution, cancellationToken);
+        var foundSymbol = await FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
         symbol = foundSymbol ?? symbol;
 
         var references = await FindCallReferencesAsync(solution, symbol, documents, cancellationToken).ConfigureAwait(false);
