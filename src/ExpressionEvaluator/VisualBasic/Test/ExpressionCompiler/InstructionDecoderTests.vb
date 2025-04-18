@@ -653,7 +653,7 @@ End Class"
             ' using the same helper as the product code.  This helper will also map
             ' async/ iterator "MoveNext" methods to the original source method.
             Dim method As MethodSymbol = compilation.GetSourceMethod(
-                DirectCast(frame.ContainingModule, PEModuleSymbol).Module.GetModuleVersionIdOrThrow(),
+                New ModuleId(DirectCast(frame.ContainingModule, PEModuleSymbol).Module.GetModuleVersionIdOrThrow(), frame.ContainingModule.Name),
                 frame.Handle)
             If serializedTypeArgumentNames IsNot Nothing Then
                 Assert.NotEmpty(serializedTypeArgumentNames)

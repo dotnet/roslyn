@@ -21,20 +21,20 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         internal readonly int MetadataLength;
         internal readonly IntPtr MetadataAddress;
 
-        internal readonly Guid ModuleVersionId;
+        internal readonly ModuleId Id;
         internal readonly object SymReader;
         private readonly bool _includeLocalSignatures;
 
         private ModuleInstance(
             Metadata metadata,
-            Guid moduleVersionId,
+            ModuleId id,
             int metadataLength,
             IntPtr metadataAddress,
             object symReader,
             bool includeLocalSignatures)
         {
             _metadataOpt = metadata;
-            ModuleVersionId = moduleVersionId;
+            Id = id;
             MetadataLength = metadataLength;
             MetadataAddress = metadataAddress;
             SymReader = symReader; // should be non-null if and only if there are symbols
@@ -43,21 +43,21 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
         public static unsafe ModuleInstance Create(
             PEMemoryBlock metadata,
-            Guid moduleVersionId,
+            ModuleId id,
             ISymUnmanagedReader symReader = null)
         {
-            return Create((IntPtr)metadata.Pointer, metadata.Length, moduleVersionId, symReader);
+            return Create((IntPtr)metadata.Pointer, metadata.Length, id, symReader);
         }
 
         public static ModuleInstance Create(
             IntPtr metadataAddress,
             int metadataLength,
-            Guid moduleVersionId,
+            ModuleId id,
             ISymUnmanagedReader symReader = null)
         {
             return new ModuleInstance(
                 metadata: null,
-                moduleVersionId: moduleVersionId,
+                id: id,
                 metadataLength: metadataLength,
                 metadataAddress: metadataAddress,
                 symReader: symReader,
@@ -84,12 +84,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             var assemblyMetadata = metadata as AssemblyMetadata;
             var moduleMetadata = (assemblyMetadata == null) ? (ModuleMetadata)metadata : assemblyMetadata.GetModules()[0];
 
-            var moduleId = moduleMetadata.Module.GetModuleVersionIdOrThrow();
+            var mvid = moduleMetadata.Module.GetModuleVersionIdOrThrow();
             var metadataBlock = moduleMetadata.Module.PEReaderOpt.GetMetadata();
 
             return new ModuleInstance(
                 metadata,
-                moduleId,
+                new ModuleId(mvid, moduleMetadata.Module.Name),
                 metadataBlock.Length,
                 (IntPtr)metadataBlock.Pointer,
                 symReader,
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
         public MetadataReference GetReference() => (_metadataOpt as AssemblyMetadata)?.GetReference() ?? ((ModuleMetadata)_metadataOpt).GetReference();
 
-        internal MetadataBlock MetadataBlock => new MetadataBlock(ModuleVersionId, Guid.Empty, MetadataAddress, MetadataLength);
+        internal MetadataBlock MetadataBlock => new MetadataBlock(Id, Guid.Empty, MetadataAddress, MetadataLength);
 
         internal unsafe MetadataReader GetMetadataReader() => new MetadataReader((byte*)MetadataAddress, MetadataLength);
 

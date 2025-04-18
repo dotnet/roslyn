@@ -241,19 +241,21 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             return result;
         }
 
-        internal static CompileResult CompileExpressionWithRetry(
+        internal static bool CompileExpressionWithRetry(
             ImmutableArray<MetadataBlock> metadataBlocks,
             EvaluationContextBase context,
             ExpressionCompiler.CompileDelegate<CompileResult> compile,
             DkmUtilities.GetMetadataBytesPtrFunction getMetaDataBytesPtr,
+            out CompileResult compileResult,
             out string errorMessage)
         {
-            return ExpressionCompiler.CompileWithRetry(
+            return ExpressionCompiler.TryCompileWithRetry(
                 metadataBlocks,
                 DebuggerDiagnosticFormatter.Instance,
                 (blocks, useReferencedModulesOnly) => context,
                 compile,
                 getMetaDataBytesPtr,
+                out compileResult,
                 out errorMessage);
         }
 
@@ -266,7 +268,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             out string errorMessage,
             out CompilationTestData testData)
         {
-            var r = ExpressionCompiler.CompileWithRetry(
+            ExpressionCompiler.TryCompileWithRetry(
                 metadataBlocks,
                 DebuggerDiagnosticFormatter.Instance,
                 createContext,
@@ -284,6 +286,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                     return new CompileExpressionResult(compileResult, td);
                 },
                 getMetaDataBytesPtr,
+                out var r,
                 out errorMessage);
             testData = r.TestData;
             return r.CompileResult;
@@ -554,12 +557,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 #endif
         }
 
-        internal static void VerifyAppDomainMetadataContext<TAssemblyContext>(MetadataContext<TAssemblyContext> metadataContext, Guid[] moduleVersionIds)
+        internal static void VerifyAppDomainMetadataContext<TAssemblyContext>(MetadataContext<TAssemblyContext> metadataContext, ModuleId[] moduleIds)
             where TAssemblyContext : struct
         {
             var actualIds = metadataContext.AssemblyContexts.Keys.Select(key => key.ModuleVersionId.ToString()).ToArray();
             Array.Sort(actualIds);
-            var expectedIds = moduleVersionIds.Select(mvid => mvid.ToString()).ToArray();
+            var expectedIds = moduleIds.Select(mvid => mvid.Id.ToString()).ToArray();
             Array.Sort(expectedIds);
             AssertEx.Equal(expectedIds, actualIds);
         }

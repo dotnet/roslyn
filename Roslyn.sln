@@ -205,7 +205,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Expr
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Microsoft.CodeAnalysis.VisualBasic.ResultProvider.UnitTests", "src\ExpressionEvaluator\VisualBasic\Test\ResultProvider\Microsoft.CodeAnalysis.VisualBasic.ResultProvider.UnitTests.vbproj", "{ACE53515-482C-4C6A-E2D2-4242A687DFEE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExpressionCompiler.Utilities", "src\ExpressionEvaluator\Core\Test\ExpressionCompiler\Microsoft.CodeAnalysis.ExpressionCompiler.Utilities.csproj", "{21B80A31-8FF9-4E3A-8403-AABD635AEED9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExpressionCompiler.Test.Utilities", "src\ExpressionEvaluator\Core\Test\ExpressionCompiler\Microsoft.CodeAnalysis.ExpressionCompiler.Test.Utilities.csproj", "{21B80A31-8FF9-4E3A-8403-AABD635AEED9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ResultProvider.Utilities", "src\ExpressionEvaluator\Core\Test\ResultProvider\Microsoft.CodeAnalysis.ResultProvider.Utilities.csproj", "{ABDBAC1E-350E-4DC3-BB45-3504404545EE}"
 EndProject

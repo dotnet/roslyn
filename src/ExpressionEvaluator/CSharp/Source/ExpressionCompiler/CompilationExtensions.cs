@@ -24,14 +24,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return (PENamedTypeSymbol)metadataDecoder.GetTypeOfToken(typeHandle);
         }
 
-        internal static PENamedTypeSymbol GetType(this CSharpCompilation compilation, Guid moduleVersionId, int typeToken)
+        /// <exception cref="BadMetadataModuleException">Module wasn't included in the compilation due to bad metadata.</exception>
+        internal static PENamedTypeSymbol GetType(this CSharpCompilation compilation, ModuleId moduleId, int typeToken)
         {
-            return GetType(compilation.GetModule(moduleVersionId), (TypeDefinitionHandle)MetadataTokens.Handle(typeToken));
+            return GetType(compilation.GetModule(moduleId), (TypeDefinitionHandle)MetadataTokens.Handle(typeToken));
         }
 
-        internal static PEMethodSymbol GetSourceMethod(this CSharpCompilation compilation, Guid moduleVersionId, MethodDefinitionHandle methodHandle)
+        internal static PEMethodSymbol GetSourceMethod(this CSharpCompilation compilation, ModuleId moduleId, MethodDefinitionHandle methodHandle)
         {
-            var method = GetMethod(compilation, moduleVersionId, methodHandle);
+            var method = GetMethod(compilation, moduleId, methodHandle);
             var metadataDecoder = new MetadataDecoder((PEModuleSymbol)method.ContainingModule);
             var containingType = method.ContainingType;
             if (GeneratedNameParser.TryParseSourceMethodNameFromGeneratedName(containingType.Name, GeneratedNameKind.StateMachineType, out var sourceMethodName))
@@ -49,9 +50,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return method;
         }
 
-        internal static PEMethodSymbol GetMethod(this CSharpCompilation compilation, Guid moduleVersionId, MethodDefinitionHandle methodHandle)
+        /// <exception cref="BadMetadataModuleException">Module wasn't included in the compilation due to bad metadata.</exception>
+        internal static PEMethodSymbol GetMethod(this CSharpCompilation compilation, ModuleId moduleId, MethodDefinitionHandle methodHandle)
         {
-            var module = compilation.GetModule(moduleVersionId);
+            var module = compilation.GetModule(moduleId);
             var reader = module.Module.MetadataReader;
             var typeHandle = reader.GetMethodDefinition(methodHandle).GetDeclaringType();
             var type = GetType(module, typeHandle);
@@ -59,7 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return method;
         }
 
-        internal static PEModuleSymbol GetModule(this CSharpCompilation compilation, Guid moduleVersionId)
+        /// <exception cref="BadMetadataModuleException">Module wasn't included in the compilation due to bad metadata.</exception>
+        internal static PEModuleSymbol GetModule(this CSharpCompilation compilation, ModuleId moduleId)
         {
             foreach (var pair in compilation.GetBoundReferenceManager().GetReferencedAssemblies())
             {
@@ -68,24 +71,24 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 {
                     var m = (PEModuleSymbol)module;
                     var id = m.Module.GetModuleVersionIdOrThrow();
-                    if (id == moduleVersionId)
+                    if (id == moduleId.Id)
                     {
                         return m;
                     }
                 }
             }
 
-            throw new ArgumentException($"No module found with MVID '{moduleVersionId}'", nameof(moduleVersionId));
+            throw new BadMetadataModuleException(moduleId);
         }
 
-        internal static CSharpCompilation ToCompilationReferencedModulesOnly(this ImmutableArray<MetadataBlock> metadataBlocks, Guid moduleVersionId)
+        internal static CSharpCompilation ToCompilationReferencedModulesOnly(this ImmutableArray<MetadataBlock> metadataBlocks, ModuleId moduleId)
         {
-            return ToCompilation(metadataBlocks, moduleVersionId, kind: MakeAssemblyReferencesKind.DirectReferencesOnly);
+            return ToCompilation(metadataBlocks, moduleId, kind: MakeAssemblyReferencesKind.DirectReferencesOnly);
         }
 
-        internal static CSharpCompilation ToCompilation(this ImmutableArray<MetadataBlock> metadataBlocks, Guid moduleVersionId, MakeAssemblyReferencesKind kind)
+        internal static CSharpCompilation ToCompilation(this ImmutableArray<MetadataBlock> metadataBlocks, ModuleId moduleId, MakeAssemblyReferencesKind kind)
         {
-            var references = metadataBlocks.MakeAssemblyReferences(moduleVersionId, IdentityComparer, kind, out var referencesBySimpleName);
+            var references = metadataBlocks.MakeAssemblyReferences(moduleId, IdentityComparer, kind, out var referencesBySimpleName);
             var options = s_compilationOptions;
             if (referencesBySimpleName != null)
             {

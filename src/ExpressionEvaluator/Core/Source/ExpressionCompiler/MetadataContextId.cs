@@ -28,12 +28,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         public override int GetHashCode()
             => ModuleVersionId.GetHashCode();
 
-        internal static MetadataContextId GetContextId(Guid moduleVersionId, MakeAssemblyReferencesKind kind)
+        internal static MetadataContextId GetContextId(ModuleId moduleId, MakeAssemblyReferencesKind kind)
         {
             return kind switch
             {
                 MakeAssemblyReferencesKind.AllAssemblies => default,
-                MakeAssemblyReferencesKind.AllReferences => new MetadataContextId(moduleVersionId),
+                MakeAssemblyReferencesKind.AllReferences => new MetadataContextId(moduleId.Id),
                 _ => throw ExceptionUtilities.UnexpectedValue(kind),
             };
         }

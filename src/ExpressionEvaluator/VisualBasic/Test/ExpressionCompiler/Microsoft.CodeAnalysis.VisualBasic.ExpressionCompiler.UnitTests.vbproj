@@ -16,7 +16,7 @@
     <ProjectReference Include="..\..\..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
     <ProjectReference Include="..\..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\..\Core\Source\ExpressionCompiler\Microsoft.CodeAnalysis.ExpressionCompiler.csproj" />
-    <ProjectReference Include="..\..\..\Core\Test\ExpressionCompiler\Microsoft.CodeAnalysis.ExpressionCompiler.Utilities.csproj" />
+    <ProjectReference Include="..\..\..\Core\Test\ExpressionCompiler\Microsoft.CodeAnalysis.ExpressionCompiler.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\Source\ExpressionCompiler\Microsoft.CodeAnalysis.VisualBasic.ExpressionCompiler.vbproj" />
     <ProjectReference Include="..\..\..\..\Compilers\Test\Utilities\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Test.Utilities.vbproj" />
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
