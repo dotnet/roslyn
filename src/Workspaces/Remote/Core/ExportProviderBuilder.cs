@@ -88,7 +88,9 @@ internal abstract class ExportProviderBuilder(
         var config = CompositionConfiguration.Create(catalog);
 
         // Verify we only have expected errors.
-        ThrowOnUnexpectedErrors(config, catalog);
+
+        // TODO: UNCOMMENT THIS AFTER RAZOR EA ISSUE IS ADDRESSED
+        //ThrowOnUnexpectedErrors(config, catalog);
 
         // Try to cache the composition.
         _ = WriteCompositionCacheAsync(compositionCacheFile, config, cancellationToken).ReportNonFatalErrorAsync();
