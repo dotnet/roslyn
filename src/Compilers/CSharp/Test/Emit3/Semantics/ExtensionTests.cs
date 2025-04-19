@@ -25764,23 +25764,22 @@ static class E1
 {
     extension(int i)
     {
-        public void M(int j) { System.Console.Write("ran"); }
+        public void M(int j) => throw null;
     }
     extension(int i)
     {
         [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
-        public void M(long l) => throw null;
+        public void M(long l) { System.Console.Write("ran"); }
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : ORPA should look at the containing static class (rather than look at the extension declaration) as the "containing type"
         var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
         CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M");
-        Assert.Equal("void E1.<>E__0.M(System.Int32 j)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal("void E1.<>E__1.M(System.Int64 l)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -25793,20 +25792,19 @@ static class E1
 {
     extension(int i)
     {
-        public void M(int j) { System.Console.Write("ran"); }
+        public void M(int j) => throw null;
     }
     [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
-    public static void M(this int i, long l) => throw null;
+    public static void M(this int i, long l) { System.Console.Write("ran"); }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : ORPA should look at the containing static class (rather than look at the extension declaration) as the "containing type"
         var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
         CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M");
-        Assert.Equal("void E1.<>E__0.M(System.Int32 j)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal("void System.Int32.M(System.Int64 l)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -25817,7 +25815,38 @@ static class E1
 
 static class E1
 {
-    public static void M(this int i, int j) { System.Console.Write("ran"); }
+    public static void M(this int i, int j) => throw null;
+    extension(int i)
+    {
+        [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
+        public void M(long l) { System.Console.Write("ran"); }
+    }
+}
+""";
+        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M");
+        Assert.Equal("void E1.<>E__0.M(System.Int64 l)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void MethodInvocation_RemoveLowerPriorityMembers_05()
+    {
+        var source = """
+42.M(43);
+
+static class E1
+{
+    extension(int i)
+    {
+        public void M(int j) { System.Console.Write("ran"); }
+    }
+}
+static class E2
+{
     extension(int i)
     {
         [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
@@ -25825,7 +25854,34 @@ static class E1
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : ORPA should look at the containing static class (rather than look at the extension declaration) as the "containing type"
+        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M");
+        Assert.Equal("void E1.<>E__0.M(System.Int32 j)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void MethodInvocation_RemoveLowerPriorityMembers_06()
+    {
+        var source = """
+42.M(43);
+
+static class E1
+{
+    public static void M(this int i, int j) { System.Console.Write("ran"); }
+}
+static class E2
+{
+    extension(int i)
+    {
+        [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
+        public void M(long l) => throw null;
+    }
+}
+""";
         var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
         CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
@@ -25833,6 +25889,172 @@ static class E1
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M");
         Assert.Equal("void System.Int32.M(System.Int32 j)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void MethodInvocation_RemoveLowerPriorityMembers_07()
+    {
+        var source = """
+string s = "";
+s.M();
+
+static class E1
+{
+    extension(object o)
+    {
+        [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
+        public void M() { System.Console.Write("ran"); }
+    }
+    extension(string s)
+    {
+        public void M() => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.M");
+        Assert.Equal("void E1.<>E__0.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void MethodInvocation_RemoveLowerPriorityMembers_08()
+    {
+        var source = """
+string s = "ran";
+System.Console.Write(s.ToString());
+
+static class E
+{
+    extension(object o)
+    {
+        [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
+        public string ToString() => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PropertyAccess_RemoveLowerPriorityMembers_01()
+    {
+        var source = """
+string s = "";
+_ = s.P;
+
+static class E
+{
+    extension(object o)
+    {
+        public long P => throw null;
+    }
+    extension(string s)
+    {
+        public int P { get { System.Console.Write("ran"); return 0; } }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.P");
+        Assert.Equal("System.Int32 E.<>E__1.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PropertyAccess_RemoveLowerPriorityMembers_02()
+    {
+        var source = """
+string s = "";
+_ = s.P;
+
+static class E
+{
+    extension(object o)
+    {
+        [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
+        public int P { get { System.Console.Write("ran"); return 0; } }
+    }
+    extension(string s)
+    {
+        public long P => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.P");
+        Assert.Equal("System.Int32 E.<>E__0.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PropertyAccess_RemoveLowerPriorityMembers_03()
+    {
+        var source = """
+string s = "";
+_ = s.P;
+
+static class E1
+{
+    extension(object o)
+    {
+        [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
+        public long P => throw null;
+    }
+}
+static class E2
+{
+    extension(string s)
+    {
+        public int P { get { System.Console.Write("ran"); return 0; } }
+    }
+}
+""";
+        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.P");
+        Assert.Equal("System.Int32 E2.<>E__0.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PropertyAccess_RemoveLowerPriorityMembers_04()
+    {
+        var source = """
+static class E
+{
+    extension(object o)
+    {
+        public int P
+        {
+            [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
+            get => throw null;
+            [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
+            set => throw null;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
+        comp.VerifyEmitDiagnostics(
+            // (7,14): error CS9262: Cannot use 'OverloadResolutionPriorityAttribute' on this member.
+            //             [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
+            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember, "System.Runtime.CompilerServices.OverloadResolutionPriority(1)").WithLocation(7, 14),
+            // (9,14): error CS9262: Cannot use 'OverloadResolutionPriorityAttribute' on this member.
+            //             [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
+            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember, "System.Runtime.CompilerServices.OverloadResolutionPriority(1)").WithLocation(9, 14));
     }
 
     [Fact]
