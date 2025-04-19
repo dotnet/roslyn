@@ -98,6 +98,18 @@
         "group": "build"
     },
     {
+        "label": "build toolset",
+        "type": "shell",
+        "command": "dotnet",
+        "args": [
+          "build",
+          "-p:GenerateFullPaths=true",
+          "${workspaceFolder}/src/NuGet/Microsoft.Net.Compilers.Toolset/AnyCpu/Microsoft.Net.Compilers.Toolset.Package.csproj"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
         "label": "msbuild current project",
         "type": "shell",
         "command": "echo 'Task not supported on this OS'",

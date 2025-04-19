@@ -4,6 +4,8 @@ This MSBuild tasks contains the core tasks and targets for compiling C# and VB p
 
 ## Debugging
 
+> [!NOTE] In VSCode, you can use one of the `Microsoft.Build.Tasks.CodeAnalysis.dll` launch targets.
+
 Debugging this code requires a bit of setup because it's not an independent component.  It relies on having other parts of the toolset deployed in the same directory.  Additionally the project being debugged needs to be modified to ensure this DLL is built instead of the one that ships along side MSBuild.  
 
 Set the startup project to Toolset.  This project properly deploys all of the necessary components and hence provides a simple F5 experience.
@@ -26,9 +28,3 @@ The target project itself needs to be modified so that it will load the freshly 
 Replace `e:\dd\roslyn` with the path to your Roslyn enlistment.
 
 Once that is all done you should be able to F5 the Toolset project and debug the MSBuild task directly.
-
-
-
-
-
-

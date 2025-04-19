@@ -210,7 +210,7 @@ internal sealed partial class GraphBuilder
         // We may need to look up source code within this solution
         if (preferredLocation == null && symbol.Locations.Any(static loc => loc.IsInMetadata))
         {
-            var newSymbol = SymbolFinder.FindSourceDefinition(symbol, contextProject.Solution, cancellationToken);
+            var newSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, contextProject.Solution, cancellationToken).ConfigureAwait(false);
             if (newSymbol != null)
                 preferredLocation = newSymbol.Locations.Where(loc => loc.IsInSource).FirstOrDefault();
         }
