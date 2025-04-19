@@ -411,7 +411,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         methodSymbol.IsGenericMethod ||
                         !methodSymbol.IsStatic ||
                         !methodSymbol.ReturnsVoid ||
-                        methodSymbol.ParameterCount != 1) // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Should we accept more than one parameter (in case new versions add more info)?
+                        methodSymbol.ParameterCount != 1 ||
+                        !methodSymbol.HasSpecialName)
                     {
                         return null; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
                     }
@@ -467,7 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 foreach (var member in @this.ContainingType.GetMembers(method.Name))
                 {
-                    if (member is not MethodSymbol { HasSpecialName: true, IsStatic: true } candidate)
+                    if (member is not MethodSymbol { IsStatic: true } candidate)
                     {
                         continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
                     }
