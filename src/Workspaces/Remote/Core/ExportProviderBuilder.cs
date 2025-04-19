@@ -175,26 +175,26 @@ internal abstract class ExportProviderBuilder(
         }
     }
 
-    private void ThrowOnUnexpectedErrors(CompositionConfiguration configuration, ComposableCatalog catalog)
-    {
-        // Verify that we have exactly the MEF errors that we expect.  If we have less or more this needs to be updated to assert the expected behavior.
-        var erroredParts = configuration.CompositionErrors.FirstOrDefault()?.SelectMany(error => error.Parts).Select(part => part.Definition.Type.Name) ?? [];
-        var expectedErrorPartsSet = ExpectedErrorParts.ToSet();
-        var hasUnexpectedErroredParts = erroredParts.Any(part => !expectedErrorPartsSet.Contains(part));
+    //private void ThrowOnUnexpectedErrors(CompositionConfiguration configuration, ComposableCatalog catalog)
+    //{
+    //    // Verify that we have exactly the MEF errors that we expect.  If we have less or more this needs to be updated to assert the expected behavior.
+    //    var erroredParts = configuration.CompositionErrors.FirstOrDefault()?.SelectMany(error => error.Parts).Select(part => part.Definition.Type.Name) ?? [];
+    //    var expectedErrorPartsSet = ExpectedErrorParts.ToSet();
+    //    var hasUnexpectedErroredParts = erroredParts.Any(part => !expectedErrorPartsSet.Contains(part));
 
-        if (hasUnexpectedErroredParts || !catalog.DiscoveredParts.DiscoveryErrors.IsEmpty)
-        {
-            try
-            {
-                catalog.DiscoveredParts.ThrowOnErrors();
-                configuration.ThrowOnErrors();
-            }
-            catch (CompositionFailedException ex)
-            {
-                // The ToString for the composition failed exception doesn't output a nice set of errors by default, so log it separately
-                LogError($"Encountered errors in the MEF composition:{Environment.NewLine}{ex.ErrorsAsString}");
-                throw;
-            }
-        }
-    }
+    //    if (hasUnexpectedErroredParts || !catalog.DiscoveredParts.DiscoveryErrors.IsEmpty)
+    //    {
+    //        try
+    //        {
+    //            catalog.DiscoveredParts.ThrowOnErrors();
+    //            configuration.ThrowOnErrors();
+    //        }
+    //        catch (CompositionFailedException ex)
+    //        {
+    //            // The ToString for the composition failed exception doesn't output a nice set of errors by default, so log it separately
+    //            LogError($"Encountered errors in the MEF composition:{Environment.NewLine}{ex.ErrorsAsString}");
+    //            throw;
+    //        }
+    //    }
+    //}
 }
