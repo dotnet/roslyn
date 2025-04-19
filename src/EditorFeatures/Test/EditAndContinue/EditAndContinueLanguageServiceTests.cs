@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -115,11 +116,9 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
 
         var localService = localWorkspace.GetService<EditAndContinueLanguageService>();
 
-        DocumentId documentId;
         await localWorkspace.ChangeSolutionAsync(localWorkspace.CurrentSolution
-            .AddTestProject("proj", out var projectId).Solution
-            .AddMetadataReferences(projectId, TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40))
-            .AddDocument(documentId = DocumentId.CreateNewId(projectId), "test.cs", SourceText.From("class C { }", Encoding.UTF8), filePath: "test.cs"));
+            .AddTestProject("proj", out var projectId)
+            .AddTestDocument("test.cs", "class C { }", out var documentId).Project.Solution);
 
         var solution = localWorkspace.CurrentSolution;
         var project = solution.GetRequiredProject(projectId);
@@ -159,7 +158,7 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
 
         var diagnosticDescriptor1 = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile);
 
-        mockEncService.EmitSolutionUpdateImpl = (solution, runningProjects, _) =>
+        mockEncService.EmitSolutionUpdateImpl = (solution, _, _) =>
         {
             var syntaxTree = solution.GetRequiredDocument(documentId).GetSyntaxTreeSynchronously(CancellationToken.None)!;
 
@@ -176,7 +175,7 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
                 RudeEdits = [new ProjectDiagnostics(project.Id, [rudeEditDiagnostic])],
                 SyntaxError = syntaxError,
                 ProjectsToRebuild = [project.Id],
-                ProjectsToRestart = [project.Id]
+                ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty.Add(project.Id, [])
             };
         };
 
