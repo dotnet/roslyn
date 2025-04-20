@@ -500,16 +500,13 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
     private static LSP.DidChangeTextDocumentParams CreateDidChangeTextDocumentParams(
         Uri documentUri,
-        ImmutableArray<(LSP.Range? Range, string Text)> changes)
+        ImmutableArray<(LSP.Range Range, string Text)> changes)
     {
-        var changeEvents = new LSP.SumType<LSP.TextDocumentContentChangeEvent, LSP.TextDocumentContentChangeFullReplacementEvent>[changes.Length];
-        for (var i = 0; i < changes.Length; i++)
+        var changeEvents = changes.Select(change => new LSP.TextDocumentContentChangeEvent
         {
-            var (range, text) = changes[i];
-            changeEvents[i] = range != null
-                ? new LSP.TextDocumentContentChangeEvent { Text = text, Range = range }
-                : new LSP.TextDocumentContentChangeFullReplacementEvent { Text = text };
-        }
+            Text = change.Text,
+            Range = change.Range,
+        }).ToArray();
 
         return new LSP.DidChangeTextDocumentParams()
         {
@@ -747,7 +744,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
             await WaitForWorkspaceOperationsAsync(TestWorkspace);
         }
 
-        public Task ReplaceTextAsync(Uri documentUri, params (LSP.Range? Range, string Text)[] changes)
+        public Task ReplaceTextAsync(Uri documentUri, params (LSP.Range Range, string Text)[] changes)
         {
             var didChangeParams = CreateDidChangeTextDocumentParams(
                 documentUri,
@@ -755,22 +752,13 @@ public abstract partial class AbstractLanguageServerProtocolTests
             return ExecuteRequestAsync<LSP.DidChangeTextDocumentParams, object>(LSP.Methods.TextDocumentDidChangeName, didChangeParams, CancellationToken.None);
         }
 
-        public Task InsertTextAsync(Uri documentUri, params (int? Line, int? Column, string Text)[] changes)
+        public Task InsertTextAsync(Uri documentUri, params (int Line, int Column, string Text)[] changes)
         {
-            var rangeChanges = new List<(LSP.Range? Range, string Text)>();
-            foreach (var (line, column, text) in changes)
+            return ReplaceTextAsync(documentUri, [.. changes.Select(change => (new LSP.Range
             {
-                var range = (line is null || column is null)
-                    ? null
-                    : new LSP.Range
-                    {
-                        Start = new LSP.Position { Line = line.Value, Character = column.Value },
-                        End = new LSP.Position { Line = line.Value, Character = column.Value }
-                    };
-                rangeChanges.Add((range, text));
-            }
-
-            return ReplaceTextAsync(documentUri, [.. rangeChanges]);
+                Start = new LSP.Position { Line = change.Line, Character = change.Column },
+                End = new LSP.Position { Line = change.Line, Character = change.Column }
+            }, change.Text))]);
         }
 
         public Task DeleteTextAsync(Uri documentUri, params (int StartLine, int StartColumn, int EndLine, int EndColumn)[] changes)
