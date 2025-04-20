@@ -3136,7 +3136,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78225")]
-    public async Task TestRefProperty()
+    public async Task TestRefProperty1()
     {
         await TestMissingInRegularAndScriptAsync(
             """
@@ -3151,6 +3151,34 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
                         return ref i;
                     }
                 }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78225")]
+    public async Task TestRefProperty2()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|int i|];
+
+                ref int P => ref i;
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78225")]
+    public async Task TestRefProperty3()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|int i|];
+
+                readonly ref int P => ref i;
             }
             """);
     }
