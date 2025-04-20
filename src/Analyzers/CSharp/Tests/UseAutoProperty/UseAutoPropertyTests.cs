@@ -3134,4 +3134,24 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             }
             """);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78225")]
+    public async Task TestRefProperty()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|int i|];
+
+                ref int P
+                {
+                    get
+                    {
+                        return ref i;
+                    }
+                }
+            }
+            """);
+    }
 }
