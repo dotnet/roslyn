@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     string arg2 = Path.GetFileName(additionalText.Path);
                     LinePositionSpan linePositionSpan = lines.GetLinePositionSpan(line.Span);
                     Location location = Location.Create(additionalText.Path, line.Span, linePositionSpan);
-                    invalidFileDiagnostics ??= new List<Diagnostic>();
+                    invalidFileDiagnostics ??= [];
                     var diagnostic = Diagnostic.Create(AnalyzerCategoryAndIdRangeFileInvalidRule, location, arg1, arg2);
                     invalidFileDiagnostics.Add(diagnostic);
                 }

@@ -1365,7 +1365,7 @@ class TestClass
 
         protected static List<SyntaxNode> GetSyntaxNodeList(SyntaxNode node, List<SyntaxNode>? synList)
         {
-            synList ??= new List<SyntaxNode>();
+            synList ??= [];
 
             synList.Add(node);
 

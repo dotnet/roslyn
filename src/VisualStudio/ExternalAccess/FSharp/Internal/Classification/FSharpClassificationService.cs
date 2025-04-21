@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Classification;
 internal class FSharpClassificationService : IClassificationService
 {
     private readonly IFSharpClassificationService _service;
-    private readonly ObjectPool<List<ClassifiedSpan>> s_listPool = new(() => new());
+    private readonly ObjectPool<List<ClassifiedSpan>> s_listPool = new(() => []);
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

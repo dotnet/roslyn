@@ -56,7 +56,7 @@ internal sealed class CompileTimeSolutionProvider : ICompileTimeSolutionProvider
     /// Cached compile-time solution corresponding to an existing design-time solution.
     /// </summary>
 #if NET
-    private readonly ConditionalWeakTable<Solution, Solution> _designTimeToCompileTimeSolution = [];
+    private readonly ConditionalWeakTable<Solution, Solution> _designTimeToCompileTimeSolution = new();
 #else
     private ConditionalWeakTable<Solution, Solution> _designTimeToCompileTimeSolution = new();
 #endif

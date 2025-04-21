@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Analyzers
                 {
                     if (!result.TryGetValue(parsed.Value, out var existing))
                     {
-                        existing = new();
+                        existing = [];
                         result.Add(parsed.Value, existing);
                     }
 

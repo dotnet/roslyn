@@ -20,7 +20,7 @@ namespace Analyzer.Utilities.PooledObjects
         /// <summary>
         /// An empty dictionary used for creating non-null enumerators when no items have been added to the dictionary.
         /// </summary>
-        private static readonly Dictionary<TKey, TValue> EmptyDictionary = new();
+        private static readonly Dictionary<TKey, TValue> EmptyDictionary = [];
 
         // 🐇 PERF: use PooledDictionary<TKey, TValue> instead of PooledConcurrentDictionary<TKey, TValue> due to
         // allocation overhead in clearing the set for returning it to the pool.

@@ -129,7 +129,7 @@ internal sealed class ReferenceCodeLensProvider : IAsyncCodeLensDataPointProvide
     {
         lock (_dataPoints)
         {
-            var versionedPoints = _dataPoints.GetOrAdd(dataPoint.Descriptor.ProjectGuid, _ => (version: VersionStamp.Default.ToString(), dataPoints: new HashSet<DataPoint>()));
+            var versionedPoints = _dataPoints.GetOrAdd(dataPoint.Descriptor.ProjectGuid, _ => (version: VersionStamp.Default.ToString(), dataPoints: []));
             versionedPoints.dataPoints.Add(dataPoint);
 
             _pollingTask ??= Task.Run(PollForUpdatesAsync).ReportNonFatalErrorAsync();
@@ -273,8 +273,8 @@ internal sealed class ReferenceCodeLensProvider : IAsyncCodeLensDataPointProvide
                     NavigationCommand = null,
                     NavigationCommandArgs = null,
                     Tooltip = null,
-                    Fields = new List<CodeLensDetailEntryField>()
-                    {
+                    Fields =
+                    [
                         new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.FilePath },
                         new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.LineNumber.ToString() },
                         new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.ColumnNumber.ToString() },
@@ -287,7 +287,7 @@ internal sealed class ReferenceCodeLensProvider : IAsyncCodeLensDataPointProvide
                         new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.BeforeReferenceText1 },
                         new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.AfterReferenceText1 },
                         new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.AfterReferenceText2 }
-                    },
+                    ],
                 };
             }).ToList();
 
