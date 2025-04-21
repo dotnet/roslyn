@@ -20,7 +20,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
-    public class LocalSlotMappingTests : EditAndContinueTestBase
+    public class LocalSlotMappingTests() : EditAndContinueTestBase(TargetFramework.NetStandard20)
     {
         /// <summary>
         /// If no changes were made we don't produce a syntax map.

@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
-    public class PDBIteratorTests : CSharpPDBTestBase
+    public class PDBIteratorTests() : CSharpPDBTestBase(TargetFramework.NetStandard20)
     {
         [WorkItem(543376, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543376")]
         [Fact]

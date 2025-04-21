@@ -19,7 +19,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
-    public class EditAndContinueClosureTests : EditAndContinueTestBase
+    public class EditAndContinueClosureTests() : EditAndContinueTestBase(TargetFramework.NetStandard20)
     {
         [Fact]
         public void MethodToMethodWithClosure()

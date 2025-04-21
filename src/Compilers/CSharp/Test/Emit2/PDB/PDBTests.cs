@@ -27,7 +27,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
-    public class PDBTests : CSharpPDBTestBase
+    public class PDBTests() : CSharpPDBTestBase(TargetFramework.NetStandard20)
     {
         public const PdbValidationOptions SyntaxOffsetPdbValidationOptions =
             PdbValidationOptions.ExcludeDocuments |

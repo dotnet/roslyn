@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
 
-public class CodeGenMethodGroupConversionCachingTests : CSharpTestBase
+public class CodeGenMethodGroupConversionCachingTests() : CSharpTestBase(TargetFramework.NetStandard20)
 {
     const string PASS = "PASS";
 

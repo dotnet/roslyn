@@ -18,7 +18,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class CodeGenCallTests : CSharpTestBase
+    public class CodeGenCallTests() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         [Fact]
         [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     using static EditAndContinueTestUtilities;
 
-    public abstract class EditAndContinueTestBase : EmitMetadataTestBase
+    public abstract class EditAndContinueTestBase(TargetFramework? targetFramework = null) : EmitMetadataTestBase(targetFramework)
     {
         // PDB reader can only be accessed from a single thread, so avoid concurrent compilation:
         internal static readonly CSharpCompilationOptions ComSafeDebugDll = TestOptions.DebugDll.WithConcurrentBuild(false);
