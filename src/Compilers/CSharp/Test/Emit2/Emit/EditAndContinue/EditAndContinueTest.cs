@@ -31,7 +31,7 @@ internal sealed class EditAndContinueTest(
     private readonly string? _assemblyName = assemblyName;
 
     protected override Compilation CreateCompilation(SyntaxTree tree)
-        => CSharpTestBase.CreateCompilation(tree, _references, options: _compilationOptions, assemblyName: _assemblyName, targetFramework: _targetFramework);
+        => CSharpTestBase.CreateCompilation(tree, references: _references, options: _compilationOptions, assemblyName: _assemblyName, targetFramework: _targetFramework);
 
     protected override SourceWithMarkedNodes CreateSourceWithMarkedNodes(string source)
         => EditAndContinueTestBase.MarkedSource(source, options: _parseOptions);

@@ -1695,7 +1695,7 @@ static unsafe class C
 ";
 
         private void Test(string pointerType, string il)
-            => CompileAndVerify(GetSource(pointerType),
+            => CompileAndVerifyWithNetStandard(GetSource(pointerType),
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3),
                 options: TestOptions.UnsafeReleaseExe,
                 verify: Verification.Fails,

@@ -423,7 +423,7 @@ public class Test
 
             RunTest(nestingLevel, runTest);
 
-            static void runTest(int nestingLevel)
+            void runTest(int nestingLevel)
             {
                 var builder = new StringBuilder();
                 builder.AppendLine(
@@ -558,7 +558,7 @@ $@"        if (F({i}))
 
             RunTest(n, runTest);
 
-            static void runTest(int n)
+            void runTest(int n)
             {
                 // class C0<T> where T : C1<T> { }
                 // class C1<T> where T : C2<T> { }

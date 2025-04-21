@@ -11803,7 +11803,7 @@ public unsafe class C
         }
     }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource, options: TestOptions.ReleaseExe);
 
             compilation.VerifyDiagnostics();
 

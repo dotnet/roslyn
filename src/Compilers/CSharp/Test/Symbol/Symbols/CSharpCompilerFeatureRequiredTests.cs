@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols;
@@ -57,12 +58,12 @@ public class CSharpCompilerFeatureRequiredTests : BaseCompilerFeatureRequiredTes
 
     protected override CSharpCompilation CreateCompilationWithIL(CSharpTestSource source, string ilSource)
     {
-        return CSharpTestBase.CreateCompilationWithIL(source, ilSource);
+        return CSharpTestBase.CreateCompilationWithIL(source, ilSource, TargetFramework.NetLatest);
     }
 
     protected override CSharpCompilation CreateCompilation(CSharpTestSource source, MetadataReference[] references)
     {
-        return CSharpTestBase.CreateCompilation(source, references);
+        return CSharpTestBase.CreateCompilation(source, TargetFramework.NetLatest, references);
     }
 
     protected override CompilationVerifier CompileAndVerify(CSharpCompilation compilation)
@@ -550,7 +551,7 @@ public class CSharpCompilerFeatureRequiredTests : BaseCompilerFeatureRequiredTes
     [Fact]
     public void Application()
     {
-        var comp = CSharpTestBase.CreateCompilation(new[] { """
+        var comp = CSharpTestBase.CreateCompilationWithNetStandard(new[] { """
             using System;
             using System.Runtime.CompilerServices;
 

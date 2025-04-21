@@ -3691,7 +3691,7 @@ class C1 {
                 SymbolDisplayPartKind.Punctuation);
         }
 
-        private static void TestSymbolDescription(
+        private void TestSymbolDescription(
             string source,
             Func<NamespaceSymbol, Symbol> findSymbol,
             SymbolDisplayFormat format,
@@ -3713,7 +3713,7 @@ class C1 {
             Verify(description, expectedText, expectedKinds);
         }
 
-        private static void TestSymbolDescription(
+        private void TestSymbolDescription(
             string source,
             Func<NamespaceSymbol, Symbol> findSymbol,
             SymbolDisplayFormat format,
@@ -3723,7 +3723,7 @@ class C1 {
             TestSymbolDescription(source, findSymbol, format, null, expectedText, expectedKinds);
         }
 
-        private static void TestSymbolDescription(
+        private void TestSymbolDescription(
             string source,
             Func<NamespaceSymbol, Symbol> findSymbol,
             SymbolDisplayFormat format,

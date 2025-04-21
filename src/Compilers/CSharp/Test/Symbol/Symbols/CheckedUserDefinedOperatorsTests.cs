@@ -6303,7 +6303,7 @@ class Program
     }
 }
 ";
-            var compilation1 = CreateCompilationWithCSharp(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             CompileAndVerify(compilation1, expectedOutput: @"
 regular C0
 regular C0
@@ -6313,7 +6313,7 @@ regular C2
 regular C2
 ").VerifyDiagnostics();
 
-            compilation1 = CreateCompilationWithCSharp(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
+            compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
             CompileAndVerify(compilation1, expectedOutput: @"
 regular C0
 regular C0
@@ -6324,7 +6324,7 @@ regular C2
 ").VerifyDiagnostics();
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
-            var compilation3 = CreateCompilationWithCSharp(source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10, references: new[] { compilation2.ToMetadataReference() });
+            var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10, references: new[] { compilation2.ToMetadataReference() });
             CompileAndVerify(compilation3, expectedOutput: @"
 regular C0
 regular C0
@@ -6408,7 +6408,7 @@ class Program
     }
 }
 ";
-            var compilation1 = CreateCompilationWithCSharp(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             CompileAndVerify(compilation1, expectedOutput: @"
 regular C0
 regular C0
@@ -6418,7 +6418,7 @@ regular C2
 regular C2
 ").VerifyDiagnostics();
 
-            compilation1 = CreateCompilationWithCSharp(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
+            compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
             CompileAndVerify(compilation1, expectedOutput: @"
 regular C0
 regular C0
@@ -6429,7 +6429,7 @@ regular C2
 ").VerifyDiagnostics();
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
-            var compilation3 = CreateCompilationWithCSharp(source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10, references: new[] { compilation2.ToMetadataReference() });
+            var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10, references: new[] { compilation2.ToMetadataReference() });
             CompileAndVerify(compilation3, expectedOutput: @"
 regular C0
 regular C0
@@ -6523,7 +6523,7 @@ class Program
     }
 }
 ";
-            var compilation1 = CreateCompilationWithCSharp(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             CompileAndVerify(compilation1, expectedOutput: @"
 implicit C0
 regular C0
@@ -6535,7 +6535,7 @@ implicit C0
 implicit C0
 ").VerifyDiagnostics();
 
-            compilation1 = CreateCompilationWithCSharp(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
+            compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
             CompileAndVerify(compilation1, expectedOutput: @"
 implicit C0
 regular C0
@@ -6548,7 +6548,7 @@ implicit C0
 ").VerifyDiagnostics();
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
-            var compilation3 = CreateCompilationWithCSharp(source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10, references: new[] { compilation2.ToMetadataReference() });
+            var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10, references: new[] { compilation2.ToMetadataReference() });
             CompileAndVerify(compilation3, expectedOutput: @"
 implicit C0
 regular C0

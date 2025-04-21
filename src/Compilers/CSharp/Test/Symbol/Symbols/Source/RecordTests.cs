@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class RecordTests : CompilingTestBase
     {
-        private static CSharpCompilation CreateCompilation(CSharpTestSource source)
-            => CSharpTestBase.CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+        private CSharpCompilation CreateCompilation(CSharpTestSource source)
+            => base.CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
 
         private CompilationVerifier CompileAndVerify(CSharpTestSource src, string? expectedOutput = null)
             => base.CompileAndVerify(new[] { src, IsExternalInitTypeDefinition },

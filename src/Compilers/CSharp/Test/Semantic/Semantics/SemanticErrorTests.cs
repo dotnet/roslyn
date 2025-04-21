@@ -16851,7 +16851,7 @@ public class C
     {
     }
 }";
-            var compilation = CSharpTestBase.CreateCompilation(text);
+            var compilation = base.CreateCompilation(text);
             compilation.VerifyDiagnostics(
                 // (6,33): error CS1740: Named argument 'Name' cannot be specified multiple times
                 //         Test(age: 5, Name: "5", Name: "");

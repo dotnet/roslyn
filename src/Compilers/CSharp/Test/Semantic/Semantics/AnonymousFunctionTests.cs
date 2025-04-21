@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.AnonymousFunctions)]
     public class AnonymousFunctionTests : CSharpTestBase
     {
-        public static CSharpCompilation VerifyInPreview(string source, params DiagnosticDescription[] expected)
+        public CSharpCompilation VerifyInPreview(string source, params DiagnosticDescription[] expected)
             => CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expected);
         internal CompilationVerifier VerifyInPreview(CSharpTestSource source, string expectedOutput, Action<ModuleSymbol>? symbolValidator = null, params DiagnosticDescription[] expected)
             => CompileAndVerify(

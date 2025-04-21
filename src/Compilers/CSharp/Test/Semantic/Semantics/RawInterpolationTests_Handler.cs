@@ -1509,7 +1509,7 @@ Console.WriteLine(" + expression + @");
 
         var interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false);
 
-        var verifier = CompileAndVerifyWithCSharp(new[] { source, interpolatedStringBuilder }, expectedOutput: @"base1");
+        var verifier = CompileAndVerify(new[] { source, interpolatedStringBuilder }, expectedOutput: @"base1");
 
         verifier.VerifyIL("<top-level-statements-entry-point>", expression.Contains('+')
 ? @"
@@ -1561,7 +1561,7 @@ Console.WriteLine(" + expression + @");
 
         var interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false);
 
-        var verifier = CompileAndVerifyWithCSharp(new[] { source, interpolatedStringBuilder }, expectedOutput: @"1base");
+        var verifier = CompileAndVerify(new[] { source, interpolatedStringBuilder }, expectedOutput: @"1base");
 
         verifier.VerifyIL("<top-level-statements-entry-point>", expression.Contains('+')
 ? @"
@@ -12643,7 +12643,7 @@ CustomHandler c = " + expression + ";";
 
         var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "ref struct", useBoolReturns: false);
 
-        var comp = CreateCompilationWithCSharp(new[] { code, handler });
+        var comp = CreateCompilation(new[] { code, handler });
 
         comp.VerifyDiagnostics(
             // 0.cs(4,19): error CS9230: Cannot perform a dynamic invocation on an expression with type 'CustomHandler'.

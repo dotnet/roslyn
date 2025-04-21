@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
     {
         #region Helpers
 
-        private static CSharpCompilation CreateDummyCompilation(string assemblyName)
+        private CSharpCompilation CreateDummyCompilation(string assemblyName)
         {
             return CreateCompilation(
                 "public class C { }",

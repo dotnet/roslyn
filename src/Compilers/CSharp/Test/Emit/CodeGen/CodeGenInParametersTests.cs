@@ -3770,7 +3770,7 @@ public class Test
 }
 ";
 
-            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithNetStandard(code, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(compilation, expectedOutput: "5050");
 
             verifier.VerifyIL("Test.Main(string[])", @"
@@ -3821,7 +3821,7 @@ public class Test
 }
 ";
 
-            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithNetStandard(code, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(compilation, expectedOutput: "5050");
 
             verifier.VerifyIL("Test.Main(string[])", @"
@@ -3879,7 +3879,7 @@ public class Test
 }
 ";
 
-            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithNetStandard(code, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(compilation, expectedOutput: "5050");
 
             verifier.VerifyIL("Test.Main(string[])", @"
