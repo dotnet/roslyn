@@ -14173,6 +14173,22 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
             var source = """
                 public ref struct C
                 {
+                    public void operator +=(scoped C right) {}
+                    public C M1(C c, scoped C c1)
+                    {
+                        return c += c1;
+                    }
+                }
+                """;
+            CreateCompilation([source, CompilerFeatureRequiredAttribute]).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CompoundAssignment_00750_Consumption_RefSafety()
+        {
+            var source = """
+                public ref struct C
+                {
                     public void operator +=(C right) {}
                     public C M1(scoped C c, scoped C c1)
                     {
@@ -14188,7 +14204,7 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
         }
 
         [Fact]
-        public void CompoundAssignment_00750_Consumption_RefSafety()
+        public void CompoundAssignment_00751_Consumption_RefSafety()
         {
             var source = """
                 public ref struct C
@@ -14208,6 +14224,122 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
                 // (7,18): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
                 //         return X(c += c1);
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("scoped C c").WithLocation(7, 18)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_00752_Consumption_RefSafety()
+        {
+            var source = $$$"""
+                ref struct C
+                {
+                    private ref readonly int _i;
+                    public void operator +=([System.Diagnostics.CodeAnalysis.UnscopedRef] in int right) { _i = ref right; }
+                    public static C operator -(C left, [System.Diagnostics.CodeAnalysis.UnscopedRef] in int right) { left._i = ref right; return left; }
+                    public C M1(C c1)
+                    {
+                        return c1 += 1;
+                    }
+                    public C M2(C c2)
+                    {
+                        return c2 -= 1;
+                    }
+                    public C M3(C c3, in int right)
+                    {
+                        return c3 += right;
+                    }
+                    public C M4(C c4, in int right)
+                    {
+                        return c4 -= right;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+                // (8,16): error CS8350: This combination of arguments to 'C.operator +=(in int)' is disallowed because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return c1 += 1;
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "c1 += 1").WithArguments("C.operator +=(in int)", "right").WithLocation(8, 16),
+                // (8,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return c1 += 1;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(8, 22),
+                // (12,16): error CS8347: Cannot use a result of 'C.operator -(C, in int)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return c2 -= 1;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c2 -= 1").WithArguments("C.operator -(C, in int)", "right").WithLocation(12, 16),
+                // (12,16): error CS8347: Cannot use a result of 'C.operator -(C, in int)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return c2 -= 1;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c2 -= 1").WithArguments("C.operator -(C, in int)", "right").WithLocation(12, 16),
+                // (12,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return c2 -= 1;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(12, 22),
+                // (12,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return c2 -= 1;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(12, 22),
+                // (16,16): error CS8350: This combination of arguments to 'C.operator +=(in int)' is disallowed because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return c3 += right;
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "c3 += right").WithArguments("C.operator +=(in int)", "right").WithLocation(16, 16),
+                // (16,22): error CS9077: Cannot return a parameter by reference 'right' through a ref parameter; it can only be returned in a return statement
+                //         return c3 += right;
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "right").WithArguments("right").WithLocation(16, 22),
+                // (20,16): error CS8347: Cannot use a result of 'C.operator -(C, in int)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return c4 -= right;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c4 -= right").WithArguments("C.operator -(C, in int)", "right").WithLocation(20, 16),
+                // (20,22): error CS9077: Cannot return a parameter by reference 'right' through a ref parameter; it can only be returned in a return statement
+                //         return c4 -= right;
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "right").WithArguments("right").WithLocation(20, 22)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_00753_Consumption_RefSafety()
+        {
+            var source = """
+                ref struct C
+                {
+                    private ref readonly int _i;
+                    public void operator +=(in int right) { _i = ref right; }
+                    public static C operator -(C left, in int right) { left._i = ref right; return left; }
+                    public C M1(C c1)
+                    {
+                        return c1 += 1;
+                    }
+                    public C M2(C c2)
+                    {
+                        return c2 -= 1;
+                    }
+                    public C M3(C c3, in int right)
+                    {
+                        return c3 += right;
+                    }
+                    public C M4(C c4, in int right)
+                    {
+                        return c4 -= right;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+                // (4,45): error CS9079: Cannot ref-assign 'right' to '_i' because 'right' can only escape the current method through a return statement.
+                //     public void operator +=(in int right) { _i = ref right; }
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "_i = ref right").WithArguments("_i", "right").WithLocation(4, 45),
+                // (5,56): error CS9079: Cannot ref-assign 'right' to '_i' because 'right' can only escape the current method through a return statement.
+                //     public static C operator -(C left, in int right) { left._i = ref right; return left; }
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "left._i = ref right").WithArguments("_i", "right").WithLocation(5, 56),
+                // (12,16): error CS8347: Cannot use a result of 'C.operator -(C, in int)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return c2 -= 1;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c2 -= 1").WithArguments("C.operator -(C, in int)", "right").WithLocation(12, 16),
+                // (12,16): error CS8347: Cannot use a result of 'C.operator -(C, in int)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return c2 -= 1;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c2 -= 1").WithArguments("C.operator -(C, in int)", "right").WithLocation(12, 16),
+                // (12,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return c2 -= 1;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(12, 22),
+                // (12,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return c2 -= 1;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(12, 22),
+                // (20,16): error CS8347: Cannot use a result of 'C.operator -(C, in int)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return c4 -= right;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c4 -= right").WithArguments("C.operator -(C, in int)", "right").WithLocation(20, 16),
+                // (20,22): error CS9077: Cannot return a parameter by reference 'right' through a ref parameter; it can only be returned in a return statement
+                //         return c4 -= right;
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "right").WithArguments("right").WithLocation(20, 22)
                 );
         }
 
