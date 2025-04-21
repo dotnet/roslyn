@@ -7,12 +7,13 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using System.Linq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class IOperationTests_IFixedStatement : SemanticModelTestBase
+    public class IOperationTests_IFixedStatement() : SemanticModelTestBase(TargetFramework.NetStandard20)
     {
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation)]

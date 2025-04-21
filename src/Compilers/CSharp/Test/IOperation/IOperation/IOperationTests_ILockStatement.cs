@@ -7,11 +7,12 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class IOperationTests_ILockStatement : SemanticModelTestBase
+    public class IOperationTests_ILockStatement() : SemanticModelTestBase(TargetFramework.NetStandard20)
     {
         private const string LockTypeDefinition = """
             namespace System.Threading

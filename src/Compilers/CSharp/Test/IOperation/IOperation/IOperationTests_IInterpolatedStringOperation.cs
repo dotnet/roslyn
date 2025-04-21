@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class IOperationTests_IInterpolatedStringExpression : SemanticModelTestBase
+    public class IOperationTests_IInterpolatedStringExpression() : SemanticModelTestBase(TargetFramework.NetStandard20)
     {
         private static CSharpTestSource GetSource(string code, bool hasDefaultHandler)
             => hasDefaultHandler

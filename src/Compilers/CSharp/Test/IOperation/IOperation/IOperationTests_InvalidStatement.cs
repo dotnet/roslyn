@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class IOperationTests_InvalidStatement : SemanticModelTestBase
+    public class IOperationTests_InvalidStatement() : SemanticModelTestBase(TargetFramework.NetStandard20)
     {
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]

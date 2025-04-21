@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class IOperationTests_IUsingStatement : SemanticModelTestBase
+    public class IOperationTests_IUsingStatement() : SemanticModelTestBase(TargetFramework.NetStandard20)
     {
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
