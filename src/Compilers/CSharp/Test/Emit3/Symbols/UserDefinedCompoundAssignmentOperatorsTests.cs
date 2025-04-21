@@ -192,16 +192,17 @@ typeKeyword + @" C1
         [CombinatorialData]
         public void Increment_005_WrongNumberOfParameters([CombinatorialValues("++", "--")] string op, [CombinatorialValues("struct", "class", "interface")] string typeKeyword)
         {
-            var source =
-typeKeyword + @" C1
+            var source1 = @"
+public " + typeKeyword + @" C1
 {
+#line 3
     public void operator" + op + @"(C1 x) {} 
     public void operator" + op + @"(C1 x, C1 y) {} 
     public void operator" + op + @"(C1 x, C1 y, C1 z) {} 
 }
 ";
-            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
-            comp.VerifyDiagnostics(
+            var comp1 = CreateCompilation(source1, targetFramework: TargetFramework.Net90);
+            comp1.VerifyDiagnostics(
                 // (3,25): error CS9502: Overloaded instance increment operator '++' must take no parameters
                 //     public void operator++(C1 x) {} 
                 Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(3, 25),
@@ -212,6 +213,30 @@ typeKeyword + @" C1
                 //     public void operator++(C1 x, C1 y, C1 z) {} 
                 Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(5, 25)
                 );
+
+            if (typeKeyword == "interface")
+            {
+                var source2 = @"
+class C2 : C1
+{
+    void C1.operator" + op + @"(C1 x) {} 
+    void C1.operator" + op + @"(C1 x, C1 y) {} 
+    void C1.operator" + op + @"(C1 x, C1 y, C1 z) {} 
+}
+";
+                var comp2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net90);
+                comp2.VerifyDiagnostics(
+                    // (4,21): error CS9502: Overloaded instance increment operator '++' must take no parameters
+                    //     void C1.operator++(C1 x) {} 
+                    Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(4, 21),
+                    // (5,21): error CS1020: Overloadable binary operator expected
+                    //     void C1.operator++(C1 x, C1 y) {} 
+                    Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, op).WithLocation(5, 21),
+                    // (6,21): error CS9502: Overloaded instance increment operator '++' must take no parameters
+                    //     void C1.operator++(C1 x, C1 y, C1 z) {} 
+                    Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(6, 21)
+                    );
+            }
         }
 
         [Theory]
@@ -466,19 +491,20 @@ class C : I3, I4
         [CombinatorialData]
         public void Increment_012_AbstractCanBeImplementedExplicitlyInClassAndStruct([CombinatorialValues("++", "--")] string op, [CombinatorialValues("class", "struct")] string typeKeyword)
         {
-            var source = @"
-interface I1
+            var source1 = @"
+public interface I1
 {
     void operator " + op + @"();
 }
 
-interface I2
+public interface I2
 {
     void operator checked " + op + @"();
     sealed void operator " + op + @"() {}
 }
-
-" + typeKeyword + @" C3 : I1
+";
+            var source2 =
+typeKeyword + @" C3 : I1
 {
     void I1.operator " + op + @"() {}
 }
@@ -488,8 +514,20 @@ interface I2
     void I2.operator checked " + op + @"() {}
 }
 ";
-            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation(source1 + source2, targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+
+            var comp1 = CreateCompilation(source1, targetFramework: TargetFramework.Net90);
+
+            var comp2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net90, parseOptions: TestOptions.Regular13);
+            comp2.VerifyDiagnostics(
+                // (3,22): error CS8652: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     void I1.operator ++() {}
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, op).WithArguments("user-defined compound assignment operators").WithLocation(3, 22),
+                // (8,30): error CS8652: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     void I2.operator checked ++() {}
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, op).WithArguments("user-defined compound assignment operators").WithLocation(8, 30)
+                );
 
             void validate(ModuleSymbol m)
             {
@@ -5221,6 +5259,7 @@ public class Program
 public class C1
 {
     public void operator ++(int x = 0) {}
+    public int operator --() { return 0; }
 }
 ";
             var source2 = @"
@@ -5230,6 +5269,7 @@ public class Program
     {
         var x = new C1();
         ++x;
+        --x;
     } 
 }
 ";
@@ -5241,14 +5281,20 @@ public class Program
                 Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, "++").WithArguments("++").WithLocation(4, 26),
                 // (4,33): warning CS1066: The default value specified for parameter 'x' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
                 //     public void operator ++(int x = 0) {}
-                Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "x").WithArguments("x").WithLocation(4, 33)
+                Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "x").WithArguments("x").WithLocation(4, 33),
+                // (5,25): error CS9503: The return type for this operator must be void
+                //     public int operator --() { return 0; }
+                Diagnostic(ErrorCode.ERR_OperatorMustReturnVoid, "--").WithLocation(5, 25)
                 );
 
             var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             comp2.VerifyDiagnostics(
                 // (7,9): error CS0023: Operator '++' cannot be applied to operand of type 'C1'
                 //         ++x;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++x").WithArguments("++", "C1").WithLocation(7, 9)
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++x").WithArguments("++", "C1").WithLocation(7, 9),
+                // (8,9): error CS0023: Operator '--' cannot be applied to operand of type 'C1'
+                //         --x;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "--x").WithArguments("--", "C1").WithLocation(8, 9)
                 );
         }
 
@@ -5259,6 +5305,7 @@ public class Program
 public class C1
 {
     public void operator ++(params int[] x) {}
+    public void operator --(__arglist) {}
 }
 ";
             var source2 = @"
@@ -5268,6 +5315,7 @@ public class Program
     {
         var x = new C1();
         ++x;
+        --x;
     } 
 }
 ";
@@ -5279,7 +5327,10 @@ public class Program
                 Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, "++").WithArguments("++").WithLocation(4, 26),
                 // (4,29): error CS1670: params is not valid in this context
                 //     public void operator ++(params int[] x) {}
-                Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(4, 29)
+                Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(4, 29),
+                // (5,29): error CS1669: __arglist is not valid in this context
+                //     public void operator --(__arglist) {}
+                Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(5, 29)
                 );
 
             var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
@@ -5288,6 +5339,10 @@ public class Program
                 //         ++x;
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "++x").WithArguments("++", "C1").WithLocation(7, 9)
                 );
+
+            var decrement = comp2.GetMember<MethodSymbol>("C1.op_Decrement");
+            Assert.False(decrement.IsVararg);
+            AssertEx.Equal("void C1.op_Decrement()", decrement.ToTestDisplayString());
         }
 
         [Fact]
@@ -7335,6 +7390,120 @@ End Class
                 );
         }
 
+        private static void AssertMetadataSymbol(MethodSymbol m, MethodKind kind, string display)
+        {
+            Assert.Equal(kind, m.MethodKind);
+            AssertEx.Equal(display, m.ToDisplayString());
+            Assert.False(m.HasUnsupportedMetadata);
+            Assert.True(m.HasSpecialName);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_143_MetadataValidation([CombinatorialValues("++", "--")] string op, bool isChecked)
+        {
+            string name = isChecked ?
+                (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName) :
+                (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName);
+
+            var source1 = @"
+using System.Runtime.CompilerServices;
+
+public class C1
+{
+    [SpecialName]
+    public void " + name + @"() {}
+}
+
+public class C2
+{
+    [SpecialName]
+    public int " + name + @"() => 0; // Not void returning
+}
+
+public class C3
+{
+    [SpecialName]
+    public void " + name + @"(int x = 0) {} // Has parameter
+}
+
+public class C4
+{
+    [SpecialName]
+    public void " + name + @"(params int[] x) {} // Has params
+}
+
+public class C5
+{
+    [SpecialName]
+    public void " + name + @"(__arglist) {} // Is vararg
+}
+
+public class C6
+{
+    [SpecialName]
+    public void " + name + @"<T>() {} // Generic
+}
+";
+            var comp1 = CreateCompilation(source1);
+            var comp1Ref = comp1.EmitToImageReference();
+
+            var comp2 = CreateCompilation("", references: [comp1Ref]);
+
+            AssertMetadataSymbol(comp2.GetMember<MethodSymbol>("C1." + name),
+                                 MethodKind.UserDefinedOperator,
+                                 "C1.operator " + (isChecked ? "checked " : "") + op + "()");
+
+            AssertMetadataSymbol(comp2.GetMember<MethodSymbol>("C2." + name),
+                                 MethodKind.Ordinary,
+                                 "C2." + name + "()");
+
+            AssertMetadataSymbol(comp2.GetMember<MethodSymbol>("C3." + name),
+                                 MethodKind.Ordinary,
+                                 "C3." + name + "(int)");
+
+            AssertMetadataSymbol(comp2.GetMember<MethodSymbol>("C4." + name),
+                                 MethodKind.Ordinary,
+                                 "C4." + name + "(params int[])");
+
+            AssertMetadataSymbol(comp2.GetMember<MethodSymbol>("C5." + name),
+                                 MethodKind.Ordinary,
+                                 "C5." + name + "(__arglist)");
+
+            AssertMetadataSymbol(comp2.GetMember<MethodSymbol>("C6." + name),
+                                 MethodKind.Ordinary,
+                                 "C6." + name + "<T>()");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_144_MetadataValidation(
+            [CombinatorialValues("++", "--")] string op,
+            [CombinatorialValues("private", "protected", "private protected", "internal", "internal protected")] string accessibility,
+            bool isChecked)
+        {
+            string name = isChecked ?
+                (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName) :
+                (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName);
+
+            var source1 = @"
+using System.Runtime.CompilerServices;
+public class C1
+{
+    [SpecialName]
+    " + accessibility + @" void " + name + @"() {}
+}
+";
+            var comp1 = CreateCompilation(source1);
+            var comp1Ref = comp1.EmitToImageReference();
+
+            var comp2 = CreateCompilation("", references: [comp1Ref], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            AssertMetadataSymbol(comp2.GetMember<MethodSymbol>("C1." + name),
+                                 MethodKind.Ordinary,
+                                 "C1." + name + "()");
+        }
+
         private static string CompoundAssignmentOperatorName(string op, bool isChecked = false)
         {
             var kind = op switch
@@ -8018,13 +8187,14 @@ class C : I3
         [CombinatorialData]
         public void CompoundAssignment_00120_AbstractCanBeImplementedExplicitlyInClassAndStruct([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, [CombinatorialValues("class", "struct")] string typeKeyword)
         {
-            var source = @"
-interface I1
+            var source1 = @"
+public interface I1
 {
     void operator " + op + @"(int x);
 }
-
-" + typeKeyword + @" C3 : I1
+";
+            var source2 =
+typeKeyword + @" C3 : I1
 {
     void I1.operator " + op + @"(int x) {}
 }
@@ -8033,13 +8203,14 @@ interface I1
 
             if (hasCheckedForm)
             {
-                source += @"
-interface I2
+                source1 += @"
+public interface I2
 {
     void operator checked " + op + @"(int x);
     sealed void operator " + op + @"(int x) {}
 }
-
+";
+                source2 += @"
 " + typeKeyword + @" C4 : I2
 {
     void I2.operator checked " + op + @"(int x) {}
@@ -8047,8 +8218,28 @@ interface I2
 ";
             }
 
-            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation(source1 + source2, targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+
+            var comp1 = CreateCompilation(source1, targetFramework: TargetFramework.Net90);
+
+            var comp2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net90, parseOptions: TestOptions.Regular13);
+            comp2.VerifyDiagnostics(
+                hasCheckedForm ?
+                    [
+                        // (3,22): error CS8652: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     void I1.operator +=(int x) {}
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, op).WithArguments("user-defined compound assignment operators").WithLocation(3, 22),
+                        // (8,30): error CS8652: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     void I2.operator checked +=(int x) {}
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, op).WithArguments("user-defined compound assignment operators").WithLocation(8, 30)
+                    ] :
+                    [
+                        // (3,22): error CS8652: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     void I1.operator +=(int x) {}
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, op).WithArguments("user-defined compound assignment operators").WithLocation(3, 22)
+                    ]
+                );
 
             void validate(ModuleSymbol m)
             {
@@ -11974,6 +12165,259 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
 
         [Theory]
         [CombinatorialData]
+        public void CompoundAssignment_00702_Consumption_NotUsed_Class([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, bool fromMetadata)
+        {
+            var source1 = @"
+public interface I1
+{
+    public void operator" + op + @"(in long x);
+}
+
+public class C1 : I1
+{
+    public int _F;
+    public void operator" + op + @"(in long x)
+    {
+        System.Console.Write(""[operator]"");
+        _F = _F + (int)x;
+    } 
+}
+";
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
+
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        C1[] x = [new C1()];
+        Test1(x);
+        System.Console.WriteLine(x[0]._F);
+        Test2(x);
+        System.Console.WriteLine(x[0]._F);
+        Test3(x);
+        System.Console.WriteLine(x[0]._F);
+        Test4(x);
+        System.Console.WriteLine(x[0]._F);
+        Test5(x);
+        System.Console.WriteLine(x[0]._F);
+        Test6(x);
+        System.Console.WriteLine(x[0]._F);
+    } 
+
+    static void Test1(C1[] x)
+    {
+        GetA(x)[Get0()]" + op + @" G1();
+    } 
+
+    static void Test2(C1[] x)
+    {
+        checked
+        {
+            GetA(x)[Get0()]" + op + @" G1();
+        }
+    } 
+
+    static void Test3<T>(T[] x) where T : class, I1
+    {
+        GetA(x)[Get0()]" + op + @" G1();
+    } 
+
+    static void Test4<T>(T[] x) where T : class, I1
+    {
+        checked
+        {
+            GetA(x)[Get0()]" + op + @" G1();
+        }
+    } 
+
+    static void Test5<T>(T[] x) where T : I1
+    {
+        GetA(x)[Get0()]" + op + @" G1();
+    } 
+
+    static void Test6<T>(T[] x) where T : I1
+    {
+        checked
+        {
+            GetA(x)[Get0()]" + op + @" G1();
+        }
+    } 
+
+    static T[] GetA<T>(T[] x)
+    {
+        System.Console.Write(""[GetA]"");
+        return x;
+    } 
+
+    static int Get0()
+    {
+        System.Console.Write(""[Get0]"");
+        return 0;
+    }
+
+    static int G1()
+    {
+        System.Console.Write(""[Get1]"");
+        return 1;
+    }
+}
+";
+
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            const string expectedOutput = @"
+[GetA][Get0][Get1][operator]1
+[GetA][Get0][Get1][operator]2
+[GetA][Get0][Get1][operator]3
+[GetA][Get0][Get1][operator]4
+[GetA][Get0][Get1][operator]5
+[GetA][Get0][Get1][operator]6
+";
+            var verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var methodName = CompoundAssignmentOperatorName(op, isChecked: false);
+
+            verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  .locals init (long V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem.ref
+  IL_000c:  call       ""int Program.G1()""
+  IL_0011:  conv.i8
+  IL_0012:  stloc.0
+  IL_0013:  ldloca.s   V_0
+  IL_0015:  callvirt   ""void C1." + methodName + @"(in long)""
+  IL_001a:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test3<T>(T[])",
+@"
+{
+  // Code size       36 (0x24)
+  .maxstack  2
+  .locals init (long V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem     ""T""
+  IL_0010:  box        ""T""
+  IL_0015:  call       ""int Program.G1()""
+  IL_001a:  conv.i8
+  IL_001b:  stloc.0
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  callvirt   ""void I1." + methodName + @"(in long)""
+  IL_0023:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test5<T>(T[])",
+@"
+{
+  // Code size       63 (0x3f)
+  .maxstack  2
+  .locals init (T V_0,
+            long V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  readonly.
+  IL_000d:  ldelema    ""T""
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  initobj    ""T""
+  IL_001a:  ldloc.0
+  IL_001b:  box        ""T""
+  IL_0020:  brtrue.s   IL_002a
+  IL_0022:  ldobj      ""T""
+  IL_0027:  stloc.0
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  call       ""int Program.G1()""
+  IL_002f:  conv.i8
+  IL_0030:  stloc.1
+  IL_0031:  ldloca.s   V_1
+  IL_0033:  constrained. ""T""
+  IL_0039:  callvirt   ""void I1." + methodName + @"(in long)""
+  IL_003e:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test2",
+@"
+{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  .locals init (long V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem.ref
+  IL_000c:  call       ""int Program.G1()""
+  IL_0011:  conv.i8
+  IL_0012:  stloc.0
+  IL_0013:  ldloca.s   V_0
+  IL_0015:  callvirt   ""void C1." + methodName + @"(in long)""
+  IL_001a:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test4<T>(T[])",
+@"
+{
+  // Code size       36 (0x24)
+  .maxstack  2
+  .locals init (long V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem     ""T""
+  IL_0010:  box        ""T""
+  IL_0015:  call       ""int Program.G1()""
+  IL_001a:  conv.i8
+  IL_001b:  stloc.0
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  callvirt   ""void I1." + methodName + @"(in long)""
+  IL_0023:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test6<T>(T[])",
+@"
+{
+  // Code size       63 (0x3f)
+  .maxstack  2
+  .locals init (T V_0,
+            long V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  readonly.
+  IL_000d:  ldelema    ""T""
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  initobj    ""T""
+  IL_001a:  ldloc.0
+  IL_001b:  box        ""T""
+  IL_0020:  brtrue.s   IL_002a
+  IL_0022:  ldobj      ""T""
+  IL_0027:  stloc.0
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  call       ""int Program.G1()""
+  IL_002f:  conv.i8
+  IL_0030:  stloc.1
+  IL_0031:  ldloca.s   V_1
+  IL_0033:  constrained. ""T""
+  IL_0039:  callvirt   ""void I1." + methodName + @"(in long)""
+  IL_003e:  ret
+}
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void CompoundAssignment_00710_Consumption_NotUsed_Struct([CombinatorialValues("+=", "-=", "*=", "/=")] string op, bool fromMetadata)
         {
             var source1 = @"
@@ -12584,6 +13028,201 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
 
             comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyDiagnostics(expectedErrors);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_00712_Consumption_NotUsed_Struct([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, bool fromMetadata)
+        {
+            var source1 = @"
+public interface I1
+{
+    public void operator" + op + @"(in long x);
+}
+
+public struct C1 : I1
+{
+    public int _F;
+    public void operator" + op + @"(in long x)
+    {
+        System.Console.Write(""[operator]"");
+        _F = _F + (int)x;
+    } 
+}
+";
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
+
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        C1[] x = [new C1()];
+        Test1(x);
+        System.Console.WriteLine(x[0]._F);
+        Test2(x);
+        System.Console.WriteLine(x[0]._F);
+        Test3(x);
+        System.Console.WriteLine(x[0]._F);
+        Test4(x);
+        System.Console.WriteLine(x[0]._F);
+        Test5(x);
+        System.Console.WriteLine(x[0]._F);
+        Test6(x);
+        System.Console.WriteLine(x[0]._F);
+    } 
+
+    static void Test1(C1[] x)
+    {
+        GetA(x)[Get0()]" + op + @" G1();
+    } 
+
+    static void Test2(C1[] x)
+    {
+        checked
+        {
+            GetA(x)[Get0()]" + op + @" G1();
+        }
+    } 
+
+    static void Test3<T>(T[] x) where T : struct, I1
+    {
+        GetA(x)[Get0()]" + op + @" G1();
+    } 
+
+    static void Test4<T>(T[] x) where T : struct, I1
+    {
+        checked
+        {
+            GetA(x)[Get0()]" + op + @" G1();
+        }
+    } 
+
+    static void Test5<T>(T[] x) where T : I1
+    {
+        GetA(x)[Get0()]" + op + @" G1();
+    } 
+
+    static void Test6<T>(T[] x) where T : I1
+    {
+        checked
+        {
+            GetA(x)[Get0()]" + op + @" G1();
+        }
+    } 
+
+    static T[] GetA<T>(T[] x)
+    {
+        System.Console.Write(""[GetA]"");
+        return x;
+    } 
+
+    static int Get0()
+    {
+        System.Console.Write(""[Get0]"");
+        return 0;
+    }
+
+    static int G1()
+    {
+        System.Console.Write(""[Get1]"");
+        return 1;
+    }
+}
+";
+
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            const string expectedOutput = @"
+[GetA][Get0][Get1][operator]1
+[GetA][Get0][Get1][operator]2
+[GetA][Get0][Get1][operator]3
+[GetA][Get0][Get1][operator]4
+[GetA][Get0][Get1][operator]5
+[GetA][Get0][Get1][operator]6
+";
+            var verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var methodName = CompoundAssignmentOperatorName(op, isChecked: false);
+
+            verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  .locals init (long V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelema    ""C1""
+  IL_0010:  call       ""int Program.G1()""
+  IL_0015:  conv.i8
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""void C1." + methodName + @"(in long)""
+  IL_001e:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test3<T>(T[])",
+@"
+{
+  // Code size       39 (0x27)
+  .maxstack  2
+  .locals init (long V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  readonly.
+  IL_000d:  ldelema    ""T""
+  IL_0012:  call       ""int Program.G1()""
+  IL_0017:  conv.i8
+  IL_0018:  stloc.0
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  constrained. ""T""
+  IL_0021:  callvirt   ""void I1." + methodName + @"(in long)""
+  IL_0026:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test2",
+@"
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  .locals init (long V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelema    ""C1""
+  IL_0010:  call       ""int Program.G1()""
+  IL_0015:  conv.i8
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""void C1." + methodName + @"(in long)""
+  IL_001e:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test4<T>(T[])",
+@"
+{
+  // Code size       39 (0x27)
+  .maxstack  2
+  .locals init (long V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  readonly.
+  IL_000d:  ldelema    ""T""
+  IL_0012:  call       ""int Program.G1()""
+  IL_0017:  conv.i8
+  IL_0018:  stloc.0
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  constrained. ""T""
+  IL_0021:  callvirt   ""void I1." + methodName + @"(in long)""
+  IL_0026:  ret
+}
+");
         }
 
         [Theory]
@@ -13418,6 +14057,309 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
 
         [Theory]
         [CombinatorialData]
+        public void CompoundAssignment_00722_Consumption_Used_Class([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, bool fromMetadata)
+        {
+            var source1 = @"
+public interface I1
+{
+    public void operator" + op + @"(in long x);
+}
+
+public class C1 : I1
+{
+    public int _F;
+    public void operator" + op + @"(in long x)
+    {
+        System.Console.Write(""[operator]"");
+        _F = _F + (int)x;
+    } 
+}
+";
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
+
+            var source2 = @"
+public class Program
+{
+    static C1[] x = [null];
+
+    static void Main()
+    {
+        var val = new C1();
+        x[0] = val;
+        C1 y = Test1(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine((object)val == y && x[0] is null);
+        x[0] = val;
+        y = Test2(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine((object)val == y && x[0] is null);
+        x[0] = val;
+        y = Test3(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine((object)val == y && x[0] is null);
+        x[0] = val;
+        y = Test4(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine((object)val == y && x[0] is null);
+        x[0] = val;
+        y = Test5(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine((object)val == y && x[0] is null);
+        x[0] = val;
+        y = Test6(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine((object)val == y && x[0] is null);
+    } 
+
+    static C1 Test1(C1[] x)
+    {
+#line 23
+        return GetA(x)[Get0()]" + op + @" G1();
+    } 
+
+    static C1 Test2(C1[] x)
+    {
+        checked
+        {
+            return GetA(x)[Get0()]" + op + @" G1();
+        }
+    } 
+
+    static T Test3<T>(T[] x) where T : class, I1
+    {
+        return GetA(x)[Get0()]" + op + @" G1();
+    } 
+
+    static T Test4<T>(T[] x) where T : class, I1
+    {
+        checked
+        {
+            return GetA(x)[Get0()]" + op + @" G1();
+        }
+    } 
+
+    static T Test5<T>(T[] x) where T : I1
+    {
+        return GetA(x)[Get0()]" + op + @" G1();
+    } 
+
+    static T Test6<T>(T[] x) where T : I1
+    {
+        checked
+        {
+            return GetA(x)[Get0()]" + op + @" G1();
+        }
+    } 
+
+    static T[] GetA<T>(T[] x)
+    {
+        System.Console.Write(""[GetA]"");
+        return x;
+    } 
+
+    static int Get0()
+    {
+        System.Console.Write(""[Get0]"");
+        return 0;
+    }
+
+    static int G1()
+    {
+        System.Console.Write(""[G1]"");
+        x[0] = null;
+        return 1;
+    }
+}
+";
+
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            const string expectedOutput = @"
+[GetA][Get0][G1][operator]1True
+[GetA][Get0][G1][operator]2True
+[GetA][Get0][G1][operator]3True
+[GetA][Get0][G1][operator]4True
+[GetA][Get0][G1][operator]5True
+[GetA][Get0][G1][operator]6True
+";
+            var verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var methodName = CompoundAssignmentOperatorName(op, isChecked: false);
+
+            verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       28 (0x1c)
+  .maxstack  3
+  .locals init (long V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem.ref
+  IL_000c:  dup
+  IL_000d:  call       ""int Program.G1()""
+  IL_0012:  conv.i8
+  IL_0013:  stloc.0
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  callvirt   ""void C1." + methodName + @"(in long)""
+  IL_001b:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test3<T>(T[])",
+@"
+{
+  // Code size       37 (0x25)
+  .maxstack  3
+  .locals init (long V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem     ""T""
+  IL_0010:  dup
+  IL_0011:  box        ""T""
+  IL_0016:  call       ""int Program.G1()""
+  IL_001b:  conv.i8
+  IL_001c:  stloc.0
+  IL_001d:  ldloca.s   V_0
+  IL_001f:  callvirt   ""void I1." + methodName + @"(in long)""
+  IL_0024:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test5<T>(T[])",
+@"
+{
+  // Code size       87 (0x57)
+  .maxstack  3
+  .locals init (T[] V_0,
+                int V_1,
+                T V_2,
+                long V_3,
+                T V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""int Program.Get0()""
+  IL_000c:  stloc.1
+  IL_000d:  ldloc.0
+  IL_000e:  ldloc.1
+  IL_000f:  ldelem     ""T""
+  IL_0014:  stloc.2
+  IL_0015:  call       ""int Program.G1()""
+  IL_001a:  conv.i8
+  IL_001b:  stloc.3
+  IL_001c:  ldloca.s   V_4
+  IL_001e:  initobj    ""T""
+  IL_0024:  ldloc.s    V_4
+  IL_0026:  box        ""T""
+  IL_002b:  brtrue.s   IL_003e
+  IL_002d:  ldloca.s   V_2
+  IL_002f:  ldloca.s   V_3
+  IL_0031:  constrained. ""T""
+  IL_0037:  callvirt   ""void I1." + methodName + @"(in long)""
+  IL_003c:  br.s       IL_0055
+  IL_003e:  ldloca.s   V_2
+  IL_0040:  ldloca.s   V_3
+  IL_0042:  constrained. ""T""
+  IL_0048:  callvirt   ""void I1." + methodName + @"(in long)""
+  IL_004d:  ldloc.0
+  IL_004e:  ldloc.1
+  IL_004f:  ldloc.2
+  IL_0050:  stelem     ""T""
+  IL_0055:  ldloc.2
+  IL_0056:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test2",
+@"
+{
+  // Code size       28 (0x1c)
+  .maxstack  3
+  .locals init (long V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem.ref
+  IL_000c:  dup
+  IL_000d:  call       ""int Program.G1()""
+  IL_0012:  conv.i8
+  IL_0013:  stloc.0
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  callvirt   ""void C1." + methodName + @"(in long)""
+  IL_001b:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test4<T>(T[])",
+@"
+{
+  // Code size       37 (0x25)
+  .maxstack  3
+  .locals init (long V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem     ""T""
+  IL_0010:  dup
+  IL_0011:  box        ""T""
+  IL_0016:  call       ""int Program.G1()""
+  IL_001b:  conv.i8
+  IL_001c:  stloc.0
+  IL_001d:  ldloca.s   V_0
+  IL_001f:  callvirt   ""void I1." + methodName + @"(in long)""
+  IL_0024:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test6<T>(T[])",
+@"
+{
+  // Code size       87 (0x57)
+  .maxstack  3
+  .locals init (T[] V_0,
+                int V_1,
+                T V_2,
+                long V_3,
+                T V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""int Program.Get0()""
+  IL_000c:  stloc.1
+  IL_000d:  ldloc.0
+  IL_000e:  ldloc.1
+  IL_000f:  ldelem     ""T""
+  IL_0014:  stloc.2
+  IL_0015:  call       ""int Program.G1()""
+  IL_001a:  conv.i8
+  IL_001b:  stloc.3
+  IL_001c:  ldloca.s   V_4
+  IL_001e:  initobj    ""T""
+  IL_0024:  ldloc.s    V_4
+  IL_0026:  box        ""T""
+  IL_002b:  brtrue.s   IL_003e
+  IL_002d:  ldloca.s   V_2
+  IL_002f:  ldloca.s   V_3
+  IL_0031:  constrained. ""T""
+  IL_0037:  callvirt   ""void I1." + methodName + @"(in long)""
+  IL_003c:  br.s       IL_0055
+  IL_003e:  ldloca.s   V_2
+  IL_0040:  ldloca.s   V_3
+  IL_0042:  constrained. ""T""
+  IL_0048:  callvirt   ""void I1." + methodName + @"(in long)""
+  IL_004d:  ldloc.0
+  IL_004e:  ldloc.1
+  IL_004f:  ldloc.2
+  IL_0050:  stelem     ""T""
+  IL_0055:  ldloc.2
+  IL_0056:  ret
+}
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void CompoundAssignment_00730_Consumption_Used_Struct([CombinatorialValues("+=", "-=", "*=", "/=")] string op, bool fromMetadata)
         {
             var source1 = @"
@@ -14122,6 +15064,246 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
 
         [Theory]
         [CombinatorialData]
+        public void CompoundAssignment_00732_Consumption_Used_Struct([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, bool fromMetadata)
+        {
+            var source1 = @"
+public interface I1
+{
+    public void operator" + op + @"(in long x);
+}
+
+public struct C1 : I1
+{
+    public int _F;
+    public void operator" + op + @"(in long x)
+    {
+        System.Console.Write(""[operator]"");
+        _F = _F + (int)x;
+    } 
+}
+";
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
+
+            var source2 = @"
+public class Program
+{
+    static C1[] x = [new C1()];
+
+    static void Main()
+    {
+        C1 y = Test1(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine(x[0]._F);
+        y = Test2(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine(x[0]._F);
+        y = Test3(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine(x[0]._F);
+        y = Test4(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine(x[0]._F);
+        y = Test5(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine(x[0]._F);
+        y = Test6(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine(x[0]._F);
+    } 
+
+    static C1 Test1(C1[] x)
+    {
+#line 23
+        return GetA(x)[Get0()]" + op + @" G1();
+    } 
+
+    static C1 Test2(C1[] x)
+    {
+        checked
+        {
+            return GetA(x)[Get0()]" + op + @" G1();
+        }
+    } 
+
+    static T Test3<T>(T[] x) where T : struct, I1
+    {
+        return GetA(x)[Get0()]" + op + @" G1();
+    } 
+
+    static T Test4<T>(T[] x) where T : struct, I1
+    {
+        checked
+        {
+            return GetA(x)[Get0()]" + op + @" G1();
+        }
+    } 
+
+    static T Test5<T>(T[] x) where T : I1
+    {
+        return GetA(x)[Get0()]" + op + @" G1();
+    } 
+
+    static T Test6<T>(T[] x) where T : I1
+    {
+        checked
+        {
+            return GetA(x)[Get0()]" + op + @" G1();
+        }
+    } 
+
+    static T[] GetA<T>(T[] x)
+    {
+        System.Console.Write(""[GetA]"");
+        return x;
+    } 
+
+    static int Get0()
+    {
+        System.Console.Write(""[Get0]"");
+        return 0;
+    }
+
+    static int G1()
+    {
+        System.Console.Write(""[G1]"");
+        x[0] = new C1() { _F = -1 };
+        return 1;
+    }
+}
+";
+
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            const string expectedOutput = @"
+[GetA][Get0][G1][operator]11
+[GetA][Get0][G1][operator]22
+[GetA][Get0][G1][operator]33
+[GetA][Get0][G1][operator]44
+[GetA][Get0][G1][operator]55
+[GetA][Get0][G1][operator]66
+";
+            var verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var methodName = CompoundAssignmentOperatorName(op, isChecked: false);
+
+            verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       47 (0x2f)
+  .maxstack  3
+  .locals init (C1 V_0,
+                long V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelema    ""C1""
+  IL_0010:  dup
+  IL_0011:  ldobj      ""C1""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""int Program.G1()""
+  IL_001e:  conv.i8
+  IL_001f:  stloc.1
+  IL_0020:  ldloca.s   V_1
+  IL_0022:  call       ""void C1." + methodName + @"(in long)""
+  IL_0027:  ldloc.0
+  IL_0028:  stobj      ""C1""
+  IL_002d:  ldloc.0
+  IL_002e:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test3<T>(T[])",
+@"
+{
+  // Code size       51 (0x33)
+  .maxstack  3
+  .locals init (int V_0,
+                T V_1,
+                long V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  stloc.0
+  IL_000c:  dup
+  IL_000d:  ldloc.0
+  IL_000e:  ldelem     ""T""
+  IL_0013:  stloc.1
+  IL_0014:  ldloca.s   V_1
+  IL_0016:  call       ""int Program.G1()""
+  IL_001b:  conv.i8
+  IL_001c:  stloc.2
+  IL_001d:  ldloca.s   V_2
+  IL_001f:  constrained. ""T""
+  IL_0025:  callvirt   ""void I1." + methodName + @"(in long)""
+  IL_002a:  ldloc.0
+  IL_002b:  ldloc.1
+  IL_002c:  stelem     ""T""
+  IL_0031:  ldloc.1
+  IL_0032:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test2",
+@"
+{
+  // Code size       47 (0x2f)
+  .maxstack  3
+  .locals init (C1 V_0,
+            long V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelema    ""C1""
+  IL_0010:  dup
+  IL_0011:  ldobj      ""C1""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""int Program.G1()""
+  IL_001e:  conv.i8
+  IL_001f:  stloc.1
+  IL_0020:  ldloca.s   V_1
+  IL_0022:  call       ""void C1." + methodName + @"(in long)""
+  IL_0027:  ldloc.0
+  IL_0028:  stobj      ""C1""
+  IL_002d:  ldloc.0
+  IL_002e:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test4<T>(T[])",
+@"
+{
+  // Code size       51 (0x33)
+  .maxstack  3
+  .locals init (int V_0,
+            T V_1,
+            long V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  stloc.0
+  IL_000c:  dup
+  IL_000d:  ldloc.0
+  IL_000e:  ldelem     ""T""
+  IL_0013:  stloc.1
+  IL_0014:  ldloca.s   V_1
+  IL_0016:  call       ""int Program.G1()""
+  IL_001b:  conv.i8
+  IL_001c:  stloc.2
+  IL_001d:  ldloca.s   V_2
+  IL_001f:  constrained. ""T""
+  IL_0025:  callvirt   ""void I1." + methodName + @"(in long)""
+  IL_002a:  ldloc.0
+  IL_002b:  ldloc.1
+  IL_002c:  stelem     ""T""
+  IL_0031:  ldloc.1
+  IL_0032:  ret
+}
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void CompoundAssignment_00800_Consumption_CheckedVersionInRegularContext([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
         {
             var source1 = @"
@@ -14731,6 +15913,165 @@ public class Program
         }
 
         [Fact]
+        public void CompoundAssignment_00901_Consumption_BadOperator()
+        {
+            var source1 = @"
+public class C1
+{
+    public int operator +=(int a) { return 0; }
+}
+";
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        var x = new C1();
+        x += 1;
+    } 
+}
+";
+
+            CSharpCompilation comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
+            comp1.VerifyDiagnostics(
+                // (4,25): error CS9503: The return type for this operator must be void
+                //     public int operator +=(int a) { return 0; }
+                Diagnostic(ErrorCode.ERR_OperatorMustReturnVoid, "+=").WithLocation(4, 25)
+                );
+
+            var comp2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            comp2.VerifyDiagnostics(
+                // (7,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //         x += 1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x += 1").WithArguments("+=", "C1", "int").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_00902_Consumption_BadOperator()
+        {
+            var source1 = @"
+public class C1
+{
+    public void operator +=(__arglist) {}
+}
+";
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        var x = new C1();
+        x += 1;
+    } 
+}
+";
+
+            CSharpCompilation comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
+            comp1.VerifyDiagnostics(
+                // (4,29): error CS1669: __arglist is not valid in this context
+                //     public void operator +=(__arglist) {}
+                Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(4, 29)
+                );
+
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            comp2.VerifyDiagnostics(
+                // (7,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //         x += 1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x += 1").WithArguments("+=", "C1", "int").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_00903_Consumption_BadOperator()
+        {
+            var source1 = @"
+public class C1
+{
+    public void operator +=(int x, __arglist) {}
+}
+";
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        var x = new C1();
+        x += 1;
+    } 
+}
+";
+
+            CSharpCompilation comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
+            comp1.VerifyDiagnostics(
+                // (4,26): error CS1020: Overloadable binary operator expected
+                //     public void operator +=(int x, __arglist) {}
+                Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, "+=").WithLocation(4, 26),
+                // (4,36): error CS1669: __arglist is not valid in this context
+                //     public void operator +=(int x, __arglist) {}
+                Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(4, 36)
+                );
+
+            var comp2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            comp2.VerifyEmitDiagnostics();
+
+            var method = comp2.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.AdditionAssignmentOperatorName);
+            Assert.False(method.IsVararg);
+            AssertEx.Equal("void C1.op_AdditionAssignment(System.Int32 x)", method.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void CompoundAssignment_00904_Consumption_BadOperator()
+        {
+            var source1 = @"
+public class C1
+{
+    public void operator +=(ref int x) {}
+    public void operator -=(ref readonly int x) {}
+    public void operator *=(out int x) { x = 0; }
+}
+";
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        var x = new C1();
+        x += 1;
+        x -= 1;
+        x *= 1;
+    } 
+}
+";
+
+            CSharpCompilation comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
+            comp1.VerifyDiagnostics(
+                // (4,26): error CS0631: ref and out are not valid in this context
+                //     public void operator +=(ref int x) {}
+                Diagnostic(ErrorCode.ERR_IllegalRefParam, "+=").WithLocation(4, 26),
+                // (5,26): error CS0631: ref and out are not valid in this context
+                //     public void operator -=(ref readonly int x) {}
+                Diagnostic(ErrorCode.ERR_IllegalRefParam, "-=").WithLocation(5, 26),
+                // (6,26): error CS0631: ref and out are not valid in this context
+                //     public void operator *=(out int x) { x = 0; }
+                Diagnostic(ErrorCode.ERR_IllegalRefParam, "*=").WithLocation(6, 26)
+                );
+
+            var comp2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            comp2.VerifyDiagnostics(
+                // (7,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //         x += 1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x += 1").WithArguments("+=", "C1", "int").WithLocation(7, 9),
+                // (8,9): error CS0019: Operator '-=' cannot be applied to operands of type 'C1' and 'int'
+                //         x -= 1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x -= 1").WithArguments("-=", "C1", "int").WithLocation(8, 9),
+                // (9,9): error CS0019: Operator '*=' cannot be applied to operands of type 'C1' and 'int'
+                //         x *= 1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x *= 1").WithArguments("*=", "C1", "int").WithLocation(9, 9)
+                );
+        }
+
+        [Fact]
         public void CompoundAssignment_00910_Consumption_BadOperator()
         {
             var source1 = @"
@@ -14806,6 +16147,44 @@ public class Program
                 // (8,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'collection expressions'
                 //         x += [2];
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x += [2]").WithArguments("+=", "C1", "collection expressions").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_00912_Consumption_BadOperator()
+        {
+            var source1 = @"
+public class C1
+{
+    public void operator +=(int a, params int[] x) {}
+}
+";
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        var x = new C1();
+        x += 1;
+    } 
+}
+";
+
+            CSharpCompilation comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
+            comp1.VerifyDiagnostics(
+                // (4,26): error CS1020: Overloadable binary operator expected
+                //     public void operator +=(int a, params int[] x) {}
+                Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, "+=").WithLocation(4, 26),
+                // (4,36): error CS1670: params is not valid in this context
+                //     public void operator +=(int a, params int[] x) {}
+                Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(4, 36)
+                );
+
+            var comp2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            comp2.VerifyDiagnostics(
+                // (7,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //         x += 1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x += 1").WithArguments("+=", "C1", "int").WithLocation(7, 9)
                 );
         }
 
@@ -17048,6 +18427,364 @@ End Class
                 );
         }
 
-        // PROTOTYPE: Disable ORPA during overload resolution? 
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01430_MetadataValidation([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, bool isChecked)
+        {
+            if (isChecked && !CompoundAssignmentOperatorHasCheckedForm(op))
+            {
+                return;
+            }
+
+            string name = CompoundAssignmentOperatorName(op, isChecked);
+
+            var source1 = @"
+using System.Runtime.CompilerServices;
+
+public class C1
+{
+    [SpecialName]
+    public void " + name + @"(int x) {}
+}
+
+public class C2
+{
+    [SpecialName]
+    public int " + name + @"(int x) => 0; // Not void returning
+}
+
+public class C3
+{
+    [SpecialName]
+    public void " + name + @"(int a, int x = 0) {} // Has two parameters
+}
+
+public class C4
+{
+    [SpecialName]
+    public void " + name + @"(params int[] x) {} // Has params
+}
+
+public class C5
+{
+    [SpecialName]
+    public void " + name + @"(__arglist) {} // Is vararg
+}
+
+public class C6
+{
+    [SpecialName]
+    public void " + name + @"<T>(T x) {} // Generic
+}
+
+public class C7
+{
+    [SpecialName]
+    public void " + name + @"() {} // Has no parameter
+}
+
+public class C8
+{
+    [SpecialName]
+    public void " + name + @"(int a, params int[] x) {} // Has params
+}
+
+public class C9
+{
+    [SpecialName]
+    public void " + name + @"(int a, __arglist) {} // Is vararg
+}
+
+public class C10
+{
+    [SpecialName]
+    public void " + name + @"(in decimal x) {}
+}
+";
+            var comp1 = CreateCompilation(source1);
+            var comp1Ref = comp1.EmitToImageReference();
+
+            var comp2 = CreateCompilation("", references: [comp1Ref]);
+
+            AssertMetadataSymbol(comp2.GetMember<MethodSymbol>("C1." + name),
+                                 MethodKind.UserDefinedOperator,
+                                 "C1.operator " + (isChecked ? "checked " : "") + op + "(int)");
+
+            AssertMetadataSymbol(comp2.GetMember<MethodSymbol>("C2." + name),
+                                 MethodKind.Ordinary,
+                                 "C2." + name + "(int)");
+
+            AssertMetadataSymbol(comp2.GetMember<MethodSymbol>("C3." + name),
+                                 MethodKind.Ordinary,
+                                 "C3." + name + "(int, int)");
+
+            AssertMetadataSymbol(comp2.GetMember<MethodSymbol>("C4." + name),
+                                 MethodKind.Ordinary,
+                                 "C4." + name + "(params int[])");
+
+            AssertMetadataSymbol(comp2.GetMember<MethodSymbol>("C5." + name),
+                                 MethodKind.Ordinary,
+                                 "C5." + name + "(__arglist)");
+
+            AssertMetadataSymbol(comp2.GetMember<MethodSymbol>("C6." + name),
+                                 MethodKind.Ordinary,
+                                 "C6." + name + "<T>(T)");
+
+            AssertMetadataSymbol(comp2.GetMember<MethodSymbol>("C7." + name),
+                                 MethodKind.Ordinary,
+                                 "C7." + name + "()");
+
+            AssertMetadataSymbol(comp2.GetMember<MethodSymbol>("C8." + name),
+                                 MethodKind.Ordinary,
+                                 "C8." + name + "(int, params int[])");
+
+            AssertMetadataSymbol(comp2.GetMember<MethodSymbol>("C9." + name),
+                                 MethodKind.Ordinary,
+                                 "C9." + name + "(int, __arglist)");
+
+            AssertMetadataSymbol(comp2.GetMember<MethodSymbol>("C10." + name),
+                                 MethodKind.UserDefinedOperator,
+                                 "C10.operator " + (isChecked ? "checked " : "") + op + "(in decimal)");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01431_MetadataValidation(
+            [CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op,
+            [CombinatorialValues("ref", "ref readonly", "out")] string refModifier,
+            bool isChecked)
+        {
+            if (isChecked && !CompoundAssignmentOperatorHasCheckedForm(op))
+            {
+                return;
+            }
+
+            string name = CompoundAssignmentOperatorName(op, isChecked);
+
+            var source1 = @"
+using System.Runtime.CompilerServices;
+public abstract class C1
+{
+    [SpecialName]
+    public abstract void " + name + @"(" + refModifier + @" int x);
+}
+";
+            var comp1 = CreateCompilation(source1);
+            var comp1Ref = comp1.EmitToImageReference();
+
+            var comp2 = CreateCompilation("", references: [comp1Ref]);
+
+            AssertMetadataSymbol(comp2.GetMember<MethodSymbol>("C1." + name),
+                                 MethodKind.Ordinary,
+                                 "C1." + name + "(" + refModifier + " int)");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01440_MetadataValidation(
+            [CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op,
+            [CombinatorialValues("private", "protected", "private protected", "internal", "internal protected")] string accessibility,
+            bool isChecked)
+        {
+            if (isChecked && !CompoundAssignmentOperatorHasCheckedForm(op))
+            {
+                return;
+            }
+
+            string name = CompoundAssignmentOperatorName(op, isChecked);
+
+            var source1 = @"
+using System.Runtime.CompilerServices;
+public class C1
+{
+    [SpecialName]
+    " + accessibility + @" void " + name + @"(int x) {}
+}
+";
+            var comp1 = CreateCompilation(source1);
+            var comp1Ref = comp1.EmitToImageReference();
+
+            var comp2 = CreateCompilation("", references: [comp1Ref], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            AssertMetadataSymbol(comp2.GetMember<MethodSymbol>("C1." + name),
+                                 MethodKind.Ordinary,
+                                 "C1." + name + "(int)");
+        }
+
+        [Fact]
+        public void CompoundAssignment_01450_Consumption_OverloadResolutionPriority()
+        {
+            var source1 = @"
+using System.Runtime.CompilerServices;
+
+public class C1
+{
+    public void operator +=(int x)
+    {
+        System.Console.Write(""[intC1]"");
+    } 
+
+    [OverloadResolutionPriority(1)]
+    public void operator +=(long x)
+    {
+        System.Console.Write(""[longC1]"");
+    } 
+}
+
+public class C2
+{
+    public static C2 operator +(C2 a, int x)
+    {
+        System.Console.Write(""[intC2]"");
+        return a;
+    } 
+
+    [OverloadResolutionPriority(1)]
+    public static C2 operator +(C2 a, long x)
+    {
+        System.Console.Write(""[longC2]"");
+        return a;
+    } 
+}
+
+public class Program
+{
+    static void Main()
+    {
+        var x = new C1();
+        x += 1;
+        var y = new C2();
+        y += 1;
+    } 
+}
+";
+
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute, OverloadResolutionPriorityAttributeDefinition], options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "[longC1][longC2]").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CompoundAssignment_01460_Consumption_OverloadResolutionPriority_CheckedContext()
+        {
+            var source1 = @"
+using System.Runtime.CompilerServices;
+
+public class C1
+{
+    public void operator +=(int x)
+    {
+        System.Console.Write(""[intC1]"");
+    } 
+
+    public void operator checked +=(int x)
+    {
+        System.Console.Write(""[intC1Checked]"");
+    } 
+
+    [OverloadResolutionPriority(1)]
+    public void operator +=(long x)
+    {
+        System.Console.Write(""[longC1]"");
+    } 
+}
+
+public class C2
+{
+    public static C2 operator +(C2 a, int x)
+    {
+        System.Console.Write(""[intC2]"");
+        return a;
+    } 
+
+    public static C2 operator checked +(C2 a, int x)
+    {
+        System.Console.Write(""[intC2Checked]"");
+        return a;
+    } 
+
+    [OverloadResolutionPriority(1)]
+    public static C2 operator +(C2 a, long x)
+    {
+        System.Console.Write(""[longC2]"");
+        return a;
+    } 
+}
+
+public class Program
+{
+    static void Main()
+    {
+        checked
+        {
+            var x = new C1();
+            x += 1;
+            var y = new C2();
+            y += 1;
+        }
+    } 
+}
+";
+
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute, OverloadResolutionPriorityAttributeDefinition], options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "[longC1][longC2]").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CompoundAssignment_01470_InterpolatedStringHandlerArgument()
+        {
+            var code = @"
+using System.Runtime.CompilerServices;
+
+internal struct StructLogger
+{
+    public void operator +=([InterpolatedStringHandlerArgument("""")] DummyHandler handler)
+    {
+    }
+
+    public static StructLogger operator -(StructLogger s, [InterpolatedStringHandlerArgument(""s"")] DummyHandler handler)
+    {
+        return s;
+    }
+
+    void Test1()
+    {
+        this+=$""log:{0}"";
+    }
+    void Test2()
+    {
+        this-=$""log:{0}"";
+    }
+}
+
+[InterpolatedStringHandler]
+internal ref struct DummyHandler
+{
+    public DummyHandler(int literalLength, int formattedCount, StructLogger structLogger)
+    {
+    }
+    public string GetContent() => null;
+
+    public void AppendLiteral(string s) {}
+    public void AppendFormatted<T>(T t) {}
+}
+";
+
+            var comp = CreateCompilation(new[] { code, CompilerFeatureRequiredAttribute, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute });
+
+            comp.VerifyDiagnostics(
+                // 0.cs(17,15): error CS7036: There is no argument given that corresponds to the required parameter 'structLogger' of 'DummyHandler.DummyHandler(int, int, StructLogger)'
+                //         this+=$"log:{0}";
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, @"$""log:{0}""").WithArguments("structLogger", "DummyHandler.DummyHandler(int, int, StructLogger)").WithLocation(17, 15),
+                // 0.cs(17,15): error CS1615: Argument 3 may not be passed with the 'out' keyword
+                //         this+=$"log:{0}";
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, @"$""log:{0}""").WithArguments("3", "out").WithLocation(17, 15),
+                // 0.cs(21,15): error CS7036: There is no argument given that corresponds to the required parameter 'structLogger' of 'DummyHandler.DummyHandler(int, int, StructLogger)'
+                //         this-=$"log:{0}";
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, @"$""log:{0}""").WithArguments("structLogger", "DummyHandler.DummyHandler(int, int, StructLogger)").WithLocation(21, 15),
+                // 0.cs(21,15): error CS1615: Argument 3 may not be passed with the 'out' keyword
+                //         this-=$"log:{0}";
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, @"$""log:{0}""").WithArguments("3", "out").WithLocation(21, 15)
+                );
+        }
     }
 }

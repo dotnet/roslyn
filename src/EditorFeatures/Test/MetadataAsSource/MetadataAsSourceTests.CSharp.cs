@@ -725,7 +725,7 @@ public sealed partial class MetadataAsSourceTests
             }
             """;
 
-        [Theory(Skip = "Depends on https://github.com/dotnet/roslyn/pull/78163")] // PROTOTYPE: Enable once https://github.com/dotnet/roslyn/pull/78163 is merged
+        [Theory]
         [CombinatorialData]
         public async Task InstanceIncrementOperators(bool signaturesOnly, [CombinatorialValues("++", "--")] string op)
         {
@@ -776,7 +776,7 @@ public sealed partial class MetadataAsSourceTests
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected: expected, signaturesOnly: signaturesOnly, languageVersion: "Preview", metadataLanguageVersion: "Preview");
         }
 
-        [Theory(Skip = "Depends on https://github.com/dotnet/roslyn/pull/78163")] // PROTOTYPE: Enable once https://github.com/dotnet/roslyn/pull/78163 is merged
+        [Theory]
         [CombinatorialData]
         public async Task InstanceIncrementOperators_Checked(bool signaturesOnly, [CombinatorialValues("++", "--")] string op)
         {
@@ -833,7 +833,7 @@ public sealed partial class MetadataAsSourceTests
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected: expected, signaturesOnly: signaturesOnly, languageVersion: "Preview", metadataLanguageVersion: "Preview");
         }
 
-        [Theory(Skip = "Depends on https://github.com/dotnet/roslyn/pull/78163")] // PROTOTYPE: Enable once https://github.com/dotnet/roslyn/pull/78163 is merged
+        [Theory]
         [CombinatorialData]
         public async Task InstanceCompoundAssignmentOperators(bool signaturesOnly, [CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
         {
@@ -897,7 +897,7 @@ public sealed partial class MetadataAsSourceTests
             return OperatorFacts.CompoundAssignmentOperatorNameFromSyntaxKind(kind, isChecked);
         }
 
-        [Theory(Skip = "Depends on https://github.com/dotnet/roslyn/pull/78163")] // PROTOTYPE: Enable once https://github.com/dotnet/roslyn/pull/78163 is merged
+        [Theory]
         [CombinatorialData]
         public async Task InstanceCompoundAssignmentOperators_Checked(bool signaturesOnly, [CombinatorialValues("+=", "-=", "*=", "/=")] string op)
         {
