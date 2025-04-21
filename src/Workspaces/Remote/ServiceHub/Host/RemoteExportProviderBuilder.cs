@@ -11,8 +11,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Extensions;
-using Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLanguages;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Composition;
@@ -22,13 +21,13 @@ namespace Microsoft.CodeAnalysis.Remote;
 
 internal sealed class RemoteExportProviderBuilder : ExportProviderBuilder
 {
-    internal static readonly ImmutableArray<Assembly> RemoteHostAssemblies =
-        MefHostServices.DefaultAssemblies
-            .Add(typeof(AspNetCoreEmbeddedLanguageClassifier).Assembly)     // Microsoft.CodeAnalysis.ExternalAccess.AspNetCore
-            .Add(typeof(BrokeredServiceBase).Assembly)                      // Microsoft.CodeAnalysis.Remote.ServiceHub
-            .Add(typeof(IRazorLanguageServerTarget).Assembly)               // Microsoft.CodeAnalysis.ExternalAccess.Razor
-            .Add(typeof(RemoteWorkspacesResources).Assembly)                // Microsoft.CodeAnalysis.Remote.Workspaces
-            .Add(typeof(IExtensionWorkspaceMessageHandler<,>).Assembly);    // Microsoft.CodeAnalysis.ExternalAccess.Extensions
+    internal static readonly ImmutableArray<string> RemoteHostAssemblyNames =
+        MefHostServices.DefaultAssemblyNames
+            .Add("Microsoft.CodeAnalysis.ExternalAccess.AspNetCore")
+            .Add("Microsoft.CodeAnalysis.Remote.ServiceHub")
+            .Add("Microsoft.CodeAnalysis.ExternalAccess.Razor")
+            .Add("Microsoft.CodeAnalysis.Remote.Workspaces")
+            .Add("Microsoft.CodeAnalysis.ExternalAccess.Extensions");
 
     private static ExportProvider? s_instance;
     internal static ExportProvider ExportProvider
@@ -47,8 +46,13 @@ internal sealed class RemoteExportProviderBuilder : ExportProviderBuilder
 
     public static async Task<string?> InitializeAsync(string localSettingsDirectory, CancellationToken cancellationToken)
     {
+        var assemblyPaths = RemoteHostAssemblyNames
+            .Select(static assemblyName => MefHostServicesHelpers.TryFindNearbyAssemblyLocation(assemblyName))
+            .WhereNotNull()
+            .AsImmutable();
+
         var builder = new RemoteExportProviderBuilder(
-            assemblyPaths: RemoteHostAssemblies.SelectAsArray(static a => a.Location),
+            assemblyPaths: assemblyPaths,
             resolver: new Resolver(SimpleAssemblyLoader.Instance),
             cacheDirectory: Path.Combine(localSettingsDirectory, "Roslyn", "RemoteHost", "Cache"),
             catalogPrefix: "RoslynRemoteHost");
@@ -71,7 +75,7 @@ internal sealed class RemoteExportProviderBuilder : ExportProviderBuilder
     protected override bool ContainsUnexpectedErrors(IEnumerable<string> erroredParts, ImmutableList<PartDiscoveryException> partDiscoveryExceptions)
     {
         // Verify that we have exactly the MEF errors that we expect.  If we have less or more this needs to be updated to assert the expected behavior.
-        var expectedErrorPartsSet = new HashSet<string>(["PythiaSignatureHelpProvider", "VSTypeScriptAnalyzerService", "RazorTestLanguageServerFactory", "CodeFixService", "RazorDynamicFileInfoProviderWrapper"]);
+        var expectedErrorPartsSet = new HashSet<string>(["PythiaSignatureHelpProvider", "VSTypeScriptAnalyzerService", "RazorTestLanguageServerFactory", "CodeFixService", "RazorDynamicFileInfoProviderWrapper", "RazorCSharpInterceptionMiddleLayerWrapper"]);
         var hasUnexpectedErroredParts = erroredParts.Any(part => !expectedErrorPartsSet.Contains(part));
 
         if (hasUnexpectedErroredParts)
