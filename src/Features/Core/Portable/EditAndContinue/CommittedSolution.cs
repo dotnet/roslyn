@@ -142,7 +142,12 @@ internal sealed class CommittedSolution
         => _solution.GetRequiredProject(id);
 
     public bool IsStaleProject(ProjectId id)
-        => _staleProjects.Contains(id);
+    {
+        lock (_guard)
+        {
+            return _staleProjects.Contains(id);
+        }
+    }
 
     public ImmutableArray<DocumentId> GetDocumentIdsWithFilePath(string path)
         => _solution.GetDocumentIdsWithFilePath(path);

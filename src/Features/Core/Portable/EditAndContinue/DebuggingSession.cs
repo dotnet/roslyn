@@ -62,7 +62,7 @@ internal sealed class DebuggingSession : IDisposable
     /// 
     /// For example, in the following scenario:
     /// 
-    ///   A shared library Lib is references by two executable projects A and B and Lib.dll is copied to their respective output directories and the following events occur:
+    ///   A shared library Lib is referenced by two executable projects A and B and Lib.dll is copied to their respective output directories and the following events occur:
     ///   1) A is launched, modules A.exe and Lib.dll [1] are loaded.
     ///   2) Change is made to Lib.cs and applied.
     ///   3) B is launched, which builds new version of Lib.dll [2], and modules B.exe and Lib.dll [2] are loaded.
