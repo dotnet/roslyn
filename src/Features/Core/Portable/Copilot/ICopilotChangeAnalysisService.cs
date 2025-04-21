@@ -25,7 +25,8 @@ internal interface ICopilotChangeAnalysisService : IWorkspaceService
     /// the state of the document prior to the edits, and <paramref name="changes"/> are the changes Copilot wants to
     /// make to it.  <paramref name="changes"/> must be sorted and normalized before calling this.
     /// </summary>
-    Task<CopilotChangeAnalysis> AnalyzeChangeAsync(Document document, ImmutableArray<TextChange> changes, Guid correlationId, CancellationToken cancellationToken);
+    Task<CopilotChangeAnalysis> AnalyzeChangeAsync(
+        Document document, ImmutableArray<TextChange> changes, string proposalId, CancellationToken cancellationToken);
 }
 
 [ExportWorkspaceService(typeof(ICopilotChangeAnalysisService)), Shared]
@@ -43,7 +44,7 @@ internal sealed class DefaultCopilotChangeAnalysisService(
     public async Task<CopilotChangeAnalysis> AnalyzeChangeAsync(
         Document document,
         ImmutableArray<TextChange> changes,
-        Guid correlationId,
+        string proposalId,
         CancellationToken cancellationToken)
     {
         if (!document.SupportsSemanticModel)
@@ -60,7 +61,7 @@ internal sealed class DefaultCopilotChangeAnalysisService(
                 // Don't need to sync the entire solution over.  Just the cone of projects this document it contained within.
                 document.Project,
                 (service, checksum, cancellationToken) => service.AnalyzeChangeAsync(
-                    checksum, document.Id, changes, correlationId, cancellationToken),
+                    checksum, document.Id, changes, proposalId, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
             return value.HasValue ? value.Value : default;
         }

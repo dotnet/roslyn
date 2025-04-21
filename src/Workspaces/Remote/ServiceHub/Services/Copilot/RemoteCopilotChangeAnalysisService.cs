@@ -26,7 +26,7 @@ internal sealed partial class RemoteCopilotChangeAnalysisService(
         Checksum solutionChecksum,
         DocumentId documentId,
         ImmutableArray<TextChange> edits,
-        Guid correlationId,
+        string proposalId,
         CancellationToken cancellationToken)
     {
         return RunServiceAsync(solutionChecksum, async solution =>
@@ -36,7 +36,7 @@ internal sealed partial class RemoteCopilotChangeAnalysisService(
 
             var service = solution.Services.GetRequiredService<ICopilotChangeAnalysisService>();
             return await service.AnalyzeChangeAsync(
-                document, edits, correlationId, cancellationToken).ConfigureAwait(false);
+                document, edits, proposalId, cancellationToken).ConfigureAwait(false);
         }, cancellationToken);
     }
 }

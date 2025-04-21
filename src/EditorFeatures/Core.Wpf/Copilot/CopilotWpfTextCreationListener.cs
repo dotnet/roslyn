@@ -87,7 +87,10 @@ internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationL
     private static async ValueTask ProcessEventAsync(
         SuggestionAcceptedEventArgs eventArgs, CancellationToken cancellationToken)
     {
-        foreach (var editGroup in eventArgs.FinalProposal.Edits.GroupBy(e => e.Span.Snapshot))
+        var proposal = eventArgs.FinalProposal;
+        var proposalId = proposal.ProposalId;
+
+        foreach (var editGroup in proposal.Edits.GroupBy(e => e.Span.Snapshot))
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -102,7 +105,8 @@ internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationL
                 continue;
 
             var changeAnalysisService = document.Project.Solution.Services.GetRequiredService<ICopilotChangeAnalysisService>();
-            await changeAnalysisService.AnalyzeChangeAsync(document, normalizedEdits, cancellationToken).ConfigureAwait(false);
+            await changeAnalysisService.AnalyzeChangeAsync(
+                document, normalizedEdits, proposalId, cancellationToken).ConfigureAwait(false);
         }
     }
 
