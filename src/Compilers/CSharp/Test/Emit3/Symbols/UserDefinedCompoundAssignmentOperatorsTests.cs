@@ -35,13 +35,13 @@ typeKeyword + @" C1
     public void operator checked" + op + @"() {} 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net60);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net60);
+            comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net60);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular13, targetFramework: TargetFramework.Net60);
+            comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.Regular13, targetFramework: TargetFramework.Net60);
             comp.VerifyDiagnostics(
                 // (3,25): error CS8652: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public void operator++() {} 
@@ -52,6 +52,16 @@ typeKeyword + @" C1
                 );
 
             validate(comp.SourceModule);
+
+            comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
+            comp.VerifyDiagnostics(
+                // (3,25): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute..ctor'
+                //     public void operator++() {} 
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, op).WithArguments("System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute", ".ctor").WithLocation(3, 25),
+                // (4,33): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute..ctor'
+                //     public void operator checked++() {} 
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, op).WithArguments("System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute", ".ctor").WithLocation(4, 33)
+                );
 
             void validate(ModuleSymbol m)
             {
@@ -70,6 +80,7 @@ typeKeyword + @" C1
                 Assert.True(m.HasSpecialName);
                 Assert.False(m.HasRuntimeSpecialName);
                 Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+                Assert.Empty(m.GetAttributes());
             }
         }
 
@@ -84,7 +95,7 @@ static class C1
     public void operator checked" + op + @"() {} 
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (4,25): error CS0715: 'C1.operator ++()': static classes cannot contain user-defined operators
                 //     public void operator++() {} 
@@ -106,7 +117,7 @@ static class C1
 " + (isChecked ? "public void operator " + op + @"() {}" : "") + @"
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (3,19): error CS9501: User-defined operator 'C1.operator ++()' must be declared public
                 //     void operator ++() {} 
@@ -130,7 +141,7 @@ typeKeyword + @" C1
 " + (isChecked ? "public void operator " + op + @"() {}" : "") + @"
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net60);
             comp.VerifyDiagnostics(
                 // (4,19): error CS9501: User-defined operator 'C1.operator ++()' must be declared public
                 //     void operator ++() {} 
@@ -148,7 +159,7 @@ typeKeyword + @" C1
     public C1 operator " + op + @"() => throw null; 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (3,23): error CS9503: The return type for this operator must be void
                 //     public C1 operator ++() => throw null; 
@@ -166,7 +177,7 @@ typeKeyword + @" C1
     public C1 operator checked " + op + @"() => throw null; 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (3,32): error CS9503: The return type for this operator must be void
                 //     public C1 operator checked ++() => throw null; 
@@ -189,7 +200,7 @@ typeKeyword + @" C1
     public void operator" + op + @"(C1 x, C1 y, C1 z) {} 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (3,25): error CS9502: Overloaded instance increment operator '++' must take no parameters
                 //     public void operator++(C1 x) {} 
@@ -215,7 +226,7 @@ typeKeyword + @" C1
     public void operator checked " + op + @"(C1 x, C1 y, C1 z) {} 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (3,34): error CS9502: Overloaded instance increment operator '++' must take no parameters
                 //     public void operator checked ++(C1 x) {} 
@@ -251,7 +262,7 @@ typeKeyword + @" C1
     public static C1 operator" + op + @"(C1 x, C1 y, C1 z) => throw null;
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (3,30): error CS1535: Overloaded unary operator '++' takes one parameter
                 //     public static C1 operator++() => throw null;
@@ -279,7 +290,7 @@ typeKeyword + @" C1
     public static C1 operator checked " + op + @"(C1 x, C1 y, C1 z) => throw null;
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (3,39): error CS1535: Overloaded unary operator '++' takes one parameter
                 //     public static C1 operator checked ++() => throw null;
@@ -313,7 +324,7 @@ typeKeyword + @" C1
     public abstract void operator checked" + op + @"(); 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void validate(ModuleSymbol m)
@@ -335,7 +346,7 @@ typeKeyword + @" C1
                 Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
             }
 
-            comp = CreateCompilation(["class C2 : C1 {}", source]);
+            comp = CreateCompilation(["class C2 : C1 {}", source, CompilerFeatureRequiredAttribute]);
             if (typeKeyword == "interface")
             {
                 comp.VerifyDiagnostics(
@@ -423,7 +434,7 @@ interface I4 : I2
 class C : I3, I4
 {}
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void validate(ModuleSymbol m)
@@ -477,7 +488,7 @@ interface I2
     void I2.operator checked " + op + @"() {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void validate(ModuleSymbol m)
@@ -532,7 +543,7 @@ interface I2
     public void operator " + op + @"() {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void validate(ModuleSymbol m)
@@ -589,7 +600,7 @@ interface I4 : I2
     abstract void I2.operator checked " + op + @"();
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void validate(ModuleSymbol m)
@@ -638,7 +649,7 @@ typeKeyword + @" C1
     public abstract void operator checked" + op + @"() {} 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (3,34): error CS0500: 'C1.operator ++()' cannot declare a body because it is marked abstract
                 //     public abstract void operator++() {}
@@ -666,7 +677,7 @@ interface I2 : I1
    abstract void I1.operator checked" + op + @"() {} 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (10,29): error CS0500: 'I2.I1.operator ++()' cannot declare a body because it is marked abstract
                 //    abstract void I1.operator++() {}
@@ -693,7 +704,7 @@ interface I2 : I1
     public void operator " + op + @"() {}
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (4,34): error CS0513: 'C1.operator ++()' is abstract but it is contained in non-abstract type 'C1'
                 //     public abstract void operator++();
@@ -720,7 +731,7 @@ abstract class C2
     public static C2 operator " + op + @"(C2 x) => throw null;
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (4,39): error CS0112: A static member cannot be marked as 'abstract'
                 //     public static abstract C1 operator++(C1 x) => throw null;
@@ -758,7 +769,7 @@ struct C4
     public static C4 operator " + op + @"(C4 x) => throw null;
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (4,34): error CS0106: The modifier 'abstract' is not valid for this item
                 //     public abstract void operator++() {}
@@ -801,7 +812,7 @@ interface I2
     abstract void I2.operator checked " + op + @"() {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (15,31): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract void I1.operator ++() {}
@@ -823,7 +834,7 @@ typeKeyword + @" C1
     public virtual void operator checked" + op + @"() {} 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void validate(ModuleSymbol m)
@@ -857,7 +868,7 @@ interface C1
     void operator checked" + op + @"() {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void validate(ModuleSymbol m)
@@ -909,7 +920,7 @@ interface I4 : I2
 class C : I3, I4
 {}
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void validate(ModuleSymbol m)
@@ -963,7 +974,7 @@ interface I2
     void I2.operator checked " + op + @"() {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void validate(ModuleSymbol m)
@@ -1018,7 +1029,7 @@ interface I2
     public void operator " + op + @"() {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void validate(ModuleSymbol m)
@@ -1060,7 +1071,7 @@ typeKeyword + @" C1
     public virtual void operator checked" + op + @"(); 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (3,33): error CS0501: 'C1.operator ++()' must declare a body because it is not marked abstract, extern, or partial
                 //     public virtual void operator++();
@@ -1087,7 +1098,7 @@ sealed class C2
     public void operator " + op + @"() {}
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (4,33): error CS0549: 'C1.operator ++()' is a new virtual member in sealed type 'C1'
                 //     public virtual void operator++() {}
@@ -1114,7 +1125,7 @@ class C2
     public static C2 operator " + op + @"(C2 x) => throw null;
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (4,38): error CS0112: A static member cannot be marked as 'virtual'
                 //     public static virtual C1 operator++(C1 x) => throw null;
@@ -1152,7 +1163,7 @@ struct C4
     public static C4 operator " + op + @"(C4 x) => throw null;
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (4,33): error CS0106: The modifier 'virtual' is not valid for this item
                 //     public virtual void operator++() {}
@@ -1195,7 +1206,7 @@ interface I2
     virtual void I2.operator checked " + op + @"() {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (15,30): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual void I1.operator ++() {}
@@ -1232,7 +1243,7 @@ interface I2
     static virtual I2 I2.operator checked " + op + @"(I2 x) => throw null;
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (15,35): error CS0106: The modifier 'virtual' is not valid for this item
                 //     static virtual I1 I1.operator ++(I1 x) => throw null;
@@ -1254,7 +1265,7 @@ typeKeyword + @" C1
     public virtual abstract void operator checked" + op + @"() {} 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (3,42): error CS0503: The abstract method 'C1.operator ++()' cannot be marked virtual
                 //     public virtual abstract void operator++() {}
@@ -1288,7 +1299,7 @@ class C3 : C2
     public override void operator checked" + op + @"() {} 
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             CompileAndVerify(comp, symbolValidator: validate1, sourceSymbolValidator: validate1).VerifyDiagnostics();
 
             var source2 = @"
@@ -1303,7 +1314,7 @@ class C2 : C1
     public override void operator checked" + op + @"() {} 
 }
 ";
-            var comp2 = CreateCompilation(source2);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute]);
 
             CompileAndVerify(comp2, symbolValidator: validate2, sourceSymbolValidator: validate2).VerifyDiagnostics();
 
@@ -1369,7 +1380,7 @@ class C3 : C2
     public override void operator checked" + op + @"() {} 
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
 
             void validate(ModuleSymbol m)
@@ -1403,7 +1414,7 @@ class C3 : C2
                 Assert.Same(overridden, m.OverriddenMethod);
             }
 
-            comp = CreateCompilation(["class C4 : C2 {}", source]);
+            comp = CreateCompilation(["class C4 : C2 {}", source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (1,7): error CS0534: 'C4' does not implement inherited abstract member 'C2.operator checked ++()'
                 // class C3 : C2 {}
@@ -1425,7 +1436,7 @@ struct S1
     public override void operator checked" + op + @"() {} 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
 
             validateOp(comp.GetMember<MethodSymbol>("S1." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName)));
             validateOp(comp.GetMember<MethodSymbol>("S1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)));
@@ -1470,7 +1481,7 @@ typeKeyword + @" C1
     public static C2 operator " + op + @"(C2 x) => throw null;
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (3,39): error CS0112: A static member cannot be marked as 'override'
                 //     public static override C1 operator++(C1 x) => throw null;
@@ -1508,7 +1519,7 @@ interface I4
     public static I4 operator " + op + @"(I4 x) => throw null;
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (4,34): error CS0106: The modifier 'override' is not valid for this item
                 //     public override void operator++() {}
@@ -1551,7 +1562,7 @@ interface I2
     override void I2.operator checked " + op + @"() {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (15,31): error CS0106: The modifier 'override' is not valid for this item
                 //     override void I1.operator ++() {}
@@ -1588,7 +1599,7 @@ interface I2
     static override I2 I2.operator checked " + op + @"(I2 x) => throw null;
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (15,36): error CS0106: The modifier 'override' is not valid for this item
                 //     static override I1 I1.operator ++(I1 x) => throw null;
@@ -1616,7 +1627,7 @@ class C2 : C1
     public virtual override void operator checked" + op + @"() {} 
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (10,42): error CS0113: A member 'C2.operator ++()' marked as override cannot be marked as new or virtual
                 //     public virtual override void operator++() {}
@@ -1638,7 +1649,7 @@ interface C1
     sealed void operator checked" + op + @"() {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void validate(ModuleSymbol m)
@@ -1695,7 +1706,7 @@ abstract class C2 : C1
     public sealed override void operator checked" + op + @"() {} 
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
 
             void validate(ModuleSymbol m)
@@ -1729,7 +1740,7 @@ class C3 : C2
     public override void operator checked" + op + @"() {} 
 }
 ";
-            comp = CreateCompilation([source2, source]);
+            comp = CreateCompilation([source2, source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (4,34): error CS0239: 'C3.operator ++()': cannot override inherited member 'C2.operator ++()' because it is sealed
                 //     public override void operator++() {}
@@ -1767,7 +1778,7 @@ class C4
     public static C4 operator " + op + @"(C4 x) => throw null;
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (4,32): error CS0238: 'C1.operator ++()' cannot be sealed because it is not an override
                 //     public sealed void operator++() {}
@@ -1811,7 +1822,7 @@ struct C4
     public static C4 operator " + op + @"(C4 x) => throw null;
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (4,32): error CS0106: The modifier 'sealed' is not valid for this item
                 //     public sealed void operator++() {}
@@ -1855,7 +1866,7 @@ struct C4
     public static C4 operator " + op + @"(C4 x) => throw null;
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (4,41): error CS0106: The modifier 'sealed' is not valid for this item
                 //     public sealed override void operator++() {}
@@ -1911,7 +1922,7 @@ struct C4
     public static C4 operator " + op + @"(C4 x) => throw null;
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (4,50): error CS0106: The modifier 'abstract' is not valid for this item
                 //     public sealed abstract override void operator++() {}
@@ -1978,7 +1989,7 @@ interface I2
     sealed void I2.operator checked " + op + @"() {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (15,29): error CS0106: The modifier 'sealed' is not valid for this item
                 //     sealed void I1.operator ++() {}
@@ -2015,7 +2026,7 @@ interface I2
     static sealed I2 I2.operator checked " + op + @"(I2 x) => throw null;
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (15,34): error CS0106: The modifier 'sealed' is not valid for this item
                 //     static sealed I1 I1.operator ++(I1 x) => throw null;
@@ -2037,7 +2048,7 @@ typeKeyword + @" C1
     public sealed abstract void operator checked" + op + @"(); 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             if (typeKeyword == "interface")
             {
                 comp.VerifyDiagnostics(
@@ -2079,7 +2090,7 @@ abstract class C2 : C1
     public sealed abstract override void operator checked" + op + @"();
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (10,50): error CS0502: 'C2.operator ++()' cannot be both abstract and sealed
                 //     public sealed abstract override void operator++();
@@ -2116,7 +2127,7 @@ interface I4 : I2
     sealed abstract void I2.operator checked " + op + @"();
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (15,38): error CS0106: The modifier 'sealed' is not valid for this item
                 //     sealed abstract void I1.operator ++();
@@ -2153,7 +2164,7 @@ interface I4 : I2
     static sealed abstract I2 I2.operator checked " + op + @"(I2 x);
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (15,43): error CS0106: The modifier 'sealed' is not valid for this item
                 //     static sealed abstract I1 I1.operator ++(I1 x);
@@ -2175,7 +2186,7 @@ typeKeyword + @" C1
     public virtual sealed void operator checked" + op + @"() {} 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             if (typeKeyword == "interface")
             {
                 comp.VerifyDiagnostics(
@@ -2223,7 +2234,7 @@ interface C3 : C1
     public new void operator checked" + op + @"() {} 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(
                 // (10,25): warning CS0108: 'C2.operator ++()' hides inherited member 'C1.operator ++()'. Use the new keyword if hiding was intended.
                 //     public void operator++() {}
@@ -2277,7 +2288,7 @@ class C3 : C1
     public new void operator checked" + op + @"() {} 
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics(
                 // (10,25): warning CS0108: 'C2.operator ++()' hides inherited member 'C1.operator ++()'. Use the new keyword if hiding was intended.
                 //     public void operator++() {}
@@ -2331,7 +2342,7 @@ class C3 : C1
     public new void operator checked" + op + @"() {} 
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics(
                 // (10,25): warning CS0114: 'C2.operator ++()' hides inherited member 'C1.operator ++()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 //     public void operator++() {}
@@ -2385,7 +2396,7 @@ abstract class C3 : C1
     public new void operator checked" + op + @"() {} 
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (10,25): error CS0533: 'C2.operator ++()' hides inherited abstract member 'C1.operator ++()'
                 //     public void operator++() {}
@@ -2419,7 +2430,7 @@ typeKeyword + @" C1
     public new void operator checked" + op + @"() {} 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(
                 // (3,29): warning CS0109: The member 'C1.operator ++()' does not hide an accessible member. The new keyword is not required.
                 //     public new void operator++() {}
@@ -2459,7 +2470,7 @@ typeKeyword + @" C1
     public new abstract void operator checked" + op + @"(); 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(
                 // (3,38): warning CS0109: The member 'C1.operator ++()' does not hide an accessible member. The new keyword is not required.
                 //     public new abstract void operator++();
@@ -2500,7 +2511,7 @@ typeKeyword + @" C1
     public new virtual void operator checked" + op + @"() {} 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(
                 // (3,37): warning CS0109: The member 'C1.operator ++()' does not hide an accessible member. The new keyword is not required.
                 //     public new virtual void operator++() {}
@@ -2541,7 +2552,7 @@ interface C1
     sealed new void operator checked" + op + @"() {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(
                 // (4,29): warning CS0109: The member 'C1.operator ++()' does not hide an accessible member. The new keyword is not required.
                 //     sealed new void operator++() {}
@@ -2597,7 +2608,7 @@ class C4 : C2
     public new override void operator checked " + op + @"() {}
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (15,38): error CS0113: A member 'C3.operator ++()' marked as override cannot be marked as new or virtual
                 //     public new override void operator++() {}
@@ -2618,7 +2629,7 @@ struct S1
     public new override void operator" + op + @"() {}
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (4,38): error CS0113: A member 'S1.operator ++()' marked as override cannot be marked as new or virtual
                 //     public new override void operator++() {}
@@ -2640,7 +2651,7 @@ typeKeyword + @" C1
     public static new C1 operator checked " + op + @"(C1 x) => throw null;
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (3,34): error CS0106: The modifier 'new' is not valid for this item
                 //     public static new C1 operator++(C1 x) => throw null;
@@ -2677,7 +2688,7 @@ interface I2
     new void I2.operator checked " + op + @"() {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (15,26): error CS0106: The modifier 'new' is not valid for this item
                 //     new void I1.operator ++() {}
@@ -2714,7 +2725,7 @@ interface I2
     static new I2 I2.operator checked " + op + @"(I2 x) => throw null;
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (15,31): error CS0106: The modifier 'new' is not valid for this item
                 //     static new I1 I1.operator ++(I1 x) => throw null;
@@ -2753,7 +2764,7 @@ interface I2
     static void I2.operator checked " + op + @"() {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (14,7): error CS0535: 'C3' does not implement interface member 'I1.operator ++()'
                 //     : I1
@@ -2802,7 +2813,7 @@ interface I4 : I2
     static void I2.operator checked " + op + @"() {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (15,29): error CS1535: Overloaded unary operator '++' takes one parameter
                 //     static void I1.operator ++() {}
@@ -2846,7 +2857,7 @@ public class C1
     } 
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
 
             var source2 = @"
 public class Program
@@ -2881,7 +2892,7 @@ public class Program
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp2, expectedOutput: @"
 [operator]1
 [operator]2
@@ -2920,7 +2931,7 @@ public class C1 : I1
     } 
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
 
             var source2 = @"
 public class Program
@@ -2995,7 +3006,7 @@ public class Program
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             const string expectedOutput = @"
 [GetA][Get0][operator]1
 [GetA][Get0][operator checked]2
@@ -3059,7 +3070,7 @@ public class Program
 }
 ");
 
-            var tree = comp2.SyntaxTrees.Single();
+            var tree = comp2.SyntaxTrees.First();
             var model = comp2.GetSemanticModel(tree);
             var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().First();
             var symbolInfo = model.GetSymbolInfo(opNode);
@@ -3183,16 +3194,16 @@ IIncrementOrDecrementOperation (Prefix, Checked) (OperatorMethod: void I1." + me
             Arguments(0)
 ");
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
 
             var expectedErrors = new[] {
                 // (23,9): error CS0023: Operator '++' cannot be applied to operand of type 'C1'
@@ -3216,7 +3227,7 @@ IIncrementOrDecrementOperation (Prefix, Checked) (OperatorMethod: void I1." + me
                 };
             comp2.VerifyDiagnostics(expectedErrors);
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyDiagnostics(expectedErrors);
         }
 
@@ -3246,7 +3257,7 @@ public struct C1 : I1
     } 
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
 
             var source2 = @"
 public class Program
@@ -3321,7 +3332,7 @@ public class Program
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp2, expectedOutput: @"
 [GetA][Get0][operator]1
 [GetA][Get0][operator checked]2
@@ -3407,7 +3418,7 @@ public class Program
 }
 ");
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
             verifier = CompileAndVerify(comp2, expectedOutput: @"
 [GetA][Get0][operator]1
 [GetA][Get0][operator checked]2
@@ -3444,7 +3455,7 @@ public class C1 : I1
     } 
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
 
             var source2 = @"
 public class Program
@@ -3525,7 +3536,7 @@ public class Program
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp2, expectedOutput: @"
 [GetA][Get0][operator]1True
 [GetA][Get0][operator checked]2True
@@ -3607,7 +3618,7 @@ public class Program
 }
 ");
 
-            var tree = comp2.SyntaxTrees.Single();
+            var tree = comp2.SyntaxTrees.First();
             var model = comp2.GetSemanticModel(tree);
             var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().First();
             var symbolInfo = model.GetSymbolInfo(opNode);
@@ -3744,7 +3755,7 @@ IIncrementOrDecrementOperation (Prefix, Checked) (OperatorMethod: void I1." + me
             Arguments(0)
 ");
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             verifier = CompileAndVerify(comp2, expectedOutput: @"
 [GetA][Get0][operator]1True
 [GetA][Get0][operator checked]2True
@@ -3781,7 +3792,7 @@ public struct C1 : I1
     } 
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
 
             var source2 = @"
 public class Program
@@ -3862,7 +3873,7 @@ public class Program
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp2, expectedOutput: @"
 [GetA][Get0][operator]11
 [GetA][Get0][operator checked]22
@@ -3971,7 +3982,7 @@ public class Program
   IL_0029:  ret
 }
 ");
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             verifier = CompileAndVerify(comp2, expectedOutput: @"
 [GetA][Get0][operator]11
 [GetA][Get0][operator checked]22
@@ -4008,7 +4019,7 @@ public class C1 : I1
     } 
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
 
             var source2 = @"
 public class Program
@@ -4083,7 +4094,7 @@ public class Program
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
             const string expectedOutput = @"
 [GetA][Get0][operator]1
 [GetA][Get0][operator checked]2
@@ -4141,7 +4152,7 @@ public class Program
 }
 ");
 
-            var tree = comp2.SyntaxTrees.Single();
+            var tree = comp2.SyntaxTrees.First();
             var model = comp2.GetSemanticModel(tree);
             var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PostfixUnaryExpressionSyntax>().First();
             var symbolInfo = model.GetSymbolInfo(opNode);
@@ -4253,16 +4264,16 @@ IIncrementOrDecrementOperation (Postfix, Checked) (OperatorMethod: void I1." + m
             Arguments(0)
 ");
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
             var expectedErrors = new[] {
                 // (23,9): error CS0023: Operator '++' cannot be applied to operand of type 'C1'
                 //         GetA(x)[Get0()]++;
@@ -4285,7 +4296,7 @@ IIncrementOrDecrementOperation (Postfix, Checked) (OperatorMethod: void I1." + m
                 };
             comp2.VerifyDiagnostics(expectedErrors);
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyDiagnostics(expectedErrors);
         }
 
@@ -4315,7 +4326,7 @@ public struct C1 : I1
     } 
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
 
             var source2 = @"
 public class Program
@@ -4390,7 +4401,7 @@ public class Program
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp2, expectedOutput: @"
 [GetA][Get0][operator]1
 [GetA][Get0][operator checked]2
@@ -4464,7 +4475,7 @@ public class Program
 }
 ");
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             verifier = CompileAndVerify(comp2, expectedOutput: @"
 [GetA][Get0][operator]1
 [GetA][Get0][operator checked]2
@@ -4501,7 +4512,7 @@ public class Program
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: @"123").VerifyDiagnostics();
         }
 
@@ -4516,7 +4527,7 @@ public class C1
     public void operator checked" + op + @"() {}
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
 
             var source2 = @"
 public class Program
@@ -4529,7 +4540,7 @@ public class Program
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
             comp2.VerifyDiagnostics(
                 // (7,16): error CS0023: Operator '++' cannot be applied to operand of type 'C1'
                 //         C1 y = x++;
@@ -4562,7 +4573,7 @@ public class C1
     } 
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
 
             var source2 = @"
 public class Program
@@ -4585,7 +4596,7 @@ public class Program
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp2, expectedOutput: "[operator]01[operator checked]12").VerifyDiagnostics();
         }
 
@@ -4604,7 +4615,7 @@ public class C1
     } 
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
 
             var source2 = @"
 public class Program
@@ -4638,7 +4649,7 @@ public class Program
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp2, expectedOutput: @"[GetA][Get0][operator]1").VerifyDiagnostics();
 
             var methodName = (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName);
@@ -4677,7 +4688,7 @@ public class C1
     } 
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
 
             var source2 = @"
 public class Program
@@ -4708,7 +4719,7 @@ public class Program
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             comp2.VerifyDiagnostics(
                 // (13,9): error CS0023: Operator '++' cannot be applied to operand of type 'C1'
                 //         ++GetA(x)[Get0()];
@@ -4749,7 +4760,7 @@ public class Program
 }
 ";
 
-            var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "[operator][operator]").VerifyDiagnostics();
         }
 
@@ -4770,7 +4781,7 @@ public class C2 : C1
 }
 ";
 
-            var comp1_1 = CreateCompilation(source1_1, assemblyName: "C");
+            var comp1_1 = CreateCompilation([source1_1, CompilerFeatureRequiredAttribute], assemblyName: "C");
 
             var source2 = @"
 public class Test
@@ -4787,7 +4798,7 @@ public class Test
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [comp1_1.ToMetadataReference()]);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [comp1_1.ToMetadataReference()]);
             comp2.VerifyDiagnostics();
 
             var source1_2 = @"
@@ -4821,9 +4832,9 @@ public class Program
     } 
 }
 ";
-            var comp1_2 = CreateCompilation(source1_2, assemblyName: "C");
+            var comp1_2 = CreateCompilation([source1_2, CompilerFeatureRequiredAttribute], assemblyName: "C");
 
-            var comp3 = CreateCompilation(source3, references: [comp1_2.EmitToImageReference(), comp2.EmitToImageReference()], options: TestOptions.DebugExe);
+            var comp3 = CreateCompilation([source3, CompilerFeatureRequiredAttribute], references: [comp1_2.EmitToImageReference(), comp2.EmitToImageReference()], options: TestOptions.DebugExe);
             CompileAndVerify(comp3, expectedOutput: "[operator][checked operator]").VerifyDiagnostics();
         }
 
@@ -4865,7 +4876,7 @@ public class Program
 }
 ";
 
-            var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "[operator][checked operator]").VerifyDiagnostics();
         }
 
@@ -4910,7 +4921,7 @@ public class Program
 }
 ";
 
-            var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "[operator][checked operator]").VerifyDiagnostics();
         }
 
@@ -4940,14 +4951,14 @@ public class Program
 }
 ";
 
-            var comp1 = CreateCompilation(source1, targetFramework: TargetFramework.Net90);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp1.VerifyDiagnostics(
                 // (18,9): error CS0121: The call is ambiguous between the following methods or properties: 'I1.operator ++()' and 'I2<T>.operator ++()'
                 //         ++x;
                 Diagnostic(ErrorCode.ERR_AmbigCall, "++").WithArguments("I1.operator ++()", "I2<T>.operator ++()").WithLocation(18, 9)
                 );
 
-            var tree = comp1.SyntaxTrees.Single();
+            var tree = comp1.SyntaxTrees.First();
             var model = comp1.GetSemanticModel(tree);
             var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().First();
             var symbolInfo = model.GetSymbolInfo(opNode);
@@ -5009,7 +5020,7 @@ public class C1
     } 
 }
 ";
-            var comp1Ref = CreateCompilation(source1).EmitToImageReference();
+            var comp1Ref = CreateCompilation([source1, CompilerFeatureRequiredAttribute]).EmitToImageReference();
 
             var source2 = @"
 public class Program
@@ -5044,7 +5055,7 @@ public class Program
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [comp1Ref], options: TestOptions.DebugExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [comp1Ref], options: TestOptions.DebugExe);
             CompileAndVerify(comp2, expectedOutput: @"
 [instance operator]1
 [instance operator]2
@@ -5056,7 +5067,7 @@ public class Program
 [static operator checked]8
 ").VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             CompileAndVerify(comp2, expectedOutput: @"
 [static operator]1
 [static operator]2
@@ -5089,7 +5100,7 @@ public class Program
 }
 ";
 
-            var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             CompileAndVerify(comp1).VerifyDiagnostics(
                 // (13,9): warning CS0618: 'C1.operator ++()' is obsolete: 'Test'
                 //         ++x;
@@ -5117,7 +5128,7 @@ public class Program
 }
 ";
 
-            var comp1 = CreateCompilation(source1, targetFramework: TargetFramework.Net90, options: TestOptions.DebugExe);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90, options: TestOptions.DebugExe);
             comp1.VerifyDiagnostics(
                 // (4,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //     [System.Runtime.InteropServices.UnmanagedCallersOnly]
@@ -5162,7 +5173,7 @@ public class Program
 }
 ";
 
-            var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "in catch").VerifyDiagnostics(
                 // (17,15): warning CS8602: Dereference of a possibly null reference.
                 //             ++x;
@@ -5195,7 +5206,7 @@ public class Program
 }
 ";
 
-            var comp2 = CreateCompilation(source2, options: TestOptions.DebugExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             CompileAndVerify(comp2, expectedOutput: "Done").VerifyDiagnostics(
                 // (17,13): warning CS0162: Unreachable code detected
                 //             ++x;
@@ -5223,7 +5234,7 @@ public class Program
 }
 ";
 
-            CSharpCompilation comp1 = CreateCompilation(source1);
+            CSharpCompilation comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
             comp1.VerifyDiagnostics(
                 // (4,26): error CS9502: Overloaded instance increment operator '++' must take no parameters
                 //     public void operator ++(int x = 0) {}
@@ -5233,7 +5244,7 @@ public class Program
                 Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "x").WithArguments("x").WithLocation(4, 33)
                 );
 
-            var comp2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             comp2.VerifyDiagnostics(
                 // (7,9): error CS0023: Operator '++' cannot be applied to operand of type 'C1'
                 //         ++x;
@@ -5261,7 +5272,7 @@ public class Program
 }
 ";
 
-            CSharpCompilation comp1 = CreateCompilation(source1);
+            CSharpCompilation comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
             comp1.VerifyDiagnostics(
                 // (4,26): error CS9502: Overloaded instance increment operator '++' must take no parameters
                 //     public void operator ++(params int[] x) {}
@@ -5271,7 +5282,7 @@ public class Program
                 Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(4, 29)
                 );
 
-            var comp2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             comp2.VerifyDiagnostics(
                 // (7,9): error CS0023: Operator '++' cannot be applied to operand of type 'C1'
                 //         ++x;
@@ -5312,7 +5323,7 @@ public class C4
 }
 ";
 
-            CSharpCompilation comp1 = CreateCompilation(source1);
+            CSharpCompilation comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
             comp1.VerifyDiagnostics(
                 // (6,17): error CS0111: Type 'C1' already defines a member called 'op_Increment' with the same parameter types
                 //     public void op_Increment() {}
@@ -5344,7 +5355,7 @@ public class C2
     public void operator++() {}
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
 
             var source2 = @"
 public class Program
@@ -5359,7 +5370,7 @@ public class Program
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             comp2.VerifyDiagnostics(
                 // (7,9): error CS0023: Operator '++' cannot be applied to operand of type 'C1'
                 //         ++x;
@@ -5385,7 +5396,7 @@ abstract public class C3
     public abstract void operator ++();
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
 
             var source2 = @"
 public class C2 : C1
@@ -5399,7 +5410,7 @@ public class C4 : C3
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()]);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()]);
 
             comp2.VerifyDiagnostics(
                 // (4,35): error CS9505: 'C2.operator ++()': cannot override inherited member 'C1.op_Increment()' because one of them is not an operator.
@@ -5426,7 +5437,7 @@ public interface I2
     void operator ++();
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
 
             var source2 = @"
 public class C1 : I1
@@ -5450,7 +5461,7 @@ public class C4 : I2
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()]);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()]);
             comp2.VerifyDiagnostics(
                 // (2,19): error CS9504: 'C1' does not implement interface member 'I1.op_Increment()'. 'C1.operator ++()' cannot implement 'I1.op_Increment()' because one of them is not an operator.
                 // public class C1 : I1
@@ -5488,7 +5499,7 @@ public interface I2
     void operator ++();
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
 
             var source2 = @"
 public class C11
@@ -5510,7 +5521,7 @@ public class C22 : C21, I2
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()]);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()]);
             comp2.VerifyDiagnostics(
                 // (7,25): error CS9504: 'C12' does not implement interface member 'I1.op_Increment()'. 'C11.operator ++()' cannot implement 'I1.op_Increment()' because one of them is not an operator.
                 // public class C12 : C11, I1
@@ -5565,7 +5576,7 @@ public class Program
 }
 ";
 
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90, options: TestOptions.DebugExe);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (10,19): error CS9504: 'C1' does not implement interface member 'I1.operator ++()'. 'C1.op_Increment()' cannot implement 'I1.operator ++()' because one of them is not an operator.
                 // public class C1 : I1
@@ -5620,7 +5631,7 @@ public class Program
 }
 ";
 
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90, options: TestOptions.DebugExe);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (10,19): error CS9504: 'C1' does not implement interface member 'I1.op_Increment()'. 'C1.operator ++()' cannot implement 'I1.op_Increment()' because one of them is not an operator.
                 // public class C1 : I1
@@ -5666,7 +5677,7 @@ public class Program
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (15,23): error CS9504: 'C3' does not implement interface member 'I1.operator ++()'. 'C3.op_Increment()' cannot implement 'I1.operator ++()' because one of them is not an operator.
                 // public class C3 : C2, I1
@@ -5709,7 +5720,7 @@ public class Program
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (15,23): error CS9504: 'C3' does not implement interface member 'I1.op_Increment()'. 'C3.operator ++()' cannot implement 'I1.op_Increment()' because one of them is not an operator.
                 // public class C3 : C2, I1
@@ -5928,7 +5939,7 @@ public class Program
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "[C1.operator][C2.operator]").VerifyDiagnostics();
         }
 
@@ -5959,7 +5970,7 @@ public class Program
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "[C2.operator]").VerifyDiagnostics();
         }
 
@@ -5980,7 +5991,7 @@ public class C2 : C1
 }
 ";
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -6001,7 +6012,7 @@ public class C1 : C2
 }
 ";
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -6025,7 +6036,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics();
 
             int count = 0;
@@ -6058,7 +6069,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics();
 
             int count = 0;
@@ -6091,7 +6102,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics();
 
             int count = 0;
@@ -6125,7 +6136,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
 
             var expected = new[] {
                 // (3,20): warning CS0419: Ambiguous reference in cref attribute: 'operator --'. Assuming 'C1.operator --(C1)', but could have also matched other overloads including 'C1.operator --()'.
@@ -6172,7 +6183,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
 
             var expected = new[] {
                 // (3,20): warning CS0419: Ambiguous reference in cref attribute: 'operator ++'. Assuming 'C1.operator ++()', but could have also matched other overloads including 'C1.operator ++(C1)'.
@@ -6219,7 +6230,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics();
 
             int count = 0;
@@ -6252,7 +6263,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             var expected = new[] {
                 // (3,20): warning CS1574: XML comment has cref attribute 'operator ++(C1)' that could not be resolved
                 // /// See <see cref="operator ++(C1)"/>.
@@ -6295,7 +6306,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics();
 
             int count = 0;
@@ -6329,7 +6340,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics();
 
             int count = 0;
@@ -6363,7 +6374,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics();
 
             int count = 0;
@@ -6399,7 +6410,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics();
 
             int count = 0;
@@ -6433,7 +6444,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics();
 
             int count = 0;
@@ -6467,7 +6478,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics();
 
             int count = 0;
@@ -6504,7 +6515,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
 
             var expected = new[] {
                 // (3,20): warning CS0419: Ambiguous reference in cref attribute: 'operator checked --'. Assuming 'C1.operator checked --(C1)', but could have also matched other overloads including 'C1.operator checked --()'.
@@ -6554,7 +6565,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
 
             var expected = new[] {
                 // (3,20): warning CS0419: Ambiguous reference in cref attribute: 'operator checked ++'. Assuming 'C1.operator checked ++()', but could have also matched other overloads including 'C1.operator checked ++(C1)'.
@@ -6603,7 +6614,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics();
 
             int count = 0;
@@ -6638,7 +6649,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             var expected = new[] {
                 // (3,20): warning CS1574: XML comment has cref attribute 'operator checked ++(C1)' that could not be resolved
                 // /// See <see cref="operator checked ++(C1)"/>.
@@ -6681,7 +6692,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics();
 
             int count = 0;
@@ -6716,7 +6727,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics();
 
             int count = 0;
@@ -6751,7 +6762,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics();
 
             int count = 0;
@@ -6776,7 +6787,7 @@ struct S1
     public static readonly S1 operator checked " + op + @"(S1 s) => s;
 }
 ";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             compilation.VerifyDiagnostics(
                 // (4,40): error CS0106: The modifier 'readonly' is not valid for this item
                 //     public static readonly S1 operator ++(S1 s) => s;
@@ -6804,7 +6815,7 @@ struct S1
     public readonly void operator checked " + op + @"() {}
 }
 ";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             compilation.VerifyEmitDiagnostics();
 
             foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
@@ -6831,7 +6842,7 @@ readonly struct S2
     public readonly void operator checked " + op + @"() {}
 }
 ";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             compilation.VerifyEmitDiagnostics();
 
             foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
@@ -6859,7 +6870,7 @@ struct S1
     public readonly void operator checked " + op + @"() { F++; }
 }
 ";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             compilation.VerifyDiagnostics(
                 // (5,42): error CS1604: Cannot assign to 'F' because it is read-only
                 //     public readonly void operator ++() { F++; }
@@ -6887,7 +6898,7 @@ readonly struct S1
     public void operator checked " + op + @"() { this = new S1(); }
 }
 ";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             compilation.VerifyDiagnostics(
                 // (4,33): error CS1604: Cannot assign to 'this' because it is read-only
                 //     public void operator ++() { this = new S1(); }
@@ -6921,7 +6932,7 @@ struct S1 : I1<S1>
     static readonly S1 I1<S1>.operator checked " + op + @"(S1 s) => s;
 }
 ";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             compilation.VerifyDiagnostics(
                 // (10,40): error CS0106: The modifier 'readonly' is not valid for this item
                 //     static readonly S1 I1<S1>.operator ++(S1 s) => s;
@@ -6961,7 +6972,7 @@ readonly struct S2 : I1
     readonly void I1.operator checked " + op + @"() {}
 }
 ";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             compilation.VerifyEmitDiagnostics();
 
             foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
@@ -6994,7 +7005,7 @@ readonly struct S1 : I1
     void I1.operator checked " + op + @"() {}
 }
 ";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             compilation.VerifyEmitDiagnostics();
 
             foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
@@ -7022,7 +7033,7 @@ struct S1 : I1
     readonly void I1.operator checked " + op + @"() { F++; }
 }
 ";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             compilation.VerifyDiagnostics(
                 // (11,38): error CS1604: Cannot assign to 'F' because it is read-only
                 //     readonly void I1.operator --() { F++; }
@@ -7056,7 +7067,7 @@ readonly struct S1 : I1
     void I1.operator checked " + op + @"() { this = new S1(); }
 }
 ";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             compilation.VerifyDiagnostics(
                 // (10,29): error CS1604: Cannot assign to 'this' because it is read-only
                 //     void I1.operator ++() { this = new S1(); }
@@ -7112,7 +7123,7 @@ interface I5
     readonly void operator checked " + op + @"();
 }
 ";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             compilation.VerifyDiagnostics(
                     // (200,31): error CS0106: The modifier 'readonly' is not valid for this item
                     //     readonly void I1.operator ++() {}
@@ -7165,6 +7176,165 @@ interface I5
             }
         }
 
+        [Theory]
+        [CombinatorialData]
+        public void Increment_138_VisualBasic([CombinatorialValues("++", "--")] string op)
+        {
+            var source1 = @"
+public class C1
+{
+    public void operator " + op + @"() {}
+}
+";
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics();
+
+            var source2 = @"
+Public Module Program
+    Public Sub Main()
+        Dim c1 = New C1()
+        c1" + op + @"
+    End Sub
+End Module
+";
+            CreateVisualBasicCompilation("Program", source2, referencedCompilations: new[] { comp1 }, referencedAssemblies: comp1.References).VerifyDiagnostics(
+                // error BC30800: Method arguments must be enclosed in parentheses.
+                Diagnostic(30800 /*ERRID.ERR_ObsoleteArgumentsNeedParens*/, op).WithLocation(5, 11),
+                // error BC30201: Expression expected.
+                Diagnostic(30201 /*ERRID.ERR_ExpectedExpression*/, "").WithLocation(5, 13),
+                // error BC30454: Expression is not a method.
+                Diagnostic(30454 /*ERRID.ERR_ExpectedProcedure*/, "c1").WithLocation(5, 9)
+                );
+
+            string opName = (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName);
+
+            var source3 = @"
+Public Module Program
+    Public Sub Main()
+        Dim c1 = New C1()
+        c1." + opName + @"()
+    End Sub
+End Module
+";
+            CreateVisualBasicCompilation("Program", source3, referencedCompilations: new[] { comp1 }, referencedAssemblies: comp1.References).VerifyDiagnostics(
+                // BC37319: 'Public Overloads Sub op_Increment()' requires compiler feature 'UserDefinedCompoundAssignmentOperators', which is not supported by this version of the Visual Basic compiler.
+                Diagnostic(37319 /*ERRID.ERR_UnsupportedCompilerFeature*/, opName).WithArguments("Public Overloads Sub " + opName + @"()", "UserDefinedCompoundAssignmentOperators").WithLocation(5, 12)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_139_VisualBasic([CombinatorialValues("++", "--")] string op)
+        {
+            var source1 = @"
+public interface I1
+{
+    public void operator " + op + @"();
+}
+";
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics();
+
+            string opName = (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName);
+
+            var source3 = @"
+Public Class Program
+    Implements I1
+
+    Public Sub " + opName + @"() Implements I1." + opName + @"
+    End Sub
+End Class
+";
+            CreateVisualBasicCompilation("Program", source3, referencedCompilations: new[] { comp1 }, referencedAssemblies: comp1.References).VerifyDiagnostics(
+                // BC37319: 'Sub op_Increment()' requires compiler feature 'UserDefinedCompoundAssignmentOperators', which is not supported by this version of the Visual Basic compiler.
+                Diagnostic(37319 /*ERRID.ERR_UnsupportedCompilerFeature*/, opName).WithArguments("Sub " + opName + @"()", "UserDefinedCompoundAssignmentOperators").WithLocation(5, 16)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_140_VisualBasic_Checked([CombinatorialValues("++", "--")] string op)
+        {
+            var source1 = @"
+public interface I1
+{
+    public sealed void operator " + op + @"(){}
+    public void operator checked " + op + @"();
+}
+";
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics();
+
+            string opName = (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName);
+
+            var source3 = @"
+Public Class Program
+    Implements I1
+
+    Public Sub " + opName + @"() Implements I1." + opName + @"
+    End Sub
+End Class
+";
+            CreateVisualBasicCompilation("Program", source3, referencedCompilations: new[] { comp1 }, referencedAssemblies: comp1.References).VerifyDiagnostics(
+                // BC37319: 'Sub op_Increment()' requires compiler feature 'UserDefinedCompoundAssignmentOperators', which is not supported by this version of the Visual Basic compiler.
+                Diagnostic(37319 /*ERRID.ERR_UnsupportedCompilerFeature*/, opName).WithArguments("Sub " + opName + @"()", "UserDefinedCompoundAssignmentOperators").WithLocation(5, 16)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_141_VisualBasic([CombinatorialValues("++", "--")] string op)
+        {
+            var source1 = @"
+abstract public class C1
+{
+    public abstract void operator " + op + @"();
+}
+";
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics();
+
+            string opName = (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName);
+
+            var source3 = @"
+Public Class Program
+    Inherits C1
+
+    Public Overrides Sub " + opName + @"()
+    End Sub
+End Class
+";
+            CreateVisualBasicCompilation("Program", source3, referencedCompilations: new[] { comp1 }, referencedAssemblies: comp1.References).VerifyDiagnostics(
+                // BC37319: 'Public MustOverride Overloads Sub op_Increment()' requires compiler feature 'UserDefinedCompoundAssignmentOperators', which is not supported by this version of the Visual Basic compiler.
+                Diagnostic(37319 /*ERRID.ERR_UnsupportedCompilerFeature*/, opName).WithArguments("Public MustOverride Overloads Sub " + opName + @"()", "UserDefinedCompoundAssignmentOperators").WithLocation(5, 26)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_142_VisualBasic_Checked([CombinatorialValues("++", "--")] string op)
+        {
+            var source1 = @"
+abstract public class C1
+{
+    public void operator " + op + @"(){}
+    public abstract void operator checked " + op + @"();
+}
+";
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics();
+
+            string opName = (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName);
+
+            var source3 = @"
+Public Class Program
+    Inherits C1
+
+    Public Overrides Sub " + opName + @"()
+    End Sub
+End Class
+";
+            CreateVisualBasicCompilation("Program", source3, referencedCompilations: new[] { comp1 }, referencedAssemblies: comp1.References).VerifyDiagnostics(
+                // BC37319: 'Public MustOverride Overloads Sub op_Increment()' requires compiler feature 'UserDefinedCompoundAssignmentOperators', which is not supported by this version of the Visual Basic compiler.
+                Diagnostic(37319 /*ERRID.ERR_UnsupportedCompilerFeature*/, opName).WithArguments("Public MustOverride Overloads Sub " + opName + @"()", "UserDefinedCompoundAssignmentOperators").WithLocation(5, 26)
+                );
+        }
+
         private static string CompoundAssignmentOperatorName(string op, bool isChecked = false)
         {
             var kind = op switch
@@ -7199,13 +7369,13 @@ typeKeyword + @" C1
 " + checkedForm + @"
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net60);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net60);
+            comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net60);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular13, targetFramework: TargetFramework.Net60);
+            comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.Regular13, targetFramework: TargetFramework.Net60);
             comp.VerifyDiagnostics(
                 checkedForm is null ?
                     [
@@ -7224,6 +7394,24 @@ typeKeyword + @" C1
                 );
 
             validate(comp.SourceModule);
+
+            comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
+            comp.VerifyDiagnostics(
+                checkedForm is null ?
+                    [
+                        // (3,25): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute..ctor'
+                        //     public void operator+=(C1 x) {}
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, op).WithArguments("System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute", ".ctor").WithLocation(3, 25)
+                    ] :
+                    [
+                        // (3,25): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute..ctor'
+                        //     public void operator+=(C1 x) {}
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, op).WithArguments("System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute", ".ctor").WithLocation(3, 25),
+                        // (5,33): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute..ctor'
+                        //     public void operator checked+=(C1 x) {} 
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, op).WithArguments("System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute", ".ctor").WithLocation(5, 33)
+                    ]
+                );
 
             void validate(ModuleSymbol m)
             {
@@ -7245,6 +7433,7 @@ typeKeyword + @" C1
                 Assert.True(m.HasSpecialName);
                 Assert.False(m.HasRuntimeSpecialName);
                 Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+                Assert.Empty(m.GetAttributes());
             }
         }
 
@@ -7273,7 +7462,7 @@ interface I1
     void I1.operator checked" + op + @"(C1 x) {} 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net60);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -7299,7 +7488,7 @@ interface I1
     void I1.operator checked" + op + @"(C1 x) {} 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net60);
             comp.VerifyDiagnostics(
                 // (3,26): error CS9023: User-defined operator '%=' cannot be declared checked
                 //     public void operator checked%=(C1 x) {} 
@@ -7347,7 +7536,7 @@ typeKeyword + @" C1
 " + checkedForm + @"
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net60);
             comp.VerifyDiagnostics(
                 checkedForm is null ?
                     [
@@ -7410,7 +7599,7 @@ static class C1
 " + checkedForm + @"
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 checkedForm is null ?
                     [
@@ -7445,7 +7634,7 @@ static class C1
 " + (isChecked ? "public void operator " + op + @"(int x) {}" : "") + @"
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (3,19): error CS9501: User-defined operator 'C1.operator +=(int)' must be declared public
                 //     void operator +=(int x) {} 
@@ -7473,7 +7662,7 @@ interface C1
 " + checkedForm + @"
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
 
             validate(comp.SourceModule);
@@ -7522,7 +7711,7 @@ typeKeyword + @" C1
 " + (isChecked ? "public void operator " + op + @"(int x) {}" : "") + @"
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net60);
             comp.VerifyDiagnostics(
                 // (4,19): error CS9501: User-defined operator 'C1.operator +=(int)' must be declared public
                 //     void operator +=(int x) {} 
@@ -7540,7 +7729,7 @@ typeKeyword + @" C1
     public C1 operator " + op + @"(int x) => throw null; 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (3,24): error CS9503: The return type for this operator must be void
                 //     public C1 operator +=(int x) => throw null; 
@@ -7558,7 +7747,7 @@ typeKeyword + @" C1
     public C1 operator checked " + op + @"(int x) => throw null; 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (3,32): error CS9503: The return type for this operator must be void
                 //     public C1 operator checked +=(int x) => throw null; 
@@ -7580,7 +7769,7 @@ typeKeyword + @" C1
     public void operator" + op + @"(C1 x, C1 y) {} 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (3,25): error CS9506: Overloaded compound assignment operator '+=' takes one parameter
                 //     public void operator+=() {} 
@@ -7602,7 +7791,7 @@ typeKeyword + @" C1
     public void operator checked " + op + @"(C1 x, C1 y) {} 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (3,34): error CS9506: Overloaded compound assignment operator '+=' takes one parameter
                 //     public void operator checked +=() {} 
@@ -7639,7 +7828,7 @@ typeKeyword + @" C1
 " + checkedForm + @"
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void validate(ModuleSymbol m)
@@ -7664,7 +7853,7 @@ typeKeyword + @" C1
                 Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
             }
 
-            comp = CreateCompilation(["class C2 : C1 {}", source]);
+            comp = CreateCompilation(["class C2 : C1 {}", source, CompilerFeatureRequiredAttribute]);
             if (typeKeyword == "interface")
             {
                 comp.VerifyDiagnostics(
@@ -7794,7 +7983,7 @@ class C : I3
 ";
             }
 
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void validate(ModuleSymbol m)
@@ -7858,7 +8047,7 @@ interface I2
 ";
             }
 
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void validate(ModuleSymbol m)
@@ -7923,7 +8112,7 @@ interface I2
 ";
             }
 
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void validate(ModuleSymbol m)
@@ -7990,7 +8179,7 @@ interface I4 : I2
 ";
             }
 
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void validate(ModuleSymbol m)
@@ -8058,7 +8247,7 @@ typeKeyword + @" C1
 " + checkedForm + @"
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 checkedForm is null ?
                     [
@@ -8092,7 +8281,7 @@ interface I2 : I1
    abstract void I1.operator" + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (9,29): error CS0500: 'I2.I1.operator +=(int)' cannot declare a body because it is marked abstract
                 //    abstract void I1.operator+=(int x) {}
@@ -8116,7 +8305,7 @@ interface I2 : I1
    abstract void I1.operator checked" + op + @"(int x) {} 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (10,37): error CS0500: 'I2.I1.operator checked +=(int)' cannot declare a body because it is marked abstract
                 //    abstract void I1.operator checked+=(int x) {} 
@@ -8147,7 +8336,7 @@ typeModifier + @" class C2
 ";
             }
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 hasCheckedForm ?
                     [
@@ -8176,7 +8365,7 @@ struct C1
     public abstract void operator" + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (4,34): error CS0106: The modifier 'abstract' is not valid for this item
                 //     public abstract void operator+=(int x) {}
@@ -8195,7 +8384,7 @@ struct C2
     public void operator " + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (4,43): error CS0106: The modifier 'abstract' is not valid for this item
                 //     public abstract void operator checked +=(int x) {}
@@ -8218,7 +8407,7 @@ interface I1
     abstract void I1.operator " + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (9,31): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract void I1.operator +=(int x) {}
@@ -8242,7 +8431,7 @@ interface I2
     abstract void I2.operator checked " + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (10,39): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract void I2.operator checked +=(int x) {}
@@ -8270,7 +8459,7 @@ typeKeyword + @" C1
 " + checkedForm + @" 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void validate(ModuleSymbol m)
@@ -8316,7 +8505,7 @@ interface C1
 " + checkedForm + @" 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void validate(ModuleSymbol m)
@@ -8385,7 +8574,7 @@ class C : I3
 ";
             }
 
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void validate(ModuleSymbol m)
@@ -8449,7 +8638,7 @@ interface I2
 ";
             }
 
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void validate(ModuleSymbol m)
@@ -8514,7 +8703,7 @@ interface I2
 ";
             }
 
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void validate(ModuleSymbol m)
@@ -8558,7 +8747,7 @@ typeKeyword + @" C1
     public virtual void operator" + op + @"(int x);
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (3,33): error CS0501: 'C1.operator +=(int)' must declare a body because it is not marked abstract, extern, or partial
                 //     public virtual void operator+=(int x);
@@ -8577,7 +8766,7 @@ typeKeyword + @" C1
     public virtual void operator checked" + op + @"(int x); 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (4,41): error CS0501: 'C1.operator checked +=(int)' must declare a body because it is not marked abstract, extern, or partial
                 //     public virtual void operator checked+=(int x); 
@@ -8595,7 +8784,7 @@ sealed class C1
     public virtual void operator" + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (4,33): error CS0549: 'C1.operator +=(int x)' is a new virtual member in sealed type 'C1'
                 //     public virtual void operator+=(int x) {}
@@ -8615,7 +8804,7 @@ sealed class C2
     public void operator " + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (9,42): error CS0549: 'C2.operator checked +=(int x)' is a new virtual member in sealed type 'C2'
                 //     public virtual void operator checked +=(int x) {}
@@ -8633,7 +8822,7 @@ struct C1
     public virtual void operator" + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (4,33): error CS0106: The modifier 'virtual' is not valid for this item
                 //     public virtual void operator+=(int x) {}
@@ -8653,7 +8842,7 @@ struct C2
     public void operator " + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (9,42): error CS0106: The modifier 'virtual' is not valid for this item
                 //     public virtual void operator checked +=(int x) {}
@@ -8677,7 +8866,7 @@ interface I1
     virtual void I1.operator " + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (15,30): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual void I1.operator +=(int x) {}
@@ -8702,7 +8891,7 @@ interface I2
     virtual void I2.operator checked " + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (20,38): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual void I2.operator checked +(int x) {}
@@ -8720,7 +8909,7 @@ typeKeyword + @" C1
     public virtual abstract void operator" + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (3,42): error CS0503: The abstract method 'C1.operator +=(int)' cannot be marked virtual
                 //     public virtual abstract void operator+=(int x) {}
@@ -8740,7 +8929,7 @@ typeKeyword + @" C1
     public virtual abstract void operator checked" + op + @"(int x) {} 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (4,50): error CS0503: The abstract method 'C1.operator checked +=(int)' cannot be marked virtual
                 //     public virtual abstract void operator checked+=(int x) {} 
@@ -8771,7 +8960,7 @@ class C3 : C2
     public override void operator checked" + op + @"(int x) {} 
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             CompileAndVerify(comp, symbolValidator: validate1, sourceSymbolValidator: validate1).VerifyDiagnostics();
 
             var source2 = @"
@@ -8786,7 +8975,7 @@ class C2 : C1
     public override void operator checked" + op + @"(int x) {} 
 }
 ";
-            var comp2 = CreateCompilation(source2);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute]);
 
             CompileAndVerify(comp2, symbolValidator: validate2, sourceSymbolValidator: validate2).VerifyDiagnostics();
 
@@ -8849,7 +9038,7 @@ class C3 : C2
     public override void operator" + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             CompileAndVerify(comp, symbolValidator: validate1, sourceSymbolValidator: validate1).VerifyDiagnostics();
 
             void validate1(ModuleSymbol m)
@@ -8901,7 +9090,7 @@ class C3 : C2
     public override void operator checked" + op + @"(int x) {} 
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
 
             void validate(ModuleSymbol m)
@@ -8935,7 +9124,7 @@ class C3 : C2
                 Assert.Same(overridden, m.OverriddenMethod);
             }
 
-            comp = CreateCompilation(["class C4 : C2 {}", source]);
+            comp = CreateCompilation(["class C4 : C2 {}", source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (1,7): error CS0534: 'C4' does not implement inherited abstract member 'C2.operator checked +=(int)'
                 // class C4 : C2 {}
@@ -8966,7 +9155,7 @@ class C3 : C2
     public override void operator" + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
 
             void validate(ModuleSymbol m)
@@ -8994,7 +9183,7 @@ class C3 : C2
                 Assert.Same(overridden, m.OverriddenMethod);
             }
 
-            comp = CreateCompilation(["class C4 : C2 {}", source]);
+            comp = CreateCompilation(["class C4 : C2 {}", source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (1,7): error CS0534: 'C4' does not implement inherited abstract member 'C2.operator +=(int)'
                 // class C4 : C2 {}
@@ -9013,7 +9202,7 @@ struct S1
     public override void operator checked" + op + @"(int x) {} 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
 
             validateOp(comp.GetMember<MethodSymbol>("S1." + CompoundAssignmentOperatorName(op, isChecked: false)));
             validateOp(comp.GetMember<MethodSymbol>("S1." + CompoundAssignmentOperatorName(op, isChecked: true)));
@@ -9052,7 +9241,7 @@ struct S1
     public override void operator" + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
 
             validateOp(comp.GetMember<MethodSymbol>("S1." + CompoundAssignmentOperatorName(op, isChecked: false)));
             validateOp(comp.GetMember<MethodSymbol>("S1." + CompoundAssignmentOperatorName(op, isChecked: true)));
@@ -9094,7 +9283,7 @@ interface I2
     public void operator " + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (4,34): error CS0106: The modifier 'override' is not valid for this item
                 //     public override void operator+=(int x) {}
@@ -9115,7 +9304,7 @@ interface I1
     public override void operator" + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (4,34): error CS0106: The modifier 'override' is not valid for this item
                 //     public override void operator+=(int x) {}
@@ -9149,7 +9338,7 @@ interface I2
     override void I2.operator checked " + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (15,31): error CS0106: The modifier 'override' is not valid for this item
                 //     override void I1.operator +=(int x) {}
@@ -9176,7 +9365,7 @@ interface I1
     override void I1.operator " + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (15,31): error CS0106: The modifier 'override' is not valid for this item
                 //     override void I1.operator +=(int x) {}
@@ -9201,7 +9390,7 @@ class C2 : C1
     public virtual override void operator checked" + op + @"(int x) {} 
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (10,42): error CS0113: A member 'C2.operator +=(int)' marked as override cannot be marked as new or virtual
                 //     public virtual override void operator+=(int x) {}
@@ -9228,7 +9417,7 @@ class C2 : C1
     public virtual override void operator" + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (10,42): error CS0113: A member 'C2.operator +=(int)' marked as override cannot be marked as new or virtual
                 //     public virtual override void operator+=(int x) {}
@@ -9247,7 +9436,7 @@ interface C1
     sealed void operator checked" + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void validate(ModuleSymbol m)
@@ -9297,7 +9486,7 @@ interface C1
     sealed void operator" + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             void validate(ModuleSymbol m)
@@ -9349,7 +9538,7 @@ abstract class C2 : C1
     public sealed override void operator checked" + op + @"(int x) {} 
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
 
             void validate(ModuleSymbol m)
@@ -9383,7 +9572,7 @@ class C3 : C2
     public override void operator checked" + op + @"(int x) {} 
 }
 ";
-            comp = CreateCompilation([source2, source]);
+            comp = CreateCompilation([source2, source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (4,34): error CS0239: 'C3.operator +=(int)': cannot override inherited member 'C2.operator +=(int)' because it is sealed
                 //     public override void operator+=(int x) {}
@@ -9409,7 +9598,7 @@ abstract class C2 : C1
     public sealed override void operator" + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
 
             void validate(ModuleSymbol m)
@@ -9439,7 +9628,7 @@ class C3 : C2
     public override void operator" + op + @"(int x) {}
 }
 ";
-            comp = CreateCompilation([source2, source]);
+            comp = CreateCompilation([source2, source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (4,34): error CS0239: 'C3.operator +=(int)': cannot override inherited member 'C2.operator +=(int)' because it is sealed
                 //     public override void operator+=(int x) {}
@@ -9463,7 +9652,7 @@ class C2
     public void operator " + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (4,32): error CS0238: 'C1.operator +=(int)' cannot be sealed because it is not an override
                 //     public sealed void operator+=(int x) {}
@@ -9484,7 +9673,7 @@ class C1
     public sealed void operator" + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (4,32): error CS0238: 'C1.operator +=(int)' cannot be sealed because it is not an override
                 //     public sealed void operator+=(int x) {}
@@ -9508,7 +9697,7 @@ struct C2
     public void operator " + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (4,32): error CS0106: The modifier 'sealed' is not valid for this item
                 //     public sealed void operator+=(int x) {}
@@ -9529,7 +9718,7 @@ struct C1
     public sealed void operator" + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (4,32): error CS0106: The modifier 'sealed' is not valid for this item
                 //     public sealed void operator+=(int x) {}
@@ -9553,7 +9742,7 @@ struct C2
     public void operator " + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (4,41): error CS0106: The modifier 'sealed' is not valid for this item
                 //     public sealed override void operator+=(int x) {}
@@ -9580,7 +9769,7 @@ struct C1
     public sealed override void operator" + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (4,41): error CS0106: The modifier 'sealed' is not valid for this item
                 //     public sealed override void operator+=(int x) {}
@@ -9607,7 +9796,7 @@ struct C2
     public void operator " + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (4,50): error CS0106: The modifier 'abstract' is not valid for this item
                 //     public sealed abstract override void operator+=(int x) {}
@@ -9640,7 +9829,7 @@ struct C1
     public sealed abstract override void operator" + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (4,50): error CS0106: The modifier 'abstract' is not valid for this item
                 //     public sealed abstract override void operator+=(int x) {}
@@ -9680,7 +9869,7 @@ interface I2
     sealed void I2.operator checked " + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (15,29): error CS0106: The modifier 'sealed' is not valid for this item
                 //     sealed void I1.operator +(int x) {}
@@ -9707,7 +9896,7 @@ interface I1
     sealed void I1.operator " + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (15,29): error CS0106: The modifier 'sealed' is not valid for this item
                 //     sealed void I1.operator +(int x) {}
@@ -9726,7 +9915,7 @@ typeKeyword + @" C1
     public sealed abstract void operator checked" + op + @"(int x); 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             if (typeKeyword == "interface")
             {
                 comp.VerifyDiagnostics(
@@ -9761,7 +9950,7 @@ typeKeyword + @" C1
     public sealed abstract void operator" + op + @"(int x);
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             if (typeKeyword == "interface")
             {
                 comp.VerifyDiagnostics(
@@ -9797,7 +9986,7 @@ abstract class C2 : C1
     public sealed abstract override void operator checked" + op + @"(int x);
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (10,50): error CS0502: 'C2.operator +=(int)' cannot be both abstract and sealed
                 //     public sealed abstract override void operator+=(int x);
@@ -9823,7 +10012,7 @@ abstract class C2 : C1
     public sealed abstract override void operator" + op + @"(int x);
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (9,50): error CS0502: 'C2.operator +=(int)' cannot be both abstract and sealed
                 //     public sealed abstract override void operator+=(int x);
@@ -9857,7 +10046,7 @@ interface I4 : I2
     sealed abstract void I2.operator checked " + op + @"(int x);
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (15,38): error CS0106: The modifier 'sealed' is not valid for this item
                 //     sealed abstract void I1.operator +=(int x);
@@ -9884,7 +10073,7 @@ interface I3 : I1
     sealed abstract void I1.operator " + op + @"(int x);
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (15,38): error CS0106: The modifier 'sealed' is not valid for this item
                 //     sealed abstract void I1.operator +=(int x);
@@ -9903,7 +10092,7 @@ typeKeyword + @" C1
     public virtual sealed void operator checked" + op + @"(int x) {} 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             if (typeKeyword == "interface")
             {
                 comp.VerifyDiagnostics(
@@ -9938,7 +10127,7 @@ typeKeyword + @" C1
     public virtual sealed void operator" + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             if (typeKeyword == "interface")
             {
                 comp.VerifyDiagnostics(
@@ -9980,7 +10169,7 @@ interface C3 : C1
     public new void operator checked" + op + @"(int x) {} 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(
                 // (10,25): warning CS0108: 'C2.operator +=(int)' hides inherited member 'C1.operator +=(int)'. Use the new keyword if hiding was intended.
                 //     public void operator+=(int x) {}
@@ -10032,7 +10221,7 @@ interface C3 : C1
     public new void operator" + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(
                 // (10,25): warning CS0108: 'C2.operator +=(int)' hides inherited member 'C1.operator +=(int)'. Use the new keyword if hiding was intended.
                 //     public void operator+=(int x) {}
@@ -10081,7 +10270,7 @@ class C3 : C1
     public new void operator checked" + op + @"(int x) {} 
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics(
                 // (10,25): warning CS0108: 'C2.operator +=(int)' hides inherited member 'C1.operator +=(int)'. Use the new keyword if hiding was intended.
                 //     public void operator+=(int x) {}
@@ -10133,7 +10322,7 @@ class C3 : C1
     public new void operator" + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics(
                 // (10,25): warning CS0108: 'C2.operator +=(int)' hides inherited member 'C1.operator +=(int)'. Use the new keyword if hiding was intended.
                 //     public void operator+=(int x) {}
@@ -10182,7 +10371,7 @@ class C3 : C1
     public new void operator checked" + op + @"(int x) {} 
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics(
                 // (10,25): warning CS0114: 'C2.operator +=(int)' hides inherited member 'C1.operator +=(int)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 //     public void operator+=(int x) {}
@@ -10234,7 +10423,7 @@ class C3 : C1
     public new void operator" + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics(
                 // (10,25): warning CS0114: 'C2.operator +=(int)' hides inherited member 'C1.operator +=(int)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 //     public void operator+=(int x) {}
@@ -10283,7 +10472,7 @@ abstract class C3 : C1
     public new void operator checked" + op + @"(int x) {} 
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (10,25): error CS0533: 'C2.operator +=(int)' hides inherited abstract member 'C1.operator +=(int)'
                 //     public void operator+=(int x) {}
@@ -10328,7 +10517,7 @@ abstract class C3 : C1
     public new void operator" + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (10,25): error CS0533: 'C2.operator +=(int)' hides inherited abstract member 'C1.operator +=(int)'
                 //     public void operator+=(int x) {}
@@ -10353,7 +10542,7 @@ typeKeyword + @" C1
     public new void operator checked" + op + @"(int x) {} 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(
                 // (3,29): warning CS0109: The member 'C1.operator +=(int)' does not hide an accessible member. The new keyword is not required.
                 //     public new void operator+=(int x) {}
@@ -10392,7 +10581,7 @@ typeKeyword + @" C1
     public new void operator" + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(
                 // (3,29): warning CS0109: The member 'C1.operator +=(int)' does not hide an accessible member. The new keyword is not required.
                 //     public new void operator+=(int x) {}
@@ -10428,7 +10617,7 @@ typeKeyword + @" C1
     public new abstract void operator checked" + op + @"(int x); 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(
                 // (3,38): warning CS0109: The member 'C1.operator +=(int)' does not hide an accessible member. The new keyword is not required.
                 //     public new abstract void operator+=(int x);
@@ -10468,7 +10657,7 @@ typeKeyword + @" C1
     public new abstract void operator" + op + @"(int x);
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(
                 // (3,38): warning CS0109: The member 'C1.operator +=(int)' does not hide an accessible member. The new keyword is not required.
                 //     public new abstract void operator+=(int x);
@@ -10505,7 +10694,7 @@ typeKeyword + @" C1
     public new virtual void operator checked" + op + @"(int x) {} 
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(
                 // (3,37): warning CS0109: The member 'C1.operator +=(int)' does not hide an accessible member. The new keyword is not required.
                 //     public new virtual void operator+=(int x) {}
@@ -10545,7 +10734,7 @@ typeKeyword + @" C1
     public new virtual void operator" + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(
                 // (3,37): warning CS0109: The member 'C1.operator +=(int)' does not hide an accessible member. The new keyword is not required.
                 //     public new virtual void operator+=(int x) {}
@@ -10582,7 +10771,7 @@ interface C1
     sealed new void operator checked" + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(
                 // (4,29): warning CS0109: The member 'C1.operator +=(int)' does not hide an accessible member. The new keyword is not required.
                 //     sealed new void operator+=(int x) {}
@@ -10622,7 +10811,7 @@ interface C1
     sealed new void operator" + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(
                 // (4,29): warning CS0109: The member 'C1.operator +=(int)' does not hide an accessible member. The new keyword is not required.
                 //     sealed new void operator+=(int x) {}
@@ -10674,7 +10863,7 @@ class C4 : C2
     public new override void operator checked " + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (15,38): error CS0113: A member 'C3.operator +=(int)' marked as override cannot be marked as new or virtual
                 //     public new override void operator+=(int x) {}
@@ -10701,7 +10890,7 @@ class C3 : C1
     public new override void operator" + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (15,38): error CS0113: A member 'C3.operator +=(int)' marked as override cannot be marked as new or virtual
                 //     public new override void operator+=(int x) {}
@@ -10719,7 +10908,7 @@ struct S1
     public new override void operator" + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
                 // (4,38): error CS0113: A member 'S1.operator +=(int)' marked as override cannot be marked as new or virtual
                 //     public new override void operator+=(int x) {}
@@ -10756,7 +10945,7 @@ interface I2
     new void I2.operator checked " + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (15,26): error CS0106: The modifier 'new' is not valid for this item
                 //     new void I1.operator +=(int x) {}
@@ -10783,7 +10972,7 @@ interface I1
     new void I1.operator " + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (15,26): error CS0106: The modifier 'new' is not valid for this item
                 //     new void I1.operator +=(int x) {}
@@ -10819,7 +11008,7 @@ interface I2
     static void I2.operator checked " + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (16,29): error CS0106: The modifier 'static' is not valid for this item
                 //     static void I1.operator +=(int x) {}
@@ -10847,7 +11036,7 @@ interface I1
     static void I1.operator " + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (16,29): error CS0106: The modifier 'static' is not valid for this item
                 //     static void I1.operator +=(int x) {}
@@ -10883,7 +11072,7 @@ interface C4
     static void I2.operator checked " + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (16,29): error CS0106: The modifier 'static' is not valid for this item
                 //     static void I1.operator +=(int x) {}
@@ -10911,7 +11100,7 @@ interface C3
     static void I1.operator " + op + @"(int x) {}
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
                 // (16,29): error CS0106: The modifier 'static' is not valid for this item
                 //     static void I1.operator +=(int x) {}
@@ -10946,7 +11135,7 @@ public class C1
     } 
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
 
             var source2 = @"
 public class Program
@@ -10973,7 +11162,7 @@ public class Program
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp2, expectedOutput: @"
 [operator]1
 [operator]2
@@ -11000,7 +11189,7 @@ public class C1
     } 
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
 
             var source2 = @"
 public class Program
@@ -11027,7 +11216,7 @@ public class Program
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp2, expectedOutput: @"
 [operator]1
 [operator]2
@@ -11062,7 +11251,7 @@ public class C1 : I1
     } 
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
 
             var source2 = @"
 public class Program
@@ -11143,7 +11332,7 @@ public class Program
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
             const string expectedOutput = @"
 [GetA][Get0][Get1][operator]1
 [GetA][Get0][Get1][operator checked]2
@@ -11216,7 +11405,7 @@ public class Program
 }
 ");
 
-            var tree = comp2.SyntaxTrees.Single();
+            var tree = comp2.SyntaxTrees.First();
             var model = comp2.GetSemanticModel(tree);
             var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().Where(n => n.OperatorToken.Text == op).First();
             var symbolInfo = model.GetSymbolInfo(opNode);
@@ -11373,16 +11562,16 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
           Arguments(0)
 ");
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
             var expectedErrors = new[] {
                 // (23,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
                 //         GetA(x)[Get0()]+= Get1();
@@ -11405,7 +11594,7 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
                 };
             comp2.VerifyDiagnostics(expectedErrors);
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyDiagnostics(expectedErrors);
         }
 
@@ -11448,7 +11637,7 @@ public class C1 : I1
     } 
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
 
             var source2 = @"
 public class Program
@@ -11529,7 +11718,7 @@ public class Program
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
             const string expectedOutput = @"
 [GetA][Get0][Get1][operator]1
 [GetA][Get0][Get1][operator]2
@@ -11602,7 +11791,7 @@ public class Program
 }
 ");
 
-            var tree = comp2.SyntaxTrees.Single();
+            var tree = comp2.SyntaxTrees.First();
             var model = comp2.GetSemanticModel(tree);
             var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().Where(n => n.OperatorToken.Text == op).First();
             var symbolInfo = model.GetSymbolInfo(opNode);
@@ -11747,16 +11936,16 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
           Arguments(0)
 ");
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
             var expectedErrors = new[] {
                 // (23,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
                 //         GetA(x)[Get0()]+= G1();
@@ -11779,7 +11968,7 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
                 };
             comp2.VerifyDiagnostics(expectedErrors);
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyDiagnostics(expectedErrors);
         }
 
@@ -11809,7 +11998,7 @@ public struct C1 : I1
     } 
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
 
             var source2 = @"
 public class Program
@@ -11890,7 +12079,7 @@ public class Program
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
             const string expectedOutput = @"
 [GetA][Get0][Get1][operator]1
 [GetA][Get0][Get1][operator checked]2
@@ -11937,7 +12126,7 @@ public class Program
 }
 ");
 
-            var tree = comp2.SyntaxTrees.Single();
+            var tree = comp2.SyntaxTrees.First();
             var model = comp2.GetSemanticModel(tree);
             var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().Where(n => n.OperatorToken.Text == op).First();
             var symbolInfo = model.GetSymbolInfo(opNode);
@@ -12058,16 +12247,16 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
           Arguments(0)
 ");
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
             var expectedErrors = new[] {
                 // (23,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
                 //         GetA(x)[Get0()]+= Get1();
@@ -12090,7 +12279,7 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
                 };
             comp2.VerifyDiagnostics(expectedErrors);
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyDiagnostics(expectedErrors);
         }
 
@@ -12114,7 +12303,7 @@ public struct C1 : I1
     } 
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
 
             var source2 = @"
 public class Program
@@ -12195,7 +12384,7 @@ public class Program
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
             const string expectedOutput = @"
 [GetA][Get0][Get1][operator]1
 [GetA][Get0][Get1][operator]2
@@ -12242,7 +12431,7 @@ public class Program
 }
 ");
 
-            var tree = comp2.SyntaxTrees.Single();
+            var tree = comp2.SyntaxTrees.First();
             var model = comp2.GetSemanticModel(tree);
             var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().Where(n => n.OperatorToken.Text == op).First();
             var symbolInfo = model.GetSymbolInfo(opNode);
@@ -12361,16 +12550,16 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
           Arguments(0)
 ");
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
             var expectedErrors = new[] {
                 // (23,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
                 //         GetA(x)[Get0()]+= G1();
@@ -12393,7 +12582,7 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
                 };
             comp2.VerifyDiagnostics(expectedErrors);
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyDiagnostics(expectedErrors);
         }
 
@@ -12423,7 +12612,7 @@ public class C1 : I1
     } 
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
 
             var source2 = @"
 public class Program
@@ -12520,7 +12709,7 @@ public class Program
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
             const string expectedOutput = @"
 [GetA][Get0][G1][operator]1True
 [GetA][Get0][G1][operator checked]2True
@@ -12613,7 +12802,7 @@ public class Program
 }
 ");
 
-            var tree = comp2.SyntaxTrees.Single();
+            var tree = comp2.SyntaxTrees.First();
             var model = comp2.GetSemanticModel(tree);
             var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().Where(n => n.OperatorToken.Text == op).First();
             var symbolInfo = model.GetSymbolInfo(opNode);
@@ -12780,16 +12969,16 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
           Arguments(0)
 ");
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
             var expectedErrors = new[] {
                 // (23,16): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
                 //         return GetA(x)[Get0()]+= G1();
@@ -12812,7 +13001,7 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
                 };
             comp2.VerifyDiagnostics(expectedErrors);
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyDiagnostics(expectedErrors);
         }
 
@@ -12836,7 +13025,7 @@ public class C1 : I1
     } 
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
 
             var source2 = @"
 public class Program
@@ -12933,7 +13122,7 @@ public class Program
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
             const string expectedOutput = @"
 [GetA][Get0][G1][operator]1True
 [GetA][Get0][G1][operator]2True
@@ -13026,7 +13215,7 @@ public class Program
 }
 ");
 
-            var tree = comp2.SyntaxTrees.Single();
+            var tree = comp2.SyntaxTrees.First();
             var model = comp2.GetSemanticModel(tree);
             var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().Where(n => n.OperatorToken.Text == op).First();
             var symbolInfo = model.GetSymbolInfo(opNode);
@@ -13191,16 +13380,16 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
           Arguments(0)
 ");
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
             var expectedErrors = new[] {
                 // (23,16): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
                 //         return GetA(x)[Get0()]+= G1();
@@ -13223,7 +13412,7 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
                 };
             comp2.VerifyDiagnostics(expectedErrors);
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyDiagnostics(expectedErrors);
         }
 
@@ -13253,7 +13442,7 @@ public struct C1 : I1
     } 
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
 
             var source2 = @"
 public class Program
@@ -13343,7 +13532,7 @@ public class Program
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
             const string expectedOutput = @"
 [GetA][Get0][G1][operator]11
 [GetA][Get0][G1][operator checked]22
@@ -13408,7 +13597,7 @@ public class Program
 }
 ");
 
-            var tree = comp2.SyntaxTrees.Single();
+            var tree = comp2.SyntaxTrees.First();
             var model = comp2.GetSemanticModel(tree);
             var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().Where(n => n.OperatorToken.Text == op).First();
             var symbolInfo = model.GetSymbolInfo(opNode);
@@ -13547,16 +13736,16 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
           Arguments(0)
 ");
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
             var expectedErrors = new[] {
                 // (23,16): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
                 //         return GetA(x)[Get0()]+= G1();
@@ -13579,7 +13768,7 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
                 };
             comp2.VerifyDiagnostics(expectedErrors);
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyDiagnostics(expectedErrors);
         }
 
@@ -13603,7 +13792,7 @@ public struct C1 : I1
     } 
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
 
             var source2 = @"
 public class Program
@@ -13693,7 +13882,7 @@ public class Program
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
             const string expectedOutput = @"
 [GetA][Get0][G1][operator]11
 [GetA][Get0][G1][operator]22
@@ -13758,7 +13947,7 @@ public class Program
 }
 ");
 
-            var tree = comp2.SyntaxTrees.Single();
+            var tree = comp2.SyntaxTrees.First();
             var model = comp2.GetSemanticModel(tree);
             var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().Where(n => n.OperatorToken.Text == op).First();
             var symbolInfo = model.GetSymbolInfo(opNode);
@@ -13895,16 +14084,16 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
           Arguments(0)
 ");
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
             verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
             var expectedErrors = new[] {
                 // (23,16): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
                 //         return GetA(x)[Get0()]+= G1();
@@ -13927,7 +14116,7 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
                 };
             comp2.VerifyDiagnostics(expectedErrors);
 
-            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyDiagnostics(expectedErrors);
         }
 
@@ -13946,7 +14135,7 @@ public class C1
     } 
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
 
             var source2 = @"
 public class Program
@@ -13977,7 +14166,7 @@ public class Program
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             comp2.VerifyDiagnostics(
                 // (13,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
                 //         GetA(x)[Get0()] += 1;
@@ -14027,13 +14216,13 @@ public class Program
 }
 ";
 
-            var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "[operator][operator]").VerifyDiagnostics();
         }
 
         [Theory]
         [CombinatorialData]
-        public void CompoundAssignment_082_Consumption_Shadowing([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        public void CompoundAssignment_00820_Consumption_Shadowing([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
         {
             var source1_1 = @"
 public class C1
@@ -14048,7 +14237,7 @@ public class C2 : C1
 }
 ";
 
-            var comp1_1 = CreateCompilation(source1_1, assemblyName: "C");
+            var comp1_1 = CreateCompilation([source1_1, CompilerFeatureRequiredAttribute], assemblyName: "C");
 
             var source2 = @"
 public class Test
@@ -14065,7 +14254,7 @@ public class Test
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [comp1_1.ToMetadataReference()]);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [comp1_1.ToMetadataReference()]);
             comp2.VerifyDiagnostics();
 
             var source1_2 = @"
@@ -14099,9 +14288,9 @@ public class Program
     } 
 }
 ";
-            var comp1_2 = CreateCompilation(source1_2, assemblyName: "C");
+            var comp1_2 = CreateCompilation([source1_2, CompilerFeatureRequiredAttribute], assemblyName: "C");
 
-            var comp3 = CreateCompilation(source3, references: [comp1_2.EmitToImageReference(), comp2.EmitToImageReference()], options: TestOptions.DebugExe);
+            var comp3 = CreateCompilation([source3, CompilerFeatureRequiredAttribute], references: [comp1_2.EmitToImageReference(), comp2.EmitToImageReference()], options: TestOptions.DebugExe);
             CompileAndVerify(comp3, expectedOutput: "[operator][checked operator]").VerifyDiagnostics();
         }
 
@@ -14143,7 +14332,7 @@ public class Program
 }
 ";
 
-            var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "[operator][checked operator]").VerifyDiagnostics();
         }
 
@@ -14188,7 +14377,7 @@ public class Program
 }
 ";
 
-            var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "[operator][checked operator]").VerifyDiagnostics();
         }
 
@@ -14218,14 +14407,14 @@ public class Program
 }
 ";
 
-            var comp1 = CreateCompilation(source1, targetFramework: TargetFramework.Net90);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp1.VerifyDiagnostics(
                 // (18,11): error CS0121: The call is ambiguous between the following methods or properties: 'I1.operator +=(int)' and 'I2<T>.operator +=(int)'
                 //         x += 1;
                 Diagnostic(ErrorCode.ERR_AmbigCall, "+=").WithArguments("I1.operator +=(int)", "I2<T>.operator +=(int)").WithLocation(18, 11)
                 );
 
-            var tree = comp1.SyntaxTrees.Single();
+            var tree = comp1.SyntaxTrees.First();
             var model = comp1.GetSemanticModel(tree);
             var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().First();
             var symbolInfo = model.GetSymbolInfo(opNode);
@@ -14287,7 +14476,7 @@ public class C1
     } 
 }
 ";
-            var comp1Ref = CreateCompilation(source1).EmitToImageReference();
+            var comp1Ref = CreateCompilation([source1, CompilerFeatureRequiredAttribute]).EmitToImageReference();
 
             var source2 = @"
 public class Program
@@ -14314,7 +14503,7 @@ public class Program
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [comp1Ref], options: TestOptions.DebugExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [comp1Ref], options: TestOptions.DebugExe);
             CompileAndVerify(comp2, expectedOutput: @"
 [instance operator]1
 [instance operator]2
@@ -14322,7 +14511,7 @@ public class Program
 [instance operator checked]4
 ").VerifyDiagnostics();
 
-            comp2 = CreateCompilation(source2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             CompileAndVerify(comp2, expectedOutput: @"
 [static operator]1
 [static operator]2
@@ -14351,7 +14540,7 @@ public class Program
 }
 ";
 
-            var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             CompileAndVerify(comp1).VerifyDiagnostics(
                 // (13,9): warning CS0618: 'C1.operator +=(int)' is obsolete: 'Test'
                 //         x += 1;
@@ -14379,7 +14568,7 @@ public class Program
 }
 ";
 
-            var comp1 = CreateCompilation(source1, targetFramework: TargetFramework.Net90, options: TestOptions.DebugExe);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90, options: TestOptions.DebugExe);
             comp1.VerifyDiagnostics(
                 // (4,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //     [System.Runtime.InteropServices.UnmanagedCallersOnly]
@@ -14424,7 +14613,7 @@ public class Program
 }
 ";
 
-            var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "in catch").VerifyDiagnostics(
                 // (17,13): warning CS8602: Dereference of a possibly null reference.
                 //             x += 1;
@@ -14457,7 +14646,7 @@ public class Program
 }
 ";
 
-            var comp2 = CreateCompilation(source2, options: TestOptions.DebugExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             CompileAndVerify(comp2, expectedOutput: "Done").VerifyDiagnostics(
                 // (17,13): warning CS0162: Unreachable code detected
                 //             x += 1;
@@ -14495,7 +14684,7 @@ public class Program
 }
 ";
 
-            var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             comp1.VerifyDiagnostics(
                 // (18,15): warning CS8604: Possible null reference argument for parameter 'x' in 'void C1<object>.operator +=(object x)'.
                 //         c1 += x;
@@ -14523,7 +14712,7 @@ public class Program
 }
 ";
 
-            CSharpCompilation comp1 = CreateCompilation(source1);
+            CSharpCompilation comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
             comp1.VerifyDiagnostics(
                 // (4,26): error CS1020: Overloadable binary operator expected
                 //     public void operator +=(int a, int x = 0) {}
@@ -14533,7 +14722,7 @@ public class Program
                 Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "x").WithArguments("x").WithLocation(4, 40)
                 );
 
-            var comp2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             comp2.VerifyDiagnostics(
                 // (7,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
                 //         x += 1;
@@ -14561,14 +14750,14 @@ public class Program
 }
 ";
 
-            CSharpCompilation comp1 = CreateCompilation(source1);
+            CSharpCompilation comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
             comp1.VerifyDiagnostics(
                 // (4,29): error CS1670: params is not valid in this context
                 //     public void operator +=(params int[] x) {}
                 Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(4, 29)
                 );
 
-            var comp2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             comp2.VerifyDiagnostics(
                 // (7,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
                 //         x += 1;
@@ -14606,10 +14795,10 @@ public class Program
 }
 ";
 
-            CSharpCompilation comp1 = CreateCompilation(source1);
+            CSharpCompilation comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
             comp1.VerifyEmitDiagnostics();
 
-            var comp2 = CreateCompilation(source2, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
             comp2.VerifyDiagnostics(
                 // (7,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
                 //         x += 1;
@@ -14655,7 +14844,7 @@ public class C4
 }
 ";
 
-            CSharpCompilation comp1 = CreateCompilation(source1);
+            CSharpCompilation comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
             comp1.VerifyDiagnostics(
                 // (1000,17): error CS0111: Type 'C1' already defines a member called 'op_AdditionAssignment' with the same parameter types
                 //     public void op_AdditionAssignment(int x) {}
@@ -14681,7 +14870,7 @@ public class C2
     public void operator+=(int x) {}
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
 
             var source2 = @"
 public class Program
@@ -14696,7 +14885,7 @@ public class Program
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             comp2.VerifyDiagnostics(
                 // (7,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
                 //         x += 1;
@@ -14722,7 +14911,7 @@ abstract public class C3
     public abstract void operator +=(int x);
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
 
             var source2 = @"
 public class C2 : C1
@@ -14736,7 +14925,7 @@ public class C4 : C3
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()]);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()]);
 
             comp2.VerifyDiagnostics(
                 // (4,35): error CS9505: 'C2.operator +=(int)': cannot override inherited member 'C1.op_AdditionAssignment(int)' because one of them is not an operator.
@@ -14763,7 +14952,7 @@ public interface I2
     void operator +=(int x);
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
 
             var source2 = @"
 public class C1 : I1
@@ -14787,7 +14976,7 @@ public class C4 : I2
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()]);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()]);
             comp2.VerifyDiagnostics(
                 // (2,19): error CS9504: 'C1' does not implement interface member 'I1.op_AdditionAssignment(int)'. 'C1.operator +=(int)' cannot implement 'I1.op_AdditionAssignment(int)' because one of them is not an operator.
                 // public class C1 : I1
@@ -14825,7 +15014,7 @@ public interface I2
     void operator +=(int x);
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
 
             var source2 = @"
 public class C11
@@ -14847,7 +15036,7 @@ public class C22 : C21, I2
 }
 ";
 
-            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()]);
+            var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()]);
             comp2.VerifyDiagnostics(
                 // (7,25): error CS9504: 'C12' does not implement interface member 'I1.op_AdditionAssignment(int)'. 'C11.operator +=(int)' cannot implement 'I1.op_AdditionAssignment(int)' because one of them is not an operator.
                 // public class C12 : C11, I1
@@ -14902,7 +15091,7 @@ public class Program
 }
 ";
 
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90, options: TestOptions.DebugExe);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (10,19): error CS9504: 'C1' does not implement interface member 'I1.operator +=(int)'. 'C1.op_AdditionAssignment(int)' cannot implement 'I1.operator +=(int)' because one of them is not an operator.
                 // public class C1 : I1
@@ -14957,7 +15146,7 @@ public class Program
 }
 ";
 
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90, options: TestOptions.DebugExe);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (10,19): error CS9504: 'C1' does not implement interface member 'I1.op_AdditionAssignment(int)'. 'C1.operator +=(int)' cannot implement 'I1.op_AdditionAssignment(int)' because one of them is not an operator.
                 // public class C1 : I1
@@ -15003,7 +15192,7 @@ public class Program
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (15,23): error CS9504: 'C3' does not implement interface member 'I1.operator +=(int)'. 'C3.op_AdditionAssignment(int)' cannot implement 'I1.operator +=(int)' because one of them is not an operator.
                 // public class C3 : C2, I1
@@ -15046,7 +15235,7 @@ public class Program
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (15,23): error CS9504: 'C3' does not implement interface member 'I1.op_AdditionAssignment(int)'. 'C3.operator +=(int)' cannot implement 'I1.op_AdditionAssignment(int)' because one of them is not an operator.
                 // public class C3 : C2, I1
@@ -15265,7 +15454,7 @@ public class Program
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "[C1.operator][C2.operator]").VerifyDiagnostics();
         }
 
@@ -15296,7 +15485,7 @@ public class Program
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "[C2.operator]").VerifyDiagnostics();
         }
 
@@ -15315,7 +15504,7 @@ public class C2 : C1
 }
 ";
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -15334,7 +15523,7 @@ public class C1 : C2
 }
 ";
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -15363,7 +15552,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             var expected = new[] {
                 // (3,20): warning CS1574: XML comment has cref attribute 'operator +=()' that could not be resolved
                 // /// See <see cref="operator +=()"/>.
@@ -15405,7 +15594,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics();
 
             int count = 0;
@@ -15439,7 +15628,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
 
             var expected = new[] {
                 // (3,20): warning CS0419: Ambiguous reference in cref attribute: 'operator +='. Assuming 'C1.operator +=(int)', but could have also matched other overloads including 'C1.operator +=(long)'.
@@ -15486,7 +15675,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics();
 
             int count = 0;
@@ -15520,7 +15709,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             var expected = new[] {
                 // (3,20): warning CS1574: XML comment has cref attribute 'operator +=(string)' that could not be resolved
                 // /// See <see cref="operator +=(string)"/>.
@@ -15563,7 +15752,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             var expected = new[] {
                 // (3,20): warning CS1574: XML comment has cref attribute 'operator +=(int, string)' that could not be resolved
                 // /// See <see cref="operator +=(int, string)"/>.
@@ -15606,7 +15795,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics();
 
             int count = 0;
@@ -15640,7 +15829,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics();
 
             int count = 0;
@@ -15677,7 +15866,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             var expected = new[] {
                 // (3,20): warning CS1574: XML comment has cref attribute 'operator checked +=()' that could not be resolved
                 // /// See <see cref="operator checked +=()"/>.
@@ -15720,7 +15909,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics();
 
             int count = 0;
@@ -15754,7 +15943,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             var expected = new[] {
                 // (3,20): warning CS1574: XML comment has cref attribute 'operator checked %=' that could not be resolved
                 // /// See <see cref="operator checked %="/>.
@@ -15800,7 +15989,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
 
             var expected = new[] {
                 // (3,20): warning CS0419: Ambiguous reference in cref attribute: 'operator checked +='. Assuming 'C1.operator checked +=(int)', but could have also matched other overloads including 'C1.operator checked +=(long)'.
@@ -15849,7 +16038,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics();
 
             int count = 0;
@@ -15886,7 +16075,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             var expected = new[] {
                 // (3,20): warning CS1574: XML comment has cref attribute 'operator checked +=(string)' that could not be resolved
                 // /// See <see cref="operator checked +=(string)"/>.
@@ -15932,7 +16121,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             var expected = new[] {
                 // (3,20): warning CS1574: XML comment has cref attribute 'operator checked +=(int, string)' that could not be resolved
                 // /// See <see cref="operator checked +=(int, string)"/>.
@@ -15975,7 +16164,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics();
 
             int count = 0;
@@ -16010,7 +16199,7 @@ class C1
 class C2
 {}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics();
 
             int count = 0;
@@ -16035,7 +16224,7 @@ struct S1
     public readonly void operator checked " + op + @"(int x) {}
 }
 ";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             compilation.VerifyEmitDiagnostics();
 
             foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
@@ -16055,7 +16244,7 @@ struct S1
     public readonly void operator " + op + @"(int x) {}
 }
 ";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             compilation.VerifyEmitDiagnostics();
 
             foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
@@ -16082,7 +16271,7 @@ readonly struct S2
     public readonly void operator checked " + op + @"(int x) {}
 }
 ";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             compilation.VerifyEmitDiagnostics();
 
             foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
@@ -16113,7 +16302,7 @@ readonly struct S2
     public readonly void operator " + op + @"(int x) {}
 }
 ";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             compilation.VerifyEmitDiagnostics();
 
             foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
@@ -16141,7 +16330,7 @@ struct S1
     public readonly void operator checked " + op + @"(int x) { F++; }
 }
 ";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             compilation.VerifyDiagnostics(
                 // (5,47): error CS1604: Cannot assign to 'F' because it is read-only
                 //     public readonly void operator +=(int x) { F++; }
@@ -16172,7 +16361,7 @@ struct S1
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             compilation.VerifyDiagnostics(
                 // (7,9): error CS1604: Cannot assign to 'F' because it is read-only
                 //         F++;
@@ -16197,7 +16386,7 @@ readonly struct S1
     public void operator checked " + op + @"(int x) { this = new S1(); }
 }
 ";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             compilation.VerifyDiagnostics(
                 // (4,38): error CS1604: Cannot assign to 'this' because it is read-only
                 //     public void operator +=(int x) { this = new S1(); }
@@ -16227,7 +16416,7 @@ readonly struct S1
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             compilation.VerifyDiagnostics(
                 // (6,9): error CS1604: Cannot assign to 'this' because it is read-only
                 //         this = new S1();
@@ -16264,7 +16453,7 @@ readonly struct S2 : I1
     readonly void I1.operator checked " + op + @"(int x) {}
 }
 ";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             compilation.VerifyEmitDiagnostics();
 
             foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
@@ -16300,7 +16489,7 @@ readonly struct S2 : I1
     readonly void I1.operator " + op + @"(int x) {}
 }
 ";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             compilation.VerifyEmitDiagnostics();
 
             foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
@@ -16333,7 +16522,7 @@ readonly struct S1 : I1
     void I1.operator checked " + op + @"(int x) {}
 }
 ";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             compilation.VerifyEmitDiagnostics();
 
             foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
@@ -16358,7 +16547,7 @@ readonly struct S1 : I1
     void I1.operator " + op + @"(int x) {}
 }
 ";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             compilation.VerifyEmitDiagnostics();
 
             foreach (var m in compilation.GetTypeByMetadataName("S1").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()))
@@ -16386,7 +16575,7 @@ struct S1 : I1
     readonly void I1.operator checked " + op + @"(int x) { F++; }
 }
 ";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             compilation.VerifyDiagnostics(
                 // (11,43): error CS1604: Cannot assign to 'F' because it is read-only
                 //     readonly void I1.operator +=(int x) { F++; }
@@ -16422,7 +16611,7 @@ struct S1 : I1
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             compilation.VerifyDiagnostics(
                 // (12,9): error CS1604: Cannot assign to 'F' because it is read-only
                 //         F++;
@@ -16460,7 +16649,7 @@ readonly struct S1 : I1
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             compilation.VerifyDiagnostics(
                 // (12,9): error CS1604: Cannot assign to 'this' because it is read-only
                 //         this = new S1();
@@ -16495,7 +16684,7 @@ readonly struct S1 : I1
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             compilation.VerifyDiagnostics(
                 // (11,9): error CS1604: Cannot assign to 'this' because it is read-only
                 //         this = new S1();
@@ -16548,7 +16737,7 @@ interface I5
     readonly void operator checked " + op + @"(int x);
 }
 ";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             compilation.VerifyDiagnostics(
                     // (200,31): error CS0106: The modifier 'readonly' is not valid for this item
                     //     readonly void I1.operator +=(int x) {}
@@ -16635,7 +16824,7 @@ interface I5
     readonly void operator " + op + @"(int x);
 }
 ";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             compilation.VerifyDiagnostics(
                     // (200,31): error CS0106: The modifier 'readonly' is not valid for this item
                     //     readonly void I1.operator +=(int x) {}
@@ -16674,6 +16863,189 @@ interface I5
                 Assert.False(m.IsDeclaredReadOnly);
                 Assert.False(m.IsEffectivelyReadOnly);
             }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01380_VisualBasic([CombinatorialValues("+=", "-=", "*=", "/=", "<<=", ">>=")] string op)
+        {
+            var source1 = @"
+public class C1
+{
+    public void operator " + op + @"(int x) {}
+}
+";
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics();
+
+            var source2 = @"
+Public Module Program
+    Public Sub Main()
+        Dim c1 = New C1()
+        c1 " + op + @" 1
+    End Sub
+End Module
+";
+            CreateVisualBasicCompilation("Program", source2, referencedCompilations: new[] { comp1 }, referencedAssemblies: comp1.References).VerifyDiagnostics(
+                // error BC30452: Operator '+' is not defined for types 'C1' and 'Integer'.
+                Diagnostic(30452 /*ERRID.ERR_BinaryOperands3*/, "c1 " + op + @" 1").WithArguments(op[..^1], "C1", "Integer").WithLocation(5, 9)
+                );
+
+            string opName = CompoundAssignmentOperatorName(op, isChecked: false);
+
+            var source3 = @"
+Public Module Program
+    Public Sub Main()
+        Dim c1 = New C1()
+        c1." + opName + @"(1)
+    End Sub
+End Module
+";
+            CreateVisualBasicCompilation("Program", source3, referencedCompilations: new[] { comp1 }, referencedAssemblies: comp1.References).VerifyDiagnostics(
+                // BC37319: 'Public Overloads Sub op_AdditionAssignment(x As Integer)' requires compiler feature 'UserDefinedCompoundAssignmentOperators', which is not supported by this version of the Visual Basic compiler.
+                Diagnostic(37319 /*ERRID.ERR_UnsupportedCompilerFeature*/, opName).WithArguments("Public Overloads Sub " + opName + @"(x As Integer)", "UserDefinedCompoundAssignmentOperators").WithLocation(5, 12)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01381_VisualBasic([CombinatorialValues("%=", "&=", "|=", "^=", ">>>=")] string op)
+        {
+            var source1 = @"
+public class C1
+{
+    public void operator " + op + @"(int x) {}
+}
+";
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics();
+
+            string opName = CompoundAssignmentOperatorName(op, isChecked: false);
+
+            var source3 = @"
+Public Module Program
+    Public Sub Main()
+        Dim c1 = New C1()
+        c1." + opName + @"(1)
+    End Sub
+End Module
+";
+            CreateVisualBasicCompilation("Program", source3, referencedCompilations: new[] { comp1 }, referencedAssemblies: comp1.References).VerifyDiagnostics(
+                // BC37319: 'Public Overloads Sub op_BitwiseOrAssignment(x As Integer)' requires compiler feature 'UserDefinedCompoundAssignmentOperators', which is not supported by this version of the Visual Basic compiler.
+                Diagnostic(37319 /*ERRID.ERR_UnsupportedCompilerFeature*/, opName).WithArguments("Public Overloads Sub " + opName + @"(x As Integer)", "UserDefinedCompoundAssignmentOperators").WithLocation(5, 12)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01390_VisualBasic([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source1 = @"
+public interface I1
+{
+    public void operator " + op + @"(int x);
+}
+";
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics();
+
+            string opName = CompoundAssignmentOperatorName(op, isChecked: false);
+
+            var source3 = @"
+Public Class Program
+    Implements I1
+
+    Public Sub " + opName + @"(x As Integer) Implements I1." + opName + @"
+    End Sub
+End Class
+";
+            CreateVisualBasicCompilation("Program", source3, referencedCompilations: new[] { comp1 }, referencedAssemblies: comp1.References).VerifyDiagnostics(
+                // BC37319: 'Sub op_BitwiseOrAssignment(x As Integer)' requires compiler feature 'UserDefinedCompoundAssignmentOperators', which is not supported by this version of the Visual Basic compiler.
+                Diagnostic(37319 /*ERRID.ERR_UnsupportedCompilerFeature*/, opName).WithArguments("Sub " + opName + @"(x As Integer)", "UserDefinedCompoundAssignmentOperators").WithLocation(5, 16)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01400_VisualBasic_Checked([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source1 = @"
+public interface I1
+{
+    public sealed void operator " + op + @"(int x) {}
+    public void operator checked " + op + @"(int x);
+}
+";
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics();
+
+            string opName = CompoundAssignmentOperatorName(op, isChecked: true);
+
+            var source3 = @"
+Public Class Program
+    Implements I1
+
+    Public Sub " + opName + @"(x As Integer) Implements I1." + opName + @"
+    End Sub
+End Class
+";
+            CreateVisualBasicCompilation("Program", source3, referencedCompilations: new[] { comp1 }, referencedAssemblies: comp1.References).VerifyDiagnostics(
+                // BC37319: 'Sub op_BitwiseOrAssignment(x As Integer)' requires compiler feature 'UserDefinedCompoundAssignmentOperators', which is not supported by this version of the Visual Basic compiler.
+                Diagnostic(37319 /*ERRID.ERR_UnsupportedCompilerFeature*/, opName).WithArguments("Sub " + opName + @"(x As Integer)", "UserDefinedCompoundAssignmentOperators").WithLocation(5, 16)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01410_VisualBasic([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source1 = @"
+public abstract class C1
+{
+    public abstract void operator " + op + @"(int x);
+}
+";
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics();
+
+            string opName = CompoundAssignmentOperatorName(op, isChecked: false);
+
+            var source3 = @"
+Public Class Program
+    Inherits C1
+
+    Public Overrides Sub " + opName + @"(x As Integer)
+    End Sub
+End Class
+";
+            CreateVisualBasicCompilation("Program", source3, referencedCompilations: new[] { comp1 }, referencedAssemblies: comp1.References).VerifyDiagnostics(
+                // BC37319: 'Public MustOverride Overloads Sub op_BitwiseOrAssignment(x As Integer)' requires compiler feature 'UserDefinedCompoundAssignmentOperators', which is not supported by this version of the Visual Basic compiler.
+                Diagnostic(37319 /*ERRID.ERR_UnsupportedCompilerFeature*/, opName).WithArguments("Public MustOverride Overloads Sub " + opName + @"(x As Integer)", "UserDefinedCompoundAssignmentOperators").WithLocation(5, 26)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01420_VisualBasic_Checked([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var source1 = @"
+public abstract class C1
+{
+    public void operator " + op + @"(int x) {}
+    public abstract void operator checked " + op + @"(int x);
+}
+";
+            var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics();
+
+            string opName = CompoundAssignmentOperatorName(op, isChecked: true);
+
+            var source3 = @"
+Public Class Program
+    Inherits C1
+
+    Public Overrides Sub " + opName + @"(x As Integer)
+    End Sub
+End Class
+";
+            CreateVisualBasicCompilation("Program", source3, referencedCompilations: new[] { comp1 }, referencedAssemblies: comp1.References).VerifyDiagnostics(
+                // BC37319: 'Public MustOverride Overloads Sub op_BitwiseOrAssignment(x As Integer)' requires compiler feature 'UserDefinedCompoundAssignmentOperators', which is not supported by this version of the Visual Basic compiler.
+                Diagnostic(37319 /*ERRID.ERR_UnsupportedCompilerFeature*/, opName).WithArguments("Public MustOverride Overloads Sub " + opName + @"(x As Integer)", "UserDefinedCompoundAssignmentOperators").WithLocation(5, 26)
+                );
         }
 
         // PROTOTYPE: Disable ORPA during overload resolution? 

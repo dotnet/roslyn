@@ -1010,10 +1010,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                      : IsValidReadOnlyTarget;
 
                 bool checkForRequiredMembers = this.ShouldCheckRequiredMembers() && this.ContainingType.HasAnyRequiredMembers;
+                bool isInstanceIncrementDecrementOrCompoundAssignmentOperator = SourceMethodSymbol.IsInstanceIncrementDecrementOrCompoundAssignmentOperator(this);
 
                 bool isExtensionMethod = false;
                 bool isReadOnly = false;
-                if (checkForExtension || checkForIsReadOnly || checkForRequiredMembers)
+                if (checkForExtension || checkForIsReadOnly || checkForRequiredMembers || isInstanceIncrementDecrementOrCompoundAssignmentOperator)
                 {
                     attributeData = containingPEModuleSymbol.GetCustomAttributesForToken(_handle,
                         filteredOutAttribute1: out CustomAttributeHandle extensionAttribute,
@@ -1021,7 +1022,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         filteredOutAttribute2: out CustomAttributeHandle isReadOnlyAttribute,
                         filterOut2: AttributeDescription.IsReadOnlyAttribute,
                         filteredOutAttribute3: out _,
-                        filterOut3: (checkForRequiredMembers && DeriveCompilerFeatureRequiredDiagnostic() is null) ? AttributeDescription.CompilerFeatureRequiredAttribute : default,
+                        filterOut3: ((checkForRequiredMembers || isInstanceIncrementDecrementOrCompoundAssignmentOperator) && DeriveCompilerFeatureRequiredDiagnostic() is null) ? AttributeDescription.CompilerFeatureRequiredAttribute : default,
                         filteredOutAttribute4: out _,
                         filterOut4: (checkForRequiredMembers && ObsoleteAttributeData is null) ? AttributeDescription.ObsoleteAttribute : default,
                         filteredOutAttribute5: out _,
@@ -1520,7 +1521,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             var containingModule = _containingType.ContainingPEModule;
             var decoder = new MetadataDecoder(containingModule, this);
-            var diag = PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(this, containingModule, Handle, allowedFeatures: MethodKind == MethodKind.Constructor ? CompilerFeatureRequiredFeatures.RequiredMembers : CompilerFeatureRequiredFeatures.None, decoder);
+            var diag = PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(
+                this, containingModule, Handle,
+                allowedFeatures: MethodKind == MethodKind.Constructor ?
+                    CompilerFeatureRequiredFeatures.RequiredMembers :
+                    (SourceMethodSymbol.IsInstanceIncrementDecrementOrCompoundAssignmentOperator(this) ?
+                        CompilerFeatureRequiredFeatures.UserDefinedCompoundAssignmentOperators :
+                        CompilerFeatureRequiredFeatures.None),
+                decoder);
 
             if (diag != null)
             {
