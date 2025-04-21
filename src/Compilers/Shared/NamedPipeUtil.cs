@@ -55,7 +55,6 @@ namespace Microsoft.CodeAnalysis
         {
             if (PlatformInformation.IsWindows)
             {
-#pragma warning disable CA1416 // Validate platform compatibility
                 var serverIdentity = getIdentity();
 
                 (string name, bool admin) clientIdentity = default;
@@ -72,7 +71,6 @@ namespace Microsoft.CodeAnalysis
                     var elevatedToAdmin = currentPrincipal.IsInRole(WindowsBuiltInRole.Administrator);
                     return (currentIdentity.Name, elevatedToAdmin);
                 }
-#pragma warning restore CA1416 // Validate platform compatibility
             }
 
             return true;

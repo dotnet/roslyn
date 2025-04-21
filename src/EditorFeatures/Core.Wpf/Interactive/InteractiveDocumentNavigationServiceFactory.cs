@@ -9,19 +9,18 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
 
-namespace Microsoft.CodeAnalysis.Interactive
+namespace Microsoft.CodeAnalysis.Interactive;
+
+[ExportWorkspaceServiceFactory(typeof(IDocumentNavigationService), [WorkspaceKind.Interactive]), Shared]
+internal sealed class InteractiveDocumentNavigationServiceFactory : IWorkspaceServiceFactory
 {
-    [ExportWorkspaceServiceFactory(typeof(IDocumentNavigationService), [WorkspaceKind.Interactive]), Shared]
-    internal sealed class InteractiveDocumentNavigationServiceFactory : IWorkspaceServiceFactory
-    {
-        private readonly IDocumentNavigationService _singleton;
+    private readonly IDocumentNavigationService _singleton;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InteractiveDocumentNavigationServiceFactory(IThreadingContext threadingContext)
-            => _singleton = new InteractiveDocumentNavigationService(threadingContext);
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public InteractiveDocumentNavigationServiceFactory(IThreadingContext threadingContext)
+        => _singleton = new InteractiveDocumentNavigationService(threadingContext);
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => _singleton;
-    }
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        => _singleton;
 }

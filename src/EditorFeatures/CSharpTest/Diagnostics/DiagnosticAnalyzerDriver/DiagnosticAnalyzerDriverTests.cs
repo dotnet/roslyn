@@ -26,7 +26,7 @@ using static Roslyn.Test.Utilities.TestBase;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnosticProviderEngine;
 
 [UseExportProvider]
-public class DiagnosticAnalyzerDriverTests
+public sealed class DiagnosticAnalyzerDriverTests
 {
     private static readonly TestComposition s_compositionWithMockDiagnosticUpdateSourceRegistrationService = EditorTestCompositions.EditorFeatures;
 
@@ -182,7 +182,7 @@ public class DiagnosticAnalyzerDriverTests
         diagnosticService.GetDiagnosticDescriptorsPerReference(new DiagnosticAnalyzerInfoCache());
     }
 
-    private class ThrowingDoNotCatchDiagnosticAnalyzer<TLanguageKindEnum> : ThrowingDiagnosticAnalyzer<TLanguageKindEnum>, IBuiltInAnalyzer where TLanguageKindEnum : struct
+    private sealed class ThrowingDoNotCatchDiagnosticAnalyzer<TLanguageKindEnum> : ThrowingDiagnosticAnalyzer<TLanguageKindEnum>, IBuiltInAnalyzer where TLanguageKindEnum : struct
     {
         public bool IsHighPriority => false;
 
@@ -209,7 +209,7 @@ public class DiagnosticAnalyzerDriverTests
         Assert.Equal(1, diagnosticsFromAnalyzer.Count());
     }
 
-    private class CompilationAnalyzerWithSyntaxTreeAnalyzer : DiagnosticAnalyzer
+    private sealed class CompilationAnalyzerWithSyntaxTreeAnalyzer : DiagnosticAnalyzer
     {
         private const string ID = "SyntaxDiagnostic";
 
@@ -230,7 +230,7 @@ public class DiagnosticAnalyzerDriverTests
         public void CreateAnalyzerWithinCompilation(CompilationStartAnalysisContext context)
             => context.RegisterSyntaxTreeAction(SyntaxTreeAnalyzer.AnalyzeSyntaxTree);
 
-        private class SyntaxTreeAnalyzer
+        private sealed class SyntaxTreeAnalyzer
         {
             public static void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
                 => context.ReportDiagnostic(Diagnostic.Create(s_syntaxDiagnosticDescriptor, context.Tree.GetRoot().GetFirstToken().GetLocation()));
@@ -283,7 +283,7 @@ public class DiagnosticAnalyzerDriverTests
         }
     }
 
-    private class CodeBlockAnalyzerFactory : DiagnosticAnalyzer
+    private sealed class CodeBlockAnalyzerFactory : DiagnosticAnalyzer
     {
         public static DiagnosticDescriptor Descriptor = DescriptorFactory.CreateSimpleDescriptor("DummyDiagnostic");
 
@@ -305,7 +305,7 @@ public class DiagnosticAnalyzerDriverTests
             context.RegisterSyntaxNodeAction(CodeBlockAnalyzer.AnalyzeNode, CodeBlockAnalyzer.SyntaxKindsOfInterest.ToArray());
         }
 
-        private class CodeBlockAnalyzer
+        private sealed class CodeBlockAnalyzer
         {
             public static ImmutableArray<SyntaxKind> SyntaxKindsOfInterest
             {
@@ -341,7 +341,7 @@ public class DiagnosticAnalyzerDriverTests
         AssertEx.Any(diagnostics, d => d.Id == DocumentAnalysisExecutor.AnalyzerExceptionDiagnosticId);
     }
 
-    private class InvalidSpanAnalyzer : DiagnosticAnalyzer
+    private sealed class InvalidSpanAnalyzer : DiagnosticAnalyzer
     {
         public static DiagnosticDescriptor Descriptor = DescriptorFactory.CreateSimpleDescriptor("DummyDiagnostic");
 

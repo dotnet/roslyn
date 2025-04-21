@@ -3311,9 +3311,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'collection expressions' and 'collection expressions'
+                // (6,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'collection expression' and 'collection expression'
                 //         var y = b ? [new int[0]] : [[1, 2, 3]];
-                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? [new int[0]] : [[1, 2, 3]]").WithArguments("collection expressions", "collection expressions").WithLocation(6, 17));
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? [new int[0]] : [[1, 2, 3]]").WithArguments("collection expression", "collection expression").WithLocation(6, 17));
         }
 
         [Fact]
@@ -3436,9 +3436,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(new[] { source, s_collectionExtensions });
             comp.VerifyEmitDiagnostics(
-                // 0.cs(9,29): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'collection expressions' and 'collection expressions'
+                // 0.cs(9,29): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'collection expression' and 'collection expression'
                 //         var a = AsArray([.. b ? [x] : [y]]);
-                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? [x] : [y]").WithArguments("collection expressions", "collection expressions").WithLocation(9, 29));
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? [x] : [y]").WithArguments("collection expression", "collection expression").WithLocation(9, 29));
         }
 
         [Fact]
@@ -9460,7 +9460,7 @@ static class Program
                 // (7,13): error CS9215: Collection expression type 'Dictionary<int, int>' must have an instance or extension method 'Add' that can be called with a single argument.
                 //         d = [3:4];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[3:4]").WithArguments("System.Collections.Generic.Dictionary<int, int>").WithLocation(7, 13),
-                // (7,14): error CS9300: Collection expression type 'Dictionary<int, int>' does not support key-value pair elements.
+                // (7,14): error CS9500: Collection expression type 'Dictionary<int, int>' does not support key-value pair elements.
                 //         d = [3:4];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "3:4").WithArguments("System.Collections.Generic.Dictionary<int, int>").WithLocation(7, 14),
                 // (7,15): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -9868,9 +9868,9 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,26): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'collection expressions' and 'collection expressions'
+                // (5,26): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'collection expression' and 'collection expression'
                 //         return [a, b, .. c ? [null] : []];
-                Diagnostic(ErrorCode.ERR_InvalidQM, "c ? [null] : []").WithArguments("collection expressions", "collection expressions").WithLocation(5, 26));
+                Diagnostic(ErrorCode.ERR_InvalidQM, "c ? [null] : []").WithArguments("collection expression", "collection expression").WithLocation(5, 26));
         }
 
         [Fact]
@@ -28406,9 +28406,9 @@ partial class Program
                 }
                 """;
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (7,9): error CS0019: Operator '+' cannot be applied to operands of type 'collection expressions' and 'List<int>'
+                // (7,9): error CS0019: Operator '+' cannot be applied to operands of type 'collection expression' and 'List<int>'
                 //         [] + list;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "[] + list").WithArguments("+", "collection expressions", "System.Collections.Generic.List<int>").WithLocation(7, 9),
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "[] + list").WithArguments("+", "collection expression", "System.Collections.Generic.List<int>").WithLocation(7, 9),
                 // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         [] + list;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "[] + list").WithLocation(7, 9));

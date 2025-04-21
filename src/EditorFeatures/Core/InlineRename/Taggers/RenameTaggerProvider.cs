@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 [TagType(typeof(ITextMarkerTag))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class RenameTaggerProvider(InlineRenameService renameService) : ITaggerProvider
+internal sealed class RenameTaggerProvider(InlineRenameService renameService) : ITaggerProvider
 {
     private readonly InlineRenameService _renameService = renameService;
 

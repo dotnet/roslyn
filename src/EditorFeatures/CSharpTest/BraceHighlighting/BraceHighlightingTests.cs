@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting;
 
 [Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
-public class BraceHighlightingTests : AbstractBraceHighlightingTests
+public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
 {
     protected override EditorTestWorkspace CreateWorkspace(string markup, ParseOptions options)
         => EditorTestWorkspace.CreateCSharp(markup, parseOptions: options);

@@ -17,7 +17,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 
 [UseExportProvider]
-public class CompletionProviderOrderTests
+public sealed class CompletionProviderOrderTests
 {
     /// <summary>
     /// Verifies the exact order of all built-in completion providers.

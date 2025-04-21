@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseTupleSwap;
 /// 
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpUseTupleSwapDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpUseTupleSwapDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
     public CSharpUseTupleSwapDiagnosticAnalyzer()
         : base(IDEDiagnosticIds.UseTupleSwapDiagnosticId,

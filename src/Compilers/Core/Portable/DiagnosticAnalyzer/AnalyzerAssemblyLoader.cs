@@ -145,6 +145,15 @@ namespace Microsoft.CodeAnalysis
             CheckIfDisposed();
 
             CompilerPathUtilities.RequireAbsolutePath(originalPath, nameof(originalPath));
+
+            lock (_guard)
+            {
+                if (_originalPathInfoMap.ContainsKey(originalPath))
+                {
+                    return;
+                }
+            }
+
             var simpleName = PathUtilities.GetFileName(originalPath, includeExtension: false);
             string resolvedPath = originalPath;
             IAnalyzerPathResolver? resolver = null;
@@ -400,6 +409,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<IAnalyzerAssemblyResolver> assemblyResolvers = default,
             System.Runtime.Loader.AssemblyLoadContext? compilerLoadContext = null)
         {
+            CodeAnalysisEventSource.Log.CreateNonLockingLoader(windowsShadowPath);
             pathResolvers = pathResolvers.NullToEmpty();
             assemblyResolvers = assemblyResolvers.NullToEmpty();
 
@@ -439,6 +449,7 @@ namespace Microsoft.CodeAnalysis
             string windowsShadowPath,
             ImmutableArray<IAnalyzerPathResolver> pathResolvers = default)
         {
+            CodeAnalysisEventSource.Log.CreateNonLockingLoader(windowsShadowPath);
             pathResolvers = pathResolvers.NullToEmpty();
 
             // The goal here is to avoid locking files on disk that are reasonably expected to be changed by 

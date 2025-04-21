@@ -94,6 +94,7 @@
          ChecksumAlgorithm="$(ChecksumAlgorithm)"
          CodeAnalysisRuleSet="$(ResolvedCodeAnalysisRuleSet)"
          CodePage="$(CodePage)"
+         CompilerType="$(RoslynCompilerType)"
          DebugType="$(DebugType)"
          DefineConstants="$(DefineConstants)"
          DelaySign="$(DelaySign)"
@@ -198,5 +199,7 @@
     <CommandLineArgsForDesignTimeEvaluation>-langversion:$(LangVersion)</CommandLineArgsForDesignTimeEvaluation>
     <CommandLineArgsForDesignTimeEvaluation Condition="'$(ChecksumAlgorithm)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -checksumalgorithm:$(ChecksumAlgorithm)</CommandLineArgsForDesignTimeEvaluation>
     <CommandLineArgsForDesignTimeEvaluation Condition="'$(DefineConstants)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -define:$(DefineConstants)</CommandLineArgsForDesignTimeEvaluation>
+    <CommandLineArgsForDesignTimeEvaluation Condition="'$(Features)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -features:$(Features)</CommandLineArgsForDesignTimeEvaluation>
+    <CommandLineArgsForDesignTimeEvaluation Condition="'$(DocumentationFile)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -doc:"$(DocumentationFile)"</CommandLineArgsForDesignTimeEvaluation>
   </PropertyGroup>
 </Project>

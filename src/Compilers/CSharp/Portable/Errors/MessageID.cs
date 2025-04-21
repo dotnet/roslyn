@@ -301,8 +301,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeaturePartialEventsAndConstructors = MessageBase + 12852,
         IDS_FeatureExtensions = MessageBase + 12853,
         IDS_FeatureNullConditionalAssignment = MessageBase + 12854,
-        IDS_FeatureDictionaryExpressions = MessageBase + 12855,
-        IDS_FeatureCollectionExpressionArguments = MessageBase + 12856,
+        IDS_FeatureExpressionOptionalAndNamedArguments = MessageBase + 12855,
+        IDS_CollectionExpression = MessageBase + 12856,
+        IDS_FeatureDictionaryExpressions = MessageBase + 12857,
+        IDS_FeatureCollectionExpressionArguments = MessageBase + 12858,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -490,6 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeaturePartialEventsAndConstructors:
                 case MessageID.IDS_FeatureExtensions:
                 case MessageID.IDS_FeatureNullConditionalAssignment:
+                case MessageID.IDS_FeatureExpressionOptionalAndNamedArguments:
                 case MessageID.IDS_FeatureDictionaryExpressions: // semantic check
                 case MessageID.IDS_FeatureCollectionExpressionArguments:
                     return LanguageVersion.Preview;

@@ -9,7 +9,7 @@ using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-internal class ClientLanguageServerManager : IClientLanguageServerManager
+internal sealed class ClientLanguageServerManager : IClientLanguageServerManager
 {
     private readonly JsonRpc _jsonRpc;
 

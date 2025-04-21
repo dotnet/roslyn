@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.ViewModel;
 
-internal partial class AnalyzerSettingsViewModel : SettingsViewModelBase<
+internal sealed partial class AnalyzerSettingsViewModel : SettingsViewModelBase<
     AnalyzerSetting,
     AnalyzerSettingsViewModel.SettingsSnapshotFactory,
     AnalyzerSettingsViewModel.SettingsEntriesSnapshot>

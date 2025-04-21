@@ -16,7 +16,7 @@ using System.Text.Json.Serialization;
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
 [Kind(DocumentDiagnosticReportKind.Unchanged)]
-internal class RelatedUnchangedDocumentDiagnosticReport : UnchangedDocumentDiagnosticReport
+internal sealed class RelatedUnchangedDocumentDiagnosticReport : UnchangedDocumentDiagnosticReport
 {
     /// <summary>
     /// Diagnostics of related documents.

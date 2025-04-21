@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
 /// View model used to represent and display the inheritance graph as a tree. This tree is constructed by breadth first searching.
 /// If one type is the common base type of several other types, it will be showed multiple time.
 /// </summary>
-internal class BaseTypeTreeNodeViewModel : SymbolViewModel<INamedTypeSymbol>
+internal sealed class BaseTypeTreeNodeViewModel : SymbolViewModel<INamedTypeSymbol>
 {
     /// <summary>
     /// Base types of this tree node

@@ -13,7 +13,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast;
 
-public class RemoveUnnecessaryCastTests_FixAllTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class RemoveUnnecessaryCastTests_FixAllTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
     public RemoveUnnecessaryCastTests_FixAllTests(ITestOutputHelper logger)
         : base(logger)

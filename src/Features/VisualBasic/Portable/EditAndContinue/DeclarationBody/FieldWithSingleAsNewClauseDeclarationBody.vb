@@ -18,6 +18,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             _variableDeclarator = variableDeclarator
         End Sub
 
+        Private ReadOnly Property NewExpression As SyntaxNode
+            Get
+                Return DirectCast(_variableDeclarator.AsClause, AsNewClauseSyntax).NewExpression
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property InitializerActiveStatement As SyntaxNode
             Get
                 Return _variableDeclarator
@@ -26,8 +32,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
         Public Overrides ReadOnly Property OtherActiveStatementContainer As SyntaxNode
             Get
-                Return DirectCast(_variableDeclarator.AsClause, AsNewClauseSyntax).NewExpression
+                Return NewExpression
             End Get
         End Property
+
+        Public Overrides Function GetUserCodeTokens(getDescendantTokens As Func(Of SyntaxNode, IEnumerable(Of SyntaxToken))) As IEnumerable(Of SyntaxToken)
+            Return getDescendantTokens(NewExpression)
+        End Function
     End Class
 End Namespace

@@ -14,11 +14,9 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Threading;
-using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Threading;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.CodeAnalysis.ColorSchemes;
@@ -42,7 +40,6 @@ internal sealed partial class ColorSchemeApplier
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public ColorSchemeApplier(
         IThreadingContext threadingContext,
-        IVsService<SVsFontAndColorStorage, IVsFontAndColorStorage> fontAndColorStorage,
         IGlobalOptionService globalOptions,
         SVsServiceProvider serviceProvider,
         IAsynchronousOperationListenerProvider listenerProvider)
@@ -60,7 +57,7 @@ internal sealed partial class ColorSchemeApplier
             threadingContext.DisposalToken);
     }
 
-    public async Task InitializeAsync(CancellationToken cancellationToken)
+    public void RegisterInitializationWork(PackageLoadTasks packageInitializationTasks)
     {
         lock (_gate)
         {
@@ -70,14 +67,15 @@ internal sealed partial class ColorSchemeApplier
             _isInitialized = true;
         }
 
+        packageInitializationTasks.AddTask(isMainThreadTask: false, task: AfterPackageLoadedBackgroundThreadAsync);
+    }
+
+    private async Task AfterPackageLoadedBackgroundThreadAsync(PackageLoadTasks afterPackageLoadedTasks, CancellationToken cancellationToken)
+    {
+        var settingsManager = await _asyncServiceProvider.GetServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>(cancellationToken).ConfigureAwait(false);
+
         // We need to update the theme whenever the Editor Color Scheme setting changes.
-        await TaskScheduler.Default;
-        var settingsManager = await _asyncServiceProvider.GetServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
-
-        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         settingsManager.GetSubset(ColorSchemeOptionsStorage.ColorSchemeSettingKey).SettingChangedAsync += ColorSchemeChangedAsync;
-
-        await TaskScheduler.Default;
 
         // Try to migrate the `useEnhancedColorsSetting` to the new `ColorSchemeName` setting.
         _settings.MigrateToColorSchemeSetting();
@@ -137,5 +135,5 @@ internal sealed partial class ColorSchemeApplier
 
     // NOTE: This service is not public or intended for use by teams/individuals outside of Microsoft. Any data stored is subject to deletion without warning.
     [Guid("9B164E40-C3A2-4363-9BC5-EB4039DEF653")]
-    private class SVsSettingsPersistenceManager { }
+    private sealed class SVsSettingsPersistenceManager { }
 }
