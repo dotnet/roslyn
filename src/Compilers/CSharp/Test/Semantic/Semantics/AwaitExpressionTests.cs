@@ -120,6 +120,85 @@ class C
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/76999")]
+        public void TestAwaitHoistedRef()
+        {
+            var src = """
+                using System.Threading.Tasks;
+
+                public sealed class Foo<T>
+                {
+                    private T _t;
+                    public ref T Get() => ref _t;
+                }
+
+                #nullable enable
+                public static class Foo
+                {
+                    public static void Bar<T>()
+                    {
+                        var res = new Foo<T?>();
+                        M().Wait();
+                        async Task M()
+                        {
+                            res.Get() = await Task.FromResult(default(T?));
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (18,13): error CS8178: A reference returned by a call to 'Foo<T?>.Get()' cannot be preserved across 'await' or 'yield' boundary.
+                //             res.Get() = await Task.FromResult(default(T?));
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "res.Get()").WithArguments("Foo<T?>.Get()").WithLocation(18, 13)
+            );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/76999")]
+        public void TestAwaitHoistedRef2()
+        {
+            var src = """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+                using System.Threading.Tasks;
+
+                public sealed class Foo<T>
+                {
+                	private readonly T[] _values = new T[10];
+
+                	public ref T this[int type] => ref _values[type];
+                }
+
+                public static class Foo
+                {
+                	public static async Task<Foo<TResult>> Bar<TResult>()
+                	{
+                		var res = new Foo<TResult>();
+
+                		var taskGroup = new List<KeyValuePair<int, Task<TResult>>>();
+
+                		await Task.WhenAll(taskGroup.Select(async kv =>
+                		{
+                			res[0] = await kv.Value;
+                		}));
+
+                		return res;
+                	}
+                }
+                """;
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (23,4): error CS8178: A reference returned by a call to 'Foo<TResult>.this[int].get' cannot be preserved across 'await' or 'yield' boundary.
+                // 			res[0] = await kv.Value;
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "res[0]").WithArguments("Foo<TResult>.this[int].get").WithLocation(23, 4)
+            );
+        }
+
+        [Fact]
         [WorkItem(1084696, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084696")]
         public void TestAwaitInfo2()
         {
