@@ -948,6 +948,48 @@ public static class Extensions
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78222")]
+    public void ExtensionInInterface()
+    {
+        var src = """
+interface IInterface
+{
+    extension(object)
+    {
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //     extension(object)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 5)
+        );
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78222")]
+    public void ExtensionInInterfaceWithVariance()
+    {
+        var src = """
+interface IInterface<in T>
+{
+    extension(object)
+    {
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //     extension(object)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 5)
+        );
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78135")]
     public void ExtensionWithCapturing()
     {
