@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.StackAllocInitializer)]
-    public class CodeGenStackAllocInitializerTests : CompilingTestBase
+    public class CodeGenStackAllocInitializerTests() : CompilingTestBase(TargetFramework.NetStandard20)
     {
         [Fact]
         [WorkItem(29092, "https://github.com/dotnet/roslyn/issues/29092")]

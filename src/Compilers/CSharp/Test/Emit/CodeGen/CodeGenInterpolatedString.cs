@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class InterpolatedStringTests : CSharpTestBase
+    public class InterpolatedStringTests() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         [Fact, WorkItem(33713, "https://github.com/dotnet/roslyn/issues/33713")]
         public void AlternateVerbatimString()

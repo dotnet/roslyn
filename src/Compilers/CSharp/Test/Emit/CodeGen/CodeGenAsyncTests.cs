@@ -5930,7 +5930,7 @@ public class C {
     }
 }
 ";
-            var comp = base.CreateCompilation(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilationWithNetStandard(source, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp);
             verifier.VerifyMethodBody("C.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"

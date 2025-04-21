@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class CodeGenShortCircuitOperatorTests : CSharpTestBase
+    public class CodeGenShortCircuitOperatorTests() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         [Fact]
         public void TestShortCircuitAnd()

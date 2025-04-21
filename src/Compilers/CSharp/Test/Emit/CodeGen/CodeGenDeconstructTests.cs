@@ -17,7 +17,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     [CompilerTrait(CompilerFeature.Tuples)]
-    public class CodeGenDeconstructTests : CSharpTestBase
+    public class CodeGenDeconstructTests() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         private static readonly MetadataReference[] s_valueTupleRefs = new[] { SystemRuntimeFacadeRef, ValueTupleRef };
 

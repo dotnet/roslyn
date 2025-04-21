@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class CodeGenConversionTests : CSharpTestBase
+    public class CodeGenConversionTests() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         [Fact]
         public void ExplicitConversionRuntimeGrabbag()

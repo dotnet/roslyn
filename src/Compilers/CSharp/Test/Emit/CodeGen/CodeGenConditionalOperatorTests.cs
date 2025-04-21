@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class CodeGenConditionalOperatorTests : CSharpTestBase
+    public class CodeGenConditionalOperatorTests() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         [Fact, WorkItem(61483, "https://github.com/dotnet/roslyn/issues/61483")]
         public void Branchless_Compare()

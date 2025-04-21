@@ -1148,7 +1148,7 @@ unsafe class C
             // note: we could make the synthesized constructor smarter and realize that
             // nothing needs to be emitted for the `(void*)0` initializer.
             // but it doesn't serve any realistic scenarios at this time.
-            CompileAndVerify(source, options: TestOptions.UnsafeDebugDll, verify: Verification.Skipped).VerifyIL("C..cctor()", @"
+            CompileAndVerifyWithNetStandard(source, options: TestOptions.UnsafeDebugDll, verify: Verification.Skipped).VerifyIL("C..cctor()", @"
 {
   // Code size       31 (0x1f)
   .maxstack  1

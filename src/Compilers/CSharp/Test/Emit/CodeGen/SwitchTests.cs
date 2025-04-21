@@ -15,7 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class SwitchTests : EmitMetadataTestBase
+    public class SwitchTests() : EmitMetadataTestBase(TargetFramework.NetStandard20)
     {
         #region Functionality tests
 

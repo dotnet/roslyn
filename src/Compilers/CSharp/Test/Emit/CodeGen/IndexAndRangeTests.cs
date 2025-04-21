@@ -15,7 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class IndexAndRangeTests : CSharpTestBase
+    public class IndexAndRangeTests() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         private CompilationVerifier CompileAndVerifyWithIndexAndRange(string s, string expectedOutput = null)
         {

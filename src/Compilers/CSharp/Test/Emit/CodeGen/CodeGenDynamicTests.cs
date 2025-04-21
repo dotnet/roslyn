@@ -19,7 +19,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class CodeGen_DynamicTests : CSharpTestBase
+    public class CodeGen_DynamicTests() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         #region Helpers
 

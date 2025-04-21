@@ -5413,7 +5413,7 @@ class C4
         return d(ref o, 2);
     }
 }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.ReleaseDll, references: new[] { CSharpRef });
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.ReleaseDll);
             var bytes = compilation.EmitToArray();
             using (var metadata = ModuleMetadata.CreateFromImage(bytes))
             {

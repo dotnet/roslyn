@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class ObjectAndCollectionInitializerTests : EmitMetadataTestBase
+    public class ObjectAndCollectionInitializerTests() : EmitMetadataTestBase(TargetFramework.NetStandard20)
     {
         #region "Object Initializer Tests"
 

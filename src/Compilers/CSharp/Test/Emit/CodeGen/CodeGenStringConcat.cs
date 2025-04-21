@@ -1293,7 +1293,7 @@ public class Test
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"abcdefbye");
+            var comp = CompileAndVerifyWithNetStandard(source, expectedOutput: @"abcdefbye");
 
             comp.VerifyDiagnostics();
 
@@ -1749,7 +1749,7 @@ public class Test
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"a1
+            var comp = CompileAndVerifyWithNetStandard(source, expectedOutput: @"a1
 2b
 c3
 4d

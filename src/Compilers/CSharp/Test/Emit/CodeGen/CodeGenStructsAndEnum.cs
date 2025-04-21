@@ -2283,7 +2283,7 @@ public class Test
 
 ";
 
-            var compilation = CompileAndVerify(source);
+            var compilation = CompileAndVerifyWithNetStandard(source);
 
             compilation.VerifyIL("NullableTest.EqualEqual",
 @"

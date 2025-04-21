@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class CompoundAssignmentForDelegate : EmitMetadataTestBase
+    public class CompoundAssignmentForDelegate() : EmitMetadataTestBase(TargetFramework.NetStandard20)
     {
         // The method to removal or concatenation with 'optional' parameter
         [Fact]

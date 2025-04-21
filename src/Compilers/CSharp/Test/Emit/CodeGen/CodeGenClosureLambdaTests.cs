@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class CodeGenClosureLambdaTests : CSharpTestBase
+    public class CodeGenClosureLambdaTests() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         [Fact]
         public void LambdaInIndexerAndBinaryOperator()

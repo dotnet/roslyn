@@ -901,7 +901,7 @@ class C
         checked { return s++; }
     }
 }";
-            var verifier = CompileAndVerify(source);
+            var verifier = CompileAndVerifyWithNetStandard(source);
 
             verifier.VerifyIL("C.PostIncUserDefined", @"
 {

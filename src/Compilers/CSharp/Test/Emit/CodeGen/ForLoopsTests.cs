@@ -1543,7 +1543,7 @@ public class myFor
     }
 }
 ";
-            CompileAndVerify(text, references: new MetadataReference[] { CSharpRef }, expectedOutput: @"Initialize
+            CompileAndVerify(text, expectedOutput: @"Initialize
 Done
 Next
 Done

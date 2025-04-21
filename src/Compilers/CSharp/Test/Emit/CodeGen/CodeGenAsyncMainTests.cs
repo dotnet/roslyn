@@ -2061,7 +2061,7 @@ class Program
         await Task.Delay(0);
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithNetStandard(source, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),

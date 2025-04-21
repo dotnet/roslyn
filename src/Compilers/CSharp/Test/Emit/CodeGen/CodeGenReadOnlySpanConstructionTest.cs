@@ -15,7 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class CodeGenReadOnlySpanConstructionTest : CSharpTestBase
+    public class CodeGenReadOnlySpanConstructionTest() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         private const string RuntimeHelpersCreateSpan = @"
 namespace System.Runtime.CompilerServices

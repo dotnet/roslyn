@@ -17,7 +17,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class FixedSizeBufferTests : EmitMetadataTestBase
+    public class FixedSizeBufferTests() : EmitMetadataTestBase(TargetFramework.NetStandard20)
     {
         [Fact]
         [WorkItem(26351, "https://github.com/dotnet/roslyn/pull/26351")]

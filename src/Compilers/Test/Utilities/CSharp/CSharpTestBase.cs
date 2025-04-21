@@ -1252,6 +1252,22 @@ namespace System.Diagnostics.CodeAnalysis
                 parseOptions,
                 appendDefaultHeader);
 
+        public static CSharpCompilation CreateCompilationWithILAndNetStandard(
+            CSharpTestSource source,
+            string ilSource,
+            IEnumerable<MetadataReference>? references = null,
+            CSharpCompilationOptions? options = null,
+            CSharpParseOptions? parseOptions = null,
+            bool appendDefaultHeader = true) =>
+            CreateCompilationWithIL(
+                source,
+                ilSource,
+                TargetFramework.NetStandard20,
+                references,
+                options,
+                parseOptions,
+                appendDefaultHeader);
+
         public CSharpCompilation CreateCompilationWithIL(
             CSharpTestSource source,
             string ilSource,

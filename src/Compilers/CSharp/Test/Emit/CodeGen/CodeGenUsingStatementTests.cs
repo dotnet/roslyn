@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class UsingStatementTests : EmitMetadataTestBase
+    public class UsingStatementTests() : EmitMetadataTestBase(TargetFramework.NetStandard20)
     {
         #region "From UsingStatementTests"
         private const string DisposableClass = @"

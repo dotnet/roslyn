@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-    public class CodeGenInParametersTests : CompilingTestBase
+    public class CodeGenInParametersTests() : CompilingTestBase(TargetFramework.NetStandard20)
     {
         [Fact]
         public void ThreeParamReorder()

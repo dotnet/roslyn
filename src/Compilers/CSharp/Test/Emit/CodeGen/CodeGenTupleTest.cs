@@ -27,7 +27,7 @@ using static TestResources.NetFX.ValueTuple;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     [CompilerTrait(CompilerFeature.Tuples)]
-    public class CodeGenTupleTests : CSharpTestBase
+    public class CodeGenTupleTests() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         private static readonly MetadataReference[] s_valueTupleRefs = new[] { SystemRuntimeFacadeRef, ValueTupleRef };
 

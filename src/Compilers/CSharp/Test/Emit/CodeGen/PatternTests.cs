@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class PatternTests : EmitMetadataTestBase
+    public class PatternTests() : EmitMetadataTestBase(TargetFramework.NetStandard20)
     {
         #region Miscellaneous
 

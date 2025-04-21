@@ -909,7 +909,7 @@ public class Program
 }
 ";
 
-            CompileAndVerify(
+            CompileAndVerifyWithNetStandard(
                 source,
                 expectedOutput: "TrueTrueTrueTrueTrueTrueTrueTrueTrue");
         }
