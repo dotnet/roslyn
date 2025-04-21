@@ -1212,8 +1212,14 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
             }
 
             // The document wasn't open in a normal way, so invisible editor time
-            using var invisibleEditor = OpenInvisibleEditor(documentId);
-            TextEditApplication.UpdateText(newText, invisibleEditor.TextBuffer, EditOptions.None);
+            try
+            {
+                using var invisibleEditor = OpenInvisibleEditor(documentId);
+                TextEditApplication.UpdateText(newText, invisibleEditor.TextBuffer, EditOptions.None);
+            }
+            catch (System.Runtime.InteropServices.COMException ex) when (FatalError.ReportAndCatch(ex))
+            {
+            }
         }
     }
 
