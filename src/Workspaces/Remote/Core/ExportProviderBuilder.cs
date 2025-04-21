@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -21,8 +22,7 @@ internal abstract class ExportProviderBuilder(
     ImmutableArray<string> assemblyPaths,
     Resolver resolver,
     string cacheDirectory,
-    string catalogPrefix,
-    ImmutableArray<string> expectedErrorParts)
+    string catalogPrefix)
 {
     private const string CatalogSuffix = ".mef-composition";
 
@@ -30,7 +30,6 @@ internal abstract class ExportProviderBuilder(
     protected Resolver Resolver { get; } = resolver;
     protected string CacheDirectory { get; } = cacheDirectory;
     protected string CatalogPrefix { get; } = catalogPrefix;
-    protected ImmutableArray<string> ExpectedErrorParts { get; } = expectedErrorParts;
 
     protected abstract void LogError(string message);
     protected abstract void LogTrace(string message);
@@ -89,8 +88,7 @@ internal abstract class ExportProviderBuilder(
 
         // Verify we only have expected errors.
 
-        // TODO: UNCOMMENT THIS AFTER RAZOR EA ISSUE IS ADDRESSED
-        //ThrowOnUnexpectedErrors(config, catalog);
+        ThrowOnUnexpectedErrors(config, catalog);
 
         // Try to cache the composition.
         _ = WriteCompositionCacheAsync(compositionCacheFile, config, cancellationToken).ReportNonFatalErrorAsync();
@@ -175,26 +173,26 @@ internal abstract class ExportProviderBuilder(
         }
     }
 
-    //private void ThrowOnUnexpectedErrors(CompositionConfiguration configuration, ComposableCatalog catalog)
-    //{
-    //    // Verify that we have exactly the MEF errors that we expect.  If we have less or more this needs to be updated to assert the expected behavior.
-    //    var erroredParts = configuration.CompositionErrors.FirstOrDefault()?.SelectMany(error => error.Parts).Select(part => part.Definition.Type.Name) ?? [];
-    //    var expectedErrorPartsSet = ExpectedErrorParts.ToSet();
-    //    var hasUnexpectedErroredParts = erroredParts.Any(part => !expectedErrorPartsSet.Contains(part));
+    protected abstract bool ContainsUnexpectedErrors(IEnumerable<string> erroredParts, ImmutableList<PartDiscoveryException> partDiscoveryExceptions);
 
-    //    if (hasUnexpectedErroredParts || !catalog.DiscoveredParts.DiscoveryErrors.IsEmpty)
-    //    {
-    //        try
-    //        {
-    //            catalog.DiscoveredParts.ThrowOnErrors();
-    //            configuration.ThrowOnErrors();
-    //        }
-    //        catch (CompositionFailedException ex)
-    //        {
-    //            // The ToString for the composition failed exception doesn't output a nice set of errors by default, so log it separately
-    //            LogError($"Encountered errors in the MEF composition:{Environment.NewLine}{ex.ErrorsAsString}");
-    //            throw;
-    //        }
-    //    }
-    //}
+    private void ThrowOnUnexpectedErrors(CompositionConfiguration configuration, ComposableCatalog catalog)
+    {
+        // Verify that we have exactly the MEF errors that we expect.  If we have less or more this needs to be updated to assert the expected behavior.
+        var erroredParts = configuration.CompositionErrors.FirstOrDefault()?.SelectMany(error => error.Parts).Select(part => part.Definition.Type.Name) ?? [];
+
+        if (ContainsUnexpectedErrors(erroredParts, catalog.DiscoveredParts.DiscoveryErrors))
+        {
+            try
+            {
+                catalog.DiscoveredParts.ThrowOnErrors();
+                configuration.ThrowOnErrors();
+            }
+            catch (CompositionFailedException ex)
+            {
+                // The ToString for the composition failed exception doesn't output a nice set of errors by default, so log it separately
+                LogError($"Encountered errors in the MEF composition:{Environment.NewLine}{ex.ErrorsAsString}");
+                throw;
+            }
+        }
+    }
 }

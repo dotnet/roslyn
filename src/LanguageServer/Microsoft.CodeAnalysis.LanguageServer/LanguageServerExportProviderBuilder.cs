@@ -24,9 +24,8 @@ internal sealed class LanguageServerExportProviderBuilder : ExportProviderBuilde
         Resolver resolver,
         string cacheDirectory,
         string catalogPrefix,
-        ImmutableArray<string> expectedErrorParts,
         ILoggerFactory loggerFactory)
-        : base(assemblyPaths, resolver, cacheDirectory, catalogPrefix, expectedErrorParts)
+        : base(assemblyPaths, resolver, cacheDirectory, catalogPrefix)
     {
         _logger = loggerFactory.CreateLogger<ExportProviderBuilder>();
     }
@@ -61,7 +60,6 @@ internal sealed class LanguageServerExportProviderBuilder : ExportProviderBuilde
             new Resolver(assemblyLoader),
             cacheDirectory,
             catalogPrefix: "c#-languageserver",
-            expectedErrorParts: ["CSharpMapCodeService", "PythiaSignatureHelpProvider", "CopilotSemanticSearchQueryExecutor"],
             loggerFactory);
         var exportProvider = await builder.CreateExportProviderAsync(cancellationToken);
 
@@ -87,6 +85,15 @@ internal sealed class LanguageServerExportProviderBuilder : ExportProviderBuilde
         s_cacheWriteTask = null;
 
         return base.CreateExportProviderAsync(cancellationToken);
+    }
+
+    protected override bool ContainsUnexpectedErrors(IEnumerable<string> erroredParts, ImmutableList<PartDiscoveryException> partDiscoveryExceptions)
+    {
+        // Verify that we have exactly the MEF errors that we expect.  If we have less or more this needs to be updated to assert the expected behavior.
+        var expectedErrorPartsSet = new HashSet<string>(["CSharpMapCodeService", "PythiaSignatureHelpProvider", "CopilotSemanticSearchQueryExecutor"]);
+        var hasUnexpectedErroredParts = erroredParts.Any(part => !expectedErrorPartsSet.Contains(part));
+
+        return hasUnexpectedErroredParts || !partDiscoveryExceptions.IsEmpty;
     }
 
     protected override Task WriteCompositionCacheAsync(string compositionCacheFile, CompositionConfiguration config, CancellationToken cancellationToken)
