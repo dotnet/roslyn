@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.WarningDialog;
 
-internal class PullMemberUpWarningViewModel : AbstractNotifyPropertyChanged
+internal sealed class PullMemberUpWarningViewModel : AbstractNotifyPropertyChanged
 {
     public ImmutableArray<string> WarningMessageContainer { get; set; }
     public string ProblemsListViewAutomationText => ServicesVSResources.Review_Changes;

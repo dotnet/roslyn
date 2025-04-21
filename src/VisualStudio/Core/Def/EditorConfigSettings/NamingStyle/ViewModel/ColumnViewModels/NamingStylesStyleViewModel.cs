@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.ViewModel;
 
-internal class NamingStylesStyleViewModel : NotifyPropertyChangedBase
+internal sealed class NamingStylesStyleViewModel : NotifyPropertyChangedBase
 {
     private readonly NamingStyleSetting _setting;
     private string _selectedStyleValue;

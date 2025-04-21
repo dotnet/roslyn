@@ -8,12 +8,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.InlineHints
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.InlineHints;
+
+/// <inheritdoc cref="IInlineHintsService"/>
+internal interface IFSharpInlineHintsService
 {
-    /// <inheritdoc cref="IInlineHintsService"/>
-    internal interface IFSharpInlineHintsService
-    {
-        /// <inheritdoc cref="IInlineHintsService.GetInlineHintsAsync"/>
-        Task<ImmutableArray<FSharpInlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
-    }
+    /// <inheritdoc cref="IInlineHintsService.GetInlineHintsAsync"/>
+    Task<ImmutableArray<FSharpInlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
 }

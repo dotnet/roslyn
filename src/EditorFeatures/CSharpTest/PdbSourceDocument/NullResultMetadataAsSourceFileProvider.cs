@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument;
 /// </summary>
 [ExportMetadataAsSourceFileProvider("Dummy"), Shared]
 [ExtensionOrder(After = PdbSourceDocumentMetadataAsSourceFileProvider.ProviderName)]
-internal class NullResultMetadataAsSourceFileProvider : IMetadataAsSourceFileProvider
+internal sealed class NullResultMetadataAsSourceFileProvider : IMetadataAsSourceFileProvider
 {
     // Represents a null result
     public static MetadataAsSourceFile NullResult = new("", null!, null!, null!);

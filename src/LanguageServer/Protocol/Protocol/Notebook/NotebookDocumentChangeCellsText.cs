@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal class NotebookDocumentChangeCellsText
+internal sealed class NotebookDocumentChangeCellsText
 {
     /// <summary>
     /// Identifier for the document representing the cell

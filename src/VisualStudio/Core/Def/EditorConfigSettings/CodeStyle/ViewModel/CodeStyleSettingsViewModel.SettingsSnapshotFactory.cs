@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.ViewModel;
 
-internal partial class CodeStyleSettingsViewModel
+internal sealed partial class CodeStyleSettingsViewModel
 {
     internal sealed class SettingsSnapshotFactory : SettingsSnapshotFactoryBase<CodeStyleSetting, SettingsEntriesSnapshot>
     {

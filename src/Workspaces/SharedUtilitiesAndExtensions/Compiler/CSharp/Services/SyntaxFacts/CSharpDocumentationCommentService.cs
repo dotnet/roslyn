@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.CSharp.LanguageService;
 
-internal class CSharpDocumentationCommentService : AbstractDocumentationCommentService<
+internal sealed class CSharpDocumentationCommentService : AbstractDocumentationCommentService<
     DocumentationCommentTriviaSyntax,
     XmlNodeSyntax,
     XmlAttributeSyntax,

@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
@@ -28,7 +30,10 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
 
     protected abstract bool CanImplementImplicitly { get; }
     protected abstract bool HasHiddenExplicitImplementation { get; }
-    protected abstract bool TryInitializeState(Document document, SemanticModel model, SyntaxNode interfaceNode, CancellationToken cancellationToken, out SyntaxNode classOrStructDecl, out INamedTypeSymbol classOrStructType, out ImmutableArray<INamedTypeSymbol> interfaceTypes);
+    protected abstract bool TryInitializeState(Document document, SemanticModel model, SyntaxNode interfaceNode, CancellationToken cancellationToken,
+        [NotNullWhen(true)] out SyntaxNode? classOrStructDecl,
+        [NotNullWhen(true)] out INamedTypeSymbol? classOrStructType,
+        out ImmutableArray<INamedTypeSymbol> interfaceTypes);
     protected abstract bool AllowDelegateAndEnumConstraints(ParseOptions options);
 
     protected abstract SyntaxNode AddCommentInsideIfStatement(SyntaxNode ifDisposingStatement, SyntaxTriviaList trivia);
@@ -70,7 +75,7 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
         => node.WithPrependedLeadingTrivia(CreateCommentTrivia(comments));
 
     protected SyntaxTriviaList CreateCommentTrivia(
-        params string[] comments)
+        params ReadOnlySpan<string> comments)
     {
         using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var trivia);
 

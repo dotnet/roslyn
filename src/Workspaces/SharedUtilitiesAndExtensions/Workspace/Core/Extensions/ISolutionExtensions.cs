@@ -52,17 +52,40 @@ internal static partial class ISolutionExtensions
             throw new ArgumentNullException(nameof(documentId));
 
 #if !CODE_STYLE
-        // If we get a source-generated DocumentId, we can give a different exception to make it clear the type of failure this is; otherwise a failure of
-        // this in the wild is hard to guess whether this is because of a logic bug in the feature (where it tried to use a DocumentId for a document that disappeared)
-        // or whether it hasn't been correctly updated to handle source generated files.
         if (documentId.IsSourceGenerated)
+        {
+            // If we get a source-generated DocumentId, we can give a different exception to make it clear the type of failure this is; otherwise a failure of
+            // this in the wild is hard to guess whether this is because of a logic bug in the feature (where it tried to use a DocumentId for a document that disappeared)
+            // or whether it hasn't been correctly updated to handle source generated files.
             throw new ArgumentException($"{nameof(GetRequiredDocument)} was given a source-generated DocumentId, but it will never return a source generated document. The caller needs to be calling some other method.");
+        }
 #endif
 
         return solution.GetDocument(documentId) ?? throw CreateDocumentNotFoundException();
     }
 
 #if !CODE_STYLE
+    /// <summary>
+    /// Returns the <see cref="SourceGeneratedDocument"/> for the given <see cref="DocumentId"/> if it exists and has been generated.
+    /// </summary>
+    /// <remarks>
+    /// This method is intended to be called on generated document that are "frozen", and hence there is a 100% guarantee that their content
+    /// is available. If the document is not generated, or if it is not frozen, there is an inherent race condition that could cause this method
+    /// to throw an exception at essentially random times.
+    /// </remarks>
+    public static SourceGeneratedDocument GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(this Solution solution, DocumentId documentId)
+    {
+        if (documentId is null)
+            throw new ArgumentNullException(nameof(documentId));
+
+        var project = solution.GetRequiredProject(documentId.ProjectId);
+        var sourceGeneratedDocument = project.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId);
+        if (sourceGeneratedDocument == null)
+            throw CreateDocumentNotFoundException();
+
+        return sourceGeneratedDocument;
+    }
+
     public static async ValueTask<Document> GetRequiredDocumentAsync(this Solution solution, DocumentId documentId, bool includeSourceGenerated = false, CancellationToken cancellationToken = default)
         => (await solution.GetDocumentAsync(documentId, includeSourceGenerated, cancellationToken).ConfigureAwait(false)) ?? throw CreateDocumentNotFoundException();
 

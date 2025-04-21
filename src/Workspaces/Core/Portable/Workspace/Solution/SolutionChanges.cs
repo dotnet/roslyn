@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -79,5 +82,32 @@ public readonly struct SolutionChanges
                 yield return analyzerReference;
             }
         }
+    }
+
+    /// <summary>
+    /// Gets changed source generated document ids that were modified with <see cref="Solution.WithFrozenSourceGeneratedDocuments(System.Collections.Immutable.ImmutableArray{ValueTuple{SourceGeneratedDocumentIdentity, DateTime, Text.SourceText}})"/>
+    /// </summary>
+    /// <remarks>
+    /// It is possible for a source generated document to be "frozen" without it existing in the solution, and in that case
+    /// this method will not return that document. This only returns changes to source generated documents, hence they had
+    /// to already be observed in the old solution.
+    /// </remarks>
+    internal IEnumerable<DocumentId> GetExplicitlyChangedSourceGeneratedDocuments()
+    {
+        if (_newSolution.CompilationState.FrozenSourceGeneratedDocumentStates.IsEmpty)
+            return [];
+
+        using var _ = ArrayBuilder<SourceGeneratedDocumentState>.GetInstance(out var oldStateBuilder);
+        foreach (var (id, _) in _newSolution.CompilationState.FrozenSourceGeneratedDocumentStates.States)
+        {
+            var oldState = _oldSolution.CompilationState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(id);
+            oldStateBuilder.AddIfNotNull(oldState);
+        }
+
+        var oldStates = new TextDocumentStates<SourceGeneratedDocumentState>(oldStateBuilder);
+        return _newSolution.CompilationState.FrozenSourceGeneratedDocumentStates.GetChangedStateIds(
+            oldStates,
+            ignoreUnchangedContent: true,
+            ignoreUnchangeableDocuments: false);
     }
 }

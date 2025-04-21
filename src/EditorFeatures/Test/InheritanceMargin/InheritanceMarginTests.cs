@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin;
 
 [Trait(Traits.Feature, Traits.Features.InheritanceMargin)]
 [UseExportProvider]
-public class InheritanceMarginTests
+public sealed class InheritanceMarginTests
 {
     private const string SearchAreaTag = nameof(SearchAreaTag);
     private static readonly TestComposition s_inProcessComposition = EditorTestCompositions.EditorFeatures;
@@ -214,7 +214,7 @@ public class InheritanceMarginTests
         await VerifyTestMemberInDocumentAsync(testWorkspace, testHostDocument2, memberItemsInMarkup2, cancellationToken).ConfigureAwait(false);
     }
 
-    private class TestInheritanceMemberItem
+    private sealed class TestInheritanceMemberItem
     {
         public readonly int LineNumber;
         public readonly string MemberName;
@@ -234,7 +234,7 @@ public class InheritanceMarginTests
             => MemberName;
     }
 
-    private class TargetInfo
+    private sealed class TargetInfo
     {
         public readonly string TargetSymbolDisplayName;
         public readonly ImmutableArray<string> LocationTags;
@@ -280,7 +280,7 @@ public class InheritanceMarginTests
         }
     }
 
-    private class TestInheritanceTargetItem
+    private sealed class TestInheritanceTargetItem
     {
         public readonly string TargetSymbolName;
         public readonly InheritanceRelationship RelationshipToMember;

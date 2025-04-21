@@ -108,8 +108,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
 
                 default:
-                    if (contextualKind == SyntaxKind.ExclamationToken && hashPosition == 0 && !hash.HasTrailingTrivia)
+                    if (contextualKind == SyntaxKind.ExclamationToken)
                     {
+                        // Always parse as a shebang directive, but report an error if not at position 0
+                        if (hashPosition != 0 || hash.HasTrailingTrivia)
+                        {
+                            hash = this.AddError(hash, ErrorCode.ERR_BadDirectivePlacement);
+                        }
+
                         result = this.ParseShebangDirective(hash, this.EatToken(SyntaxKind.ExclamationToken), isActive);
                     }
                     else if (contextualKind == SyntaxKind.ColonToken && !hash.HasTrailingTrivia)
@@ -679,9 +685,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private DirectiveTriviaSyntax ParseShebangDirective(SyntaxToken hash, SyntaxToken exclamation, bool isActive)
         {
-            // Shebang directives must appear at the first position in the file
-            // (before all other directives), so they should always be active.
-            Debug.Assert(isActive);
             return SyntaxFactory.ShebangDirectiveTrivia(hash, exclamation, this.ParseEndOfDirectiveWithOptionalPreprocessingMessage(), isActive);
         }
 
@@ -702,7 +705,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredFollowsIf);
             }
 
-            return SyntaxFactory.IgnoredDirectiveTrivia(hash, colon, this.ParseEndOfDirectiveWithOptionalPreprocessingMessage(), isActive);
+            SyntaxToken endOfDirective = this.lexer.LexEndOfDirectiveWithOptionalContent(out SyntaxToken content);
+            return SyntaxFactory.IgnoredDirectiveTrivia(hash, colon, content, endOfDirective, isActive);
         }
 
         private SyntaxToken ParseEndOfDirectiveWithOptionalPreprocessingMessage()

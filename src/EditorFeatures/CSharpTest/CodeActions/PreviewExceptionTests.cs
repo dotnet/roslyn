@@ -21,7 +21,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 
-public partial class PreviewTests
+public sealed partial class PreviewTests
 {
     [WpfFact]
     public async Task TestExceptionInComputePreview()
