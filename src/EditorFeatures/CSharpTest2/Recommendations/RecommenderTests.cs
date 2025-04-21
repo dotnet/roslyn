@@ -211,19 +211,19 @@ public abstract class RecommenderTests : TestBase
         }
     }
 
-        protected static string AddInsideMethod(
-            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string text,
-            bool isAsync = false, string returnType = "void", bool topLevelStatement = false)
+    protected static string AddInsideMethod(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string text,
+        bool isAsync = false, string returnType = "void", bool topLevelStatement = false)
+    {
+        if (topLevelStatement)
         {
-            if (topLevelStatement)
+            return returnType switch
             {
-                return returnType switch
-                {
-                    "void" => text,
-                    "int" => text,
-                    _ => throw new ArgumentException("Unsupported return type", nameof(returnType)),
-                };
-            }
+                "void" => text,
+                "int" => text,
+                _ => throw new ArgumentException("Unsupported return type", nameof(returnType)),
+            };
+        }
 
         var builder = new StringBuilder();
         if (isAsync && returnType != "void")
