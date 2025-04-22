@@ -12,7 +12,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
@@ -75,29 +74,13 @@ internal sealed class RemoteExportProviderBuilder : ExportProviderBuilder
     protected override bool ContainsUnexpectedErrors(IEnumerable<string> erroredParts, ImmutableList<PartDiscoveryException> partDiscoveryExceptions)
     {
         // Verify that we have exactly the MEF errors that we expect.  If we have less or more this needs to be updated to assert the expected behavior.
-        var expectedErrorPartsSet = new HashSet<string>(["PythiaSignatureHelpProvider", "VSTypeScriptAnalyzerService", "RazorTestLanguageServerFactory", "CodeFixService", "RazorDynamicFileInfoProviderWrapper", "RazorCSharpInterceptionMiddleLayerWrapper"]);
+        var expectedErrorPartsSet = new HashSet<string>(["PythiaSignatureHelpProvider", "VSTypeScriptAnalyzerService", "CodeFixService"]);
         var hasUnexpectedErroredParts = erroredParts.Any(part => !expectedErrorPartsSet.Contains(part));
 
         if (hasUnexpectedErroredParts)
             return true;
 
-        return partDiscoveryExceptions.Any(partDiscoveryException => !IsKnownPartDiscoveryException(partDiscoveryException));
-    }
-
-    private static bool IsKnownPartDiscoveryException(PartDiscoveryException partDiscoveryException)
-    {
-        // Razor EA assembly has types that reference Microsoft.VisualStudio.LanguageServer.Client, which is not loadable OOP
-        if (partDiscoveryException.AssemblyPath == typeof(IRazorLanguageServerTarget).Assembly.Location
-            && partDiscoveryException.InnerException is ReflectionTypeLoadException reflectionTypeLoadException
-            && reflectionTypeLoadException.LoaderExceptions.Length == 1
-            && reflectionTypeLoadException.LoaderExceptions[0] is FileNotFoundException fileNotFoundException
-            && fileNotFoundException.FileName is string fileNameNotFound
-            && fileNameNotFound.StartsWith("Microsoft.VisualStudio.LanguageServer.Client,"))
-        {
-            return true;
-        }
-
-        return false;
+        return partDiscoveryExceptions.Count > 0);
     }
 
     private sealed class SimpleAssemblyLoader : IAssemblyLoader
