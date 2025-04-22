@@ -39,10 +39,10 @@ internal sealed class IsolatedAnalyzerFileReference(
     /// cref="ISourceGenerator"/> is alive, that the corresponding <see cref="IsolatedAnalyzerReferenceSet"/> (and its
     /// corresponding <see cref="AssemblyLoadContext"/> is kept alive.
     /// </summary>
-    private static readonly ConditionalWeakTable<DiagnosticAnalyzer, IsolatedAnalyzerReferenceSet> s_analyzerToPinnedReferenceSet = new();
+    private static readonly ConditionalWeakTable<DiagnosticAnalyzer, IsolatedAnalyzerReferenceSet> s_analyzerToPinnedReferenceSet = [];
 
     /// <inheritdoc cref="s_analyzerToPinnedReferenceSet"/>
-    private static readonly ConditionalWeakTable<ISourceGenerator, IsolatedAnalyzerReferenceSet> s_generatorToPinnedReferenceSet = new();
+    private static readonly ConditionalWeakTable<ISourceGenerator, IsolatedAnalyzerReferenceSet> s_generatorToPinnedReferenceSet = [];
 
     /// <summary>
     /// We keep a strong reference here.  As long as this <see cref="IsolatedAnalyzerFileReference"/> is passed out and
