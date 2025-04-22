@@ -2757,4 +2757,49 @@ public sealed class ConvertPrimaryToRegularConstructorTests
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76981")]
+    public async Task TestConvertWithReferencesToParameter1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                namespace N
+                {
+                    internal class [|Goo(int bar)|]
+                    {
+                        public int Bar { get; private set; } = bar;
+
+                        public void Baz()
+                        {
+                            Bar = bar;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                namespace N
+                {
+                    internal class Goo
+                    {
+                        private readonly int bar;
+
+                        public Goo(int bar)
+                        {
+                            this.bar = bar;
+                            Bar = bar;
+                        }
+
+                        public int Bar { get; private set; }
+
+                        public void Baz()
+                        {
+                            Bar = bar;
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
 }
