@@ -4489,6 +4489,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.CompoundAssignmentOperator:
                     var compound = (BoundCompoundAssignmentOperator)expr;
 
+                    // https://github.com/dotnet/roslyn/issues/78198 It looks like we don't have a single test demonstrating significance of the code below.
+
                     if (compound.Operator.Method is { } compoundMethod)
                     {
                         if (compoundMethod.IsStatic)
@@ -4506,17 +4508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            // PROTOTYPE: Follow-up and test this code path
-                            return GetInvocationEscapeScope(
-                                MethodInfo.Create(compoundMethod),
-                                receiver: compound.Left,
-                                receiverIsSubjectToCloning: ThreeState.False,
-                                compoundMethod.Parameters,
-                                argsOpt: [compound.Right],
-                                argRefKindsOpt: default,
-                                argsToParamsOpt: default,
-                                localScopeDepth: localScopeDepth,
-                                isRefEscape: false);
+                            return GetValEscape(compound.Left, localScopeDepth);
                         }
                     }
 
@@ -5314,21 +5306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            // PROTOTYPE: Follow-up and test this code path
-                            return CheckInvocationEscape(
-                                compound.Syntax,
-                                MethodInfo.Create(compoundMethod),
-                                receiver: compound.Left,
-                                receiverIsSubjectToCloning: ThreeState.Unknown,
-                                compoundMethod.Parameters,
-                                argsOpt: [compound.Right],
-                                argRefKindsOpt: default,
-                                argsToParamsOpt: default,
-                                checkingReceiver: checkingReceiver,
-                                escapeFrom: escapeFrom,
-                                escapeTo: escapeTo,
-                                diagnostics,
-                                isRefEscape: false);
+                            return CheckValEscape(compound.Left.Syntax, compound.Left, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
                         }
                     }
 

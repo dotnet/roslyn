@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return !method.IsStatic &&
                 method.ContainingType is NamedTypeSymbol containingType &&
                 (containingType.IsStructType() == true || (containingType.IsInterface && method.IsImplementable())) &&
-                method.MethodKind is (MethodKind.Ordinary or MethodKind.ExplicitInterfaceImplementation or MethodKind.PropertyGet or MethodKind.PropertySet) &&
+                method.MethodKind is (MethodKind.Ordinary or MethodKind.ExplicitInterfaceImplementation or MethodKind.PropertyGet or MethodKind.PropertySet or MethodKind.UserDefinedOperator) &&
                 !method.IsInitOnly;
         }
 

@@ -11413,7 +11413,7 @@ public class Program
             Assert.Equal("void C1." + methodName + "(System.Int64 x)", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Empty(symbolInfo.CandidateSymbols);
-            Assert.Equal("C1", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+            Assert.Equal("System.Void", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
 
             var group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
@@ -11430,7 +11430,7 @@ public class Program
 
             var iOp = model.GetOperation(opNode);
             VerifyOperationTree(comp2, iOp, @"
-ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @") (OperatorMethod: void C1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: C1) (Syntax: 'GetA(x)[Get0()]" + op + @" Get1()')
+ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @") (OperatorMethod: void C1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: System.Void) (Syntax: 'GetA(x)[Get0()]" + op + @" Get1()')
   InConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Left:
@@ -11526,14 +11526,14 @@ IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type
             Assert.Equal("void I1." + methodName + "(System.Int64 x)", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Empty(symbolInfo.CandidateSymbols);
-            Assert.Equal("T", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+            Assert.Equal("System.Void", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
 
             group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
             iOp = model.GetOperation(opNode);
             VerifyOperationTree(comp2, iOp, @"
-ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @", Checked) (OperatorMethod: void I1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: T) (Syntax: 'GetA(x)[Get0()]" + op + @" Get1()')
+ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @", Checked) (OperatorMethod: void I1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: System.Void) (Syntax: 'GetA(x)[Get0()]" + op + @" Get1()')
   InConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Left:
@@ -11799,14 +11799,14 @@ public class Program
             Assert.Equal("void C1." + methodName + "(System.Int64 x)", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Empty(symbolInfo.CandidateSymbols);
-            Assert.Equal("C1", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+            Assert.Equal("System.Void", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
 
             var group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
             var iOp = model.GetOperation(opNode);
             VerifyOperationTree(comp2, iOp, @"
-ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @") (OperatorMethod: void C1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: C1) (Syntax: 'GetA(x)[Get0()]" + op + @" G1()')
+ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @") (OperatorMethod: void C1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: System.Void) (Syntax: 'GetA(x)[Get0()]" + op + @" G1()')
   InConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Left:
@@ -11900,14 +11900,14 @@ IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type
             Assert.Equal("void I1." + methodName + "(System.Int64 x)", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Empty(symbolInfo.CandidateSymbols);
-            Assert.Equal("T", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+            Assert.Equal("System.Void", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
 
             group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
             iOp = model.GetOperation(opNode);
             VerifyOperationTree(comp2, iOp, @"
-ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @") (OperatorMethod: void I1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: T) (Syntax: 'GetA(x)[Get0()]" + op + @" G1()')
+ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @") (OperatorMethod: void I1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: System.Void) (Syntax: 'GetA(x)[Get0()]" + op + @" G1()')
   InConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Left:
@@ -12134,14 +12134,14 @@ public class Program
             Assert.Equal("void C1." + methodName + "(System.Int64 x)", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Empty(symbolInfo.CandidateSymbols);
-            Assert.Equal("C1", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+            Assert.Equal("System.Void", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
 
             var group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
             var iOp = model.GetOperation(opNode);
             VerifyOperationTree(comp2, iOp, @"
-ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @") (OperatorMethod: void C1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: C1) (Syntax: 'GetA(x)[Get0()]" + op + @" Get1()')
+ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @") (OperatorMethod: void C1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: System.Void) (Syntax: 'GetA(x)[Get0()]" + op + @" Get1()')
   InConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Left:
@@ -12211,14 +12211,14 @@ IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type
             Assert.Equal("void I1." + methodName + "(System.Int64 x)", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Empty(symbolInfo.CandidateSymbols);
-            Assert.Equal("T", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+            Assert.Equal("System.Void", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
 
             group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
             iOp = model.GetOperation(opNode);
             VerifyOperationTree(comp2, iOp, @"
-ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @", Checked) (OperatorMethod: void I1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: T) (Syntax: 'GetA(x)[Get0()]" + op + @" Get1()')
+ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @", Checked) (OperatorMethod: void I1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: System.Void) (Syntax: 'GetA(x)[Get0()]" + op + @" Get1()')
   InConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Left:
@@ -12439,14 +12439,14 @@ public class Program
             Assert.Equal("void C1." + methodName + "(System.Int64 x)", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Empty(symbolInfo.CandidateSymbols);
-            Assert.Equal("C1", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+            Assert.Equal("System.Void", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
 
             var group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
             var iOp = model.GetOperation(opNode);
             VerifyOperationTree(comp2, iOp, @"
-ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @") (OperatorMethod: void C1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: C1) (Syntax: 'GetA(x)[Get0()]" + op + @" G1()')
+ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @") (OperatorMethod: void C1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: System.Void) (Syntax: 'GetA(x)[Get0()]" + op + @" G1()')
   InConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Left:
@@ -12514,14 +12514,14 @@ IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type
             Assert.Equal("void I1." + methodName + "(System.Int64 x)", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Empty(symbolInfo.CandidateSymbols);
-            Assert.Equal("T", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+            Assert.Equal("System.Void", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
 
             group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
             iOp = model.GetOperation(opNode);
             VerifyOperationTree(comp2, iOp, @"
-ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @") (OperatorMethod: void I1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: T) (Syntax: 'GetA(x)[Get0()]" + op + @" G1()')
+ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorToBinaryOperatorKind(op) + @") (OperatorMethod: void I1." + methodName + @"(System.Int64 x)) (OperationKind.CompoundAssignment, Type: System.Void) (Syntax: 'GetA(x)[Get0()]" + op + @" G1()')
   InConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Left:
@@ -14118,6 +14118,418 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + CompoundAssignmentOperatorT
 
             comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyDiagnostics(expectedErrors);
+        }
+
+        [Fact]
+        public void CompoundAssignment_00740_Consumption_RefSafety()
+        {
+            var source = """
+                public ref struct C
+                {
+                    public void operator +=(C right) {}
+                    public void X(C right) {}
+                    public C M1(C c, C c1)
+                    {
+                        c += c1;
+                        return c;
+                    }
+                    public C M2(C c, C c1)
+                    {
+                        c.X(c1);
+                        return c;
+                    }
+                }
+                """;
+            CreateCompilation([source, CompilerFeatureRequiredAttribute]).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CompoundAssignment_00741_Consumption_RefSafety()
+        {
+            var source = """
+                public ref struct C
+                {
+                    public void operator +=(C right) {}
+                    public void X(C right) {}
+                    public C M1(C c, scoped C c1)
+                    {
+                        c += c1;
+                        return c;
+                    }
+                    public C M2(C c, scoped C c1)
+                    {
+                        c.X(c1);
+                        return c;
+                    }
+                }
+                """;
+            CreateCompilation([source, CompilerFeatureRequiredAttribute]).VerifyDiagnostics(
+                // (7,9): error CS8350: This combination of arguments to 'C.operator +=(C)' is disallowed because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         c += c1;
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "c += c1").WithArguments("C.operator +=(C)", "right").WithLocation(7, 9),
+                // (7,14): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         c += c1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(7, 14),
+                // (12,9): error CS8350: This combination of arguments to 'C.X(C)' is disallowed because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         c.X(c1);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "c.X(c1)").WithArguments("C.X(C)", "right").WithLocation(12, 9),
+                // (12,13): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         c.X(c1);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(12, 13)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_00742_Consumption_RefSafety()
+        {
+            var source = """
+                public ref struct C
+                {
+                    public void operator +=(C right) {}
+                    public void X(C right) {}
+                    public C M1(scoped C c, C c1)
+                    {
+                        c += c1;
+                        return c;
+                    }
+                    public C M2(scoped C c, C c1)
+                    {
+                        c.X(c1);
+                        return c;
+                    }
+                }
+                """;
+            CreateCompilation([source, CompilerFeatureRequiredAttribute]).VerifyDiagnostics(
+                // (8,16): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return c;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("scoped C c").WithLocation(8, 16),
+                // (13,16): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return c;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("scoped C c").WithLocation(13, 16)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_00743_Consumption_RefSafety()
+        {
+            var source = """
+                public ref struct C
+                {
+                    public void operator +=(C right) {}
+                    public void X(C right) {}
+                    public C M1(scoped C c, scoped C c1)
+                    {
+                        c += c1;
+                        return c;
+                    }
+                    public C M2(scoped C c, scoped C c1)
+                    {
+                        c.X(c1);
+                        return c;
+                    }
+                }
+                """;
+            CreateCompilation([source, CompilerFeatureRequiredAttribute]).VerifyDiagnostics(
+                // (8,16): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return c;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("scoped C c").WithLocation(8, 16),
+                // (13,16): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return c;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("scoped C c").WithLocation(13, 16)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_00744_Consumption_RefSafety()
+        {
+            var source = """
+                public ref struct C
+                {
+                    public void operator +=(scoped C right) {}
+                    public void X(scoped C right) {}
+                    public C M1(C c, scoped C c1)
+                    {
+                        c += c1;
+                        return c;
+                    }
+                    public C M2(C c, scoped C c1)
+                    {
+                        c.X(c1);
+                        return c;
+                    }
+                }
+                """;
+            CreateCompilation([source, CompilerFeatureRequiredAttribute]).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CompoundAssignment_00745_Consumption_RefSafety()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                public ref struct C
+                {
+                    [UnscopedRef]
+                    public void operator +=(C right) {}
+                    [UnscopedRef]
+                    public void X(C right) {}
+                    public C M1(scoped C c, C c1)
+                    {
+                        c += c1;
+                #line 8
+                        return c;
+                    }
+                    public C M2(scoped C c, C c1)
+                    {
+                        c.X(c1);
+                        return c;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+                // (8,16): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return c;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("scoped C c").WithLocation(8, 16),
+                // (13,16): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return c;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("scoped C c").WithLocation(13, 16)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_00746_Consumption_RefSafety()
+        {
+            var source = """
+                public ref struct C
+                {
+                    public void operator +=(C right) {}
+                    public C M1(C c, C c1)
+                    {
+                        return c += c1;
+                    }
+                }
+                """;
+            CreateCompilation([source, CompilerFeatureRequiredAttribute]).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CompoundAssignment_00747_Consumption_RefSafety()
+        {
+            var source = """
+                public ref struct C
+                {
+                    public void operator +=(C right) {}
+                    public C M1(scoped C c, C c1)
+                    {
+                        return c += c1;
+                    }
+                }
+                """;
+            CreateCompilation([source, CompilerFeatureRequiredAttribute]).VerifyDiagnostics(
+                // (6,16): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return c += c1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("scoped C c").WithLocation(6, 16)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_00748_Consumption_RefSafety()
+        {
+            var source = """
+                public ref struct C
+                {
+                    public void operator +=(C right) {}
+                    public C M1(C c, scoped C c1)
+                    {
+                        return c += c1;
+                    }
+                }
+                """;
+            CreateCompilation([source, CompilerFeatureRequiredAttribute]).VerifyDiagnostics(
+                // (6,16): error CS8350: This combination of arguments to 'C.operator +=(C)' is disallowed because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return c += c1;
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "c += c1").WithArguments("C.operator +=(C)", "right").WithLocation(6, 16),
+                // (6,21): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return c += c1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(6, 21)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_00749_Consumption_RefSafety()
+        {
+            var source = """
+                public ref struct C
+                {
+                    public void operator +=(scoped C right) {}
+                    public C M1(C c, scoped C c1)
+                    {
+                        return c += c1;
+                    }
+                }
+                """;
+            CreateCompilation([source, CompilerFeatureRequiredAttribute]).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CompoundAssignment_00750_Consumption_RefSafety()
+        {
+            var source = """
+                public ref struct C
+                {
+                    public void operator +=(C right) {}
+                    public C M1(scoped C c, scoped C c1)
+                    {
+                        return c += c1;
+                    }
+                }
+                """;
+            CreateCompilation([source, CompilerFeatureRequiredAttribute]).VerifyDiagnostics(
+                // (6,16): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return c += c1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("scoped C c").WithLocation(6, 16)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_00751_Consumption_RefSafety()
+        {
+            var source = """
+                public ref struct C
+                {
+                    public void operator +=(C right) {}
+                    static C X(C c) => throw null;
+                    public C M1(scoped C c, scoped C c1)
+                    {
+                        return X(c += c1);
+                    }
+                }
+                """;
+            CreateCompilation([source, CompilerFeatureRequiredAttribute]).VerifyDiagnostics(
+                // (7,16): error CS8347: Cannot use a result of 'C.X(C)' in this context because it may expose variables referenced by parameter 'c' outside of their declaration scope
+                //         return X(c += c1);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "X(c += c1)").WithArguments("C.X(C)", "c").WithLocation(7, 16),
+                // (7,18): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return X(c += c1);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("scoped C c").WithLocation(7, 18)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_00752_Consumption_RefSafety()
+        {
+            var source = $$$"""
+                ref struct C
+                {
+                    private ref readonly int _i;
+                    public void operator +=([System.Diagnostics.CodeAnalysis.UnscopedRef] in int right) { _i = ref right; }
+                    public static C operator -(C left, [System.Diagnostics.CodeAnalysis.UnscopedRef] in int right) { left._i = ref right; return left; }
+                    public C M1(C c1)
+                    {
+                        return c1 += 1;
+                    }
+                    public C M2(C c2)
+                    {
+                        return c2 -= 1;
+                    }
+                    public C M3(C c3, in int right)
+                    {
+                        return c3 += right;
+                    }
+                    public C M4(C c4, in int right)
+                    {
+                        return c4 -= right;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+                // (8,16): error CS8350: This combination of arguments to 'C.operator +=(in int)' is disallowed because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return c1 += 1;
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "c1 += 1").WithArguments("C.operator +=(in int)", "right").WithLocation(8, 16),
+                // (8,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return c1 += 1;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(8, 22),
+                // (12,16): error CS8347: Cannot use a result of 'C.operator -(C, in int)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return c2 -= 1;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c2 -= 1").WithArguments("C.operator -(C, in int)", "right").WithLocation(12, 16),
+                // (12,16): error CS8347: Cannot use a result of 'C.operator -(C, in int)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return c2 -= 1;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c2 -= 1").WithArguments("C.operator -(C, in int)", "right").WithLocation(12, 16),
+                // (12,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return c2 -= 1;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(12, 22),
+                // (12,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return c2 -= 1;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(12, 22),
+                // (16,16): error CS8350: This combination of arguments to 'C.operator +=(in int)' is disallowed because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return c3 += right;
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "c3 += right").WithArguments("C.operator +=(in int)", "right").WithLocation(16, 16),
+                // (16,22): error CS9077: Cannot return a parameter by reference 'right' through a ref parameter; it can only be returned in a return statement
+                //         return c3 += right;
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "right").WithArguments("right").WithLocation(16, 22),
+                // (20,16): error CS8347: Cannot use a result of 'C.operator -(C, in int)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return c4 -= right;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c4 -= right").WithArguments("C.operator -(C, in int)", "right").WithLocation(20, 16),
+                // (20,22): error CS9077: Cannot return a parameter by reference 'right' through a ref parameter; it can only be returned in a return statement
+                //         return c4 -= right;
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "right").WithArguments("right").WithLocation(20, 22)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_00753_Consumption_RefSafety()
+        {
+            var source = """
+                ref struct C
+                {
+                    private ref readonly int _i;
+                    public void operator +=(in int right) { _i = ref right; }
+                    public static C operator -(C left, in int right) { left._i = ref right; return left; }
+                    public C M1(C c1)
+                    {
+                        return c1 += 1;
+                    }
+                    public C M2(C c2)
+                    {
+                        return c2 -= 1;
+                    }
+                    public C M3(C c3, in int right)
+                    {
+                        return c3 += right;
+                    }
+                    public C M4(C c4, in int right)
+                    {
+                        return c4 -= right;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+                // (4,45): error CS9079: Cannot ref-assign 'right' to '_i' because 'right' can only escape the current method through a return statement.
+                //     public void operator +=(in int right) { _i = ref right; }
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "_i = ref right").WithArguments("_i", "right").WithLocation(4, 45),
+                // (5,56): error CS9079: Cannot ref-assign 'right' to '_i' because 'right' can only escape the current method through a return statement.
+                //     public static C operator -(C left, in int right) { left._i = ref right; return left; }
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "left._i = ref right").WithArguments("_i", "right").WithLocation(5, 56),
+                // (12,16): error CS8347: Cannot use a result of 'C.operator -(C, in int)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return c2 -= 1;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c2 -= 1").WithArguments("C.operator -(C, in int)", "right").WithLocation(12, 16),
+                // (12,16): error CS8347: Cannot use a result of 'C.operator -(C, in int)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return c2 -= 1;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c2 -= 1").WithArguments("C.operator -(C, in int)", "right").WithLocation(12, 16),
+                // (12,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return c2 -= 1;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(12, 22),
+                // (12,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return c2 -= 1;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(12, 22),
+                // (20,16): error CS8347: Cannot use a result of 'C.operator -(C, in int)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return c4 -= right;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c4 -= right").WithArguments("C.operator -(C, in int)", "right").WithLocation(20, 16),
+                // (20,22): error CS9077: Cannot return a parameter by reference 'right' through a ref parameter; it can only be returned in a return statement
+                //         return c4 -= right;
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "right").WithArguments("right").WithLocation(20, 22)
+                );
         }
 
         [Theory]
