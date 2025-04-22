@@ -54,6 +54,7 @@ internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
     public static async Task<RemoteHostClient> CreateAsync(
         SolutionServices services,
         RemoteProcessConfiguration configuration,
+        string localSettingsDirectory,
         AsynchronousOperationListenerProvider listenerProvider,
         IServiceBroker serviceBroker,
         RemoteServiceCallbackDispatcherRegistry callbackDispatchers,
@@ -72,15 +73,18 @@ internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
 
             var workspaceConfigurationService = services.GetRequiredService<IWorkspaceConfigurationService>();
 
-            var remoteProcessId = await client.TryInvokeAsync<IRemoteProcessTelemetryService, int>(
-                (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, cancellationToken),
+            var remoteProcessIdAndErrorMessage = await client.TryInvokeAsync<IRemoteInitializationService, (int processId, string? errorMessage)>(
+                (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, localSettingsDirectory, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
-            if (remoteProcessId.HasValue)
+            if (remoteProcessIdAndErrorMessage.HasValue)
             {
+                if (remoteProcessIdAndErrorMessage.Value.errorMessage != null)
+                    hubClient.Logger.TraceEvent(TraceEventType.Error, 1, $"ServiceHub initialization error: {remoteProcessIdAndErrorMessage.Value.errorMessage}");
+
                 try
                 {
-                    client._remoteProcess = Process.GetProcessById(remoteProcessId.Value);
+                    client._remoteProcess = Process.GetProcessById(remoteProcessIdAndErrorMessage.Value.processId);
                 }
                 catch (Exception e)
                 {
