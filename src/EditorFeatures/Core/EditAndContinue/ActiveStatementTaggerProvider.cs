@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 [ContentType(ContentTypeNames.VisualBasicContentType)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class ActiveStatementTaggerProvider(TaggerHost taggerHost)
+internal sealed partial class ActiveStatementTaggerProvider(TaggerHost taggerHost)
     : AsynchronousTaggerProvider<ITextMarkerTag>(taggerHost, FeatureAttribute.Classification)
 {
     protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;

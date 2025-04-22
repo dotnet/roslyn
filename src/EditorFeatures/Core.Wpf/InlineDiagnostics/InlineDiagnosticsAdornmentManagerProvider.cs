@@ -14,50 +14,49 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
+namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
+
+[Export(typeof(IWpfTextViewCreationListener))]
+[ContentType(ContentTypeNames.RoslynContentType)]
+[TextViewRole(PredefinedTextViewRoles.Document)]
+internal sealed class InlineDiagnosticsAdornmentManagerProvider : AbstractAdornmentManagerProvider<InlineDiagnosticsTag>
 {
-    [Export(typeof(IWpfTextViewCreationListener))]
+    private const string LayerName = "RoslynInlineDiagnostics";
+    private readonly IClassificationFormatMapService _classificationFormatMapService;
+    private readonly IClassificationTypeRegistryService _classificationTypeRegistryService;
+
+    [Export]
+    [Name(LayerName)]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    [TextViewRole(PredefinedTextViewRoles.Document)]
-    internal class InlineDiagnosticsAdornmentManagerProvider : AbstractAdornmentManagerProvider<InlineDiagnosticsTag>
-    {
-        private const string LayerName = "RoslynInlineDiagnostics";
-        private readonly IClassificationFormatMapService _classificationFormatMapService;
-        private readonly IClassificationTypeRegistryService _classificationTypeRegistryService;
+    [Order(After = PredefinedAdornmentLayers.Selection, Before = PredefinedAdornmentLayers.Squiggle)]
+    internal readonly AdornmentLayerDefinition InlineDiagnosticsLayer;
 
-        [Export]
-        [Name(LayerName)]
-        [ContentType(ContentTypeNames.RoslynContentType)]
-        [Order(After = PredefinedAdornmentLayers.Selection, Before = PredefinedAdornmentLayers.Squiggle)]
-        internal readonly AdornmentLayerDefinition InlineDiagnosticsLayer;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
-        public InlineDiagnosticsAdornmentManagerProvider(
+    public InlineDiagnosticsAdornmentManagerProvider(
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
-            IThreadingContext threadingContext,
-            IViewTagAggregatorFactoryService tagAggregatorFactoryService,
-            IClassificationFormatMapService classificationFormatMapService,
-            IClassificationTypeRegistryService classificationTypeRegistryService,
-            IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, tagAggregatorFactoryService, globalOptions, listenerProvider)
-        {
-            _classificationFormatMapService = classificationFormatMapService;
-            _classificationTypeRegistryService = classificationTypeRegistryService;
-        }
+        IThreadingContext threadingContext,
+        IViewTagAggregatorFactoryService tagAggregatorFactoryService,
+        IClassificationFormatMapService classificationFormatMapService,
+        IClassificationTypeRegistryService classificationTypeRegistryService,
+        IGlobalOptionService globalOptions,
+        IAsynchronousOperationListenerProvider listenerProvider)
+        : base(threadingContext, tagAggregatorFactoryService, globalOptions, listenerProvider)
+    {
+        _classificationFormatMapService = classificationFormatMapService;
+        _classificationTypeRegistryService = classificationTypeRegistryService;
+    }
 
-        protected override string FeatureAttributeName => FeatureAttribute.InlineDiagnostics;
+    protected override string FeatureAttributeName => FeatureAttribute.InlineDiagnostics;
 
-        protected override string AdornmentLayerName => LayerName;
+    protected override string AdornmentLayerName => LayerName;
 
-        protected override void CreateAdornmentManager(IWpfTextView textView)
-        {
-            // the manager keeps itself alive by listening to text view events.
-            _ = new InlineDiagnosticsAdornmentManager(
-                ThreadingContext, textView, TagAggregatorFactoryService, AsyncListener,
-                AdornmentLayerName, _classificationFormatMapService, _classificationTypeRegistryService, GlobalOptions);
-        }
+    protected override void CreateAdornmentManager(IWpfTextView textView)
+    {
+        // the manager keeps itself alive by listening to text view events.
+        _ = new InlineDiagnosticsAdornmentManager(
+            ThreadingContext, textView, TagAggregatorFactoryService, AsyncListener,
+            AdornmentLayerName, _classificationFormatMapService, _classificationTypeRegistryService, GlobalOptions);
     }
 }

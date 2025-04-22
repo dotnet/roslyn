@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
@@ -15,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.Undo;
 /// This factory will create a service that provides workspace global undo service.
 /// </summary>
 [ExportWorkspaceServiceFactory(typeof(IGlobalUndoService), ServiceLayer.Default), Shared]
-internal class NoOpGlobalUndoServiceFactory : IWorkspaceServiceFactory
+internal sealed class NoOpGlobalUndoServiceFactory : IWorkspaceServiceFactory
 {
     public static readonly IWorkspaceGlobalUndoTransaction Transaction = new NoOpUndoTransaction();
 
@@ -30,7 +28,7 @@ internal class NoOpGlobalUndoServiceFactory : IWorkspaceServiceFactory
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         => _singleton;
 
-    private class NoOpGlobalUndoService : IGlobalUndoService
+    private sealed class NoOpGlobalUndoService : IGlobalUndoService
     {
         public bool IsGlobalTransactionOpen(Workspace workspace)
         {
@@ -51,7 +49,7 @@ internal class NoOpGlobalUndoServiceFactory : IWorkspaceServiceFactory
     /// <summary>
     /// null object that doesn't do anything
     /// </summary>
-    private class NoOpUndoTransaction : IWorkspaceGlobalUndoTransaction
+    private sealed class NoOpUndoTransaction : IWorkspaceGlobalUndoTransaction
     {
         public void Commit()
         {

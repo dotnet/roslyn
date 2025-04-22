@@ -331,3 +331,36 @@ class C
 
 class partial { }
 ```
+
+## `extension` treated as a contextual keyword
+
+***Introduced in Visual Studio 2022 version 17.14.***
+Starting with C# 14, the `extension` keyword serves a special purpose in denoting extension containers. 
+This changes how the compiler interprets certain code constructs.
+
+If you need to use "extension" as an identifier rather than a keyword, escape it with the `@` prefix: `@extension`. This tells the compiler to treat it as a regular identifier instead of a keyword.
+
+The compiler will parse this as an extension container rather than a constructor.
+```csharp
+class @extension
+{
+    extension(object o) { } // parsed as an extension container
+}
+```
+
+The compiler will fail to parse this as a method with return type `extension`.
+```csharp
+class @extension
+{
+    extension M() { } // will not compile
+}
+```
+
+***Introduced in Visual Studio 2022 version 17.15.***
+The "extension" identifier may not be used as a type name, so the following will not compile:
+```csharp
+using extension = ...; // alias may not be named "extension"
+class extension { } // type may not be named "extension"
+class C<extension> { } // type parameter may not be named "extension"
+```
+

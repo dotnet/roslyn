@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences.ProjectAssets;
 
 [Trait(Traits.Feature, Traits.Features.Packaging)]
-public partial class ProjectAssetsReaderTests
+public sealed partial class ProjectAssetsReaderTests
 {
     private const string TargetFramework = ".NETCoreApp,Version=v3.1";
     private const int Version3 = 3;

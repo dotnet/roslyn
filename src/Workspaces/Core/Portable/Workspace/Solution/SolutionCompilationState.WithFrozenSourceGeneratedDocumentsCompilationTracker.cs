@@ -35,7 +35,7 @@ internal sealed partial class SolutionCompilationState
         [DisallowNull]
         private Compilation? _compilationWithReplacements;
 
-        public ICompilationTracker UnderlyingTracker { get; }
+        public RegularCompilationTracker UnderlyingTracker { get; }
         public ProjectState ProjectState => UnderlyingTracker.ProjectState;
 
         public GeneratorDriver? GeneratorDriver => UnderlyingTracker.GeneratorDriver;
@@ -46,7 +46,7 @@ internal sealed partial class SolutionCompilationState
         private SkeletonReferenceCache _skeletonReferenceCache;
 
         public WithFrozenSourceGeneratedDocumentsCompilationTracker(
-            ICompilationTracker underlyingTracker,
+            RegularCompilationTracker underlyingTracker,
             TextDocumentStates<SourceGeneratedDocumentState> replacementDocumentStates)
         {
             this.UnderlyingTracker = underlyingTracker;
@@ -92,6 +92,18 @@ internal sealed partial class SolutionCompilationState
             return underlyingTracker == this.UnderlyingTracker
                 ? this
                 : new WithFrozenSourceGeneratedDocumentsCompilationTracker(underlyingTracker, _replacementDocumentStates);
+        }
+
+        /// <summary>
+        /// Updates the frozen source generated documents states being tracked
+        /// </summary>
+        /// <remarks>
+        /// NOTE: This does not merge the states currently tracked, it simply replaces them. If merging is desired, it should be done
+        /// by the caller.
+        /// </remarks>
+        public ICompilationTracker WithReplacementDocumentStates(TextDocumentStates<SourceGeneratedDocumentState> replacementDocumentStates)
+        {
+            return new WithFrozenSourceGeneratedDocumentsCompilationTracker(this.UnderlyingTracker, replacementDocumentStates);
         }
 
         public async Task<Compilation> GetCompilationAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)

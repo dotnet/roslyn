@@ -10,30 +10,29 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeActions.WorkspaceServices;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+
+[ExportWorkspaceService(typeof(IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService), ServiceLayer.Test), Shared, PartNotDiscoverable]
+public sealed class TestAddMetadataReferenceCodeActionOperationFactoryWorkspaceService : IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService
 {
-    [ExportWorkspaceService(typeof(IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService), ServiceLayer.Test), Shared, PartNotDiscoverable]
-    public class TestAddMetadataReferenceCodeActionOperationFactoryWorkspaceService : IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public TestAddMetadataReferenceCodeActionOperationFactoryWorkspaceService()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TestAddMetadataReferenceCodeActionOperationFactoryWorkspaceService()
+    }
+
+    public CodeActionOperation CreateAddMetadataReferenceOperation(ProjectId projectId, AssemblyIdentity assemblyIdentity)
+        => new Operation(projectId, assemblyIdentity);
+
+    public class Operation : CodeActionOperation
+    {
+        public readonly ProjectId ProjectId;
+        public readonly AssemblyIdentity AssemblyIdentity;
+
+        public Operation(ProjectId projectId, AssemblyIdentity assemblyIdentity)
         {
-        }
-
-        public CodeActionOperation CreateAddMetadataReferenceOperation(ProjectId projectId, AssemblyIdentity assemblyIdentity)
-            => new Operation(projectId, assemblyIdentity);
-
-        public class Operation : CodeActionOperation
-        {
-            public readonly ProjectId ProjectId;
-            public readonly AssemblyIdentity AssemblyIdentity;
-
-            public Operation(ProjectId projectId, AssemblyIdentity assemblyIdentity)
-            {
-                this.ProjectId = projectId;
-                this.AssemblyIdentity = assemblyIdentity;
-            }
+            this.ProjectId = projectId;
+            this.AssemblyIdentity = assemblyIdentity;
         }
     }
 }

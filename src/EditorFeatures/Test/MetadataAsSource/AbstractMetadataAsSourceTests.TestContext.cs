@@ -28,7 +28,7 @@ public abstract partial class AbstractMetadataAsSourceTests
     public const string DefaultMetadataSource = "public class C {}";
     public const string DefaultSymbolMetadataName = "C";
 
-    internal class TestContext : IDisposable
+    internal sealed class TestContext : IDisposable
     {
         public readonly EditorTestWorkspace Workspace;
         private readonly IMetadataAsSourceFileService _metadataAsSourceService;

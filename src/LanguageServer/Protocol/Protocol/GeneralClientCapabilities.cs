@@ -10,7 +10,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// Class which represents general client capabilities.
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal class GeneralClientCapabilities
+internal sealed class GeneralClientCapabilities
 {
     /// <summary>
     /// Client capability that signals how the client

@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Debugging.UnitTests;
 
-public class DebugInformationReaderProviderTests
+public sealed class DebugInformationReaderProviderTests
 {
     [Fact]
     public void CreateFrom_Errors()

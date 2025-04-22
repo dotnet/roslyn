@@ -19,7 +19,7 @@ using VB = Microsoft.CodeAnalysis.VisualBasic;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 
 [UseExportProvider]
-public class SymbolEquivalenceComparerTests
+public sealed class SymbolEquivalenceComparerTests
 {
     public static readonly CS.CSharpCompilationOptions CSharpDllOptions = new CS.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
     public static readonly CS.CSharpCompilationOptions CSharpSignedDllOptions = new CS.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).

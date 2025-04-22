@@ -26,7 +26,7 @@ using Xunit;
 namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue;
 
 [UseExportProvider]
-public class RemoteEditAndContinueServiceTests
+public sealed class RemoteEditAndContinueServiceTests
 {
     private static string Inspect(DiagnosticData d)
         => $"[{d.ProjectId}] {d.Severity} {d.Id}:" +

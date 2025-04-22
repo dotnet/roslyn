@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavInfo;
 
-internal class NavInfoNodeEnum : IVsEnumNavInfoNodes
+internal sealed class NavInfoNodeEnum : IVsEnumNavInfoNodes
 {
     private readonly ImmutableArray<NavInfoNode> _nodes;
     private int _index;

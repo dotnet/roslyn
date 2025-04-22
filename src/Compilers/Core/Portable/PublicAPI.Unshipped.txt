@@ -4,3 +4,7 @@ Microsoft.CodeAnalysis.IEventSymbol.PartialImplementationPart.get -> Microsoft.C
 Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext.AddEmbeddedAttributeDefinition() -> void
 Microsoft.CodeAnalysis.RuntimeCapability.RuntimeAsyncMethods = 9 -> Microsoft.CodeAnalysis.RuntimeCapability
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.ToString() -> string!
+
+Microsoft.CodeAnalysis.ITypeSymbol.IsExtension.get -> bool
+Microsoft.CodeAnalysis.TypeKind.Extension = 14 -> Microsoft.CodeAnalysis.TypeKind
+Microsoft.CodeAnalysis.ITypeSymbol.ExtensionParameter.get -> Microsoft.CodeAnalysis.IParameterSymbol?

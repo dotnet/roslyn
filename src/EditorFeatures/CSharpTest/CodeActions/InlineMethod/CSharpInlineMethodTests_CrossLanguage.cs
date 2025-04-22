@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsInlineMethod)]
-public class CSharpInlineMethodTests_CrossLanguage : AbstractCSharpCodeActionTest
+public sealed class CSharpInlineMethodTests_CrossLanguage : AbstractCSharpCodeActionTest
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
         => new CSharpInlineMethodRefactoringProvider();

@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-internal class TriviaRewriter : CSharpSyntaxRewriter
+internal sealed class TriviaRewriter : CSharpSyntaxRewriter
 {
     private readonly SyntaxNode _node;
     private readonly TextSpanMutableIntervalTree _spans;

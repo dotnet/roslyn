@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.FindUsages;
 /// </summary>
 internal sealed class BufferedFindUsagesContext : IFindUsagesContext, IStreamingProgressTracker
 {
-    private class State
+    private sealed class State
     {
         public int TotalItemCount;
         public int ItemsCompleted;

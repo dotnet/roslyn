@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
-public class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new MakeLocalFunctionStaticCodeRefactoringProvider();
