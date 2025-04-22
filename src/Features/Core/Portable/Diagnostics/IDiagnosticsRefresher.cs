@@ -3,6 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Composition;
+using System.Threading;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
@@ -25,4 +28,28 @@ internal interface IDiagnosticsRefresher
     /// Used to determine whether any global state that might affect workspace diagnostics has changed.
     /// </summary>
     int GlobalStateVersion { get; }
+}
+
+[Export(typeof(IDiagnosticsRefresher)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class DefaultDiagnosticsRefresher() : IDiagnosticsRefresher
+{
+    /// <summary>
+    /// Incremented every time a refresh is requested.
+    /// </summary>
+    private int _globalStateVersion;
+
+    public event Action? WorkspaceRefreshRequested;
+
+    public void RequestWorkspaceRefresh()
+    {
+        // bump version before sending the request to the client:
+        Interlocked.Increment(ref _globalStateVersion);
+
+        WorkspaceRefreshRequested?.Invoke();
+    }
+
+    public int GlobalStateVersion
+        => _globalStateVersion;
 }

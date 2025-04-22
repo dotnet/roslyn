@@ -14,4 +14,9 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 internal interface IHostDiagnosticAnalyzerProvider
 {
     ImmutableArray<(AnalyzerFileReference reference, string extensionId)> GetAnalyzerReferencesInExtensions();
+
+    /// <summary>
+    /// Gets the path to any assemblies that represent the closure of razor compiler.
+    /// </summary>
+    ImmutableArray<(string path, string extensionId)> GetRazorAssembliesInExtensions();
 }

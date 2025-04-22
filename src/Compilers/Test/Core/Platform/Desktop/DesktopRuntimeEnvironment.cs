@@ -161,9 +161,9 @@ namespace Roslyn.Test.Utilities.Desktop
             }
         }
 
-        public (int ExitCode, string Output, string ErrorOutput) Execute(string[] args, int? maxOutputLength)
+        public (int ExitCode, string Output, string ErrorOutput) Execute(string[] args)
         {
-            var exitCode = Data.Manager.Execute(MainModule.FullName, args, maxOutputLength, out string output, out string errorOutput);
+            var exitCode = Data.Manager.Execute(MainModule.FullName, args, out string output, out string errorOutput);
             return (exitCode, output, errorOutput);
         }
 
@@ -249,37 +249,6 @@ namespace Roslyn.Test.Utilities.Desktop
             Data = null;
             _disposed = true;
         }
-
-        private static readonly object s_consoleGuard = new object();
-
-        internal static void Capture(Action action, int? maxOutputLength, out string output, out string errorOutput)
-        {
-            TextWriter errorOutputWriter = new CappedStringWriter(maxOutputLength);
-            TextWriter outputWriter = new CappedStringWriter(maxOutputLength);
-
-            lock (s_consoleGuard)
-            {
-                TextWriter originalOut = Console.Out;
-                TextWriter originalError = Console.Error;
-                try
-                {
-                    Console.SetOut(outputWriter);
-                    Console.SetError(errorOutputWriter);
-                    action();
-                }
-                finally
-                {
-                    Console.SetOut(originalOut);
-                    Console.SetError(originalError);
-                }
-            }
-
-            output = outputWriter.ToString();
-            errorOutput = errorOutputWriter.ToString();
-        }
-
-        public void CaptureOutput(Action action, int? maxOutputLength, out string output, out string errorOutput) =>
-            Capture(action, maxOutputLength, out output, out errorOutput);
     }
 }
 #endif
