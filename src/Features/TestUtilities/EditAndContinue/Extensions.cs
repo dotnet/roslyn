@@ -115,4 +115,5 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     assemblyPath: Path.Combine(TempRoot.Root, projectName + ".dll"),
                     generatedFilesOutputDirectory: null))
                 .WithTelemetryId(CreateProjectTelemetryId(projectName));
+    }
 }
