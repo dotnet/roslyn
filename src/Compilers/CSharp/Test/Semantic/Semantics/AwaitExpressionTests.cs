@@ -229,9 +229,9 @@ class C
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (23,4): error CS8178: A reference returned by a call to 'Foo<TResult>.this[int].get' cannot be preserved across 'await' or 'yield' boundary.
+                // (23,4): error CS8178: A reference returned by a call to 'ValuesHolder<TResult>.this[int].get' cannot be preserved across 'await' or 'yield' boundary.
                 // 			res[0] = await kv.Value;
-                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "res[0]").WithArguments("Foo<TResult>.this[int].get").WithLocation(23, 4)
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "res[0]").WithArguments("ValuesHolder<TResult>.this[int].get").WithLocation(23, 4)
             );
         }
 
