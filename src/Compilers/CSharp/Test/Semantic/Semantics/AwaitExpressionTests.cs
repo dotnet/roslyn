@@ -140,7 +140,7 @@ class C
                         M().Wait();
                         async Task M()
                         {
-                            res.Get() = await Task.FromResult(default(T?));
+                            res.Get() = await Task.FromResult(default(T));
                         }
                     }
                 }
