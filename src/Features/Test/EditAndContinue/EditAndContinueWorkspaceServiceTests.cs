@@ -1804,7 +1804,8 @@ class C { int Y => 2; }
         AssertEx.AreEqual("generated: text", generatedText);
         Assert.Equal(1, generatorExecutionCount);
 
-        var generatorDiagnostics = await solution.CompilationState.GetSourceGeneratorDiagnosticsAsync(project.State, CancellationToken.None);
+        var runResult = await solution.CompilationState.GetSourceGeneratorRunResultAsync(project.State, CancellationToken.None);
+        var generatorDiagnostics = runResult.Diagnostics;
         Assert.Empty(generatorDiagnostics);
 
         var debuggingSession = await StartDebuggingSessionAsync(service, solution);
@@ -1837,7 +1838,8 @@ class C { int Y => 2; }
         generatedDocuments = await solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(project.State, CancellationToken.None);
         Assert.Empty(generatedDocuments.States);
 
-        generatorDiagnostics = await solution.CompilationState.GetSourceGeneratorDiagnosticsAsync(project.State, CancellationToken.None);
+        runResult = await solution.CompilationState.GetSourceGeneratorRunResultAsync(project.State, CancellationToken.None);
+        generatorDiagnostics = runResult.Diagnostics;
         Assert.Contains("System.InvalidOperationException: Source generator failed", generatorDiagnostics.Single().GetMessage());
     }
 

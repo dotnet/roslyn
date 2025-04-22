@@ -78,28 +78,6 @@ internal sealed class RemoteDiagnosticAnalyzerService : BrokeredServiceBase, IRe
         }
     }
 
-    public async ValueTask<ImmutableArray<DiagnosticData>> GetSourceGeneratorDiagnosticsAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken)
-    {
-        return await RunWithSolutionAsync(
-            solutionChecksum,
-            async solution =>
-            {
-                var project = solution.GetRequiredProject(projectId);
-                var diagnostics = await project.GetSourceGeneratorDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
-                using var builder = TemporaryArray<DiagnosticData>.Empty;
-                foreach (var diagnostic in diagnostics)
-                {
-                    var document = solution.GetDocument(diagnostic.Location.SourceTree);
-                    var data = document != null
-                        ? DiagnosticData.Create(diagnostic, document)
-                        : DiagnosticData.Create(diagnostic, project);
-                    builder.Add(data);
-                }
-
-                return builder.ToImmutableAndClear();
-            }, cancellationToken).ConfigureAwait(false);
-    }
-
     public ValueTask ReportAnalyzerPerformanceAsync(ImmutableArray<AnalyzerPerformanceInfo> snapshot, int unitCount, bool forSpanAnalysis, CancellationToken cancellationToken)
     {
         return RunServiceAsync(cancellationToken =>

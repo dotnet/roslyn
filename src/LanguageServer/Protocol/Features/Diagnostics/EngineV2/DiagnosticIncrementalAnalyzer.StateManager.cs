@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
@@ -69,16 +70,14 @@ internal sealed partial class DiagnosticAnalyzerService
                 if (includeWorkspacePlaceholderAnalyzers)
                 {
                     hostAnalyzers.Add(FileContentLoadAnalyzer.Instance);
-                    hostAnalyzers.Add(GeneratorDiagnosticsPlaceholderAnalyzer.Instance);
                     allAnalyzers.Add(FileContentLoadAnalyzer.Instance);
-                    allAnalyzers.Add(GeneratorDiagnosticsPlaceholderAnalyzer.Instance);
                 }
 
                 foreach (var analyzers in projectAnalyzerCollection)
                 {
                     foreach (var analyzer in analyzers)
                     {
-                        Debug.Assert(analyzer != FileContentLoadAnalyzer.Instance && analyzer != GeneratorDiagnosticsPlaceholderAnalyzer.Instance);
+                        Debug.Assert(analyzer != FileContentLoadAnalyzer.Instance);
                         allAnalyzers.Add(analyzer);
                     }
                 }
@@ -87,7 +86,7 @@ internal sealed partial class DiagnosticAnalyzerService
                 {
                     foreach (var analyzer in analyzers)
                     {
-                        Debug.Assert(analyzer != FileContentLoadAnalyzer.Instance && analyzer != GeneratorDiagnosticsPlaceholderAnalyzer.Instance);
+                        Debug.Assert(analyzer != FileContentLoadAnalyzer.Instance);
                         allAnalyzers.Add(analyzer);
                         hostAnalyzers.Add(analyzer);
                     }

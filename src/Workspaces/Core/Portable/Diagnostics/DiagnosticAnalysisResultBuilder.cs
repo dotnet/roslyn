@@ -111,9 +111,6 @@ internal struct DiagnosticAnalysisResultBuilder(Project project)
     public void AddSyntaxDiagnostics(SyntaxTree tree, ImmutableArray<Diagnostic> diagnostics)
         => AddDiagnostics(ref _lazySyntaxLocals, tree, diagnostics);
 
-    public void AddDiagnosticTreatedAsLocalSemantic(Diagnostic diagnostic)
-        => AddDiagnostic(ref _lazySemanticLocals, diagnostic.Location.SourceTree, diagnostic);
-
     public void AddSemanticDiagnostics(SyntaxTree tree, ImmutableArray<Diagnostic> diagnostics)
         => AddDiagnostics(ref _lazySemanticLocals, tree, diagnostics);
 

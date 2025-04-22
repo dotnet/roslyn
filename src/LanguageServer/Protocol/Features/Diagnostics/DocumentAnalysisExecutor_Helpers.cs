@@ -53,7 +53,7 @@ internal sealed partial class DocumentAnalysisExecutor
     public static bool IsAnalyzerEnabledForProject(DiagnosticAnalyzer analyzer, Project project, IGlobalOptionService globalOptions)
     {
         var options = project.CompilationOptions;
-        if (options == null || analyzer == FileContentLoadAnalyzer.Instance || analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance)
+        if (options == null || analyzer == FileContentLoadAnalyzer.Instance)
         {
             return true;
         }
