@@ -24,7 +24,7 @@
     <NoWarn>$(NoWarn);NU5100;NU5128</NoWarn>
 
     <_InitializeArtifactsTargetName Condition="'$(TargetFramework)' == 'net472'">InitializeDesktopCompilerArtifacts</_InitializeArtifactsTargetName>
-      <_InitializeArtifactsTargetName Condition="'$(TargetFramework)' != 'net472'">InitializeCoreClrCompilerArtifacts</_InitializeArtifactsTargetName>
+    <_InitializeArtifactsTargetName Condition="'$(TargetFramework)' != 'net472'">InitializeCoreClrCompilerArtifacts</_InitializeArtifactsTargetName>
   </PropertyGroup>
 
   <ItemGroup>
