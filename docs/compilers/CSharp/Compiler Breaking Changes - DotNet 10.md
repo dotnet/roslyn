@@ -373,7 +373,8 @@ where partial interface properties and events would not be implicitly `virtual` 
 This inconsistency is however [preserved](./Deviations%20from%20Standard.md#interface-partial-methods) for partial interface methods to avoid a larger breaking change.
 Note that Visual Basic and other languages not supporting default interface members will start requiring to implement implicitly virtual `partial` interface members.
 
-To keep the previous behavior, explicitly mark `partial` interface members as `sealed` and `private`.
+To keep the previous behavior, explicitly mark `partial` interface members as `private` (if they don't have any accessibility modifiers)
+and `sealed` (if they don't have the `private` modifier which implies `sealed`, and they don't already have modifier `virtual` or `sealed`).
 
 ```cs
 System.Console.Write(((I)new C()).P); // wrote 1 previously, writes 2 now
