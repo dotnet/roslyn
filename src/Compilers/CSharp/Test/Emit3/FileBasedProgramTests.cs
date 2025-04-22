@@ -490,8 +490,8 @@ public sealed class FileBasedProgramTests : TestBase
         out ImmutableArray<Diagnostic> actualDiagnostics,
         bool force)
     {
-#pragma warning disable RSEXPERIMENTAL006 // 'VirtualProject' is experimental
-        var virtualProject = new FileBasedPrograms.VirtualProject("/app/Program.cs");
+#pragma warning disable RSEXPERIMENTAL006 // 'FileBasedProgramProject' is experimental
+        var virtualProject = new FileBasedPrograms.FileBasedProgramProject("/app/Program.cs");
         actualDiagnostics = virtualProject.ParseDirectives(
             virtualProject.EntryPointFileFullPath,
             SourceText.From(inputCSharp, Encoding.UTF8),
@@ -509,7 +509,7 @@ public sealed class FileBasedProgramTests : TestBase
             actualProject = null;
             actualCSharp = null;
         }
-#pragma warning restore RSEXPERIMENTAL006 // 'VirtualProject' is experimental
+#pragma warning restore RSEXPERIMENTAL006 // 'FileBasedProgramProject' is experimental
     }
 #endif
 

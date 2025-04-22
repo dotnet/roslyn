@@ -1,8 +1,8 @@
-[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.VirtualProject
-[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.VirtualProject.ConvertSourceText(string! path) -> Microsoft.CodeAnalysis.Text.SourceText?
-[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.VirtualProject.Emit(System.IO.TextWriter! csprojWriter, string! artifactsPath) -> void
-[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.VirtualProject.EmitConverted(System.IO.TextWriter! csprojWriter) -> void
-[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.VirtualProject.EntryPointFileFullPath.get -> string!
-[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.VirtualProject.ParseDirectives(string! filePath, Microsoft.CodeAnalysis.Text.SourceText! text, bool reportAllErrors) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>
-[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.VirtualProject.VirtualProject(string! entryPointFileFullPath) -> void
-[RSEXPERIMENTAL006]static Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.VirtualProject.GetArtifactsPath(string! entryPointFilePath) -> string!
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.FileBasedProgramProject
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.FileBasedProgramProject.ConvertSourceText(string! path) -> Microsoft.CodeAnalysis.Text.SourceText?
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.FileBasedProgramProject.Emit(System.IO.TextWriter! csprojWriter, string! artifactsPath) -> void
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.FileBasedProgramProject.EmitConverted(System.IO.TextWriter! csprojWriter) -> void
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.FileBasedProgramProject.EntryPointFileFullPath.get -> string!
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.FileBasedProgramProject.ParseDirectives(string! filePath, Microsoft.CodeAnalysis.Text.SourceText! text, bool reportAllErrors) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.FileBasedProgramProject.FileBasedProgramProject(string! entryPointFileFullPath) -> void
+[RSEXPERIMENTAL006]static Microsoft.CodeAnalysis.CSharp.FileBasedPrograms.FileBasedProgramProject.GetArtifactsPath(string! entryPointFilePath) -> string!

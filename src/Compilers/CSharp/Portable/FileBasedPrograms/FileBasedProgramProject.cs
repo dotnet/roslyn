@@ -27,13 +27,13 @@ namespace Microsoft.CodeAnalysis.CSharp.FileBasedPrograms;
 /// <remarks>
 /// This class is not thread safe.
 /// </remarks>
-[Experimental(RoslynExperiments.VirtualProject, UrlFormat = RoslynExperiments.VirtualProject_Url)]
-public sealed class VirtualProject(string entryPointFileFullPath)
+[Experimental(RoslynExperiments.FileBasedProgramProject, UrlFormat = RoslynExperiments.FileBasedProgramProject_Url)]
+public sealed class FileBasedProgramProject(string entryPointFileFullPath)
 {
     /// <summary>
     /// Each list should be ordered by source location, <see cref="ConvertSourceText"/> depends on that.
     /// </summary>
-    private readonly SortedDictionary<string, (SourceText, List<VirtualProjectDirective>)> _directives = new SortedDictionary<string, (SourceText, List<VirtualProjectDirective>)>();
+    private readonly SortedDictionary<string, (SourceText, List<FileBasedProgramDirective>)> _directives = new SortedDictionary<string, (SourceText, List<FileBasedProgramDirective>)>();
 
     /// <summary>
     /// Path to the entry-point file of the file-based program.
@@ -64,7 +64,7 @@ public sealed class VirtualProject(string entryPointFileFullPath)
 #pragma warning disable RSEXPERIMENTAL003 // 'SyntaxTokenParser' is experimental
     {
         var file = new SourceFile(filePath, text);
-        var directives = new List<VirtualProjectDirective>();
+        var directives = new List<FileBasedProgramDirective>();
         _directives.Add(filePath, (text, directives));
         var diagnosticBag = DiagnosticBag.GetInstance();
         SyntaxTokenParser tokenizer = SyntaxFactory.CreateTokenParser(text,
@@ -91,7 +91,7 @@ public sealed class VirtualProject(string entryPointFileFullPath)
             {
                 TextSpan span = getFullSpan(previousWhiteSpaceSpan, trivia);
 
-                directives.Add(new VirtualProjectDirective.Shebang { Span = span });
+                directives.Add(new FileBasedProgramDirective.Shebang { Span = span });
             }
             else if (trivia.IsKind(SyntaxKind.IgnoredDirectiveTrivia))
             {
@@ -106,7 +106,7 @@ public sealed class VirtualProject(string entryPointFileFullPath)
                 Debug.Assert(!parts.MoveNext());
 
                 var locationInfo = new LocationInfo(file, trivia.Span);
-                var parsed = VirtualProjectDirective.TryParse(locationInfo, span, name.ToString(), value.ToString(), diagnosticBag);
+                var parsed = FileBasedProgramDirective.TryParse(locationInfo, span, name.ToString(), value.ToString(), diagnosticBag);
                 if (parsed != null)
                 {
                     directives.Add(parsed);
@@ -214,16 +214,16 @@ public sealed class VirtualProject(string entryPointFileFullPath)
         return text;
     }
 
-    private IEnumerable<VirtualProjectDirective> AllDirectives
+    private IEnumerable<FileBasedProgramDirective> AllDirectives
         => _directives.Values.SelectMany(t => t.Item2);
 
     private void EmitImpl(TextWriter csprojWriter, string? artifactsPath, bool convert)
     {
         int processedDirectives = 0;
 
-        var sdkDirectives = AllDirectives.OfType<VirtualProjectDirective.Sdk>();
-        var propertyDirectives = AllDirectives.OfType<VirtualProjectDirective.Property>();
-        var packageDirectives = AllDirectives.OfType<VirtualProjectDirective.Package>();
+        var sdkDirectives = AllDirectives.OfType<FileBasedProgramDirective.Sdk>();
+        var propertyDirectives = AllDirectives.OfType<FileBasedProgramDirective.Property>();
+        var packageDirectives = AllDirectives.OfType<FileBasedProgramDirective.Package>();
 
         string sdkValue = "Microsoft.NET.Sdk";
 
@@ -364,7 +364,7 @@ public sealed class VirtualProject(string entryPointFileFullPath)
             csprojWriter.WriteLine("  </ItemGroup>");
         }
 
-        Debug.Assert(processedDirectives + AllDirectives.OfType<VirtualProjectDirective.Shebang>().Count() == AllDirectives.Count());
+        Debug.Assert(processedDirectives + AllDirectives.OfType<FileBasedProgramDirective.Shebang>().Count() == AllDirectives.Count());
 
         if (!convert)
         {

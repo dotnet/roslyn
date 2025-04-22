@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.CSharp.FileBasedPrograms;
 /// Represents a C# directive starting with <c>#:</c>.
 /// Those are ignored by the language but recognized by file-based programs.
 /// </summary>
-internal abstract class VirtualProjectDirective
+internal abstract class FileBasedProgramDirective
 {
-    private VirtualProjectDirective() { }
+    private FileBasedProgramDirective() { }
 
     /// <summary>
     /// Span of the full line including the trailing line break.
@@ -27,7 +27,7 @@ internal abstract class VirtualProjectDirective
     /// See <see cref="Span"/>. This is the full span that will be removed during file-based to project-based conversion
     /// unlike in <paramref name="locationInfo"/> which is only used for diagnostics and can contain any user-friendly span.
     /// </param>
-    public static VirtualProjectDirective? TryParse(in LocationInfo locationInfo, TextSpan span, string directiveKind, string directiveText, DiagnosticBag diagnostics)
+    public static FileBasedProgramDirective? TryParse(in LocationInfo locationInfo, TextSpan span, string directiveKind, string directiveText, DiagnosticBag diagnostics)
     {
         switch (directiveKind)
         {
@@ -63,12 +63,12 @@ internal abstract class VirtualProjectDirective
     /// <summary>
     /// <c>#!</c> directive.
     /// </summary>
-    public sealed class Shebang : VirtualProjectDirective;
+    public sealed class Shebang : FileBasedProgramDirective;
 
     /// <summary>
     /// <c>#:sdk</c> directive.
     /// </summary>
-    public sealed class Sdk : VirtualProjectDirective
+    public sealed class Sdk : FileBasedProgramDirective
     {
         private Sdk() { }
 
@@ -101,7 +101,7 @@ internal abstract class VirtualProjectDirective
     /// <summary>
     /// <c>#:property</c> directive.
     /// </summary>
-    public sealed class Property : VirtualProjectDirective
+    public sealed class Property : FileBasedProgramDirective
     {
         private Property() { }
 
@@ -145,7 +145,7 @@ internal abstract class VirtualProjectDirective
     /// <summary>
     /// <c>#:package</c> directive.
     /// </summary>
-    public sealed class Package : VirtualProjectDirective
+    public sealed class Package : FileBasedProgramDirective
     {
         private Package() { }
 
