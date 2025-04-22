@@ -35101,6 +35101,40 @@ class C
     }
 
     [Fact]
+    public void Nullability_Attribute_22()
+    {
+        var src = """
+#nullable enable
+
+C.Try(out var x).AssertTrue().M(x);
+C.Try(out var y).AssertFalse().M(y);
+
+class C
+{
+    public static bool Try([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out object? o) => throw null!;
+    public void M(object o) { }
+}
+static class E
+{
+    extension([System.Diagnostics.CodeAnalysis.DoesNotReturnIf(false)] bool b)
+    {
+        public C AssertTrue() => throw null!;
+    }
+
+    extension([System.Diagnostics.CodeAnalysis.DoesNotReturnIf(true)] bool b)
+    {
+        public C AssertFalse() => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (4,34): warning CS8604: Possible null reference argument for parameter 'o' in 'void C.M(object o)'.
+            // C.Try(out var y).AssertFalse().M(y);
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("o", "void C.M(object o)").WithLocation(4, 34));
+    }
+
+    [Fact]
     public void BuildArgumentsForErrorRecovery_01()
     {
         var src = """
