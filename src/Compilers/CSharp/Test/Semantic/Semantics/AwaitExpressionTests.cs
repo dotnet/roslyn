@@ -126,18 +126,18 @@ class C
             var src = """
                 using System.Threading.Tasks;
 
-                public sealed class Foo<T>
+                public sealed class RefHolder<T>
                 {
                     private T _t;
                     public ref T Get() => ref _t;
                 }
 
                 #nullable enable
-                public static class Foo
+                public static class App
                 {
-                    public static void Bar<T>()
+                    public static void Do<T>()
                     {
-                        var res = new Foo<T?>();
+                        var res = new RefHolder<T?>();
                         M().Wait();
                         async Task M()
                         {
@@ -149,9 +149,9 @@ class C
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (18,13): error CS8178: A reference returned by a call to 'Foo<T?>.Get()' cannot be preserved across 'await' or 'yield' boundary.
+                // (18,13): error CS8178: A reference returned by a call to 'RefHolder<T?>.Get()' cannot be preserved across 'await' or 'yield' boundary.
                 //             res.Get() = await Task.FromResult(default(T?));
-                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "res.Get()").WithArguments("Foo<T?>.Get()").WithLocation(18, 13)
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "res.Get()").WithArguments("RefHolder<T?>.Get()").WithLocation(18, 13)
             );
         }
 
