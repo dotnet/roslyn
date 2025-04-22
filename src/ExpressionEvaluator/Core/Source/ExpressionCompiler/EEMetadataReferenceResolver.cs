@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private readonly IReadOnlyDictionary<string, ImmutableArray<(AssemblyIdentity Identity, MetadataReference Reference)>> _referencesBySimpleName;
 
 #if DEBUG
-        internal readonly Dictionary<AssemblyIdentity, (AssemblyIdentity? Identity, int Count)> Requests =
+        internal readonly Dictionary<AssemblyIdentity, (AssemblyIdentity? Identity, int Count)> Requests = [];
             [];
 #endif
 
