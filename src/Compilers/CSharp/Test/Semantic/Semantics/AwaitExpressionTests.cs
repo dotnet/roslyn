@@ -132,12 +132,11 @@ class C
                     public ref T Get() => ref _t;
                 }
 
-                #nullable enable
                 public static class App
                 {
                     public static void Do<T>()
                     {
-                        var res = new RefHolder<T?>();
+                        var res = new RefHolder<T>();
                         M().Wait();
                         async Task M()
                         {
