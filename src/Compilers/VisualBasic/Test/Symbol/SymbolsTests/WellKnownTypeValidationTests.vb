@@ -763,7 +763,9 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitTask,
                          WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitTaskT_T,
                          WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitValueTask,
-                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitValueTaskT_T
+                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitValueTaskT_T,
+                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitAwaiterFromRuntimeAsync_TAwaiter,
+                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TAwaiter
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
@@ -978,7 +980,9 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitTask,
                          WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitTaskT_T,
                          WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitValueTask,
-                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitValueTaskT_T
+                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitValueTaskT_T,
+                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitAwaiterFromRuntimeAsync_TAwaiter,
+                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TAwaiter
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
