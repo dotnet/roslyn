@@ -123,6 +123,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _originalVariable.GetConstantValueDiagnostics(boundInitValue);
         }
 
+        internal override LocalSymbol UnderlyingLocalSymbol => _originalVariable;
+
         internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(
             SynthesizedLocalKind kind, SyntaxNode syntax
 #if DEBUG

@@ -387,6 +387,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new PublicModel.LocalSymbol(this);
         }
 
+        /// <summary>
+        /// Allows to access an underlying local symbol. If no underlying symbol exists - the same symbol is returned.
+        /// A typical use case is type substitution or a substituted containing-symbol (e.g. for the new extension mechanism).
+        /// Such substitutions are typically realized via <see cref="TypeSubstitutedLocalSymbol"/>
+        /// </summary>
+        internal virtual LocalSymbol UnderlyingLocalSymbol => this;
+
         #region ILocalSymbolInternal Members
 
         SynthesizedLocalKind ILocalSymbolInternal.SynthesizedKind
