@@ -18,6 +18,8 @@ stages:
       - job: symbol_archive
         displayName: Archive symbols
         pool: VSEngSS-MicroBuild2022-1ES
+        variables:
+          ONEES_ENFORCED_CODEQL_ENABLED: false # CodeQL runs on build stages, we don't need it here
         steps:
         - checkout: none
         - download: current
@@ -61,6 +63,8 @@ stages:
             ${{ else }}:
               nuGetFeedType: internal
               publishVstsFeed: vs-impl # Leave this as-is, since non-signed builds must not be pushed to public feeds.
+        variables:
+          ONEES_ENFORCED_CODEQL_ENABLED: false # CodeQL runs on build stages, we don't need it here
         steps:
         - checkout: none
         - download: current
