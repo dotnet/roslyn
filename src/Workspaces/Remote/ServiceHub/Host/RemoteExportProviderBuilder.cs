@@ -80,7 +80,7 @@ internal sealed class RemoteExportProviderBuilder : ExportProviderBuilder
         if (hasUnexpectedErroredParts)
             return true;
 
-        return partDiscoveryExceptions.Count > 0);
+        return partDiscoveryExceptions.Count > 0;
     }
 
     private sealed class SimpleAssemblyLoader : IAssemblyLoader
