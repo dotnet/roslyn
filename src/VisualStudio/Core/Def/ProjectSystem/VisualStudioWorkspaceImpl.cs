@@ -1232,6 +1232,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         catch (Exception ex) when (FatalError.ReportAndCatch(ex))
         {
             ReportErrorChangingDocumentText(ex);
+            return;
         }
 
         void ReportErrorChangingDocumentText(Exception exception)
