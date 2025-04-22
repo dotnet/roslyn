@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(local is SynthesizedLocal or TypeSubstitutedLocalSymbol);
             Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.Spill ||
                          (local.SynthesizedKind == SynthesizedLocalKind.ForEachArray && local.Type.HasInlineArrayAttribute(out _) && local.Type.TryGetInlineArrayElementField() is object));
-            Debug.Assert(local is SynthesizedLocal sl ? sl.SyntaxOpt != null : true);
+            Debug.Assert(local.GetDeclaratorSyntax() != null);
 #pragma warning disable format
             Debug.Assert(local.SynthesizedKind switch
                          {
