@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 
-[Obsolete("Use ICohostStartupService instead")]
+[Obsolete($"Use {nameof(ICohostStartupService)} instead")]
 internal interface IRazorCohostDynamicRegistrationService
 {
     Task RegisterAsync(string serializedClientCapabilities, RazorCohostRequestContext requestContext, CancellationToken cancellationToken);
