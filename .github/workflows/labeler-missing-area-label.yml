@@ -17,15 +17,11 @@ jobs:
     if: github.repository == 'dotnet/roslyn' # Skip forks
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-
       - name: Tag Issues Missing Area Labels
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
-            const AREA_LABEL_PREFIX = 'Area-';
-            const NEEDS_AREA_LABEL = 'needs_area_label';
+            const NEEDS_AREA_LABEL = 'needs-area-label';
 
             // Fetch open issues in the repo
             const issues = await github.paginate(
@@ -43,13 +39,11 @@ jobs:
               if (issue.pull_request) continue;
 
               const labels = issue.labels.map(label => label.name);
-              const hasUntriaged = labels.includes('untriaged');
-              const hasAreaLabel = labels.some(name => name.startsWith(AREA_LABEL_PREFIX));
+              const hasAreaLabel = labels.some(name => name.startsWith('Area-') || name.startsWith('Interactive-'));
               const hasNeedsAreaLabel = labels.includes(NEEDS_AREA_LABEL);
-              const hasAssignee = issue.assignee !== null;
 
               // If issue needs an Area label
-              if (hasUntriaged && !hasAreaLabel && !hasNeedsAreaLabel && !hasAssignee) {
+              if (!hasAreaLabel && !hasNeedsAreaLabel) {
                 console.log(`Adding '${NEEDS_AREA_LABEL}' to issue #${issue.number}`);
 
                 // Add the needs_area_label
