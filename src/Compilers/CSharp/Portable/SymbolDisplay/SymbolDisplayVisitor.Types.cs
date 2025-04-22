@@ -204,8 +204,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (Format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseSpecialTypes) ||
-                (symbol.IsNativeIntegerType && !Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType)))
+            if (Format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseSpecialTypes) &&
+                !(symbol.IsNativeIntegerType && Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType)))
             {
                 if (AddSpecialTypeKeyword(symbol))
                 {

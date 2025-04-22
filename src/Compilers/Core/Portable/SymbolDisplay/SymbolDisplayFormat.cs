@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
                     SymbolDisplayMiscellaneousOptions.ExpandValueTuple,
-                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames);
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames | SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType);
 
         /// <summary>
         /// Used to normalize explicit interface implementation member names.
