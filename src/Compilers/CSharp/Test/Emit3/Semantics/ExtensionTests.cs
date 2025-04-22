@@ -970,6 +970,90 @@ interface IInterface
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78222")]
+    public void ExtensionInClass()
+    {
+        var src = """
+class SomeClass
+{
+    extension(object)
+    {
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //     extension(object)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 5)
+        );
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78222")]
+    public void ExtensionInStruct()
+    {
+        var src = """
+struct SomeStruct
+{
+    extension(object)
+    {
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //     extension(object)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 5)
+        );
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78222")]
+    public void ExtensionInRecordClass()
+    {
+        var src = """
+record class SomeRecord
+{
+    extension(object)
+    {
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //     extension(object)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 5)
+        );
+    }
+
+[Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78222")]
+    public void ExtensionInRecordStruct()
+    {
+        var src = """
+record struct SomeRecord
+{
+    extension(object)
+    {
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //     extension(object)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 5)
+        );
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78222")]
     public void ExtensionInInterfaceWithVariance()
     {
         var src = """
