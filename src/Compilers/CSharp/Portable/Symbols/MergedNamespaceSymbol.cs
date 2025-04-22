@@ -231,6 +231,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _cachedLookup[name];
         }
 
+        internal sealed override void AddTypeMembersUnordered(ArrayBuilder<NamedTypeSymbol> builder)
+        {
+            foreach (var member in GetMembersUnordered())
+            {
+                if (member is NamedTypeSymbol typeMember)
+                    builder.Add(typeMember);
+            }
+        }
+
         internal sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembersUnordered()
         {
             return ImmutableArray.CreateRange<NamedTypeSymbol>(GetMembersUnordered().OfType<NamedTypeSymbol>());

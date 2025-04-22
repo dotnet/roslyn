@@ -145,6 +145,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Adds all members of this symbol that are types. The members may not be in a particular order, and the order
+        /// may not be stable from call-to-call.
+        /// </summary>
+        internal virtual void AddTypeMembersUnordered(ArrayBuilder<NamedTypeSymbol> builder)
+        {
+            // Default implemntation isn't optimized, and just uses ImmutableArray version for simplicity
+            builder.AddRange(GetTypeMembersUnordered());
+        }
+
+        /// <summary>
         /// Get all the members of this symbol that are types.
         /// </summary>
         /// <returns>An ImmutableArray containing all the types that are members of this symbol. If this symbol has no type members,
