@@ -232,8 +232,13 @@ namespace Microsoft.CodeAnalysis.Collections
             {
                 foreach (var key in allKeys)
                 {
-                    // Copy non-empty values from the existing map
-                    ImmutableArray<TElement> elements = existingMap.GetOrAdd(key, _getElementsOfKey);
+                    // Copy non-empty values from the existing map. Otherwise, use _getElementsOfKey
+                    // to get the calculated value and don't bother to update existingMap.
+                    if (!existingMap.TryGetValue(key, out ImmutableArray<TElement> elements))
+                    {
+                        elements = _getElementsOfKey(key);
+                    }
+
                     Debug.Assert(elements != s_emptySentinel);
                     fullyPopulatedMap.Add(key, elements);
                 }
