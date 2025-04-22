@@ -23,8 +23,8 @@
     <!-- Remove NU5128 once https://github.com/NuGet/Home/issues/8583 is fixed -->
     <NoWarn>$(NoWarn);NU5100;NU5128</NoWarn>
 
-    <_DependsOn Condition="'$(TargetFramework)' == 'net472'">InitializeDesktopCompilerArtifacts</_DependsOn>
-    <_DependsOn Condition="'$(TargetFramework)' != 'net472'">InitializeCoreClrCompilerArtifacts</_DependsOn>
+    <_InitializeArtifactsTargetName Condition="'$(TargetFramework)' == 'net472'">InitializeDesktopCompilerArtifacts</_InitializeArtifactsTargetName>
+      <_InitializeArtifactsTargetName Condition="'$(TargetFramework)' != 'net472'">InitializeCoreClrCompilerArtifacts</_InitializeArtifactsTargetName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -47,7 +47,7 @@
     <Content Include="buildMultiTargeting\**\*.*" PackagePath="buildMultiTargeting\" />
   </ItemGroup>
 
-  <Target Name="_GetFiles" AfterTargets="Build" DependsOnTargets="$(_DependsOn)" Condition="'$(TargetFramework)' != ''">
+  <Target Name="_GetFiles" DependsOnTargets="$(_InitializeArtifactsTargetName);Build">
     <ItemGroup>
       <_File Include="@(DesktopCompilerArtifact)" TargetDir="tasks/net472"/>
       <_File Include="@(DesktopCompilerResourceArtifact)" TargetDir="tasks/net472"/>
@@ -66,8 +66,7 @@
       Doesn't work in VS (where `<ProjectReference Targets="Publish" />` doesn't have any effect), hence we set `ContinueOnError="true"`. -->
     <Copy SourceFiles="@(_FileWithPath)"
           DestinationFiles="$(BaseOutputPath)$(Configuration)\%(_FileWithPath.TargetPath)"
-          SkipUnchangedFiles="true"
-          ContinueOnError="true" />
+          SkipUnchangedFiles="true" />
   </Target>
 
   <Import Project="..\DesktopCompilerArtifacts.targets" Condition="'$(TargetFramework)' == 'net472'" />
