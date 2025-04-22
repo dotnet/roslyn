@@ -156,6 +156,44 @@ class C
 
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/76999")]
+        public void TestAwaitHoistedRef_InNewExtensionContainer()
+        {
+            var src = """
+                using System.Threading.Tasks;
+
+                public sealed class RefHolder<T>
+                {
+                    private T _t;
+                    public ref T Get() => ref _t;
+                }
+
+                public static class App
+                {
+                    extension(int)
+                    {
+                        public static void Do<T>()
+                        {
+                            var res = new RefHolder<T>();
+                            M().Wait();
+                            async Task M()
+                            {
+                                res.Get() = await Task.FromResult(default(T));
+                            }
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (17,13): error CS8178: A reference returned by a call to 'RefHolder<T>.Get()' cannot be preserved across 'await' or 'yield' boundary.
+                //             res.Get() = await Task.FromResult(default(T));
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "res.Get()").WithArguments("RefHolder<T>.Get()").WithLocation(17, 13)
+            );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/76999")]
         public void TestAwaitHoistedRef2()
         {
             var src = """
