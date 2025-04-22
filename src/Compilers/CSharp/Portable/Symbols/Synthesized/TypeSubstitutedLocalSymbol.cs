@@ -17,7 +17,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly TypeWithAnnotations _type;
         private readonly Symbol _containingSymbol;
 
-        public TypeSubstitutedLocalSymbol(LocalSymbol originalVariable, TypeWithAnnotations type, Symbol containingSymbol)
+#if DEBUG
+        private readonly int _createdAtLineNumber;
+        private readonly string _createdAtFilePath;
+#endif
+
+        public TypeSubstitutedLocalSymbol(LocalSymbol originalVariable, TypeWithAnnotations type, Symbol containingSymbol
+#if DEBUG
+            ,
+            [CallerLineNumber] int createdAtLineNumber = 0,
+            [CallerFilePath] string createdAtFilePath = null
+#endif
+            )
         {
             Debug.Assert(originalVariable != null);
             Debug.Assert(type.HasType);
@@ -25,6 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(containingSymbol.DeclaringCompilation is not null);
 
             //avoid double wrapping
+            //this can happen e.g. if a local is substituted in ExtensionMethodBodyRewriter
+            //and later it is substituted for example in ClosureConversion again
             if (originalVariable is TypeSubstitutedLocalSymbol tsl)
             {
                 _originalVariable = tsl._originalVariable;
@@ -33,6 +46,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 _originalVariable = originalVariable;
             }
+#if DEBUG
+            _createdAtFilePath = createdAtFilePath;
+            _createdAtLineNumber = createdAtLineNumber;
+#endif
             _type = type;
             _containingSymbol = containingSymbol;
         }
