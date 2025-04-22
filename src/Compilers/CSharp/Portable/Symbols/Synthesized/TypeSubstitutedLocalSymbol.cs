@@ -24,7 +24,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(containingSymbol != null);
             Debug.Assert(containingSymbol.DeclaringCompilation is not null);
 
-            _originalVariable = originalVariable;
+            //avoid double wrapping
+            if (originalVariable is TypeSubstitutedLocalSymbol tsl)
+            {
+                _originalVariable = tsl._originalVariable;
+            }
+            else
+            {
+                _originalVariable = originalVariable;
+            }
             _type = type;
             _containingSymbol = containingSymbol;
         }
