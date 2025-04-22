@@ -1921,6 +1921,8 @@
     <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow" SkipInVisitor="true"/>
     <!-- Placeholder for collection builder elements span. -->
     <Field Name="CollectionBuilderSpanPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!-- Indexer setter, if any. -->
+    <Field Name="IndexerSetMethod" Type="MethodSymbol?" Null="allow"/>
     <!-- Indicates whether the collection expression was successfully target-typed (it is inside a conversion) -->
     <Field Name="WasTargetTyped" Type="bool" />
     <Field Name="UnconvertedCollectionExpression" Type="BoundUnconvertedCollectionExpression" Null="disallow" SkipInVisitor="true"/>
@@ -1951,22 +1953,22 @@
     <Field Name="Key" Type="BoundExpression"/>
     <!-- Value expression. -->
     <Field Name="Value" Type="BoundExpression"/>
-    <!-- Placeholder for Key in assignment. -->
-    <Field Name="KeyPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
-    <!-- Placeholder for Value in assignment. -->
-    <Field Name="ValuePlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
-    <!-- Indexer assignment of key:value pair to containing dictionary. -->
-    <Field Name="IndexerAssignment" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
   </Node>
 
-  <!-- An expression element of KeyValuePair&lt;,&gt; type in a collection expression where the target type is a collection of KeyValuePair&lt;,&gt;. -->
-  <Node Name="BoundKeyValuePairExpressionElement" Base="BoundNode">
+  <!-- A KeyValuePair&lt;,&gt; with key and value conversions. -->
+  <Node Name="BoundKeyValuePairConversion" Base="BoundExpression">
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <!-- Expression. -->
     <Field Name="Expression" Type="BoundExpression"/>
-    <!-- Placeholder for Expression in assignment. -->
-    <Field Name="ExpressionPlaceholder" Type="BoundValuePlaceholder" SkipInVisitor="true"/>
-    <!-- Indexer assignment of Key and Value properties of Expression to containing dictionary. -->
-    <Field Name="IndexerAssignment" Type="BoundExpression" SkipInVisitor="true"/>
+    <!-- Placeholder for Expression.Key in KeyConversion. -->
+    <Field Name="KeyPlaceholder" Type="BoundValuePlaceholder" SkipInVisitor="true"/>
+    <!-- Placeholder for Expression.Value in ValueConversion. -->
+    <Field Name="ValuePlaceholder" Type="BoundValuePlaceholder" SkipInVisitor="true"/>
+    <!-- Key conversion. -->
+    <Field Name="KeyConversion" Type="BoundExpression" SkipInVisitor="true"/>
+    <!-- Value conversion. -->
+    <Field Name="ValueConversion" Type="BoundExpression" SkipInVisitor="true"/>
   </Node>
 
   <!-- Unconverted collection expression arguments. -->

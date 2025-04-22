@@ -863,8 +863,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? collectionCreation = null;
             BoundObjectOrCollectionValuePlaceholder? implicitReceiver = null;
             BoundValuePlaceholder? collectionBuilderSpanPlaceholder = null;
-            MethodSymbol? getKeyMethod = null;
-            MethodSymbol? getValueMethod = null;
             MethodSymbol? setMethod = null;
 
             // Verify the existence of the well-known members that may be used in lowering, even
@@ -873,8 +871,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer or CollectionExpressionTypeKind.DictionaryInterface)
             {
-                getKeyMethod = (MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key, diagnostics, syntax: syntax);
-                getValueMethod = (MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value, diagnostics, syntax: syntax);
+                _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key, diagnostics, syntax: syntax);
+                _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value, diagnostics, syntax: syntax);
             }
 
             if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable or CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer)
@@ -1005,9 +1003,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 implicitReceiver,
                 collectionCreation,
                 collectionBuilderSpanPlaceholder,
+                setMethod,
                 wasTargetTyped: true,
                 node,
-                ConvertCollectionExpressionElements(node, targetType, conversion, collectionTypeKind, elementType, implicitReceiver, getKeyMethod, getValueMethod, setMethod, diagnostics),
+                ConvertCollectionExpressionElements(node, targetType, conversion, collectionTypeKind, elementType, implicitReceiver, setMethod, diagnostics),
                 targetType)
             { WasCompilerGenerated = node.IsParamsArrayOrCollection, IsParamsArrayOrCollection = node.IsParamsArrayOrCollection };
         }
@@ -1019,8 +1018,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             CollectionExpressionTypeKind collectionTypeKind,
             TypeSymbol? elementType,
             BoundObjectOrCollectionValuePlaceholder? implicitReceiver,
-            MethodSymbol? getKeyMethod,
-            MethodSymbol? getValueMethod,
             MethodSymbol? setMethod,
             BindingDiagnosticBag diagnostics)
         {
@@ -1076,7 +1073,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(elementType is { });
                 Debug.Assert(elementConversions.All(c => c.Exists));
-                Debug.Assert(implicitReceiver is { });
 
                 int conversionIndex = 0;
                 foreach (var element in elements)
@@ -1091,71 +1087,61 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BoundExpression expressionElement:
                             {
-                                BoundExpression convertedExpression;
                                 if (elementConversion.TryGetKeyValueConversions(out var keyConversion, out var valueConversion))
                                 {
-                                    Debug.Assert(ConversionsBase.IsKeyValuePairType(Compilation, expressionElement.Type, out _, out _));
-                                    convertedExpression = BindToNaturalType(expressionElement, diagnostics);
+                                    if (!ConversionsBase.IsKeyValuePairType(Compilation, expressionElement.Type, out var keyType, out var valueType))
+                                    {
+                                        throw ExceptionUtilities.UnexpectedValue(expressionElement.Type);
+                                    }
+                                    BoundExpression convertedExpression = BindToNaturalType(expressionElement, diagnostics);
+                                    var expressionSyntax = expressionElement.Syntax;
+                                    var keyPlaceholder = new BoundValuePlaceholder(expressionSyntax, keyType);
+                                    var valuePlaceholder = new BoundValuePlaceholder(expressionSyntax, valueType);
+                                    convertedElement = new BoundKeyValuePairConversion(
+                                        expressionSyntax,
+                                        expression: convertedExpression,
+                                        keyPlaceholder: keyPlaceholder,
+                                        valuePlaceholder: valuePlaceholder,
+                                        keyConversion: CreateConversion(keyPlaceholder, keyConversion, elementKeyType, diagnostics),
+                                        valueConversion: CreateConversion(valuePlaceholder, valueConversion, elementValueType, diagnostics),
+                                        elementType);
                                 }
                                 else
                                 {
-                                    convertedExpression = CreateConversion(expressionElement, elementConversion, elementType, diagnostics);
-                                    keyConversion = Conversion.Identity;
-                                    valueConversion = Conversion.Identity;
+                                    convertedElement = CreateConversion(expressionElement, elementConversion, elementType, diagnostics);
                                 }
-                                var expressionSyntax = expressionElement.Syntax;
-                                var placeholder = new BoundValuePlaceholder(expressionSyntax, convertedExpression.Type);
-                                convertedElement = new BoundKeyValuePairExpressionElement(
-                                    expressionSyntax,
-                                    expression: convertedExpression,
-                                    expressionPlaceholder: placeholder,
-                                    BindDictionaryItemAssignment(
-                                        expressionSyntax,
-                                        implicitReceiver,
-                                        getKeyMethod,
-                                        getValueMethod,
-                                        setMethod,
-                                        expr: placeholder,
-                                        keyConversion: keyConversion,
-                                        destinationKeyType: elementKeyType,
-                                        valueConversion: valueConversion,
-                                        destinationValueType: elementValueType,
-                                        diagnostics));
                             }
                             break;
                         case BoundCollectionExpressionSpreadElement spreadElement:
                             convertedElement = BindCollectionExpressionSpreadElement(
                                 (SpreadElementSyntax)spreadElement.Syntax,
                                 spreadElement,
-                                implicitReceiver,
+                                implicitReceiver!, // PROTOTYPE: We don't need an implicit receiver here, and in fact it can be null.
                                 static (binder, syntax, item, implicitReceiver, arg, diagnostics) =>
                                 {
-                                    BoundExpression convertedExpression;
                                     if (arg.elementConversion.TryGetKeyValueConversions(out var keyConversion, out var valueConversion))
                                     {
-                                        Debug.Assert(ConversionsBase.IsKeyValuePairType(binder.Compilation, item.Type, out _, out _));
-                                        convertedExpression = item;
+                                        if (!ConversionsBase.IsKeyValuePairType(binder.Compilation, item.Type, out var keyType, out var valueType))
+                                        {
+                                            throw ExceptionUtilities.UnexpectedValue(item.Type);
+                                        }
+                                        var keyPlaceholder = new BoundValuePlaceholder(syntax, keyType);
+                                        var valuePlaceholder = new BoundValuePlaceholder(syntax, valueType);
+                                        return new BoundKeyValuePairConversion(
+                                            syntax,
+                                            expression: item,
+                                            keyPlaceholder: keyPlaceholder,
+                                            valuePlaceholder: valuePlaceholder,
+                                            keyConversion: binder.CreateConversion(keyPlaceholder, keyConversion, arg.elementKeyType, diagnostics),
+                                            valueConversion: binder.CreateConversion(valuePlaceholder, valueConversion, arg.elementValueType, diagnostics),
+                                            type: arg.elementType);
                                     }
                                     else
                                     {
-                                        convertedExpression = binder.CreateConversion(item, arg.elementConversion, arg.elementType, diagnostics);
-                                        keyConversion = Conversion.Identity;
-                                        valueConversion = Conversion.Identity;
+                                        return binder.CreateConversion(item, arg.elementConversion, arg.elementType, diagnostics);
                                     }
-                                    return binder.BindDictionaryItemAssignment(
-                                        syntax,
-                                        implicitReceiver,
-                                        arg.getKeyMethod,
-                                        arg.getValueMethod,
-                                        arg.setMethod,
-                                        convertedExpression,
-                                        keyConversion,
-                                        arg.elementKeyType,
-                                        valueConversion,
-                                        arg.elementValueType,
-                                        diagnostics);
                                 },
-                                (getKeyMethod, getValueMethod, setMethod, elementType, elementConversion: elementConversion, elementKeyType, elementValueType),
+                                (elementType, elementConversion, elementKeyType, elementValueType),
                                 diagnostics);
                             break;
                         case BoundKeyValuePairElement keyValuePairElement:
@@ -1165,22 +1151,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     throw ExceptionUtilities.UnexpectedValue(elementConversion);
                                 }
                                 var keyValuePairSyntax = (KeyValuePairElementSyntax)keyValuePairElement.Syntax;
-                                var key = keyValuePairElement.Key;
-                                var value = keyValuePairElement.Value;
-                                var keyPlaceholder = new BoundValuePlaceholder(keyValuePairSyntax.KeyExpression, elementKeyType);
-                                var valuePlaceholder = new BoundValuePlaceholder(keyValuePairSyntax.ValueExpression, elementValueType);
                                 convertedElement = new BoundKeyValuePairElement(
                                     keyValuePairSyntax,
-                                    CreateConversion(key, keyConversion, elementKeyType, diagnostics),
-                                    CreateConversion(value, valueConversion, elementValueType, diagnostics),
-                                    keyPlaceholder,
-                                    valuePlaceholder,
-                                    BindDictionaryItemAssignment(
-                                        keyValuePairSyntax,
-                                        implicitReceiver,
-                                        setMethod,
-                                        keyPlaceholder,
-                                        valuePlaceholder));
+                                    CreateConversion(keyValuePairElement.Key, keyConversion, elementKeyType, diagnostics),
+                                    CreateConversion(keyValuePairElement.Value, valueConversion, elementValueType, diagnostics));
                             }
                             break;
                         default:
@@ -2106,10 +2080,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundKeyValuePairElement keyValuePairElement =>
                         keyValuePairElement.Update(
                             BindToNaturalType(keyValuePairElement.Key, diagnostics, reportNoTargetType),
-                            BindToNaturalType(keyValuePairElement.Value, diagnostics, reportNoTargetType),
-                            keyPlaceholder: null,
-                            valuePlaceholder: null,
-                            indexerAssignment: null),
+                            BindToNaturalType(keyValuePairElement.Value, diagnostics, reportNoTargetType)),
                     BoundCollectionExpressionWithElement withElement => bindArgumentsToNaturalType(withElement, diagnostics, reportNoTargetType),
                     _ => BindToNaturalType((BoundExpression)element, diagnostics, reportNoTargetType)
                 };
@@ -2121,6 +2092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 placeholder: null,
                 collectionCreation: null,
                 collectionBuilderSpanPlaceholder: null,
+                indexerSetMethod: null,
                 wasTargetTyped: inConversion,
                 node,
                 elements: builder.ToImmutableAndFree(),

@@ -723,7 +723,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 ICollectionExpressionOperation (3 elements, ConstructMethod: {{constructMethod}}) (OperationKind.CollectionExpression, Type: System.Collections.Generic.{{typeName}}<K, V>) (Syntax: '[k:v, e, ..s]')
                   Elements(3):
                       IOperation:  (OperationKind.None, Type: null) (Syntax: 'k:v')
-                      IOperation:  (OperationKind.None, Type: null) (Syntax: 'e')
+                      IParameterReferenceOperation: e (OperationKind.ParameterReference, Type: System.Collections.Generic.KeyValuePair<K, V>) (Syntax: 'e')
                       ISpreadOperation (ElementType: System.Collections.Generic.KeyValuePair<K, V>) (OperationKind.Spread, Type: null) (Syntax: '..s')
                         Operand:
                           IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<K, V>>) (Syntax: 's')
