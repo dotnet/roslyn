@@ -411,8 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         methodSymbol.IsGenericMethod ||
                         !methodSymbol.IsStatic ||
                         !methodSymbol.ReturnsVoid ||
-                        methodSymbol.ParameterCount != 1 ||
-                        !methodSymbol.HasSpecialName)
+                        methodSymbol.ParameterCount != 1)
                     {
                         return null; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
                     }
