@@ -491,13 +491,15 @@ public sealed class FileBasedProgramTests : TestBase
         bool force)
     {
 #pragma warning disable RSEXPERIMENTAL006 // 'FileBasedProgramProject' is experimental
-        var virtualProject = new FileBasedPrograms.FileBasedProgramProject("/app/Program.cs");
-        actualDiagnostics = virtualProject.ParseDirectives(
-            virtualProject.EntryPointFileFullPath,
+        var virtualProjectBuilder = new FileBasedPrograms.FileBasedProgramProjectBuilder("/app/Program.cs");
+        actualDiagnostics = virtualProjectBuilder.ParseDirectives(
+            virtualProjectBuilder.EntryPointFileFullPath,
             SourceText.From(inputCSharp, Encoding.UTF8),
             reportAllErrors: true);
         if (force || actualDiagnostics.Length == 0)
         {
+            var virtualProject = virtualProjectBuilder.Build();
+
             var csprojWriter = new StringWriter();
             virtualProject.EmitConverted(csprojWriter);
             actualProject = csprojWriter.ToString();

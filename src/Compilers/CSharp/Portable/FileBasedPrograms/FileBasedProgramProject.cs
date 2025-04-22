@@ -21,17 +21,17 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.FileBasedPrograms;
 
 /// <summary>
-/// Can generate project file XML (in <c>.csproj</c> format) for a file-based program.
+/// Builder for <see cref="FileBasedProgramProject"/>.
 /// </summary>
 /// <param name="entryPointFileFullPath">See <see cref="EntryPointFileFullPath"/>.</param>
 /// <remarks>
 /// This class is not thread safe.
 /// </remarks>
 [Experimental(RoslynExperiments.FileBasedProgramProject, UrlFormat = RoslynExperiments.FileBasedProgramProject_Url)]
-public sealed class FileBasedProgramProject(string entryPointFileFullPath)
+public sealed class FileBasedProgramProjectBuilder(string entryPointFileFullPath)
 {
     /// <summary>
-    /// Each list should be ordered by source location, <see cref="ConvertSourceText"/> depends on that.
+    /// Each list should be ordered by source location, <see cref="FileBasedProgramProject.ConvertSourceText"/> depends on that.
     /// </summary>
     private readonly SortedDictionary<string, (SourceText, List<FileBasedProgramDirective>)> _directives = new SortedDictionary<string, (SourceText, List<FileBasedProgramDirective>)>();
 
@@ -40,6 +40,8 @@ public sealed class FileBasedProgramProject(string entryPointFileFullPath)
     /// This is not accessed via I/O, it is only embedded as text into the project XML if necessary.
     /// </summary>
     public string EntryPointFileFullPath { get; } = entryPointFileFullPath;
+
+    private bool _built;
 
     /// <param name="filePath">
     /// Used for <see cref="Diagnostic.Location"/>.
@@ -63,6 +65,8 @@ public sealed class FileBasedProgramProject(string entryPointFileFullPath)
     public ImmutableArray<Diagnostic> ParseDirectives(string filePath, SourceText text, bool reportAllErrors)
 #pragma warning disable RSEXPERIMENTAL003 // 'SyntaxTokenParser' is experimental
     {
+        CheckNotBuilt();
+
         var file = new SourceFile(filePath, text);
         var directives = new List<FileBasedProgramDirective>();
         _directives.Add(filePath, (text, directives));
@@ -158,6 +162,45 @@ public sealed class FileBasedProgramProject(string entryPointFileFullPath)
     }
 #pragma warning restore RSEXPERIMENTAL003 // 'SyntaxTokenParser' is experimental
 
+    /// <remarks>
+    /// After this is called, calling more builder methods results in <see cref="InvalidOperationException"/>s.
+    /// </remarks>
+    public FileBasedProgramProject Build()
+    {
+        CheckNotBuilt();
+        _built = true;
+        return new FileBasedProgramProject(this);
+    }
+
+    private void CheckNotBuilt()
+    {
+        if (_built)
+        {
+            throw new InvalidOperationException("This builder has already been used to build a project.");
+        }
+    }
+
+    internal SortedDictionary<string, (SourceText, List<FileBasedProgramDirective>)> Directives => _directives;
+}
+
+/// <summary>
+/// Can generate project file XML (in <c>.csproj</c> format) for a file-based program.
+/// </summary>
+[Experimental(RoslynExperiments.FileBasedProgramProject, UrlFormat = RoslynExperiments.FileBasedProgramProject_Url)]
+public sealed class FileBasedProgramProject
+{
+    private readonly FileBasedProgramProjectBuilder _builder;
+
+    internal FileBasedProgramProject(FileBasedProgramProjectBuilder builder)
+    {
+        _builder = builder;
+    }
+
+    /// <summary>
+    /// See <see cref="FileBasedProgramProjectBuilder.EntryPointFileFullPath"/>.
+    /// </summary>
+    public string EntryPointFileFullPath => _builder.EntryPointFileFullPath;
+
     /// <summary>
     /// Generates project file text for a file-based program.
     /// </summary>
@@ -189,14 +232,14 @@ public sealed class FileBasedProgramProject(string entryPointFileFullPath)
     /// so it can be used after conversion to a project-based program.
     /// </summary>
     /// <param name="path">
-    /// Path to a file which <see cref="ParseDirectives"/> was previously called on.
+    /// Path to a file which <see cref="FileBasedProgramProjectBuilder.ParseDirectives"/> was previously called on.
     /// </param>
     /// <returns>
     /// File text with directives removed or <see langword="null"/> if no conversion is necessary.
     /// </returns>
     public SourceText? ConvertSourceText(string path)
     {
-        var (text, directives) = _directives[path];
+        var (text, directives) = _builder.Directives[path];
 
         if (directives.Count == 0)
         {
@@ -215,7 +258,7 @@ public sealed class FileBasedProgramProject(string entryPointFileFullPath)
     }
 
     private IEnumerable<FileBasedProgramDirective> AllDirectives
-        => _directives.Values.SelectMany(t => t.Item2);
+        => _builder.Directives.Values.SelectMany(t => t.Item2);
 
     private void EmitImpl(TextWriter csprojWriter, string? artifactsPath, bool convert)
     {
@@ -371,7 +414,7 @@ public sealed class FileBasedProgramProject(string entryPointFileFullPath)
             csprojWriter.WriteLine($"""
 
                   <ItemGroup>
-                    <Compile Include="{escapeValue(EntryPointFileFullPath)}" />
+                    <Compile Include="{escapeValue(_builder.EntryPointFileFullPath)}" />
                   </ItemGroup>
 
                 """);
