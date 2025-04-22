@@ -119,7 +119,7 @@ internal partial class GenericNameSignatureHelpProvider : AbstractCSharpSignatur
         var accessibleSymbols =
             symbols.WhereAsArray(s => s.GetArity() > 0)
                    .WhereAsArray(s => s is INamedTypeSymbol or IMethodSymbol)
-                   .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation)
+                   .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation, inclusionFilter: static s => true)
                    .Sort(semanticModel, genericIdentifier.SpanStart);
 
         if (!accessibleSymbols.Any())
