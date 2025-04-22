@@ -96,7 +96,7 @@ public sealed class DiagnosticRegistrationTests : AbstractLanguageServerProtocol
     /// </summary>
     private sealed class ClientCallbackTarget()
     {
-        private readonly List<Registration> _registrations = new();
+        private readonly List<Registration> _registrations = [];
 
         [JsonRpcMethod(Methods.ClientRegisterCapabilityName, UseSingleObjectParameterDeserialization = true)]
         public void ClientRegisterCapability(RegistrationParams registrationParams, CancellationToken _)

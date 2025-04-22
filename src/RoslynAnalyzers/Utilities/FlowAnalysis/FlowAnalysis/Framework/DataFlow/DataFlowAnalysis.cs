@@ -728,7 +728,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 Debug.Assert(finallyRegion.Kind == ControlFlowRegionKind.Finally);
                 if (!finallyBlockSuccessorsMap.TryGetValue(finallyRegion.LastBlockOrdinal, out var lastBlockSuccessors))
                 {
-                    lastBlockSuccessors = new List<BranchWithInfo>();
+                    lastBlockSuccessors = [];
                     finallyBlockSuccessorsMap.Add(finallyRegion.LastBlockOrdinal, lastBlockSuccessors);
                 }
 
