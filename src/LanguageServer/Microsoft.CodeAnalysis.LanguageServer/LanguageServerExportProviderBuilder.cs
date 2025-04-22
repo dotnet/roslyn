@@ -17,7 +17,7 @@ internal sealed class LanguageServerExportProviderBuilder : ExportProviderBuilde
     private readonly ILogger<ExportProviderBuilder> _logger;
 
     // For testing purposes, track the last cache write task.
-    private static Task? s_cacheWriteTask;
+    private static Task? s_cacheWriteTask_forTestingPurposesOnly;
 
     private LanguageServerExportProviderBuilder(
         ImmutableArray<string> assemblyPaths,
@@ -42,6 +42,9 @@ internal sealed class LanguageServerExportProviderBuilder : ExportProviderBuilde
 
         // Load any Roslyn assemblies from the extension directory
         using var _ = ArrayBuilder<string>.GetInstance(out var assemblyPathsBuilder);
+
+        // Don't catch IO exceptions as it's better to fail to build the catalog than give back
+        // a partial catalog that will surely blow up later.
         assemblyPathsBuilder.AddRange(Directory.EnumerateFiles(baseDirectory, "Microsoft.CodeAnalysis*.dll"));
         assemblyPathsBuilder.AddRange(Directory.EnumerateFiles(baseDirectory, "Microsoft.ServiceHub*.dll"));
 
@@ -49,7 +52,7 @@ internal sealed class LanguageServerExportProviderBuilder : ExportProviderBuilde
         // and not included in ExtensionAssemblyPaths (they get loaded into the default ALC).
         // So manually add them to the MEF catalog here.
         if (devKitDependencyPath != null)
-            assemblyPathsBuilder.AddRange(devKitDependencyPath);
+            assemblyPathsBuilder.Add(devKitDependencyPath);
 
         // Add the extension assemblies to the MEF catalog.
         assemblyPathsBuilder.AddRange(extensionManager.ExtensionAssemblyPaths);
@@ -82,7 +85,7 @@ internal sealed class LanguageServerExportProviderBuilder : ExportProviderBuilde
     {
         // Clear any previous cache write task, so that it is easy to discern whether
         // a cache write was attempted.
-        s_cacheWriteTask = null;
+        s_cacheWriteTask_forTestingPurposesOnly = null;
 
         return base.CreateExportProviderAsync(cancellationToken);
     }
@@ -98,9 +101,9 @@ internal sealed class LanguageServerExportProviderBuilder : ExportProviderBuilde
 
     protected override Task WriteCompositionCacheAsync(string compositionCacheFile, CompositionConfiguration config, CancellationToken cancellationToken)
     {
-        s_cacheWriteTask = base.WriteCompositionCacheAsync(compositionCacheFile, config, cancellationToken);
+        s_cacheWriteTask_forTestingPurposesOnly = base.WriteCompositionCacheAsync(compositionCacheFile, config, cancellationToken);
 
-        return s_cacheWriteTask;
+        return s_cacheWriteTask_forTestingPurposesOnly;
     }
 
     protected override void PerformCacheDirectoryCleanup(DirectoryInfo directoryInfo, CancellationToken cancellationToken)
@@ -111,7 +114,7 @@ internal sealed class LanguageServerExportProviderBuilder : ExportProviderBuilde
     internal static class TestAccessor
     {
 #pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        public static Task? GetCacheWriteTask() => s_cacheWriteTask;
+        public static Task? GetCacheWriteTask() => s_cacheWriteTask_forTestingPurposesOnly;
 #pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
     }
 }
