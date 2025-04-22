@@ -51,17 +51,23 @@ internal static class Extensions
             i = eoln + LineSeparator.Length;
         }
     }
-
+#nullable enable
     public static Project AddTestProject(this Solution solution, string projectName, string language = LanguageNames.CSharp)
         => AddTestProject(solution, projectName, language, out _);
+
+    public static Project AddTestProject(this Solution solution, string projectName, ProjectId id)
+        => AddTestProject(solution, projectName, LanguageNames.CSharp, id);
 
     public static Project AddTestProject(this Solution solution, string projectName, out ProjectId id)
         => AddTestProject(solution, projectName, LanguageNames.CSharp, out id);
 
     public static Project AddTestProject(this Solution solution, string projectName, string language, out ProjectId id)
+        => AddTestProject(solution, projectName, language, id = ProjectId.CreateNewId(debugName: projectName));
+
+    public static Project AddTestProject(this Solution solution, string projectName, string language, ProjectId id)
     {
-        var info = CreateProjectInfo(projectName, language);
-        return solution.AddProject(info).GetRequiredProject(id = info.Id);
+        var info = CreateProjectInfo(projectName, id, language);
+        return solution.AddProject(info).GetRequiredProject(id);
     }
 
     public static Document AddTestDocument(this Project project, string source, string path)
@@ -83,9 +89,9 @@ internal static class Extensions
         return BlobContentId.FromHash(Encoding.UTF8.GetBytes(projectName.PadRight(20, '\0'))).Guid;
     }
 
-    public static ProjectInfo CreateProjectInfo(string projectName, string language = LanguageNames.CSharp)
+    public static ProjectInfo CreateProjectInfo(string projectName, ProjectId id, string language = LanguageNames.CSharp)
         => ProjectInfo.Create(
-            ProjectId.CreateNewId(debugName: projectName),
+            id,
             VersionStamp.Create(),
             name: projectName,
             assemblyName: projectName,
@@ -109,5 +115,4 @@ internal static class Extensions
                 assemblyPath: Path.Combine(TempRoot.Root, projectName + ".dll"),
                 generatedFilesOutputDirectory: null))
             .WithTelemetryId(CreateProjectTelemetryId(projectName));
-
 }
