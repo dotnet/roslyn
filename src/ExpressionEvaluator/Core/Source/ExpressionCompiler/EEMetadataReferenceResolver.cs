@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
 #if DEBUG
         internal readonly Dictionary<AssemblyIdentity, (AssemblyIdentity? Identity, int Count)> Requests = [];
-            [];
 #endif
 
         internal EEMetadataReferenceResolver(
