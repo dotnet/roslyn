@@ -21,7 +21,7 @@ internal sealed class ContainerElementConverter : JsonConverter<ContainerElement
         if (reader.TokenType == JsonTokenType.StartObject)
         {
             ContainerElementStyle? style = null;
-            List<object> objects = new();
+            List<object> objects = [];
 
             while (reader.Read())
             {

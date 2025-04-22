@@ -21,7 +21,7 @@ internal sealed class RoslynLogger : ILogger
 
     private readonly ConcurrentDictionary<int, object> _pendingScopes = new(concurrencyLevel: 2, capacity: 10);
     private static ITelemetryReporter? _telemetryReporter;
-    private static readonly ObjectPool<List<KeyValuePair<string, object?>>> s_propertyPool = new(() => new());
+    private static readonly ObjectPool<List<KeyValuePair<string, object?>>> s_propertyPool = new(() => []);
 
     private RoslynLogger()
     {

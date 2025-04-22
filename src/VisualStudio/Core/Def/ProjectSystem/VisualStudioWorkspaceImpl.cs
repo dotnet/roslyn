@@ -223,8 +223,8 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         var telemetryService = (VisualStudioWorkspaceTelemetryService)Services.GetRequiredService<IWorkspaceTelemetryService>();
         telemetryService.InitializeTelemetrySession(telemetrySession, logDelta);
 
-        Logger.Log(FunctionId.Run_Environment,
-            KeyValueLogMessage.Create(m => m["Version"] = FileVersionInfo.GetVersionInfo(typeof(VisualStudioWorkspace).Assembly.Location).FileVersion));
+        Logger.Log(FunctionId.Run_Environment, KeyValueLogMessage.Create(
+            static m => m["Version"] = FileVersionInfo.GetVersionInfo(typeof(VisualStudioWorkspace).Assembly.Location).FileVersion));
     }
 
     public Task CheckForAddedFileBeingOpenMaybeAsync(bool useAsync, ImmutableArray<string> newFileNames)

@@ -57,58 +57,6 @@ internal sealed partial class CPSProjectFactory : IWorkspaceProjectContextFactor
     public ImmutableArray<string> EvaluationItemNames
         => BuildPropertyNames.InitialEvaluationItemNames;
 
-    // Kept around onyl for integration tests.
-    [Obsolete]
-    public Task<IWorkspaceProjectContext> CreateProjectContextAsync(
-        string languageName,
-        string projectUniqueName,
-        string? projectFilePath,
-        Guid projectGuid,
-        object? hierarchy,
-        string? binOutputPath,
-        string? assemblyName,
-        CancellationToken cancellationToken)
-    {
-        var data = new IntegrationTestEvaluationData(projectFilePath ?? "", projectFilePath ?? "", assemblyName ?? "", binOutputPath ?? "", "SHA256");
-        return CreateProjectContextAsync(projectGuid, projectUniqueName, languageName, data, hierarchy, cancellationToken);
-    }
-
-    [Obsolete]
-    internal sealed class IntegrationTestEvaluationData : EvaluationData
-    {
-        public string ProjectFilePath { get; }
-        public string TargetPath { get; }
-        public string AssemblyName { get; }
-        public string OutputAssembly { get; }
-        public string ChecksumAlgorithm { get; }
-
-        public IntegrationTestEvaluationData(string projectFilePath, string targetPath, string assemblyName, string outputAssembly, string checksumAlgorithm)
-        {
-            ProjectFilePath = projectFilePath;
-            TargetPath = targetPath;
-            AssemblyName = assemblyName;
-            OutputAssembly = outputAssembly;
-            ChecksumAlgorithm = checksumAlgorithm;
-        }
-
-        public override string GetPropertyValue(string name)
-            => name switch
-            {
-                BuildPropertyNames.MSBuildProjectFullPath => ProjectFilePath,
-                BuildPropertyNames.TargetPath => TargetPath,
-                BuildPropertyNames.AssemblyName => AssemblyName,
-                BuildPropertyNames.CommandLineArgsForDesignTimeEvaluation => "-checksumalgorithm:" + ChecksumAlgorithm,
-                _ => throw ExceptionUtilities.UnexpectedValue(name)
-            };
-
-        public override ImmutableArray<string> GetItemValues(string name)
-            => name switch
-            {
-                BuildPropertyNames.IntermediateAssembly => [OutputAssembly],
-                _ => throw ExceptionUtilities.UnexpectedValue(name)
-            };
-    }
-
     public async Task<IWorkspaceProjectContext> CreateProjectContextAsync(Guid id, string uniqueName, string languageName, EvaluationData data, object? hostObject, CancellationToken cancellationToken)
     {
         // Read all required properties from EvaluationData before we start updating anything.
@@ -136,6 +84,7 @@ internal sealed partial class CPSProjectFactory : IWorkspaceProjectContextFactor
 
             // Property added in VS 17.4 compiler targets capturing values of LangVersion and DefineConstants.
             // ChecksumAlgorithm value added to the property in 17.5.
+            // Features and DocumentationFile added after 17.14.
             //
             // Impact on Hot Reload: incorrect ChecksumAlgorithm will prevent Hot Reload in detecting changes correctly in certain scenarios.
             // However, given that projects that explicitly set ChecksumAlgorithm to a non-default value are rare and the project system
@@ -203,11 +152,13 @@ internal sealed partial class CPSProjectFactory : IWorkspaceProjectContextFactor
         const string itemName = BuildPropertyNames.IntermediateAssembly;
 
         var values = data.GetItemValues(itemName);
-        if (values.Length != 1)
+        if (values.Length > 1)
         {
-            // TODO: Throw once we update integration tests to the latest VS (https://github.com/dotnet/roslyn/issues/65439)
-            // var joinedValues = string.Join(";", values);
-            // throw new InvalidProjectDataException(itemName, joinedValues, $"Item group '{itemName}' is required to specify a single value: '{joinedValues}'.");
+            var joinedValues = string.Join(";", values);
+            throw new InvalidProjectDataException(itemName, joinedValues, $"Item group '{itemName}' is required to specify a single value: '{joinedValues}'.");
+        }
+        else if (values.Length == 0)
+        {
             return null;
         }
 

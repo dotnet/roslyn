@@ -337,7 +337,7 @@ public sealed partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDo
         out IList<object> projectionBufferSpans,
         out Dictionary<string, ImmutableArray<TextSpan>> mappedMarkupSpans, out int? mappedCaretLocation)
     {
-        projectionBufferSpans = new List<object>();
+        projectionBufferSpans = [];
         var projectionBufferSpanStartingPositions = new List<int>();
         mappedCaretLocation = null;
 

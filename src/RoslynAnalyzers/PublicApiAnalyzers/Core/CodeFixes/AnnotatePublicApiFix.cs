@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                             if (!allChanges.TryGetValue(fileName, out var mapToUpdate))
                             {
-                                mapToUpdate = new();
+                                mapToUpdate = [];
                                 allChanges.Add(fileName, mapToUpdate);
                             }
 

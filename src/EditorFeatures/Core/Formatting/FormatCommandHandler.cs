@@ -56,7 +56,8 @@ internal sealed partial class FormatCommandHandler(
 
     private void Format(ITextView textView, ITextBuffer textBuffer, Document document, TextSpan? selectionOpt, CancellationToken cancellationToken)
     {
-        using (Logger.LogBlock(FunctionId.CommandHandler_FormatCommand, KeyValueLogMessage.Create(LogType.UserAction, m => m["Span"] = selectionOpt?.Length ?? -1), cancellationToken))
+        using (Logger.LogBlock(FunctionId.CommandHandler_FormatCommand, KeyValueLogMessage.Create(
+            LogType.UserAction, static (m, selectionOpt) => m["Span"] = selectionOpt?.Length ?? -1, selectionOpt), cancellationToken))
         using (var transaction = CreateEditTransaction(textView, EditorFeaturesResources.Formatting))
         {
             _threadingContext.JoinableTaskFactory.Run(() => FormatAsync(
