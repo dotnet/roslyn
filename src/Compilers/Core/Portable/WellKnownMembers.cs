@@ -5199,26 +5199,29 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,                                     // Argument: int
 
 
-                // System_Runtime_CompilerServices_RuntimeHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TAwaiter
+                // System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
-                (byte)WellKnownType.System_Runtime_CompilerServices_RuntimeHelpers,                                         // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel,
+                (byte)(WellKnownType.System_Runtime_CompilerServices_AsyncHelpers - WellKnownType.ExtSentinel),             // DeclaringTypeId
                 1,                                                                                                          // Arity
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
                     (byte)SignatureTypeCode.GenericMethodParameter, 0,
 
 
-                // System_Runtime_CompilerServices_RuntimeHelpers__Await_Task
+                // System_Runtime_CompilerServices_AsyncHelpers__Await_Task
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
-                (byte)WellKnownType.System_Runtime_CompilerServices_RuntimeHelpers,                                         // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel,
+                (byte)(WellKnownType.System_Runtime_CompilerServices_AsyncHelpers - WellKnownType.ExtSentinel),             // DeclaringTypeId
                 0,                                                                                                          // Arity
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Threading_Tasks_Task,
 
-                // System_Runtime_CompilerServices_RuntimeHelpers__Await_Task_T
+                // System_Runtime_CompilerServices_AsyncHelpers__Await_Task_T
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
-                (byte)WellKnownType.System_Runtime_CompilerServices_RuntimeHelpers,                                         // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel,
+                (byte)(WellKnownType.System_Runtime_CompilerServices_AsyncHelpers - WellKnownType.ExtSentinel),             // DeclaringTypeId
                 1,                                                                                                          // Arity
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.GenericMethodParameter, 0, // Return Type
@@ -5227,17 +5230,19 @@ namespace Microsoft.CodeAnalysis
                         1,
                         (byte)SignatureTypeCode.GenericMethodParameter, 0,
 
-                // System_Runtime_CompilerServices_RuntimeHelpers__Await_ValueTask
+                // System_Runtime_CompilerServices_AsyncHelpers__Await_ValueTask
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
-                (byte)WellKnownType.System_Runtime_CompilerServices_RuntimeHelpers,                                         // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel,
+                (byte)(WellKnownType.System_Runtime_CompilerServices_AsyncHelpers - WellKnownType.ExtSentinel),             // DeclaringTypeId
                 0,                                                                                                          // Arity
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_Tasks_ValueTask - WellKnownType.ExtSentinel),
 
-                // System_Runtime_CompilerServices_RuntimeHelpers__Await_ValueTask_T
+                // System_Runtime_CompilerServices_AsyncHelpers__Await_ValueTask_T
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
-                (byte)WellKnownType.System_Runtime_CompilerServices_RuntimeHelpers,                                         // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel,
+                (byte)(WellKnownType.System_Runtime_CompilerServices_AsyncHelpers - WellKnownType.ExtSentinel),             // DeclaringTypeId
                 1,                                                                                                          // Arity
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.GenericMethodParameter, 0, // Return Type
@@ -5871,11 +5876,11 @@ namespace Microsoft.CodeAnalysis
                 "Power",                                    // System_Linq_Expressions_Expression__Power_MethodInfo,
                 "get_UTF8",                                 // System_Text_Encoding__get_UTF8
                 "GetString",                                // System_Text_Encoding__GetString
-                "UnsafeAwaitAwaiterFromRuntimeAsync",       // System_Runtime_CompilerServices_RuntimeHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TAwaiter
-                "Await",                                    // System_Runtime_CompilerServices_RuntimeHelpers__Await_Task
-                "Await",                                    // System_Runtime_CompilerServices_RuntimeHelpers__Await_Task_T
-                "Await",                                    // System_Runtime_CompilerServices_RuntimeHelpers__Await_ValueTask
-                "Await",                                    // System_Runtime_CompilerServices_RuntimeHelpers__Await_ValueTask_T
+                "UnsafeAwaitAwaiter",       // System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter
+                "Await",                                    // System_Runtime_CompilerServices_AsyncHelpers__Await_Task
+                "Await",                                    // System_Runtime_CompilerServices_AsyncHelpers__Await_Task_T
+                "Await",                                    // System_Runtime_CompilerServices_AsyncHelpers__Await_ValueTask
+                "Await",                                    // System_Runtime_CompilerServices_AsyncHelpers__Await_ValueTask_T
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

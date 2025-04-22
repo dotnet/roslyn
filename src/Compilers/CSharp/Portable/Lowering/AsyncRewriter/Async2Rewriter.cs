@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MethodSymbol? awaitHelper = null;
                 if (argType.IsGenericNonCustomTaskType(_factory.Compilation))
                 {
-                    awaitHelper = (MethodSymbol?)_factory.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__Await_Task_T);
+                    awaitHelper = (MethodSymbol?)_factory.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncHelpers__Await_Task_T);
                     if (awaitHelper != null)
                     {
                         TypeSymbol elementType = ((NamedTypeSymbol)argType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
@@ -37,11 +37,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (argType.IsNonGenericNonCustomTaskType(_factory.Compilation))
                 {
-                    awaitHelper = (MethodSymbol?)_factory.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__Await_Task);
+                    awaitHelper = (MethodSymbol?)_factory.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncHelpers__Await_Task);
                 }
                 else if (argType.IsGenericNonCustomValueTaskType(_factory.Compilation))
                 {
-                    awaitHelper = (MethodSymbol?)_factory.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__Await_ValueTask_T);
+                    awaitHelper = (MethodSymbol?)_factory.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncHelpers__Await_ValueTask_T);
                     if (awaitHelper != null)
                     {
                         TypeSymbol elementType = ((NamedTypeSymbol)argType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (argType.IsNonGenericNonCustomValueTaskType(_factory.Compilation))
                 {
-                    awaitHelper = (MethodSymbol?)_factory.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__Await_ValueTask);
+                    awaitHelper = (MethodSymbol?)_factory.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncHelpers__Await_ValueTask);
                 }
 
                 if (awaitHelper != null)
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //   var awaiter = arg.GetAwaiter();
                 //   if (awaiter.IsComplete())
                 //   {
-                //       UnsafeAwaitAwaiterFromRuntimeAsync(awaiter)
+                //       UnsafeAwaitAwaiter(awaiter)
                 //   }
                 //   awaiter.GetResult()
                 // }
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundCall isCompleted = _factory.Call(awaiterTmp, loweredAwait.AwaitableInfo.IsCompleted!.GetMethod);
 
-                MethodSymbol helperMethod = (MethodSymbol)_factory.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TAwaiter)!;
+                MethodSymbol helperMethod = (MethodSymbol)_factory.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter)!;
                 helperMethod = helperMethod.Construct(getAwaiter.Type);
                 BoundCall helperCall = _factory.Call(null, helperMethod, awaiterTmp);
 

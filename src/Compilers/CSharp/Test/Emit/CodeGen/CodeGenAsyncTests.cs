@@ -6361,9 +6361,9 @@ using System.Threading.Tasks;
 
 namespace System.Runtime.CompilerServices
 {
-    public static class RuntimeHelpers
+     public static class AsyncHelpers
     {
-        public static void UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter)
+        public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter)
         {
         }
 
@@ -6445,12 +6445,12 @@ class Test
             IL_0010: call instance bool [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter::get_IsCompleted()
             IL_0015: brtrue.s IL_001d
             IL_0017: ldloc.0
-            IL_0018: call void System.Runtime.CompilerServices.RuntimeHelpers::UnsafeAwaitAwaiterFromRuntimeAsync<valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter>(!!0)
+            IL_0018: call void System.Runtime.CompilerServices.AsyncHelpers::UnsafeAwaitAwaiter<valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter>(!!0)
             IL_001d: ldloca.s 0
             IL_001f: call instance void [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter::GetResult()
             IL_0024: ldc.i4.s 42
             IL_0026: call class [mscorlib]System.Threading.Tasks.Task`1<!!0> [mscorlib]System.Threading.Tasks.Task::FromResult<int32>(!!0)
-            IL_002b: call !!0 System.Runtime.CompilerServices.RuntimeHelpers::Await<int32>(class [mscorlib]System.Threading.Tasks.Task`1<!!0>)
+            IL_002b: call !!0 System.Runtime.CompilerServices.AsyncHelpers::Await<int32>(class [mscorlib]System.Threading.Tasks.Task`1<!!0>)
             IL_0030: ret
         } // end of method TT::M1
         .method public hidebysig static 
@@ -6460,7 +6460,7 @@ class Test
             // Code size 11 (0xb)
             .maxstack 8
             IL_0000: call class [mscorlib]System.Threading.Tasks.Task`1<int32> TT::M1()
-            IL_0005: call !!0 System.Runtime.CompilerServices.RuntimeHelpers::Await<int32>(class [mscorlib]System.Threading.Tasks.Task`1<!!0>)
+            IL_0005: call !!0 System.Runtime.CompilerServices.AsyncHelpers::Await<int32>(class [mscorlib]System.Threading.Tasks.Task`1<!!0>)
             IL_000a: ret
         } // end of method TT::M2
         .method public hidebysig static 
@@ -6527,9 +6527,9 @@ using System.Threading.Tasks;
 
 namespace System.Runtime.CompilerServices
 {
-    public static class RuntimeHelpers
+     public static class AsyncHelpers
     {
-        public static void UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter)
+        public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter)
         {
         }
 
@@ -6563,9 +6563,9 @@ using System.Threading.Tasks;
 
 namespace System.Runtime.CompilerServices
 {
-    public static class RuntimeHelpers
+     public static class AsyncHelpers
     {
-        public static void UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter)
+        public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter)
         {
         }
 
@@ -6755,7 +6755,7 @@ class Test
         // Code size 12 (0xc)
         .maxstack 8
         IL_0000: call class [mscorlib]System.Threading.Tasks.Task`1<int32> [A]TT::M1()
-        IL_0005: call !!0 System.Runtime.CompilerServices.RuntimeHelpers::Await<int32>(class [mscorlib]System.Threading.Tasks.Task`1<!!0>)
+        IL_0005: call !!0 System.Runtime.CompilerServices.AsyncHelpers::Await<int32>(class [mscorlib]System.Threading.Tasks.Task`1<!!0>)
         IL_000a: conv.i8
         IL_000b: ret
     } // end of method CC::M2
@@ -6782,9 +6782,9 @@ using System.Threading.Tasks;
 
 namespace System.Runtime.CompilerServices
 {
-    public static class RuntimeHelpers
+     public static class AsyncHelpers
     {
-        public static void UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter)
+        public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter)
         {
         }
 
@@ -6855,7 +6855,7 @@ class Test
         .maxstack 8
         IL_0000: ldc.i4.1
         IL_0001: call class [mscorlib]System.Threading.Tasks.Task`1<!!0> [mscorlib]System.Threading.Tasks.Task::FromResult<int32>(!!0)
-        IL_0006: call !!0 System.Runtime.CompilerServices.RuntimeHelpers::Await<int32>(class [mscorlib]System.Threading.Tasks.Task`1<!!0>)
+        IL_0006: call !!0 System.Runtime.CompilerServices.AsyncHelpers::Await<int32>(class [mscorlib]System.Threading.Tasks.Task`1<!!0>)
         IL_000b: pop
         IL_000c: ret
     } // end of method TT::M1
@@ -6866,7 +6866,7 @@ class Test
         // Code size 11 (0xb)
         .maxstack 8
         IL_0000: call class [mscorlib]System.Threading.Tasks.Task TT::M1()
-        IL_0005: call void System.Runtime.CompilerServices.RuntimeHelpers::Await(class [mscorlib]System.Threading.Tasks.Task)
+        IL_0005: call void System.Runtime.CompilerServices.AsyncHelpers::Await(class [mscorlib]System.Threading.Tasks.Task)
         IL_000a: ret
     } // end of method TT::M2
     .method public hidebysig static 
@@ -7054,9 +7054,9 @@ using System.Threading.Tasks;
 
 namespace System.Runtime.CompilerServices
 {
-    public static class RuntimeHelpers
+     public static class AsyncHelpers
     {
-        public static void UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter)
+        public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter)
         {
         }
 
@@ -7124,7 +7124,7 @@ class Test
         .maxstack 8
         IL_0000: ldc.i4.1
         IL_0001: call class [mscorlib]System.Threading.Tasks.Task`1<!!0> [mscorlib]System.Threading.Tasks.Task::FromResult<int32>(!!0)
-        IL_0006: call !!0 System.Runtime.CompilerServices.RuntimeHelpers::Await<int32>(class [mscorlib]System.Threading.Tasks.Task`1<!!0>)
+        IL_0006: call !!0 System.Runtime.CompilerServices.AsyncHelpers::Await<int32>(class [mscorlib]System.Threading.Tasks.Task`1<!!0>)
         IL_000b: pop
         IL_000c: ret
     } // end of method TT::M1
@@ -7137,7 +7137,7 @@ class Test
         IL_0000: call class [mscorlib]System.Threading.Tasks.Task TT::M1()
         IL_0005: stsfld class [mscorlib]System.Threading.Tasks.Task TT::a
         IL_000a: ldsfld class [mscorlib]System.Threading.Tasks.Task TT::a
-        IL_000f: call void System.Runtime.CompilerServices.RuntimeHelpers::Await(class [mscorlib]System.Threading.Tasks.Task)
+        IL_000f: call void System.Runtime.CompilerServices.AsyncHelpers::Await(class [mscorlib]System.Threading.Tasks.Task)
         IL_0014: ret
     } // end of method TT::M2
     .method public hidebysig specialname rtspecialname 
@@ -7163,9 +7163,9 @@ using System.Threading.Tasks;
 
 namespace System.Runtime.CompilerServices
 {
-    public static class RuntimeHelpers
+     public static class AsyncHelpers
     {
-        public static void UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter)
+        public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter)
         {
         }
 
@@ -7325,9 +7325,9 @@ using System.Threading.Tasks;
 
 namespace System.Runtime.CompilerServices
 {
-    public static class RuntimeHelpers
+     public static class AsyncHelpers
     {
-        public static void UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter)
+        public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter)
         {
         }
 
@@ -7431,9 +7431,9 @@ using System.Threading.Tasks;
 
 namespace System.Runtime.CompilerServices
 {
-    public static class RuntimeHelpers
+     public static class AsyncHelpers
     {
-        public static void UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter)
+        public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter)
         {
         }
 
@@ -7538,9 +7538,9 @@ using System.Threading.Tasks;
 
 namespace System.Runtime.CompilerServices
 {
-    public static class RuntimeHelpers
+     public static class AsyncHelpers
     {
-        public static void UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter)
+        public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter)
         {
         }
 
@@ -7638,7 +7638,7 @@ public class Test
         IL_000a: stsfld class [mscorlib]System.Type Cls1::s_type
         IL_000f: ldarg.0
         IL_0010: call class [mscorlib]System.Threading.Tasks.Task`1<!!0> [mscorlib]System.Threading.Tasks.Task::FromResult<!!T>(!!0)
-        IL_0015: call !!0 System.Runtime.CompilerServices.RuntimeHelpers::Await<!!T>(class [mscorlib]System.Threading.Tasks.Task`1<!!0>)
+        IL_0015: call !!0 System.Runtime.CompilerServices.AsyncHelpers::Await<!!T>(class [mscorlib]System.Threading.Tasks.Task`1<!!0>)
         IL_001a: ret
     } // end of method Cls1::Async2TestEntryPoint
     .method public hidebysig specialname rtspecialname 
@@ -7665,9 +7665,9 @@ using System.Threading.Tasks;
 
 namespace System.Runtime.CompilerServices
 {
-    public static class RuntimeHelpers
+     public static class AsyncHelpers
     {
-        public static void UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter)
+        public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter)
         {
         }
 
@@ -7772,9 +7772,9 @@ using System.Threading.Tasks;
 
 namespace System.Runtime.CompilerServices
 {
-    public static class RuntimeHelpers
+     public static class AsyncHelpers
     {
-        public static void UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter)
+        public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter)
         {
         }
 
@@ -7864,9 +7864,9 @@ using System.Runtime.CompilerServices;
 
 namespace System.Runtime.CompilerServices
 {
-    public static class RuntimeHelpers
+     public static class AsyncHelpers
     {
-        public static void UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter)
+        public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter)
         {
         }
 
@@ -7954,10 +7954,10 @@ class Test
         // Code size 23 (0x17)
         .maxstack 8
         IL_0000: call valuetype [System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask TT::ValueTaskFromCompleted()
-        IL_0005: call void System.Runtime.CompilerServices.RuntimeHelpers::Await(valuetype [System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask)
+        IL_0005: call void System.Runtime.CompilerServices.AsyncHelpers::Await(valuetype [System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask)
         IL_000a: ldc.i4.s 42
         IL_000c: call valuetype [System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask`1<!!0> TT::ValueTaskFromResult<int32>(!!0)
-        IL_0011: call !!0 System.Runtime.CompilerServices.RuntimeHelpers::Await<int32>(valuetype [System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask`1<!!0>)
+        IL_0011: call !!0 System.Runtime.CompilerServices.AsyncHelpers::Await<int32>(valuetype [System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask`1<!!0>)
         IL_0016: ret
     } // end of method TT::M1
     .method public hidebysig static 
@@ -7967,7 +7967,7 @@ class Test
         // Code size 11 (0xb)
         .maxstack 8
         IL_0000: call valuetype [System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask`1<int32> TT::M1()
-        IL_0005: call !!0 System.Runtime.CompilerServices.RuntimeHelpers::Await<int32>(valuetype [System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask`1<!!0>)
+        IL_0005: call !!0 System.Runtime.CompilerServices.AsyncHelpers::Await<int32>(valuetype [System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask`1<!!0>)
         IL_000a: ret
     } // end of method TT::M2
     .method public hidebysig static 
@@ -8057,9 +8057,9 @@ using System.Runtime.CompilerServices;
 
 namespace System.Runtime.CompilerServices
 {
-    public static class RuntimeHelpers
+     public static class AsyncHelpers
     {
-        public static void UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter)
+        public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter)
         {
         }
 
@@ -8103,9 +8103,9 @@ using System.Threading.Tasks;
 
 namespace System.Runtime.CompilerServices
 {
-    public static class RuntimeHelpers
+     public static class AsyncHelpers
     {
-        public static void UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter)
+        public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter)
         {
         }
 
@@ -8308,7 +8308,7 @@ class Test
         // Code size 12 (0xc)
         .maxstack 8
         IL_0000: call valuetype [System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask`1<int32> [A]TT::M1()
-        IL_0005: call !!0 System.Runtime.CompilerServices.RuntimeHelpers::Await<int32>(valuetype [System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask`1<!!0>)
+        IL_0005: call !!0 System.Runtime.CompilerServices.AsyncHelpers::Await<int32>(valuetype [System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask`1<!!0>)
         IL_000a: conv.i8
         IL_000b: ret
     } // end of method CC::M2
@@ -8336,9 +8336,9 @@ using System.Runtime.CompilerServices;
 
 namespace System.Runtime.CompilerServices
 {
-    public static class RuntimeHelpers
+     public static class AsyncHelpers
     {
-        public static void UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter)
+        public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter)
         {
         }
 
@@ -8522,9 +8522,9 @@ using System.Threading.Tasks;
 
 namespace System.Runtime.CompilerServices
 {
-    public static class RuntimeHelpers
+     public static class AsyncHelpers
     {
-        public static void UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter)
+        public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter)
         {
         }
 
@@ -8619,7 +8619,7 @@ class TT
         {
             IL_0000: ldc.i4.s 42
             IL_0002: call class [mscorlib]System.Threading.Tasks.Task`1<int32> TT::Throw(int32)
-            IL_0007: call !!0 System.Runtime.CompilerServices.RuntimeHelpers::Await<int32>(class [mscorlib]System.Threading.Tasks.Task`1<!!0>)
+            IL_0007: call !!0 System.Runtime.CompilerServices.AsyncHelpers::Await<int32>(class [mscorlib]System.Threading.Tasks.Task`1<!!0>)
             IL_000c: stloc.0
             IL_000d: leave.s IL_0017
         } // end .try
@@ -8653,7 +8653,7 @@ class TT
         IL_0010: call instance bool [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter::get_IsCompleted()
         IL_0015: brtrue.s IL_001d
         IL_0017: ldloc.0
-        IL_0018: call void System.Runtime.CompilerServices.RuntimeHelpers::UnsafeAwaitAwaiterFromRuntimeAsync<valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter>(!!0)
+        IL_0018: call void System.Runtime.CompilerServices.AsyncHelpers::UnsafeAwaitAwaiter<valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter>(!!0)
         IL_001d: ldloca.s 0
         IL_001f: call instance void [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter::GetResult()
         IL_0024: ldarg.0
@@ -8715,9 +8715,9 @@ t.Wait();
 
 namespace System.Runtime.CompilerServices
 {
-    public static class RuntimeHelpers
+     public static class AsyncHelpers
     {
-        public static void UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter)
+        public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter)
         {
         }
 
@@ -8894,7 +8894,7 @@ namespace System.Runtime.CompilerServices
         IL_0010: call instance bool [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter::get_IsCompleted()
         IL_0015: brtrue.s IL_001d
         IL_0017: ldloc.0
-        IL_0018: call void System.Runtime.CompilerServices.RuntimeHelpers::UnsafeAwaitAwaiterFromRuntimeAsync<valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter>(!!0)
+        IL_0018: call void System.Runtime.CompilerServices.AsyncHelpers::UnsafeAwaitAwaiter<valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter>(!!0)
         IL_001d: ldloca.s 0
         IL_001f: call instance void [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter::GetResult()
         IL_0024: ret
@@ -8909,7 +8909,7 @@ namespace System.Runtime.CompilerServices
         // Code size 11 (0xb)
         .maxstack 8
         IL_0000: call class [mscorlib]System.Threading.Tasks.Task Program::'<<Main>$>g__M1|0_0'()
-        IL_0005: call void System.Runtime.CompilerServices.RuntimeHelpers::Await(class [mscorlib]System.Threading.Tasks.Task)
+        IL_0005: call void System.Runtime.CompilerServices.AsyncHelpers::Await(class [mscorlib]System.Threading.Tasks.Task)
         IL_000a: ret
     } // end of method Program::'<<Main>$>g__M2|0_1'
     .method assembly hidebysig static 
@@ -9006,9 +9006,9 @@ t.Wait();
 
 namespace System.Runtime.CompilerServices
 {
-    public static class RuntimeHelpers
+     public static class AsyncHelpers
     {
-        public static void UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter)
+        public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter)
         {
         }
 
@@ -9182,7 +9182,7 @@ namespace System.Runtime.CompilerServices
             IL_0010: call instance bool [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter::get_IsCompleted()
             IL_0015: brtrue.s IL_001d
             IL_0017: ldloc.0
-            IL_0018: call void System.Runtime.CompilerServices.RuntimeHelpers::UnsafeAwaitAwaiterFromRuntimeAsync<valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter>(!!0)
+            IL_0018: call void System.Runtime.CompilerServices.AsyncHelpers::UnsafeAwaitAwaiter<valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter>(!!0)
             IL_001d: ldloca.s 0
             IL_001f: call instance void [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter::GetResult()
             IL_0024: ldarg.0
@@ -9197,7 +9197,7 @@ namespace System.Runtime.CompilerServices
             .maxstack 8
             IL_0000: ldarg.0
             IL_0001: call instance class [mscorlib]System.Threading.Tasks.Task`1<int32> Program/'<>c__DisplayClass0_0'::'<<Main>$>g__M1|0'()
-            IL_0006: call !!0 System.Runtime.CompilerServices.RuntimeHelpers::Await<int32>(class [mscorlib]System.Threading.Tasks.Task`1<!!0>)
+            IL_0006: call !!0 System.Runtime.CompilerServices.AsyncHelpers::Await<int32>(class [mscorlib]System.Threading.Tasks.Task`1<!!0>)
             IL_000b: ret
         } // end of method '<>c__DisplayClass0_0'::'<<Main>$>g__M2|1'
         .method assembly hidebysig 
@@ -9291,9 +9291,9 @@ using System.Threading.Tasks;
 
 namespace System.Runtime.CompilerServices
 {
-    public static class RuntimeHelpers
+     public static class AsyncHelpers
     {
-        public static void UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter)
+        public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter)
         {
         }
 

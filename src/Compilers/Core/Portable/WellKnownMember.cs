@@ -718,12 +718,12 @@ namespace Microsoft.CodeAnalysis
         System_Text_Encoding__get_UTF8,
         System_Text_Encoding__GetString,
 
-        System_Runtime_CompilerServices_RuntimeHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TAwaiter,
+        System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter,
 
-        System_Runtime_CompilerServices_RuntimeHelpers__Await_Task,
-        System_Runtime_CompilerServices_RuntimeHelpers__Await_Task_T,
-        System_Runtime_CompilerServices_RuntimeHelpers__Await_ValueTask,
-        System_Runtime_CompilerServices_RuntimeHelpers__Await_ValueTask_T,
+        System_Runtime_CompilerServices_AsyncHelpers__Await_Task,
+        System_Runtime_CompilerServices_AsyncHelpers__Await_Task_T,
+        System_Runtime_CompilerServices_AsyncHelpers__Await_ValueTask,
+        System_Runtime_CompilerServices_AsyncHelpers__Await_ValueTask_T,
 
         Count,
 
