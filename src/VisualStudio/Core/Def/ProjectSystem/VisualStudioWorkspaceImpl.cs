@@ -1249,16 +1249,16 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
                 TelemetryFeatureName.Workspace,
                 exception,
                 // 'Show stack trace' will not dismiss the info bar.
-                new InfoBarUI(WorkspacesResources.Show_Stack_Trace, InfoBarUI.UIKind.HyperLink,
+                new(WorkspacesResources.Show_Stack_Trace, InfoBarUI.UIKind.HyperLink,
                     () => errorReportingService.ShowDetailedErrorInfo(exception), closeAfterAction: false),
                 // 'Ignore' just closes the info bar, but allows future errors to show up.
-                new InfoBarUI(ServicesVSResources.Ignore, InfoBarUI.UIKind.Button, GetDefaultDismissAction()),
+                new(ServicesVSResources.Ignore, InfoBarUI.UIKind.Button, GetDefaultDismissAction()),
                 // 'Ignore (including future errors) closes the info bar, but also sets the flag so the user gets no more messages
                 // in the current session.
-                new InfoBarUI(ServicesVSResources.Ignore_including_future_errors, InfoBarUI.UIKind.Button, GetDefaultDismissAction(
+                new(ServicesVSResources.Ignore_including_future_errors, InfoBarUI.UIKind.Button, GetDefaultDismissAction(
                     () => _ignoreDocumentTextChangeErrors = true)),
                 // Close button is the same as 'ignore'.  It closes the info bar, but allows future errors to show up.
-                new InfoBarUI(string.Empty, InfoBarUI.UIKind.Close, GetDefaultDismissAction()));
+                new(string.Empty, InfoBarUI.UIKind.Close, GetDefaultDismissAction()));
 
             // Mark that we're showing the info bar at this point.
             _isShowingDocumentChangeErrorInfoBar = true;
