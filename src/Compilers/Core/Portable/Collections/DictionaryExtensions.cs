@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-#if !NETCOREAPP
+#if !NET
         public static bool TryAdd<TKey, TValue>(
             this Dictionary<TKey, TValue> dictionary,
             TKey key,
@@ -105,6 +105,57 @@ namespace Microsoft.CodeAnalysis
 
             dictionary.Free();
             return result.ToImmutable();
+        }
+
+        /// <summary>
+        /// Removes entries from a dictionary based on a specified condition. The condition is defined by a function that
+        /// evaluates each key-value pair.
+        /// </summary>
+        public static void RemoveAll<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, Func<TKey, TValue, bool> predicate)
+            where TKey : notnull
+            => RemoveAll(dictionary, static (key, value, predicate) => predicate(key, value), predicate);
+
+        /// <summary>
+        /// Removes entries from a dictionary based on a specified condition. The condition is defined by a function that
+        /// evaluates each key-value pair.
+        /// </summary>
+        public static void RemoveAll<TKey, TValue, TArg>(this IDictionary<TKey, TValue> dictionary, Func<TKey, TValue, TArg, bool> predicate, TArg arg)
+            where TKey : notnull
+        {
+            if (dictionary.Count == 0)
+            {
+                return;
+            }
+#if NET
+            // .NET implementation of Dictionary<,> supports removing while enumerating:
+            if (dictionary is Dictionary<TKey, TValue> dict)
+            {
+                foreach (var (key, value) in dict)
+                {
+                    if (predicate(key, value, arg))
+                    {
+                        dict.Remove(key);
+                    }
+                }
+
+                return;
+            }
+#endif
+            var keysToRemove = ArrayBuilder<TKey>.GetInstance();
+            foreach (var (key, value) in dictionary)
+            {
+                if (predicate(key, value, arg))
+                {
+                    keysToRemove.Add(key);
+                }
+            }
+
+            foreach (var key in keysToRemove)
+            {
+                dictionary.Remove(key);
+            }
+
+            keysToRemove.Free();
         }
     }
 }

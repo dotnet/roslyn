@@ -259,10 +259,12 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
         Assert.True(workspace.SetCurrentSolution(_ => solution, WorkspaceChangeKind.SolutionAdded));
         solution = workspace.CurrentSolution;
 
-        var moduleId = EmitAndLoadLibraryToDebuggee(source1, sourceFilePath: sourceFile.Path);
+        var moduleId = EmitAndLoadLibraryToDebuggee(projectId, source1, sourceFilePath: sourceFile.Path);
 
         // hydrate document text and overwrite file content:
-        var document1 = await solution.GetDocument(documentId).GetTextAsync();
+        var document1 = solution.GetRequiredDocument(documentId);
+        _ = await document1.GetTextAsync(CancellationToken.None);
+
         File.WriteAllText(sourceFile.Path, source2, Encoding.UTF8);
 
         await languageService.StartSessionAsync(CancellationToken.None);
@@ -282,7 +284,7 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
 
         // check committed document status:
         var debuggingSession = service.GetTestAccessor().GetActiveDebuggingSessions().Single();
-        var (document, state) = await debuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(documentId, currentDocument: null, CancellationToken.None);
+        var (document, state) = await debuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(document1, CancellationToken.None);
         var text = await document.GetTextAsync();
         Assert.Equal(CommittedSolution.DocumentState.MatchesBuildOutput, state);
         Assert.Equal(source1, (await document.GetTextAsync(CancellationToken.None)).ToString());
