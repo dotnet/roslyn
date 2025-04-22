@@ -64,6 +64,11 @@ namespace Microsoft.CodeAnalysis
         System_Reflection_MethodInfo,
 
         /// <summary>
+        /// Indicates that the type is <code>System.Runtime.CompilerServices.AsyncHelpers</code> from the COR library.
+        /// </summary>
+        System_Runtime_CompilerServices_AsyncHelpers,
+
+        /// <summary>
         /// This item should be kept last and it doesn't represent any specific type.
         /// </summary>
         NextAvailable

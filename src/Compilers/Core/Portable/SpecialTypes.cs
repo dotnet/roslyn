@@ -75,6 +75,7 @@ namespace Microsoft.CodeAnalysis
             "System.Type",
             "System.Reflection.MethodBase",
             "System.Reflection.MethodInfo",
+            "System.Runtime.CompilerServices.AsyncHelpers",
         };
 
         private static readonly Dictionary<string, ExtendedSpecialType> s_nameToTypeIdMap;
