@@ -796,4 +796,90 @@ namespace N
         // verify that we don't crash here.
         var implementedMembers = await SymbolFinder.FindImplementedInterfaceMembersArrayAsync(namespaceSymbol, solution, CancellationToken.None);
     }
+
+    [Theory, CombinatorialData]
+    public async Task FindSourceDefinition_CrossAssembly(TestHost host)
+    {
+        using var workspace = CreateWorkspace(host);
+        var solution = workspace.CurrentSolution;
+
+        // Create a source assembly with a class in Visual Basic
+        solution = AddProjectWithMetadataReferences(solution, "ReferencedProject", LanguageNames.VisualBasic, @"
+Namespace N
+    Public Class ReferencedClass
+    End Class
+End Namespace
+", Net40.References.mscorlib);
+
+        var referencedProjectId = solution.Projects.Single(p => p.Name == "ReferencedProject").Id;
+
+        // Create a project that uses the class from the other assembly in C#
+        solution = AddProjectWithMetadataReferences(solution, "SourceProject", LanguageNames.CSharp, "", Net40.References.mscorlib, referencedProjectId);
+
+        // Get the symbol for ReferencedClass from the using project's compilation
+        var sourceCompilation = await solution.Projects.Single(p => p.Name == "SourceProject").GetCompilationAsync();
+        var classInSource = sourceCompilation.GetTypeByMetadataName("N.ReferencedClass");
+
+        // It should be a metadata symbol (from assembly reference)
+        Assert.True(classInSource.Locations.Any(loc => loc.IsInMetadata));
+
+        // Find the source definition
+        var sourceDefinition = await SymbolFinder.FindSourceDefinitionAsync(classInSource, solution, CancellationToken.None);
+
+        // Verify we found the source definition
+        Assert.NotNull(sourceDefinition);
+        Assert.True(sourceDefinition.Locations.Any(loc => loc.IsInSource));
+
+        // Verify it comes from the VB project
+        var document = solution.GetDocument(sourceDefinition.Locations.First(loc => loc.IsInSource).SourceTree);
+        Assert.Equal(referencedProjectId, document.Project.Id);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2443981")]
+    public async Task FindSourceDefinition_CrossAssembly_WithFrozen(TestHost host)
+    {
+        using var workspace = CreateWorkspace(host);
+        var solution = workspace.CurrentSolution;
+
+        var code = @"
+Namespace N
+    Public Class ReferencedClass
+        Public Sub M()
+            Dim x As Integer = 0
+        End Sub
+    End Class
+End Namespace
+";
+
+        // Create a source assembly with a class in Visual Basic
+        solution = AddProjectWithMetadataReferences(solution, "ReferencedProject", LanguageNames.VisualBasic, code, Net40.References.mscorlib);
+
+        var referencedProjectId = solution.Projects.Single(p => p.Name == "ReferencedProject").Id;
+
+        // Create a project that uses the class from the other assembly in C#
+        solution = AddProjectWithMetadataReferences(solution, "SourceProject", LanguageNames.CSharp, "", Net40.References.mscorlib, referencedProjectId);
+
+        // Fetch the C# compilation to ensure we produce all compilations, and then make a change to the VB project and freeze it.
+        // At this point we won't create more skeleton references for the VB reference, but we also won't have an up-to-date compilation.
+        await solution.Projects.Single(p => p.Name == "SourceProject").GetCompilationAsync();
+        solution = solution.GetProject(referencedProjectId).Documents.Single().WithText(SourceText.From(code.Replace('0', '1')))
+            .Project.Solution.WithFrozenPartialCompilations(CancellationToken.None);
+
+        var sourceCompilation = await solution.Projects.Single(p => p.Name == "SourceProject").GetCompilationAsync();
+        var classInSource = sourceCompilation.GetTypeByMetadataName("N.ReferencedClass");
+
+        // It should be a metadata symbol (from assembly reference)
+        Assert.True(classInSource.Locations.Any(loc => loc.IsInMetadata));
+
+        // Find the source definition
+        var sourceDefinition = await SymbolFinder.FindSourceDefinitionAsync(classInSource, solution, CancellationToken.None);
+
+        // Verify we found the source definition
+        Assert.NotNull(sourceDefinition);
+        Assert.True(sourceDefinition.Locations.Any(loc => loc.IsInSource));
+
+        // Verify it comes from the VB project
+        var document = solution.GetDocument(sourceDefinition.Locations.First(loc => loc.IsInSource).SourceTree);
+        Assert.Equal(referencedProjectId, document.Project.Id);
+    }
 }

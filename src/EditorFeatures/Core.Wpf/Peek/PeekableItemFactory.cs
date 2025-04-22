@@ -59,8 +59,8 @@ internal sealed class PeekableItemFactory : IPeekableItemFactory
             throw new ArgumentNullException(nameof(peekResultFactory));
 
         var solution = project.Solution;
-        symbol = SymbolFinder.FindSourceDefinition(symbol, solution, cancellationToken) ?? symbol;
-        symbol = GoToDefinitionFeatureHelpers.TryGetPreferredSymbol(solution, symbol, cancellationToken);
+        symbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false) ?? symbol;
+        symbol = await GoToDefinitionFeatureHelpers.TryGetPreferredSymbolAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
         if (symbol is null)
             return [];
 
