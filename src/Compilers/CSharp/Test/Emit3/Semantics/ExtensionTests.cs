@@ -1031,7 +1031,7 @@ record class SomeRecord
         );
     }
 
-[Fact]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78222")]
     public void ExtensionInRecordStruct()
     {
