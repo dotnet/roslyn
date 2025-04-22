@@ -15,5 +15,5 @@ internal interface IRemoteInitializationService
     /// Called as soon as the remote process is created.
     /// </summary>
     /// <returns>Process ID of the remote process and an error message if the server encountered initialization issues.</returns>
-    ValueTask<(int ProcessId, string? ErrorMessage)> InitializeAsync(WorkspaceConfigurationOptions options, string localSettingsDirectory, CancellationToken cancellationToken);
+    ValueTask<(int processId, string? errorMessage)> InitializeAsync(WorkspaceConfigurationOptions options, string localSettingsDirectory, CancellationToken cancellationToken);
 }

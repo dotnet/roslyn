@@ -140,6 +140,10 @@ internal abstract class ExportProviderBuilder(
 
     protected virtual async Task WriteCompositionCacheAsync(string compositionCacheFile, CompositionConfiguration config, CancellationToken cancellationToken)
     {
+        // Generally, it's not a hard failure if this code doesn't execute to completion or even fails. The end effect would simply 
+        // either be a non-existent or invalid file cached to disk. In the case of the file not getting cached, the next VS session
+        // will just detect the file doesn't exist and attempt to recreate the cache. In the case where the cached file contents are
+        // invalid, the next VS session will throw when attempting to read in the cached contents, and again, just recreate the cache.
         try
         {
             await Task.Yield().ConfigureAwait(false);
@@ -168,6 +172,8 @@ internal abstract class ExportProviderBuilder(
         // Delete any existing cached files.
         foreach (var fileInfo in directoryInfo.EnumerateFiles())
         {
+            // Failing to delete any file is fine, we'll just try again the next VS session in which we attempt
+            // to write a new cache
             IOUtilities.PerformIO(fileInfo.Delete);
             cancellationToken.ThrowIfCancellationRequested();
         }

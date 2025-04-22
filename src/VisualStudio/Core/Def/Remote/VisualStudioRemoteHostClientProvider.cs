@@ -100,6 +100,7 @@ internal sealed class VisualStudioRemoteHostClientProvider : IRemoteHostClientPr
     private readonly AsynchronousOperationListenerProvider _listenerProvider;
     private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
     private readonly TaskCompletionSource<bool> _clientCreationSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private readonly IThreadingContext _threadingContext;
 
     private VisualStudioRemoteHostClientProvider(
         SolutionServices services,
@@ -116,10 +117,11 @@ internal sealed class VisualStudioRemoteHostClientProvider : IRemoteHostClientPr
         _serviceProvider = serviceProvider;
         _listenerProvider = listenerProvider;
         _callbackDispatchers = callbackDispatchers;
+        _threadingContext = threadingContext;
 
         // using VS AsyncLazy here since Roslyn's is not compatible with JTF. 
         // Our ServiceBroker services may be invoked by other VS components under JTF.
-        _lazyClient = new VSThreading.AsyncLazy<RemoteHostClient?>(CreateHostClientAsync, threadingContext.JoinableTaskFactory);
+        _lazyClient = new VSThreading.AsyncLazy<RemoteHostClient?>(CreateHostClientAsync, _threadingContext.JoinableTaskFactory);
     }
 
     private async Task<RemoteHostClient?> CreateHostClientAsync()
@@ -134,7 +136,7 @@ internal sealed class VisualStudioRemoteHostClientProvider : IRemoteHostClientPr
             var localSettingsDirectory = new ShellSettingsManager(_serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings);
 
             // VS AsyncLazy does not currently support cancellation:
-            var client = await ServiceHubRemoteHostClient.CreateAsync(Services, configuration, localSettingsDirectory, _listenerProvider, serviceBroker, _callbackDispatchers, CancellationToken.None).ConfigureAwait(false);
+            var client = await ServiceHubRemoteHostClient.CreateAsync(Services, configuration, localSettingsDirectory, _listenerProvider, serviceBroker, _callbackDispatchers, _threadingContext.DisposalToken).ConfigureAwait(false);
 
             // proffer in-proc brokered services:
             _ = brokeredServiceContainer.Proffer(SolutionAssetProvider.ServiceDescriptor, (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new SolutionAssetProvider(Services)));

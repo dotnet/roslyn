@@ -20,10 +20,7 @@ internal sealed class RemoteInitializationService(
             => new RemoteInitializationService(arguments);
     }
 
-    /// <summary>
-    /// Remote API.
-    /// </summary>
-    public async ValueTask<(int ProcessId, string? ErrorMessage)> InitializeAsync(WorkspaceConfigurationOptions options, string localSettingsDirectory, CancellationToken cancellationToken)
+    public async ValueTask<(int processId, string? errorMessage)> InitializeAsync(WorkspaceConfigurationOptions options, string localSettingsDirectory, CancellationToken cancellationToken)
     {
         // Performed before RunServiceAsync to ensure that the export provider is initialized before the RemoteWorkspaceManager is created
         // as part of the RunServiceAsync call.
