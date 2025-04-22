@@ -202,18 +202,18 @@ class C
                 using System.Linq;
                 using System.Threading.Tasks;
 
-                public sealed class Foo<T>
+                public sealed class ValuesHolder<T>
                 {
                 	private readonly T[] _values = new T[10];
 
                 	public ref T this[int type] => ref _values[type];
                 }
 
-                public static class Foo
+                public static class App
                 {
-                	public static async Task<Foo<TResult>> Bar<TResult>()
+                	public static async Task<ValuesHolder<TResult>> Do<TResult>()
                 	{
-                		var res = new Foo<TResult>();
+                		var res = new ValuesHolder<TResult>();
 
                 		var taskGroup = new List<KeyValuePair<int, Task<TResult>>>();
 
