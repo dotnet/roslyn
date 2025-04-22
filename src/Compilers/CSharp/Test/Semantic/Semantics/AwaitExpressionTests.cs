@@ -186,9 +186,9 @@ class C
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (17,13): error CS8178: A reference returned by a call to 'RefHolder<T>.Get()' cannot be preserved across 'await' or 'yield' boundary.
-                //             res.Get() = await Task.FromResult(default(T));
-                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "res.Get()").WithArguments("RefHolder<T>.Get()").WithLocation(17, 13)
+                // (19,17): error CS8178: A reference returned by a call to 'RefHolder<T>.Get()' cannot be preserved across 'await' or 'yield' boundary.
+                //                 res.Get() = await Task.FromResult(default(T));
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "res.Get()").WithArguments("RefHolder<T>.Get()").WithLocation(19, 17)
             );
         }
 
