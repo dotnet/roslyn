@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         {
             return ExecutionConditionUtil.IsMonoOrCoreClr
                 ? isRuntimeAsync
+                    // PROTOTYPE: Verify runtime async output
                     ? null
                     : output
                 : null;
@@ -1211,7 +1212,7 @@ class Test
             var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], targetFramework: TargetFramework.Net90, parseOptions: WithRuntimeAsync(TestOptions.RegularPreview));
             comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
 
-            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("0", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("MyTask<T>.Run<U>", $$"""
@@ -8003,9 +8004,10 @@ class Test1
         }
 
         [Theory]
-        [InlineData("INotifyCompletion")]
-        [InlineData("ICriticalNotifyCompletion")]
-        public void CustomAwaitable_Generic(string notifyType)
+        [InlineData("System.Runtime.CompilerServices.INotifyCompletion")]
+        [InlineData("System.Runtime.CompilerServices.ICriticalNotifyCompletion")]
+        [InlineData("System.Runtime.CompilerServices.ICriticalNotifyCompletion, System.Runtime.CompilerServices.INotifyCompletion")]
+        public void CustomAwaitable_WithNonVoidAwait(string notifyType)
         {
             var source = $$"""
                 var c = new C();
@@ -8013,7 +8015,7 @@ class Test1
 
                 class C
                 {
-                    public class Awaiter : System.Runtime.CompilerServices.{{notifyType}}
+                    public class Awaiter : {{notifyType}}
                     {
                         private bool isCompleted = false;
                         public void OnCompleted(System.Action continuation) {}
@@ -8038,7 +8040,7 @@ class Test1
             comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
             var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("42", isRuntimeAsync: true), verify: Verification.Fails with { ILVerifyMessage = ReturnValueMissing("<Main>$", "0x24") });
 
-            var expectedAwait = notifyType == "INotifyCompletion" ? "AwaitAwaiterFromRuntimeAsync" : "UnsafeAwaitAwaiterFromRuntimeAsync";
+            var expectedAwait = notifyType.Contains("Critical") ? "UnsafeAwaitAwaiterFromRuntimeAsync" : "AwaitAwaiterFromRuntimeAsync";
             verifier.VerifyIL("<top-level-statements-entry-point>", $$"""
                 {
                   // Code size       37 (0x25)
