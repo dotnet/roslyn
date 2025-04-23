@@ -2200,6 +2200,52 @@ class C
     }
 
     [Fact]
+    public void Property_Update_ExpressionBodyToAutoProp_FieldAccess()
+    {
+        var src1 = @"
+class C
+{
+    public int P => <AS:0>1</AS:0>;
+}
+";
+        var src2 = @"
+class C
+{
+    public int P => <AS:0>field</AS:0>;
+}
+";
+        var edits = GetTopEdits(src1, src2);
+        var active = GetActiveStatements(src1, src2);
+
+        edits.VerifySemanticDiagnostics(
+            active,
+            capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
+    }
+
+    [Fact]
+    public void Property_Update_Accessor_ExpressionBodyToAutoProp_FieldAccess()
+    {
+        var src1 = @"
+class C
+{
+    public int P { get => <AS:0>1</AS:0>; }
+}
+";
+        var src2 = @"
+class C
+{
+    public int P { get => <AS:0>field</AS:0>; }
+}
+";
+        var edits = GetTopEdits(src1, src2);
+        var active = GetActiveStatements(src1, src2);
+
+        edits.VerifySemanticDiagnostics(
+            active,
+            capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
+    }
+
+    [Fact]
     public void Property_Auto_Record_ReplacingNonPrimaryWithPrimary_Getter()
     {
         var src1 = @"
