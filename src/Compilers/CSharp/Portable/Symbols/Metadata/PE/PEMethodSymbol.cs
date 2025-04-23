@@ -1173,8 +1173,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private bool IsValidInstanceUserDefinedOperatorSignature(int parameterCount)
         {
-            // PROTOTYPE: Cover negative scenarios
-
             if (!this.ReturnsVoid || this.IsGenericMethod || this.IsVararg || this.ParameterCount != parameterCount || this.IsParams())
             {
                 return false;

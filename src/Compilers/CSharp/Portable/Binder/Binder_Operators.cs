@@ -2724,7 +2724,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool isViable(MethodSymbol method, int parameterCount)
             {
-                return method.ParameterCount == parameterCount;
+                Debug.Assert(parameterCount is 0 or 1);
+                return method.ParameterCount == parameterCount && method.ReturnsVoid && !method.IsVararg &&
+                       (parameterCount == 0 || method.Parameters[0].RefKind is RefKind.None or RefKind.In);
             }
         }
 

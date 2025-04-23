@@ -66,8 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    // PROTOTYPE: Cover explicit implementation scenarios
-
                     Binder.CheckFeatureAvailability(syntax, MessageID.IDS_FeatureUserDefinedCompoundAssignmentOperators, diagnostics, ((OperatorDeclarationSyntax)syntax).OperatorToken.GetLocation());
 
                     if (parameterCount is not (0 or 2))
@@ -78,7 +76,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (isCompoundAssignment)
             {
-                // PROTOTYPE: Cover explicit implementation scenarios
                 Binder.CheckFeatureAvailability(syntax, MessageID.IDS_FeatureUserDefinedCompoundAssignmentOperators, diagnostics, ((OperatorDeclarationSyntax)syntax).OperatorToken.GetLocation());
             }
 
@@ -566,7 +563,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_OperatorMustReturnVoid, this.GetFirstLocation());
                     }
 
-                    // PROTOTYPE: Test/handle scenarios with ref modifiers on the parameter
                     break;
 
                 default:
