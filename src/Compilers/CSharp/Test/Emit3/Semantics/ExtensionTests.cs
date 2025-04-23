@@ -3995,6 +3995,31 @@ public static class Extensions
     }
 
     [Fact]
+    public void ReceiverParameter_InconsistentTypeAccessibility_04()
+    {
+        var src = """
+public static class Extensions
+{
+    extension(C x)
+    {
+        public static void M() { }
+        public static int P { get => 0; set { } }
+    }
+
+    private class C { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,28): error CS0051: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than method 'Extensions.extension(Extensions.C).M()'
+            //         public static void M() { }
+            Diagnostic(ErrorCode.ERR_BadVisParamType, "M").WithArguments("Extensions.extension(Extensions.C).M()", "Extensions.C").WithLocation(5, 28),
+            // (6,27): error CS0055: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than indexer 'Extensions.extension(Extensions.C).P'
+            //         public static int P { get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "P").WithArguments("Extensions.extension(Extensions.C).P", "Extensions.C").WithLocation(6, 27));
+    }
+
+    [Fact]
     public void InconsistentTypeAccessibility_01()
     {
         var src = """
