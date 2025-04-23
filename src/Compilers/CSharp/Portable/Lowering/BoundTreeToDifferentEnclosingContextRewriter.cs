@@ -170,6 +170,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitType(node.Type));
         }
 
+        [return: NotNullIfNotNull(nameof(property))]
+        public override PropertySymbol? VisitPropertySymbol(PropertySymbol? property)
+        {
+            if (property is null)
+            {
+                return null;
+            }
+
+            if (property.ContainingType.IsAnonymousType)
+            {
+                //  Method of an anonymous type
+                var newType = (NamedTypeSymbol)TypeMap.SubstituteType(property.ContainingType).AsTypeSymbolOnly();
+                if (ReferenceEquals(newType, property.ContainingType))
+                {
+                    //  Anonymous type symbol was not rewritten
+                    return property;
+                }
+
+                //  get a new method by name
+                foreach (var member in newType.GetMembers(property.Name))
+                {
+                    if (member.Kind == SymbolKind.Method)
+                    {
+                        return (PropertySymbol)member;
+                    }
+                }
+
+                throw ExceptionUtilities.Unreachable();
+            }
+            else
+            {
+                //  Method of a regular type
+                return ((PropertySymbol)property.OriginalDefinition)
+                    .AsMember((NamedTypeSymbol)TypeMap.SubstituteType(property.ContainingType).AsTypeSymbolOnly())
+                    ;
+            }
+        }
+
         [return: NotNullIfNotNull(nameof(method))]
         public override MethodSymbol? VisitMethodSymbol(MethodSymbol? method)
         {
