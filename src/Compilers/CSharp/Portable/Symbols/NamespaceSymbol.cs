@@ -355,26 +355,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal void GetExtensionContainers(ArrayBuilder<NamedTypeSymbol> extensions)
+        internal virtual void GetExtensionContainers(ArrayBuilder<NamedTypeSymbol> extensions)
         {
-            var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            this.AddTypeMembersUnordered(builder);
-            foreach (var type in builder)
+            foreach (var type in this.GetTypeMembersUnordered())
             {
                 if (!type.IsReferenceType || !type.IsStatic || type.IsGenericType || !type.MightContainExtensionMethods) continue;
 
-                var nestedBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-                type.AddTypeMembersUnordered(nestedBuilder);
-                foreach (var nestedType in nestedBuilder)
+                foreach (var nestedType in type.GetTypeMembersUnordered())
                 {
                     if (nestedType.IsExtension)
                     {
                         extensions.Add(nestedType);
                     }
                 }
-                nestedBuilder.Free();
             }
-            builder.Free();
         }
 
         internal string QualifiedName

@@ -11,10 +11,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -231,15 +228,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _cachedLookup[name];
         }
 
-        internal sealed override void AddTypeMembersUnordered(ArrayBuilder<NamedTypeSymbol> builder)
-        {
-            foreach (var member in GetMembersUnordered())
-            {
-                if (member is NamedTypeSymbol typeMember)
-                    builder.Add(typeMember);
-            }
-        }
-
         internal sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembersUnordered()
         {
             return ImmutableArray.CreateRange<NamedTypeSymbol>(GetMembersUnordered().OfType<NamedTypeSymbol>());
@@ -306,6 +294,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (NamespaceSymbol namespaceSymbol in _namespacesToMerge)
             {
                 namespaceSymbol.GetExtensionMethods(methods, name, arity, options);
+            }
+        }
+
+        // Overridden to avoid NamespaceSymbol.GetExtensionContainers call to GetTypeMembersUnordered. The combination of the
+        // CreateRange and OfType Linq calls in MergedNamespaceSymbol.GetTypeMembersUnordered causes a full array allocation.
+        internal sealed override void GetExtensionContainers(ArrayBuilder<NamedTypeSymbol> extensions)
+        {
+            foreach (var member in GetMembersUnordered())
+            {
+                if (member is NamedTypeSymbol type)
+                {
+                    if (!type.IsReferenceType || !type.IsStatic || type.IsGenericType || !type.MightContainExtensionMethods) continue;
+
+                    foreach (var nestedType in type.GetTypeMembersUnordered())
+                    {
+                        if (nestedType.IsExtension)
+                        {
+                            extensions.Add(nestedType);
+                        }
+                    }
+                }
             }
         }
     }
