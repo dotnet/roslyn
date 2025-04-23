@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
@@ -154,4 +154,37 @@ public abstract partial class AbstractCSharpDiagnosticProviderBasedUserDiagnosti
     internal OptionsCollection IgnoreAllParentheses => ParenthesesOptionsProvider.IgnoreAllParentheses;
     internal OptionsCollection RemoveAllUnnecessaryParentheses => ParenthesesOptionsProvider.RemoveAllUnnecessaryParentheses;
     internal OptionsCollection RequireAllParenthesesForClarity => ParenthesesOptionsProvider.RequireAllParenthesesForClarity;
+
+    internal new Task TestInRegularAndScript1Async(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
+        int index = 0,
+        TestParameters? parameters = null)
+    {
+        return base.TestInRegularAndScript1Async(initialMarkup, expectedMarkup, index, parameters);
+    }
+
+    internal new Task TestInRegularAndScript1Async(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
+        TestParameters parameters)
+    {
+        return base.TestInRegularAndScript1Async(initialMarkup, expectedMarkup, parameters);
+    }
+
+    protected new Task TestMissingInRegularAndScriptAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        TestParameters? parameters = null,
+        int codeActionIndex = 0)
+    {
+        return base.TestMissingInRegularAndScriptAsync(initialMarkup, parameters, codeActionIndex);
+    }
+
+    protected new Task TestMissingAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        TestParameters? parameters = null,
+        int codeActionIndex = 0)
+    {
+        return base.TestMissingAsync(initialMarkup, parameters, codeActionIndex);
+    }
 }
