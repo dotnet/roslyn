@@ -359,14 +359,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (var type in this.GetTypeMembersUnordered())
             {
-                if (!type.IsReferenceType || !type.IsStatic || type.IsGenericType || !type.MightContainExtensionMethods) continue;
+                AddExtensionContainersForType(type, extensions);
+            }
+        }
 
-                foreach (var nestedType in type.GetTypeMembersUnordered())
+        protected void AddExtensionContainersForType(NamedTypeSymbol type, ArrayBuilder<NamedTypeSymbol> extensions)
+        {
+            if (!type.IsReferenceType || !type.IsStatic || type.IsGenericType || !type.MightContainExtensionMethods) return;
+
+            foreach (var nestedType in type.GetTypeMembersUnordered())
+            {
+                if (nestedType.IsExtension)
                 {
-                    if (nestedType.IsExtension)
-                    {
-                        extensions.Add(nestedType);
-                    }
+                    extensions.Add(nestedType);
                 }
             }
         }
