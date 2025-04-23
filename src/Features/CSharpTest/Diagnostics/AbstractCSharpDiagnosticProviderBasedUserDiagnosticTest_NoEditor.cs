@@ -11,14 +11,10 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 
-public abstract partial class AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor : AbstractDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public abstract partial class AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(ITestOutputHelper? logger)
+    : AbstractDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
     private static readonly CSharpParseOptions Script = new(kind: SourceCodeKind.Script);
-
-    protected AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(ITestOutputHelper logger)
-       : base(logger)
-    {
-    }
 
     protected override ParseOptions GetScriptOptions() => Script;
 
