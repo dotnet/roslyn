@@ -178,34 +178,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            if (property.ContainingType.IsAnonymousType)
-            {
-                //  Property of an anonymous type
-                var newType = (NamedTypeSymbol)TypeMap.SubstituteType(property.ContainingType).AsTypeSymbolOnly();
-                if (ReferenceEquals(newType, property.ContainingType))
-                {
-                    //  Anonymous type symbol was not rewritten
-                    return property;
-                }
-
-                //  get a new property by name
-                foreach (var member in newType.GetMembers(property.Name))
-                {
-                    if (member.Kind == SymbolKind.Property)
-                    {
-                        return (PropertySymbol)member;
-                    }
-                }
-
-                throw ExceptionUtilities.Unreachable();
-            }
-            else
-            {
-                //  Property of a regular type
-                return ((PropertySymbol)property.OriginalDefinition)
+            return ((PropertySymbol)property.OriginalDefinition)
                     .AsMember((NamedTypeSymbol)TypeMap.SubstituteType(property.ContainingType).AsTypeSymbolOnly())
                     ;
-            }
         }
 
         [return: NotNullIfNotNull(nameof(method))]
