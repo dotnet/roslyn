@@ -1075,7 +1075,7 @@ public static class Extensions
                     } // end of method '<>c__DisplayClass1_0'::'<Inspect>b__0'
                 } // end of class <>c__DisplayClass1_0
                 // Methods
-                .method public hidebysig specialname static 
+                .method public hidebysig static 
                     class [netstandard]System.Text.StringBuilder Inspect (
                         class [netstandard]System.Text.StringBuilder sb
                     ) cil managed 
@@ -1228,7 +1228,7 @@ public static class IntExt
                     } // end of method '<>c__DisplayClass1_0'::'<DoSomething>b__0'
                 } // end of class <>c__DisplayClass1_0
                 // Methods
-                .method public hidebysig specialname static 
+                .method public hidebysig static 
                     class [netstandard]System.Action DoSomething () cil managed 
                 {
                     // Method begins at RVA 0x207c
@@ -1393,7 +1393,7 @@ public static class IntExt
                     } // end of method '<>c__DisplayClass1_0'::'<DoSomething>b__0'
                 } // end of class <>c__DisplayClass1_0
                 // Methods
-                .method public hidebysig specialname static 
+                .method public hidebysig static 
                     class [netstandard]System.Action DoSomething () cil managed 
                 {
                     // Method begins at RVA 0x207c
@@ -1638,7 +1638,7 @@ public static class Extensions
         } // end of method '<>E__0'::M
     } // end of class <>E__0
     // Methods
-    .method private hidebysig specialname static 
+    .method private hidebysig static 
         void M (
             object o
         ) cil managed 
@@ -1744,7 +1744,7 @@ public static class Extensions
         } // end of method '<>E__0'::M
     } // end of class <>E__0
     // Methods
-    .method private hidebysig specialname static 
+    .method private hidebysig static 
         void M () cil managed 
     {
         // Method begins at RVA 0x2067
@@ -1882,7 +1882,7 @@ public static class Extensions
         }
     } // end of class <>E__0
     // Methods
-    .method private hidebysig specialname static 
+    .method private hidebysig static 
         int32 get_Property (
             object o
         ) cil managed 
@@ -1893,7 +1893,7 @@ public static class Extensions
         IL_0000: ldc.i4.s 42
         IL_0002: ret
     } // end of method Extensions::get_Property
-    .method private hidebysig specialname static 
+    .method private hidebysig static 
         void set_Property (
             object o,
             int32 'value'
@@ -2051,7 +2051,7 @@ extends [netstandard]System.Object
         }
     } // end of class <>E__0
     // Methods
-    .method private hidebysig specialname static 
+    .method private hidebysig static 
         int32 get_Property () cil managed 
     {
         // Method begins at RVA 0x2067
@@ -2060,7 +2060,7 @@ extends [netstandard]System.Object
         IL_0000: ldc.i4.s 42
         IL_0002: ret
     } // end of method Extensions::get_Property
-    .method private hidebysig specialname static 
+    .method private hidebysig static 
         void set_Property (
             int32 'value'
         ) cil managed 
@@ -2195,7 +2195,7 @@ public static class Extensions
         }
     } // end of class <>E__0
     // Methods
-    .method private hidebysig specialname static 
+    .method private hidebysig static 
         int32 get_Item (
             object o,
             int32 i
@@ -2207,7 +2207,7 @@ public static class Extensions
         IL_0000: ldc.i4.s 42
         IL_0002: ret
     } // end of method Extensions::get_Item
-    .method private hidebysig specialname static 
+    .method private hidebysig static 
         void set_Item (
             object o,
             int32 i,
@@ -4576,7 +4576,7 @@ public static class Extensions
         } // end of method '<>E__0'::M
     } // end of class <>E__0
     // Methods
-    .method private hidebysig specialname static 
+    .method private hidebysig static 
         void M (
             object o,
             string s
@@ -4635,7 +4635,7 @@ public static class Extensions
             AssertEx.Equal("System.String Extensions.M(this System.Object o, System.String s)", implementation.ToTestDisplayString());
             Assert.Equal(m is not PEModuleSymbol, implementation.IsImplicitlyDeclared);
             Assert.True(implementation.IsExtensionMethod);
-            Assert.True(implementation.HasSpecialName);
+            Assert.False(implementation.HasSpecialName);
             Assert.False(implementation.HasRuntimeSpecialName);
 
             Assert.True(implementation.ContainingType.MightContainExtensionMethods);
@@ -4695,7 +4695,7 @@ public static class Extensions
         } // end of method '<>E__0'::M
     } // end of class <>E__0
     // Methods
-    .method public hidebysig specialname static 
+    .method public hidebysig static 
         string M (
             object o,
             string s
@@ -5074,7 +5074,7 @@ public static class Extensions
         .field public string s
     } // end of class <>c__DisplayClass1_0
     // Methods
-    .method public hidebysig specialname static 
+    .method public hidebysig static 
         string M (
             object o,
             string s
@@ -5284,7 +5284,7 @@ public static class Extensions
         } // end of method '<>c__DisplayClass1_0'::'<M>b__0'
     } // end of class <>c__DisplayClass1_0
     // Methods
-    .method public hidebysig specialname static 
+    .method public hidebysig static 
         string M (
             object o,
             string s
@@ -5653,7 +5653,7 @@ public static class Extensions
         }
     } // end of class <M>d__1
     // Methods
-    .method public hidebysig specialname static 
+    .method public hidebysig static 
         class [mscorlib]System.Collections.Generic.IEnumerable`1<string> M (
             object o,
             string s
@@ -5957,7 +5957,7 @@ public static class Extensions
         } // end of method '<M>d__1'::SetStateMachine
     } // end of class <M>d__1
     // Methods
-    .method public hidebysig specialname static 
+    .method public hidebysig static 
         class [mscorlib]System.Threading.Tasks.Task`1<string> M (
             object o,
             string s
@@ -6090,7 +6090,7 @@ public class C<T>(string v)
         AssertEx.Equal("System.String Extensions.M<T, U>(this C<T> o, T t, U u)", implementation.ToTestDisplayString());
         Assert.True(implementation.IsImplicitlyDeclared);
         Assert.True(implementation.IsExtensionMethod);
-        Assert.True(implementation.HasSpecialName);
+        Assert.False(implementation.HasSpecialName);
         Assert.False(implementation.HasRuntimeSpecialName);
 
         var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
@@ -6134,7 +6134,7 @@ public class C<T>(string v)
         } // end of method '<>E__0`1'::M
     } // end of class <>E__0`1
     // Methods
-    .method public hidebysig specialname static 
+    .method public hidebysig static 
         string M<T, U> (
             class C`1<!!T> o,
             !!T t,
@@ -6386,7 +6386,7 @@ public class C<T>(string val)
         .field public !T t1
     } // end of class <>c__DisplayClass1_0`2
     // Methods
-    .method public hidebysig specialname static 
+    .method public hidebysig static 
         class C`1<!!U> M<T, U> (
             class C`1<!!T> o,
             !!T t1,
@@ -6719,7 +6719,7 @@ public class C<T>(string val)
         } // end of method '<>c__DisplayClass1_0`2'::'<M>b__0'
     } // end of class <>c__DisplayClass1_0`2
     // Methods
-    .method public hidebysig specialname static 
+    .method public hidebysig static 
         class C`1<!!U> M<T, U> (
             class C`1<!!T> o,
             !!T t1,
@@ -7137,7 +7137,7 @@ public class C<T>(string val)
         }
     } // end of class <M>d__1`2
     // Methods
-    .method public hidebysig specialname static 
+    .method public hidebysig static 
         class [mscorlib]System.Collections.Generic.IEnumerable`1<string> M<T, U> (
             class C`1<!!T> o,
             !!T t1,
@@ -7424,7 +7424,7 @@ public class C<T>(string val)
         } // end of method '<M>d__1`2'::SetStateMachine
     } // end of class <M>d__1`2
     // Methods
-    .method public hidebysig specialname static 
+    .method public hidebysig static 
         class [mscorlib]System.Threading.Tasks.Task`1<string> M<T, U> (
             class C`1<!!T> o,
             !!T t1,
@@ -7565,7 +7565,7 @@ public static class Extensions
             AssertEx.Equal("System.String Extensions.M(System.Object o, System.String s)", implementation.ToTestDisplayString());
             Assert.Equal(m is not PEModuleSymbol, implementation.IsImplicitlyDeclared);
             Assert.False(implementation.IsExtensionMethod);
-            Assert.True(implementation.HasSpecialName);
+            Assert.False(implementation.HasSpecialName);
             Assert.False(implementation.HasRuntimeSpecialName);
 
             Assert.True(implementation.ContainingType.MightContainExtensionMethods);
@@ -7615,7 +7615,7 @@ public static class Extensions
         } // end of method '<>E__0'::M
     } // end of class <>E__0
     // Methods
-    .method public hidebysig specialname static 
+    .method public hidebysig static 
         string M (
             object o,
             string s
@@ -8106,7 +8106,7 @@ public static class Extensions
         .field public string s
     } // end of class <>c__DisplayClass1_0
     // Methods
-    .method public hidebysig specialname static 
+    .method public hidebysig static 
         string M (
             object o,
             string s
@@ -8314,7 +8314,7 @@ public static class Extensions
         } // end of method '<>c__DisplayClass1_0'::'<M>b__0'
     } // end of class <>c__DisplayClass1_0
     // Methods
-    .method public hidebysig specialname static 
+    .method public hidebysig static 
         string M (
             object o,
             string s
@@ -8681,7 +8681,7 @@ public static class Extensions
         }
     } // end of class <M>d__1
     // Methods
-    .method public hidebysig specialname static 
+    .method public hidebysig static 
         class [mscorlib]System.Collections.Generic.IEnumerable`1<string> M (
             object o,
             string s
@@ -8949,7 +8949,7 @@ public static class Extensions
         } // end of method '<M>d__1'::SetStateMachine
     } // end of class <M>d__1
     // Methods
-    .method public hidebysig specialname static 
+    .method public hidebysig static 
         class [mscorlib]System.Threading.Tasks.Task`1<string> M (
             object o,
             string s
@@ -9071,7 +9071,7 @@ public static class Extensions
         AssertEx.Equal("System.String Extensions.get_P(System.Object o)", implementation.ToTestDisplayString());
         Assert.True(implementation.IsImplicitlyDeclared);
         Assert.False(implementation.IsExtensionMethod);
-        Assert.True(implementation.HasSpecialName);
+        Assert.False(implementation.HasSpecialName);
         Assert.False(implementation.HasRuntimeSpecialName);
 
         var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
@@ -9117,7 +9117,7 @@ public static class Extensions
         }
     } // end of class <>E__0
     // Methods
-    .method public hidebysig specialname static 
+    .method public hidebysig static 
         string get_P (
             object o
         ) cil managed 
@@ -9360,7 +9360,7 @@ public static class Extensions
         AssertEx.Equal("System.String Extensions.get_P()", implementation.ToTestDisplayString());
         Assert.True(implementation.IsImplicitlyDeclared);
         Assert.False(implementation.IsExtensionMethod);
-        Assert.True(implementation.HasSpecialName);
+        Assert.False(implementation.HasSpecialName);
         Assert.False(implementation.HasRuntimeSpecialName);
 
         var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
@@ -9406,7 +9406,7 @@ public static class Extensions
         }
     } // end of class <>E__0
     // Methods
-    .method public hidebysig specialname static 
+    .method public hidebysig static 
         string get_P () cil managed 
     {
         // Method begins at RVA 0x2067
@@ -9617,7 +9617,7 @@ public static class Extensions
         }
     } // end of class <>E__0
     // Methods
-    .method public hidebysig specialname static 
+    .method public hidebysig static 
         string get_P (
             object o
         ) cil managed 
@@ -9767,7 +9767,7 @@ class C1
         .field public static class [mscorlib]System.Func`1<!V> '<0>__M1'
     } // end of class <local>O__1_0`3
     // Methods
-    .method private hidebysig specialname static 
+    .method private hidebysig static 
         void M2<T, U> (
             !!T o
         ) cil managed 
@@ -9911,7 +9911,7 @@ class C1
         .field public static class [mscorlib]System.Action '<0>__M1'
     } // end of class <>O__1_0`1
     // Methods
-    .method private hidebysig specialname static 
+    .method private hidebysig static 
         void M2<T> (
             !!T o
         ) cil managed 
@@ -10056,7 +10056,7 @@ class C1
         .field public static class [mscorlib]System.Action '<0>__M1'
     } // end of class <>O
     // Methods
-    .method private hidebysig specialname static 
+    .method private hidebysig static 
         void M2 (
             object o
         ) cil managed 
@@ -10196,7 +10196,7 @@ public static class Extensions
         .field public static class [mscorlib]System.Action '<0>__local'
     } // end of class <>O__1_0`1
     // Methods
-    .method private hidebysig specialname static 
+    .method private hidebysig static 
         class [mscorlib]System.Action M2<T> (
             !!T o
         ) cil managed 
@@ -10338,7 +10338,7 @@ public static class Extensions
         .field public static class [mscorlib]System.Action '<0>__local'
     } // end of class <>O
     // Methods
-    .method private hidebysig specialname static 
+    .method private hidebysig static 
         class [mscorlib]System.Action M2 (
             object o
         ) cil managed 
@@ -10479,7 +10479,7 @@ public static class Extensions
         .field public static class [System.Core]System.Runtime.CompilerServices.CallSite`1<class [mscorlib]System.Action`5<class [System.Core]System.Runtime.CompilerServices.CallSite, object, !T, !U, !V>> '<>p__0'
     } // end of class <>o__0|1`3
     // Methods
-    .method private hidebysig specialname static 
+    .method private hidebysig static 
         void M2<T, U> (
             !!T o
         ) cil managed 
@@ -10658,7 +10658,7 @@ public static class Extensions
         .field public static class [System.Core]System.Runtime.CompilerServices.CallSite`1<class [mscorlib]System.Action`3<class [System.Core]System.Runtime.CompilerServices.CallSite, object, !T>> '<>p__0'
     } // end of class <>o__1`1
     // Methods
-    .method private hidebysig specialname static 
+    .method private hidebysig static 
         void M2<T> (
             !!T o
         ) cil managed 
@@ -10821,7 +10821,7 @@ public static class Extensions
         .field public static class [System.Core]System.Runtime.CompilerServices.CallSite`1<class [mscorlib]System.Action`2<class [System.Core]System.Runtime.CompilerServices.CallSite, object>> '<>p__0'
     } // end of class <>o__1
     // Methods
-    .method private hidebysig specialname static 
+    .method private hidebysig static 
         void M2 (
             object o
         ) cil managed 
@@ -28247,7 +28247,7 @@ static class E
             IL_0001: throw
         }
     }
-    .method public hidebysig specialname static void 'M' ( int32[] i ) cil managed 
+    .method public hidebysig static void 'M' ( int32[] i ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -28321,7 +28321,7 @@ i.M(2);
             .get instance int32 E/'<>E__0'::get_P()
         }
     }
-    .method public hidebysig specialname static int32 'get_P' ( int32[] i ) cil managed 
+    .method public hidebysig static int32 'get_P' ( int32[] i ) cil managed 
     {
         .param [1]
         .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = ( 01 00 00 00)
@@ -32499,21 +32499,21 @@ ref struct RS { }
             .get int32 E/'<>E__0'::get_P4()
         }
     }
-    .method public hidebysig specialname static void M3 ( int32 '' ) cil managed 
+    .method public hidebysig static void M3 ( int32 '' ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
         IL_0000: ret
     }
-    .method public hidebysig specialname static void M4 () cil managed 
+    .method public hidebysig static void M4 () cil managed 
     {
         IL_0000: ret
     }
-    .method public hidebysig specialname static int32 get_P3 ( int32 '' ) cil managed 
+    .method public hidebysig static int32 get_P3 ( int32 '' ) cil managed 
     {
         IL_0000: ldc.i4.0
         IL_0001: ret
     }
-    .method public hidebysig specialname static int32 get_P4 () cil managed 
+    .method public hidebysig static int32 get_P4 () cil managed 
     {
         IL_0000: ldc.i4.0
         IL_0001: ret
@@ -35781,5 +35781,152 @@ static class E
             // (2,10): error CS0103: The name 'ERROR' does not exist in the current context
             // object.M(ERROR);
             Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(2, 10));
+    }
+
+    [Fact]
+    public void SpecialName_01()
+    {
+        // extension(int)
+        // {
+        //    public void M() { }
+        //    public int P { get; }
+        // }
+        // but with specialname missing from marker method
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+
+    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
+        .method public hidebysig instance void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+        .method public hidebysig specialname instance int32 get_P () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+        .property instance int32 P()
+        {
+            .get instance int32 E/'<>E__0'::get_P()
+        }
+    }
+    .method public hidebysig static void M ( int32 '' ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        IL_0000: ret
+    }
+    .method public hidebysig static int32 get_P ( int32 '' ) cil managed 
+    {
+        IL_0000: ldc.i4.0
+        IL_0001: ret
+    }
+}
+""";
+        string source = """
+42.M();
+_ = 42.P;
+""";
+        var comp = CreateCompilationWithIL(source, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (2,8): error CS1061: 'int' does not contain a definition for 'P' and no accessible extension method 'P' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            // _ = 42.P;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("int", "P").WithLocation(2, 8));
+    }
+
+    [Fact]
+    public void SpecialName_02()
+    {
+        // extension(int)
+        // {
+        //    public void M() { }
+        //    public void M2() { }
+        //    public int P { get; }
+        //    public int P2 { get; }
+        // }
+        // but with specialname mismatch between skeleton and implementation methods
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+
+    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
+        .method public hidebysig instance void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+        .method public hidebysig specialname instance void M2 () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+        .method public hidebysig specialname instance int32 get_P () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+        .method public hidebysig instance int32 get_P2 () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+        .property instance int32 P()
+        {
+            .get instance int32 E/'<>E__0'::get_P()
+        }
+        .property instance int32 P2()
+        {
+            .get instance int32 E/'<>E__0'::get_P2()
+        }
+    }
+    .method public hidebysig specialname static void M ( int32 '' ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        IL_0000: ret
+    }
+    .method public hidebysig static void M2 ( int32 '' ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        IL_0000: ret
+    }
+    .method public hidebysig static int32 get_P ( int32 '' ) cil managed 
+    {
+        IL_0000: ldc.i4.0
+        IL_0001: ret
+    }
+    .method public hidebysig specialname static int32 get_P2 ( int32 '' ) cil managed 
+    {
+        IL_0000: ldc.i4.0
+        IL_0001: ret
+    }
+}
+""";
+        string source = """
+42.M();
+42.M2();
+_ = 42.P;
+_ = 42.P2;
+""";
+        var comp = CreateCompilationWithIL(source, ilSrc);
+        comp.VerifyEmitDiagnostics();
     }
 }
