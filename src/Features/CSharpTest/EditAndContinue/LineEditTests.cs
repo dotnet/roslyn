@@ -18,7 +18,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
 
 [UseExportProvider]
-public class LineEditTests : EditingTestBase
+public sealed class LineEditTests : EditingTestBase
 {
     #region Top-level Code
 
@@ -1371,7 +1371,8 @@ class C
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             Array.Empty<SequencePointUpdates>(),
-            semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single(), preserveLocalVariables: true)]);
+            semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single(), preserveLocalVariables: true)],
+            diagnostics: [Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Bar = 1", GetResource("field"))]);
     }
 
     [Fact]

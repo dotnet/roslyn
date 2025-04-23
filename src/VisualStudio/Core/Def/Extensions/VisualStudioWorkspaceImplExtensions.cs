@@ -23,7 +23,7 @@ internal static class VisualStudioWorkspaceImplExtensions
 
     private static bool TryGetImageListAndIndex(this IVsHierarchy hierarchy, IVsImageService2 imageService, uint itemId, out IntPtr imageList, out ushort index)
     {
-        var itemIdToImageHandle = s_hierarchyToItemIdToImageHandle.GetValue(hierarchy, static _ => new Dictionary<uint, IImageHandle>());
+        var itemIdToImageHandle = s_hierarchyToItemIdToImageHandle.GetValue(hierarchy, static _ => []);
 
         // Get the actual image moniker that the vs hierarchy is using to in solution explorer.
         var imageMoniker = imageService.GetImageMonikerForHierarchyItem(hierarchy, itemId, (int)__VSHIERARCHYIMAGEASPECT.HIA_Icon);
@@ -79,7 +79,7 @@ internal static class VisualStudioWorkspaceImplExtensions
         return false;
     }
 
-    private class VsImageMonikerImageList : IVsImageMonikerImageList
+    private sealed class VsImageMonikerImageList : IVsImageMonikerImageList
     {
         private readonly ImageMoniker _imageMoniker;
 

@@ -16,7 +16,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp;
 
 [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-public class AttributeSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
+public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
 {
     internal override Type GetSignatureHelpProviderType()
         => typeof(AttributeSignatureHelpProvider);
@@ -877,7 +877,7 @@ public class AttributeSignatureHelpProviderTests : AbstractCSharpSignatureHelpPr
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                             referencedCode: referencedCode,
-                                            expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
+                                            expectedOrderedItemsMetadataReference: [],
                                             expectedOrderedItemsSameSolution: expectedOrderedItems,
                                             sourceLanguage: LanguageNames.CSharp,
                                             referencedLanguage: LanguageNames.CSharp);
@@ -910,7 +910,7 @@ public class AttributeSignatureHelpProviderTests : AbstractCSharpSignatureHelpPr
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                             referencedCode: referencedCode,
-                                            expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
+                                            expectedOrderedItemsMetadataReference: [],
                                             expectedOrderedItemsSameSolution: expectedOrderedItems,
                                             sourceLanguage: LanguageNames.CSharp,
                                             referencedLanguage: LanguageNames.CSharp,

@@ -23,8 +23,8 @@ internal sealed class SuggestedActionPriorityProvider(
 
     public struct LowPriorityAnalyzersAndDiagnosticIds()
     {
-        public ConcurrentSet<DiagnosticAnalyzer> Analyzers { get; } = new();
-        public ConcurrentSet<string> SupportedDiagnosticIds { get; } = new();
+        public ConcurrentSet<DiagnosticAnalyzer> Analyzers { get; } = [];
+        public ConcurrentSet<string> SupportedDiagnosticIds { get; } = [];
     }
 
     public void AddDeprioritizedAnalyzerWithLowPriority(DiagnosticAnalyzer analyzer)

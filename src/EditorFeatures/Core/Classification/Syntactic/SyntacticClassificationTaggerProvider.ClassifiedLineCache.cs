@@ -43,7 +43,7 @@ internal partial class SyntacticClassificationTaggerProvider
         /// </summary>
         private const int CacheSize = 256;
 
-        private static readonly ObjectPool<SegmentedList<ClassifiedSpan>> s_classifiedSpanListPool = new(() => new(), CacheSize);
+        private static readonly ObjectPool<SegmentedList<ClassifiedSpan>> s_classifiedSpanListPool = new(() => [], CacheSize);
 
         private readonly IThreadingContext _threadingContext = threadingContext;
 

@@ -13,25 +13,24 @@ using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debuggi
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.Implementation.Debugging
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.Implementation.Debugging;
+
+[Shared]
+[ExportLanguageService(typeof(IBreakpointResolutionService), LanguageNames.FSharp)]
+internal class FSharpBreakpointResolutionService : IBreakpointResolutionService
 {
-    [Shared]
-    [ExportLanguageService(typeof(IBreakpointResolutionService), LanguageNames.FSharp)]
-    internal class FSharpBreakpointResolutionService : IBreakpointResolutionService
+    private readonly IFSharpBreakpointResolutionService _service;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public FSharpBreakpointResolutionService(IFSharpBreakpointResolutionService service)
     {
-        private readonly IFSharpBreakpointResolutionService _service;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FSharpBreakpointResolutionService(IFSharpBreakpointResolutionService service)
-        {
-            _service = service;
-        }
-
-        public async Task<BreakpointResolutionResult?> ResolveBreakpointAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken = default)
-            => (await _service.ResolveBreakpointAsync(document, textSpan, cancellationToken).ConfigureAwait(false))?.UnderlyingObject;
-
-        public async Task<IEnumerable<BreakpointResolutionResult>> ResolveBreakpointsAsync(Solution solution, string name, CancellationToken cancellationToken = default)
-            => (await _service.ResolveBreakpointsAsync(solution, name, cancellationToken).ConfigureAwait(false)).Select(r => r.UnderlyingObject);
+        _service = service;
     }
+
+    public async Task<BreakpointResolutionResult?> ResolveBreakpointAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken = default)
+        => (await _service.ResolveBreakpointAsync(document, textSpan, cancellationToken).ConfigureAwait(false))?.UnderlyingObject;
+
+    public async Task<IEnumerable<BreakpointResolutionResult>> ResolveBreakpointsAsync(Solution solution, string name, CancellationToken cancellationToken = default)
+        => (await _service.ResolveBreakpointsAsync(solution, name, cancellationToken).ConfigureAwait(false)).Select(r => r.UnderlyingObject);
 }

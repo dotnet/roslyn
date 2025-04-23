@@ -21,7 +21,7 @@ internal sealed class NoValue
     public static NoValue Instance = new();
 }
 
-internal class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
+internal sealed class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
 {
     private readonly ILspLogger _logger;
     private readonly AbstractRequestScope? _requestTelemetryScope;
@@ -139,7 +139,6 @@ internal class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
 
             // End the request - the caller will return immediately if it cannot deserialize.
             _requestTelemetryScope?.Dispose();
-            _logger.LogEndContext($"{MethodName}");
 
             // If the request is mutating, bubble the exception out so the queue shuts down.
             if (isMutating)
@@ -162,7 +161,8 @@ internal class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
     public async Task StartRequestAsync<TRequest, TResponse>(TRequest request, TRequestContext? context, IMethodHandler handler, string language, CancellationToken cancellationToken)
     {
         _requestHandlingStarted = true;
-        _logger.LogStartContext($"{MethodName}");
+
+        _logger.LogDebug("Starting request handler");
 
         try
         {
@@ -216,12 +216,14 @@ internal class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
             {
                 throw new NotImplementedException($"Unrecognized {nameof(IMethodHandler)} implementation {handler.GetType()}.");
             }
+
+            _logger.LogDebug("Request handler completed successfully.");
         }
         catch (OperationCanceledException ex)
         {
             // Record logs + metrics on cancellation.
             _requestTelemetryScope?.RecordCancellation();
-            _logger.LogInformation($"{MethodName} - Canceled");
+            _logger.LogInformation($"Request was cancelled.");
 
             _completionSource.TrySetCanceled(ex.CancellationToken);
         }
@@ -237,7 +239,6 @@ internal class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
         finally
         {
             _requestTelemetryScope?.Dispose();
-            _logger.LogEndContext($"{MethodName}");
         }
 
         // Return the result of this completion source to the caller

@@ -31,7 +31,7 @@ internal sealed partial class GraphBuilder
 #pragma warning restore RS0030 // Do not use banned APIs
 
     private readonly ISet<GraphNode> _createdNodes = new HashSet<GraphNode>();
-    private readonly IList<Tuple<GraphNode, GraphProperty, object>> _deferredPropertySets = new List<Tuple<GraphNode, GraphProperty, object>>();
+    private readonly IList<Tuple<GraphNode, GraphProperty, object>> _deferredPropertySets = [];
 
     private readonly Dictionary<GraphNode, Project> _nodeToContextProjectMap = [];
     private readonly Dictionary<GraphNode, Document> _nodeToContextDocumentMap = [];
@@ -210,7 +210,7 @@ internal sealed partial class GraphBuilder
         // We may need to look up source code within this solution
         if (preferredLocation == null && symbol.Locations.Any(static loc => loc.IsInMetadata))
         {
-            var newSymbol = SymbolFinder.FindSourceDefinition(symbol, contextProject.Solution, cancellationToken);
+            var newSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, contextProject.Solution, cancellationToken).ConfigureAwait(false);
             if (newSymbol != null)
                 preferredLocation = newSymbol.Locations.Where(loc => loc.IsInSource).FirstOrDefault();
         }

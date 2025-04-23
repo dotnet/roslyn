@@ -18,7 +18,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseCompoundCoalesceAssignmentCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
-public class UseCompoundCoalesceAssignmentTests
+public sealed class UseCompoundCoalesceAssignmentTests
 {
     private static async Task TestInRegularAndScriptAsync(string testCode, string fixedCode)
     {

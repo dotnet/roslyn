@@ -246,7 +246,7 @@ internal sealed class LanguageServerProjectSystem
                 return false;
             }
 
-            var existingProjects = _loadedProjects.GetOrAdd(projectPath, static _ => new List<LoadedProject>());
+            var existingProjects = _loadedProjects.GetOrAdd(projectPath, static _ => []);
 
             Dictionary<ProjectFileInfo, ProjectLoadTelemetryReporter.TelemetryInfo> telemetryInfos = [];
             var needsRestore = false;

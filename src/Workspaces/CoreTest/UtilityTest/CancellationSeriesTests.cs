@@ -14,119 +14,118 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Threading;
 using Xunit;
 
-namespace Roslyn.Utilities
+namespace Roslyn.Utilities;
+
+public sealed class CancellationSeriesTests
 {
-    public sealed class CancellationSeriesTests
+    [Fact]
+    public void CreateNext_ReturnsNonCancelledToken()
     {
-        [Fact]
-        public void CreateNext_ReturnsNonCancelledToken()
-        {
-            using var series = new CancellationSeries();
-            var token = series.CreateNext();
+        using var series = new CancellationSeries();
+        var token = series.CreateNext();
 
-            Assert.False(token.IsCancellationRequested);
-            Assert.True(token.CanBeCanceled);
-        }
+        Assert.False(token.IsCancellationRequested);
+        Assert.True(token.CanBeCanceled);
+    }
 
-        [Fact]
-        public void CreateNext_CancelsPreviousToken()
-        {
-            using var series = new CancellationSeries();
-            var token1 = series.CreateNext();
+    [Fact]
+    public void CreateNext_CancelsPreviousToken()
+    {
+        using var series = new CancellationSeries();
+        var token1 = series.CreateNext();
 
-            Assert.False(token1.IsCancellationRequested);
+        Assert.False(token1.IsCancellationRequested);
 
-            var token2 = series.CreateNext();
+        var token2 = series.CreateNext();
 
-            Assert.True(token1.IsCancellationRequested);
-            Assert.False(token2.IsCancellationRequested);
+        Assert.True(token1.IsCancellationRequested);
+        Assert.False(token2.IsCancellationRequested);
 
-            var token3 = series.CreateNext();
+        var token3 = series.CreateNext();
 
-            Assert.True(token2.IsCancellationRequested);
-            Assert.False(token3.IsCancellationRequested);
-        }
+        Assert.True(token2.IsCancellationRequested);
+        Assert.False(token3.IsCancellationRequested);
+    }
 
-        [Fact]
-        public void CreateNext_ThrowsIfDisposed()
-        {
-            var series = new CancellationSeries();
+    [Fact]
+    public void CreateNext_ThrowsIfDisposed()
+    {
+        var series = new CancellationSeries();
 
-            series.Dispose();
+        series.Dispose();
 
-            Assert.Throws<ObjectDisposedException>(() => series.CreateNext());
-        }
+        Assert.Throws<ObjectDisposedException>(() => series.CreateNext());
+    }
 
-        [Fact]
-        public void CreateNext_ReturnsCancelledTokenIfSuperTokenAlreadyCancelled()
-        {
-            var cts = new CancellationTokenSource();
+    [Fact]
+    public void CreateNext_ReturnsCancelledTokenIfSuperTokenAlreadyCancelled()
+    {
+        var cts = new CancellationTokenSource();
 
-            using var series = new CancellationSeries(cts.Token);
-            cts.Cancel();
+        using var series = new CancellationSeries(cts.Token);
+        cts.Cancel();
 
-            var token = series.CreateNext();
+        var token = series.CreateNext();
 
-            Assert.True(token.IsCancellationRequested);
-        }
+        Assert.True(token.IsCancellationRequested);
+    }
 
-        [Fact]
-        public void CreateNext_ReturnsCancelledTokenIfInputTokenAlreadyCancelled()
-        {
-            var cts = new CancellationTokenSource();
+    [Fact]
+    public void CreateNext_ReturnsCancelledTokenIfInputTokenAlreadyCancelled()
+    {
+        var cts = new CancellationTokenSource();
 
-            using var series = new CancellationSeries();
-            cts.Cancel();
+        using var series = new CancellationSeries();
+        cts.Cancel();
 
-            var token = series.CreateNext(cts.Token);
+        var token = series.CreateNext(cts.Token);
 
-            Assert.True(token.IsCancellationRequested);
-        }
+        Assert.True(token.IsCancellationRequested);
+    }
 
-        [Fact]
-        public void CancellingSuperTokenCancelsIssuedToken()
-        {
-            var cts = new CancellationTokenSource();
+    [Fact]
+    public void CancellingSuperTokenCancelsIssuedToken()
+    {
+        var cts = new CancellationTokenSource();
 
-            using var series = new CancellationSeries(cts.Token);
-            var token = series.CreateNext();
+        using var series = new CancellationSeries(cts.Token);
+        var token = series.CreateNext();
 
-            Assert.False(token.IsCancellationRequested);
+        Assert.False(token.IsCancellationRequested);
 
-            cts.Cancel();
+        cts.Cancel();
 
-            Assert.True(token.IsCancellationRequested);
-        }
+        Assert.True(token.IsCancellationRequested);
+    }
 
-        [Fact]
-        public void CancellingInputTokenCancelsIssuedToken()
-        {
-            var cts = new CancellationTokenSource();
+    [Fact]
+    public void CancellingInputTokenCancelsIssuedToken()
+    {
+        var cts = new CancellationTokenSource();
 
-            using var series = new CancellationSeries();
-            var token = series.CreateNext(cts.Token);
+        using var series = new CancellationSeries();
+        var token = series.CreateNext(cts.Token);
 
-            Assert.False(token.IsCancellationRequested);
+        Assert.False(token.IsCancellationRequested);
 
-            cts.Cancel();
+        cts.Cancel();
 
-            Assert.True(token.IsCancellationRequested);
-        }
+        Assert.True(token.IsCancellationRequested);
+    }
 
-        [Fact]
-        public void CreateNext_HandlesExceptionsFromPreviousTokenRegistration()
-        {
-            using var series = new CancellationSeries();
-            var token1 = series.CreateNext();
+    [Fact]
+    public void CreateNext_HandlesExceptionsFromPreviousTokenRegistration()
+    {
+        using var series = new CancellationSeries();
+        var token1 = series.CreateNext();
 
-            var exception = new Exception();
+        var exception = new Exception();
 
-            token1.Register(() => throw exception);
+        token1.Register(() => throw exception);
 
-            var aggregateException = Assert.Throws<AggregateException>(() => series.CreateNext());
+        var aggregateException = Assert.Throws<AggregateException>(() => series.CreateNext());
 
-            Assert.Same(exception, aggregateException.InnerExceptions.Single());
-            Assert.True(token1.IsCancellationRequested);
-        }
+        Assert.Same(exception, aggregateException.InnerExceptions.Single());
+        Assert.True(token1.IsCancellationRequested);
     }
 }

@@ -742,6 +742,11 @@
         <target state="translated">Drzewo wyrażenia nie może zawierać konwersji procedury obsługi ciągu interpolowanego.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsNamedArgumentOutOfPosition">
+        <source>An expression tree may not contain a named argument specification out of position</source>
+        <target state="new">An expression tree may not contain a named argument specification out of position</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsPatternImplicitIndexer">
         <source>An expression tree may not contain a pattern System.Index or System.Range indexer access</source>
         <target state="translated">Drzewo wyrażenia nie może zawierać dostępu do indeksatora z wzorcem System.Index lub System.Range</target>
@@ -790,6 +795,11 @@
       <trans-unit id="ERR_ExtensionResolutionFailed">
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension member '{1}' for receiver of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
         <target state="new">'{0}' does not contain a definition for '{1}' and no accessible extension member '{1}' for receiver of type '{0}' could be found (are you missing a using directive or an assembly reference?)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExtensionTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'extension'.</source>
+        <target state="new">Types and aliases cannot be named 'extension'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
@@ -1022,6 +1032,11 @@
         <target state="translated">Nie można używać argumentów z modyfikatorem „in” w wyrażeniach przydzielanych dynamicznie.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InExtensionParameterMustBeValueType">
+        <source>The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</source>
+        <target state="new">The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
         <source>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</source>
         <target state="translated">Dziedziczenie z rekordu z zapieczętowanym obiektem "Object.ToString" nie jest obsługiwane w języku C# {0}. Użyj wersji języka "{1}" lub nowszej.</target>
@@ -1030,6 +1045,11 @@
       <trans-unit id="ERR_InitCannotBeReadonly">
         <source>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</source>
         <target state="translated">Metody dostępu „init” nie można oznaczyć jako „tylko do odczytu”. Zamiast tego oznacz jako tylko do odczytu element „{0}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InitInExtension">
+        <source>'{0}': cannot declare init-only accessors in an extension block</source>
+        <target state="new">'{0}': cannot declare init-only accessors in an extension block</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InlineArrayAttributeOnRecord">
@@ -1065,6 +1085,11 @@
       <trans-unit id="ERR_InlineArrayUnsupportedElementFieldModifier">
         <source>Inline array element field cannot be declared as required, readonly, volatile, or as a fixed size buffer.</source>
         <target state="translated">Pole elementu tablicy wbudowanej nie może być zadeklarowane jako wymagane, tylko do odczytu, nietrwałe ani jako bufor o stałym rozmiarze.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InstanceMemberWithUnnamedExtensionsParameter">
+        <source>'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</source>
+        <target state="new">'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
@@ -1462,6 +1487,11 @@
         <target state="translated">Brak wzorca</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ModifierOnUnnamedReceiverParameter">
+        <source>Cannot use modifiers on the unnamed receiver parameter of extension block</source>
+        <target state="new">Cannot use modifiers on the unnamed receiver parameter of extension block</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ModuleInitializerCannotBeUnmanagedCallersOnly">
         <source>Module initializer cannot be attributed with 'UnmanagedCallersOnly'.</source>
         <target state="translated">Inicjator modułu nie może mieć atrybutu „UnmanagedCallersOnly”.</target>
@@ -1682,6 +1712,21 @@
         <target state="translated">Metoda „{0}” określa ograniczenie „struct” dla parametru typu „{1}”, lecz odpowiadający parametr typu „{2}” przesłoniętej lub jawnie zaimplementowanej metody „{3}” nie jest nienullowalnym typem wartości.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PPIgnoredFollowsIf">
+        <source>'#:' directives cannot be after '#if' directive</source>
+        <target state="new">'#:' directives cannot be after '#if' directive</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PPIgnoredFollowsToken">
+        <source>'#:' directives cannot be after first token in file</source>
+        <target state="new">'#:' directives cannot be after first token in file</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PPIgnoredNeedsFileBasedProgram">
+        <source>'#:' directives can be only used in file-based programs ('-features:FileBasedProgram')</source>
+        <target state="new">'#:' directives can be only used in file-based programs ('-features:FileBasedProgram')</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
         <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
         <target state="translated">Konstruktor „{0}” pozostawia wymaganą składową "{1}".</target>
@@ -1892,6 +1937,11 @@
         <target state="translated">Wzorzec podrzędny właściwości wymaga odwołania do właściwości lub pola, które należy dopasować, na przykład „{{ Name: {0} }}”</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ProtectedInExtension">
+        <source>'{0}': new protected member declared in an extension block</source>
+        <target state="new">'{0}': new protected member declared in an extension block</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RawStringDelimiterOnOwnLine">
         <source>Raw string literal delimiter must be on its own line.</source>
         <target state="translated">Ogranicznik literału ciągu nieprzetworzonego musi znajdować się w osobnym wierszu.</target>
@@ -1955,6 +2005,11 @@
       <trans-unit id="ERR_RefAssignValEscapeWider">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escape scopes than '{1}'.</source>
         <target state="translated">Nie można przypisać wartości ref „{1}” do „{0}”, ponieważ „{1}” ma szerszy zakres ucieczki wartości niż „{0}”, umożliwiając przypisanie za pośrednictwem „{0}” wartości z węższymi zakresami ucieczki niż „{1}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne">
+        <source>The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.</source>
+        <target state="new">The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
@@ -2497,6 +2552,11 @@
         <target state="translated">zastąpienie konstruktora metodą asynchroniczną</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_CollectionExpression">
+        <source>collection expression</source>
+        <target state="new">collection expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureAllowsRefStructConstraint">
         <source>allows ref struct constraint</source>
         <target state="translated">zezwala na ograniczenie ref struct</target>
@@ -2635,6 +2695,11 @@
       <trans-unit id="IDS_FeatureNewLinesInInterpolations">
         <source>newlines in interpolations</source>
         <target state="translated">nowe wiersze w interpolacjach</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureNullConditionalAssignment">
+        <source>null conditional assignment</source>
+        <target state="new">null conditional assignment</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureOverloadResolutionPriority">
@@ -8907,8 +8972,8 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadTypeforThis">
-        <source>The first parameter of an extension method cannot be of type '{0}'</source>
-        <target state="translated">Pierwszy parametr metody rozszerzenia nie może być parametrem typu „{0}”</target>
+        <source>The receiver parameter of an extension cannot be of type '{0}'</source>
+        <target state="needs-review-translation">Pierwszy parametr metody rozszerzenia nie może być parametrem typu „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamModThis">

@@ -75,7 +75,10 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
         => options.LanguageVersion() >= LanguageVersion.CSharp10;
 
     public bool SupportsFieldExpression(ParseOptions options)
-        => options.LanguageVersion() >= LanguageVersionExtensions.CSharpNext;
+        => options.LanguageVersion().IsCSharp14OrAbove();
+
+    public bool SupportsNullConditionalAssignment(ParseOptions options)
+        => options.LanguageVersion().IsCSharp14OrAbove();
 
     public SyntaxToken ParseToken(string text)
         => SyntaxFactory.ParseToken(text);
@@ -104,7 +107,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
 
         return
             (SyntaxFacts.IsAnyUnaryExpression(kind) &&
-                (token.Parent is PrefixUnaryExpressionSyntax || token.Parent is PostfixUnaryExpressionSyntax || token.Parent is OperatorDeclarationSyntax)) ||
+                (token.Parent is PrefixUnaryExpressionSyntax or PostfixUnaryExpressionSyntax or OperatorDeclarationSyntax)) ||
             (SyntaxFacts.IsBinaryExpression(kind) && (token.Parent is BinaryExpressionSyntax or OperatorDeclarationSyntax or RelationalPatternSyntax)) ||
             (SyntaxFacts.IsAssignmentExpressionOperatorToken(kind) && token.Parent is AssignmentExpressionSyntax);
     }

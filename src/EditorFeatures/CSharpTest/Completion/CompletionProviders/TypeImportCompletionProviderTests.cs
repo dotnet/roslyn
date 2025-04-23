@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class TypeImportCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class TypeImportCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType()
         => typeof(TypeImportCompletionProvider);

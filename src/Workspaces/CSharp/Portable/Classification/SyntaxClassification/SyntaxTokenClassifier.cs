@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers;
 
-internal class SyntaxTokenClassifier : AbstractSyntaxClassifier
+internal sealed class SyntaxTokenClassifier : AbstractSyntaxClassifier
 {
     public override ImmutableArray<int> SyntaxTokenKinds { get; } = [(int)SyntaxKind.LessThanToken];
 

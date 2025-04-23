@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 
-internal class AnalyzerSettingsUpdater(Workspace workspace, string editorconfigPath) : SettingsUpdaterBase<AnalyzerSetting, ReportDiagnostic>(workspace, editorconfigPath)
+internal sealed class AnalyzerSettingsUpdater(Workspace workspace, string editorconfigPath) : SettingsUpdaterBase<AnalyzerSetting, ReportDiagnostic>(workspace, editorconfigPath)
 {
     protected override SourceText? GetNewText(SourceText sourceText,
                                               IReadOnlyList<(AnalyzerSetting option, ReportDiagnostic value)> settingsToUpdate,

@@ -6,24 +6,23 @@ using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.MSBuild
+namespace Microsoft.CodeAnalysis.MSBuild;
+
+public partial class MSBuildProjectLoader
 {
-    public partial class MSBuildProjectLoader
+    private sealed partial class Worker
     {
-        private partial class Worker
+        private sealed class AnalyzerReferencePathComparer : IEqualityComparer<AnalyzerReference?>
         {
-            private class AnalyzerReferencePathComparer : IEqualityComparer<AnalyzerReference?>
-            {
-                public static AnalyzerReferencePathComparer Instance = new();
+            public static AnalyzerReferencePathComparer Instance = new();
 
-                private AnalyzerReferencePathComparer() { }
+            private AnalyzerReferencePathComparer() { }
 
-                public bool Equals(AnalyzerReference? x, AnalyzerReference? y)
-                    => string.Equals(x?.FullPath, y?.FullPath, StringComparison.OrdinalIgnoreCase);
+            public bool Equals(AnalyzerReference? x, AnalyzerReference? y)
+                => string.Equals(x?.FullPath, y?.FullPath, StringComparison.OrdinalIgnoreCase);
 
-                public int GetHashCode(AnalyzerReference? obj)
-                    => obj?.FullPath?.GetHashCode() ?? 0;
-            }
+            public int GetHashCode(AnalyzerReference? obj)
+                => obj?.FullPath?.GetHashCode() ?? 0;
         }
     }
 }

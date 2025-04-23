@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments;
 
 [Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
-public class XmlTagCompletionTests : AbstractXmlTagCompletionTests
+public sealed class XmlTagCompletionTests : AbstractXmlTagCompletionTests
 {
     private protected override IChainedCommandHandler<TypeCharCommandArgs> CreateCommandHandler(EditorTestWorkspace workspace)
         => workspace.ExportProvider.GetCommandHandler<XmlTagCompletionCommandHandler>(nameof(XmlTagCompletionCommandHandler), ContentTypeNames.CSharpContentType);

@@ -651,6 +651,13 @@ internal enum FunctionId
     VSCode_Project_Load_Started = 861,
     VSCode_Projects_Load_Completed = 862,
 
+    GraphQuery_Calls = 870,
+    GraphQuery_Contains = 871,
+    GraphQuery_InheritedBy = 872,
+    GraphQuery_Inherits = 873,
+    GraphQuery_OverriddenBy = 874,
+    GraphQuery_Search = 875,
+
     // 900-999 for items that don't fit into other categories.
     Workspace_EventsImmediate = 900,
     ChecksumUpdater_SynchronizeTextChangesStatus = 901,

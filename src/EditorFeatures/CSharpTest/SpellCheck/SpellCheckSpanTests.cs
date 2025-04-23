@@ -11,7 +11,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SpellCheck;
 
 [UseExportProvider]
-public class SpellCheckSpanTests : AbstractSpellCheckSpanTests
+public sealed class SpellCheckSpanTests : AbstractSpellCheckSpanTests
 {
     protected override EditorTestWorkspace CreateWorkspace(string content)
         => EditorTestWorkspace.CreateCSharp(content);

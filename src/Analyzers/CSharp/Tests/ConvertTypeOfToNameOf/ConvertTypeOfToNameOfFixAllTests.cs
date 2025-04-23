@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTypeOfToNameOf;
 using VerifyCS = CSharpCodeFixVerifier<CSharpConvertTypeOfToNameOfDiagnosticAnalyzer,
     CSharpConvertTypeOfToNameOfCodeFixProvider>;
 
-public partial class ConvertTypeOfToNameOfTests
+public sealed partial class ConvertTypeOfToNameOfTests
 {
     [Fact]
     [Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
