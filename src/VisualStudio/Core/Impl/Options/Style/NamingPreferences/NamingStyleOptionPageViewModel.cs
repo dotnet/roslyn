@@ -44,7 +44,7 @@ internal sealed class NamingStyleOptionPageViewModel : AbstractNotifyPropertyCha
             {
                 NamingStyles = [.. info.NamingStyles.Select(n => new MutableNamingStyle(n))],
                 Specifications = [.. info.SymbolSpecifications],
-                NotificationPreferences = new List<NotificationOptionViewModel>(_notifications)
+                NotificationPreferences = [.. _notifications]
             };
 
             viewModel.SelectedSpecification = viewModel.Specifications.Single(s => s.ID == namingRule.SymbolSpecification.ID);
@@ -205,7 +205,7 @@ internal sealed class NamingStyleOptionPageViewModel : AbstractNotifyPropertyCha
         {
             Specifications = [];
             NamingStyles = [];
-            NotificationPreferences = new List<NotificationOptionViewModel>();
+            NotificationPreferences = [];
         }
 
         private SymbolSpecification _selectedSpecification;

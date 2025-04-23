@@ -186,7 +186,7 @@ class C
         }
 
         internal override string VisualizeRealIL(
-            IModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers, bool areLocalsZeroed)
+            IModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string>? markers, bool areLocalsZeroed)
             => throw new NotImplementedException();
     }
 }

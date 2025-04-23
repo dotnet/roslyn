@@ -359,7 +359,7 @@ namespace Roslyn.Diagnostics.Analyzers
         protected abstract class NonCopyableWalker : OperationWalker
         {
             private readonly OperationBlockAnalysisContext _context;
-            private readonly HashSet<IOperation> _handledOperations = new();
+            private readonly HashSet<IOperation> _handledOperations = [];
 
             protected NonCopyableWalker(OperationBlockAnalysisContext context, NonCopyableTypesCache cache)
             {

@@ -15215,9 +15215,9 @@ public class Program
                 // (7,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
                 //         x += 1;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x += 1").WithArguments("+=", "C1", "int").WithLocation(7, 9),
-                // (8,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'collection expressions'
+                // (8,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'collection expression'
                 //         x += [2];
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x += [2]").WithArguments("+=", "C1", "collection expressions").WithLocation(8, 9)
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x += [2]").WithArguments("+=", "C1", "collection expression").WithLocation(8, 9)
                 );
         }
 

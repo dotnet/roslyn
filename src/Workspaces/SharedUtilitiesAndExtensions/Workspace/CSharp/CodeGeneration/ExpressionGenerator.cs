@@ -296,23 +296,17 @@ internal static class ExpressionGenerator
         return null;
     }
 
-    private static ExpressionSyntax GenerateMemberAccess(params string[] names)
+    private static ExpressionSyntax GenerateMemberAccess(params ReadOnlySpan<string> names)
     {
         ExpressionSyntax result = IdentifierName(GlobalKeyword);
         for (var i = 0; i < names.Length; i++)
         {
             var name = IdentifierName(names[i]);
-            if (i == 0)
-            {
-                result = AliasQualifiedName((IdentifierNameSyntax)result, name);
-            }
-            else
-            {
-                result = MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, result, name);
-            }
+            result = i == 0
+                ? AliasQualifiedName((IdentifierNameSyntax)result, name)
+                : MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, result, name);
         }
 
-        result = result.WithAdditionalAnnotations(Simplifier.Annotation);
-        return result;
+        return result.WithAdditionalAnnotations(Simplifier.Annotation);
     }
 }

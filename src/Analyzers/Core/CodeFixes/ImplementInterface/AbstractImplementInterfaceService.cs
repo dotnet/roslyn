@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -74,7 +75,7 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
         => node.WithPrependedLeadingTrivia(CreateCommentTrivia(comments));
 
     protected SyntaxTriviaList CreateCommentTrivia(
-        params string[] comments)
+        params ReadOnlySpan<string> comments)
     {
         using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var trivia);
 

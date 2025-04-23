@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CodeCleanup;
@@ -30,7 +31,7 @@ internal sealed class DiagnosticSet
     }
 
     public DiagnosticSet(string description, params string[] diagnosticIds)
-        : this(description, ImmutableArray.Create(diagnosticIds), isAnyDiagnosticIdExplicitlyEnabled: true)
+        : this(description, [.. diagnosticIds], isAnyDiagnosticIdExplicitlyEnabled: true)
     {
     }
 

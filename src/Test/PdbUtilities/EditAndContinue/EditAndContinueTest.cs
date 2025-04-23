@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             output?.WriteLine($"Emitting baseline");
 
-            verifier.Emit(
+            verifier.EmitAndVerify(
                 expectedOutput: null,
                 trimOutput: false,
                 expectedReturnCode: null,
