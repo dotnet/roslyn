@@ -308,12 +308,14 @@ public partial class Project
         var generatedDocumentStates = await Solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(this.State, cancellationToken).ConfigureAwait(false);
 
         // return an iterator to avoid eagerly allocating all the document instances
-        lock (_gate)
+        return generatedDocumentStates.States.Values.Select(state =>
         {
-            _idToSourceGeneratedDocumentMap ??= [];
-            return generatedDocumentStates.States.Values.Select(state => 
-                _idToSourceGeneratedDocumentMap.GetOrAdd(state.Id, s_createSourceGeneratedDocumentFunction, (state, this)));
-        }
+            lock (_gate)
+            {
+                _idToSourceGeneratedDocumentMap ??= [];
+                return _idToSourceGeneratedDocumentMap.GetOrAdd(state.Id, s_createSourceGeneratedDocumentFunction, (state, this));
+            }
+        });
     }
 
     internal async IAsyncEnumerable<Document> GetAllRegularAndSourceGeneratedDocumentsAsync([EnumeratorCancellation] CancellationToken cancellationToken)
