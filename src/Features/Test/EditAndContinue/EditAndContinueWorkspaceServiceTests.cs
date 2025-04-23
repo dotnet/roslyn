@@ -187,7 +187,10 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(ModuleUpdateStatus.None, updates.Status);
         Assert.Empty(updates.Updates);
-        Assert.Empty(emitDiagnostics);
+        AssertEx.Equal(
+        [
+            $"proj.csproj: (0,0)-(0,0): Warning ENC1008: {string.Format(FeaturesResources.Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit, document1.FilePath)}"
+        ], InspectDiagnostics(emitDiagnostics));
 
         EndDebuggingSession(debuggingSession);
     }
@@ -2356,7 +2359,10 @@ class G
         sourceFile.WriteAllText(source1, Encoding.UTF8);
 
         (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-        Assert.Empty(emitDiagnostics);
+        AssertEx.Equal(
+        [
+            $"test.csproj: (0,0)-(0,0): Warning ENC1008: {string.Format(FeaturesResources.Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit, sourceFile.Path)}"
+        ], InspectDiagnostics(emitDiagnostics));
 
         // the content actually hasn't changed:
         Assert.Equal(ModuleUpdateStatus.None, updates.Status);

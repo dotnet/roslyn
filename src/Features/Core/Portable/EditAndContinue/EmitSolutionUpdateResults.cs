@@ -98,7 +98,13 @@ internal readonly struct EmitSolutionUpdateResults
     public required Solution? Solution { get; init; }
 
     public required ModuleUpdates ModuleUpdates { get; init; }
+
+    /// <summary>
+    /// Reported diagnostics, other than rude edits, per project.
+    /// May contain multiple entries for the same project.
+    /// </summary>
     public required ImmutableArray<ProjectDiagnostics> Diagnostics { get; init; }
+
     public required ImmutableArray<ProjectDiagnostics> RudeEdits { get; init; }
     public required Diagnostic? SyntaxError { get; init; }
 
