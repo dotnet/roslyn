@@ -359,11 +359,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (var type in this.GetTypeMembersUnordered())
             {
-                AddExtensionContainersForType(type, extensions);
+                AddExtensionContainersInType(type, extensions);
             }
         }
 
-        protected void AddExtensionContainersForType(NamedTypeSymbol type, ArrayBuilder<NamedTypeSymbol> extensions)
+        protected void AddExtensionContainersInType(NamedTypeSymbol type, ArrayBuilder<NamedTypeSymbol> extensions)
         {
             if (!type.IsReferenceType || !type.IsStatic || type.IsGenericType || !type.MightContainExtensionMethods) return;
 

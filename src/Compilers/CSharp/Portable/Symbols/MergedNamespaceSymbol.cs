@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (member is NamedTypeSymbol type)
                 {
-                    AddExtensionContainersForType(type, extensions);
+                    AddExtensionContainersInType(type, extensions);
                 }
             }
         }
