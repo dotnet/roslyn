@@ -357,6 +357,8 @@ namespace Microsoft.CodeAnalysis
 
         System_Text_Encoding,
 
+        System_Runtime_CompilerServices_OverloadResolutionPriorityAttribute,
+
         NextAvailable,
         // Remember to update the AllWellKnownTypes tests when making changes here
     }
@@ -699,6 +701,8 @@ namespace Microsoft.CodeAnalysis
             "System.Linq.Expressions.DefaultExpression",
 
             "System.Text.Encoding",
+
+            "System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

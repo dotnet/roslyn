@@ -25757,13 +25757,12 @@ static class E1
     [Fact]
     public void MethodInvocation_RemoveLowerPriorityMembers_02()
     {
-        var source = """
-42.M(43);
-
-static class E1
+        var libSrc = """
+public static class E1
 {
     extension(int i)
     {
+        [System.Runtime.CompilerServices.OverloadResolutionPriority(0)]
         public void M(int j) => throw null;
     }
     extension(int i)
@@ -25773,13 +25772,31 @@ static class E1
     }
 }
 """;
-        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
-        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+        var source = """
+42.M(43);
+""";
+        var comp = CreateCompilation([source, libSrc, OverloadResolutionPriorityAttributeDefinition]);
+        CompileAndVerify(comp, expectedOutput: "ran", symbolValidator: verify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M");
         Assert.Equal("void E1.<>E__1.M(System.Int64 l)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+
+        var libComp = CreateCompilation([libSrc, OverloadResolutionPriorityAttributeDefinition]);
+        var comp2 = CreateCompilation(source, references: [libComp.EmitToImageReference()]);
+        CompileAndVerify(comp2, expectedOutput: "ran").VerifyDiagnostics();
+
+        static void verify(ModuleSymbol m)
+        {
+            var implementations = m.ContainingAssembly.GetTypeByMetadataName("E1").GetMembers().OfType<MethodSymbol>().ToArray();
+
+            AssertEx.Equal("void E1.M(this System.Int32 i, System.Int32 j)", implementations[0].ToTestDisplayString());
+            AssertEx.Equal("System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute(0)", implementations[0].GetAttributes().Single().ToString());
+
+            AssertEx.Equal("void E1.M(this System.Int32 i, System.Int64 l)", implementations[1].ToTestDisplayString());
+            AssertEx.Equal("System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute(1)", implementations[1].GetAttributes().Single().ToString());
+        }
     }
 
     [Fact]
@@ -25941,6 +25958,80 @@ static class E
     }
 
     [Fact]
+    public void MethodInvocation_RemoveLowerPriorityMembers_09()
+    {
+        var libSrc = """
+public static class E
+{
+    extension(int i)
+    {
+        public void M() => throw null;
+    }
+    extension(long l)
+    {
+        [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
+        public void M() { System.Console.Write("ran"); }
+    }
+}
+""";
+        var source = """
+E.M(43);
+""";
+
+        var comp = CreateCompilation([source, libSrc, OverloadResolutionPriorityAttributeDefinition]);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        var libComp = CreateCompilation([libSrc, OverloadResolutionPriorityAttributeDefinition]);
+        var comp2 = CreateCompilation([source], references: [libComp.EmitToImageReference()]);
+        CompileAndVerify(comp2, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void MethodInvocation_RemoveLowerPriorityMembers_10()
+    {
+        var libSrc = """
+public static class E
+{
+    extension(int)
+    {
+        [System.Runtime.CompilerServices.OverloadResolutionPriority(0)]
+        public static void M(int j) => throw null;
+    }
+    extension(int)
+    {
+        [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
+        public static void M(long l) { System.Console.Write("ran"); }
+    }
+}
+""";
+        var source = """
+int.M(43);
+""";
+        var comp = CreateCompilation([source, libSrc, OverloadResolutionPriorityAttributeDefinition]);
+        CompileAndVerify(comp, expectedOutput: "ran", symbolValidator: verify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.M");
+        Assert.Equal("void E.<>E__1.M(System.Int64 l)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+
+        var libComp = CreateCompilation([libSrc, OverloadResolutionPriorityAttributeDefinition]);
+        var comp2 = CreateCompilation(source, references: [libComp.EmitToImageReference()]);
+        CompileAndVerify(comp2, expectedOutput: "ran").VerifyDiagnostics();
+
+        static void verify(ModuleSymbol m)
+        {
+            var implementations = m.ContainingAssembly.GetTypeByMetadataName("E").GetMembers().OfType<MethodSymbol>().ToArray();
+
+            AssertEx.Equal("void E.M(System.Int32 j)", implementations[0].ToTestDisplayString());
+            AssertEx.Equal("System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute(0)", implementations[0].GetAttributes().Single().ToString());
+
+            AssertEx.Equal("void E.M(System.Int64 l)", implementations[1].ToTestDisplayString());
+            AssertEx.Equal("System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute(1)", implementations[1].GetAttributes().Single().ToString());
+        }
+    }
+
+    [Fact]
     public void PropertyAccess_RemoveLowerPriorityMembers_01()
     {
         var source = """
@@ -25971,11 +26062,8 @@ static class E
     [Fact]
     public void PropertyAccess_RemoveLowerPriorityMembers_02()
     {
-        var source = """
-string s = "";
-_ = s.P;
-
-static class E
+        var libSrc = """
+public static class E
 {
     extension(object o)
     {
@@ -25988,13 +26076,22 @@ static class E
     }
 }
 """;
-        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
+
+        var source = """
+string s = "";
+_ = s.P;
+""";
+        var comp = CreateCompilation([source, libSrc, OverloadResolutionPriorityAttributeDefinition]);
         CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.P");
         Assert.Equal("System.Int32 E.<>E__0.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+
+        var libComp = CreateCompilation([libSrc, OverloadResolutionPriorityAttributeDefinition]);
+        var comp2 = CreateCompilation([source], references: [libComp.EmitToImageReference()]);
+        CompileAndVerify(comp2, expectedOutput: "ran").VerifyDiagnostics();
     }
 
     [Fact]
@@ -26055,6 +26152,144 @@ static class E
             // (9,14): error CS9262: Cannot use 'OverloadResolutionPriorityAttribute' on this member.
             //             [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
             Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember, "System.Runtime.CompilerServices.OverloadResolutionPriority(1)").WithLocation(9, 14));
+    }
+
+    [Fact]
+    public void PropertyAccess_RemoveLowerPriorityMembers_05()
+    {
+        var libSrc = """
+public static class E
+{
+    extension(object o)
+    {
+        [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
+        public int P { get { System.Console.Write("ran"); return 0; } }
+    }
+    extension(string s)
+    {
+        public long P => throw null;
+    }
+}
+""";
+
+        var source = """
+E.get_P("");
+""";
+        var comp = CreateCompilation([source, libSrc, OverloadResolutionPriorityAttributeDefinition]);
+        CompileAndVerify(comp, expectedOutput: "ran", symbolValidator: verify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "E.get_P");
+        Assert.Equal("System.Int32 E.get_P(System.Object o)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+
+        var libComp = CreateCompilation([libSrc, OverloadResolutionPriorityAttributeDefinition]);
+        var comp2 = CreateCompilation([source], references: [libComp.EmitToImageReference()]);
+        CompileAndVerify(comp2, expectedOutput: "ran").VerifyDiagnostics();
+
+        static void verify(ModuleSymbol m)
+        {
+            var implementations = m.ContainingAssembly.GetTypeByMetadataName("E").GetMembers().OfType<MethodSymbol>().ToArray();
+
+            Assert.Equal("System.Int32 E.get_P(System.Object o)", implementations[0].ToTestDisplayString());
+            Assert.Equal("System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute(1)", implementations[0].GetAttributes().Single().ToString());
+
+            Assert.Equal("System.Int64 E.get_P(System.String s)", implementations[1].ToTestDisplayString());
+            Assert.Empty(implementations[1].GetAttributes());
+        }
+    }
+
+    [Fact]
+    public void PropertyAccess_RemoveLowerPriorityMembers_06()
+    {
+        var libSrc = """
+public static class E
+{
+    extension(object o)
+    {
+        [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
+        public int P { set { System.Console.Write("ran"); } }
+    }
+    extension(string s)
+    {
+        [System.Runtime.CompilerServices.OverloadResolutionPriority(0)]
+        public int P { set => throw null; }
+    }
+}
+""";
+
+        var source = """
+E.set_P("", 0);
+""";
+        var comp = CreateCompilation([source, libSrc, OverloadResolutionPriorityAttributeDefinition]);
+        CompileAndVerify(comp, expectedOutput: "ran", symbolValidator: verify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "E.set_P");
+        Assert.Equal("void E.set_P(System.Object o, System.Int32 value)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+
+        var libComp = CreateCompilation([libSrc, OverloadResolutionPriorityAttributeDefinition]);
+        var comp2 = CreateCompilation([source], references: [libComp.EmitToImageReference()]);
+        CompileAndVerify(comp2, expectedOutput: "ran").VerifyDiagnostics();
+
+        static void verify(ModuleSymbol m)
+        {
+            var implementations = m.ContainingAssembly.GetTypeByMetadataName("E").GetMembers().OfType<MethodSymbol>().ToArray();
+
+            Assert.Equal("void E.set_P(System.Object o, System.Int32 value)", implementations[0].ToTestDisplayString());
+            Assert.Equal("System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute(1)", implementations[0].GetAttributes().Single().ToString());
+
+            Assert.Equal("void E.set_P(System.String s, System.Int32 value)", implementations[1].ToTestDisplayString());
+            Assert.Empty(implementations[1].GetAttributes());
+        }
+    }
+
+    [Fact]
+    public void PropertyAccess_RemoveLowerPriorityMembers_07()
+    {
+        var source = """
+public static class E
+{
+    extension(object o)
+    {
+        public static int P => 0;
+    }
+    extension(string s)
+    {
+        public static int P => 0;
+    }
+}
+""";
+
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (9,32): error CS0111: Type 'E' already defines a member called 'get_P' with the same parameter types
+            //         public static int P => 0;
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "0").WithArguments("get_P", "E").WithLocation(9, 32));
+    }
+
+    [Fact]
+    public void PropertyAccess_RemoveLowerPriorityMembers_08()
+    {
+        var source = """
+static class E
+{
+    extension(object o)
+    {
+        [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
+        public int P => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (5,42): error CS0234: The type or namespace name 'OverloadResolutionPriorityAttribute' does not exist in the namespace 'System.Runtime.CompilerServices' (are you missing an assembly reference?)
+            //         [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "OverloadResolutionPriority").WithArguments("OverloadResolutionPriorityAttribute", "System.Runtime.CompilerServices").WithLocation(5, 42),
+            // (5,42): error CS0234: The type or namespace name 'OverloadResolutionPriority' does not exist in the namespace 'System.Runtime.CompilerServices' (are you missing an assembly reference?)
+            //         [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "OverloadResolutionPriority").WithArguments("OverloadResolutionPriority", "System.Runtime.CompilerServices").WithLocation(5, 42));
     }
 
     [Fact]
@@ -33910,5 +34145,57 @@ static class E
             // (14,32): error CS8157: Cannot return 'ri' by reference because it was initialized to a value that cannot be returned by reference
             //         return ref E.get_P(ref ri);
             Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "ri").WithArguments("ri").WithLocation(14, 32));
+    }
+
+    [Fact]
+    public void SkipLocalsInit_01()
+    {
+        string source = """
+static unsafe class E
+{
+    extension(int i)
+    {
+        [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+        public int P
+        {
+            get { int j = 0; return j; }
+        }
+
+        public int P2
+        {
+            get { int j = 0; return j; }
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+        var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+        Assert.False(verifier.HasLocalsInit("E.get_P"));
+        Assert.True(verifier.HasLocalsInit("E.get_P2"));
+    }
+
+    [Fact]
+    public void SkipLocalsInit_02()
+    {
+        string source = """
+static unsafe class E
+{
+    extension(int i)
+    {
+        [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+        public int M() { int j = 0; return j; }
+
+        public int M2() { int j = 0; return j; }
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+        var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+        Assert.False(verifier.HasLocalsInit("E.M"));
+        Assert.True(verifier.HasLocalsInit("E.M2"));
     }
 }

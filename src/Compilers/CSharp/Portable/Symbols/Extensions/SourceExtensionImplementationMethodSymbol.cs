@@ -65,6 +65,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
+            if (UnderlyingMethod is SourcePropertyAccessorSymbol { AssociatedSymbol: SourcePropertySymbolBase extensionProperty })
+            {
+                var priority = extensionProperty.OverloadResolutionPriority;
+                if (priority != 0)
+                {
+                    var arg = new TypedConstant(DeclaringCompilation.GetSpecialType(SpecialType.System_Int32), TypedConstantKind.Primitive, priority);
+
+                    AddSynthesizedAttribute(ref attributes, DeclaringCompilation.TrySynthesizeAttribute(
+                        WellKnownMember.System_Runtime_CompilerServices_OverloadResolutionPriorityAttribute__ctor,
+                        [arg]));
+                }
+            }
+
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
             SourceMethodSymbol.AddSynthesizedAttributes(this, moduleBuilder, ref attributes);
         }
@@ -108,6 +121,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             thisParameter = null;
             return true;
+        }
+
+        internal override int TryGetOverloadResolutionPriority()
+        {
+            if (UnderlyingMethod is SourcePropertyAccessorSymbol { AssociatedSymbol: SourcePropertySymbol property })
+            {
+                return property.TryGetOverloadResolutionPriority();
+            }
+
+            return UnderlyingMethod.TryGetOverloadResolutionPriority();
         }
 
         private sealed class ExtensionMetadataMethodParameterSymbol : RewrittenMethodParameterSymbol
