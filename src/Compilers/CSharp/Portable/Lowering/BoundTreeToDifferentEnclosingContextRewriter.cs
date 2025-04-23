@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Dictionary<LocalSymbol, LocalSymbol> localMap = new Dictionary<LocalSymbol, LocalSymbol>();
 
         //to handle type changes (e.g. type parameters) we need to update placeholders
-        private readonly Dictionary<BoundValuePlaceholderBase, BoundExpression> _placeholderMap = new();
+        private readonly Dictionary<BoundValuePlaceholderBase, BoundExpression> _placeholderMap = new Dictionary<BoundValuePlaceholderBase, BoundExpression>();
 
         // A mapping for types in the original method to types in its replacement.  This is mainly necessary
         // when the original method was generic, as type parameters in the original method are mapping into
