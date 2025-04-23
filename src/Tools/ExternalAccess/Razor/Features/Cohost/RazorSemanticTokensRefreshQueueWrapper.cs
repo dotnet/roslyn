@@ -7,6 +7,7 @@ using System.Composition;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
@@ -14,7 +15,7 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 
-[ExportCohostLspServiceFactory(typeof(IRazorSemanticTokensRefreshQueue)), Shared]
+[ExportRazorLspServiceFactory(typeof(IRazorSemanticTokensRefreshQueue)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal class RazorSemanticTokensRefreshQueueWrapperFactory() : ILspServiceFactory

@@ -22,6 +22,9 @@ parameters:
 - name: OptionalTitlePrefix
   type: string
   default: '[PR Validation]'
+- name: VisualStudioCherryPickSHA
+  type: string
+  default: '(default)'
 - name: InsertToolset
   type: boolean
   default: true
@@ -323,6 +326,7 @@ extends:
             queueSpeedometerValidation: true
             dropPath: '$(Pipeline.Workspace)\VSSetup'
             retainInsertedBuild: false
+            cherryPick: ${{ parameters.VisualStudioCherryPickSHA }}
         # Arcade is done so we can set BuildNumber back
         - powershell: Write-Host "##vso[build.updatebuildnumber]$(FancyBuildNumber)"
           displayName: Reset BuildNumber

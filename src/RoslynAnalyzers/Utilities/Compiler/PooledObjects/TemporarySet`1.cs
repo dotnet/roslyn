@@ -19,7 +19,7 @@ namespace Analyzer.Utilities.PooledObjects
         /// <summary>
         /// An empty set used for creating non-null enumerators when no items have been added to the set.
         /// </summary>
-        private static readonly HashSet<T> EmptyHashSet = new();
+        private static readonly HashSet<T> EmptyHashSet = [];
 
         // 🐇 PERF: use PooledHashSet<T> instead of PooledConcurrentSet<T> due to allocation overhead in
         // clearing the set for returning it to the pool.

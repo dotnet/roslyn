@@ -448,40 +448,6 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
         }
     }
 
-    [Theory, CombinatorialData]
-    public async Task DidChange_MultipleRequestsIncludingTextOnly(bool mutatingLspWorkspace)
-    {
-        var source =
-            """
-            {|type:|}
-            """;
-        var expected =
-            """
-            /* test */
-            """;
-
-        var (testLspServer, locationTyped, _) = await GetTestLspServerAndLocationAsync(source, mutatingLspWorkspace);
-
-        await using (testLspServer)
-        {
-            await DidOpen(testLspServer, locationTyped.Uri);
-
-            var changes = new (int? line, int? column, string text)[]
-            {
-                (0, 0, "// hi"),
-                (null, null, "/*  */"),
-                (0, 3, "test"),
-            };
-
-            await DidChange(testLspServer, locationTyped.Uri, changes);
-
-            var document = testLspServer.GetTrackedTexts().FirstOrDefault();
-
-            AssertEx.NotNull(document);
-            Assert.Equal(expected, document.ToString());
-        }
-    }
-
     private async Task<(TestLspServer, LSP.Location, string)> GetTestLspServerAndLocationAsync(string source, bool mutatingLspWorkspace)
     {
         var testLspServer = await CreateTestLspServerAsync(source, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
@@ -493,7 +459,7 @@ public sealed partial class DocumentChangesTests : AbstractLanguageServerProtoco
 
     private static Task DidOpen(TestLspServer testLspServer, Uri uri) => testLspServer.OpenDocumentAsync(uri);
 
-    private static async Task DidChange(TestLspServer testLspServer, Uri uri, params (int? line, int? column, string text)[] changes)
+    private static async Task DidChange(TestLspServer testLspServer, Uri uri, params (int line, int column, string text)[] changes)
         => await testLspServer.InsertTextAsync(uri, changes);
 
     private static async Task DidClose(TestLspServer testLspServer, Uri uri) => await testLspServer.CloseDocumentAsync(uri);

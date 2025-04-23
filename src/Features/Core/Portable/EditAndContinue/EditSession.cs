@@ -532,27 +532,32 @@ internal sealed class EditSession
         }
     }
 
-    private async Task<(ImmutableArray<DocumentAnalysisResults> results, ImmutableArray<Diagnostic> diagnostics)> AnalyzeDocumentsAsync(
+    private async Task<(ImmutableArray<DocumentAnalysisResults> results, ImmutableArray<Diagnostic> diagnostics, bool hasOutOfSyncDocument)> AnalyzeDocumentsAsync(
         ArrayBuilder<Document> changedOrAddedDocuments,
         ActiveStatementSpanProvider newDocumentActiveStatementSpanProvider,
         CancellationToken cancellationToken)
     {
         using var _1 = ArrayBuilder<Diagnostic>.GetInstance(out var documentDiagnostics);
         using var _2 = ArrayBuilder<(Document? oldDocument, Document newDocument)>.GetInstance(out var documents);
+        var hasOutOfSyncDocument = false;
 
         foreach (var newDocument in changedOrAddedDocuments)
         {
-            var (oldDocument, oldDocumentState) = await DebuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(newDocument.Id, newDocument, cancellationToken, reloadOutOfSyncDocument: true).ConfigureAwait(false);
+            var (oldDocument, oldDocumentState) = await DebuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(newDocument, cancellationToken, reloadOutOfSyncDocument: true).ConfigureAwait(false);
             switch (oldDocumentState)
             {
                 case CommittedSolution.DocumentState.DesignTimeOnly:
                     break;
 
                 case CommittedSolution.DocumentState.Indeterminate:
-                case CommittedSolution.DocumentState.OutOfSync:
-                    var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor((oldDocumentState == CommittedSolution.DocumentState.Indeterminate) ?
-                        EditAndContinueErrorCode.UnableToReadSourceFileOrPdb : EditAndContinueErrorCode.DocumentIsOutOfSyncWithDebuggee);
+                    var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.UnableToReadSourceFileOrPdb);
                     documentDiagnostics.Add(Diagnostic.Create(descriptor, Location.Create(newDocument.FilePath!, textSpan: default, lineSpan: default), [newDocument.FilePath]));
+                    break;
+
+                case CommittedSolution.DocumentState.OutOfSync:
+                    // TODO: https://github.com/dotnet/roslyn/issues/78125
+                    // consider reporting EditAndContinueErrorCode.DocumentIsOutOfSyncWithDebuggee warning if project doesn't specify SingleTargetBuildForStartupProjects property
+                    hasOutOfSyncDocument = true;
                     break;
 
                 case CommittedSolution.DocumentState.MatchesBuildOutput:
@@ -568,8 +573,12 @@ internal sealed class EditSession
             }
         }
 
-        var analyses = await Analyses.GetDocumentAnalysesAsync(DebuggingSession.LastCommittedSolution, documents, newDocumentActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
-        return (analyses, documentDiagnostics.ToImmutable());
+        // No need to report rude edits if project has any documents that are out of sync. No deltas will be emitted for such project.
+        var analyses = hasOutOfSyncDocument
+            ? []
+            : await Analyses.GetDocumentAnalysesAsync(DebuggingSession.LastCommittedSolution, documents, newDocumentActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+
+        return (analyses, documentDiagnostics.ToImmutable(), hasOutOfSyncDocument);
     }
 
     private static ProjectAnalysisSummary GetProjectAnalysisSummary(ImmutableArray<DocumentAnalysisResults> documentAnalyses)
@@ -817,6 +826,7 @@ internal sealed class EditSession
             using var _4 = ArrayBuilder<ProjectDiagnostics>.GetInstance(out var diagnostics);
             using var _5 = ArrayBuilder<Document>.GetInstance(out var changedOrAddedDocuments);
             using var _6 = ArrayBuilder<(DocumentId, ImmutableArray<RudeEditDiagnostic>)>.GetInstance(out var documentsWithRudeEdits);
+            using var _7 = ArrayBuilder<ProjectId>.GetInstance(out var projectsToStale);
             Diagnostic? syntaxError = null;
 
             var oldSolution = DebuggingSession.LastCommittedSolution;
@@ -850,6 +860,13 @@ internal sealed class EditSession
                     continue;
                 }
 
+                // We don't track document changes in stale projects until they are rebuilt (removed from stale set).
+                if (oldSolution.IsStaleProject(newProject.Id))
+                {
+                    Log.Write($"EnC state of {newProject.Name} '{newProject.FilePath}' queried: project is stale");
+                    continue;
+                }
+
                 await PopulateChangedAndAddedDocumentsAsync(Log, oldProject, newProject, changedOrAddedDocuments, diagnostics, cancellationToken).ConfigureAwait(false);
                 if (changedOrAddedDocuments.IsEmpty)
                 {
@@ -873,7 +890,7 @@ internal sealed class EditSession
 
                 if (mvid == Guid.Empty)
                 {
-                    Log.Write($"Emitting update of {newProject.Name} '{newProject.FilePath}': project not built");
+                    Log.Write($"Changes not applied to {newProject.Name} '{newProject.FilePath}': project not built");
                     continue;
                 }
 
@@ -892,7 +909,9 @@ internal sealed class EditSession
                 // which change we have not observed yet. Then call-sites of C.M in a changed document observed by the analysis will be seen as C.M(object)
                 // instead of the true C.M(string).
 
-                var (changedDocumentAnalyses, documentDiagnostics) = await AnalyzeDocumentsAsync(changedOrAddedDocuments, solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+                var (changedDocumentAnalyses, documentDiagnostics, hasOutOfSyncChangedDocument) =
+                    await AnalyzeDocumentsAsync(changedOrAddedDocuments, solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+
                 if (documentDiagnostics.Any())
                 {
                     // The diagnostic hasn't been reported by GetDocumentDiagnosticsAsync since out-of-sync documents are likely to be synchronized
@@ -905,6 +924,15 @@ internal sealed class EditSession
                     {
                         blockUpdates = hadDocumentReadError = true;
                     }
+                }
+
+                if (hasOutOfSyncChangedDocument)
+                {
+                    // The project is considered stale as long as it has at least one document that is out-of-sync.
+                    // Treat the project the same as if it hasn't been built. We won't produce delta for it until it gets rebuilt.
+                    Log.Write($"Changes not applied to {newProject.Name} '{newProject.FilePath}': binaries not up-to-date");
+                    projectsToStale.Add(newProject.Id);
+                    continue;
                 }
 
                 foreach (var changedDocumentAnalysis in changedDocumentAnalyses)
@@ -927,7 +955,7 @@ internal sealed class EditSession
                 var projectSummary = GetProjectAnalysisSummary(changedDocumentAnalyses);
                 Log.Write($"Project summary for {newProject.Name} '{newProject.FilePath}': {projectSummary}");
 
-                if (projectSummary == ProjectAnalysisSummary.NoChanges)
+                if (projectSummary is ProjectAnalysisSummary.NoChanges or ProjectAnalysisSummary.ValidInsignificantChanges)
                 {
                     continue;
                 }
@@ -1148,6 +1176,7 @@ internal sealed class EditSession
                     new ModuleUpdates(
                         (deltas.Count > 0) ? ModuleUpdateStatus.Ready : ModuleUpdateStatus.None,
                         deltas.ToImmutable()),
+                    projectsToStale.ToImmutable(),
                     nonRemappableRegions.ToImmutable(),
                     newProjectBaselines.ToImmutable(),
                     diagnostics.ToImmutable(),

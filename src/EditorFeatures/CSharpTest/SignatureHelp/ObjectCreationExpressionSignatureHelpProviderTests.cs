@@ -531,7 +531,7 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
         await TestSignatureHelpInEditorBrowsableContextsAsync(
             markup: markup,
             referencedCode: referencedCode,
-            expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
+            expectedOrderedItemsMetadataReference: [],
             expectedOrderedItemsSameSolution: expectedOrderedItems,
             sourceLanguage: LanguageNames.CSharp,
             referencedLanguage: LanguageNames.CSharp,
