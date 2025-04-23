@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis;
 [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
 public partial class Project
 {
-    private readonly object _gate = new object();
+    private readonly object _gate = new();
 
     // Only access these dictionaries when holding _gate
     private Dictionary<DocumentId, Document?>? _idToDocumentMap;
@@ -339,7 +339,7 @@ public partial class Project
             return null;
 
         // Quick check first: if we already have created a SourceGeneratedDocument wrapper, we're good
-        if (_idToSourceGeneratedDocumentMap.TryGetValue(documentId, out var sourceGeneratedDocument))
+        if (_idToSourceGeneratedDocumentMap != null && _idToSourceGeneratedDocumentMap.TryGetValue(documentId, out var sourceGeneratedDocument))
             return sourceGeneratedDocument;
 
         // We'll have to run generators if we haven't already and now try to find it.
