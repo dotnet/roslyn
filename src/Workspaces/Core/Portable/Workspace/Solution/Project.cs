@@ -26,10 +26,13 @@ namespace Microsoft.CodeAnalysis;
 [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
 public partial class Project
 {
-    private ImmutableDictionary<DocumentId, Document?> _idToDocumentMap = ImmutableDictionary<DocumentId, Document?>.Empty;
-    private ImmutableDictionary<DocumentId, SourceGeneratedDocument> _idToSourceGeneratedDocumentMap = ImmutableDictionary<DocumentId, SourceGeneratedDocument>.Empty;
-    private ImmutableDictionary<DocumentId, AdditionalDocument?> _idToAdditionalDocumentMap = ImmutableDictionary<DocumentId, AdditionalDocument?>.Empty;
-    private ImmutableDictionary<DocumentId, AnalyzerConfigDocument?> _idToAnalyzerConfigDocumentMap = ImmutableDictionary<DocumentId, AnalyzerConfigDocument?>.Empty;
+    private readonly object _gate = new object();
+
+    // Only access these dictionaries when holding _gate
+    private Dictionary<DocumentId, Document?>? _idToDocumentMap;
+    private Dictionary<DocumentId, SourceGeneratedDocument>? _idToSourceGeneratedDocumentMap;
+    private Dictionary<DocumentId, AdditionalDocument?>? _idToAdditionalDocumentMap;
+    private Dictionary<DocumentId, AnalyzerConfigDocument?>? _idToAnalyzerConfigDocumentMap;
 
     internal Project(Solution solution, ProjectState projectState)
     {
@@ -239,19 +242,37 @@ public partial class Project
     /// Get the document in this project with the specified document Id.
     /// </summary>
     public Document? GetDocument(DocumentId documentId)
-        => ImmutableInterlocked.GetOrAdd(ref _idToDocumentMap, documentId, s_tryCreateDocumentFunction, this);
+    {
+        lock (_gate)
+        {
+            _idToDocumentMap ??= [];
+            return _idToDocumentMap.GetOrAdd(documentId, s_tryCreateDocumentFunction, this);
+        }
+    }
 
     /// <summary>
     /// Get the additional document in this project with the specified document Id.
     /// </summary>
     public TextDocument? GetAdditionalDocument(DocumentId documentId)
-        => ImmutableInterlocked.GetOrAdd(ref _idToAdditionalDocumentMap, documentId, s_tryCreateAdditionalDocumentFunction, this);
+    {
+        lock (_gate)
+        {
+            _idToAdditionalDocumentMap ??= [];
+            return _idToAdditionalDocumentMap.GetOrAdd(documentId, s_tryCreateAdditionalDocumentFunction, this);
+        }
+    }
 
     /// <summary>
     /// Get the analyzer config document in this project with the specified document Id.
     /// </summary>
     public AnalyzerConfigDocument? GetAnalyzerConfigDocument(DocumentId documentId)
-        => ImmutableInterlocked.GetOrAdd(ref _idToAnalyzerConfigDocumentMap, documentId, s_tryCreateAnalyzerConfigDocumentFunction, this);
+    {
+        lock (_gate)
+        {
+            _idToAnalyzerConfigDocumentMap ??= [];
+            return _idToAnalyzerConfigDocumentMap.GetOrAdd(documentId, s_tryCreateAnalyzerConfigDocumentFunction, this);
+        }
+    }
 
     /// <summary>
     /// Gets a document or a source generated document in this solution with the specified document ID.
@@ -287,8 +308,12 @@ public partial class Project
         var generatedDocumentStates = await Solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(this.State, cancellationToken).ConfigureAwait(false);
 
         // return an iterator to avoid eagerly allocating all the document instances
-        return generatedDocumentStates.States.Values.Select(state =>
-            ImmutableInterlocked.GetOrAdd(ref _idToSourceGeneratedDocumentMap, state.Id, s_createSourceGeneratedDocumentFunction, (state, this)));
+        lock (_gate)
+        {
+            _idToSourceGeneratedDocumentMap ??= [];
+            return generatedDocumentStates.States.Values.Select(state => 
+                _idToSourceGeneratedDocumentMap.GetOrAdd(state.Id, s_createSourceGeneratedDocumentFunction, (state, this)));
+        }
     }
 
     internal async IAsyncEnumerable<Document> GetAllRegularAndSourceGeneratedDocumentsAsync([EnumeratorCancellation] CancellationToken cancellationToken)
@@ -325,7 +350,13 @@ public partial class Project
     }
 
     internal SourceGeneratedDocument GetOrCreateSourceGeneratedDocument(SourceGeneratedDocumentState state)
-        => ImmutableInterlocked.GetOrAdd(ref _idToSourceGeneratedDocumentMap, state.Id, s_createSourceGeneratedDocumentFunction, (state, this));
+    {
+        lock (_gate)
+        {
+            _idToSourceGeneratedDocumentMap ??= [];
+            return _idToSourceGeneratedDocumentMap.GetOrAdd(state.Id, s_createSourceGeneratedDocumentFunction, (state, this));
+        }
+    }
 
     /// <summary>
     /// Returns the <see cref="SourceGeneratedDocumentState"/> for a source generated document that has already been generated and observed.
@@ -346,7 +377,7 @@ public partial class Project
             return null;
 
         // Easy case: do we already have the SourceGeneratedDocument created?
-        if (_idToSourceGeneratedDocumentMap.TryGetValue(documentId, out var document))
+        if (_idToSourceGeneratedDocumentMap != null && _idToSourceGeneratedDocumentMap.TryGetValue(documentId, out var document))
             return document;
 
         // Trickier case now: it's possible we generated this, but we don't actually have the SourceGeneratedDocument for it, so let's go
@@ -355,7 +386,11 @@ public partial class Project
         if (documentState == null)
             return null;
 
-        return ImmutableInterlocked.GetOrAdd(ref _idToSourceGeneratedDocumentMap, documentId, s_createSourceGeneratedDocumentFunction, (documentState, this));
+        lock (_gate)
+        {
+            _idToSourceGeneratedDocumentMap ??= [];
+            return _idToSourceGeneratedDocumentMap.GetOrAdd(documentId, s_createSourceGeneratedDocumentFunction, (documentState, this));
+        }
     }
 
     internal ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(CancellationToken cancellationToken)
