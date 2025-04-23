@@ -47,7 +47,7 @@ internal sealed partial class RazorDynamicFileInfoProvider(Lazy<LanguageServerWo
             dynamicInfo.SourceCodeKind,
             dynamicInfo.TextLoader,
             designTimeOnly: true,
-            documentServiceProvider: null);
+            documentServiceProvider: new RazorDocumentServiceProviderWrapper(dynamicInfo.DocumentServiceProvider));
     }
 
     public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
