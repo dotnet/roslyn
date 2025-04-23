@@ -752,13 +752,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' Avoid using the identity to obtain the public key if possible to avoid the allocations associated
             ' with identity creation
-            Dim publicKey As ImmutableArray(Of Byte)
-            If TypeOf assemblyWantingAccess Is AssemblySymbol Then
-                Dim assemblyWantingAccessAssemblySymbol As AssemblySymbol = DirectCast(assemblyWantingAccess, AssemblySymbol)
-                publicKey = assemblyWantingAccessAssemblySymbol.PublicKey.NullToEmpty()
-            Else
-                publicKey = assemblyWantingAccess.Identity.PublicKey
-            End If
+            Dim assemblyWantingAccessAssemblySymbol As AssemblySymbol = TryCast(assemblyWantingAccess, AssemblySymbol)
+            Dim publicKey = If(assemblyWantingAccessAssemblySymbol IsNot Nothing, assemblyWantingAccessAssemblySymbol.PublicKey.NullToEmpty(), assemblyWantingAccess.Identity.PublicKey)
 
             For Each key In myKeys
                 Dim conclusion As IVTConclusion = Me.Identity.PerformIVTCheck(publicKey, key)
