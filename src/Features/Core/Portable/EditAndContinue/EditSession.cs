@@ -902,8 +902,6 @@ internal sealed class EditSession
                     continue;
                 }
 
-                UpdateChangedDocumentsStaleness(isStale: false);
-
                 // Ensure that all changed documents are in-sync. Once a document is in-sync it can't get out-of-sync.
                 // Therefore, results of further computations based on base snapshots of changed documents can't be invalidated by
                 // incoming events updating the content of out-of-sync documents.
@@ -947,6 +945,8 @@ internal sealed class EditSession
 
                     continue;
                 }
+
+                UpdateChangedDocumentsStaleness(isStale: false);
 
                 foreach (var changedDocumentAnalysis in changedDocumentAnalyses)
                 {
