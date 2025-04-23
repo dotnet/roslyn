@@ -4217,8 +4217,8 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         else if (oldSymbol is IMethodSymbol oldMethod && newSymbol is IMethodSymbol newMethod)
         {
             // Changing property accessor to auto-property accessor adds a field:
-            if (oldMethod is { MethodKind: MethodKind.PropertyGet, AssociatedSymbol: IPropertySymbol oldProperty } && !oldProperty.IsAutoProperty() &&
-                newMethod is { MethodKind: MethodKind.PropertyGet, AssociatedSymbol: IPropertySymbol newProperty } && newProperty.IsAutoProperty() &&
+            if (oldMethod is { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet, AssociatedSymbol: IPropertySymbol oldProperty } && !oldProperty.IsAutoProperty() &&
+                newMethod is { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet, AssociatedSymbol: IPropertySymbol newProperty } && newProperty.IsAutoProperty() &&
                 !capabilities.Grant(GetRequiredAddFieldCapabilities(newMethod)))
             {
                 rudeEdit = RudeEditKind.InsertNotSupportedByRuntime;
