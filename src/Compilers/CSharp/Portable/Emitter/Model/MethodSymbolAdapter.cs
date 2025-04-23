@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (AdaptedMethodSymbol.IsAsync2)
             {
-                result |= (System.Reflection.MethodImplAttributes)1024;
+                result |= (System.Reflection.MethodImplAttributes)0x2000;
             }
 
             return result;

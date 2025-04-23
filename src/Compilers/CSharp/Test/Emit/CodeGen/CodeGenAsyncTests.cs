@@ -6427,7 +6427,7 @@ class Test
     {
         // Methods
         .method public hidebysig static 
-            class [mscorlib]System.Threading.Tasks.Task`1<int32> M1 () cil managed flag(0400) 
+            class [mscorlib]System.Threading.Tasks.Task`1<int32> M1 () cil managed flag(2000) 
         {
             // Method begins at RVA 0x2068
             // Code size 49 (0x31)
@@ -6454,7 +6454,7 @@ class Test
             IL_0030: ret
         } // end of method TT::M1
         .method public hidebysig static 
-            class [mscorlib]System.Threading.Tasks.Task`1<int32> M2 () cil managed flag(0400) 
+            class [mscorlib]System.Threading.Tasks.Task`1<int32> M2 () cil managed flag(2000) 
         {
             // Method begins at RVA 0x20a5
             // Code size 11 (0xb)
@@ -6464,7 +6464,7 @@ class Test
             IL_000a: ret
         } // end of method TT::M2
         .method public hidebysig static 
-            class [mscorlib]System.Threading.Tasks.Task`1<int32> M3 () cil managed flag(0400) 
+            class [mscorlib]System.Threading.Tasks.Task`1<int32> M3 () cil managed flag(2000) 
         {
             // Method begins at RVA 0x20b1
             // Code size 11 (0xb)
@@ -6749,7 +6749,7 @@ class Test
         IL_002e: ret
     } // end of method CC::M3
     .method public hidebysig static 
-        class [mscorlib]System.Threading.Tasks.Task`1<int64> M2 () cil managed flag(0400) 
+        class [mscorlib]System.Threading.Tasks.Task`1<int64> M2 () cil managed flag(2000) 
     {
         // Method begins at RVA 0x20a3
         // Code size 12 (0xc)
@@ -6848,7 +6848,7 @@ class Test
 {
     // Methods
     .method public hidebysig static 
-        class [mscorlib]System.Threading.Tasks.Task M1 () cil managed flag(0400) 
+        class [mscorlib]System.Threading.Tasks.Task M1 () cil managed flag(2000) 
     {
         // Method begins at RVA 0x2067
         // Code size 13 (0xd)
@@ -6860,7 +6860,7 @@ class Test
         IL_000c: ret
     } // end of method TT::M1
     .method public hidebysig static 
-        class [mscorlib]System.Threading.Tasks.Task M2 () cil managed flag(0400) 
+        class [mscorlib]System.Threading.Tasks.Task M2 () cil managed flag(2000) 
     {
         // Method begins at RVA 0x2075
         // Code size 11 (0xb)
@@ -6870,7 +6870,7 @@ class Test
         IL_000a: ret
     } // end of method TT::M2
     .method public hidebysig static 
-        class [mscorlib]System.Threading.Tasks.Task M3 () cil managed flag(0400) 
+        class [mscorlib]System.Threading.Tasks.Task M3 () cil managed flag(2000) 
     {
         // Method begins at RVA 0x2081
         // Code size 11 (0xb)
@@ -7117,7 +7117,7 @@ class Test
     .field private static class [mscorlib]System.Threading.Tasks.Task a
     // Methods
     .method public hidebysig static 
-        class [mscorlib]System.Threading.Tasks.Task M1 () cil managed flag(0400) 
+        class [mscorlib]System.Threading.Tasks.Task M1 () cil managed flag(2000) 
     {
         // Method begins at RVA 0x2067
         // Code size 13 (0xd)
@@ -7129,7 +7129,7 @@ class Test
         IL_000c: ret
     } // end of method TT::M1
     .method public hidebysig static 
-        class [mscorlib]System.Threading.Tasks.Task M2 () cil managed flag(0400) 
+        class [mscorlib]System.Threading.Tasks.Task M2 () cil managed flag(2000) 
     {
         // Method begins at RVA 0x2075
         // Code size 21 (0x15)
@@ -7628,7 +7628,7 @@ public class Test
     .method public hidebysig static 
         class [mscorlib]System.Threading.Tasks.Task`1<!!T> Async2TestEntryPoint<T> (
             !!T arg
-        ) cil managed flag(0400) 
+        ) cil managed flag(2000) 
     {
         // Method begins at RVA 0x2067
         // Code size 27 (0x1b)
@@ -7948,7 +7948,7 @@ class Test
 {
     // Methods
     .method public hidebysig static 
-        valuetype [System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask`1<int32> M1 () cil managed flag(0400) 
+        valuetype [System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask`1<int32> M1 () cil managed flag(2000) 
     {
         // Method begins at RVA 0x2067
         // Code size 23 (0x17)
@@ -7961,7 +7961,7 @@ class Test
         IL_0016: ret
     } // end of method TT::M1
     .method public hidebysig static 
-        class [mscorlib]System.Threading.Tasks.Task`1<int32> M2 () cil managed flag(0400) 
+        class [mscorlib]System.Threading.Tasks.Task`1<int32> M2 () cil managed flag(2000) 
     {
         // Method begins at RVA 0x207f
         // Code size 11 (0xb)
@@ -8302,7 +8302,7 @@ class Test
         IL_002e: ret
     } // end of method CC::M3
     .method public hidebysig static 
-        class [mscorlib]System.Threading.Tasks.Task`1<int64> M2 () cil managed flag(0400) 
+        class [mscorlib]System.Threading.Tasks.Task`1<int64> M2 () cil managed flag(2000) 
     {
         // Method begins at RVA 0x20a3
         // Code size 12 (0xc)
@@ -8607,7 +8607,7 @@ class TT
     } // end of class IntegerException
     // Methods
     .method public hidebysig static 
-        class [mscorlib]System.Threading.Tasks.Task`1<int32> Handler () cil managed flag(0400) 
+        class [mscorlib]System.Threading.Tasks.Task`1<int32> Handler () cil managed flag(2000) 
     {
         // Method begins at RVA 0x2080
         // Code size 25 (0x19)
@@ -8635,7 +8635,7 @@ class TT
     .method public hidebysig static 
         class [mscorlib]System.Threading.Tasks.Task`1<int32> Throw (
             int32 'value'
-        ) cil managed flag(0400) 
+        ) cil managed flag(2000) 
     {
         // Method begins at RVA 0x20b8
         // Code size 43 (0x2b)
@@ -8873,7 +8873,7 @@ namespace System.Runtime.CompilerServices
         IL_0006: ret
     } // end of method Program::.ctor
     .method assembly hidebysig static 
-        class [mscorlib]System.Threading.Tasks.Task '<<Main>$>g__M1|0_0' () cil managed flag(0400) 
+        class [mscorlib]System.Threading.Tasks.Task '<<Main>$>g__M1|0_0' () cil managed flag(2000) 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -8900,7 +8900,7 @@ namespace System.Runtime.CompilerServices
         IL_0024: ret
     } // end of method Program::'<<Main>$>g__M1|0_0'
     .method assembly hidebysig static 
-        class [mscorlib]System.Threading.Tasks.Task '<<Main>$>g__M2|0_1' () cil managed flag(0400) 
+        class [mscorlib]System.Threading.Tasks.Task '<<Main>$>g__M2|0_1' () cil managed flag(2000) 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -8913,7 +8913,7 @@ namespace System.Runtime.CompilerServices
         IL_000a: ret
     } // end of method Program::'<<Main>$>g__M2|0_1'
     .method assembly hidebysig static 
-        class [mscorlib]System.Threading.Tasks.Task '<<Main>$>g__M3|0_2' () cil managed flag(0400) 
+        class [mscorlib]System.Threading.Tasks.Task '<<Main>$>g__M3|0_2' () cil managed flag(2000) 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -9164,7 +9164,7 @@ namespace System.Runtime.CompilerServices
             IL_0006: ret
         } // end of method '<>c__DisplayClass0_0'::.ctor
         .method assembly hidebysig 
-            instance class [mscorlib]System.Threading.Tasks.Task`1<int32> '<<Main>$>g__M1|0' () cil managed flag(0400) 
+            instance class [mscorlib]System.Threading.Tasks.Task`1<int32> '<<Main>$>g__M1|0' () cil managed flag(2000) 
         {
             // Method begins at RVA 0x20b0
             // Code size 43 (0x2b)
@@ -9190,7 +9190,7 @@ namespace System.Runtime.CompilerServices
             IL_002a: ret
         } // end of method '<>c__DisplayClass0_0'::'<<Main>$>g__M1|0'
         .method assembly hidebysig 
-            instance class [mscorlib]System.Threading.Tasks.Task`1<int32> '<<Main>$>g__M2|1' () cil managed flag(0400) 
+            instance class [mscorlib]System.Threading.Tasks.Task`1<int32> '<<Main>$>g__M2|1' () cil managed flag(2000) 
         {
             // Method begins at RVA 0x20e7
             // Code size 12 (0xc)
@@ -9201,7 +9201,7 @@ namespace System.Runtime.CompilerServices
             IL_000b: ret
         } // end of method '<>c__DisplayClass0_0'::'<<Main>$>g__M2|1'
         .method assembly hidebysig 
-            instance class [mscorlib]System.Threading.Tasks.Task`1<int32> '<<Main>$>g__M3|2' () cil managed flag(0400) 
+            instance class [mscorlib]System.Threading.Tasks.Task`1<int32> '<<Main>$>g__M3|2' () cil managed flag(2000) 
         {
             // Method begins at RVA 0x20f4
             // Code size 12 (0xc)
