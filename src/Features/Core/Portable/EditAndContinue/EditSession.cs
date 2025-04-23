@@ -831,6 +831,26 @@ internal sealed class EditSession
             // After all projects have been analyzed "true" value indicates changed document that is only included in stale projects.
             var changedDocumentsStaleness = new Dictionary<string, bool>(SolutionState.FilePathComparer);
 
+            void UpdateChangedDocumentsStaleness(bool isStale)
+            {
+                foreach (var changedDocument in changedOrAddedDocuments)
+                {
+                    var path = changedDocument.FilePath;
+
+                    // Only documents that support EnC (have paths) are added to the list.
+                    Contract.ThrowIfNull(path);
+
+                    if (isStale)
+                    {
+                        _ = changedDocumentsStaleness.TryAdd(path, true);
+                    }
+                    else
+                    {
+                        changedDocumentsStaleness[path] = false;
+                    }
+                }
+            }
+
             Diagnostic? syntaxError = null;
 
             var oldSolution = DebuggingSession.LastCommittedSolution;
@@ -1168,26 +1188,6 @@ internal sealed class EditSession
                                 var newDocument = await newProject.GetDocumentAsync(changedDocumentAnalysis.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
                                 await fileLog.WriteDocumentChangeAsync(oldDocument, newDocument, updateId, generation, cancellationToken).ConfigureAwait(false);
                             }
-                        }
-                    }
-                }
-
-                void UpdateChangedDocumentsStaleness(bool isStale)
-                {
-                    foreach (var changedDocument in changedOrAddedDocuments)
-                    {
-                        var path = changedDocument.FilePath;
-
-                        // Only documents that support EnC (have paths) are added to the list.
-                        Contract.ThrowIfNull(path);
-
-                        if (isStale)
-                        {
-                            _ = changedDocumentsStaleness.TryAdd(path, true);
-                        }
-                        else
-                        {
-                            changedDocumentsStaleness[path] = false;
                         }
                     }
                 }
