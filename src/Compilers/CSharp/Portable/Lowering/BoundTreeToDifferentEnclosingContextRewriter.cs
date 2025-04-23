@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (property.ContainingType.IsAnonymousType)
             {
-                //  Method of an anonymous type
+                //  Property of an anonymous type
                 var newType = (NamedTypeSymbol)TypeMap.SubstituteType(property.ContainingType).AsTypeSymbolOnly();
                 if (ReferenceEquals(newType, property.ContainingType))
                 {
@@ -188,10 +188,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return property;
                 }
 
-                //  get a new method by name
+                //  get a new property by name
                 foreach (var member in newType.GetMembers(property.Name))
                 {
-                    if (member.Kind == SymbolKind.Method)
+                    if (member.Kind == SymbolKind.Property)
                     {
                         return (PropertySymbol)member;
                     }
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                //  Method of a regular type
+                //  Property of a regular type
                 return ((PropertySymbol)property.OriginalDefinition)
                     .AsMember((NamedTypeSymbol)TypeMap.SubstituteType(property.ContainingType).AsTypeSymbolOnly())
                     ;
