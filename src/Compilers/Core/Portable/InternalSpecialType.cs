@@ -69,6 +69,50 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_AsyncHelpers,
 
         /// <summary>
+        /// Indicates that the type is <see cref="System.Threading.Tasks.Task"/> from the COR library.
+        /// </summary>
+        /// <remarks>
+        /// Check for this special type cannot be used to find the "canonical" definition of <see cref="System.Threading.Tasks.Task"/>
+        /// since it is fully legal for it to come from sources other than the COR library.
+        /// The <see cref="WellKnownType.System_Threading_Tasks_Task"/> should be used for that purpose instead.
+        /// This entry mostly exists so that compiler can tell this type apart when resolving other members of the COR library.
+        /// </remarks>
+        System_Threading_Tasks_Task,
+
+        /// <summary>
+        /// Indicates that the type is <see cref="System.Threading.Tasks.Task{TResult}"/> from the COR library.
+        /// </summary>
+        /// <remarks>
+        /// Check for this special type cannot be used to find the "canonical" definition of <see cref="System.Threading.Tasks.Task{TResult}"/>
+        /// since it is fully legal for it to come from sources other than the COR library.
+        /// The <see cref="WellKnownType.System_Threading_Tasks_Task_T"/> should be used for that purpose instead.
+        /// This entry mostly exists so that compiler can tell this type apart when resolving other members of the COR library.
+        /// </remarks>
+        System_Threading_Tasks_Task_T,
+
+        /// <summary>
+        /// Indicates that the type is <see cref="System.Threading.Tasks.ValueTask"/> from the COR library.
+        /// </summary>
+        /// <remarks>
+        /// Check for this special type cannot be used to find the "canonical" definition of <see cref="System.Threading.Tasks.ValueTask"/>
+        /// since it is fully legal for it to come from sources other than the COR library.
+        /// The <see cref="WellKnownType.System_Threading_Tasks_ValueTask"/> should be used for that purpose instead.
+        /// This entry mostly exists so that compiler can tell this type apart when resolving other members of the COR library.
+        /// </remarks>
+        System_Threading_Tasks_ValueTask,
+
+        /// <summary>
+        /// Indicates that the type is <see cref="System.Threading.Tasks.ValueTask{TResult}"/> from the COR library.
+        /// </summary>
+        /// <remarks>
+        /// Check for this special type cannot be used to find the "canonical" definition of <see cref="System.Threading.Tasks.ValueTask{TResult}"/>
+        /// since it is fully legal for it to come from sources other than the COR library.
+        /// The <see cref="WellKnownType.System_Threading_Tasks_ValueTask_T"/> should be used for that purpose instead.
+        /// This entry mostly exists so that compiler can tell this type apart when resolving other members of the COR library.
+        /// </remarks>
+        System_Threading_Tasks_ValueTask_T,
+
+        /// <summary>
         /// This item should be kept last and it doesn't represent any specific type.
         /// </summary>
         NextAvailable

@@ -41,22 +41,22 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
 
     private NamedTypeSymbol Task
     {
-        get => field ??= _compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
+        get => field ??= _compilation.GetSpecialType(InternalSpecialType.System_Threading_Tasks_Task);
     } = null!;
 
     private NamedTypeSymbol TaskT
     {
-        get => field ??= _compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
+        get => field ??= _compilation.GetSpecialType(InternalSpecialType.System_Threading_Tasks_Task_T);
     } = null!;
 
     private NamedTypeSymbol ValueTask
     {
-        get => field ??= _compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask);
+        get => field ??= _compilation.GetSpecialType(InternalSpecialType.System_Threading_Tasks_ValueTask);
     } = null!;
 
     private NamedTypeSymbol ValueTaskT
     {
-        get => field ??= _compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask_T);
+        get => field ??= _compilation.GetSpecialType(InternalSpecialType.System_Threading_Tasks_ValueTask_T);
     } = null!;
 
     [return: NotNullIfNotNull(nameof(node))]
@@ -72,25 +72,25 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         Debug.Assert(nodeType is not null);
         var originalType = nodeType.OriginalDefinition;
 
-        WellKnownMember awaitCall;
+        SpecialMember awaitCall;
         TypeWithAnnotations? maybeNestedType = null;
 
         if (ReferenceEquals(originalType, Task))
         {
-            awaitCall = WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitTask;
+            awaitCall = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitTask;
         }
         else if (ReferenceEquals(originalType, TaskT))
         {
-            awaitCall = WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitTaskT_T;
+            awaitCall = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitTaskT_T;
             maybeNestedType = ((NamedTypeSymbol)nodeType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
         }
         else if (ReferenceEquals(originalType, ValueTask))
         {
-            awaitCall = WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitValueTask;
+            awaitCall = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTask;
         }
         else if (ReferenceEquals(originalType, ValueTaskT))
         {
-            awaitCall = WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitValueTaskT_T;
+            awaitCall = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTaskT_T;
             maybeNestedType = ((NamedTypeSymbol)nodeType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
         }
         else
@@ -99,7 +99,7 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         }
 
         // PROTOTYPE: Make sure that we report an error in initial binding if these are missing
-        var awaitMethod = (MethodSymbol?)_compilation.GetWellKnownTypeMember(awaitCall);
+        var awaitMethod = (MethodSymbol?)_compilation.GetSpecialTypeMember(awaitCall);
         Debug.Assert(awaitMethod is not null);
 
         if (maybeNestedType is { } nestedType)
@@ -165,9 +165,9 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
             ref discardedUseSiteInfo).IsImplicit;
 
         // PROTOTYPE: Make sure that we report an error in initial binding if these are missing
-        var awaitMethod = (MethodSymbol?)_compilation.GetWellKnownTypeMember(useUnsafeAwait
-            ? WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TAwaiter
-            : WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitAwaiterFromRuntimeAsync_TAwaiter);
+        var awaitMethod = (MethodSymbol?)_compilation.GetSpecialTypeMember(useUnsafeAwait
+            ? SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TAwaiter
+            : SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiterFromRuntimeAsync_TAwaiter);
 
         Debug.Assert(awaitMethod is { Arity: 1 });
 

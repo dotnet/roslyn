@@ -238,6 +238,9 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_IteratorStateMachineAttribute,
 
         System_Windows_Forms_Form,
+
+        ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
+
         System_Windows_Forms_Application,
 
         System_Environment,
@@ -247,8 +250,6 @@ namespace Microsoft.CodeAnalysis
         CSharp7Sentinel = System_Runtime_GCLatencyMode, // all types that were known before CSharp7 should remain above this sentinel
 
         System_ValueTuple,
-
-        ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
 
         System_ValueTuple_T1,
         System_ValueTuple_T2,
@@ -587,6 +588,9 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.IteratorStateMachineAttribute",
 
             "System.Windows.Forms.Form",
+
+            "", // WellKnownType.ExtSentinel extension marker
+
             "System.Windows.Forms.Application",
 
             "System.Environment",
@@ -594,8 +598,6 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.GCLatencyMode",
 
             "System.ValueTuple",
-
-            "", // WellKnownType.ExtSentinel extension marker
 
             "System.ValueTuple`1",
             "System.ValueTuple`2",
@@ -757,7 +759,7 @@ namespace Microsoft.CodeAnalysis
             // Some compile time asserts
             {
                 // We should not add new types to CSharp7 set
-                const int ExpectedCSharp7SentinelValue = 200 + (int)InternalSpecialType.NextAvailable;
+                const int ExpectedCSharp7SentinelValue = 200 + (int)InternalSpecialType.NextAvailable + 1 /* Placeholder for ExtSentinel */;
                 _ = new int[(int)WellKnownType.CSharp7Sentinel - ExpectedCSharp7SentinelValue];
                 _ = new int[ExpectedCSharp7SentinelValue - (int)WellKnownType.CSharp7Sentinel];
 
