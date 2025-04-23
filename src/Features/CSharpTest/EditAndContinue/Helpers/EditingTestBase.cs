@@ -134,7 +134,7 @@ using System.Runtime.CompilerServices;
     private static SyntaxTree ParseSource(string markedSource, int documentIndex = 0)
         => SyntaxFactory.ParseSyntaxTree(
             SourceMarkers.Clear(markedSource),
-            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12),
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
             path: GetDocumentFilePath(documentIndex));
 
     internal static EditScriptDescription GetTopEdits(string methodBody1, string methodBody2, MethodKind kind)
