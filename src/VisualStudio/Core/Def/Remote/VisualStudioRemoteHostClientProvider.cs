@@ -17,7 +17,10 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Settings;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
+using Microsoft.VisualStudio.Shell.Settings;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using VSThreading = Microsoft.VisualStudio.Threading;
@@ -31,6 +34,7 @@ internal sealed class VisualStudioRemoteHostClientProvider : IRemoteHostClientPr
     {
         private readonly VisualStudioWorkspace _vsWorkspace;
         private readonly IVsService<IBrokeredServiceContainer> _brokeredServiceContainer;
+        private readonly IServiceProvider _serviceProvider;
         private readonly AsynchronousOperationListenerProvider _listenerProvider;
         private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
         private readonly IGlobalOptionService _globalOptions;
@@ -44,6 +48,7 @@ internal sealed class VisualStudioRemoteHostClientProvider : IRemoteHostClientPr
         public Factory(
             VisualStudioWorkspace vsWorkspace,
             IVsService<SVsBrokeredServiceContainer, IBrokeredServiceContainer> brokeredServiceContainer,
+            SVsServiceProvider serviceProvider,
             AsynchronousOperationListenerProvider listenerProvider,
             IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
@@ -52,6 +57,7 @@ internal sealed class VisualStudioRemoteHostClientProvider : IRemoteHostClientPr
             _globalOptions = globalOptions;
             _vsWorkspace = vsWorkspace;
             _brokeredServiceContainer = brokeredServiceContainer;
+            _serviceProvider = serviceProvider;
             _listenerProvider = listenerProvider;
             _threadingContext = threadingContext;
             _callbackDispatchers = new RemoteServiceCallbackDispatcherRegistry(callbackDispatchers);
@@ -79,7 +85,7 @@ internal sealed class VisualStudioRemoteHostClientProvider : IRemoteHostClientPr
                 // If we have a cached vs instance, then we can return that instance since we know they have the same host services.
                 // Otherwise, create and cache an instance based on vs workspace for future callers with same services.
                 if (_cachedVSInstance is null)
-                    _cachedVSInstance = new VisualStudioRemoteHostClientProvider(_vsWorkspace.Services.SolutionServices, _globalOptions, _brokeredServiceContainer, _threadingContext, _listenerProvider, _callbackDispatchers);
+                    _cachedVSInstance = new VisualStudioRemoteHostClientProvider(_vsWorkspace.Services.SolutionServices, _globalOptions, _brokeredServiceContainer, _serviceProvider, _threadingContext, _listenerProvider, _callbackDispatchers);
 
                 return _cachedVSInstance;
             }
@@ -90,14 +96,17 @@ internal sealed class VisualStudioRemoteHostClientProvider : IRemoteHostClientPr
     private readonly IGlobalOptionService _globalOptions;
     private readonly VSThreading.AsyncLazy<RemoteHostClient?> _lazyClient;
     private readonly IVsService<IBrokeredServiceContainer> _brokeredServiceContainer;
+    private readonly IServiceProvider _serviceProvider;
     private readonly AsynchronousOperationListenerProvider _listenerProvider;
     private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
     private readonly TaskCompletionSource<bool> _clientCreationSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private readonly IThreadingContext _threadingContext;
 
     private VisualStudioRemoteHostClientProvider(
         SolutionServices services,
         IGlobalOptionService globalOptions,
         IVsService<IBrokeredServiceContainer> brokeredServiceContainer,
+        IServiceProvider serviceProvider,
         IThreadingContext threadingContext,
         AsynchronousOperationListenerProvider listenerProvider,
         RemoteServiceCallbackDispatcherRegistry callbackDispatchers)
@@ -105,12 +114,14 @@ internal sealed class VisualStudioRemoteHostClientProvider : IRemoteHostClientPr
         Services = services;
         _globalOptions = globalOptions;
         _brokeredServiceContainer = brokeredServiceContainer;
+        _serviceProvider = serviceProvider;
         _listenerProvider = listenerProvider;
         _callbackDispatchers = callbackDispatchers;
+        _threadingContext = threadingContext;
 
         // using VS AsyncLazy here since Roslyn's is not compatible with JTF. 
         // Our ServiceBroker services may be invoked by other VS components under JTF.
-        _lazyClient = new VSThreading.AsyncLazy<RemoteHostClient?>(CreateHostClientAsync, threadingContext.JoinableTaskFactory);
+        _lazyClient = new VSThreading.AsyncLazy<RemoteHostClient?>(CreateHostClientAsync, _threadingContext.JoinableTaskFactory);
     }
 
     private async Task<RemoteHostClient?> CreateHostClientAsync()
@@ -122,9 +133,10 @@ internal sealed class VisualStudioRemoteHostClientProvider : IRemoteHostClientPr
 
             var configuration =
                 _globalOptions.GetOption(RemoteHostOptionsStorage.OOPServerGCFeatureFlag) ? RemoteProcessConfiguration.ServerGC : 0;
+            var localSettingsDirectory = new ShellSettingsManager(_serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings);
 
             // VS AsyncLazy does not currently support cancellation:
-            var client = await ServiceHubRemoteHostClient.CreateAsync(Services, configuration, _listenerProvider, serviceBroker, _callbackDispatchers, CancellationToken.None).ConfigureAwait(false);
+            var client = await ServiceHubRemoteHostClient.CreateAsync(Services, configuration, localSettingsDirectory, _listenerProvider, serviceBroker, _callbackDispatchers, _threadingContext.DisposalToken).ConfigureAwait(false);
 
             // proffer in-proc brokered services:
             _ = brokeredServiceContainer.Proffer(SolutionAssetProvider.ServiceDescriptor, (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new SolutionAssetProvider(Services)));

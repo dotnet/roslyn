@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 _visitedApiList.TryAdd(publicApiName.NameWithNullability, default);
                 _visitedApiList.TryAdd(WithObliviousMarker(publicApiName.NameWithNullability), default);
 
-                List<Location> locationsToReport = new List<Location>();
+                List<Location> locationsToReport = [];
                 IReadOnlyDictionary<string, ApiLine> apiMap = _apiMap.Value;
 
                 if (explicitLocation != null)

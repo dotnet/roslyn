@@ -123,7 +123,7 @@ internal static partial class ExtensionMethodImportCompletionHelper
 
                 var browsableSymbols = symbols
                     .ToImmutable()
-                    .FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, _originatingSemanticModel.Compilation);
+                    .FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, _originatingSemanticModel.Compilation, inclusionFilter: static s => true);
 
                 return (browsableSymbols, isPartialResult);
             }

@@ -847,7 +847,8 @@ namespace Microsoft.CodeAnalysis
                 var temp = copy[0];
                 copy[0] = copy[last];
                 copy[last] = temp;
-                return copy.AsImmutable();
+
+                return ImmutableCollectionsMarshal.AsImmutableArray(copy);
             }
 #endif
             return array;
