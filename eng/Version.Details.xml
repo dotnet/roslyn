@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
+  <Source Uri="https://github.com/dotnet/dotnet" Mapping="roslyn" Sha="58950550c5c2c7a2431595699b38fd0360fd63e9" BarId="265646" />
   <ProductDependencies>
     <!-- RoslynAnalyzers reference older builds of Roslyn and this is necessary for SourceBuild. -->
     <Dependency Name="Microsoft.CodeAnalysis" Version="3.11.0">
@@ -18,9 +19,9 @@
       <Sha>19eb5ea4e5f9c4e5256843a92805c8c9e942207d</Sha>
       <SourceBuild RepoName="source-build-reference-packages" ManagedOnly="true" />
     </Dependency>
-    <Dependency Name="System.CommandLine" Version="2.0.0-beta5.25210.1">
-      <Uri>https://github.com/dotnet/command-line-api</Uri>
-      <Sha>e9b0511d7f1128e2bc3be7a658a2a4ea977e602d</Sha>
+    <Dependency Name="System.CommandLine" Version="2.0.0-beta5.25224.104">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>58950550c5c2c7a2431595699b38fd0360fd63e9</Sha>
     </Dependency>
     <!-- Intermediate is necessary for source build. -->
     <Dependency Name="Microsoft.SourceBuild.Intermediate.command-line-api" Version="0.1.621001">
