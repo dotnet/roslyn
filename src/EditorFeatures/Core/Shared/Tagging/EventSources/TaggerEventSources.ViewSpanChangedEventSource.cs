@@ -21,7 +21,6 @@ internal partial class TaggerEventSources
 
         public ViewSpanChangedEventSource(IThreadingContext threadingContext, ITextView textView)
         {
-            Debug.Assert(textView != null);
             _threadingContext = threadingContext;
             _textView = textView;
         }

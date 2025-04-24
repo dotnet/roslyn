@@ -10,7 +10,6 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Peek;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -24,15 +23,15 @@ using Microsoft.VisualStudio.Language.Intellisense;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek;
 
-[Export(typeof(IPeekableItemFactory))]
-internal sealed class PeekableItemFactory : IPeekableItemFactory
+// [Export(typeof(IPeekableItemFactory))]
+internal abstract class PeekableItemFactory// : IPeekableItemFactory
 {
     private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
     private readonly IGlobalOptionService _globalOptions;
     private readonly IThreadingContext _threadingContext;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    //[ImportingConstructor]
+    //[Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public PeekableItemFactory(
         IMetadataAsSourceFileService metadataAsSourceFileService,
         IGlobalOptionService globalOptions,

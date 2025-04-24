@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Peek;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Navigation;
@@ -24,14 +23,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek;
 internal sealed class PeekableItemSource : IPeekableItemSource
 {
     private readonly ITextBuffer _textBuffer;
-    private readonly IPeekableItemFactory _peekableItemFactory;
+    private readonly PeekableItemFactory _peekableItemFactory;
     private readonly IPeekResultFactory _peekResultFactory;
     private readonly IThreadingContext _threadingContext;
     private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
 
     public PeekableItemSource(
         ITextBuffer textBuffer,
-        IPeekableItemFactory peekableItemFactory,
+        PeekableItemFactory peekableItemFactory,
         IPeekResultFactory peekResultFactory,
         IThreadingContext threadingContext,
         IUIThreadOperationExecutor uiThreadOperationExecutor)

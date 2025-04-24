@@ -41,5 +41,5 @@ internal sealed class PeekableItemSourceProvider : IPeekableItemSourceProvider
 
     public IPeekableItemSource TryCreatePeekableItemSource(ITextBuffer textBuffer)
         => textBuffer.Properties.GetOrCreateSingletonProperty(() =>
-            new PeekableItemSource(textBuffer, _peekableItemFactory, _peekResultFactory, _threadingContext, _uiThreadOperationExecutor));
+            new PeekableItemSource(textBuffer, (PeekableItemFactory)_peekableItemFactory, _peekResultFactory, _threadingContext, _uiThreadOperationExecutor));
 }
