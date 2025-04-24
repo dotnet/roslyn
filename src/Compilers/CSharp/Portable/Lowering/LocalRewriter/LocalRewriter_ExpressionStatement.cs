@@ -74,6 +74,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ConditionalAccess:
                     return RewriteConditionalAccess((BoundConditionalAccess)expression, used: false);
+
+                case BoundKind.IncrementOperator:
+                    return VisitIncrementOperator((BoundIncrementOperator)expression, used: false);
             }
             return VisitExpression(expression);
         }

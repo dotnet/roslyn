@@ -4456,7 +4456,7 @@ class MyClass {
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_BadUnOpArgs, "++").WithArguments("++"));
+            ParseAndValidate(test); // Binding error is reported instead
         }
 
         // TODO: extra error CS1001

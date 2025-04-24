@@ -52,6 +52,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.CheckUnsafeModifier(declarationModifiers, diagnostics);
 
+            (bool isIncrementDecrement, bool isCompoundAssignment) = IsAssignmentOperatorDeclaration(syntax);
+
+            if (isIncrementDecrement)
+            {
+                int parameterCount = ((OperatorDeclarationSyntax)syntax).ParameterList.ParameterCount;
+                if (this.IsStatic)
+                {
+                    if (parameterCount is not (1 or 2))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_BadUnOpArgs, this.GetFirstLocation(), SyntaxFacts.GetText(((OperatorDeclarationSyntax)syntax).OperatorToken.Kind()));
+                    }
+                }
+                else
+                {
+                    Binder.CheckFeatureAvailability(syntax, MessageID.IDS_FeatureUserDefinedCompoundAssignmentOperators, diagnostics, ((OperatorDeclarationSyntax)syntax).OperatorToken.GetLocation());
+
+                    if (parameterCount is not (0 or 2))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_BadIncrementOpArgs, this.GetFirstLocation(), SyntaxFacts.GetText(((OperatorDeclarationSyntax)syntax).OperatorToken.Kind()));
+                    }
+                }
+            }
+            else if (isCompoundAssignment)
+            {
+                Binder.CheckFeatureAvailability(syntax, MessageID.IDS_FeatureUserDefinedCompoundAssignmentOperators, diagnostics, ((OperatorDeclarationSyntax)syntax).OperatorToken.GetLocation());
+            }
+
             if (this.ContainingType.IsInterface &&
                 !(IsAbstract || IsVirtual) && !IsExplicitInterfaceImplementation &&
                 !(syntax is OperatorDeclarationSyntax { OperatorToken: var opToken } && opToken.Kind() is not (SyntaxKind.EqualsEqualsToken or SyntaxKind.ExclamationEqualsToken)))
@@ -74,15 +101,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // SPEC: static modifier
             if (this.IsExplicitInterfaceImplementation)
             {
-                if (!this.IsStatic)
+                if (!this.IsStatic && !isIncrementDecrement && !isCompoundAssignment)
                 {
                     diagnostics.Add(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, this.GetFirstLocation(), this);
+                }
+            }
+            else if ((isIncrementDecrement || isCompoundAssignment) && !this.IsStatic)
+            {
+                if (this.DeclaredAccessibility != Accessibility.Public)
+                {
+                    diagnostics.Add(ErrorCode.ERR_OperatorsMustBePublic, this.GetFirstLocation(), this);
                 }
             }
             else if (this.DeclaredAccessibility != Accessibility.Public || !this.IsStatic)
             {
                 // CS0558: User-defined operator '...' must be declared static and public
-                diagnostics.Add(ErrorCode.ERR_OperatorsMustBeStatic, this.GetFirstLocation(), this);
+                diagnostics.Add(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, this.GetFirstLocation(), this);
             }
 
             // SPEC: Because an external operator provides no actual implementation, 
@@ -116,20 +150,69 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // there's no need to "cascade" the error.
                 diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
             }
+            else if (IsOverride && (IsNew || IsVirtual))
+            {
+                // A member '{0}' marked as override cannot be marked as new or virtual
+                diagnostics.Add(ErrorCode.ERR_OverrideNotNew, location, this);
+            }
+            else if (IsSealed && !IsOverride && !(IsExplicitInterfaceImplementation && ContainingType.IsInterface && IsAbstract))
+            {
+                // '{0}' cannot be sealed because it is not an override
+                diagnostics.Add(ErrorCode.ERR_SealedNonOverride, location, this);
+            }
+            else if (IsAbstract && IsSealed && !IsExplicitInterfaceImplementation)
+            {
+                diagnostics.Add(ErrorCode.ERR_AbstractAndSealed, location, this);
+            }
+            else if (IsAbstract && !ContainingType.IsAbstract && !ContainingType.IsInterface)
+            {
+                // '{0}' is abstract but it is contained in non-abstract type '{1}'
+                diagnostics.Add(ErrorCode.ERR_AbstractInConcreteClass, location, this, ContainingType);
+            }
+            else if (IsVirtual && ContainingType.IsSealed)
+            {
+                // '{0}' is a new virtual member in sealed type '{1}'
+                diagnostics.Add(ErrorCode.ERR_NewVirtualInSealed, location, this, ContainingType);
+            }
 
             // SPEC: It is an error for the same modifier to appear multiple times in an
             // SPEC: operator declaration.
             ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation: false, diagnostics, location);
+
+            if (!IsStatic && (isIncrementDecrement || isCompoundAssignment))
+            {
+                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor, diagnostics, location);
+            }
         }
 
-        protected static DeclarationModifiers MakeDeclarationModifiers(MethodKind methodKind, bool inInterface, BaseMethodDeclarationSyntax syntax, Location location, BindingDiagnosticBag diagnostics)
+        private static (bool isIncrementDecrement, bool isCompoundAssignment) IsAssignmentOperatorDeclaration(CSharpSyntaxNode syntax)
         {
+            if (syntax is OperatorDeclarationSyntax operatorDeclaration)
+            {
+                if (operatorDeclaration.OperatorToken.Kind() is SyntaxKind.PlusPlusToken or SyntaxKind.MinusMinusToken)
+                {
+                    return (true, false);
+                }
+                else if (SyntaxFacts.IsOverloadableCompoundAssignmentOperator(operatorDeclaration.OperatorToken.Kind()))
+                {
+                    return (false, true);
+                }
+            }
+
+            return (false, false);
+        }
+
+        protected static DeclarationModifiers MakeDeclarationModifiers(MethodKind methodKind, SourceMemberContainerTypeSymbol containingType, BaseMethodDeclarationSyntax syntax, Location location, BindingDiagnosticBag diagnostics)
+        {
+            bool inInterface = containingType.IsInterface;
             bool isExplicitInterfaceImplementation = methodKind == MethodKind.ExplicitInterfaceImplementation;
             var defaultAccess = inInterface && !isExplicitInterfaceImplementation ? DeclarationModifiers.Public : DeclarationModifiers.Private;
             var allowedModifiers =
                 DeclarationModifiers.Static |
                 DeclarationModifiers.Extern |
                 DeclarationModifiers.Unsafe;
+
+            (bool isIncrementDecrement, bool isCompoundAssignment) = IsAssignmentOperatorDeclaration(syntax);
 
             if (!isExplicitInterfaceImplementation)
             {
@@ -144,11 +227,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         allowedModifiers |= DeclarationModifiers.Sealed;
                     }
                 }
+
+                if (isIncrementDecrement || isCompoundAssignment)
+                {
+                    if (inInterface)
+                    {
+                        allowedModifiers |= DeclarationModifiers.New;
+                    }
+                    else
+                    {
+                        if (containingType.IsClassType())
+                        {
+                            allowedModifiers |= DeclarationModifiers.Abstract | DeclarationModifiers.Virtual | DeclarationModifiers.Sealed;
+                        }
+
+                        allowedModifiers |= DeclarationModifiers.Override | DeclarationModifiers.New;
+                    }
+                }
             }
             else if (inInterface)
             {
                 Debug.Assert(isExplicitInterfaceImplementation);
                 allowedModifiers |= DeclarationModifiers.Abstract;
+            }
+
+            if (isCompoundAssignment)
+            {
+                allowedModifiers &= ~DeclarationModifiers.Static;
+            }
+
+            if (containingType.IsStructType() && (isIncrementDecrement || isCompoundAssignment))
+            {
+                allowedModifiers |= DeclarationModifiers.ReadOnly;
             }
 
             var result = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(
@@ -188,9 +298,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     result &= ~DeclarationModifiers.Sealed;
                 }
-                else if ((result & DeclarationModifiers.Static) != 0 && syntax is OperatorDeclarationSyntax { OperatorToken: var opToken } && opToken.Kind() is not (SyntaxKind.EqualsEqualsToken or SyntaxKind.ExclamationEqualsToken))
+                else if ((result & DeclarationModifiers.Static) != 0)
                 {
-                    Binder.CheckFeatureAvailability(location.SourceTree, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, location);
+                    if (syntax is OperatorDeclarationSyntax { OperatorToken: var opToken } && opToken.Kind() is not (SyntaxKind.EqualsEqualsToken or SyntaxKind.ExclamationEqualsToken))
+                    {
+                        Binder.CheckFeatureAvailability(location.SourceTree, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, location);
+                    }
+                }
+                else if (!isExplicitInterfaceImplementation && (isIncrementDecrement || isCompoundAssignment))
+                {
+                    if (syntax.HasAnyBody())
+                    {
+                        result |= DeclarationModifiers.Virtual;
+                    }
+                    else
+                    {
+                        result |= DeclarationModifiers.Abstract;
+                    }
+                }
+            }
+
+            if ((result & DeclarationModifiers.Static) != 0)
+            {
+                Debug.Assert((result & DeclarationModifiers.Override) == 0);
+
+                if ((result & DeclarationModifiers.New) != 0)
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, ModifierUtils.ConvertSingleModifierToSyntaxText(DeclarationModifiers.New));
+                    result &= ~DeclarationModifiers.New;
+                }
+
+                if ((result & DeclarationModifiers.ReadOnly) != 0)
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, ModifierUtils.ConvertSingleModifierToSyntaxText(DeclarationModifiers.ReadOnly));
+                    result &= ~DeclarationModifiers.ReadOnly;
                 }
             }
 
@@ -402,13 +543,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     break;
 
+                case WellKnownMemberNames.CheckedAdditionAssignmentOperatorName:
+                case WellKnownMemberNames.AdditionAssignmentOperatorName:
+                case WellKnownMemberNames.CheckedDivisionAssignmentOperatorName:
+                case WellKnownMemberNames.DivisionAssignmentOperatorName:
+                case WellKnownMemberNames.CheckedMultiplicationAssignmentOperatorName:
+                case WellKnownMemberNames.MultiplicationAssignmentOperatorName:
+                case WellKnownMemberNames.CheckedSubtractionAssignmentOperatorName:
+                case WellKnownMemberNames.SubtractionAssignmentOperatorName:
+                case WellKnownMemberNames.ModulusAssignmentOperatorName:
+                case WellKnownMemberNames.BitwiseAndAssignmentOperatorName:
+                case WellKnownMemberNames.BitwiseOrAssignmentOperatorName:
+                case WellKnownMemberNames.ExclusiveOrAssignmentOperatorName:
+                case WellKnownMemberNames.LeftShiftAssignmentOperatorName:
+                case WellKnownMemberNames.RightShiftAssignmentOperatorName:
+                case WellKnownMemberNames.UnsignedRightShiftAssignmentOperatorName:
+                    if (!this.ReturnsVoid)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_OperatorMustReturnVoid, this.GetFirstLocation());
+                    }
+
+                    break;
+
                 default:
                     CheckBinarySignature(diagnostics);
                     break;
             }
         }
 
-        private static bool DoesOperatorHaveCorrectArity(string name, int parameterCount)
+        private bool DoesOperatorHaveCorrectArity(string name, int parameterCount)
         {
             switch (name)
             {
@@ -416,6 +579,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case WellKnownMemberNames.IncrementOperatorName:
                 case WellKnownMemberNames.CheckedDecrementOperatorName:
                 case WellKnownMemberNames.DecrementOperatorName:
+                    return parameterCount == (IsStatic ? 1 : 0);
+
                 case WellKnownMemberNames.CheckedUnaryNegationOperatorName:
                 case WellKnownMemberNames.UnaryNegationOperatorName:
                 case WellKnownMemberNames.UnaryPlusOperatorName:
@@ -426,6 +591,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case WellKnownMemberNames.ImplicitConversionName:
                 case WellKnownMemberNames.ExplicitConversionName:
                 case WellKnownMemberNames.CheckedExplicitConversionName:
+                case WellKnownMemberNames.CheckedAdditionAssignmentOperatorName:
+                case WellKnownMemberNames.AdditionAssignmentOperatorName:
+                case WellKnownMemberNames.CheckedDivisionAssignmentOperatorName:
+                case WellKnownMemberNames.DivisionAssignmentOperatorName:
+                case WellKnownMemberNames.CheckedMultiplicationAssignmentOperatorName:
+                case WellKnownMemberNames.MultiplicationAssignmentOperatorName:
+                case WellKnownMemberNames.CheckedSubtractionAssignmentOperatorName:
+                case WellKnownMemberNames.SubtractionAssignmentOperatorName:
+                case WellKnownMemberNames.ModulusAssignmentOperatorName:
+                case WellKnownMemberNames.BitwiseAndAssignmentOperatorName:
+                case WellKnownMemberNames.BitwiseOrAssignmentOperatorName:
+                case WellKnownMemberNames.ExclusiveOrAssignmentOperatorName:
+                case WellKnownMemberNames.LeftShiftAssignmentOperatorName:
+                case WellKnownMemberNames.RightShiftAssignmentOperatorName:
+                case WellKnownMemberNames.UnsignedRightShiftAssignmentOperatorName:
                     return parameterCount == 1;
                 default:
                     return parameterCount == 2;
@@ -629,6 +809,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckIncrementDecrementSignature(BindingDiagnosticBag diagnostics)
         {
+            if (!IsStatic)
+            {
+                if (!this.ReturnsVoid)
+                {
+                    diagnostics.Add(ErrorCode.ERR_OperatorMustReturnVoid, this.GetFirstLocation());
+                }
+
+                return;
+            }
+
             // SPEC: A unary ++ or -- operator must take a single parameter of type T or T?
             // SPEC: and it must return that same type or a type derived from it.
 
