@@ -38,7 +38,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client.Implementation" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" />
     <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" />
   </ItemGroup>
   <ItemGroup>
