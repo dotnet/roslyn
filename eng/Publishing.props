@@ -1,12 +1,14 @@
-<?xml version="1.0" encoding="utf-8"?>
 <Project>
-   <PropertyGroup>
-      <PublishingVersion>3</PublishingVersion>
-   </PropertyGroup>
 
   <PropertyGroup>
     <PublishDependsOnTargets>_ResolvePublishRoslynNuGetPackages;$(PublishDependsOnTargets)</PublishDependsOnTargets>
   </PropertyGroup>
+
+  <!-- Update Artifacts with Kind=Package to have additional metadata item Category="ToolingPackage".
+       Depending on channel configuration, this means that these assets could be pushed to a different feed. -->
+  <ItemGroup>
+    <Artifact Update="@(Artifact->WithMetadataValue('Kind', 'Package'))" Category="ToolingPackage" />
+  </ItemGroup>
 
   <!--
     During PR Validation we only need to publish symbols with Arcade,
@@ -32,4 +34,5 @@
       <ItemsToPushToBlobFeed Include="@(_SymbolPackagesToPush)" />
     </ItemGroup>
   </Target>
+
 </Project>
