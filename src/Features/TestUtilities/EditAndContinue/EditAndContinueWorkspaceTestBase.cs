@@ -225,7 +225,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         ActiveStatementSpanProvider? activeStatementSpanProvider = null)
     {
         var result = await session.EmitSolutionUpdateAsync(solution, runningProjects: [], activeStatementSpanProvider ?? s_noActiveSpans, CancellationToken.None);
-        return (result.ModuleUpdates, result.Diagnostics.ToDiagnosticData(solution));
+        return (result.ModuleUpdates, result.Diagnostics.OrderBy(d => d.ProjectId.DebugName).ToImmutableArray().ToDiagnosticData(solution));
     }
 
     internal static IEnumerable<string> InspectDiagnostics(ImmutableArray<DiagnosticData> actual)

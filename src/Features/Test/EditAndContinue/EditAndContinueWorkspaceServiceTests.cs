@@ -187,7 +187,10 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(ModuleUpdateStatus.None, updates.Status);
         Assert.Empty(updates.Updates);
-        Assert.Empty(emitDiagnostics);
+        AssertEx.Equal(
+        [
+            $"proj.csproj: (0,0)-(0,0): Warning ENC1008: {string.Format(FeaturesResources.Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit, document1.FilePath)}"
+        ], InspectDiagnostics(emitDiagnostics));
 
         EndDebuggingSession(debuggingSession);
     }
@@ -2356,7 +2359,10 @@ class G
         sourceFile.WriteAllText(source1, Encoding.UTF8);
 
         (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-        Assert.Empty(emitDiagnostics);
+        AssertEx.Equal(
+        [
+            $"test.csproj: (0,0)-(0,0): Warning ENC1008: {string.Format(FeaturesResources.Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit, sourceFile.Path)}"
+        ], InspectDiagnostics(emitDiagnostics));
 
         // the content actually hasn't changed:
         Assert.Equal(ModuleUpdateStatus.None, updates.Status);
@@ -3468,6 +3474,60 @@ class C { int Y => 1; }
         AssertEx.SetEqual([mvidA, mvidB2], updates.Updates.Select(u => u.Module));
 
         CommitSolutionUpdate(debuggingSession);
+        EndDebuggingSession(debuggingSession);
+    }
+
+    [Fact]
+    public async Task MultiTargeted_AllTargetsStale()
+    {
+        var dir = Temp.CreateDirectory();
+
+        var source0 = "class A { void M() { System.Console.WriteLine(0); } }";
+        var source1 = "class A { void M() { System.Console.WriteLine(1); } }";
+        var source2 = "class A { void M() { System.Console.WriteLine(2); } }";
+
+        // Create two projects with a shared (linked) document.
+
+        using var _ = CreateWorkspace(out var solution, out var service);
+
+        var sourcePath = dir.CreateFile("Lib.cs").WriteAllText(source1, Encoding.UTF8).Path;
+
+        var documentA = solution.AddTestProject("A").WithAssemblyName("A").
+            AddMetadataReferences(TargetFrameworkUtil.GetReferences(TargetFramework.NetStandard20)).
+            AddDocument("Lib.cs", source1, filePath: sourcePath);
+
+        var documentB = documentA.Project.Solution.AddTestProject("B").WithAssemblyName("A").
+            AddMetadataReferences(TargetFrameworkUtil.GetReferences(TargetFramework.Net90)).
+            AddDocument("Lib.cs", source1, filePath: sourcePath);
+
+        solution = documentB.Project.Solution;
+        var projectAId = documentA.Project.Id;
+        var projectBId = documentB.Project.Id;
+
+        // target A is built with stale source:
+        var mvidA = EmitAndLoadLibraryToDebuggee(projectAId, source0, sourceFilePath: sourcePath, assemblyName: "A", targetFramework: TargetFramework.NetStandard20);
+
+        // target B is built with stale source:
+        var mvidB = EmitAndLoadLibraryToDebuggee(projectBId, source0, sourceFilePath: sourcePath, assemblyName: "A", targetFramework: TargetFramework.Net90);
+
+        // force document checksum validation:
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution, initialState: CommittedSolution.DocumentState.None);
+
+        EnterBreakState(debuggingSession);
+
+        // update source file in the editor:
+        var text2 = CreateText(source2);
+        solution = solution.WithDocumentText(documentA.Id, text2).WithDocumentText(documentB.Id, text2);
+
+        // no updates
+        var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
+        Assert.Equal(ModuleUpdateStatus.None, updates.Status);
+        AssertEx.Equal(
+        [
+            $"A.csproj: (0,0)-(0,0): Warning ENC1008: {string.Format(FeaturesResources.Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit, sourcePath)}",
+            $"B.csproj: (0,0)-(0,0): Warning ENC1008: {string.Format(FeaturesResources.Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit, sourcePath)}"
+        ], InspectDiagnostics(emitDiagnostics));
+
         EndDebuggingSession(debuggingSession);
     }
 
