@@ -2039,7 +2039,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void KeyValuePairConversions_SpreadElement(
+        public void KeyValuePairConversions_SpreadElement_01(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
             [CombinatorialValues(
                 "System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<K, V>>",
@@ -2112,6 +2112,102 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         ElementConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           (NoConversion)
                 """);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void KeyValuePairConversions_SpreadElement_02(
+            [CombinatorialValues(
+                "System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<K, V>>",
+                "System.Collections.Generic.KeyValuePair<K, V>[]",
+                "System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<K, V>>",
+                "System.ReadOnlySpan<System.Collections.Generic.KeyValuePair<K, V>>")] string typeName)
+        {
+            string source = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Spread<int, string, object, object>([new KeyValuePair<int, string>(3, "three")]).Report();
+                    }
+                    static KeyValuePair<KBase, VBase>[] Spread<K, V, KBase, VBase>({{typeName}} s)
+                        where K : KBase
+                        where V : VBase
+                    {
+                        return [..s];
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensions],
+                targetFramework: TargetFramework.Net80,
+                expectedOutput: IncludeExpectedOutput("[[3, three]], "));
+            verifier.VerifyDiagnostics();
+            string expectedIL = typeName switch
+            {
+                "System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<K, V>>" => """
+                    {
+                      // Code size       96 (0x60)
+                      .maxstack  3
+                      .locals init (System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<KBase, VBase>> V_0,
+                                    System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<K, V>> V_1,
+                                    System.Collections.Generic.KeyValuePair<K, V> V_2,
+                                    System.Collections.Generic.KeyValuePair<K, V> V_3)
+                      IL_0000:  newobj     "System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<KBase, VBase>>..ctor()"
+                      IL_0005:  stloc.0
+                      IL_0006:  ldarg.0
+                      IL_0007:  callvirt   "System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<K, V>> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<K, V>>.GetEnumerator()"
+                      IL_000c:  stloc.1
+                      .try
+                      {
+                        IL_000d:  br.s       IL_0045
+                        IL_000f:  ldloc.1
+                        IL_0010:  callvirt   "System.Collections.Generic.KeyValuePair<K, V> System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<K, V>>.Current.get"
+                        IL_0015:  stloc.2
+                        IL_0016:  ldloc.0
+                        IL_0017:  ldloc.2
+                        IL_0018:  stloc.3
+                        IL_0019:  ldloca.s   V_3
+                        IL_001b:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                        IL_0020:  box        "K"
+                        IL_0025:  unbox.any  "KBase"
+                        IL_002a:  ldloca.s   V_3
+                        IL_002c:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                        IL_0031:  box        "V"
+                        IL_0036:  unbox.any  "VBase"
+                        IL_003b:  newobj     "System.Collections.Generic.KeyValuePair<KBase, VBase>..ctor(KBase, VBase)"
+                        IL_0040:  callvirt   "void System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<KBase, VBase>>.Add(System.Collections.Generic.KeyValuePair<KBase, VBase>)"
+                        IL_0045:  ldloc.1
+                        IL_0046:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                        IL_004b:  brtrue.s   IL_000f
+                        IL_004d:  leave.s    IL_0059
+                      }
+                      finally
+                      {
+                        IL_004f:  ldloc.1
+                        IL_0050:  brfalse.s  IL_0058
+                        IL_0052:  ldloc.1
+                        IL_0053:  callvirt   "void System.IDisposable.Dispose()"
+                        IL_0058:  endfinally
+                      }
+                      IL_0059:  ldloc.0
+                      IL_005a:  callvirt   "System.Collections.Generic.KeyValuePair<KBase, VBase>[] System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<KBase, VBase>>.ToArray()"
+                      IL_005f:  ret
+                    }
+                    """,
+                "System.Collections.Generic.KeyValuePair<K, V>[]" => """
+                    ...
+                    """,
+                "System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<K, V>>" => """
+                    ...
+                    """,
+                "System.ReadOnlySpan<System.Collections.Generic.KeyValuePair<K, V>>" => """
+                    ...
+                    """,
+                _ => throw ExceptionUtilities.UnexpectedValue(typeName),
+            };
+            verifier.VerifyIL("Program.Spread<K, V, KBase, VBase>", expectedIL);
         }
 
         [Theory]

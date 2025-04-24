@@ -706,7 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node is { Elements: [BoundCollectionExpressionSpreadElement { Expression: { } spreadExpression } spreadElement] }
                 && spreadElement.IteratorBody is BoundExpressionStatement expressionStatement)
             {
-                var spreadElementHasIdentityConversion = expressionStatement.Expression is not BoundConversion;
+                var spreadElementHasIdentityConversion = expressionStatement.Expression is not (BoundConversion or BoundKeyValuePairConversion);
                 var spreadTypeOriginalDefinition = spreadExpression.Type!.OriginalDefinition;
 
                 if (spreadElementHasIdentityConversion
@@ -1508,8 +1508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         rewrittenExpression,
                         iteratorBody =>
                         {
-                            // PROTOTYPE: Are we testing this with BoundKeyValuePairConversion?
-                            var rewrittenValue = VisitExpression(((BoundExpressionStatement)iteratorBody).Expression);
+                            var rewrittenValue = RewriteNonSpreadElement(((BoundExpressionStatement)iteratorBody).Expression);
                             var builder = ArrayBuilder<BoundExpression>.GetInstance();
                             addElement(builder, rewrittenReceiver, rewrittenValue, false);
                             var statements = builder.SelectAsArray(expr => (BoundStatement)new BoundExpressionStatement(expr.Syntax, expr));
