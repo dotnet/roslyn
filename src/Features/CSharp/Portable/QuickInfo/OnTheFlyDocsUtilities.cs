@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo;
 
 internal static class OnTheFlyDocsUtilities
 {
-    public static ImmutableArray<OnTheFlyDocsRelevantFileInfo?> GetAdditionalOnTheFlyDocsContext(Solution solution, ISymbol symbol)
+    public static ImmutableArray<OnTheFlyDocsRelevantFileInfo> GetAdditionalOnTheFlyDocsContext(Solution solution, ISymbol symbol)
     {
         var parameters = symbol.GetParameters();
         var typeArguments = symbol.GetTypeArguments();
@@ -20,16 +20,11 @@ internal static class OnTheFlyDocsUtilities
         {
             var typeSymbol = parameter.Type;
             return GetOnTheFlyDocsRelevantFileInfo(typeSymbol);
-
         }).ToImmutableArray();
 
-        var typeArgumentStrings = typeArguments.Select(typeArgument =>
-        {
-            return GetOnTheFlyDocsRelevantFileInfo(typeArgument);
+        var typeArgumentStrings = typeArguments.Select(GetOnTheFlyDocsRelevantFileInfo).ToImmutableArray();
 
-        }).ToImmutableArray();
-
-        return parameterStrings.AddRange(typeArgumentStrings);
+        return parameterStrings.AddRange(typeArgumentStrings).Where(info => info != null).ToImmutableArray().Distinct();
 
         OnTheFlyDocsRelevantFileInfo? GetOnTheFlyDocsRelevantFileInfo(ITypeSymbol typeSymbol)
         {
@@ -62,9 +57,9 @@ internal static class OnTheFlyDocsUtilities
                 typeSymbol = arrayTypeSymbol.ElementType;
             }
 
-            if (typeSymbol is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.IsValueType && namedTypeSymbol.ConstructedFrom.SpecialType == SpecialType.System_Nullable_T)
+            if (typeSymbol.IsNullable(out var underlyingType))
             {
-                typeSymbol = namedTypeSymbol.TypeArguments[0];
+                typeSymbol = underlyingType;
             }
 
             var typeSyntaxReference = typeSymbol.DeclaringSyntaxReferences.FirstOrDefault();

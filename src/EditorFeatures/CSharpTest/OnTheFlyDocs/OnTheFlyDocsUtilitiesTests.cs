@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
+using Castle.Core.Internal;
 using Microsoft.CodeAnalysis.CSharp.QuickInfo;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.QuickInfo;
@@ -30,11 +32,11 @@ public sealed class OnTheFlyDocsUtilitiesTests
             }
             """;
 
-        await TestMethodContextAsync(testCode, expectAllNull: true);
+        await TestFailureAsync<MethodDeclarationSyntax>(testCode);
     }
 
     [Fact]
-    public async Task TestAdditionalContextWithTypeParameters()
+    public async Task TestAdditionalContextWithTypeAsParameter()
     {
         var testCode = """
             class C
@@ -58,7 +60,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
             }
             """;
 
-        await TestMethodContextAsync(testCode, actualSymbolText);
+        await TestSuccessAsync<MethodDeclarationSyntax>(testCode, expectedText: actualSymbolText);
     }
 
     [Fact]
@@ -102,8 +104,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
             }
             """;
 
-        await TestInvocationContextAsync(testCode, customTypeText, resultIndex: 0);
-        await TestInvocationContextAsync(testCode, customStructText, resultIndex: 1);
+        await TestSuccessAsync<InvocationExpressionSyntax>(testCode, customTypeText, customStructText);
     }
 
     [Fact]
@@ -133,7 +134,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        await TestObjectCreationTypeContextAsync(testCode, customClassText);
+        await TestSuccessAsync<ObjectCreationExpressionSyntax>(testCode, customClassText);
     }
 
     [Fact]
@@ -161,7 +162,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        await TestMethodContextAsync(testCode, customClassText);
+        await TestSuccessAsync<MethodDeclarationSyntax>(testCode, expectedText: customClassText);
     }
 
     [Fact]
@@ -190,7 +191,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        await TestMethodContextAsync(testCode, customClassText, resultIndex: 1);
+        await TestSuccessAsync<MethodDeclarationSyntax>(testCode, expectedText: customClassText);
     }
 
     [Fact]
@@ -228,7 +229,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        await TestMethodContextAsync(testCode, customStructText);
+        await TestSuccessAsync<MethodDeclarationSyntax>(testCode, expectedText: customStructText);
     }
 
     [Fact]
@@ -259,7 +260,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        await TestMethodContextAsync(testCode, customMessageText, resultIndex: 1);
+        await TestSuccessAsync<MethodDeclarationSyntax>(testCode, expectedText: customMessageText);
     }
 
     [Fact]
@@ -288,7 +289,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        await TestMethodContextAsync(testCode, customConfigText);
+        await TestSuccessAsync<MethodDeclarationSyntax>(testCode, expectedText: customConfigText);
     }
 
     [Fact]
@@ -328,7 +329,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        await TestMethodContextAsync(testCode, customRefText);
+        await TestSuccessAsync<MethodDeclarationSyntax>(testCode, expectedText: customRefText);
     }
 
     [Fact]
@@ -361,7 +362,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        await TestMethodContextAsync(testCode, customPersonText);
+        await TestSuccessAsync<MethodDeclarationSyntax>(testCode, expectedText: customPersonText);
     }
 
     [Fact]
@@ -392,7 +393,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        await TestMethodContextAsync(testCode, customValueText);
+        await TestSuccessAsync<MethodDeclarationSyntax>(testCode, expectedText: customValueText);
     }
 
     [Fact]
@@ -420,7 +421,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        await TestMethodContextAsync(testCode, customBaseText);
+        await TestSuccessAsync<MethodDeclarationSyntax>(testCode, expectedText: customBaseText);
     }
 
     [Fact]
@@ -448,7 +449,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        await TestMethodContextAsync(testCode, customUserText);
+        await TestSuccessAsync<MethodDeclarationSyntax>(testCode, expectedText: customUserText);
     }
 
     [Fact]
@@ -476,7 +477,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        await TestMethodContextAsync(testCode, interfaceText);
+        await TestSuccessAsync<MethodDeclarationSyntax>(testCode, expectedText: interfaceText);
     }
 
     [Fact]
@@ -504,7 +505,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        await TestMethodContextAsync(testCode, helperText, resultIndex: 1);
+        await TestSuccessAsync<MethodDeclarationSyntax>(testCode, expectedText: helperText);
     }
 
     [Fact]
@@ -538,7 +539,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
                 }
         """;
 
-        await TestMethodContextAsync(testCode, nestedText);
+        await TestSuccessAsync<MethodDeclarationSyntax>(testCode, expectedText: nestedText);
     }
 
     [Fact]
@@ -598,70 +599,98 @@ public sealed class OnTheFlyDocsUtilitiesTests
 
                 return semanticModel.GetDeclaredSymbol(indexerDeclaration)!;
             },
-            keyText);
+            expectedText: keyText);
     }
 
-    private static async Task<(Solution Solution, Document Document, SemanticModel SemanticModel, SyntaxTree SyntaxTree)>
-        SetupWorkspaceAsync(string testCode)
+    private static async Task<(EditorTestWorkspace workspace, Document document, SemanticModel semanticModel)> SetupWorkspaceAsync(string testCode)
     {
-        var workspace = EditorTestWorkspace.CreateCSharp(testCode);
+        using var workspace = EditorTestWorkspace.CreateCSharp(testCode);
         var solution = workspace.CurrentSolution;
-        var document = solution.Projects.First().Documents.First();
+        var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
-        var syntaxTree = await document.GetSyntaxTreeAsync();
         var semanticModel = await document.GetSemanticModelAsync();
 
-        return (solution, document, semanticModel!, syntaxTree!);
+        return (workspace, document, semanticModel!);
     }
 
-    private static ISymbol GetMethodSymbol(SyntaxTree syntaxTree, SemanticModel semanticModel)
+    private static async Task TestFailureAsync<TSyntaxNode>(string testCode) where TSyntaxNode : SyntaxNode
     {
-        var methodDeclaration = syntaxTree.GetRoot()
-            .DescendantNodes()
-            .OfType<MethodDeclarationSyntax>()
-            .First();
-
-        return semanticModel.GetDeclaredSymbol(methodDeclaration)!;
+        var results = await GetOnTheFlyDocsResults(testCode, GetSymbol<TSyntaxNode>);
+        Assert.True(results.All(item => item == null));
     }
 
-    private static async Task TestSymbolContextAsync(
-        string testCode,
-        Func<SyntaxTree, SemanticModel, ISymbol> getSymbol,
-        string? expectedText = null,
-        bool expectAllNull = false,
-        int resultIndex = 0)
-    {
-        var (solution, _, semanticModel, syntaxTree) = await SetupWorkspaceAsync(testCode);
-
-        var symbol = getSymbol(syntaxTree, semanticModel);
-        var result = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, symbol);
-
-        if (expectAllNull)
-        {
-            Assert.True(result.All(item => item == null));
-            return;
-        }
-
-        var relevantInfo = result[resultIndex];
-        Assert.NotNull(relevantInfo);
-
-        if (expectedText != null)
-        {
-            await AssertSymbolTextMatchesAsync(relevantInfo!, expectedText);
-        }
-    }
-
-    private static Task TestMethodContextAsync(string testCode, string? expectedText = null, bool expectAllNull = false, int resultIndex = 0)
+    private static Task TestSuccessAsync<TSyntaxNode>(string testCode, params string[] expectedText) where TSyntaxNode : SyntaxNode
     {
         return TestSymbolContextAsync(
             testCode,
-            (syntaxTree, semanticModel) => GetMethodSymbol(syntaxTree, semanticModel),
-            expectedText,
-            expectAllNull,
-            resultIndex);
+            GetSymbol<TSyntaxNode>,
+            expectedText);
     }
 
-    private static Task TestObjectCreationTypeContextAsync(string testCode, string expectedText)
+    private static ISymbol? GetSymbol<TSyntaxNode>(SyntaxTree syntaxTree, SemanticModel semanticModel) where TSyntaxNode : SyntaxNode
+    {
+        var node = syntaxTree.GetRoot()
+                    .DescendantNodes()
+                    .OfType<TSyntaxNode>()
+                    .FirstOrDefault();
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        if (node is InvocationExpressionSyntax invocation)
+        {
+            return semanticModel.GetSymbolInfo(invocation).Symbol!;
+        }
+        else if (node is ObjectCreationExpressionSyntax objectCreation)
+        {
+            return semanticModel.GetTypeInfo(objectCreation).Type!;
+        }
+        else if (node is MethodDeclarationSyntax methodDeclaration)
+        {
+            return semanticModel.GetDeclaredSymbol(methodDeclaration)!;
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    private static async Task TestSymbolContextAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string testCode,
+        Func<SyntaxTree, SemanticModel, ISymbol?> getSymbol,
+        params string[] expectedText)
+    {
+        var results = await GetOnTheFlyDocsResults(testCode, getSymbol);
+
+        Assert.Equal(expectedText.Length, results.Count());
+        for (var i = 0; i < expectedText.Length; i++)
+        {
+            if (!expectedText[i].IsNullOrEmpty() && results[i] != null)
+            {
+                await AssertSymbolTextMatchesAsync(results[i]!, expectedText[i]);
+            }
+        }
+    }
+
+    private static async Task<System.Collections.Immutable.ImmutableArray<OnTheFlyDocsRelevantFileInfo?>> GetOnTheFlyDocsResults(string testCode, Func<SyntaxTree, SemanticModel, ISymbol?> getSymbol)
+    {
+        var (_, document, semanticModel) = await SetupWorkspaceAsync(testCode);
+
+        var symbol = getSymbol(semanticModel.SyntaxTree, semanticModel);
+        var results = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(document.Project.Solution, symbol!);
+        return results;
+    }
+
+    /*private static Task TestMethodContextAsync(string testCode, params string[] expectedText)
+    {
+        return TestSymbolContextAsync(
+            testCode,
+            (syntaxTree, semanticModel) => GetMethodSymbol(syntaxTree, semanticModel), expectedText);
+    }*/
+
+    /*private static Task TestObjectCreationTypeContextAsync(string testCode, params string[] expectedText)
     {
         return TestSymbolContextAsync(
             testCode,
@@ -674,10 +703,10 @@ public sealed class OnTheFlyDocsUtilitiesTests
 
                 return semanticModel.GetTypeInfo(objectCreation).Type!;
             },
-            expectedText);
+            expectedText: expectedText);
     }
 
-    private static Task TestInvocationContextAsync(string testCode, string? expectedText = null, bool expectAllNull = false, int resultIndex = 0)
+    private static Task TestInvocationContextAsync(string testCode, params string[] expectedText)
     {
         return TestSymbolContextAsync(
             testCode,
@@ -689,11 +718,8 @@ public sealed class OnTheFlyDocsUtilitiesTests
                     .First();
 
                 return semanticModel.GetSymbolInfo(methodInvocation).Symbol!;
-            },
-            expectedText,
-            expectAllNull,
-            resultIndex);
-    }
+            }, expectedText);
+    }*/
 
     private static async Task AssertSymbolTextMatchesAsync(OnTheFlyDocsRelevantFileInfo onTheFlyDocsRelevantFileInfo, string actualSymbolText)
     {
