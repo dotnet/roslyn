@@ -61,6 +61,4 @@
       <PackageReleaseNotes Condition="'$(RepositoryUrl)'!=''">$(RepositoryUrl)/releases/tag/v$(Version)</PackageReleaseNotes>
     </PropertyGroup>
   </Target>
-
-  <Import Project="azure-pipelines\NuGetSbom.props" />
 </Project>
