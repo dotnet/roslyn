@@ -24,7 +24,7 @@ internal sealed class RemoteExportProviderBuilder : ExportProviderBuilder
         MefHostServices.DefaultAssemblyNames
             .Add("Microsoft.CodeAnalysis.ExternalAccess.AspNetCore")
             .Add("Microsoft.CodeAnalysis.Remote.ServiceHub")
-            .Add("Microsoft.CodeAnalysis.ExternalAccess.Razor")
+            .Add("Microsoft.CodeAnalysis.ExternalAccess.Razor.Features")
             .Add("Microsoft.CodeAnalysis.Remote.Workspaces")
             .Add("Microsoft.CodeAnalysis.ExternalAccess.Extensions");
 
