@@ -16,6 +16,7 @@ internal interface IBuildHost
     bool HasUsableMSBuild(string projectOrSolutionFilePath);
     ImmutableArray<(string ProjectPath, string ProjectGuid)> GetProjectsInSolution(string solutionFilePath);
     Task<int> LoadProjectFileAsync(string projectFilePath, string languageName, CancellationToken cancellationToken);
+    int LoadProject(string projectFilePath, string projectContent, string languageName);
     Task<string?> TryGetProjectOutputPathAsync(string projectFilePath, CancellationToken cancellationToken);
     Task ShutdownAsync();
 }

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -95,6 +96,47 @@ internal sealed class ProjectBuildManager
 
             using var stream = FileUtilities.OpenAsyncRead(path);
             using var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken).ConfigureAwait(false);
+            return LoadProjectCore(path, readStream, projectCollection, log);
+        }
+        catch (Exception e)
+        {
+            log.Add(e, path);
+            return (project: null, log);
+        }
+    }
+
+    public (MSB.Evaluation.Project? project, DiagnosticLog log) LoadProject(string path, Stream readStream)
+    {
+        var log = new DiagnosticLog();
+        try
+        {
+            var projectCollection = new MSB.Evaluation.ProjectCollection(
+                AllGlobalProperties,
+                _msbuildLogger != null ? [_msbuildLogger] : ImmutableArray<MSB.Framework.ILogger>.Empty,
+                MSB.Evaluation.ToolsetDefinitionLocations.Default);
+            try
+            {
+                return LoadProjectCore(path, readStream, projectCollection, log);
+            }
+            finally
+            {
+                // unload project so collection will release global strings
+                projectCollection.UnloadAllProjects();
+            }
+        }
+        catch (Exception e)
+        {
+            log.Add(e, path);
+            return (project: null, log);
+        }
+    }
+
+    // easy-out is done. we have a stream that gives raw xml. go forth
+    private static (MSB.Evaluation.Project? project, DiagnosticLog log) LoadProjectCore(
+        string path, Stream readStream, MSB.Evaluation.ProjectCollection? projectCollection, DiagnosticLog log)
+    {
+        try
+        {
             using var xmlReader = XmlReader.Create(readStream, s_xmlReaderSettings);
             var xml = MSB.Construction.ProjectRootElement.Create(xmlReader, projectCollection);
 

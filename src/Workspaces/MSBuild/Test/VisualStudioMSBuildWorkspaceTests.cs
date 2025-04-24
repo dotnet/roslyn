@@ -3124,6 +3124,35 @@ class C { }";
     }
 
     [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    public async Task TestOpenProjectContent_CommandLineArgsHaveNoErrors()
+    {
+        CreateFiles(GetSimpleCSharpSolutionFiles());
+
+        using var workspace = CreateMSBuildWorkspace();
+
+        var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+
+        await using var buildHostProcessManager = new BuildHostProcessManager(ImmutableDictionary<string, string>.Empty);
+
+        var buildHost = await buildHostProcessManager.GetBuildHostWithFallbackAsync(projectFilePath, CancellationToken.None);
+        var projectFile = await buildHost.LoadProjectFileAsync(projectFilePath, LanguageNames.CSharp, CancellationToken.None);
+        var projectFileInfo = (await projectFile.GetProjectFileInfosAsync(CancellationToken.None)).Single();
+
+        var commandLineParser = workspace.Services
+            .GetLanguageServices(LanguageNames.CSharp)
+            .GetRequiredService<ICommandLineParserService>();
+
+        var projectDirectory = Path.GetDirectoryName(projectFilePath);
+        var commandLineArgs = commandLineParser.Parse(
+            arguments: projectFileInfo.CommandLineArgs,
+            baseDirectory: projectDirectory,
+            isInteractive: false,
+            sdkDirectory: System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory());
+
+        Assert.Empty(commandLineArgs.Errors);
+    }
+
+    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("https://github.com/dotnet/roslyn/issues/29122")]
     public async Task TestOpenSolution_ProjectReferencesWithUnconventionalOutputPaths()
     {

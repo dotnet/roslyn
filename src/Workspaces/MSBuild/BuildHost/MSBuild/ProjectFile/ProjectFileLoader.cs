@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using MSB = Microsoft.Build;
@@ -24,6 +26,20 @@ internal abstract class ProjectFileLoader
 
         // load project file async
         var (project, log) = await buildManager.LoadProjectAsync(path, cancellationToken).ConfigureAwait(false);
+
+        return this.CreateProjectFile(project, buildManager, log);
+    }
+
+    public ProjectFile LoadProjectFile(string path, string projectContent, ProjectBuildManager buildManager)
+    {
+        if (path == null)
+        {
+            throw new ArgumentNullException(nameof(path));
+        }
+
+        // load project file
+        var stream = new MemoryStream(Encoding.UTF8.GetBytes(projectContent));
+        var (project, log) = buildManager.LoadProject(path, stream);
 
         return this.CreateProjectFile(project, buildManager, log);
     }
