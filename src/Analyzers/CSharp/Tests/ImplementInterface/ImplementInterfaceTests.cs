@@ -12539,12 +12539,12 @@ interface I
                 
                 class C1 : I1
                 {
-                    public void operator -=(I1 i)
+                    void I1.operator -=(I1 i)
                     {
                         throw new System.NotImplementedException();
                     }
                 
-                    public void operator ++()
+                    void I1.operator ++()
                     {
                         throw new System.NotImplementedException();
                     }
