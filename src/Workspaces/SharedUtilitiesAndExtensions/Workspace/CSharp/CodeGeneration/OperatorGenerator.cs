@@ -118,7 +118,8 @@ internal static class OperatorGenerator
             tokens.Add(PublicKeyword);
         }
 
-        tokens.Add(StaticKeyword);
+        if (method.IsStatic)
+            tokens.Add(StaticKeyword);
 
         if (method.IsAbstract)
             tokens.Add(AbstractKeyword);

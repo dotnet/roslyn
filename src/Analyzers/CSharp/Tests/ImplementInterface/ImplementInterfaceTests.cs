@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ImplementInterface;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.ImplementType;
@@ -12466,5 +12467,92 @@ interface I
                 public int Prop1 { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
             }
             """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78281")]
+    public async Task TestImplementInstanceAssignmentOperator1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                interface I1
+                {
+                   void operator ++();
+
+                   void operator -=(I1 i);
+                }
+
+                class C1 : {|CS0535:{|CS0535:I1|}|}
+                {
+                }
+                """,
+            FixedCode = """
+                interface I1
+                {
+                   void operator ++();
+                
+                   void operator -=(I1 i);
+                }
+                
+                class C1 : I1
+                {
+                    public void operator -=(I1 i)
+                    {
+                        throw new System.NotImplementedException();
+                    }
+                
+                    public void operator ++()
+                    {
+                        throw new System.NotImplementedException();
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78281")]
+    public async Task TestImplementInstanceAssignmentOperator2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                interface I1
+                {
+                   void operator ++();
+
+                   void operator -=(I1 i);
+                }
+
+                class C1 : {|CS0535:{|CS0535:I1|}|}
+                {
+                }
+                """,
+            FixedCode = """
+                interface I1
+                {
+                   void operator ++();
+                
+                   void operator -=(I1 i);
+                }
+                
+                class C1 : I1
+                {
+                    public void operator -=(I1 i)
+                    {
+                        throw new System.NotImplementedException();
+                    }
+                
+                    public void operator ++()
+                    {
+                        throw new System.NotImplementedException();
+                    }
+                }
+                """,
+            CodeActionIndex = 1,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
     }
 }
