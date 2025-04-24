@@ -177,7 +177,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return null;
             }
-
+            if (property.ContainingType.IsAnonymousType)
+            {
+                //at this point we expect that the code is lowered and that getters of anonymous types are accessed
+                //only via their corresponding get-methods (see VisitMethodSymbol)
+                throw ExceptionUtilities.Unreachable();
+            }
             return ((PropertySymbol)property.OriginalDefinition)
                     .AsMember((NamedTypeSymbol)TypeMap.SubstituteType(property.ContainingType).AsTypeSymbolOnly())
                     ;
