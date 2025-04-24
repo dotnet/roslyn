@@ -10,18 +10,20 @@ namespace Microsoft.CodeAnalysis;
 
 public abstract partial class Workspace
 {
-    // Allows conversion of legacy event handlers to the new event system. The first item in
-    // the key's tuple is an EventHandler<TEventArgs> and thus stored as an object.
-    private readonly Dictionary<(object EventHandler, WorkspaceEventType EventType), (int AdviseCount, IDisposable Disposer)> _disposableEventHandlers = new();
-    private readonly object _gate = new();
+    /// <summary>
+    /// Allows conversion of legacy event handlers to the new event system. The first item in
+    /// the key's tuple is an EventHandler&lt;TEventArgs&gt; and thus stored as an object.
+    /// </summary>
+    private readonly Dictionary<(object eventHandler, WorkspaceEventType eventType), (int adviseCount, IDisposable disposer)> _disposableEventHandlers = new();
+    private readonly object _legacyWorkspaceEventsGate = new();
 
     /// <summary>
     /// An event raised whenever the current solution is changed.
     /// </summary>
     public event EventHandler<WorkspaceChangeEventArgs> WorkspaceChanged
     {
-        add => AddEventHandler(value, WorkspaceEventType.WorkspaceChange);
-        remove => RemoveEventHandler(value, WorkspaceEventType.WorkspaceChange);
+        add => AddLegacyEventHandler(value, WorkspaceEventType.WorkspaceChange);
+        remove => RemoveLegacyEventHandler(value, WorkspaceEventType.WorkspaceChange);
     }
 
     /// <summary>
@@ -30,8 +32,8 @@ public abstract partial class Workspace
     /// </summary>
     public event EventHandler<WorkspaceDiagnosticEventArgs> WorkspaceFailed
     {
-        add => AddEventHandler(value, WorkspaceEventType.WorkspaceFailed);
-        remove => RemoveEventHandler(value, WorkspaceEventType.WorkspaceFailed);
+        add => AddLegacyEventHandler(value, WorkspaceEventType.WorkspaceFailed);
+        remove => RemoveLegacyEventHandler(value, WorkspaceEventType.WorkspaceFailed);
     }
 
     /// <summary>
@@ -39,8 +41,8 @@ public abstract partial class Workspace
     /// </summary>
     public event EventHandler<DocumentEventArgs> DocumentOpened
     {
-        add => AddEventHandler(value, WorkspaceEventType.DocumentOpened);
-        remove => RemoveEventHandler(value, WorkspaceEventType.DocumentOpened);
+        add => AddLegacyEventHandler(value, WorkspaceEventType.DocumentOpened);
+        remove => RemoveLegacyEventHandler(value, WorkspaceEventType.DocumentOpened);
     }
 
     /// <summary>
@@ -48,8 +50,8 @@ public abstract partial class Workspace
     /// </summary>
     public event EventHandler<TextDocumentEventArgs> TextDocumentOpened
     {
-        add => AddEventHandler(value, WorkspaceEventType.TextDocumentOpened);
-        remove => RemoveEventHandler(value, WorkspaceEventType.TextDocumentOpened);
+        add => AddLegacyEventHandler(value, WorkspaceEventType.TextDocumentOpened);
+        remove => RemoveLegacyEventHandler(value, WorkspaceEventType.TextDocumentOpened);
     }
 
     /// <summary>
@@ -57,8 +59,8 @@ public abstract partial class Workspace
     /// </summary>
     public event EventHandler<DocumentEventArgs> DocumentClosed
     {
-        add => AddEventHandler(value, WorkspaceEventType.DocumentClosed);
-        remove => RemoveEventHandler(value, WorkspaceEventType.DocumentClosed);
+        add => AddLegacyEventHandler(value, WorkspaceEventType.DocumentClosed);
+        remove => RemoveLegacyEventHandler(value, WorkspaceEventType.DocumentClosed);
     }
 
     /// <summary>
@@ -66,8 +68,8 @@ public abstract partial class Workspace
     /// </summary>
     public event EventHandler<TextDocumentEventArgs> TextDocumentClosed
     {
-        add => AddEventHandler(value, WorkspaceEventType.TextDocumentClosed);
-        remove => RemoveEventHandler(value, WorkspaceEventType.TextDocumentClosed);
+        add => AddLegacyEventHandler(value, WorkspaceEventType.TextDocumentClosed);
+        remove => RemoveLegacyEventHandler(value, WorkspaceEventType.TextDocumentClosed);
     }
 
     /// <summary>
@@ -76,65 +78,63 @@ public abstract partial class Workspace
     /// </summary>
     public event EventHandler<DocumentActiveContextChangedEventArgs> DocumentActiveContextChanged
     {
-        add => AddEventHandler(value, WorkspaceEventType.DocumentActiveContextChanged);
-        remove => RemoveEventHandler(value, WorkspaceEventType.DocumentActiveContextChanged);
+        add => AddLegacyEventHandler(value, WorkspaceEventType.DocumentActiveContextChanged);
+        remove => RemoveLegacyEventHandler(value, WorkspaceEventType.DocumentActiveContextChanged);
     }
 
-    private void AddEventHandler<TEventArgs>(EventHandler<TEventArgs> eventHandler, WorkspaceEventType eventType)
+    private void AddLegacyEventHandler<TEventArgs>(EventHandler<TEventArgs> eventHandler, WorkspaceEventType eventType)
         where TEventArgs : EventArgs
     {
         // Require main thread on the callback as this is used from publicly exposed events
         // and those callbacks may have main thread dependencies.
-        IDisposable? disposer = null;
+        var key = (eventHandler, eventType);
 
-        lock (_gate)
+        lock (_legacyWorkspaceEventsGate)
         {
-            if (_disposableEventHandlers.TryGetValue((eventHandler, eventType), out var adviseCountAndDisposer))
+            if (_disposableEventHandlers.TryGetValue(key, out var adviseCountAndDisposer))
             {
-                (var adviseCount, disposer) = adviseCountAndDisposer;
-
                 // If we already have a handler for this event type, update the map with the new advise count
-                _disposableEventHandlers[(eventHandler, eventType)] = (adviseCount + 1, disposer);
+                _disposableEventHandlers[key] = (adviseCountAndDisposer.adviseCount + 1, adviseCountAndDisposer.disposer);
             }
-        }
-
-        if (disposer == null)
-        {
-            disposer = RegisterHandler(eventType, (Action<EventArgs>)Handler, WorkspaceEventOptions.RequiresMainThreadOptions);
-
-            lock (_gate)
+            else
             {
-                _disposableEventHandlers[(eventHandler, eventType)] = (AdviseCount: 1, disposer);
+                // Safe to call RegisterHandler inside the lock as it doesn't invoke code outside the workspace event map code.
+                var disposer = RegisterHandler(eventType, (Action<EventArgs>)Handler, WorkspaceEventOptions.RequiresMainThreadOptions);
+                _disposableEventHandlers[key] = (adviseCount: 1, disposer);
             }
         }
+
+        return;
 
         void Handler(EventArgs arg)
             => eventHandler(sender: this, (TEventArgs)arg);
     }
 
-    private void RemoveEventHandler<TEventArgs>(EventHandler<TEventArgs> eventHandler, WorkspaceEventType eventType)
+    private void RemoveLegacyEventHandler<TEventArgs>(EventHandler<TEventArgs> eventHandler, WorkspaceEventType eventType)
         where TEventArgs : EventArgs
     {
-        var existingAdviseCount = 0;
         IDisposable? disposer = null;
 
-        lock (_gate)
+        lock (_legacyWorkspaceEventsGate)
         {
             if (_disposableEventHandlers.TryGetValue((eventHandler, eventType), out var adviseCountAndDisposer))
             {
                 // If we already have a handler for this event type, just increment the advise count
                 // and return.
-                (existingAdviseCount, disposer) = adviseCountAndDisposer;
-                if (existingAdviseCount == 1)
+                if (adviseCountAndDisposer.adviseCount == 1)
+                {
+                    disposer = adviseCountAndDisposer.disposer;
                     _disposableEventHandlers.Remove((eventHandler, eventType));
+                }
                 else
-                    _disposableEventHandlers[(eventHandler, eventType)] = (existingAdviseCount - 1, disposer);
+                {
+                    _disposableEventHandlers[(eventHandler, eventType)] = (adviseCountAndDisposer.adviseCount - 1, adviseCountAndDisposer.disposer);
+                }
             }
         }
 
-        Debug.Assert(existingAdviseCount > 0, $"Event handler for event type {eventType} was not registered.");
+        Debug.Assert(disposer != null, $"Event handler for event type {eventType} was not registered.");
 
-        if (existingAdviseCount == 1)
-            disposer?.Dispose();
+        disposer?.Dispose();
     }
 }

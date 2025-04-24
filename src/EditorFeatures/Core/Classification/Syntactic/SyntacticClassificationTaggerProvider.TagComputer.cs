@@ -246,7 +246,10 @@ internal partial class SyntacticClassificationTaggerProvider
             if (_workspace != null)
             {
                 _workspaceChangedDisposer?.Dispose();
+                _workspaceChangedDisposer = null;
+
                 _workspaceDocumentActiveContextChangedDisposer?.Dispose();
+                _workspaceDocumentActiveContextChangedDisposer = null;
 
                 _workspace = null;
 

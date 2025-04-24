@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
 using static Microsoft.CodeAnalysis.Workspace;
 using static Microsoft.CodeAnalysis.WorkspaceEventMap;
 
@@ -21,7 +22,9 @@ internal sealed class WorkspaceEventRegistration(WorkspaceEventMap eventMap, Wor
 
     public void Dispose()
     {
-        _eventMap?.RemoveEventHandler(_eventType, _handlerAndOptions);
-        _eventMap = null;
+        // Protect against simultaneous disposal from multiple threads
+        var eventMap = Interlocked.Exchange(ref _eventMap, null);
+
+        eventMap?.RemoveEventHandler(_eventType, _handlerAndOptions);
     }
 }
