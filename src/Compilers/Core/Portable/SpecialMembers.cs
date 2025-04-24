@@ -1526,10 +1526,10 @@ namespace Microsoft.CodeAnalysis
                 "Empty",                                    // System_Array__Empty
                 "SetValue",                                 // System_Array__SetValue
                 "GetTypeFromHandle",                        // System_Type__GetTypeFromHandle
-                "AwaitTask",                                // System_Runtime_CompilerServices_AsyncHelpers__AwaitTask
-                "AwaitTaskT",                               // System_Runtime_CompilerServices_AsyncHelpers__AwaitTaskT_T
-                "AwaitValueTask",                           // System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTask
-                "AwaitValueTaskT",                          // System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTaskT_T
+                "Await",                                // System_Runtime_CompilerServices_AsyncHelpers__AwaitTask
+                "Await",                               // System_Runtime_CompilerServices_AsyncHelpers__AwaitTaskT_T
+                "Await",                           // System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTask
+                "Await",                          // System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTaskT_T
                 "AwaitAwaiterFromRuntimeAsync",             // System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiterFromRuntimeAsync_TAwaiter
                 "UnsafeAwaitAwaiterFromRuntimeAsync",       // System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TAwaiter
             };

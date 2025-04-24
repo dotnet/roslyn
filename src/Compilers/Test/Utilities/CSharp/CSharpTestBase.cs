@@ -800,7 +800,7 @@ namespace System.Diagnostics.CodeAnalysis
         internal const string RuntimeAsyncAwaitHelpers = """
             namespace System.Runtime.CompilerServices
             {
-                public static class RuntimeHelpers
+                public static class AsyncHelpers
                 {
                     public static void AwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter) where TAwaiter : INotifyCompletion
                     {}

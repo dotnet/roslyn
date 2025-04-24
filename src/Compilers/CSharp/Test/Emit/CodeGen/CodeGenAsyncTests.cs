@@ -7,7 +7,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -45,6 +44,302 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             references = (references != null) ? references.Concat(asyncRefs) : asyncRefs;
 
             return CreateCompilationWithMscorlib461(source, options: options, references: references);
+        }
+
+        private const string RuntimeAsyncCoreLib = """
+            namespace System
+            {
+                public delegate void Action();
+                public delegate void Action<T>(T obj);
+                public delegate void Action<T1, T2>(T1 arg1, T2 arg2);
+                public class ArgumentNullException : Exception
+                {
+                    public ArgumentNullException(string message) : base(message) {}
+                }
+                public class Attribute {}
+                [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+                public sealed class AsyncMethodBuilderAttribute : Attribute
+                {
+                    public AsyncMethodBuilderAttribute(Type builderType) {}
+                    public Type BuilderType => null!;
+                }
+                public class AttributeUsageAttribute : Attribute
+                {
+                    public AttributeUsageAttribute(AttributeTargets targets) {}
+                    public bool AllowMultiple { get; set; }
+                    public bool Inherited { get; set; }
+                }
+                public enum AttributeTargets
+                {
+                    All = 0x1,
+                    Class = 0x2,
+                    Struct = 0x4,
+                    Enum = 0x8,
+                    Interface = 0x10,
+                    Delegate = 0x20,
+                    Method = 0x40,
+                    Property = 0x80,
+                    Field = 0x100,
+                    Event = 0x200,
+                }
+                public struct Boolean {}
+                public static class Console
+                {
+                    public static void Write(object i) {}
+                    public static void Write(int i) {}
+                    public static void WriteLine(string s) {}
+                    public static void WriteLine(int i) {}
+                }
+                public class Delegate {}
+                public class Enum {}
+                public class Exception
+                {
+                    public Exception() {}
+                    public Exception(string message) {}
+                }
+                public delegate TResult Func<TResult>();
+                public delegate TResult Func<T, TResult>(T arg);
+                public struct Int32 {}
+                public struct IntPtr {}
+                public class MulticastDelegate {}
+                public struct Nullable<T>(T t) where T : struct {}
+                public class NullReferenceException : Exception
+                {
+                    public NullReferenceException(string message) : base(message) {}
+                }
+                public class Object {}
+                public class String {}
+                public class Type {}
+                public class ValueType {}
+                public class Void {}
+
+                namespace Threading
+                {
+                    public class AutoResetEvent : EventWaitHandle
+                    {
+                        public AutoResetEvent(bool initialState) {}
+                    }
+                    public class EventWaitHandle
+                    {
+                        public bool Set() => default;
+                        public bool WaitOne() => default;
+                        public bool WaitOne(int millisecondsTimeout) => default;
+                    }
+                    public static class Interlocked
+                    {
+                        public static int Increment(ref int location) => default;
+                    }
+                    public static class Thread
+                    {
+                        public static void Sleep(int millisecondsTimeout) {}
+                    }
+                    namespace Tasks
+                    {
+                        using System.Runtime.CompilerServices;
+                        public class Task
+                        {
+                            public Task() {}
+                            public Task(Action action) {}
+                            
+                            public static Task CompletedTask => null!;
+                            public TaskAwaiter GetAwaiter() => default;
+                            public static TaskFactory Factory => null!;
+                            public void Wait() {}
+                            public bool Wait(int millisecondsTimeout) => false;
+                            public static YieldAwaitable Yield() => default;
+                            public static Task<TResult> FromResult<TResult>(TResult result) => default;
+                            public Task ContinueWith(Action<Task> continuationAction) => default;
+                        }
+                        public class Task<TResult>
+                        {
+                            public Task() {}
+                            public Task(Func<TResult> function) {}
+                            
+                            public TaskAwaiter<TResult> GetAwaiter() => default;
+                            public void Wait() {}
+                            public bool Wait(int millisecondsTimeout) => false;
+                            public TResult Result => default;
+                        }
+                        [AsyncMethodBuilder(typeof(AsyncValueTaskMethodBuilder))]
+                        public struct ValueTask
+                        {
+                            public ValueTaskAwaiter GetAwaiter() => default;
+                            public static ValueTask<TResult> FromResult<TResult>(TResult result) => default;
+                        }
+                        [AsyncMethodBuilder(typeof(AsyncValueTaskMethodBuilder<>))]
+                        public struct ValueTask<TResult>
+                        {
+                            public ValueTask(TResult result) {}
+                            public ValueTaskAwaiter<TResult> GetAwaiter() => default;
+                            public TResult Result => default;
+                        }
+                        public class TaskFactory
+                        {
+                            public TaskFactory() {}
+                            public static TaskFactory Factory => default;
+                            public Task StartNew(Action action) => default;
+                            public Task<TResult> StartNew<TResult>(Func<TResult> function) => default;
+                            public ValueTask StartNew(Func<ValueTask> function) => default;
+                            public ValueTask<TResult> StartNew<TResult>(Func<ValueTask<TResult>> function) => default;
+                        }
+                        public class TaskCompletionSource
+                        {
+                            public TaskCompletionSource() {}
+                            public Task Task => default;
+                            public void SetResult() {}
+                            public void SetCanceled() {}
+                            public void SetException(Exception exception) {}
+                        }
+                        public class TaskCompletionSource<TResult>
+                        {
+                            public TaskCompletionSource() {}
+                            public Task<TResult> Task => default;
+                            public void SetResult(TResult result) {}
+                            public void SetCanceled() {}
+                            public void SetException(Exception exception) {}
+                        }
+                    }
+                }
+
+                namespace Runtime.CompilerServices
+                {
+                    public class AsyncMethodBuilderAttribute : Attribute
+                    {
+                        public AsyncMethodBuilderAttribute(Type builderType) {}
+                    }
+                    public struct AsyncTaskMethodBuilder
+                    {
+                        public static AsyncTaskMethodBuilder Create() => default;
+                        public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine {}
+                        public void SetStateMachine(IAsyncStateMachine stateMachine) {}
+                        public void SetException(Exception exception) {}
+                        public void SetResult() {}
+                        public Threading.Tasks.Task Task => default;
+                        public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
+                            where TAwaiter : INotifyCompletion 
+                            where TStateMachine : IAsyncStateMachine {}
+                        public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
+                            where TAwaiter : ICriticalNotifyCompletion 
+                            where TStateMachine : IAsyncStateMachine {}
+                    }
+                    public struct AsyncTaskMethodBuilder<T>
+                    {
+                        public static AsyncTaskMethodBuilder<T> Create() => default;
+                        public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine {}
+                        public void SetStateMachine(IAsyncStateMachine stateMachine) {}
+                        public void SetException(Exception exception) {}
+                        public void SetResult(T result) {}
+                        public Threading.Tasks.Task<T> Task => default;
+                        public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
+                            where TAwaiter : INotifyCompletion 
+                            where TStateMachine : IAsyncStateMachine {}
+                        public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
+                            where TAwaiter : ICriticalNotifyCompletion 
+                            where TStateMachine : IAsyncStateMachine {}
+                    }
+                    public struct AsyncValueTaskMethodBuilder
+                    {
+                        public static AsyncValueTaskMethodBuilder Create() => default;
+                        public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine {}
+                        public void SetStateMachine(IAsyncStateMachine stateMachine) {}
+                        public void SetException(Exception exception) {}
+                        public void SetResult() {}
+                        public Threading.Tasks.ValueTask Task => default;
+                        public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
+                            where TAwaiter : INotifyCompletion 
+                            where TStateMachine : IAsyncStateMachine {}
+                        public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
+                            where TAwaiter : ICriticalNotifyCompletion 
+                            where TStateMachine : IAsyncStateMachine {}
+                    }
+                    public struct AsyncValueTaskMethodBuilder<T>
+                    {
+                        public static AsyncValueTaskMethodBuilder<T> Create() => default;
+                        public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine {}
+                        public void SetStateMachine(IAsyncStateMachine stateMachine) {}
+                        public void SetException(Exception exception) {}
+                        public void SetResult(T result) {}
+                        public Threading.Tasks.ValueTask<T> Task => default;
+                        public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
+                            where TAwaiter : INotifyCompletion 
+                            where TStateMachine : IAsyncStateMachine {}
+                        public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
+                            where TAwaiter : ICriticalNotifyCompletion 
+                            where TStateMachine : IAsyncStateMachine {}
+                    }
+                    public class ExtensionAttribute : Attribute {}
+                    public interface IAsyncStateMachine
+                    {
+                        void MoveNext();
+                        void SetStateMachine(IAsyncStateMachine stateMachine);
+                    }
+                    public interface INotifyCompletion
+                    {
+                        void OnCompleted(Action continuation);
+                    }
+                    public interface ICriticalNotifyCompletion : INotifyCompletion
+                    {
+                        void UnsafeOnCompleted(Action continuation);
+                    }
+                    public static class RuntimeFeature
+                    {
+                        public const string NumericIntPtr = nameof(NumericIntPtr);
+                    }
+                    public static class RuntimeHelpers
+                    {
+                        public static void AwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter) where TAwaiter : INotifyCompletion {}
+                        public static void UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter) where TAwaiter : ICriticalNotifyCompletion {}
+                    }
+                    public struct TaskAwaiter : ICriticalNotifyCompletion
+                    {
+                        public void OnCompleted(Action continuation) {}
+                        public void UnsafeOnCompleted(Action continuation) {}
+                        public bool IsCompleted => false;
+                        public void GetResult() {}
+                    }
+                    public struct TaskAwaiter<TResult> : ICriticalNotifyCompletion
+                    {
+                        public void OnCompleted(Action continuation) {}
+                        public void UnsafeOnCompleted(Action continuation) {}
+                        public bool IsCompleted => false;
+                        public TResult GetResult() => default;
+                    }
+                    public struct ValueTaskAwaiter : ICriticalNotifyCompletion
+                    {
+                        public void OnCompleted(Action continuation) {}
+                        public void UnsafeOnCompleted(Action continuation) {}
+                        public bool IsCompleted => false;
+                        public void GetResult() {}
+                    }
+                    public struct ValueTaskAwaiter<TResult> : ICriticalNotifyCompletion
+                    {
+                        public void OnCompleted(Action continuation) {}
+                        public void UnsafeOnCompleted(Action continuation) {}
+                        public bool IsCompleted => false;
+                        public TResult GetResult() => default;
+                    }
+                    public struct YieldAwaitable
+                    {
+                        public YieldAwaiter GetAwaiter() => default;
+                        public struct YieldAwaiter : ICriticalNotifyCompletion
+                        {
+                            public void UnsafeOnCompleted(Action continuation) {}
+                            public void OnCompleted(Action continuation) {}
+                            public bool IsCompleted => false;
+                            public void GetResult() {}
+                        }
+                    }
+                }
+            }
+            """;
+
+        private static CSharpCompilation CreateRuntimeAsyncCompilation(CSharpTestSource source, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        {
+            // PROTOTYPE: Remove this helper and just use .NET 10 when we can
+            var corlib = CreateEmptyCompilation([RuntimeAsyncCoreLib, RuntimeAsyncAwaitHelpers]);
+
+            var compilation = CreateEmptyCompilation(source, references: [.. references ?? [], corlib.EmitToImageReference()], options: options, parseOptions: parseOptions ?? WithRuntimeAsync(TestOptions.RegularPreview));
+            return compilation;
         }
 
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, Verification verify = default)
@@ -179,8 +474,7 @@ class Test
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], targetFramework: TargetFramework.Net90, parseOptions: WithRuntimeAsync(TestOptions.RegularPreview));
-            comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
+            var comp = CreateRuntimeAsyncCompilation(source);
 
             var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
             {
@@ -203,7 +497,7 @@ class Test
                   IL_001e:  dup
                   IL_001f:  stsfld     "System.Action Test.<>c.<>9__1_0"
                   IL_0024:  callvirt   "System.Threading.Tasks.Task System.Threading.Tasks.TaskFactory.StartNew(System.Action)"
-                  IL_0029:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.Await(System.Threading.Tasks.Task)"
+                  IL_0029:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
                   IL_002e:  ret
                 }
                 """);
@@ -246,8 +540,7 @@ class Test
 }";
 
             var expected = "42";
-            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], targetFramework: TargetFramework.Net90, parseOptions: WithRuntimeAsync(TestOptions.RegularPreview));
-            comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
+            var comp = CreateRuntimeAsyncCompilation(source);
 
             var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
             {
@@ -268,7 +561,7 @@ class Test
                   // Code size       11 (0xb)
                   .maxstack  1
                   IL_0000:  call       "System.Threading.Tasks.ValueTask Test.<F>g__Impl|1_0()"
-                  IL_0005:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_0005:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
                   IL_000a:  ret
                 }
                 """);
@@ -308,12 +601,11 @@ O brave new world...
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], targetFramework: TargetFramework.Net90, parseOptions: WithRuntimeAsync(TestOptions.RegularPreview));
-            comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
+            var comp = CreateRuntimeAsyncCompilation(source);
 
             var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
             {
-                ILVerifyMessage = "[F]: Unexpected type on the stack. { Offset = 0x2e, Found = ref 'string', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<string>' }",
+                ILVerifyMessage = "[F]: Unexpected type on the stack. { Offset = 0x2e, Found = ref 'string', Expected = ref 'System.Threading.Tasks.Task`1<string>' }",
             }, symbolValidator: verify);
             verifier.VerifyDiagnostics();
 
@@ -332,7 +624,7 @@ O brave new world...
                   IL_001e:  dup
                   IL_001f:  stsfld     "System.Func<string> Test.<>c.<>9__0_0"
                   IL_0024:  callvirt   "System.Threading.Tasks.Task<string> System.Threading.Tasks.TaskFactory.StartNew<string>(System.Func<string>)"
-                  IL_0029:  call       "string System.Runtime.CompilerServices.RuntimeHelpers.Await<string>(System.Threading.Tasks.Task<string>)"
+                  IL_0029:  call       "string System.Runtime.CompilerServices.AsyncHelpers.Await<string>(System.Threading.Tasks.Task<string>)"
                   IL_002e:  ret
                 }
                 """);
@@ -369,13 +661,12 @@ class Test
     }
 }";
             var expected = @"O brave new world...";
-            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], targetFramework: TargetFramework.Net90, parseOptions: WithRuntimeAsync(TestOptions.RegularPreview));
-            comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
+            var comp = CreateRuntimeAsyncCompilation(source);
 
             var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = $$"""
-                    [F]: Unexpected type on the stack. { Offset = 0xa, Found = ref 'string', Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<string>' }
+                    [F]: Unexpected type on the stack. { Offset = 0xa, Found = ref 'string', Expected = value 'System.Threading.Tasks.ValueTask`1<string>' }
                     {{ReturnValueMissing("Main", "0xf")}}
                     """,
             }, symbolValidator: verify);
@@ -386,7 +677,7 @@ class Test
                   // Code size       11 (0xb)
                   .maxstack  1
                   IL_0000:  call       "System.Threading.Tasks.ValueTask<string> Test.<F>g__Impl|0_0()"
-                  IL_0005:  call       "string System.Runtime.CompilerServices.RuntimeHelpers.Await<string>(System.Threading.Tasks.ValueTask<string>)"
+                  IL_0005:  call       "string System.Runtime.CompilerServices.AsyncHelpers.Await<string>(System.Threading.Tasks.ValueTask<string>)"
                   IL_000a:  ret
                 }
                 """);
@@ -427,8 +718,7 @@ class Test
                     }
                 }
                 """;
-            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], targetFramework: TargetFramework.Net90, parseOptions: WithRuntimeAsync(TestOptions.RegularPreview));
-            comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
+            var comp = CreateRuntimeAsyncCompilation(source);
 
             var ilVerifyMessage = (useValueTask, useGeneric) switch
             {
@@ -437,7 +727,7 @@ class Test
                     {{ReturnValueMissing("Main", "0x11")}}
                     """,
                 (false, true) => $$"""
-                    [F]: Unexpected type on the stack. { Offset = 0x29, Found = ref 'string', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<string>' }
+                    [F]: Unexpected type on the stack. { Offset = 0x29, Found = ref 'string', Expected = ref 'System.Threading.Tasks.Task`1<string>' }
                     {{ReturnValueMissing("Main", "0xf")}}
                     """,
                 (true, false) => $$"""
@@ -445,7 +735,7 @@ class Test
                     {{ReturnValueMissing("Main", "0x11")}}
                     """,
                 (true, true) => $$"""
-                    [F]: Unexpected type on the stack. { Offset = 0xf, Found = ref 'string', Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<string>' }
+                    [F]: Unexpected type on the stack. { Offset = 0xf, Found = ref 'string', Expected = value 'System.Threading.Tasks.ValueTask`1<string>' }
                     {{ReturnValueMissing("Main", "0xf")}}
                     """,
             };
@@ -464,7 +754,7 @@ class Test
                       .maxstack  1
                       IL_0000:  ldnull
                       IL_0001:  newobj     "System.Threading.Tasks.Task..ctor(System.Action)"
-                      IL_0006:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.Await(System.Threading.Tasks.Task)"
+                      IL_0006:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
                       IL_000b:  ret
                     }
                     """,
@@ -482,7 +772,7 @@ class Test
                       IL_0019:  dup
                       IL_001a:  stsfld     "System.Func<string> Test.<>c.<>9__0_0"
                       IL_001f:  newobj     "System.Threading.Tasks.Task<string>..ctor(System.Func<string>)"
-                      IL_0024:  call       "string System.Runtime.CompilerServices.RuntimeHelpers.Await<string>(System.Threading.Tasks.Task<string>)"
+                      IL_0024:  call       "string System.Runtime.CompilerServices.AsyncHelpers.Await<string>(System.Threading.Tasks.Task<string>)"
                       IL_0029:  ret
                     }
                     """,
@@ -494,7 +784,7 @@ class Test
                       IL_0000:  ldloca.s   V_0
                       IL_0002:  initobj    "System.Threading.Tasks.ValueTask"
                       IL_0008:  ldloc.0
-                      IL_0009:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.Await(System.Threading.Tasks.ValueTask)"
+                      IL_0009:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
                       IL_000e:  ret
                     }
                     """,
@@ -504,7 +794,7 @@ class Test
                       .maxstack  1
                       IL_0000:  ldstr      "42"
                       IL_0005:  newobj     "System.Threading.Tasks.ValueTask<string>..ctor(string)"
-                      IL_000a:  call       "string System.Runtime.CompilerServices.RuntimeHelpers.Await<string>(System.Threading.Tasks.ValueTask<string>)"
+                      IL_000a:  call       "string System.Runtime.CompilerServices.AsyncHelpers.Await<string>(System.Threading.Tasks.ValueTask<string>)"
                       IL_000f:  ret
                     }
                     """,
@@ -567,8 +857,7 @@ class Test
                     }
                 }
                 """;
-            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], targetFramework: TargetFramework.Net90, parseOptions: WithRuntimeAsync(TestOptions.RegularPreview));
-            comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
+            var comp = CreateRuntimeAsyncCompilation(source);
 
             var ilVerifyMessage = (useValueTask, useGeneric) switch
             {
@@ -577,7 +866,7 @@ class Test
                     {{ReturnValueMissing("Main", "0x16")}}
                     """,
                 (false, true) => $$"""
-                    [F]: Unexpected type on the stack. { Offset = 0xb, Found = ref 'string', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<string>' }
+                    [F]: Unexpected type on the stack. { Offset = 0xb, Found = ref 'string', Expected = ref 'System.Threading.Tasks.Task`1<string>' }
                     {{ReturnValueMissing("Main", "0x17")}}
                     """,
                 (true, false) => $$"""
@@ -585,7 +874,7 @@ class Test
                     {{ReturnValueMissing("Main", "0x16")}}
                     """,
                 (true, true) => $$"""
-                    [F]: Unexpected type on the stack. { Offset = 0x13, Found = ref 'string', Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<string>' }
+                    [F]: Unexpected type on the stack. { Offset = 0x13, Found = ref 'string', Expected = value 'System.Threading.Tasks.ValueTask`1<string>' }
                     {{ReturnValueMissing("Main", "0x18")}}
                     """,
             };
@@ -604,7 +893,7 @@ class Test
                       .maxstack  1
                       IL_0000:  ldnull
                       IL_0001:  call       "void Test.NoOp()"
-                      IL_0006:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.Await(System.Threading.Tasks.Task)"
+                      IL_0006:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
                       IL_000b:  ret
                     }
                     """,
@@ -614,7 +903,7 @@ class Test
                       .maxstack  1
                       IL_0000:  ldnull
                       IL_0001:  call       "void Test.NoOp()"
-                      IL_0006:  call       "string System.Runtime.CompilerServices.RuntimeHelpers.Await<string>(System.Threading.Tasks.Task<string>)"
+                      IL_0006:  call       "string System.Runtime.CompilerServices.AsyncHelpers.Await<string>(System.Threading.Tasks.Task<string>)"
                       IL_000b:  ret
                     }
                     """,
@@ -627,7 +916,7 @@ class Test
                       IL_0002:  initobj    "System.Threading.Tasks.ValueTask"
                       IL_0008:  ldloc.0
                       IL_0009:  call       "void Test.NoOp()"
-                      IL_000e:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.Await(System.Threading.Tasks.ValueTask)"
+                      IL_000e:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
                       IL_0013:  ret
                     }
                     """,
@@ -640,7 +929,7 @@ class Test
                       IL_0002:  initobj    "System.Threading.Tasks.ValueTask<string>"
                       IL_0008:  ldloc.0
                       IL_0009:  call       "void Test.NoOp()"
-                      IL_000e:  call       "string System.Runtime.CompilerServices.RuntimeHelpers.Await<string>(System.Threading.Tasks.ValueTask<string>)"
+                      IL_000e:  call       "string System.Runtime.CompilerServices.AsyncHelpers.Await<string>(System.Threading.Tasks.ValueTask<string>)"
                       IL_0013:  ret
                     }
                     """,
@@ -692,8 +981,7 @@ class Test
                     }
                 }
                 """;
-            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], targetFramework: TargetFramework.Net90, parseOptions: WithRuntimeAsync(TestOptions.RegularPreview));
-            comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
+            var comp = CreateRuntimeAsyncCompilation(source);
 
             var ilVerifyMessage = (useValueTask, useGeneric) switch
             {
@@ -702,7 +990,7 @@ class Test
                     {{ReturnValueMissing("Main", "0x16")}}
                     """,
                 (false, true) => $$"""
-                    [F]: Unexpected type on the stack. { Offset = 0x6, Found = ref 'string', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<string>' }
+                    [F]: Unexpected type on the stack. { Offset = 0x6, Found = ref 'string', Expected = ref 'System.Threading.Tasks.Task`1<string>' }
                     {{ReturnValueMissing("Main", "0x17")}}
                     """,
                 (true, false) => $$"""
@@ -710,7 +998,7 @@ class Test
                     {{ReturnValueMissing("Main", "0x16")}}
                     """,
                 (true, true) => $$"""
-                    [F]: Unexpected type on the stack. { Offset = 0xe, Found = ref 'string', Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<string>' }
+                    [F]: Unexpected type on the stack. { Offset = 0xe, Found = ref 'string', Expected = value 'System.Threading.Tasks.ValueTask`1<string>' }
                     {{ReturnValueMissing("Main", "0x18")}}
                     """,
             };
@@ -728,7 +1016,7 @@ class Test
                       // Code size        7 (0x7)
                       .maxstack  1
                       IL_0000:  ldnull
-                      IL_0001:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.Await(System.Threading.Tasks.Task)"
+                      IL_0001:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
                       IL_0006:  ret
                     }
                     """,
@@ -737,7 +1025,7 @@ class Test
                       // Code size        7 (0x7)
                       .maxstack  1
                       IL_0000:  ldnull
-                      IL_0001:  call       "string System.Runtime.CompilerServices.RuntimeHelpers.Await<string>(System.Threading.Tasks.Task<string>)"
+                      IL_0001:  call       "string System.Runtime.CompilerServices.AsyncHelpers.Await<string>(System.Threading.Tasks.Task<string>)"
                       IL_0006:  ret
                     }
                     """,
@@ -749,7 +1037,7 @@ class Test
                       IL_0000:  ldloca.s   V_0
                       IL_0002:  initobj    "System.Threading.Tasks.ValueTask"
                       IL_0008:  ldloc.0
-                      IL_0009:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.Await(System.Threading.Tasks.ValueTask)"
+                      IL_0009:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
                       IL_000e:  ret
                     }
                     """,
@@ -761,7 +1049,7 @@ class Test
                       IL_0000:  ldloca.s   V_0
                       IL_0002:  initobj    "System.Threading.Tasks.ValueTask<string>"
                       IL_0008:  ldloc.0
-                      IL_0009:  call       "string System.Runtime.CompilerServices.RuntimeHelpers.Await<string>(System.Threading.Tasks.ValueTask<string>)"
+                      IL_0009:  call       "string System.Runtime.CompilerServices.AsyncHelpers.Await<string>(System.Threading.Tasks.ValueTask<string>)"
                       IL_000e:  ret
                     }
                     """,
@@ -806,8 +1094,7 @@ class Test
                     }
                 }
                 """;
-            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], targetFramework: TargetFramework.Net90, parseOptions: WithRuntimeAsync(TestOptions.RegularPreview));
-            comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
+            var comp = CreateRuntimeAsyncCompilation(source);
 
             var ilVerifyMessage = (useValueTask, useGeneric) switch
             {
@@ -816,7 +1103,7 @@ class Test
                     {{ReturnValueMissing("Main", "0x11")}}
                     """,
                 (false, true) => $$"""
-                    [F]: Unexpected type on the stack. { Offset = 0x1e, Found = ref 'string', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<string>' }
+                    [F]: Unexpected type on the stack. { Offset = 0x1e, Found = ref 'string', Expected = ref 'System.Threading.Tasks.Task`1<string>' }
                     {{ReturnValueMissing("Main", "0xf")}}
                     """,
                 (true, false) => $$"""
@@ -824,7 +1111,7 @@ class Test
                     {{ReturnValueMissing("Main", "0x11")}}
                     """,
                 (true, true) => $$"""
-                    [F]: Unexpected type on the stack. { Offset = 0x1e, Found = ref 'string', Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<string>' }
+                    [F]: Unexpected type on the stack. { Offset = 0x1e, Found = ref 'string', Expected = value 'System.Threading.Tasks.ValueTask`1<string>' }
                     {{ReturnValueMissing("Main", "0xf")}}
                     """,
             };
@@ -846,7 +1133,7 @@ class Test
                       IL_0003:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
                       IL_0008:  br.s       IL_000f
                       IL_000a:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
-                      IL_000f:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.Await(System.Threading.Tasks.Task)"
+                      IL_000f:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
                       IL_0014:  ret
                     }
                     """,
@@ -861,7 +1148,7 @@ class Test
                       IL_000d:  br.s       IL_0019
                       IL_000f:  ldstr      "42"
                       IL_0014:  call       "System.Threading.Tasks.Task<string> System.Threading.Tasks.Task.FromResult<string>(string)"
-                      IL_0019:  call       "string System.Runtime.CompilerServices.RuntimeHelpers.Await<string>(System.Threading.Tasks.Task<string>)"
+                      IL_0019:  call       "string System.Runtime.CompilerServices.AsyncHelpers.Await<string>(System.Threading.Tasks.Task<string>)"
                       IL_001e:  ret
                     }
                     """,
@@ -879,7 +1166,7 @@ class Test
                       IL_000e:  ldloca.s   V_0
                       IL_0010:  initobj    "System.Threading.Tasks.ValueTask"
                       IL_0016:  ldloc.0
-                      IL_0017:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.Await(System.Threading.Tasks.ValueTask)"
+                      IL_0017:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
                       IL_001c:  ret
                     }
                     """,
@@ -894,7 +1181,7 @@ class Test
                       IL_000d:  br.s       IL_0019
                       IL_000f:  ldstr      "42"
                       IL_0014:  newobj     "System.Threading.Tasks.ValueTask<string>..ctor(string)"
-                      IL_0019:  call       "string System.Runtime.CompilerServices.RuntimeHelpers.Await<string>(System.Threading.Tasks.ValueTask<string>)"
+                      IL_0019:  call       "string System.Runtime.CompilerServices.AsyncHelpers.Await<string>(System.Threading.Tasks.ValueTask<string>)"
                       IL_001e:  ret
                     }
                     """,
@@ -938,8 +1225,7 @@ class Test
                     }
                 }
                 """;
-            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], targetFramework: TargetFramework.Net90, parseOptions: WithRuntimeAsync(TestOptions.RegularPreview));
-            comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
+            var comp = CreateRuntimeAsyncCompilation(source);
 
             var ilVerifyMessage = (useValueTask, useGeneric) switch
             {
@@ -948,7 +1234,7 @@ class Test
                     {{ReturnValueMissing("Main", "0x11")}}
                     """,
                 (false, true) => $$"""
-                    [F]: Unexpected type on the stack. { Offset = 0xf, Found = ref 'string', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<string>' }
+                    [F]: Unexpected type on the stack. { Offset = 0xf, Found = ref 'string', Expected = ref 'System.Threading.Tasks.Task`1<string>' }
                     {{ReturnValueMissing("Main", "0xf")}}
                     """,
                 (true, false) => $$"""
@@ -956,7 +1242,7 @@ class Test
                     {{ReturnValueMissing("Main", "0x11")}}
                     """,
                 (true, true) => $$"""
-                    [F]: Unexpected type on the stack. { Offset = 0xf, Found = ref 'string', Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<string>' }
+                    [F]: Unexpected type on the stack. { Offset = 0xf, Found = ref 'string', Expected = value 'System.Threading.Tasks.ValueTask`1<string>' }
                     {{ReturnValueMissing("Main", "0xf")}}
                     """,
             };
@@ -974,7 +1260,7 @@ class Test
                       // Code size       11 (0xb)
                       .maxstack  1
                       IL_0000:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
-                      IL_0005:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.Await(System.Threading.Tasks.Task)"
+                      IL_0005:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
                       IL_000a:  ret
                     }
                     """,
@@ -984,7 +1270,7 @@ class Test
                       .maxstack  1
                       IL_0000:  ldstr      "42"
                       IL_0005:  call       "System.Threading.Tasks.Task<string> System.Threading.Tasks.Task.FromResult<string>(string)"
-                      IL_000a:  call       "string System.Runtime.CompilerServices.RuntimeHelpers.Await<string>(System.Threading.Tasks.Task<string>)"
+                      IL_000a:  call       "string System.Runtime.CompilerServices.AsyncHelpers.Await<string>(System.Threading.Tasks.Task<string>)"
                       IL_000f:  ret
                     }
                     """,
@@ -996,7 +1282,7 @@ class Test
                       IL_0000:  ldloca.s   V_0
                       IL_0002:  initobj    "System.Threading.Tasks.ValueTask"
                       IL_0008:  ldloc.0
-                      IL_0009:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.Await(System.Threading.Tasks.ValueTask)"
+                      IL_0009:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
                       IL_000e:  ret
                     }
                     """,
@@ -1006,7 +1292,7 @@ class Test
                       .maxstack  1
                       IL_0000:  ldstr      "42"
                       IL_0005:  newobj     "System.Threading.Tasks.ValueTask<string>..ctor(string)"
-                      IL_000a:  call       "string System.Runtime.CompilerServices.RuntimeHelpers.Await<string>(System.Threading.Tasks.ValueTask<string>)"
+                      IL_000a:  call       "string System.Runtime.CompilerServices.AsyncHelpers.Await<string>(System.Threading.Tasks.ValueTask<string>)"
                       IL_000f:  ret
                     }
                     """,
@@ -1052,8 +1338,7 @@ class Test
                     public static {{retType}} Prop => {{baseExpr}};
                 }
                 """;
-            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], targetFramework: TargetFramework.Net90, parseOptions: WithRuntimeAsync(TestOptions.RegularPreview));
-            comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
+            var comp = CreateRuntimeAsyncCompilation(source);
 
             var ilVerifyMessage = (useValueTask, useGeneric) switch
             {
@@ -1062,7 +1347,7 @@ class Test
                     {{ReturnValueMissing("Main", "0x11")}}
                     """,
                 (false, true) => $$"""
-                    [F]: Unexpected type on the stack. { Offset = 0xa, Found = ref 'string', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<string>' }
+                    [F]: Unexpected type on the stack. { Offset = 0xa, Found = ref 'string', Expected = ref 'System.Threading.Tasks.Task`1<string>' }
                     {{ReturnValueMissing("Main", "0xf")}}
                     """,
                 (true, false) => $$"""
@@ -1070,7 +1355,7 @@ class Test
                     {{ReturnValueMissing("Main", "0x11")}}
                     """,
                 (true, true) => $$"""
-                    [F]: Unexpected type on the stack. { Offset = 0xa, Found = ref 'string', Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<string>' }
+                    [F]: Unexpected type on the stack. { Offset = 0xa, Found = ref 'string', Expected = value 'System.Threading.Tasks.ValueTask`1<string>' }
                     {{ReturnValueMissing("Main", "0xf")}}
                     """,
             };
@@ -1088,7 +1373,7 @@ class Test
                       // Code size       11 (0xb)
                       .maxstack  1
                       IL_0000:  call       "System.Threading.Tasks.Task Test.Prop.get"
-                      IL_0005:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.Await(System.Threading.Tasks.Task)"
+                      IL_0005:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
                       IL_000a:  ret
                     }
                     """,
@@ -1097,7 +1382,7 @@ class Test
                       // Code size       11 (0xb)
                       .maxstack  1
                       IL_0000:  call       "System.Threading.Tasks.Task<string> Test.Prop.get"
-                      IL_0005:  call       "string System.Runtime.CompilerServices.RuntimeHelpers.Await<string>(System.Threading.Tasks.Task<string>)"
+                      IL_0005:  call       "string System.Runtime.CompilerServices.AsyncHelpers.Await<string>(System.Threading.Tasks.Task<string>)"
                       IL_000a:  ret
                     }
                     """,
@@ -1106,7 +1391,7 @@ class Test
                       // Code size       11 (0xb)
                       .maxstack  1
                       IL_0000:  call       "System.Threading.Tasks.ValueTask Test.Prop.get"
-                      IL_0005:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.Await(System.Threading.Tasks.ValueTask)"
+                      IL_0005:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
                       IL_000a:  ret
                     } 
                     """,
@@ -1115,7 +1400,7 @@ class Test
                       // Code size       11 (0xb)
                       .maxstack  1
                       IL_0000:  call       "System.Threading.Tasks.ValueTask<string> Test.Prop.get"
-                      IL_0005:  call       "string System.Runtime.CompilerServices.RuntimeHelpers.Await<string>(System.Threading.Tasks.ValueTask<string>)"
+                      IL_0005:  call       "string System.Runtime.CompilerServices.AsyncHelpers.Await<string>(System.Threading.Tasks.ValueTask<string>)"
                       IL_000a:  ret
                     }
                     """,
@@ -1209,8 +1494,7 @@ class Test
 
             CompileAndVerify(source, "0");
 
-            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], targetFramework: TargetFramework.Net90, parseOptions: WithRuntimeAsync(TestOptions.RegularPreview));
-            comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
+            var comp = CreateRuntimeAsyncCompilation(source);
 
             var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("0", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
@@ -1237,7 +1521,7 @@ class Test
                     IL_0013:  callvirt   "bool MyTaskAwaiter<int>.IsCompleted.get"
                     IL_0018:  brtrue.s   IL_0020
                     IL_001a:  ldloc.1
-                    IL_001b:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.{{(useCritical ? "Unsafe" : "")}}AwaitAwaiterFromRuntimeAsync<MyTaskAwaiter<int>>(MyTaskAwaiter<int>)"
+                    IL_001b:  call       "void System.Runtime.CompilerServices.AsyncHelpers.{{(useCritical ? "Unsafe" : "")}}AwaitAwaiterFromRuntimeAsync<MyTaskAwaiter<int>>(MyTaskAwaiter<int>)"
                     IL_0020:  ldloc.1
                     IL_0021:  callvirt   "int MyTaskAwaiter<int>.GetResult()"
                     IL_0026:  brtrue.s   IL_0034
@@ -3050,8 +3334,7 @@ class Driver
 }";
             CompileAndVerify(source, "0");
 
-            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], parseOptions: WithRuntimeAsync(TestOptions.RegularPreview), targetFramework: TargetFramework.NetCoreApp);
-            comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
+            var comp = CreateRuntimeAsyncCompilation(source);
 
             var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("0", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyIL("MyTask.Run", """
@@ -3075,7 +3358,7 @@ class Driver
                     IL_0012:  callvirt   "bool MyTaskAwaiter.IsCompleted.get"
                     IL_0017:  brtrue.s   IL_001f
                     IL_0019:  ldloc.1
-                    IL_001a:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.AwaitAwaiterFromRuntimeAsync<MyTaskAwaiter>(MyTaskAwaiter)"
+                    IL_001a:  call       "void System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiterFromRuntimeAsync<MyTaskAwaiter>(MyTaskAwaiter)"
                     IL_001f:  ldloc.1
                     IL_0020:  callvirt   "int MyTaskAwaiter.GetResult()"
                     IL_0025:  ldc.i4.s   123
@@ -3177,8 +3460,7 @@ class Driver
 }";
             CompileAndVerify(source, "0");
 
-            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], parseOptions: WithRuntimeAsync(TestOptions.RegularPreview), targetFramework: TargetFramework.NetCoreApp);
-            comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
+            var comp = CreateRuntimeAsyncCompilation(source);
 
             var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("0", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyIL("MyTask.Run", """
@@ -3202,7 +3484,7 @@ class Driver
                     IL_0012:  callvirt   "bool MyTaskBaseAwaiter.IsCompleted.get"
                     IL_0017:  brtrue.s   IL_001f
                     IL_0019:  ldloc.1
-                    IL_001a:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.AwaitAwaiterFromRuntimeAsync<MyTaskAwaiter>(MyTaskAwaiter)"
+                    IL_001a:  call       "void System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiterFromRuntimeAsync<MyTaskAwaiter>(MyTaskAwaiter)"
                     IL_001f:  ldloc.1
                     IL_0020:  callvirt   "int MyTaskBaseAwaiter.GetResult()"
                     IL_0025:  ldc.i4.s   123
@@ -6892,8 +7174,7 @@ class Program
             var expected = "StructAwaitable";
             CompileAndVerify(comp, expectedOutput: expected);
 
-            comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], parseOptions: WithRuntimeAsync(TestOptions.RegularPreview), targetFramework: TargetFramework.NetCoreApp);
-            comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
+            comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = ReturnValueMissing("Main", "0x2a")
@@ -6915,7 +7196,7 @@ class Program
                   IL_0016:  call       "bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get"
                   IL_001b:  brtrue.s   IL_0023
                   IL_001d:  ldloc.0
-                  IL_001e:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.UnsafeAwaitAwaiterFromRuntimeAsync<System.Runtime.CompilerServices.TaskAwaiter>(System.Runtime.CompilerServices.TaskAwaiter)"
+                  IL_001e:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiterFromRuntimeAsync<System.Runtime.CompilerServices.TaskAwaiter>(System.Runtime.CompilerServices.TaskAwaiter)"
                   IL_0023:  ldloca.s   V_0
                   IL_0025:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
                   IL_002a:  ret
@@ -6956,8 +7237,7 @@ class Program
             var expected = "StructAwaitable";
             CompileAndVerify(comp, expectedOutput: expected);
 
-            comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], parseOptions: WithRuntimeAsync(TestOptions.RegularPreview), targetFramework: TargetFramework.NetCoreApp);
-            comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
+            comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = ReturnValueMissing("Main", "0x2f")
@@ -6980,7 +7260,7 @@ class Program
                   IL_001b:  call       "bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get"
                   IL_0020:  brtrue.s   IL_0028
                   IL_0022:  ldloc.1
-                  IL_0023:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.UnsafeAwaitAwaiterFromRuntimeAsync<System.Runtime.CompilerServices.TaskAwaiter>(System.Runtime.CompilerServices.TaskAwaiter)"
+                  IL_0023:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiterFromRuntimeAsync<System.Runtime.CompilerServices.TaskAwaiter>(System.Runtime.CompilerServices.TaskAwaiter)"
                   IL_0028:  ldloca.s   V_1
                   IL_002a:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
                   IL_002f:  ret
@@ -7523,8 +7803,7 @@ class Test1
                 await Task.CompletedTask;
                 """;
 
-            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], targetFramework: TargetFramework.Net90, parseOptions: WithRuntimeAsync(TestOptions.RegularPreview));
-            comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
+            var comp = CreateRuntimeAsyncCompilation(source);
 
             var verifier = CompileAndVerify(comp, verify: Verification.Fails with { ILVerifyMessage = ReturnValueMissing("<Main>$", "0xa") });
 
@@ -7533,7 +7812,7 @@ class Test1
                   // Code size       11 (0xb)
                   .maxstack  1
                   IL_0000:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
-                  IL_0005:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.Await(System.Threading.Tasks.Task)"
+                  IL_0005:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
                   IL_000a:  ret
                 }
                 """);
@@ -7548,8 +7827,7 @@ class Test1
                 await Task.CompletedTask;
                 """;
 
-            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], targetFramework: TargetFramework.Net90, parseOptions: WithRuntimeAsync(TestOptions.RegularPreview));
-
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90, parseOptions: WithRuntimeAsync(TestOptions.RegularPreview));
             var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify);
 
             verifier.VerifyIL("<top-level-statements-entry-point>", """
@@ -7591,8 +7869,7 @@ class Test1
                 parseOptions = parseOptions.WithFeature("runtime-async", "off");
             }
 
-            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], targetFramework: TargetFramework.Net90, parseOptions: parseOptions);
-            comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
+            var comp = CreateRuntimeAsyncCompilation(source, parseOptions: parseOptions);
 
             var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify);
 
@@ -7642,8 +7919,7 @@ class Test1
                 parseOptions = parseOptions.WithFeature("runtime-async", "off");
             }
 
-            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers, RuntimeAsyncMethodGenerationAttributeDefinition], targetFramework: TargetFramework.Net90, parseOptions: parseOptions);
-            comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
+            var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition], parseOptions: parseOptions);
 
             var verifier = CompileAndVerify(comp, verify: Verification.Fails with { ILVerifyMessage = ReturnValueMissing("Main", "0xa") });
 
@@ -7652,7 +7928,7 @@ class Test1
                   // Code size       11 (0xb)
                   .maxstack  1
                   IL_0000:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
-                  IL_0005:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.Await(System.Threading.Tasks.Task)"
+                  IL_0005:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
                   IL_000a:  ret
                 }
                 """);
@@ -7683,8 +7959,7 @@ class Test1
                 parseOptions = parseOptions.WithFeature("runtime-async", "off");
             }
 
-            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers, RuntimeAsyncMethodGenerationAttributeDefinition], targetFramework: TargetFramework.Net90, parseOptions: parseOptions);
-            comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
+            var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition], parseOptions: parseOptions);
 
             var verifier = CompileAndVerify(comp, verify: Verification.Fails with { ILVerifyMessage = ReturnValueMissing("Main", "0xa") });
 
@@ -7693,7 +7968,7 @@ class Test1
                   // Code size       11 (0xb)
                   .maxstack  1
                   IL_0000:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
-                  IL_0005:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.Await(System.Threading.Tasks.Task)"
+                  IL_0005:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
                   IL_000a:  ret
                 }
                 """);
@@ -7746,8 +8021,7 @@ class Test1
                 parseOptions = parseOptions.WithFeature("runtime-async", "off");
             }
 
-            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers, RuntimeAsyncMethodGenerationAttributeDefinition], targetFramework: TargetFramework.Net90, parseOptions: parseOptions);
-            comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
+            var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition], parseOptions: parseOptions);
 
             var verifier = CompileAndVerify(comp, verify: Verification.Fails with { ILVerifyMessage = ReturnValueMissing("Main", "0x26") });
 
@@ -7756,7 +8030,7 @@ class Test1
                   // Code size       39 (0x27)
                   .maxstack  2
                   IL_0000:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
-                  IL_0005:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.Await(System.Threading.Tasks.Task)"
+                  IL_0005:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
                   IL_000a:  ldsfld     "System.Func<System.Threading.Tasks.Task> Program.<>c.<>9__0_0"
                   IL_000f:  brtrue.s   IL_0026
                   IL_0011:  ldsfld     "Program.<>c Program.<>c.<>9"
@@ -7806,8 +8080,7 @@ class Test1
                 }
                 """;
 
-            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers, RuntimeAsyncMethodGenerationAttributeDefinition], targetFramework: TargetFramework.Net90, parseOptions: WithRuntimeAsync(TestOptions.RegularPreview));
-            comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
+            var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition]);
 
             var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify);
 
@@ -7852,8 +8125,7 @@ class Test1
                 }
                 """;
 
-            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers, RuntimeAsyncMethodGenerationAttributeDefinition], targetFramework: TargetFramework.Net90, parseOptions: WithRuntimeAsync(TestOptions.RegularPreview));
-            comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
+            var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition]);
 
             var verifier = CompileAndVerify(comp, verify: Verification.Fails with { ILVerifyMessage = ReturnValueMissing("<Main>g__LocalFunc|0_0", "0xa") });
 
@@ -7884,7 +8156,7 @@ class Test1
                   // Code size       11 (0xb)
                   .maxstack  1
                   IL_0000:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
-                  IL_0005:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.Await(System.Threading.Tasks.Task)"
+                  IL_0005:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
                   IL_000a:  ret
                 }
                 """);
@@ -7908,8 +8180,7 @@ class Test1
                 }
                 """;
 
-            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers, RuntimeAsyncMethodGenerationAttributeDefinition], targetFramework: TargetFramework.Net90, parseOptions: WithRuntimeAsync(TestOptions.RegularPreview));
-            comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
+            var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition]);
 
             var verifier = CompileAndVerify(comp, verify: Verification.Fails with { ILVerifyMessage = ReturnValueMissing("<Main>b__0_0", "0xa") });
 
@@ -7940,7 +8211,7 @@ class Test1
                   // Code size       11 (0xb)
                   .maxstack  1
                   IL_0000:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
-                  IL_0005:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.Await(System.Threading.Tasks.Task)"
+                  IL_0005:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
                   IL_000a:  ret
                 }
                 """);
@@ -7978,8 +8249,7 @@ class Test1
                 }
                 """;
 
-            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], parseOptions: WithRuntimeAsync(TestOptions.RegularPreview), targetFramework: TargetFramework.NetCoreApp);
-            comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("42", isRuntimeAsync: true), verify: Verification.Fails with { ILVerifyMessage = ReturnValueMissing("<Main>$", "0x1f") });
 
             var expectedAwait = notifyType == "INotifyCompletion" ? "AwaitAwaiterFromRuntimeAsync" : "UnsafeAwaitAwaiterFromRuntimeAsync";
@@ -7995,7 +8265,7 @@ class Test1
                   IL_000c:  callvirt   "bool C.Awaiter.IsCompleted.get"
                   IL_0011:  brtrue.s   IL_0019
                   IL_0013:  ldloc.0
-                  IL_0014:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.{{expectedAwait}}<C.Awaiter>(C.Awaiter)"
+                  IL_0014:  call       "void System.Runtime.CompilerServices.AsyncHelpers.{{expectedAwait}}<C.Awaiter>(C.Awaiter)"
                   IL_0019:  ldloc.0
                   IL_001a:  callvirt   "void C.Awaiter.GetResult()"
                   IL_001f:  ret
@@ -8036,8 +8306,7 @@ class Test1
                 }
                 """;
 
-            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], parseOptions: WithRuntimeAsync(TestOptions.RegularPreview), targetFramework: TargetFramework.NetCoreApp);
-            comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("42", isRuntimeAsync: true), verify: Verification.Fails with { ILVerifyMessage = ReturnValueMissing("<Main>$", "0x24") });
 
             var expectedAwait = notifyType.Contains("Critical") ? "UnsafeAwaitAwaiterFromRuntimeAsync" : "AwaitAwaiterFromRuntimeAsync";
@@ -8053,7 +8322,7 @@ class Test1
                   IL_000c:  callvirt   "bool C.Awaiter.IsCompleted.get"
                   IL_0011:  brtrue.s   IL_0019
                   IL_0013:  ldloc.0
-                  IL_0014:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.{{expectedAwait}}<C.Awaiter>(C.Awaiter)"
+                  IL_0014:  call       "void System.Runtime.CompilerServices.AsyncHelpers.{{expectedAwait}}<C.Awaiter>(C.Awaiter)"
                   IL_0019:  ldloc.0
                   IL_001a:  callvirt   "int C.Awaiter.GetResult()"
                   IL_001f:  call       "void System.Console.WriteLine(int)"
@@ -8096,14 +8365,13 @@ class Test1
                 }
                 """;
 
-            var comp = CreateCompilation([code, RuntimeAsyncAwaitHelpers], parseOptions: WithRuntimeAsync(TestOptions.RegularPreview), targetFramework: TargetFramework.NetCoreApp);
-            comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
+            var comp = CreateRuntimeAsyncCompilation(code);
             var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("55", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = $$"""
                     {{ReturnValueMissing("Main", "0x11")}}
-                    [Fib]: Unexpected type on the stack. { Offset = 0x30, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
-                    [Fib]: Unexpected type on the stack. { Offset = 0x4e, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                    [Fib]: Unexpected type on the stack. { Offset = 0x30, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [Fib]: Unexpected type on the stack. { Offset = 0x4e, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
             verifier.VerifyIL("C.Fib(int)", """
@@ -8127,7 +8395,7 @@ class Test1
                   IL_001b:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
                   IL_0020:  brtrue.s   IL_0028
                   IL_0022:  ldloc.1
-                  IL_0023:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.UnsafeAwaitAwaiterFromRuntimeAsync<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter>(System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter)"
+                  IL_0023:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiterFromRuntimeAsync<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter>(System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter)"
                   IL_0028:  ldloca.s   V_1
                   IL_002a:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
                   IL_002f:  ldc.i4.1
@@ -8136,12 +8404,12 @@ class Test1
                   IL_0032:  ldc.i4.1
                   IL_0033:  sub
                   IL_0034:  call       "System.Threading.Tasks.Task<int> C.Fib(int)"
-                  IL_0039:  call       "int System.Runtime.CompilerServices.RuntimeHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0039:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
                   IL_003e:  ldarg.0
                   IL_003f:  ldc.i4.2
                   IL_0040:  sub
                   IL_0041:  call       "System.Threading.Tasks.Task<int> C.Fib(int)"
-                  IL_0046:  call       "int System.Runtime.CompilerServices.RuntimeHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0046:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
                   IL_004b:  stloc.0
                   IL_004c:  ldloc.0
                   IL_004d:  add
