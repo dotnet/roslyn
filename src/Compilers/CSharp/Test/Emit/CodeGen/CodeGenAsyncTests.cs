@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                         {
                             public Task() {}
                             public Task(Func<TResult> function) {}
-                            
+                            public static Task<TResult> FromResult(TResult result) => null;
                             public TaskAwaiter<TResult> GetAwaiter() => default;
                             public void Wait() {}
                             public bool Wait(int millisecondsTimeout) => false;
@@ -328,10 +328,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             }
             """;
 
-        private static CSharpCompilation CreateRuntimeAsyncCompilation(CSharpTestSource source, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        private static CSharpCompilation CreateRuntimeAsyncCompilation(CSharpTestSource source, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null, string runtimeAsyncAwaitHelpers = RuntimeAsyncAwaitHelpers)
         {
             // PROTOTYPE: Remove this helper and just use .NET 10 when we can
-            var corlib = CreateEmptyCompilation([RuntimeAsyncCoreLib, RuntimeAsyncAwaitHelpers]);
+            var corlib = CreateEmptyCompilation([RuntimeAsyncCoreLib, runtimeAsyncAwaitHelpers]);
 
             var compilation = CreateEmptyCompilation(source, references: [.. references ?? [], corlib.EmitToImageReference()], options: options, parseOptions: parseOptions ?? WithRuntimeAsync(TestOptions.RegularPreview));
             return compilation;
@@ -1429,7 +1429,7 @@ class Test
                         return new MyTaskAwaiter<T>();
                     }
 
-                    public async void Run<U>(U u) where U : MyTask<int>, new()
+                    public async System.Threading.Tasks.Task Run<U>(U u) where U : MyTask<int>, new()
                     {
                         try
                         {
@@ -1475,7 +1475,9 @@ class Test
                     public static AutoResetEvent CompletedSignal = new AutoResetEvent(false);
                     static void Main()
                     {
+                #pragma warning disable CS4014 // Task is unawaited
                         new MyTask<int>().Run<MyTask<int>>(new MyTask<int>());
+                #pragma warning restore CS4014 // Task is unawaited
 
                         CompletedSignal.WaitOne();
 
@@ -1491,7 +1493,10 @@ class Test
 
             var comp = CreateRuntimeAsyncCompilation(source);
 
-            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("0", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("0", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = ReturnValueMissing("Run", "0x4e")
+            });
             verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("MyTask<T>.Run<U>", $$"""
@@ -3268,7 +3273,7 @@ using System.Threading.Tasks;
 //Implementation of you own async pattern
 public class MyTask
 {
-    public async void Run()
+    public async System.Threading.Tasks.Task Run()
     {
         int tests = 0;
 
@@ -3331,7 +3336,10 @@ class Driver
 
             var comp = CreateRuntimeAsyncCompilation(source);
 
-            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("0", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("0", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = ReturnValueMissing("Run", "0x4f")
+            });
             verifier.VerifyIL("MyTask.Run", """
                 {
                   // Code size       80 (0x50)
@@ -3396,7 +3404,7 @@ public class MyTask
         return new MyTaskAwaiter();
     }
 
-    public async void Run()
+    public async System.Threading.Tasks.Task Run()
     {
         int tests = 0;
 
@@ -3457,7 +3465,10 @@ class Driver
 
             var comp = CreateRuntimeAsyncCompilation(source);
 
-            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("0", isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("0", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = ReturnValueMissing("Run", "0x4f")
+            });
             verifier.VerifyIL("MyTask.Run", """
                 {
                   // Code size       80 (0x50)
@@ -8411,6 +8422,262 @@ class Test1
                   IL_004e:  ret
                 }
                 """);
+        }
+
+        [Fact]
+        public void MissingAwaitTask()
+        {
+            var code = """
+                await System.Threading.Tasks.Task.CompletedTask;
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(code);
+            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitTask);
+            comp.VerifyDiagnostics(
+                // (1,7): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncHelpers.Await'
+                // await System.Threading.Tasks.Task.CompletedTask;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "System.Threading.Tasks.Task.CompletedTask").WithArguments("System.Runtime.CompilerServices.AsyncHelpers", "Await").WithLocation(1, 7)
+            );
+        }
+
+        [Fact]
+        public void MissingAwaitTaskT()
+        {
+            var code = """
+                await System.Threading.Tasks.Task.FromResult(0);
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(code);
+            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitTaskT_T);
+            comp.VerifyDiagnostics(
+                // (1,7): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncHelpers.Await'
+                // await System.Threading.Tasks.Task.FromResult(0);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "System.Threading.Tasks.Task.FromResult(0)").WithArguments("System.Runtime.CompilerServices.AsyncHelpers", "Await").WithLocation(1, 7)
+            );
+        }
+
+        [Fact]
+        public void MissingAwaitValueTask()
+        {
+            var code = """
+                await default(System.Threading.Tasks.ValueTask);
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(code);
+            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTask);
+            comp.VerifyDiagnostics(
+                // (1,7): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncHelpers.Await'
+                // await default(System.Threading.Tasks.ValueTask);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "default(System.Threading.Tasks.ValueTask)").WithArguments("System.Runtime.CompilerServices.AsyncHelpers", "Await").WithLocation(1, 7)
+            );
+        }
+
+        [Fact]
+        public void MissingAwaitValueTaskT()
+        {
+            var code = """
+                await default(System.Threading.Tasks.ValueTask<int>);
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(code);
+            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTaskT_T);
+            comp.VerifyDiagnostics(
+                // (1,7): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncHelpers.Await'
+                // await default(System.Threading.Tasks.ValueTask<int>);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "default(System.Threading.Tasks.ValueTask<int>)").WithArguments("System.Runtime.CompilerServices.AsyncHelpers", "Await").WithLocation(1, 7)
+            );
+        }
+
+        [Fact]
+        public void MissingUnsafeAwaitAwaiter()
+        {
+            var code = """
+                await System.Threading.Tasks.Task.Yield();
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(code);
+            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter);
+            comp.VerifyDiagnostics(
+                // (1,7): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter'
+                // await System.Threading.Tasks.Task.Yield();
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "System.Threading.Tasks.Task.Yield()").WithArguments("System.Runtime.CompilerServices.AsyncHelpers", "UnsafeAwaitAwaiter").WithLocation(1, 7)
+            );
+        }
+
+        [Fact]
+        public void MissingAwaitAwaiter()
+        {
+            var code = """
+                using System.Runtime.CompilerServices;
+
+                await new C();
+
+                class C
+                {
+                    public CAwaiter GetAwaiter() => new CAwaiter();
+                }
+
+                class CAwaiter : INotifyCompletion
+                {
+                    public void OnCompleted(System.Action continuation) {}
+                    public bool IsCompleted => true;
+                    public void GetResult() {}
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(code);
+            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter);
+            comp.VerifyDiagnostics(
+                // (3,7): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiter'
+                // await new C();
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "new C()").WithArguments("System.Runtime.CompilerServices.AsyncHelpers", "AwaitAwaiter").WithLocation(3, 7)
+            );
+        }
+
+        [Fact]
+        public void AwaitAwaiterConstraintsViolation()
+        {
+            var runtimeAsyncAwaitHelpers = """
+                namespace System.Runtime.CompilerServices
+                {
+                    public static class AsyncHelpers
+                    {
+                        public static void AwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : struct, INotifyCompletion
+                        {}
+                        public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : ICriticalNotifyCompletion
+                        {}
+
+                        public static void Await(System.Threading.Tasks.Task task) => task.GetAwaiter().GetResult();
+                        public static void Await(System.Threading.Tasks.ValueTask task) => task.GetAwaiter().GetResult();
+                        public static T Await<T>(System.Threading.Tasks.Task<T> task) => task.GetAwaiter().GetResult();
+                        public static T Await<T>(System.Threading.Tasks.ValueTask<T> task) => task.GetAwaiter().GetResult();
+                    }
+                }
+                """;
+
+            var code = """
+                using System.Runtime.CompilerServices;
+
+                await new C();
+
+                class C
+                {
+                    public CAwaiter GetAwaiter() => new CAwaiter();
+                }
+
+                class CAwaiter : INotifyCompletion
+                {
+                    public void OnCompleted(System.Action continuation) {}
+                    public bool IsCompleted => true;
+                    public void GetResult() {}
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(code, runtimeAsyncAwaitHelpers: runtimeAsyncAwaitHelpers);
+            comp.VerifyDiagnostics(
+                // (3,7): error CS0453: The type 'CAwaiter' must be a non-nullable value type in order to use it as parameter 'TAwaiter' in the generic type or method 'AsyncHelpers.AwaitAwaiter<TAwaiter>(TAwaiter)'
+                // await new C();
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "new C()").WithArguments("System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiter<TAwaiter>(TAwaiter)", "TAwaiter", "CAwaiter").WithLocation(3, 7)
+            );
+        }
+
+        [Fact]
+        public void UnsafeAwaitAwaiterConstraintsViolation()
+        {
+            var runtimeAsyncAwaitHelpers = """
+                namespace System.Runtime.CompilerServices
+                {
+                    public static class AsyncHelpers
+                    {
+                        public static void AwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : INotifyCompletion
+                        {}
+                        public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : class, ICriticalNotifyCompletion
+                        {}
+
+                        public static void Await(System.Threading.Tasks.Task task) => task.GetAwaiter().GetResult();
+                        public static void Await(System.Threading.Tasks.ValueTask task) => task.GetAwaiter().GetResult();
+                        public static T Await<T>(System.Threading.Tasks.Task<T> task) => task.GetAwaiter().GetResult();
+                        public static T Await<T>(System.Threading.Tasks.ValueTask<T> task) => task.GetAwaiter().GetResult();
+                    }
+                }
+                """;
+
+            var code = """
+                await System.Threading.Tasks.Task.Yield();
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(code, runtimeAsyncAwaitHelpers: runtimeAsyncAwaitHelpers);
+            comp.VerifyDiagnostics(
+                // (1,7): error CS0452: The type 'YieldAwaitable.YieldAwaiter' must be a reference type in order to use it as parameter 'TAwaiter' in the generic type or method 'AsyncHelpers.UnsafeAwaitAwaiter<TAwaiter>(TAwaiter)'
+                // await System.Threading.Tasks.Task.Yield();
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "System.Threading.Tasks.Task.Yield()").WithArguments("System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<TAwaiter>(TAwaiter)", "TAwaiter", "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter").WithLocation(1, 7)
+            );
+        }
+
+        [Fact]
+        public void TaskTAwaitConstraintsViolation()
+        {
+            var runtimeAsyncAwaitHelpers = """
+                namespace System.Runtime.CompilerServices
+                {
+                    public static class AsyncHelpers
+                    {
+                        public static void AwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : INotifyCompletion
+                        {}
+                        public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : class, ICriticalNotifyCompletion
+                        {}
+
+                        public static void Await(System.Threading.Tasks.Task task) => task.GetAwaiter().GetResult();
+                        public static void Await(System.Threading.Tasks.ValueTask task) => task.GetAwaiter().GetResult();
+                        public static T Await<T>(System.Threading.Tasks.Task<T> task) where T : class => task.GetAwaiter().GetResult();
+                        public static T Await<T>(System.Threading.Tasks.ValueTask<T> task) => task.GetAwaiter().GetResult();
+                    }
+                }
+                """;
+
+            var code = """
+                await System.Threading.Tasks.Task<int>.FromResult(1);
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(code, runtimeAsyncAwaitHelpers: runtimeAsyncAwaitHelpers);
+            comp.VerifyDiagnostics(
+                // (1,7): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'AsyncHelpers.Await<T>(Task<T>)'
+                // await System.Threading.Tasks.Task<int>.FromResult(1);
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "System.Threading.Tasks.Task<int>.FromResult(1)").WithArguments("System.Runtime.CompilerServices.AsyncHelpers.Await<T>(System.Threading.Tasks.Task<T>)", "T", "int").WithLocation(1, 7)
+            );
+        }
+
+        [Fact]
+        public void ValueTaskTAwaitConstraintsViolation()
+        {
+            var runtimeAsyncAwaitHelpers = """
+                namespace System.Runtime.CompilerServices
+                {
+                    public static class AsyncHelpers
+                    {
+                        public static void AwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : INotifyCompletion
+                        {}
+                        public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : class, ICriticalNotifyCompletion
+                        {}
+
+                        public static void Await(System.Threading.Tasks.Task task) => task.GetAwaiter().GetResult();
+                        public static void Await(System.Threading.Tasks.ValueTask task) => task.GetAwaiter().GetResult();
+                        public static T Await<T>(System.Threading.Tasks.Task<T> task) => task.GetAwaiter().GetResult();
+                        public static T Await<T>(System.Threading.Tasks.ValueTask<T> task) where T : class => task.GetAwaiter().GetResult();
+                    }
+                }
+                """;
+
+            var code = """
+                await default(System.Threading.Tasks.ValueTask<int>);
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(code, runtimeAsyncAwaitHelpers: runtimeAsyncAwaitHelpers);
+            comp.VerifyDiagnostics(
+                // (1,7): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'AsyncHelpers.Await<T>(ValueTask<T>)'
+                // await default(System.Threading.Tasks.ValueTask<int>);
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "default(System.Threading.Tasks.ValueTask<int>)").WithArguments("System.Runtime.CompilerServices.AsyncHelpers.Await<T>(System.Threading.Tasks.ValueTask<T>)", "T", "int").WithLocation(1, 7)
+            );
         }
     }
 }

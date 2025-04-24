@@ -693,6 +693,10 @@
     <Field Name="GetAwaiter" Type="BoundExpression?" Null="allow"/>
     <Field Name="IsCompleted" Type="PropertySymbol?" Null="allow"/>
     <Field Name="GetResult" Type="MethodSymbol?" Null="allow"/>
+    <!-- Refers to the runtime async helper we call for awaiting. Either this is an instance of an AsyncHelpers.Await call, and 
+         GetAwaiter, IsCompleted, and GetResult are null, or this is AsyncHelpers.AwaitAwaiter/UnsafeAwaitAwaiter, and the other
+         fields are not null. -->
+    <Field Name="RuntimeAsyncAwaitMethod" Type="MethodSymbol?" Null="allow"/>
   </Node>
 
   <Node Name="BoundAwaitExpression" Base="BoundExpression">

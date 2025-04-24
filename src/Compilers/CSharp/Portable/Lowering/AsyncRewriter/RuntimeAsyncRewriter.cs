@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp;
@@ -23,6 +22,8 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
             return node;
         }
 
+        // PROTOTYPE: try/finally rewriting
+        // PROTOTYPE: struct lifting
         var rewriter = new RuntimeAsyncRewriter(compilationState.Compilation, new SyntheticBoundNodeFactory(method, node.Syntax, compilationState, diagnostics));
         var result = (BoundStatement)rewriter.Visit(node);
         return SpillSequenceSpiller.Rewrite(result, method, compilationState, diagnostics);
@@ -39,26 +40,6 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         _placeholderMap = [];
     }
 
-    private NamedTypeSymbol Task
-    {
-        get => field ??= _compilation.GetSpecialType(InternalSpecialType.System_Threading_Tasks_Task);
-    } = null!;
-
-    private NamedTypeSymbol TaskT
-    {
-        get => field ??= _compilation.GetSpecialType(InternalSpecialType.System_Threading_Tasks_Task_T);
-    } = null!;
-
-    private NamedTypeSymbol ValueTask
-    {
-        get => field ??= _compilation.GetSpecialType(InternalSpecialType.System_Threading_Tasks_ValueTask);
-    } = null!;
-
-    private NamedTypeSymbol ValueTaskT
-    {
-        get => field ??= _compilation.GetSpecialType(InternalSpecialType.System_Threading_Tasks_ValueTask_T);
-    } = null!;
-
     [return: NotNullIfNotNull(nameof(node))]
     public BoundExpression? VisitExpression(BoundExpression? node)
     {
@@ -70,53 +51,25 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
     {
         var nodeType = node.Expression.Type;
         Debug.Assert(nodeType is not null);
-        var originalType = nodeType.OriginalDefinition;
 
-        SpecialMember awaitCall;
-        TypeWithAnnotations? maybeNestedType = null;
+        var awaitableInfo = node.AwaitableInfo;
+        var runtimeAsyncAwaitMethod = awaitableInfo.RuntimeAsyncAwaitMethod;
+        Debug.Assert(runtimeAsyncAwaitMethod is not null);
+        Debug.Assert(ReferenceEquals(
+            runtimeAsyncAwaitMethod.ContainingType.OriginalDefinition,
+            _factory.Compilation.GetSpecialType(InternalSpecialType.System_Runtime_CompilerServices_AsyncHelpers)));
+        Debug.Assert(runtimeAsyncAwaitMethod.Name is "Await" or "UnsafeAwaitAwaiter" or "AwaitAwaiter");
 
-        if (ReferenceEquals(originalType, Task))
+        if (runtimeAsyncAwaitMethod.Name == "Await")
         {
-            awaitCall = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitTask;
-        }
-        else if (ReferenceEquals(originalType, TaskT))
-        {
-            awaitCall = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitTaskT_T;
-            maybeNestedType = ((NamedTypeSymbol)nodeType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
-        }
-        else if (ReferenceEquals(originalType, ValueTask))
-        {
-            awaitCall = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTask;
-        }
-        else if (ReferenceEquals(originalType, ValueTaskT))
-        {
-            awaitCall = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTaskT_T;
-            maybeNestedType = ((NamedTypeSymbol)nodeType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+            // This is the direct await case, with no need for the full pattern.
+            // System.Runtime.CompilerServices.RuntimeHelpers.Await(awaitedExpression)
+            return _factory.Call(receiver: null, runtimeAsyncAwaitMethod, VisitExpression(node.Expression));
         }
         else
         {
             return RewriteCustomAwaiterAwait(node);
         }
-
-        // PROTOTYPE: Make sure that we report an error in initial binding if these are missing
-        var awaitMethod = (MethodSymbol?)_compilation.GetSpecialTypeMember(awaitCall);
-        Debug.Assert(awaitMethod is not null);
-
-        if (maybeNestedType is { } nestedType)
-        {
-            Debug.Assert(awaitMethod.TypeParameters.Length == 1);
-            // PROTOTYPE: Check diagnostic
-            awaitMethod = awaitMethod.Construct([nestedType]);
-        }
-#if DEBUG
-        else
-        {
-            Debug.Assert(awaitMethod.TypeParameters.Length == 0);
-        }
-#endif
-
-        // System.Runtime.CompilerServices.RuntimeHelpers.Await(awaitedExpression)
-        return _factory.Call(receiver: null, awaitMethod, VisitExpression(node.Expression));
     }
 
     private BoundExpression RewriteCustomAwaiterAwait(BoundAwaitExpression node)
@@ -158,22 +111,10 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         var isCompletedCall = _factory.Call(tmp, isCompletedMethod);
 
         // UnsafeAwaitAwaiter(_tmp) OR AwaitAwaiter(_tmp)
-        var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-        var useUnsafeAwait = _factory.Compilation.Conversions.ClassifyImplicitConversionFromType(
-            tmp.Type,
-            _factory.Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_ICriticalNotifyCompletion),
-            ref discardedUseSiteInfo).IsImplicit;
-
-        // PROTOTYPE: Make sure that we report an error in initial binding if these are missing
-        var awaitMethod = (MethodSymbol?)_compilation.GetSpecialTypeMember(useUnsafeAwait
-            ? SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter
-            : SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter);
-
-        Debug.Assert(awaitMethod is { Arity: 1 });
-
+        Debug.Assert(awaitableInfo.RuntimeAsyncAwaitMethod is not null);
         var awaitCall = _factory.Call(
             receiver: null,
-            awaitMethod.Construct(tmp.Type),
+            awaitableInfo.RuntimeAsyncAwaitMethod,
             tmp);
 
         // if (!_tmp.IsCompleted) awaitCall

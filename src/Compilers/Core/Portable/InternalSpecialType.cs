@@ -113,6 +113,17 @@ namespace Microsoft.CodeAnalysis
         System_Threading_Tasks_ValueTask_T,
 
         /// <summary>
+        /// Indicates that the type is <see cref="System.Runtime.CompilerServices.ICriticalNotifyCompletion"/> from the COR library.
+        /// </summary>
+        /// <remarks>
+        /// Check for this special type cannot be used to find the "canonical" definition of <see cref="System.Runtime.CompilerServices.ICriticalNotifyCompletion"/>
+        /// since it is fully legal for it to come from sources other than the COR library.
+        /// The <see cref="WellKnownType.System_Runtime_CompilerServices_ICriticalNotifyCompletion"/> should be used for that purpose instead.
+        /// This entry mostly exists so that compiler can tell this type apart when resolving other members of the COR library.
+        /// </remarks>
+        System_Runtime_CompilerServices_ICriticalNotifyCompletion,
+
+        /// <summary>
         /// This item should be kept last and it doesn't represent any specific type.
         /// </summary>
         NextAvailable

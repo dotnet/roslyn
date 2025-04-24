@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns true if this method should be processed with runtime async handling instead
         /// of compiler async state machine generation.
         /// </summary>
-        internal bool IsRuntimeAsyncEnabledIn(MethodSymbol method)
+        internal bool IsRuntimeAsyncEnabledIn(Symbol? symbol)
         {
             // PROTOTYPE: EE tests fail this assert, handle and test
             //Debug.Assert(ReferenceEquals(method.ContainingAssembly, Assembly));
@@ -325,7 +325,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return method switch
+            if (symbol is not MethodSymbol method)
+            {
+                return false;
+            }
+
+            var methodReturn = method.ReturnType.OriginalDefinition;
+            if (!ReferenceEquals(methodReturn, GetSpecialType(InternalSpecialType.System_Threading_Tasks_Task))
+                && !ReferenceEquals(methodReturn, GetSpecialType(InternalSpecialType.System_Threading_Tasks_Task_T))
+                && !ReferenceEquals(methodReturn, GetSpecialType(InternalSpecialType.System_Threading_Tasks_ValueTask))
+                && !ReferenceEquals(methodReturn, GetSpecialType(InternalSpecialType.System_Threading_Tasks_ValueTask_T)))
+            {
+                return false;
+            }
+
+            return symbol switch
             {
                 SourceMethodSymbol { IsRuntimeAsyncEnabledInMethod: ThreeState.True } => true,
                 SourceMethodSymbol { IsRuntimeAsyncEnabledInMethod: ThreeState.False } => false,
@@ -2211,11 +2225,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var dumbInstance = new BoundLiteral(syntax, ConstantValue.Null, namedType);
             var binder = GetBinder(syntax);
             BoundExpression? result;
-            var success = binder.GetAwaitableExpressionInfo(dumbInstance, out result, syntax, diagnostics);
+            var success = binder.GetAwaitableExpressionInfo(dumbInstance, out result, out MethodSymbol? runtimeAwaitMethod, syntax, diagnostics);
 
             RoslynDebug.Assert(!namedType.IsDynamic());
+            Debug.Assert(result is { Type: not null } || runtimeAwaitMethod is { ReturnType: not null });
             return success &&
-                (result!.Type!.IsVoidType() || result.Type!.SpecialType == SpecialType.System_Int32);
+                ((result?.Type ?? runtimeAwaitMethod!.ReturnType)!.IsVoidType() || result.Type!.SpecialType == SpecialType.System_Int32);
         }
 
         /// <summary>

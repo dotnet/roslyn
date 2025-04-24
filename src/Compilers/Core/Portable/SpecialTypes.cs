@@ -80,6 +80,7 @@ namespace Microsoft.CodeAnalysis
             "System.Threading.Tasks.Task`1",
             "System.Threading.Tasks.ValueTask",
             "System.Threading.Tasks.ValueTask`1",
+            "System.Runtime.CompilerServices.ICriticalNotifyCompletion",
         };
 
         private static readonly Dictionary<string, ExtendedSpecialType> s_nameToTypeIdMap;
