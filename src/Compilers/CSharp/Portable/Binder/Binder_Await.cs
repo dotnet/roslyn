@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(runtimeAwaitHelper.TypeParameters.Length == 1);
                     runtimeAwaitHelper = runtimeAwaitHelper.Construct([nestedType]);
-                    checkMethodGenericConstraints(expression, diagnostics, runtimeAwaitHelper);
+                    checkMethodGenericConstraints(runtimeAwaitHelper, diagnostics, expression.Syntax.Location);
                 }
 #if DEBUG
                 else
@@ -389,18 +389,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(awaitMethod is { Arity: 1 });
 
                 runtimeAwaitAwaiterMethod = awaitMethod.Construct(awaiterType);
-                checkMethodGenericConstraints(expression, diagnostics, runtimeAwaitAwaiterMethod);
+                checkMethodGenericConstraints(runtimeAwaitAwaiterMethod, diagnostics, expression.Syntax.Location);
 
                 return true;
             }
 
-            void checkMethodGenericConstraints(BoundExpression expression, BindingDiagnosticBag diagnostics, MethodSymbol method)
+            void checkMethodGenericConstraints(MethodSymbol method, BindingDiagnosticBag diagnostics, Location location)
             {
                 var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
                 ArrayBuilder<TypeParameterDiagnosticInfo>? useSiteDiagnosticsBuilder = null;
                 ConstraintsHelper.CheckMethodConstraints(
                     method,
-                    new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, location: expression.Syntax.Location, diagnostics: null),
+                    new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, location, diagnostics: null),
                     diagnosticsBuilder,
                     nullabilityDiagnosticsBuilderOpt: null,
                     ref useSiteDiagnosticsBuilder);
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (pair.UseSiteInfo.DiagnosticInfo is { } diagnosticInfo)
                     {
-                        diagnostics.Add(diagnosticInfo, expression.Syntax.Location);
+                        diagnostics.Add(diagnosticInfo, location);
                     }
                     diagnosticsBuilder.Free();
                 }
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (pair.UseSiteInfo.DiagnosticInfo is { } diagnosticInfo)
                         {
-                            diagnostics.Add(diagnosticInfo, expression.Syntax.Location);
+                            diagnostics.Add(diagnosticInfo, location);
                         }
                     }
                     useSiteDiagnosticsBuilder.Free();
