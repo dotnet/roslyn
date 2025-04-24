@@ -23,15 +23,15 @@ using Microsoft.VisualStudio.Language.Intellisense;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek;
 
-// [Export(typeof(IPeekableItemFactory))]
-internal abstract class PeekableItemFactory// : IPeekableItemFactory
+[Export(typeof(PeekableItemFactory))]
+internal class PeekableItemFactory
 {
     private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
     private readonly IGlobalOptionService _globalOptions;
     private readonly IThreadingContext _threadingContext;
 
-    //[ImportingConstructor]
-    //[Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public PeekableItemFactory(
         IMetadataAsSourceFileService metadataAsSourceFileService,
         IGlobalOptionService globalOptions,
