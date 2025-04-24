@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
@@ -27,9 +28,8 @@ namespace Microsoft.CodeAnalysis;
 /// </summary>
 public partial class Solution
 {
-
     // Values for all these are created on demand.
-    private ImmutableDictionary<ProjectId, Project> _projectIdToProjectMap;
+    private readonly ConcurrentDictionary<ProjectId, Project> _projectIdToProjectMap = [];
 
     /// <summary>
     /// Result of calling <see cref="WithFrozenPartialCompilationsAsync"/>.
@@ -46,7 +46,6 @@ public partial class Solution
         SolutionCompilationState compilationState,
         AsyncLazy<Solution>? cachedFrozenSolution = null)
     {
-        _projectIdToProjectMap = ImmutableDictionary<ProjectId, Project>.Empty;
         CompilationState = compilationState;
 
         _cachedFrozenSolution = cachedFrozenSolution ??
@@ -152,7 +151,7 @@ public partial class Solution
     {
         if (this.ContainsProject(projectId))
         {
-            return ImmutableInterlocked.GetOrAdd(ref _projectIdToProjectMap, projectId, s_createProjectFunction, this);
+            return _projectIdToProjectMap.GetOrAdd(projectId, s_createProjectFunction, this);
         }
 
         return null;
