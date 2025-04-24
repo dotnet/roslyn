@@ -1517,17 +1517,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var element = tree.GetRoot().DescendantNodes().OfType<ExpressionElementSyntax>().Single();
-            // https://github.com/dotnet/roslyn/issues/77872: Implement GetTypeInfo() support.
             var typeInfo = model.GetTypeInfo(element.Expression);
             Assert.Equal("System.Collections.Generic.KeyValuePair<System.Int32, System.String>", typeInfo.Type.ToTestDisplayString());
-            Assert.Equal("System.Collections.Generic.KeyValuePair<System.Int32, System.String>", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal("System.Collections.Generic.KeyValuePair<System.Object, System.Object>", typeInfo.ConvertedType.ToTestDisplayString());
 
             // https://github.com/dotnet/roslyn/issues/77872: Include IOperation support for implicit Key and Value conversions.
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
                 ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IDictionary<System.Object, System.Object>) (Syntax: '[x]')
                   Elements(1):
-                      IOperation:  (OperationKind.None, Type: null) (Syntax: 'x')
+                      IOperation:  (OperationKind.None, Type: System.Collections.Generic.KeyValuePair<System.Object, System.Object>) (Syntax: 'x')
                 """);
         }
 
@@ -3708,9 +3707,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (19,24): error CS1061: 'MyDictionary<int, string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<int, string>' could be found (are you missing a using directive or an assembly reference?)
                 //         F<int, string>([2:"two"]);
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"[2:""two""]").WithArguments("MyDictionary<int, string>", "Add").WithLocation(19, 24),
-                // (19,25): error CS9500: Collection expression type 'MyDictionary<int, string>' does not support key-value pair elements.
-                //         F<int, string>([2:"two"]);
-                Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, @"2:""two""").WithArguments("MyDictionary<int, string>").WithLocation(19, 25),
                 // (21,25): error CS0117: 'MyDictionary<K, V>' does not contain a definition for 'Add'
                 //     static void F<K, V>(params MyDictionary<K, V> args) { }
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "params MyDictionary<K, V> args").WithArguments("MyDictionary<K, V>", "Add").WithLocation(21, 25));
@@ -3913,9 +3909,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (5,59): error CS1061: 'MyDictionary<K, V>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<K, V>' could be found (are you missing a using directive or an assembly reference?)
                     //     static MyDictionary<K, V> FromPair<K, V>(K k, V v) => [k:v];
                     Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[k:v]").WithArguments("MyDictionary<K, V>", "Add").WithLocation(5, 59),
-                    // (5,60): error CS9500: Collection expression type 'MyDictionary<K, V>' does not support key-value pair elements.
-                    //     static MyDictionary<K, V> FromPair<K, V>(K k, V v) => [k:v];
-                    Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "k:v").WithArguments("MyDictionary<K, V>").WithLocation(5, 60),
                     // (6,77): error CS1061: 'MyDictionary<K, V>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<K, V>' could be found (are you missing a using directive or an assembly reference?)
                     //     static MyDictionary<K, V> FromExpression<K, V>(KeyValuePair<K, V> e) => [e];
                     Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[e]").WithArguments("MyDictionary<K, V>", "Add").WithLocation(6, 77),
@@ -3956,10 +3949,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics(
                 // (10,59): error CS1061: 'MyDictionary<string, object, object, string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<string, object, object, string>' could be found (are you missing a using directive or an assembly reference?)
                 //         MyDictionary<string, object, object, string> d4 = [default:default];
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[default:default]").WithArguments("MyDictionary<string, object, object, string>", "Add").WithLocation(10, 59),
-                // (10,60): error CS9500: Collection expression type 'MyDictionary<string, object, object, string>' does not support key-value pair elements.
-                //         MyDictionary<string, object, object, string> d4 = [default:default];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "default:default").WithArguments("MyDictionary<string, object, object, string>").WithLocation(10, 60));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[default:default]").WithArguments("MyDictionary<string, object, object, string>", "Add").WithLocation(10, 59));
         }
 
         [Fact]
@@ -4074,21 +4064,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (6,13): error CS1061: 'MyDictionary<string, object>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<string, object>' could be found (are you missing a using directive or an assembly reference?)
                 //         d = ["one":1];
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"[""one"":1]").WithArguments("MyDictionary<string, object>", "Add").WithLocation(6, 13),
-                // (6,14): error CS9500: Collection expression type 'MyDictionary<string, object>' does not support key-value pair elements.
-                //         d = ["one":1];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, @"""one"":1").WithArguments("MyDictionary<string, object>").WithLocation(6, 14),
                 // (7,13): error CS1061: 'MyDictionary<string, object>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<string, object>' could be found (are you missing a using directive or an assembly reference?)
                 //         d = ["two":(object)2];
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"[""two"":(object)2]").WithArguments("MyDictionary<string, object>", "Add").WithLocation(7, 13),
-                // (7,14): error CS9500: Collection expression type 'MyDictionary<string, object>' does not support key-value pair elements.
-                //         d = ["two":(object)2];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, @"""two"":(object)2").WithArguments("MyDictionary<string, object>").WithLocation(7, 14),
                 // (8,13): error CS1061: 'MyDictionary<string, object>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<string, object>' could be found (are you missing a using directive or an assembly reference?)
                 //         d = [(object)"three":(object)3];
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"[(object)""three"":(object)3]").WithArguments("MyDictionary<string, object>", "Add").WithLocation(8, 13),
-                // (8,14): error CS9500: Collection expression type 'MyDictionary<string, object>' does not support key-value pair elements.
+                // (8,14): error CS0029: Cannot implicitly convert type 'object' to 'string'
                 //         d = [(object)"three":(object)3];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, @"(object)""three"":(object)3").WithArguments("MyDictionary<string, object>").WithLocation(8, 14));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"(object)""three""").WithArguments("object", "string").WithLocation(8, 14));
 
             string sourceB2 = """
                 class MyDictionary1 : MyDictionary<string, int> { }
@@ -4144,10 +4128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics(
                 // (17,39): error CS1061: 'MyDictionary<int, string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<int, string>' could be found (are you missing a using directive or an assembly reference?)
                 //         MyDictionary<int, string> d = [default:default];
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[default:default]").WithArguments("MyDictionary<int, string>", "Add").WithLocation(17, 39),
-                // (17,40): error CS9500: Collection expression type 'MyDictionary<int, string>' does not support key-value pair elements.
-                //         MyDictionary<int, string> d = [default:default];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "default:default").WithArguments("MyDictionary<int, string>").WithLocation(17, 40));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[default:default]").WithArguments("MyDictionary<int, string>", "Add").WithLocation(17, 39));
         }
 
         [Fact]
@@ -4225,9 +4206,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         // (13,59): error CS1061: 'MyDictionary<K, V>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<K, V>' could be found (are you missing a using directive or an assembly reference?)
                         //     static MyDictionary<K, V> FromPair<K, V>(K k, V v) => [k:v];
                         Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[k:v]").WithArguments("MyDictionary<K, V>", "Add").WithLocation(13, 59),
-                        // (13,60): error CS9500: Collection expression type 'MyDictionary<K, V>' does not support key-value pair elements.
-                        //     static MyDictionary<K, V> FromPair<K, V>(K k, V v) => [k:v];
-                        Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "k:v").WithArguments("MyDictionary<K, V>").WithLocation(13, 60),
                         // (14,77): error CS1061: 'MyDictionary<K, V>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<K, V>' could be found (are you missing a using directive or an assembly reference?)
                         //     static MyDictionary<K, V> FromExpression<K, V>(KeyValuePair<K, V> e) => [e];
                         Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[e]").WithArguments("MyDictionary<K, V>", "Add").WithLocation(14, 77),
@@ -4244,9 +4222,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         // (13,59): error CS1061: 'MyDictionary<K, V>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<K, V>' could be found (are you missing a using directive or an assembly reference?)
                         //     static MyDictionary<K, V> FromPair<K, V>(K k, V v) => [k:v];
                         Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[k:v]").WithArguments("MyDictionary<K, V>", "Add").WithLocation(13, 59),
-                        // (13,60): error CS9500: Collection expression type 'MyDictionary<K, V>' does not support key-value pair elements.
-                        //     static MyDictionary<K, V> FromPair<K, V>(K k, V v) => [k:v];
-                        Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "k:v").WithArguments("MyDictionary<K, V>").WithLocation(13, 60),
                         // (14,77): error CS1061: 'MyDictionary<K, V>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<K, V>' could be found (are you missing a using directive or an assembly reference?)
                         //     static MyDictionary<K, V> FromExpression<K, V>(KeyValuePair<K, V> e) => [e];
                         Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[e]").WithArguments("MyDictionary<K, V>", "Add").WithLocation(14, 77),
@@ -4696,15 +4671,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (13,34): error CS1061: 'MyDictionary1<K, V>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary1<K, V>' could be found (are you missing a using directive or an assembly reference?)
                 //         MyDictionary1<K, V> d1 = [default:default];
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[default:default]").WithArguments("MyDictionary1<K, V>", "Add").WithLocation(13, 34),
-                // (13,35): error CS9500: Collection expression type 'MyDictionary1<K, V>' does not support key-value pair elements.
-                //         MyDictionary1<K, V> d1 = [default:default];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "default:default").WithArguments("MyDictionary1<K, V>").WithLocation(13, 35),
                 // (14,34): error CS1061: 'MyDictionary2<K, V>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary2<K, V>' could be found (are you missing a using directive or an assembly reference?)
                 //         MyDictionary2<K, V> d2 = [default:default];
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[default:default]").WithArguments("MyDictionary2<K, V>", "Add").WithLocation(14, 34),
-                // (14,35): error CS9500: Collection expression type 'MyDictionary2<K, V>' does not support key-value pair elements.
-                //         MyDictionary2<K, V> d2 = [default:default];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "default:default").WithArguments("MyDictionary2<K, V>").WithLocation(14, 35));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[default:default]").WithArguments("MyDictionary2<K, V>", "Add").WithLocation(14, 34));
 
             string sourceB2 = """
                 class MyDictionary3<K, V> : MyDictionary<K, V>
@@ -4775,10 +4744,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 comp.VerifyEmitDiagnostics(
                     // (1,34): error CS1061: 'MyDictionary<string, object>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<string, object>' could be found (are you missing a using directive or an assembly reference?)
                     // MyDictionary<string, object> d = [default:default];
-                    Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[default:default]").WithArguments("MyDictionary<string, object>", "Add").WithLocation(1, 34),
-                    // (1,35): error CS9500: Collection expression type 'MyDictionary<string, object>' does not support key-value pair elements.
-                    // MyDictionary<string, object> d = [default:default];
-                    Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "default:default").WithArguments("MyDictionary<string, object>").WithLocation(1, 35));
+                    Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[default:default]").WithArguments("MyDictionary<string, object>", "Add").WithLocation(1, 34));
             }
         }
 
@@ -4804,10 +4770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics(
                 // (1,34): error CS1061: 'MyDictionary<string, object>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<string, object>' could be found (are you missing a using directive or an assembly reference?)
                 // MyDictionary<string, object> d = [default:default];
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[default:default]").WithArguments("MyDictionary<string, object>", "Add").WithLocation(1, 34),
-                // (1,35): error CS9500: Collection expression type 'MyDictionary<string, object>' does not support key-value pair elements.
-                // MyDictionary<string, object> d = [default:default];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "default:default").WithArguments("MyDictionary<string, object>").WithLocation(1, 35));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[default:default]").WithArguments("MyDictionary<string, object>", "Add").WithLocation(1, 34));
         }
 
         [Theory]
@@ -4836,10 +4799,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics(
                 // (1,34): error CS1061: 'MyDictionary<string, object>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<string, object>' could be found (are you missing a using directive or an assembly reference?)
                 // MyDictionary<string, object> d = [default:default];
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[default:default]").WithArguments("MyDictionary<string, object>", "Add").WithLocation(1, 34),
-                // (1,35): error CS9500: Collection expression type 'MyDictionary<string, object>' does not support key-value pair elements.
-                // MyDictionary<string, object> d = [default:default];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "default:default").WithArguments("MyDictionary<string, object>").WithLocation(1, 35));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[default:default]").WithArguments("MyDictionary<string, object>", "Add").WithLocation(1, 34));
         }
 
         [Fact]
