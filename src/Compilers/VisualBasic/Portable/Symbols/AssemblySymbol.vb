@@ -426,7 +426,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property RuntimeSupportsAsyncMethods As Boolean
             Get
                 ' Keep in sync with C#'s AssemblySymbol.RuntimeSupportsAsyncMethods
-                Return RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__Async)
+                Dim asyncHelpers = GetSpecialType(InternalSpecialType.System_Runtime_CompilerServices_AsyncHelpers)
+                Return asyncHelpers IsNot Nothing AndAlso
+                       asyncHelpers.IsClassType() AndAlso
+                       asyncHelpers.IsMetadataAbstract AndAlso
+                       asyncHelpers.IsMetadataSealed
             End Get
         End Property
 

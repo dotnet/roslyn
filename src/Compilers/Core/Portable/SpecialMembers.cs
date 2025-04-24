@@ -1141,12 +1141,6 @@ namespace Microsoft.CodeAnalysis
                 0,                                                                                                          // Arity
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,                                    // Field Signature
 
-                // System_Runtime_CompilerServices_RuntimeFeature__Async
-                (byte)(MemberFlags.Field | MemberFlags.Static),                                                             // Flags
-                (byte)SpecialType.System_Runtime_CompilerServices_RuntimeFeature,                                           // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,                                    // Field Signature
-
                 // System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor
                 (byte)MemberFlags.Constructor,                                                                              // Flags
                 (byte)SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute,                           // DeclaringTypeId
@@ -1510,7 +1504,6 @@ namespace Microsoft.CodeAnalysis
                 "NumericIntPtr",                            // System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr
                 "ByRefFields",                              // System_Runtime_CompilerServices_RuntimeFeature__ByRefFields
                 "ByRefLikeGenerics",                        // System_Runtime_CompilerServices_RuntimeFeature__ByRefLikeGenerics
-                "Async",                                    // System_Runtime_CompilerServices_RuntimeFeature__Async
                 ".ctor",                                    // System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_InlineArrayAttribute__ctor
                 ".ctor",                                    // System_ReadOnlySpan_T__ctor_Reference

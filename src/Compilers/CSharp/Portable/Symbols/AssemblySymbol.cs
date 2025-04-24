@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // Keep in sync with VB's AssemblySymbol.RuntimeSupportsAsyncMethods
         internal bool RuntimeSupportsAsyncMethods
-            => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__Async)
+            => GetSpecialType(InternalSpecialType.System_Runtime_CompilerServices_AsyncHelpers) is { TypeKind: TypeKind.Class, IsStatic: true }
                || _overrideRuntimeSupportsAsyncMethods;
 #nullable disable
 

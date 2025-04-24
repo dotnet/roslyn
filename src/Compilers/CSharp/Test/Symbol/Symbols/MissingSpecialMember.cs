@@ -568,7 +568,13 @@ namespace System
                     || special == SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor
                     || special == SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor
                     || special == SpecialMember.System_ReadOnlySpan_T__ctor_Reference
-                    || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__Async)
+                    || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiterFromRuntimeAsync_TAwaiter
+                    || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TAwaiter
+                    || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitTask
+                    || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitTaskT_T
+                    || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTask
+                    || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTaskT_T
+                    )
                 {
                     Assert.Null(symbol); // Not available
                 }
@@ -1023,12 +1029,6 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T:
                     case WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor:
-                    case WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitTask:
-                    case WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitTaskT_T:
-                    case WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitValueTask:
-                    case WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitValueTaskT_T:
-                    case WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitAwaiterFromRuntimeAsync_TAwaiter:
-                    case WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TAwaiter:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:
