@@ -230,7 +230,7 @@
     <PackageVersion Include="SQLitePCLRaw.provider.e_sqlite3.net45" Version="$(SqliteVersion)" />
 
     <PackageVersion Include="Humanizer.Core" Version="$(HumanizerVersion)" />
-    <PackageVersion Include="ICSharpCode.Decompiler" Version="8.2.0.7535" />
+    <PackageVersion Include="ICSharpCode.Decompiler" Version="9.1.0.7988" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Elfie" Version="1.0.0" />
 
     <!--
