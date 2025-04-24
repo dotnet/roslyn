@@ -102,7 +102,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
-                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : likely needs work for analyzers
                     {
                         if (associatedSymbol is IMethodSymbol ctor)
                         {
@@ -123,6 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         goto case SyntaxKind.InterfaceDeclaration;
                     }
                 case SyntaxKind.InterfaceDeclaration:
+                case SyntaxKind.ExtensionDeclaration:
                     {
                         var t = (TypeDeclarationSyntax)node;
                         foreach (var decl in t.Members)
