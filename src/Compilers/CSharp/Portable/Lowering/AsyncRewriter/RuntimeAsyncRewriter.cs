@@ -125,7 +125,7 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         // becomes
         // var _tmp = expr.GetAwaiter();
         // if (!_tmp.IsCompleted)
-        //    UnsafeAwaitAwaiterFromRuntimeAsync(_tmp) OR AwaitAwaiterFromRuntimeAsync(_tmp);
+        //    UnsafeAwaitAwaiter(_tmp) OR AwaitAwaiter(_tmp);
         // _tmp.GetResult()
 
         // PROTOTYPE: await dynamic will need runtime checks, see AsyncMethodToStateMachine.GenerateAwaitOnCompletedDynamic
@@ -157,7 +157,7 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         Debug.Assert(isCompletedMethod is not null);
         var isCompletedCall = _factory.Call(tmp, isCompletedMethod);
 
-        // UnsafeAwaitAwaiterFromRuntimeAsync(_tmp) OR AwaitAwaiterFromRuntimeAsync(_tmp)
+        // UnsafeAwaitAwaiter(_tmp) OR AwaitAwaiter(_tmp)
         var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
         var useUnsafeAwait = _factory.Compilation.Conversions.ClassifyImplicitConversionFromType(
             tmp.Type,
@@ -166,8 +166,8 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
 
         // PROTOTYPE: Make sure that we report an error in initial binding if these are missing
         var awaitMethod = (MethodSymbol?)_compilation.GetSpecialTypeMember(useUnsafeAwait
-            ? SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TAwaiter
-            : SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiterFromRuntimeAsync_TAwaiter);
+            ? SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter
+            : SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter);
 
         Debug.Assert(awaitMethod is { Arity: 1 });
 

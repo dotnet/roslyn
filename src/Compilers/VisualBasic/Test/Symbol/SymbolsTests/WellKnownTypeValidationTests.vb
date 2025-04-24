@@ -498,8 +498,8 @@ End Namespace
                    special = SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor OrElse
                    special = SpecialMember.System_ReadOnlySpan_T__ctor_Reference OrElse
-                   special = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiterFromRuntimeAsync_TAwaiter OrElse
-                   special = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TAwaiter OrElse
+                   special = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter OrElse
+                   special = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitTask OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitTaskT_T OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTask OrElse

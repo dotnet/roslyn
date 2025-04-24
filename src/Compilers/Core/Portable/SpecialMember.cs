@@ -198,8 +198,8 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_AsyncHelpers__AwaitTaskT_T,
         System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTask,
         System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTaskT_T,
-        System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiterFromRuntimeAsync_TAwaiter,
-        System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TAwaiter,
+        System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter,
+        System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter,
 
         Count
     }

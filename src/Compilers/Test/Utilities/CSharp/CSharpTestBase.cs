@@ -802,9 +802,9 @@ namespace System.Diagnostics.CodeAnalysis
             {
                 public static class AsyncHelpers
                 {
-                    public static void AwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter) where TAwaiter : INotifyCompletion
+                    public static void AwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : INotifyCompletion
                     {}
-                    public static void UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter) where TAwaiter : ICriticalNotifyCompletion
+                    public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : ICriticalNotifyCompletion
                     {}
 
                     public static void Await(System.Threading.Tasks.Task task) => task.GetAwaiter().GetResult();

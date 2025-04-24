@@ -568,8 +568,8 @@ namespace System
                     || special == SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor
                     || special == SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor
                     || special == SpecialMember.System_ReadOnlySpan_T__ctor_Reference
-                    || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiterFromRuntimeAsync_TAwaiter
-                    || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TAwaiter
+                    || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter
+                    || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter
                     || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitTask
                     || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitTaskT_T
                     || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTask

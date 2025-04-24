@@ -285,11 +285,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                     {
                         public const string NumericIntPtr = nameof(NumericIntPtr);
                     }
-                    public static class RuntimeHelpers
-                    {
-                        public static void AwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter) where TAwaiter : INotifyCompletion {}
-                        public static void UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter) where TAwaiter : ICriticalNotifyCompletion {}
-                    }
                     public struct TaskAwaiter : ICriticalNotifyCompletion
                     {
                         public void OnCompleted(Action continuation) {}
@@ -1521,7 +1516,7 @@ class Test
                     IL_0013:  callvirt   "bool MyTaskAwaiter<int>.IsCompleted.get"
                     IL_0018:  brtrue.s   IL_0020
                     IL_001a:  ldloc.1
-                    IL_001b:  call       "void System.Runtime.CompilerServices.AsyncHelpers.{{(useCritical ? "Unsafe" : "")}}AwaitAwaiterFromRuntimeAsync<MyTaskAwaiter<int>>(MyTaskAwaiter<int>)"
+                    IL_001b:  call       "void System.Runtime.CompilerServices.AsyncHelpers.{{(useCritical ? "Unsafe" : "")}}AwaitAwaiter<MyTaskAwaiter<int>>(MyTaskAwaiter<int>)"
                     IL_0020:  ldloc.1
                     IL_0021:  callvirt   "int MyTaskAwaiter<int>.GetResult()"
                     IL_0026:  brtrue.s   IL_0034
@@ -3358,7 +3353,7 @@ class Driver
                     IL_0012:  callvirt   "bool MyTaskAwaiter.IsCompleted.get"
                     IL_0017:  brtrue.s   IL_001f
                     IL_0019:  ldloc.1
-                    IL_001a:  call       "void System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiterFromRuntimeAsync<MyTaskAwaiter>(MyTaskAwaiter)"
+                    IL_001a:  call       "void System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiter<MyTaskAwaiter>(MyTaskAwaiter)"
                     IL_001f:  ldloc.1
                     IL_0020:  callvirt   "int MyTaskAwaiter.GetResult()"
                     IL_0025:  ldc.i4.s   123
@@ -3484,7 +3479,7 @@ class Driver
                     IL_0012:  callvirt   "bool MyTaskBaseAwaiter.IsCompleted.get"
                     IL_0017:  brtrue.s   IL_001f
                     IL_0019:  ldloc.1
-                    IL_001a:  call       "void System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiterFromRuntimeAsync<MyTaskAwaiter>(MyTaskAwaiter)"
+                    IL_001a:  call       "void System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiter<MyTaskAwaiter>(MyTaskAwaiter)"
                     IL_001f:  ldloc.1
                     IL_0020:  callvirt   "int MyTaskBaseAwaiter.GetResult()"
                     IL_0025:  ldc.i4.s   123
@@ -7196,7 +7191,7 @@ class Program
                   IL_0016:  call       "bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get"
                   IL_001b:  brtrue.s   IL_0023
                   IL_001d:  ldloc.0
-                  IL_001e:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiterFromRuntimeAsync<System.Runtime.CompilerServices.TaskAwaiter>(System.Runtime.CompilerServices.TaskAwaiter)"
+                  IL_001e:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.TaskAwaiter>(System.Runtime.CompilerServices.TaskAwaiter)"
                   IL_0023:  ldloca.s   V_0
                   IL_0025:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
                   IL_002a:  ret
@@ -7260,7 +7255,7 @@ class Program
                   IL_001b:  call       "bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get"
                   IL_0020:  brtrue.s   IL_0028
                   IL_0022:  ldloc.1
-                  IL_0023:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiterFromRuntimeAsync<System.Runtime.CompilerServices.TaskAwaiter>(System.Runtime.CompilerServices.TaskAwaiter)"
+                  IL_0023:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.TaskAwaiter>(System.Runtime.CompilerServices.TaskAwaiter)"
                   IL_0028:  ldloca.s   V_1
                   IL_002a:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
                   IL_002f:  ret
@@ -8252,7 +8247,7 @@ class Test1
             var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("42", isRuntimeAsync: true), verify: Verification.Fails with { ILVerifyMessage = ReturnValueMissing("<Main>$", "0x1f") });
 
-            var expectedAwait = notifyType == "INotifyCompletion" ? "AwaitAwaiterFromRuntimeAsync" : "UnsafeAwaitAwaiterFromRuntimeAsync";
+            var expectedAwait = notifyType == "INotifyCompletion" ? "AwaitAwaiter" : "UnsafeAwaitAwaiter";
             verifier.VerifyIL("<top-level-statements-entry-point>", $$"""
                 {
                   // Code size       32 (0x20)
@@ -8309,7 +8304,7 @@ class Test1
             var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("42", isRuntimeAsync: true), verify: Verification.Fails with { ILVerifyMessage = ReturnValueMissing("<Main>$", "0x24") });
 
-            var expectedAwait = notifyType.Contains("Critical") ? "UnsafeAwaitAwaiterFromRuntimeAsync" : "AwaitAwaiterFromRuntimeAsync";
+            var expectedAwait = notifyType.Contains("Critical") ? "UnsafeAwaitAwaiter" : "AwaitAwaiter";
             verifier.VerifyIL("<top-level-statements-entry-point>", $$"""
                 {
                   // Code size       37 (0x25)
@@ -8395,7 +8390,7 @@ class Test1
                   IL_001b:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
                   IL_0020:  brtrue.s   IL_0028
                   IL_0022:  ldloc.1
-                  IL_0023:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiterFromRuntimeAsync<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter>(System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter)"
+                  IL_0023:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter>(System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter)"
                   IL_0028:  ldloca.s   V_1
                   IL_002a:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
                   IL_002f:  ldc.i4.1
