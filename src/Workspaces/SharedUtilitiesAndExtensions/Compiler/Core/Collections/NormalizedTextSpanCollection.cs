@@ -18,7 +18,7 @@ internal sealed class NormalizedTextSpanCollection : ReadOnlyCollection<TextSpan
     /// empty.
     /// </summary>
     public NormalizedTextSpanCollection()
-        : base(new List<TextSpan>(0))
+        : base([])
     {
     }
 
@@ -545,10 +545,10 @@ internal sealed class NormalizedTextSpanCollection : ReadOnlyCollection<TextSpan
     #region Private Helpers
     private static IList<TextSpan> ListFromSpan(TextSpan span)
     {
-        IList<TextSpan> list = new List<TextSpan>(1)
-        {
+        IList<TextSpan> list =
+        [
             span
-        };
+        ];
         return list;
     }
 

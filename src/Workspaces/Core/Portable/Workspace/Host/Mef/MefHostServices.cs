@@ -104,7 +104,7 @@ public class MefHostServices(CompositionContext compositionContext) : HostServic
 
     // Used to build a MEF composition using the main workspaces assemblies and the known VisualBasic/CSharp workspace assemblies.
     // updated: includes feature assemblies since they now have public API's.
-    private static readonly string[] s_defaultAssemblyNames =
+    internal static ImmutableArray<string> DefaultAssemblyNames =
         [
             "Microsoft.CodeAnalysis.Workspaces",
             "Microsoft.CodeAnalysis.CSharp.Workspaces",
@@ -117,11 +117,11 @@ public class MefHostServices(CompositionContext compositionContext) : HostServic
     internal static bool IsDefaultAssembly(Assembly assembly)
     {
         var name = assembly.GetName().Name;
-        return s_defaultAssemblyNames.Contains(name);
+        return DefaultAssemblyNames.Contains(name);
     }
 
     private static ImmutableArray<Assembly> LoadDefaultAssemblies()
-        => MefHostServicesHelpers.LoadNearbyAssemblies(s_defaultAssemblyNames);
+        => MefHostServicesHelpers.LoadNearbyAssemblies(DefaultAssemblyNames);
 
     #endregion
 

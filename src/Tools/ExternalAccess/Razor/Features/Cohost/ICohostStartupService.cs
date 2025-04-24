@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 
-internal interface IRazorCohostDynamicRegistrationService
+internal interface ICohostStartupService
 {
-    Task RegisterAsync(string serializedClientCapabilities, RazorCohostRequestContext requestContext, CancellationToken cancellationToken);
+    Task StartupAsync(string serializedClientCapabilities, RazorCohostRequestContext requestContext, CancellationToken cancellationToken);
 }

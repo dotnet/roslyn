@@ -13,6 +13,6 @@ public abstract class AbstractCSharpSignatureHelpProviderTests : AbstractSignatu
 {
     protected override ParseOptions CreateExperimentalParseOptions()
     {
-        return new CSharpParseOptions().WithFeatures(new Dictionary<string, string>()); // no experimental features to enable
+        return new CSharpParseOptions().WithFeatures([]); // no experimental features to enable
     }
 }

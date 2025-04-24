@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override MethodKind MethodKind => MethodKind.Ordinary;
         public override bool IsImplicitlyDeclared => true;
 
-        internal override bool HasSpecialName => true; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : reconcile with spec
+        internal override bool HasSpecialName => false;
 
         internal override int ParameterCount
         {

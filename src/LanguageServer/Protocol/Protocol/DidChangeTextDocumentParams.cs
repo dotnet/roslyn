@@ -45,7 +45,7 @@ internal sealed class DidChangeTextDocumentParams : ITextDocumentParams
     /// </summary>
     [JsonPropertyName("contentChanges")]
     [JsonRequired]
-    public SumType<TextDocumentContentChangeEvent, TextDocumentContentChangeFullReplacementEvent>[] ContentChanges
+    public TextDocumentContentChangeEvent[] ContentChanges
     {
         get;
         set;

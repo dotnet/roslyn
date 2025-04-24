@@ -18,10 +18,12 @@ internal abstract class PendingUpdate(
 
 internal sealed class PendingSolutionUpdate(
     Solution solution,
+    ImmutableArray<ProjectId> projectsToStale,
     ImmutableArray<ProjectBaseline> projectBaselines,
     ImmutableArray<ManagedHotReloadUpdate> deltas,
     ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)> nonRemappableRegions) : PendingUpdate(projectBaselines, deltas)
 {
     public readonly Solution Solution = solution;
+    public readonly ImmutableArray<ProjectId> ProjectsToStale = projectsToStale;
     public readonly ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)> Regions)> NonRemappableRegions = nonRemappableRegions;
 }
