@@ -8438,6 +8438,11 @@ class Test1
                 // await System.Threading.Tasks.Task.CompletedTask;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "System.Threading.Tasks.Task.CompletedTask").WithArguments("System.Runtime.CompilerServices.AsyncHelpers", "Await").WithLocation(1, 7)
             );
+
+            // Runtime async not turned on, so we shouldn't care about the missing member
+            comp = CreateRuntimeAsyncCompilation(code, parseOptions: TestOptions.RegularPreview);
+            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitTask);
+            CompileAndVerify(comp);
         }
 
         [Fact]
@@ -8454,6 +8459,11 @@ class Test1
                 // await System.Threading.Tasks.Task.FromResult(0);
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "System.Threading.Tasks.Task.FromResult(0)").WithArguments("System.Runtime.CompilerServices.AsyncHelpers", "Await").WithLocation(1, 7)
             );
+
+            // Runtime async not turned on, so we shouldn't care about the missing member
+            comp = CreateRuntimeAsyncCompilation(code, parseOptions: TestOptions.RegularPreview);
+            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitTaskT_T);
+            CompileAndVerify(comp);
         }
 
         [Fact]
@@ -8470,6 +8480,11 @@ class Test1
                 // await default(System.Threading.Tasks.ValueTask);
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "default(System.Threading.Tasks.ValueTask)").WithArguments("System.Runtime.CompilerServices.AsyncHelpers", "Await").WithLocation(1, 7)
             );
+
+            // Runtime async not turned on, so we shouldn't care about the missing member
+            comp = CreateRuntimeAsyncCompilation(code, parseOptions: TestOptions.RegularPreview);
+            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTask);
+            CompileAndVerify(comp);
         }
 
         [Fact]
@@ -8486,6 +8501,11 @@ class Test1
                 // await default(System.Threading.Tasks.ValueTask<int>);
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "default(System.Threading.Tasks.ValueTask<int>)").WithArguments("System.Runtime.CompilerServices.AsyncHelpers", "Await").WithLocation(1, 7)
             );
+
+            // Runtime async not turned on, so we shouldn't care about the missing member
+            comp = CreateRuntimeAsyncCompilation(code, parseOptions: TestOptions.RegularPreview);
+            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTaskT_T);
+            CompileAndVerify(comp);
         }
 
         [Fact]
@@ -8502,6 +8522,11 @@ class Test1
                 // await System.Threading.Tasks.Task.Yield();
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "System.Threading.Tasks.Task.Yield()").WithArguments("System.Runtime.CompilerServices.AsyncHelpers", "UnsafeAwaitAwaiter").WithLocation(1, 7)
             );
+
+            // Runtime async not turned on, so we shouldn't care about the missing member
+            comp = CreateRuntimeAsyncCompilation(code, parseOptions: TestOptions.RegularPreview);
+            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter);
+            CompileAndVerify(comp);
         }
 
         [Fact]
@@ -8532,6 +8557,11 @@ class Test1
                 // await new C();
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "new C()").WithArguments("System.Runtime.CompilerServices.AsyncHelpers", "AwaitAwaiter").WithLocation(3, 7)
             );
+
+            // Runtime async not turned on, so we shouldn't care about the missing member
+            comp = CreateRuntimeAsyncCompilation(code, parseOptions: TestOptions.RegularPreview);
+            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter);
+            CompileAndVerify(comp);
         }
 
         [Fact]
