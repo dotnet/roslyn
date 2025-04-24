@@ -287,6 +287,8 @@ jobs:
       - macOS
     pool: ${{ parameters.windowsPool }} # Use Windows agent because PublishSymbols task requires it (https://github.com/microsoft/azure-pipelines-tasks/issues/13821).
     condition: succeededOrFailed()
+    variables:
+      ONEES_ENFORCED_CODEQL_ENABLED: false # CodeQL runs on build jobs, we don't need it here
     ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
       templateContext:
         ${{ if not(parameters.RealSign) }}:
