@@ -12,11 +12,6 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.ServerLifetime;
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer;
 
 [ExportLspServiceFactory(typeof(LspServiceLifeCycleManager), StringConstants.XamlLspLanguagesContract), Shared]
-internal class XamlLifeCycleManager : LspServiceLifeCycleManager.LspLifeCycleManagerFactory
-{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public XamlLifeCycleManager(LspWorkspaceRegistrationService lspWorkspaceRegistrationService) : base(lspWorkspaceRegistrationService)
-    {
-    }
-}
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class XamlLifeCycleManager(LspWorkspaceRegistrationService lspWorkspaceRegistrationService) : LspServiceLifeCycleManager.LspLifeCycleManagerFactory(lspWorkspaceRegistrationService);
