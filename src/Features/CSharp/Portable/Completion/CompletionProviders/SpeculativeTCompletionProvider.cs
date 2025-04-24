@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 [ExportCompletionProvider(nameof(SpeculativeTCompletionProvider), LanguageNames.CSharp)]
 [ExtensionOrder(After = nameof(AwaitCompletionProvider))]
 [Shared]
-internal class SpeculativeTCompletionProvider : LSPCompletionProvider
+internal sealed class SpeculativeTCompletionProvider : LSPCompletionProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents;
 
 [UseExportProvider]
-public class AddConstructorParameterIntentTests : IntentTestsBase
+public sealed class AddConstructorParameterIntentTests : IntentTestsBase
 {
     [Fact]
     public async Task AddConstructorParameterWithField()

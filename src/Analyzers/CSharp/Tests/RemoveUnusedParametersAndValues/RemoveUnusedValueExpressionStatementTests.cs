@@ -17,7 +17,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersAndValues;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
-public partial class RemoveUnusedValueExpressionStatementTests : RemoveUnusedValuesTestsBase
+public sealed partial class RemoveUnusedValueExpressionStatementTests : RemoveUnusedValuesTestsBase
 {
     public RemoveUnusedValueExpressionStatementTests(ITestOutputHelper logger)
       : base(logger)

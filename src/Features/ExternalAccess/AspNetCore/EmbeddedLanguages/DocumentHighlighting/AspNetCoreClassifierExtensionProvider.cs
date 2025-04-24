@@ -6,21 +6,20 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLanguages
-{
-    internal sealed class AspNetCoreDocumentHighlighterExtensionProvider
-        : AbstractProjectExtensionProvider<
-            AspNetCoreDocumentHighlighterExtensionProvider,
-            IAspNetCoreEmbeddedLanguageDocumentHighlighter,
-            ExportAspNetCoreEmbeddedLanguageDocumentHighlighterAttribute>
-    {
-        protected override ImmutableArray<string> GetLanguages(ExportAspNetCoreEmbeddedLanguageDocumentHighlighterAttribute exportAttribute)
-            => [exportAttribute.Language];
+namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLanguages;
 
-        protected override bool TryGetExtensionsFromReference(AnalyzerReference reference, out ImmutableArray<IAspNetCoreEmbeddedLanguageDocumentHighlighter> extensions)
-        {
-            extensions = default;
-            return false;
-        }
+internal sealed class AspNetCoreDocumentHighlighterExtensionProvider
+    : AbstractProjectExtensionProvider<
+        AspNetCoreDocumentHighlighterExtensionProvider,
+        IAspNetCoreEmbeddedLanguageDocumentHighlighter,
+        ExportAspNetCoreEmbeddedLanguageDocumentHighlighterAttribute>
+{
+    protected override ImmutableArray<string> GetLanguages(ExportAspNetCoreEmbeddedLanguageDocumentHighlighterAttribute exportAttribute)
+        => [exportAttribute.Language];
+
+    protected override bool TryGetExtensionsFromReference(AnalyzerReference reference, out ImmutableArray<IAspNetCoreEmbeddedLanguageDocumentHighlighter> extensions)
+    {
+        extensions = default;
+        return false;
     }
 }

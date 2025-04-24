@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 [ExportCompletionProvider(nameof(PreprocessorCompletionProvider), LanguageNames.CSharp)]
 [ExtensionOrder(After = nameof(ExternAliasCompletionProvider))]
 [Shared]
-internal class PreprocessorCompletionProvider : AbstractPreprocessorCompletionProvider
+internal sealed class PreprocessorCompletionProvider : AbstractPreprocessorCompletionProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

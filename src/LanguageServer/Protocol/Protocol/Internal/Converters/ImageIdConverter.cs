@@ -8,7 +8,7 @@ using System.Text.Json.Serialization;
 using Roslyn.Core.Imaging;
 
 namespace Roslyn.LanguageServer.Protocol;
-internal class ImageIdConverter : JsonConverter<ImageId>
+internal sealed class ImageIdConverter : JsonConverter<ImageId>
 {
     public static readonly ImageIdConverter Instance = new();
 

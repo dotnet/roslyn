@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 
-public class SetExtensionTests
+public sealed class SetExtensionTests
 {
     [Fact]
     public void TestAddAll()

@@ -17,7 +17,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpRemoveUnnecessaryNullableDirectiveCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryNullableDirective)]
-public class CSharpRemoveUnnecessaryNullableDirectiveTests
+public sealed class CSharpRemoveUnnecessaryNullableDirectiveTests
 {
     [Theory]
     [InlineData(NullableContextOptions.Annotations, NullableContextOptions.Annotations)]

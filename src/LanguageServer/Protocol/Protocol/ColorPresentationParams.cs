@@ -14,6 +14,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.6</remarks>
+/// <remarks>Do not seal this type! This is extended by Razor</remarks>
 internal class ColorPresentationParams : ITextDocumentParams, IWorkDoneProgressParams, IPartialResultParams<ColorPresentation[]>
 {
     /// <summary>

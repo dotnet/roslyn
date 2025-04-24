@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DocumentationComments;
 
-internal class VisualStudioDocumentationProvider : DocumentationProvider
+internal sealed class VisualStudioDocumentationProvider : DocumentationProvider
 {
     private readonly string _filePath;
     private readonly IVsXMLMemberIndexService _memberIndexService;

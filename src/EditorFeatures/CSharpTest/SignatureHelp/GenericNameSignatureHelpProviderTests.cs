@@ -19,7 +19,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp;
 
 [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-public class GenericNameSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
+public sealed class GenericNameSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
 {
     internal override Type GetSignatureHelpProviderType()
         => typeof(GenericNameSignatureHelpProvider);
@@ -736,10 +736,10 @@ public class GenericNameSignatureHelpProviderTests : AbstractCSharpSignatureHelp
             }
             """;
 
-        await TestAsync(markup, new List<SignatureHelpTestItem>
-        {
+        await TestAsync(markup,
+        [
             new SignatureHelpTestItem("void C.M<T>(T arg) where T : unmanaged", "summary headline", "T documentation", currentParameterIndex: 0)
-        });
+        ]);
     }
 
     #endregion
@@ -888,7 +888,7 @@ public class GenericNameSignatureHelpProviderTests : AbstractCSharpSignatureHelp
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                    referencedCode: referencedCode,
-                                                   expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
+                                                   expectedOrderedItemsMetadataReference: [],
                                                    expectedOrderedItemsSameSolution: expectedOrderedItems,
                                                    sourceLanguage: LanguageNames.CSharp,
                                                    referencedLanguage: LanguageNames.CSharp);
@@ -921,7 +921,7 @@ public class GenericNameSignatureHelpProviderTests : AbstractCSharpSignatureHelp
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                    referencedCode: referencedCode,
-                                                   expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
+                                                   expectedOrderedItemsMetadataReference: [],
                                                    expectedOrderedItemsSameSolution: expectedOrderedItems,
                                                    sourceLanguage: LanguageNames.CSharp,
                                                    referencedLanguage: LanguageNames.CSharp,

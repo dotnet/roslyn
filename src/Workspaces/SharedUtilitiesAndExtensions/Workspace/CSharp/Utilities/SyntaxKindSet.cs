@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities;
 
-internal class SyntaxKindSet
+internal sealed class SyntaxKindSet
 {
     public static readonly ISet<SyntaxKind> AllTypeModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
     {

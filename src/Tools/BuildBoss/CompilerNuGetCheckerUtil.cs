@@ -180,7 +180,8 @@ namespace BuildBoss
                 FindNuGetPackage(Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping"), "Microsoft.Net.Compilers.Toolset"),
                 excludeFunc: relativeFileName =>
                     relativeFileName.StartsWith(@"tasks\netcore\bincore\Microsoft.DiaSymReader.Native", PathComparison) ||
-                    relativeFileName.StartsWith(@"tasks\netcore\bincore\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.dll", PathComparison),
+                    relativeFileName.StartsWith(@"tasks\netcore\bincore\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.dll", PathComparison) ||
+                    (relativeFileName.StartsWith(@"tasks\netcore\binfx\", PathComparison) && relativeFileName.EndsWith(".targets", PathComparison)),
                 (@"tasks\net472", GetProjectOutputDirectory("csc", "net472")),
                 (@"tasks\net472", GetProjectOutputDirectory("vbc", "net472")),
                 (@"tasks\net472", GetProjectOutputDirectory("csi", "net472")),
@@ -189,7 +190,8 @@ namespace BuildBoss
                 (@"tasks\netcore\bincore", GetProjectPublishDirectory("csc", "net9.0")),
                 (@"tasks\netcore\bincore", GetProjectPublishDirectory("vbc", "net9.0")),
                 (@"tasks\netcore\bincore", GetProjectPublishDirectory("VBCSCompiler", "net9.0")),
-                (@"tasks\netcore", GetProjectPublishDirectory("Microsoft.Build.Tasks.CodeAnalysis", "net9.0")));
+                (@"tasks\netcore", GetProjectPublishDirectory("Microsoft.Build.Tasks.CodeAnalysis", "net9.0")),
+                (@"tasks\netcore\binfx", GetProjectOutputDirectory("Microsoft.Build.Tasks.CodeAnalysis", "net472")));
 
             foreach (var arch in new[] { "x86", "x64", "arm64" })
             {

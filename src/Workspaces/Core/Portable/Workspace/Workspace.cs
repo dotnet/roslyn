@@ -54,9 +54,6 @@ public abstract partial class Workspace : IDisposable
     /// </summary>
     private Solution _latestSolution;
 
-    // test hooks.
-    internal static bool TestHookStandaloneProjectsDoNotHoldReferences = false;
-
     /// <summary>
     /// Determines whether changes made to unchangeable documents will be silently ignored or cause exceptions to be thrown
     /// when they are applied to workspace via <see cref="TryApplyChanges(Solution, IProgress{CodeAnalysisProgress})"/>. 
@@ -365,7 +362,7 @@ public abstract partial class Workspace : IDisposable
             if (relatedDocumentIdsAndStates.IsEmpty)
                 return solution;
 
-            return solution.WithDocumentContentsFrom(relatedDocumentIdsAndStates.ToImmutableAndClear(), forceEvenIfTreesWouldDiffer: false);
+            return solution.WithDocumentContentsFrom(relatedDocumentIdsAndStates.ToImmutableAndClear());
         }
 
         static Solution UpdateExistingDocumentsToChangedDocumentContents(Solution solution, HashSet<DocumentId> changedDocumentIds)
@@ -397,7 +394,7 @@ public abstract partial class Workspace : IDisposable
 
             var relatedDocumentIdsAndStatesArray = relatedDocumentIdsAndStates.SelectAsArray(static kvp => (kvp.Key, kvp.Value));
 
-            return solution.WithDocumentContentsFrom(relatedDocumentIdsAndStatesArray, forceEvenIfTreesWouldDiffer: false);
+            return solution.WithDocumentContentsFrom(relatedDocumentIdsAndStatesArray);
         }
     }
 
@@ -705,7 +702,7 @@ public abstract partial class Workspace : IDisposable
             // tearing ourselves down.
             this.ClearSolution(reportChangeEvent: false);
 
-            this.Services.GetService<IWorkspaceEventListenerService>()?.Stop();
+            _workspaceEventListenerService?.Stop();
         }
 
         _legacyOptions.UnregisterWorkspace(this);
@@ -1310,7 +1307,7 @@ public abstract partial class Workspace : IDisposable
                         foreach (var linkedDocumentId in linkedDocumentIds)
                         {
                             previousSolution = newSolution;
-                            newSolution = newSolution.WithDocumentContentsFrom(linkedDocumentId, newDocument.DocumentState, forceEvenIfTreesWouldDiffer: false);
+                            newSolution = newSolution.WithDocumentContentsFrom(linkedDocumentId, newDocument.DocumentState);
 
                             if (previousSolution != newSolution)
                                 updatedDocumentIds.Add(linkedDocumentId);

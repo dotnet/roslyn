@@ -27,6 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private RewrittenMethodSymbol _rewrittenContainingMethod;
 
+        /// <summary>
+        /// To allow regular capture analysis we do not want to reuse locals with an incorrect containing symbol
+        /// </summary>
+        protected override bool EnforceAccurateContainerForLocals => true;
+
         public ExtensionMethodBodyRewriter(MethodSymbol sourceMethod, SourceExtensionImplementationMethodSymbol implementationMethod)
         {
             Debug.Assert(sourceMethod is not null);

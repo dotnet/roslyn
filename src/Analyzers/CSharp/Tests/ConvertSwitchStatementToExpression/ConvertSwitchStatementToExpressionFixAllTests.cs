@@ -16,7 +16,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     ConvertSwitchStatementToExpressionCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-public class ConvertSwitchStatementToExpressionFixAllTests
+public sealed class ConvertSwitchStatementToExpressionFixAllTests
 {
     [Fact]
     public async Task TestNested_01()

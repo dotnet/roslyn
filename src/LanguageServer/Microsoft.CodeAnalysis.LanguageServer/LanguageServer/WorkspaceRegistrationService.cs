@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 /// create are automatically registered by <see cref="LspWorkspaceRegistrationEventListener"/>
 /// </summary>
 [Export(typeof(LspWorkspaceRegistrationService)), Shared]
-internal class WorkspaceRegistrationService : LspWorkspaceRegistrationService
+internal sealed class WorkspaceRegistrationService : LspWorkspaceRegistrationService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

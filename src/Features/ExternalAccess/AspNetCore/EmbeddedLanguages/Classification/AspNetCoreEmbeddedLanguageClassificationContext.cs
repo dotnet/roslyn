@@ -6,28 +6,27 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages
+namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages;
+
+internal readonly struct AspNetCoreEmbeddedLanguageClassificationContext
 {
-    internal readonly struct AspNetCoreEmbeddedLanguageClassificationContext
+    private readonly EmbeddedLanguageClassificationContext _context;
+
+    internal AspNetCoreEmbeddedLanguageClassificationContext(
+        EmbeddedLanguageClassificationContext context)
     {
-        private readonly EmbeddedLanguageClassificationContext _context;
-
-        internal AspNetCoreEmbeddedLanguageClassificationContext(
-            EmbeddedLanguageClassificationContext context)
-        {
-            _context = context;
-        }
-
-        /// <inheritdoc cref="EmbeddedLanguageClassificationContext.SyntaxToken"/>
-        public SyntaxToken SyntaxToken => _context.SyntaxToken;
-
-        /// <inheritdoc cref="EmbeddedLanguageClassificationContext.SemanticModel"/>
-        public SemanticModel SemanticModel => _context.SemanticModel;
-
-        /// <inheritdoc cref="EmbeddedLanguageClassificationContext.CancellationToken"/>
-        public CancellationToken CancellationToken => _context.CancellationToken;
-
-        public void AddClassification(string classificationType, TextSpan span)
-            => _context.AddClassification(classificationType, span);
+        _context = context;
     }
+
+    /// <inheritdoc cref="EmbeddedLanguageClassificationContext.SyntaxToken"/>
+    public SyntaxToken SyntaxToken => _context.SyntaxToken;
+
+    /// <inheritdoc cref="EmbeddedLanguageClassificationContext.SemanticModel"/>
+    public SemanticModel SemanticModel => _context.SemanticModel;
+
+    /// <inheritdoc cref="EmbeddedLanguageClassificationContext.CancellationToken"/>
+    public CancellationToken CancellationToken => _context.CancellationToken;
+
+    public void AddClassification(string classificationType, TextSpan span)
+        => _context.AddClassification(classificationType, span);
 }

@@ -4,14 +4,13 @@
 
 using Microsoft.CodeAnalysis.DocumentationComments;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options;
+
+public partial class AutomationObject
 {
-    public partial class AutomationObject
+    public int AutoComment
     {
-        public int AutoComment
-        {
-            get { return GetBooleanOption(DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration); }
-            set { SetBooleanOption(DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, value); }
-        }
+        get { return GetBooleanOption(DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration); }
+        set { SetBooleanOption(DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, value); }
     }
 }

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertConditional;
 
 [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InvertConditional), Shared]
-internal class CSharpInvertConditionalCodeRefactoringProvider
+internal sealed class CSharpInvertConditionalCodeRefactoringProvider
     : AbstractInvertConditionalCodeRefactoringProvider<ConditionalExpressionSyntax>
 {
     [ImportingConstructor]
