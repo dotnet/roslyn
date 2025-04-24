@@ -503,7 +503,7 @@ public sealed class ElementAccessExpressionSignatureHelpProviderTests : Abstract
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                             referencedCode: referencedCode,
-                                            expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
+                                            expectedOrderedItemsMetadataReference: [],
                                             expectedOrderedItemsSameSolution: expectedOrderedItemsMetadataReference,
                                             sourceLanguage: LanguageNames.CSharp,
                                             referencedLanguage: LanguageNames.CSharp);
@@ -540,7 +540,7 @@ public sealed class ElementAccessExpressionSignatureHelpProviderTests : Abstract
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
             referencedCode: referencedCode,
-            expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
+            expectedOrderedItemsMetadataReference: [],
             expectedOrderedItemsSameSolution: expectedOrderedItems,
             sourceLanguage: LanguageNames.CSharp,
             referencedLanguage: LanguageNames.CSharp,

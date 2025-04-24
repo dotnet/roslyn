@@ -20,7 +20,7 @@ internal static class MefUtilities
         }
         catch (Exception ex) when (FatalError.ReportAndCatch(ex))
         {
-            exceptions ??= new List<Exception>();
+            exceptions ??= [];
             exceptions.Add(ex);
         }
     }

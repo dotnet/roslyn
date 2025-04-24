@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
     [Shared]
     [Export(typeof(RazorTestLanguageServerFactory))]
     [Export(typeof(AbstractRazorLanguageServerFactoryWrapper))]
+    [PartNotDiscoverable]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     [method: ImportingConstructor]
     internal class RazorTestLanguageServerFactory(ILanguageServerFactory languageServerFactory) : AbstractRazorLanguageServerFactoryWrapper

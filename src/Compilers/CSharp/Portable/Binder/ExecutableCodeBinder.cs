@@ -107,9 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var parameters = !iterator.IsStatic
-                ? iterator.GetParametersIncludingExtensionParameter()
-                : iterator.Parameters;
+            var parameters = iterator.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: true);
 
             foreach (var parameter in parameters)
             {

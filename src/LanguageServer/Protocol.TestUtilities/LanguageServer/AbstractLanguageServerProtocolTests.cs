@@ -462,7 +462,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
             {
                 Contract.ThrowIfNull(document.FilePath);
 
-                var locationsForName = locations.GetValueOrDefault(name, new List<LSP.Location>());
+                var locationsForName = locations.GetValueOrDefault(name, []);
                 locationsForName.AddRange(spans.Select(span => ConvertTextSpanWithTextToLocation(span, text, document.GetURI())));
 
                 // Linked files will return duplicate annotated Locations for each document that links to the same file.
