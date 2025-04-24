@@ -245,8 +245,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 #nullable disable
 
-        internal static DeclarationModifiers AdjustModifiersForAnInterfaceMember(DeclarationModifiers mods, bool hasBody, bool isExplicitInterfaceImplementation)
+        internal static DeclarationModifiers AdjustModifiersForAnInterfaceMember(DeclarationModifiers mods, bool hasBody, bool isExplicitInterfaceImplementation, bool forMethod)
         {
+            // Interface partial non-method members are implicitly public and virtual just like their non-partial counterparts.
+            // Interface partial methods are implicitly private and not virtual (this is a spec violation but being preserved to avoid breaks).
+            bool notPartialOrNewPartialBehavior = (mods & DeclarationModifiers.Partial) == 0 || !forMethod;
+
+            if ((mods & DeclarationModifiers.AccessibilityMask) == 0)
+            {
+                if (!isExplicitInterfaceImplementation && notPartialOrNewPartialBehavior)
+                {
+                    mods |= DeclarationModifiers.Public;
+                }
+                else
+                {
+                    mods |= DeclarationModifiers.Private;
+                }
+            }
+
             if (isExplicitInterfaceImplementation)
             {
                 if ((mods & DeclarationModifiers.Abstract) != 0)
@@ -258,11 +274,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 mods &= ~DeclarationModifiers.Sealed;
             }
-            else if ((mods & (DeclarationModifiers.Private | DeclarationModifiers.Partial | DeclarationModifiers.Virtual | DeclarationModifiers.Abstract)) == 0)
+            else if ((mods & (DeclarationModifiers.Private | DeclarationModifiers.Virtual | DeclarationModifiers.Abstract)) == 0 && notPartialOrNewPartialBehavior)
             {
                 Debug.Assert(!isExplicitInterfaceImplementation);
 
-                if (hasBody || (mods & (DeclarationModifiers.Extern | DeclarationModifiers.Sealed)) != 0)
+                if (hasBody || (mods & (DeclarationModifiers.Extern | DeclarationModifiers.Partial | DeclarationModifiers.Sealed)) != 0)
                 {
                     if ((mods & DeclarationModifiers.Sealed) == 0)
                     {
@@ -276,18 +292,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     mods |= DeclarationModifiers.Abstract;
-                }
-            }
-
-            if ((mods & DeclarationModifiers.AccessibilityMask) == 0)
-            {
-                if ((mods & DeclarationModifiers.Partial) == 0 && !isExplicitInterfaceImplementation)
-                {
-                    mods |= DeclarationModifiers.Public;
-                }
-                else
-                {
-                    mods |= DeclarationModifiers.Private;
                 }
             }
 

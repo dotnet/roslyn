@@ -316,7 +316,7 @@ public sealed class SourceFileHandlingTests
         // This should throw because the path does not exist in the project.
         Assert.Throws<InvalidOperationException>(() => project.ReorderSourceFiles([@"C:\invalid source file", sourceFileFullPath2, sourceFileFullPath3, sourceFileFullPath4, sourceFileFullPath5]));
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => project.ReorderSourceFiles(new List<string>()));
+        Assert.Throws<ArgumentOutOfRangeException>(() => project.ReorderSourceFiles([]));
         Assert.Throws<ArgumentOutOfRangeException>(() => project.ReorderSourceFiles(null));
     }
 
@@ -340,7 +340,7 @@ public sealed class SourceFileHandlingTests
 
         Assert.Throws<ArgumentException>(() => project.ReorderSourceFiles([sourceFileFullPath4, sourceFileFullPath5]));
         Assert.Throws<ArgumentException>(() => project.ReorderSourceFiles([@"C:\invalid source file"])); // no files were added, therefore we should get an argument exception
-        Assert.Throws<ArgumentOutOfRangeException>(() => project.ReorderSourceFiles(new List<string>()));
+        Assert.Throws<ArgumentOutOfRangeException>(() => project.ReorderSourceFiles([]));
         Assert.Throws<ArgumentOutOfRangeException>(() => project.ReorderSourceFiles(null));
 
         project.AddSourceFile(sourceFileFullPath1);
@@ -348,7 +348,7 @@ public sealed class SourceFileHandlingTests
         // Test before we add/remove the rest of source files in the batch.
         Assert.Throws<ArgumentException>(() => project.ReorderSourceFiles([sourceFileFullPath4, sourceFileFullPath5]));
         Assert.Throws<InvalidOperationException>(() => project.ReorderSourceFiles([@"C:\invalid source file"]));
-        Assert.Throws<ArgumentOutOfRangeException>(() => project.ReorderSourceFiles(new List<string>()));
+        Assert.Throws<ArgumentOutOfRangeException>(() => project.ReorderSourceFiles([]));
         Assert.Throws<ArgumentOutOfRangeException>(() => project.ReorderSourceFiles(null));
 
         project.AddSourceFile(sourceFileFullPath2);
@@ -364,7 +364,7 @@ public sealed class SourceFileHandlingTests
 
         Assert.Throws<ArgumentException>(() => project.ReorderSourceFiles([sourceFileFullPath4, sourceFileFullPath5]));
         Assert.Throws<InvalidOperationException>(() => project.ReorderSourceFiles([@"C:\invalid source file", sourceFileFullPath2, sourceFileFullPath3, sourceFileFullPath4, sourceFileFullPath5]));
-        Assert.Throws<ArgumentOutOfRangeException>(() => project.ReorderSourceFiles(new List<string>()));
+        Assert.Throws<ArgumentOutOfRangeException>(() => project.ReorderSourceFiles([]));
         Assert.Throws<ArgumentOutOfRangeException>(() => project.ReorderSourceFiles(null));
     }
 

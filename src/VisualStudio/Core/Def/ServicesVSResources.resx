@@ -1879,4 +1879,13 @@ Additional information: {1}</value>
   <data name="Show_completion_list_after_a_character_is_typed" xml:space="preserve">
     <value>Show completion list after a character is typed</value>
   </data>
+  <data name="Error_encountered_updating_0" xml:space="preserve">
+    <value>Error encountered updating '{0}'</value>
+  </data>
+  <data name="Ignore" xml:space="preserve">
+    <value>Ignore</value>
+  </data>
+  <data name="Ignore_including_future_errors" xml:space="preserve">
+    <value>Ignore (including future errors)</value>
+  </data>
 </root>

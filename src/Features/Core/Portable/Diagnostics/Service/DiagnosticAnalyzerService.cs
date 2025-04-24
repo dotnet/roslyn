@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Threading;
+using Microsoft.CodeAnalysis.Threading;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
@@ -88,7 +88,7 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         var analyzer = CreateIncrementalAnalyzer(document.Project.Solution.Workspace);
 
         // always make sure that analyzer is called on background thread.
-        await TaskScheduler.Default;
+        await Task.Yield().ConfigureAwait(false);
         priorityProvider ??= new DefaultCodeActionRequestPriorityProvider();
 
         return await analyzer.GetDiagnosticsForSpanAsync(
