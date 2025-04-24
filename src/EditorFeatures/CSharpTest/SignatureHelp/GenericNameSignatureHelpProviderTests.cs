@@ -736,10 +736,10 @@ public sealed class GenericNameSignatureHelpProviderTests : AbstractCSharpSignat
             }
             """;
 
-        await TestAsync(markup, new List<SignatureHelpTestItem>
-        {
+        await TestAsync(markup,
+        [
             new SignatureHelpTestItem("void C.M<T>(T arg) where T : unmanaged", "summary headline", "T documentation", currentParameterIndex: 0)
-        });
+        ]);
     }
 
     #endregion
@@ -888,7 +888,7 @@ public sealed class GenericNameSignatureHelpProviderTests : AbstractCSharpSignat
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                    referencedCode: referencedCode,
-                                                   expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
+                                                   expectedOrderedItemsMetadataReference: [],
                                                    expectedOrderedItemsSameSolution: expectedOrderedItems,
                                                    sourceLanguage: LanguageNames.CSharp,
                                                    referencedLanguage: LanguageNames.CSharp);
@@ -921,7 +921,7 @@ public sealed class GenericNameSignatureHelpProviderTests : AbstractCSharpSignat
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                    referencedCode: referencedCode,
-                                                   expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
+                                                   expectedOrderedItemsMetadataReference: [],
                                                    expectedOrderedItemsSameSolution: expectedOrderedItems,
                                                    sourceLanguage: LanguageNames.CSharp,
                                                    referencedLanguage: LanguageNames.CSharp,

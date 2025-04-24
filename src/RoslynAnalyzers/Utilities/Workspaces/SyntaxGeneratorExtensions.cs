@@ -37,7 +37,7 @@ namespace Analyzer.Utilities
             var leftArgument = generator.IdentifierName(LeftIdentifierName);
             var rightArgument = generator.IdentifierName(RightIdentifierName);
 
-            List<SyntaxNode> statements = new List<SyntaxNode>();
+            List<SyntaxNode> statements = [];
 
             if (containingType.TypeKind == TypeKind.Class)
             {
@@ -323,11 +323,10 @@ namespace Analyzer.Utilities
         {
             return generator.OperatorDeclaration(
                 operatorKind,
-                new[]
-                {
+                [
                     generator.ParameterDeclaration(LeftIdentifierName, generator.TypeExpression(containingType)),
                     generator.ParameterDeclaration(RightIdentifierName, generator.TypeExpression(containingType))
-                },
+                ],
                 generator.TypeExpression(SpecialType.System_Boolean),
                 Accessibility.Public,
                 DeclarationModifiers.Static,
@@ -351,7 +350,7 @@ namespace Analyzer.Utilities
         {
             var argumentName = generator.IdentifierName("obj");
 
-            List<SyntaxNode> statements = new List<SyntaxNode>();
+            List<SyntaxNode> statements = [];
 
             if (containingType.TypeKind == TypeKind.Class)
             {

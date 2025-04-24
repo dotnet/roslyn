@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.GraphModel;
@@ -18,6 +19,8 @@ internal sealed partial class SearchGraphQuery(
 {
     public async Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
     {
+        using var _ = Logger.LogBlock(FunctionId.GraphQuery_Search, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken);
+
         var graphBuilder = await GraphBuilder.CreateForInputNodesAsync(solution, context.InputNodes, cancellationToken).ConfigureAwait(false);
         var callback = new ProgressionNavigateToSearchCallback(solution, context, graphBuilder);
 

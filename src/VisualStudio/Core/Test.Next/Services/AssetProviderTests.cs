@@ -59,7 +59,7 @@ public sealed class AssetProviderTests
         Assert.Equal(data, stored);
 
         var stored2 = new List<(Checksum, object)>();
-        await provider.GetAssetsAsync<object, VoidResult>(AssetPath.FullLookupForTesting, new HashSet<Checksum> { checksum }, (checksum, asset, _) => stored2.Add((checksum, asset)), default, CancellationToken.None);
+        await provider.GetAssetsAsync<object, VoidResult>(AssetPath.FullLookupForTesting, [checksum], (checksum, asset, _) => stored2.Add((checksum, asset)), default, CancellationToken.None);
         Assert.Equal(1, stored2.Count);
 
         Assert.Equal(checksum, stored2[0].Item1);
@@ -86,7 +86,7 @@ public sealed class AssetProviderTests
         var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
 
         var service = new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.SolutionServices);
-        await service.GetAssetsAsync<object>(AssetPath.FullLookupForTesting, new HashSet<Checksum>(map.Keys), CancellationToken.None);
+        await service.GetAssetsAsync<object>(AssetPath.FullLookupForTesting, [.. map.Keys], CancellationToken.None);
 
         foreach (var kv in map)
         {

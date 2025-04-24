@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -111,6 +112,12 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     private readonly Lazy<ExternalErrorDiagnosticUpdateSource> _lazyExternalErrorDiagnosticUpdateSource;
     private readonly IAsynchronousOperationListener _workspaceListener;
     private bool _isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents;
+
+    /// <summary>
+    /// Only read/written on hte UI thread.
+    /// </summary>
+    private bool _isShowingDocumentChangeErrorInfoBar = false;
+    private bool _ignoreDocumentTextChangeErrors;
 
     public VisualStudioWorkspaceImpl(ExportProvider exportProvider, IAsyncServiceProvider asyncServiceProvider)
         : base(VisualStudioMefHostServices.Create(exportProvider))
@@ -223,8 +230,8 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         var telemetryService = (VisualStudioWorkspaceTelemetryService)Services.GetRequiredService<IWorkspaceTelemetryService>();
         telemetryService.InitializeTelemetrySession(telemetrySession, logDelta);
 
-        Logger.Log(FunctionId.Run_Environment,
-            KeyValueLogMessage.Create(m => m["Version"] = FileVersionInfo.GetVersionInfo(typeof(VisualStudioWorkspace).Assembly.Location).FileVersion));
+        Logger.Log(FunctionId.Run_Environment, KeyValueLogMessage.Create(
+            static m => m["Version"] = FileVersionInfo.GetVersionInfo(typeof(VisualStudioWorkspace).Assembly.Location).FileVersion));
     }
 
     public Task CheckForAddedFileBeingOpenMaybeAsync(bool useAsync, ImmutableArray<string> newFileNames)
@@ -1192,29 +1199,81 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
     private void ApplyTextDocumentChange(DocumentId documentId, SourceText newText)
     {
-        var containedDocument = ContainedDocument.TryGetContainedDocument(documentId);
+        this._threadingContext.ThrowIfNotOnUIThread();
 
-        if (containedDocument != null)
+        CodeAnalysis.TextDocument? document = null;
+
+        try
         {
-            containedDocument.UpdateText(newText);
-        }
-        else
-        {
-            if (IsDocumentOpen(documentId))
+            document = this.CurrentSolution.GetRequiredTextDocument(documentId);
+
+            var containedDocument = ContainedDocument.TryGetContainedDocument(documentId);
+            if (containedDocument != null)
             {
-                var textBuffer = this.CurrentSolution.GetTextDocument(documentId)!.GetTextSynchronously(CancellationToken.None).Container.TryGetTextBuffer();
-
-                if (textBuffer != null)
-                {
-                    TextEditApplication.UpdateText(newText, textBuffer, EditOptions.DefaultMinimalChange);
-                    return;
-                }
+                containedDocument.UpdateText(newText);
             }
+            else
+            {
+                if (IsDocumentOpen(documentId))
+                {
+                    var textBuffer = document.GetTextSynchronously(CancellationToken.None).Container.TryGetTextBuffer();
+                    if (textBuffer != null)
+                    {
+                        TextEditApplication.UpdateText(newText, textBuffer, EditOptions.DefaultMinimalChange);
+                        return;
+                    }
+                }
 
-            // The document wasn't open in a normal way, so invisible editor time
-            using var invisibleEditor = OpenInvisibleEditor(documentId);
-            TextEditApplication.UpdateText(newText, invisibleEditor.TextBuffer, EditOptions.None);
+                // The document wasn't open in a normal way, so invisible editor time
+                using var invisibleEditor = OpenInvisibleEditor(documentId);
+                TextEditApplication.UpdateText(newText, invisibleEditor.TextBuffer, EditOptions.None);
+            }
         }
+        catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+        {
+            ReportErrorChangingDocumentText(ex);
+            return;
+        }
+
+        void ReportErrorChangingDocumentText(Exception exception)
+        {
+            // Don't spam the info bar.  If the user already has a message up, leave it at that.  Also,
+            // if they've asked to not be notified about future doc change issue, respect that flag.
+            if (_ignoreDocumentTextChangeErrors || _isShowingDocumentChangeErrorInfoBar)
+                return;
+
+            var documentName = document?.Name ?? documentId.ToString();
+
+            var errorReportingService = this.Services.GetRequiredService<IErrorReportingService>();
+            errorReportingService.ShowGlobalErrorInfo(
+                message: string.Format(ServicesVSResources.Error_encountered_updating_0, documentName),
+                TelemetryFeatureName.Workspace,
+                exception,
+                // 'Show stack trace' will not dismiss the info bar.
+                new(WorkspacesResources.Show_Stack_Trace, InfoBarUI.UIKind.HyperLink,
+                    () => errorReportingService.ShowDetailedErrorInfo(exception), closeAfterAction: false),
+                // 'Ignore' just closes the info bar, but allows future errors to show up.
+                new(ServicesVSResources.Ignore, InfoBarUI.UIKind.Button, GetDefaultDismissAction()),
+                // 'Ignore (including future errors) closes the info bar, but also sets the flag so the user gets no more messages
+                // in the current session.
+                new(ServicesVSResources.Ignore_including_future_errors, InfoBarUI.UIKind.Button, GetDefaultDismissAction(
+                    () => _ignoreDocumentTextChangeErrors = true)),
+                // Close button is the same as 'ignore'.  It closes the info bar, but allows future errors to show up.
+                new(string.Empty, InfoBarUI.UIKind.Close, GetDefaultDismissAction()));
+
+            // Mark that we're showing the info bar at this point.
+            _isShowingDocumentChangeErrorInfoBar = true;
+        }
+
+        Action GetDefaultDismissAction(Action? additionalAction = null)
+            => () =>
+            {
+                additionalAction?.Invoke();
+
+                // All info bar actions (except for 'show stack trace') dismiss the info bar, putting us back in the
+                // "we're not showing the user anything" state.
+                _isShowingDocumentChangeErrorInfoBar = false;
+            };
     }
 
     protected override void ApplyDocumentInfoChanged(DocumentId documentId, DocumentInfo updatedInfo)

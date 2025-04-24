@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Proper errors must have been reported by now.
             if (isInterface)
             {
-                mods = ModifierUtils.AdjustModifiersForAnInterfaceMember(mods, accessorsHaveImplementation, isExplicitInterfaceImplementation);
+                mods = ModifierUtils.AdjustModifiersForAnInterfaceMember(mods, accessorsHaveImplementation, isExplicitInterfaceImplementation, forMethod: false);
             }
 
             if (isIndexer)
@@ -707,7 +707,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (!IsStatic && this.GetIsNewExtensionMember() && ContainingType.ExtensionParameter is { } extensionParameter &&
+            if (this.GetIsNewExtensionMember() && ContainingType.ExtensionParameter is { } extensionParameter &&
                 !this.IsNoMoreVisibleThan(extensionParameter.Type, ref useSiteInfo))
             {
                 diagnostics.Add(ErrorCode.ERR_BadVisIndexerParam, Location, this, extensionParameter.Type);

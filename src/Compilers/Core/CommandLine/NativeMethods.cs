@@ -4,6 +4,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Text;
 
 namespace Microsoft.CodeAnalysis.CommandLine
@@ -43,6 +44,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
     /// <summary>
     /// Interop methods.
     /// </summary>
+#if NET
+    [SupportedOSPlatform("windows")]
+#endif
     internal static class NativeMethods
     {
         #region Constants

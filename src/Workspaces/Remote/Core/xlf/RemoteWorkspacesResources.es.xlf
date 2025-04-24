@@ -87,6 +87,11 @@
         <target state="translated">Margen de herencia</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_Initialization">
+        <source>Initialization</source>
+        <target state="new">Initialization</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_KeepAlive">
         <source>Keep alive service</source>
         <target state="translated">Mantener el servicio activo</target>
