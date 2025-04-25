@@ -2229,8 +2229,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             RoslynDebug.Assert(!namedType.IsDynamic());
             Debug.Assert(result is { Type: not null } || runtimeAwaitMethod is { ReturnType: not null });
-            return success &&
-                ((result?.Type ?? runtimeAwaitMethod!.ReturnType)!.IsVoidType() || result.Type!.SpecialType == SpecialType.System_Int32);
+            var returnType = result?.Type ?? runtimeAwaitMethod!.ReturnType;
+            return success && (returnType.IsVoidType() || returnType.SpecialType == SpecialType.System_Int32);
         }
 
         /// <summary>
