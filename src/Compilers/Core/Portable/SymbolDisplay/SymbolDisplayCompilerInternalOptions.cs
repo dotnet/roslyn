@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
         UseMetadataMemberNames = 1 << 0,
 
         /// <summary>
-        /// "List`1" instead of "List&lt;T&gt;" ("List(of T)" in VB). Overrides GenericsOptions on
+        /// "List`1" instead o "List&lt;T&gt;" ("List(of T)" in VB). Overrides GenericsOptions on
         /// types.
         /// </summary>
         UseArityForGenericTypes = 1 << 1,
@@ -55,14 +55,19 @@ namespace Microsoft.CodeAnalysis
         ReverseArrayRankSpecifiers = 1 << 5,
 
         /// <summary>
-        /// Display `System.[U]IntPtr` instead of `n[u]int`.
+        /// Display `System.[U]IntPtr` instead of `n[u]int` when displaying special types.
         /// </summary>
         UseNativeIntegerUnderlyingType = 1 << 6,
 
         /// <summary>
+        /// Display `n[u]int` instead of `System.[U]IntPtr`
+        /// </summary>
+        UseNativeIntegerType = 1 << 7,
+
+        /// <summary>
         /// Separate out nested types from containing types using <c>+</c> instead of <c>.</c> (dot).
         /// </summary>
-        UsePlusForNestedTypes = 1 << 7,
+        UsePlusForNestedTypes = 1 << 8,
 
         /// <summary>
         /// Display `MyType@File.cs` instead of `MyType`.
@@ -73,13 +78,13 @@ namespace Microsoft.CodeAnalysis
         /// Does not include parameter name if the parameter is displayed on its own
         /// (i.e., not as part of a method, delegate, or indexer).
         /// </summary>
-        ExcludeParameterNameIfStandalone = 1 << 9,
+        ExcludeParameterNameIfStandalone = 1 << 10,
 
         /// <summary>
         /// Display `&lt;File&gt;F&lt;sha256-hex-string&gt;_MyType` instead of `MyType`.
         /// Differs from <see cref="IncludeContainingFileForFileTypes"/> because it guarantees that
         /// the prefix will be unique for all files which are permitted to declare file-local types.
         /// </summary>
-        IncludeFileLocalTypesPrefix = 1 << 10,
+        IncludeFileLocalTypesPrefix = 1 << 11,
     }
 }
