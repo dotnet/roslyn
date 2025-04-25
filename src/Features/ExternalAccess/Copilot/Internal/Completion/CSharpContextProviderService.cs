@@ -22,20 +22,18 @@ internal sealed class CSharpContextProviderService([ImportMany] IEnumerable<ICon
     private readonly ImmutableArray<IContextProvider> _providers = [.. providers];
 
     public IAsyncEnumerable<IContextItem> GetContextItemsAsync(Document document, int position, IReadOnlyDictionary<string, object> activeExperiments, CancellationToken cancellationToken)
-        => ProducerConsumer<IContextItem>.RunAsync(
-            static (callback, args, cancellationToken) =>
-                RoslynParallel.ForEachAsync(
-                    args.@this._providers,
-                    cancellationToken,
-                    (provider, cancellationToken) => provider.ProvideContextItemsAsync(
-                        args.document, args.position, args.activeExperiments,
-                        (items, cancellationToken) =>
-                        {
-                            foreach (var item in items)
-                                callback(item);
+        => ProducerConsumer<IContextItem>.RunParallelStreamAsync(
+            _providers,
+            static async (provider, callback, args, cancellationToken) =>
+                await provider.ProvideContextItemsAsync(
+                    args.document, args.position, args.activeExperiments,
+                    (items, cancellationToken) =>
+                    {
+                        foreach (var item in items)
+                            callback(item);
 
-                            return default;
-                        }, cancellationToken)),
-            args: (@this: this, document, position, activeExperiments),
+                        return default;
+                    }, cancellationToken).ConfigureAwait(false),
+            args: (document, position, activeExperiments),
             cancellationToken);
 }
