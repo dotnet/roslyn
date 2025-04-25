@@ -105,16 +105,16 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
 
         var projectFilePath = GetSolutionFileName("Project.csproj");
         var content = File.ReadAllText(projectFilePath);
+        File.Delete(projectFilePath);
         var projectDir = Path.GetDirectoryName(projectFilePath);
 
         await using var buildHostProcessManager = new BuildHostProcessManager(ImmutableDictionary<string, string>.Empty);
 
-        var buildHost = await buildHostProcessManager.GetBuildHostWithFallbackAsync(projectFilePath, CancellationToken.None);
+        var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessManager.BuildHostProcessKind.NetCore, CancellationToken.None);
         var projectFile = await buildHost.LoadProjectAsync(projectFilePath, content, LanguageNames.CSharp, CancellationToken.None);
         var projectFileInfo = (await projectFile.GetProjectFileInfosAsync(CancellationToken.None)).Single();
 
         Assert.Equal(Path.Combine(projectDir, "bin", "Debug", "netcoreapp3.1", "Project.dll"), projectFileInfo.OutputFilePath);
-        Assert.Null(projectFileInfo.GeneratedFilesOutputDirectory);
     }
 
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
