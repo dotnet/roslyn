@@ -44,7 +44,7 @@ internal sealed class StringCopyPasteData(ImmutableArray<StringCopyPasteContent>
 
         try
         {
-            var value = JsonSerializer.Deserialize(JsonDocument.Parse(json), typeof(StringCopyPasteData));
+            var value = JsonSerializer.Deserialize(JsonDocument.Parse(json!), typeof(StringCopyPasteData));
             if (value is null)
                 return null;
 
