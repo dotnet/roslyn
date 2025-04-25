@@ -259,6 +259,53 @@ internal static class ProducerConsumer<TItem>
     }
 
     /// <summary>
+    /// Version of <see cref="RunChannelAsync"/> when caller the prefers to just push all the results into a channel
+    /// that it receives in the return value to process asynchronously.
+    /// </summary>
+    public static async IAsyncEnumerable<TItem> RunAsync<TArgs>(
+        Func<Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        TArgs args,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var channelReader = await RunChannelAsync(
+            // We're the only reader (in the foreach loop below).  So we can use the single reader options.
+            ProducerConsumerOptions.SingleReaderOptions,
+            produceItems,
+            // Trivially grab the reader and return it.  We don't need to do any processing of the values, as the
+            // callers just wants them as is.
+            consumeItems: static (reader, _, _) => Task.FromResult(reader),
+            args, cancellationToken).ConfigureAwait(false);
+
+        await foreach (var item in channelReader.ReadAllAsync(cancellationToken))
+            yield return item;
+    }
+
+    /// <summary>
+    /// Equivalent to <see cref="RunParallelAsync{TSource, TArgs}(IEnumerable{TSource}, Func{TSource, Action{TItem}, TArgs, CancellationToken, Task}, TArgs, CancellationToken)"/>,
+    /// but returns value as an <see cref="IAsyncEnumerable{TItem}"/>.  Versus an <see cref="ImmutableArray{TItem}"/>.  
+    /// This is useful for cases where the caller wants to stream over the results as they are produced, rather than
+    /// waiting on the full set to be produced before processing them.
+    /// </summary>
+    public static IAsyncEnumerable<TItem> RunParallelStreamAsync<TSource, TArgs>(
+        IEnumerable<TSource> source,
+        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        TArgs args,
+        CancellationToken cancellationToken)
+    {
+        return RunAsync(
+            static (callback, outerArgs, cancellationToken) =>
+            {
+                var (source, produceItems, args) = outerArgs;
+                return RoslynParallel.ForEachAsync(
+                    source, cancellationToken,
+                    async (source, cancellationToken) => await produceItems(
+                        source, callback, args, cancellationToken).ConfigureAwait(false));
+            },
+            args: (source, produceItems, args),
+            cancellationToken);
+    }
+
+    /// <summary>
     /// Helper utility for the pattern of a pair of a production routine and consumption routine using a channel to
     /// coordinate data transfer.  The provided <paramref name="options"/> are used to create a <see
     /// cref="Channel{T}"/>, which will then then manage the rules and behaviors around the routines. Importantly, the
