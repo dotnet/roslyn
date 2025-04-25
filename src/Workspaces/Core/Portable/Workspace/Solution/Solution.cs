@@ -1519,7 +1519,14 @@ public partial class Solution
         static Solution ComputeFrozenSolution(SolutionCompilationState compilationState, DocumentId documentId, CancellationToken cancellationToken)
         {
             var newCompilationState = compilationState.WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken);
-            return new Solution(newCompilationState);
+            var solution = new Solution(newCompilationState);
+
+            // ensure that this document is within the frozen-partial-document for the solution we're creating.  That
+            // way, if we ask to freeze it again, we'll just the same document back.
+            Contract.ThrowIfTrue(solution._documentIdToFrozenSolution.Count != 0);
+            solution._documentIdToFrozenSolution.Add(documentId, AsyncLazy.Create(solution));
+
+            return solution;
         }
     }
 

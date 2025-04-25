@@ -54,6 +54,12 @@ internal sealed class InheritanceMarginTaggerProvider : AsynchronousViewportTagg
 
     protected override TaggerDelay EventChangeDelay => TaggerDelay.OnIdle;
 
+    /// <summary>
+    /// We support frozen partial semantics, so we can quickly get inheritance margin items without building SG docs.
+    /// We will still run a tagging pass after the frozen-pass where we run again on non-frozen docs.
+    /// </summary>
+    protected override bool SupportsFrozenPartialSemantics => true;
+
     protected override bool CanCreateTagger(ITextView textView, ITextBuffer buffer)
     {
         // Match criterion InheritanceMarginViewMarginProvider uses to determine whether
@@ -96,17 +102,13 @@ internal sealed class InheritanceMarginTaggerProvider : AsynchronousViewportTagg
 
         var includeGlobalImports = GlobalOptions.GetOption(InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports, document.Project.Language);
 
-        // Use FrozenSemantics Version of document to get the semantics ready, therefore we could have faster
-        // response. (Since the full load might take a long time)
-        document = document.WithFrozenPartialSemantics(cancellationToken);
-
         var spanToSearch = spanToTag.SnapshotSpan.Span.ToTextSpan();
         var stopwatch = SharedStopwatch.StartNew();
         var inheritanceMemberItems = await inheritanceMarginInfoService.GetInheritanceMemberItemsAsync(
             document,
             spanToSearch,
             includeGlobalImports,
-            frozenPartialSemantics: true,
+            context.FrozenPartialSemantics,
             cancellationToken).ConfigureAwait(false);
         var elapsed = stopwatch.Elapsed;
 
