@@ -255,6 +255,10 @@ BC37321: Required member 'Public Overloads Property Prop As Integer' must be set
         Dim t <%= constructor %>
                      ~
                                         </expected>)
+
+            Dim c = comp.GetTypeByMetadataName("C")
+            Dim ctor = c.Constructors.Single()
+            Assert.Empty(ctor.GetAttributes())
         End Sub
 
         <Theory>
@@ -275,6 +279,10 @@ BC37321: Required member 'Public Field As Integer' must be set in the object ini
         Dim t <%= constructor %> With { .Prop = 1 }
                      ~
                                         </expected>)
+
+            Dim c = comp.GetTypeByMetadataName("C")
+            Dim ctor = c.Constructors.Single()
+            Assert.Empty(ctor.GetAttributes())
         End Sub
 
         <Theory>
@@ -292,6 +300,10 @@ End Module"
 
             Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
             comp.AssertNoDiagnostics()
+
+            Dim c = comp.GetTypeByMetadataName("C")
+            Dim ctor = c.Constructors.Single()
+            Assert.Empty(ctor.GetAttributes())
         End Sub
 
         <Theory>
@@ -306,8 +318,12 @@ Module M
     End Sub
 End Module"
 
-            Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
-            comp.AssertNoDiagnostics
+            Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()}, targetFramework:=TargetFramework.Net70)
+            comp.AssertNoDiagnostics()
+
+            Dim c = comp.GetTypeByMetadataName("C")
+            Dim ctor = c.Constructors.Single()
+            AssertEx.Equal("System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute", ctor.GetAttributes().Single().AttributeClass.ToTestDisplayString())
         End Sub
 
         Private Shared Function GetBaseDerivedDefinition(hasSetsRequiredMembers As Boolean) As String
@@ -363,6 +379,10 @@ BC37321: Required member 'Public Overloads Property Prop2 As Integer' must be se
         Dim t <%= constructor %>
                      ~~~~~~~~~~~~~~
                                         </expected>)
+
+            Dim dd = comp.GetTypeByMetadataName("DerivedDerived")
+            Dim ctor = dd.Constructors.Single()
+            Assert.Empty(ctor.GetAttributes())
         End Sub
 
         <Theory>
@@ -386,6 +406,10 @@ BC37321: Required member 'Public Overloads Property Prop2 As Integer' must be se
         Dim t <%= constructor %> With { .Prop1 = 1, .Field2 = 2 }
                      ~~~~~~~~~~~~~~
                                         </expected>)
+
+            Dim dd = comp.GetTypeByMetadataName("DerivedDerived")
+            Dim ctor = dd.Constructors.Single()
+            Assert.Empty(ctor.GetAttributes())
         End Sub
 
         <Theory>
@@ -402,6 +426,10 @@ End Module"
 
             Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
             comp.AssertNoDiagnostics()
+
+            Dim dd = comp.GetTypeByMetadataName("DerivedDerived")
+            Dim ctor = dd.Constructors.Single()
+            Assert.Empty(ctor.GetAttributes())
         End Sub
 
         <Theory>
@@ -416,8 +444,12 @@ Module M
     End Sub
 End Module"
 
-            Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
+            Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()}, targetFramework:=TargetFramework.Net70)
             comp.AssertNoDiagnostics()
+
+            Dim dd = comp.GetTypeByMetadataName("DerivedDerived")
+            Dim ctor = dd.Constructors.Single()
+            AssertEx.Equal("System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute", ctor.GetAttributes().Single().AttributeClass.ToTestDisplayString())
         End Sub
 
         <Fact>
@@ -485,7 +517,7 @@ End Module", {originalBasic.ToMetadataReference(), retargetedC.EmitToImageRefere
             Dim originalBasic = CreateCompilation("
 Public Class Base
     Public Property C As C
-End Class", {originalC.EmitToImageReference()})
+End Class", {originalC.EmitToImageReference()}, targetFramework:=TargetFramework.Net70)
 
             Dim retargetedC = CreateCSharpCompilation(New AssemblyIdentity("Ret", New Version(2, 0, 0, 0), isRetargetable:=True), retargetedCode, referencedAssemblies:=Basic.Reference.Assemblies.Net70.References.All)
 
@@ -494,7 +526,7 @@ Module M
     Public Sub Main()
         Dim b As New Base() With { .C = New C() }
     End Sub
-End Module", {originalBasic.ToMetadataReference(), retargetedC.EmitToImageReference()})
+End Module", {originalBasic.ToMetadataReference(), retargetedC.EmitToImageReference()}, targetFramework:=TargetFramework.Net70)
 
             comp.AssertNoDiagnostics()
         End Sub
@@ -670,7 +702,7 @@ Module M
     End Sub
 End Module"
 
-            Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
+            Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()}, targetFramework:=TargetFramework.Net70)
             comp.AssertNoDiagnostics()
         End Sub
 
@@ -1598,7 +1630,7 @@ Module M
     End Sub
 End Module"
 
-            Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()})
+            Dim comp = CreateCompilation(vbCode, {cComp.EmitToImageReference()}, targetFramework:=TargetFramework.Net70)
             comp.AssertNoDiagnostics()
         End Sub
 
@@ -2474,6 +2506,24 @@ BC37321: Required member 'Public Overloads Property P1 As Integer' must be set i
         Dim c = New C2()
                     ~~
                                         </expected>)
+        End Sub
+
+        <Fact>
+        Public Sub ObsoleteConstructorNotFilteredOut()
+            Dim csharpComp = CreateCSharpCompilationWithRequiredMembers("
+public class C1
+{
+    public required int P1 {get;set;}
+    [System.Obsolete(""Really obsolete"", true)]
+    public C1() { }
+}
+")
+
+            Dim comp = CreateCompilation("", references:={csharpComp.EmitToImageReference()}, targetFramework:=TargetFramework.Net70)
+
+            Dim c1 = comp.GetTypeByMetadataName("C1")
+            Dim c1Constructor = c1.InstanceConstructors.Single()
+            AssertEx.Equal("System.ObsoleteAttribute", c1Constructor.GetAttributes().Single().AttributeClass.ToTestDisplayString())
         End Sub
     End Class
 End Namespace
