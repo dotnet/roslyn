@@ -65,16 +65,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
-            if (UnderlyingMethod is SourcePropertyAccessorSymbol { AssociatedSymbol: SourcePropertySymbolBase extensionProperty })
+            if (_originalMethod is SourcePropertyAccessorSymbol { AssociatedSymbol: SourcePropertySymbolBase extensionProperty })
             {
-                var priority = extensionProperty.OverloadResolutionPriority;
-                if (priority != 0)
+                foreach (CSharpAttributeData attr in extensionProperty.GetAttributes())
                 {
-                    var arg = new TypedConstant(DeclaringCompilation.GetSpecialType(SpecialType.System_Int32), TypedConstantKind.Primitive, priority);
-
-                    AddSynthesizedAttribute(ref attributes, DeclaringCompilation.TrySynthesizeAttribute(
-                        WellKnownMember.System_Runtime_CompilerServices_OverloadResolutionPriorityAttribute__ctor,
-                        [arg]));
+                    if (attr.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute))
+                    {
+                        AddSynthesizedAttribute(ref attributes, attr);
+                    }
                 }
             }
 

@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override int TryGetOverloadResolutionPriority()
-            => UnderlyingMethod.TryGetOverloadResolutionPriority();
+            => OriginalDefinition.TryGetOverloadResolutionPriority();
 
         private ImmutableArray<ParameterSymbol> SubstituteParameters()
         {

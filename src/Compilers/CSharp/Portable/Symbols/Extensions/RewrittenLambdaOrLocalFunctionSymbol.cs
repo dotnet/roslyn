@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override int TryGetOverloadResolutionPriority()
-            => UnderlyingMethod.TryGetOverloadResolutionPriority();
+            => _originalMethod.TryGetOverloadResolutionPriority();
 
         protected override ImmutableArray<ParameterSymbol> MakeParameters()
         {

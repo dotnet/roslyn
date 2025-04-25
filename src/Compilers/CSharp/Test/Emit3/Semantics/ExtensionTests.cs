@@ -26241,7 +26241,7 @@ E.set_P("", 0);
             Assert.Equal("System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute(1)", implementations[0].GetAttributes().Single().ToString());
 
             Assert.Equal("void E.set_P(System.String s, System.Int32 value)", implementations[1].ToTestDisplayString());
-            Assert.Empty(implementations[1].GetAttributes());
+            Assert.Equal("System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute(0)", implementations[1].GetAttributes().Single().ToString());
         }
     }
 

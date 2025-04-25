@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         }
 
         internal override int TryGetOverloadResolutionPriority()
-            => UnderlyingMethod.TryGetOverloadResolutionPriority();
+            => _underlyingMethod.TryGetOverloadResolutionPriority();
 #nullable disable
 
         public override AssemblySymbol ContainingAssembly
