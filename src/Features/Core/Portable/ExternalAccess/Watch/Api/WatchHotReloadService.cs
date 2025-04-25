@@ -69,7 +69,7 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
         public required bool RestartWhenChangesHaveNoEffect { get; init; }
     }
 
-    [Obsolete("Use update")]
+    [Obsolete("Use Updates2")]
     public readonly struct Updates(
         ModuleUpdateStatus status,
         ImmutableArray<Diagnostic> diagnostics,
