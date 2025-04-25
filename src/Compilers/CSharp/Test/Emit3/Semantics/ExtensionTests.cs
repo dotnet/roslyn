@@ -26293,6 +26293,43 @@ static class E
     }
 
     [Fact]
+    public void PropertyAccess_RemoveLowerPriorityMembers_09()
+    {
+        var source = """
+public static class E
+{
+    extension(object o)
+    {
+        [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
+        [System.Runtime.CompilerServices.OverloadResolutionPriority(2)]
+        public int P { set { } }
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Constructor | AttributeTargets.Property, AllowMultiple = true, Inherited = false)]
+    public sealed class OverloadResolutionPriorityAttribute(int priority) : Attribute
+    {
+        public int Priority => priority;
+    }
+}
+""";
+
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, symbolValidator: verify).VerifyDiagnostics();
+
+        static void verify(ModuleSymbol m)
+        {
+            var implementation = m.ContainingAssembly.GetTypeByMetadataName("E").GetMembers().OfType<MethodSymbol>().Single();
+            AssertEx.SetEqual([
+                "System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute(1)",
+                "System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute(2)"],
+                implementation.GetAttributes().ToStrings());
+        }
+    }
+
+    [Fact]
     public void MethodInvocation_RemoveStaticInstanceMismatches_01()
     {
         var src = """
