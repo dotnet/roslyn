@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal void ReportAsyncParameterErrors(BindingDiagnosticBag diagnostics, Location location)
         {
-            var parameters = !this.IsStatic ? this.GetParametersIncludingExtensionParameter() : Parameters;
+            var parameters = this.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: true);
 
             foreach (var parameter in parameters)
             {

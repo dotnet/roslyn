@@ -132,7 +132,6 @@
     <PackageReference Include="Microsoft.TestPlatform.TranslationLayer" />
     <PackageReference Include="Microsoft.TestPlatform.ObjectModel" />
     <PackageReference Include="Microsoft.VisualStudio.Composition" />
-    <PackageReference Include="Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace" />
     <PackageReference Include="NuGet.ProjectModel" />
     <PackageReference Include="System.CommandLine" />
 

@@ -96,7 +96,7 @@ internal sealed class ElementAccessExpressionSignatureHelpProvider : AbstractCSh
             return null;
         }
 
-        accessibleIndexers = accessibleIndexers.FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation)
+        accessibleIndexers = accessibleIndexers.FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation, inclusionFilter: static s => true)
                                                .Sort(semanticModel, expression.SpanStart);
 
         var structuralTypeDisplayService = document.GetRequiredLanguageService<IStructuralTypeDisplayService>();

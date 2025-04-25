@@ -87,6 +87,11 @@
         <target state="translated">繼承邊界</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_Initialization">
+        <source>Initialization</source>
+        <target state="new">Initialization</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_KeepAlive">
         <source>Keep alive service</source>
         <target state="translated">保持運作服務</target>
