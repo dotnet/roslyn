@@ -11301,23 +11301,23 @@ interface I
         {
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.Preview,
-            TestCode = $$$"""
+            TestCode = $$"""
             interface ITest
             {
-                abstract void operator {{{op}}}(int y);
+                abstract void operator {{op}}(int y);
             }
             class C : {|CS0535:ITest|}
             {
             }
             """ + CompilerFeatureRequiredAttribute,
-            FixedCode = $$$"""
+            FixedCode = $$"""
             interface ITest
             {
-                abstract void operator {{{op}}}(int y);
+                abstract void operator {{op}}(int y);
             }
             class C : ITest
             {
-                void ITest.operator {{{op}}}(int y)
+                void ITest.operator {{op}}}(int y)
                 {
                     throw new System.NotImplementedException();
                 }
@@ -11414,24 +11414,23 @@ interface I
         {
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.Preview,
-            TestCode = $$$"""
+            TestCode = $$"""
             interface ITest<T> where T : ITest<T>
             {
-                void operator {{{op}}}();
+                void operator {{op}}();
             }
             class C : {|CS0535:ITest<C>|}
             {
             }
             """ + CompilerFeatureRequiredAttribute,
-            // PROTOTYPE: The 'static' modifier shouldn't be added
-            FixedCode = $$$"""
+            FixedCode = $$"""
             interface ITest<T> where T : ITest<T>
             {
-                void operator {{{op}}}();
+                void operator {{op}}();
             }
-            class C : {|CS0736:ITest<C>|}
+            class C : ITest<C>
             {
-                public static void operator {|CS1535:{{{op}}}|}()
+                public void operator {{op}}()
                 {
                     throw new System.NotImplementedException();
                 }
@@ -11451,24 +11450,23 @@ interface I
         {
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.Preview,
-            TestCode = $$$"""
+            TestCode = $$"""
             interface ITest<T> where T : ITest<T>
             {
-                void operator {{{op}}}(int y);
+                void operator {{op}}(int y);
             }
             class C : {|CS0535:ITest<C>|}
             {
             }
             """ + CompilerFeatureRequiredAttribute,
-            // PROTOTYPE: The 'static' modifier shouldn't be added
-            FixedCode = $$$"""
+            FixedCode = $$"""
             interface ITest<T> where T : ITest<T>
             {
-                void operator {{{op}}}(int y);
+                void operator {{op}}(int y);
             }
             class C : ITest<C>
             {
-                public static void operator {|CS0106:{{{op}}}|}(int y)
+                public void operator {{op}}(int y)
                 {
                     throw new System.NotImplementedException();
                 }
