@@ -8,6 +8,7 @@
     <!-- Roslyn produces stable release branded and stable pre-release branded artifacts in addition to the normal non-stable artifacts.
          Only the non-stable artifacts should flow downstream in source build -->
     <EnableDefaultSourceBuildIntermediateItems>false</EnableDefaultSourceBuildIntermediateItems>
+    <ReportPrebuiltUsage>false</ReportPrebuiltUsage>
   </PropertyGroup>
 
   <Target Name="GetCustomIntermediateNupkgContents" BeforeTargets="GetCategorizedIntermediateNupkgContents">
