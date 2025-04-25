@@ -237,6 +237,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
+        public override void VisitMethod(MethodSymbol symbol)
+        {
+            if (symbol is SourceExtensionImplementationMethodSymbol implementation)
+            {
+                var symbolForDocComment = implementation.UnderlyingMethod is SourcePropertyAccessorSymbol accessorSymbol
+                    ? accessorSymbol.AssociatedSymbol
+                    : implementation.UnderlyingMethod;
+
+                if (symbolForDocComment.GetDocumentationCommentXml(preferredCulture: null, _processIncludes, _cancellationToken).IsEmpty())
+                {
+                    return;
+                }
+
+                WriteLine("<member name=\"{0}\">", symbol.GetDocumentationCommentId());
+                Indent();
+                WriteLine("<inheritdoc cref=\"{0}\"/>", symbolForDocComment.GetDocumentationCommentId());
+                Unindent();
+                WriteLine("</member>");
+                return;
+            }
+
+            DefaultVisit(symbol);
+        }
 
         /// <summary>
         /// Compile documentation comments on the symbol and write them to the stream if one is provided.

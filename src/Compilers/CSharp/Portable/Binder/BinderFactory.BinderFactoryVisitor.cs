@@ -1213,7 +1213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             case XmlNameAttributeElementKind.Parameter:
                             case XmlNameAttributeElementKind.ParameterReference:
-                                result = GetParameterNameAttributeValueBinder(memberSyntax, result);
+                                result = GetParameterNameAttributeValueBinder(memberSyntax, isParamRef: elementKind == XmlNameAttributeElementKind.ParameterReference, nextBinder: result);
                                 break;
                             case XmlNameAttributeElementKind.TypeParameter:
                                 result = GetTypeParameterNameAttributeValueBinder(memberSyntax, includeContainingSymbols: false, nextBinder: result);
@@ -1234,16 +1234,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// We're in a &lt;param&gt; or &lt;paramref&gt; element, so we want a binder that can see
             /// the parameters of the associated member and nothing else.
             /// </summary>
-            private Binder GetParameterNameAttributeValueBinder(MemberDeclarationSyntax memberSyntax, Binder nextBinder)
+            private Binder GetParameterNameAttributeValueBinder(MemberDeclarationSyntax memberSyntax, bool isParamRef, Binder nextBinder)
             {
                 if (memberSyntax is BaseMethodDeclarationSyntax { ParameterList: { ParameterCount: > 0 } } baseMethodDeclSyntax)
                 {
                     Binder outerBinder = VisitCore(memberSyntax.Parent);
                     MethodSymbol method = GetMethodSymbol(baseMethodDeclSyntax, outerBinder);
+
+                    if (isParamRef && method.TryGetInstanceExtensionParameter(out var _))
+                    {
+                        nextBinder = new WithExtensionParameterBinder(method.ContainingType, nextBinder);
+                    }
+
                     return new WithParametersBinder(method.Parameters, nextBinder);
                 }
-
-                if (memberSyntax is TypeDeclarationSyntax { ParameterList: { ParameterCount: > 0 } } typeDeclaration)
+                else if (memberSyntax is ExtensionDeclarationSyntax extensionDeclaration)
+                {
+                    Binder outerBinder = VisitCore(memberSyntax);
+                    SourceNamedTypeSymbol type = ((NamespaceOrTypeSymbol)outerBinder.ContainingMemberOrLambda).GetSourceTypeMember((TypeDeclarationSyntax)memberSyntax);
+                    Debug.Assert(type.IsExtension);
+                    return new WithExtensionParameterBinder(type, nextBinder);
+                }
+                else if (memberSyntax is TypeDeclarationSyntax { ParameterList: { ParameterCount: > 0 } } typeDeclaration)
                 {
                     _ = typeDeclaration.ParameterList;
                     Binder outerBinder = VisitCore(memberSyntax);
@@ -1268,6 +1280,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     ImmutableArray<ParameterSymbol> parameters = property.Parameters;
 
+                    if (isParamRef && property.TryGetInstanceExtensionParameter(out var _))
+                    {
+                        nextBinder = new WithExtensionParameterBinder(property.ContainingType, nextBinder);
+                    }
+
                     // BREAK: Dev11 also allows "value" for readonly properties, but that doesn't
                     // make sense and we don't have a symbol.
                     if ((object)property.SetMethod != null)
@@ -1278,8 +1295,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (parameters.Any())
                     {
-                        return new WithParametersBinder(parameters, nextBinder);
+                        nextBinder = new WithParametersBinder(parameters, nextBinder);
                     }
+
+                    return nextBinder;
                 }
                 else if (memberKind == SyntaxKind.DelegateDeclaration)
                 {
