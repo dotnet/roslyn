@@ -21,31 +21,29 @@ internal partial class VisualStudioMetadataReferenceManager
 
             public DateTime GetTimeStamp(string fullPath, IFileChangeWatcher watcher)
             {
-                DateTime timestamp;
-
                 lock (_cachedTimestamps)
                 {
                     // Attempt to use the cached timestamp for this file. If we don't have a cached timestamp,
                     // we'll need to recalculate
-                    if (!_cachedTimestamps.TryGetValue(fullPath, out timestamp))
+                    if (!_cachedTimestamps.TryGetValue(fullPath, out var timestamp))
+                        return timestamp;
+
+                    var directory = Path.GetDirectoryName(fullPath);
+                    var context = _fileChangeContexts.GetOrAdd(directory, static (directory, arg) =>
                     {
-                        var directory = Path.GetDirectoryName(fullPath);
-                        var context = _fileChangeContexts.GetOrAdd(directory, static (directory, arg) =>
-                        {
-                            var (watcher, self) = arg;
-                            var context = watcher.CreateContext([new WatchedDirectory(directory, extensionFilters: [])]);
-                            context.FileChanged += self.OnContextFileChanged;
+                        var (watcher, self) = arg;
+                        var context = watcher.CreateContext([new WatchedDirectory(directory, extensionFilters: [])]);
+                        context.FileChanged += self.OnContextFileChanged;
 
-                            return context;
-                        }, (watcher, this));
+                        return context;
+                    }, (watcher, this));
 
-                        // No need to enqueue this file path onto the context, as the containing directory is already being watched
-                        timestamp = FileUtilities.GetFileTimeStamp(fullPath);
-                        _cachedTimestamps[fullPath] = timestamp;
-                    }
+                    // No need to enqueue this file path onto the context, as the containing directory is already being watched
+                    timestamp = FileUtilities.GetFileTimeStamp(fullPath);
+                    _cachedTimestamps[fullPath] = timestamp;
+
+                    return timestamp;
                 }
-
-                return timestamp;
             }
 
             private void OnContextFileChanged(object? sender, string filePath)
@@ -57,6 +55,5 @@ internal partial class VisualStudioMetadataReferenceManager
                 }
             }
         }
-
     }
 }
