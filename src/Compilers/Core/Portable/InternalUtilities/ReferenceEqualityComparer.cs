@@ -2,35 +2,59 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace Roslyn.Utilities
+#if NET5_0_OR_GREATER
+
+#pragma warning disable RS0016 // Add public types and members to the declared API (this is a supporting forwarder for an internal polyfill API)
+[assembly: TypeForwardedTo(typeof(System.Collections.Generic.ReferenceEqualityComparer))]
+#pragma warning restore RS0016 // Add public types and members to the declared API
+
+#else
+
+namespace System.Collections.Generic;
+
+internal sealed class ReferenceEqualityComparer : IEqualityComparer<object?>, IEqualityComparer
 {
+    private ReferenceEqualityComparer() { }
+
     /// <summary>
-    /// Compares objects based upon their reference identity.
+    /// Gets the singleton <see cref="ReferenceEqualityComparer"/> instance.
     /// </summary>
-    internal class ReferenceEqualityComparer : IEqualityComparer<object?>
+    public static ReferenceEqualityComparer Instance { get; } = new ReferenceEqualityComparer();
+
+    /// <summary>
+    /// Determines whether two object references refer to the same object instance.
+    /// </summary>
+    /// <param name="x">The first object to compare.</param>
+    /// <param name="y">The second object to compare.</param>
+    /// <returns>
+    /// <see langword="true"/> if both <paramref name="x"/> and <paramref name="y"/> refer to the same object instance
+    /// or if both are <see langword="null"/>; otherwise, <see langword="false"/>.
+    /// </returns>
+    /// <remarks>
+    /// This API is a wrapper around <see cref="object.ReferenceEquals(object?, object?)"/>.
+    /// It is not necessarily equivalent to calling <see cref="object.Equals(object?, object?)"/>.
+    /// </remarks>
+    public new bool Equals(object? x, object? y) => ReferenceEquals(x, y);
+
+    /// <summary>
+    /// Returns a hash code for the specified object. The returned hash code is based on the object
+    /// identity, not on the contents of the object.
+    /// </summary>
+    /// <param name="obj">The object for which to retrieve the hash code.</param>
+    /// <returns>A hash code for the identity of <paramref name="obj"/>.</returns>
+    /// <remarks>
+    /// This API is a wrapper around <see cref="RuntimeHelpers.GetHashCode(object)"/>.
+    /// It is not necessarily equivalent to calling <see cref="object.GetHashCode()"/>.
+    /// </remarks>
+    public int GetHashCode(object? obj)
     {
-        public static readonly ReferenceEqualityComparer Instance = new();
-
-        private ReferenceEqualityComparer()
-        {
-        }
-
-        bool IEqualityComparer<object?>.Equals(object? a, object? b)
-        {
-            return a == b;
-        }
-
-        int IEqualityComparer<object?>.GetHashCode(object? a)
-        {
-            return ReferenceEqualityComparer.GetHashCode(a);
-        }
-
-        public static int GetHashCode(object? a)
-        {
-            return RuntimeHelpers.GetHashCode(a);
-        }
+        // Depending on target framework, RuntimeHelpers.GetHashCode might not be annotated
+        // with the proper nullability attribute. We'll suppress any warning that might
+        // result.
+        return RuntimeHelpers.GetHashCode(obj!);
     }
 }
+
+#endif
