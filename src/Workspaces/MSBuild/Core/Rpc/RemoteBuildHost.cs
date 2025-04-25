@@ -34,7 +34,7 @@ internal sealed class RemoteBuildHost
     }
 
     /// <summary>Permits loading a project file which only exists in-memory, for example, for file-based program scenarios.</summary>
-    /// <param name="projectFilePath">A path to a project file which may or may not exist on disk.</param>
+    /// <param name="projectFilePath">A path to a project file which may or may not exist on disk. Note that an extension that is known by MSBuild, such as .csproj or .vbproj, should be used here.</param>
     /// <param name="projectContent">The project file XML content.</param>
     public async Task<RemoteProjectFile> LoadProjectAsync(string projectFilePath, string projectContent, string languageName, CancellationToken cancellationToken)
     {
