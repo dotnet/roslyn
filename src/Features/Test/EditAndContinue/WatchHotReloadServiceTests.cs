@@ -107,8 +107,8 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
 
         result = await hotReload.GetUpdatesAsync(solution, runningProjects, CancellationToken.None);
         AssertEx.Equal(
-            ["ENC0110: " + string.Format(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.method)],
-            result.RudeEdits.SelectMany(re => re.diagnostics.Select(d => $"{re.project}: {d.GetMessage()}")));
+            ["P: ENC0110: " + string.Format(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.method)],
+            result.RudeEdits.SelectMany(re => re.diagnostics.Select(d => $"{re.project.DebugName}: {d.Id}: {d.GetMessage()}")));
         Assert.Empty(result.ProjectUpdates);
         AssertEx.SetEqual(["P"], result.ProjectsToRestart.Select(p => solution.GetRequiredProject(p.Key).Name));
         AssertEx.SetEqual(["P"], result.ProjectsToRebuild.Select(p => solution.GetRequiredProject(p).Name));

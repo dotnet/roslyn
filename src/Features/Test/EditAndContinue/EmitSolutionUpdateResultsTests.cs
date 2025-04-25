@@ -61,7 +61,7 @@ public sealed class EmitSolutionUpdateResultsTests
     private static IEnumerable<string> Inspect(ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>> projectsToRestart)
         => projectsToRestart
             .OrderBy(kvp => kvp.Key.DebugName)
-            .Select(kvp => $"{kvp.Key.DebugName}: [{string.Join(",", kvp.Value.Select(id => id.DebugName))}]");
+            .Select(kvp => $"{kvp.Key.DebugName}: [{string.Join(",", kvp.Value.Select(id => id.DebugName).Order())}]");
 
     [Fact]
     public async Task GetHotReloadDiagnostics()
