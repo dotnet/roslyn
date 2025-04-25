@@ -3516,6 +3516,113 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Identity").WithArguments($"Program.Identity<K, V>(System.Collections.Generic.{typeName}<K, V>)").WithLocation(9, 9));
         }
 
+        // Type inference should not walk into KeyValuePair<A, B> when the KeyValuePair<A, B>
+        // is substituted type for T rather than substituted for KeyValuePair<K, V>.
+        [Theory]
+        [InlineData("System.Collections.Generic.IEnumerable<T>")]
+        [InlineData("T[]")]
+        [InlineData("System.Collections.Generic.List<T>")]
+        public void TypeInference_KeyValuePairConversions(string typeName)
+        {
+            string sourceA1 = $$"""
+                class Program
+                {
+                    static void Main()
+                    {
+                        (int, string) x = (1, "one");
+                        (int?, object) y = (2, "two");
+                        Identity([x, y]);
+                        Identity([y, x]);
+                    }
+                    static {{typeName}} Identity<T>({{typeName}} c)
+                    {
+                        c.Report();
+                        return c;
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [sourceA1, s_collectionExtensions],
+                expectedOutput: "[(1, one), (2, two)], [(2, two), (1, one)], ");
+            verifier.VerifyDiagnostics();
+
+            string sourceB1 = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = new KeyValuePair<int, string>(1, "one");
+                        var y = new KeyValuePair<int?, object>(2, "two");
+                        Identity([x, y]);
+                        Identity([y, x]);
+                    }
+                    static {{typeName}} Identity<T>({{typeName}} c)
+                    {
+                        c.Report();
+                        return c;
+                    }
+                }
+                """;
+            var comp = CreateCompilation([sourceB1, s_collectionExtensions]);
+            comp.VerifyEmitDiagnostics(
+                // (8,9): error CS0411: The type arguments for method 'Program.Identity<T>(IEnumerable<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Identity([x, y]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Identity").WithArguments($"Program.Identity<T>({typeName})").WithLocation(8, 9),
+                // (9,9): error CS0411: The type arguments for method 'Program.Identity<T>(IEnumerable<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Identity([y, x]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Identity").WithArguments($"Program.Identity<T>({typeName})").WithLocation(9, 9));
+
+            string sourceA2 = $$"""
+                class Program
+                {
+                    static void Main()
+                    {
+                        (int, string) x = (1, "one");
+                        (int?, object) y = (2, "two");
+                        Identity(x, y);
+                        Identity(y, x);
+                    }
+                    static {{typeName}} Identity<T>(params {{typeName}} c)
+                    {
+                        c.Report();
+                        return c;
+                    }
+                }
+                """;
+            verifier = CompileAndVerify(
+                [sourceA2, s_collectionExtensions],
+                expectedOutput: "[(1, one), (2, two)], [(2, two), (1, one)], ");
+            verifier.VerifyDiagnostics();
+
+            string sourceB2 = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = new KeyValuePair<int, string>(1, "one");
+                        var y = new KeyValuePair<int?, object>(2, "two");
+                        Identity(x, y);
+                        Identity(y, x);
+                    }
+                    static {{typeName}} Identity<T>(params {{typeName}} c)
+                    {
+                        c.Report();
+                        return c;
+                    }
+                }
+                """;
+            comp = CreateCompilation([sourceB2, s_collectionExtensions]);
+            comp.VerifyEmitDiagnostics(
+                // (8,9): error CS0411: The type arguments for method 'Program.Identity<T>(params IEnumerable<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Identity(x, y);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Identity").WithArguments($"Program.Identity<T>(params {typeName})").WithLocation(8, 9),
+                // (9,9): error CS0411: The type arguments for method 'Program.Identity<T>(params IEnumerable<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Identity(y, x);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Identity").WithArguments($"Program.Identity<T>(params {typeName})").WithLocation(9, 9));
+        }
+
         [Theory]
         [CombinatorialData]
         public void CustomDictionary_01([CombinatorialValues("class", "struct")] string typeKind, bool useCompilationReference)
