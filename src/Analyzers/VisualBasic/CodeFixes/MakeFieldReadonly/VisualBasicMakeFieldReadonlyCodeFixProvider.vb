@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeFieldReadonly
         End Sub
 
         Protected Overrides Function GetVariableDeclarators(declaration As FieldDeclarationSyntax) As ImmutableList(Of ModifiedIdentifierSyntax)
-            Return declaration.Declarators.SelectMany(Function(d) d.Names).ToImmutableListOrEmpty()
+            Return declaration.Declarators.SelectMany(Function(d) d.Names).ToImmutableList()
         End Function
 
         Protected Overrides Function GetInitializerNode(declaration As ModifiedIdentifierSyntax) As SyntaxNode
