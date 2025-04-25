@@ -33,6 +33,9 @@ internal sealed class RemoteBuildHost
         return new RemoteProjectFile(_client, remoteProjectFileTargetObject);
     }
 
+    /// <summary>Permits loading a project file which only exists in-memory, for example, for file-based program scenarios.</summary>
+    /// <param name="projectFilePath">A path to a project file which may or may not exist on disk.</param>
+    /// <param name="projectContent">The project file XML content.</param>
     public async Task<RemoteProjectFile> LoadProjectAsync(string projectFilePath, string projectContent, string languageName, CancellationToken cancellationToken)
     {
         var remoteProjectFileTargetObject = await _client.InvokeAsync<int>(BuildHostTargetObject, nameof(IBuildHost.LoadProject), parameters: [projectFilePath, projectContent, languageName], cancellationToken).ConfigureAwait(false);
