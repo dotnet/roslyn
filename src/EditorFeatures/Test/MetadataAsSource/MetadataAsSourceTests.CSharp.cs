@@ -744,7 +744,7 @@ public sealed partial class MetadataAsSourceTests
                 {
                     public C();
 
-                    public static void operator [|{{op}}|]();
+                    public void operator [|{{op}}|]();
                 }
                 """,
                 // PROTOTYPE: Not sure whether 'CompilerFeatureRequired' attribute is expected
@@ -795,8 +795,8 @@ public sealed partial class MetadataAsSourceTests
                 {
                     public C();
 
-                    public static void operator checked [|{{op}}|]();
-                    public static void operator {{op}}();
+                    public void operator checked [|{{op}}|]();
+                    public void operator {{op}}();
                 }
                 """,
                 // PROTOTYPE: Not sure whether 'CompilerFeatureRequired' attribute is expected
@@ -852,7 +852,7 @@ public sealed partial class MetadataAsSourceTests
                 {
                     public C();
 
-                    public static void operator [|{{op}}|](int x);
+                    public void operator [|{{op}}|](int x);
                 }
                 """,
                 // PROTOTYPE: Expected an operator declaration syntax
@@ -916,8 +916,8 @@ public sealed partial class MetadataAsSourceTests
                 {
                     public C();
 
-                    public static void operator checked [|{{op}}|](int x);
-                    public static void operator {{op}}(int x);
+                    public void operator checked [|{{op}}|](int x);
+                    public void operator {{op}}(int x);
                 }
                 """,
                 // PROTOTYPE: Expected an operator declaration syntax
