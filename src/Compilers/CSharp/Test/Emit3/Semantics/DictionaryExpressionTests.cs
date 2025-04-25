@@ -2274,14 +2274,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                       ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Collections.Generic.KeyValuePair<System.Int32, System.String>, IsInvalid) (Syntax: 'x')
                 """);
 
-            string collectionTypeName = typeName.Replace("K, V", "int, string");
             string sourceB = $$"""
                 using System.Collections.Generic;
                 class Program
                 {
                     static void Main()
                     {
-                        {{collectionTypeName}} args = [new KeyValuePair<int, string>(3, "three")];
+                        var x = new KeyValuePair<int, string>(2, "two");
+                        Single(x);
+                        Single<int, string>(x);
+                        Single<int?, object>(x);
+                    }
+                    static void Single<K, V>(KeyValuePair<K, V> kvp)
+                    {
+                    }
+                }
+                """;
+            comp = CreateCompilation(
+                sourceB,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics(
+                // (9,30): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
+                //         Single<int?, object>(x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(9, 30));
+
+            string collectionTypeName = typeName.Replace("K, V", "int, string");
+            string sourceC = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = new KeyValuePair<int, string>(2, "two");
+                        {{collectionTypeName}} args = [x];
                         Params(args);
                         Params<int, string>(args);
                         Params<int?, object>(args);
@@ -2292,22 +2317,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             comp = CreateCompilation(
-                sourceB,
-                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
-                targetFramework: typeName == "System.ReadOnlySpan<KeyValuePair<K, V>>" ? TargetFramework.Net80 : TargetFramework.Standard);
-            // PROTOTYPE: Should report diagnostics for Params<int?, object>().
+                sourceC,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyEmitDiagnostics(
-                // (9,30): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<int, string>>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
+                // (10,30): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<int, string>>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
                 //         Params<int?, object>(args);
-                Diagnostic(ErrorCode.ERR_BadArgType, "args").WithArguments("1", collectionTypeName, "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(9, 30));
+                Diagnostic(ErrorCode.ERR_BadArgType, "args").WithArguments("1", collectionTypeName, "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(10, 30));
         }
 
         [Theory]
         [CombinatorialData]
         public void KeyValuePairConversions_Params_02(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues("ReadOnlySpan", "Span")] string typeName)
         {
-            string sourceA = """
+            string source = $$"""
                 using System;
                 using System.Collections.Generic;
                 class Program
@@ -2315,35 +2339,83 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static void Main()
                     {
                         var x = new KeyValuePair<int, string>(2, "two");
-                        Params(x);
                         Params<int, string>(x);
-                        /*<bind>*/Params<int?, object>(x)/*</bind>*/;
+                        Params<int?, object>(x);
                     }
-                    static void Params<K, V>(params ReadOnlySpan<System.Collections.Generic.KeyValuePair<K, V>> args)
+                    static void Params<K, V>(params {{typeName}}<KeyValuePair<K, V>> args)
                     {
-                        args.ToArray().Report();
                     }
                 }
                 """;
             var comp = CreateCompilation(
-                [sourceA, s_collectionExtensions],
+                source,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
-                options: TestOptions.ReleaseExe,
                 targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (9,30): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
+                //         Params<int?, object>(x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(9, 30));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void KeyValuePairConversions_Params_03(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues("IReadOnlyDictionary", "Dictionary")] string typeName)
+        {
+            string source = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = new KeyValuePair<int, string>(2, "two");
+                        Params<int, string>(x);
+                        Params<int?, object>(x);
+                    }
+                    static void Params<K, V>(params {{typeName}}<K, V> args)
+                    {
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             if (languageVersion == LanguageVersion.CSharp13)
             {
-                comp.VerifyEmitDiagnostics(
-                    // (10,40): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
-                    //         /*<bind>*/Params<int?, object>(x)/*</bind>*/;
-                    Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(10, 40));
+                if (typeName == "Dictionary")
+                {
+                    comp.VerifyEmitDiagnostics(
+                        // (7,29): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.KeyValuePair<int, string>' to 'params System.Collections.Generic.Dictionary<int, string>'
+                        //         Params<int, string>(x);
+                        Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Collections.Generic.KeyValuePair<int, string>", "params System.Collections.Generic.Dictionary<int, string>").WithLocation(7, 29),
+                        // (8,30): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.KeyValuePair<int, string>' to 'params System.Collections.Generic.Dictionary<int?, object>'
+                        //         Params<int?, object>(x);
+                        Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Collections.Generic.KeyValuePair<int, string>", "params System.Collections.Generic.Dictionary<int?, object>").WithLocation(8, 30),
+                        // (10,30): error CS9215: Collection expression type 'Dictionary<K, V>' must have an instance or extension method 'Add' that can be called with a single argument.
+                        //     static void Params<K, V>(params Dictionary<K, V> args)
+                        Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "params Dictionary<K, V> args").WithArguments("System.Collections.Generic.Dictionary<K, V>").WithLocation(10, 30));
+                }
+                else
+                {
+                    comp.VerifyEmitDiagnostics(
+                        // (7,29): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.KeyValuePair<int, string>' to 'params System.Collections.Generic.IReadOnlyDictionary<int, string>'
+                        //         Params<int, string>(x);
+                        Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Collections.Generic.KeyValuePair<int, string>", "params System.Collections.Generic.IReadOnlyDictionary<int, string>").WithLocation(7, 29),
+                        // (8,30): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.KeyValuePair<int, string>' to 'params System.Collections.Generic.IReadOnlyDictionary<int?, object>'
+                        //         Params<int?, object>(x);
+                        Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Collections.Generic.KeyValuePair<int, string>", "params System.Collections.Generic.IReadOnlyDictionary<int?, object>").WithLocation(8, 30),
+                        // (10,30): error CS0225: The params parameter must have a valid collection type
+                        //     static void Params<K, V>(params IReadOnlyDictionary<K, V> args)
+                        Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(10, 30));
+                }
             }
             else
             {
-                var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[[2, two]], [[2, two]], [[2, two]], "));
-                verifier.VerifyDiagnostics();
-                verifier.VerifyIL("Program.Main", """
-                    ...
-                    """);
+                comp.VerifyEmitDiagnostics(
+                    // (8,30): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
+                    //         Params<int?, object>(x);
+                    Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(8, 30));
             }
         }
 
