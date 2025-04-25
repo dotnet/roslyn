@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             .WithCompilerInternalOptions(SymbolDisplayFormat.TestFormat.CompilerInternalOptions | SymbolDisplayCompilerInternalOptions.UseNativeIntegerType);
 
         internal static readonly SymbolDisplayFormat ILFormat = SymbolDisplayFormat.ILVisualizationFormat
-            .WithCompilerInternalOptions(SymbolDisplayFormat.TestFormat.CompilerInternalOptions | SymbolDisplayCompilerInternalOptions.UseNativeIntegerType);
+            .WithCompilerInternalOptions(SymbolDisplayFormat.ILVisualizationFormat.CompilerInternalOptions | SymbolDisplayCompilerInternalOptions.UseNativeIntegerType);
 
         internal static bool IsNoConversion(ConversionKind[] conversionKinds)
         {
