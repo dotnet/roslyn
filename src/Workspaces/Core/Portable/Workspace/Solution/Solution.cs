@@ -27,9 +27,7 @@ namespace Microsoft.CodeAnalysis;
 /// </summary>
 public partial class Solution
 {
-    private readonly object _gate = new();
-
-    // Values for all these are created on demand. Only access when holding _gate.
+    // Values for all these are created on demand. Only access when holding the dictionary as a lock.
     private readonly Dictionary<ProjectId, Project> _projectIdToProjectMap = [];
 
     /// <summary>
@@ -152,7 +150,7 @@ public partial class Solution
     {
         if (this.ContainsProject(projectId))
         {
-            lock (_gate)
+            lock (_projectIdToProjectMap)
             {
                 return _projectIdToProjectMap.GetOrAdd(projectId, s_createProjectFunction, this);
             }

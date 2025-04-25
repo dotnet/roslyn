@@ -26,9 +26,7 @@ namespace Microsoft.CodeAnalysis;
 [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
 public partial class Project
 {
-    private readonly object _gate = new();
-
-    // Only access these dictionaries when holding _gate
+    // Only access these dictionaries when holding them as a lock
     private Dictionary<DocumentId, Document?>? _idToDocumentMap;
     private Dictionary<DocumentId, SourceGeneratedDocument>? _idToSourceGeneratedDocumentMap;
     private Dictionary<DocumentId, AdditionalDocument?>? _idToAdditionalDocumentMap;
@@ -242,35 +240,46 @@ public partial class Project
     /// Get the document in this project with the specified document Id.
     /// </summary>
     public Document? GetDocument(DocumentId documentId)
-    {
-        lock (_gate)
-        {
-            _idToDocumentMap ??= [];
-            return _idToDocumentMap.GetOrAdd(documentId, s_tryCreateDocumentFunction, this);
-        }
-    }
+        => GetOrAddDocumentUnderLock(documentId, ref _idToDocumentMap, s_tryCreateDocumentFunction, this);
 
     /// <summary>
     /// Get the additional document in this project with the specified document Id.
     /// </summary>
     public TextDocument? GetAdditionalDocument(DocumentId documentId)
-    {
-        lock (_gate)
-        {
-            _idToAdditionalDocumentMap ??= [];
-            return _idToAdditionalDocumentMap.GetOrAdd(documentId, s_tryCreateAdditionalDocumentFunction, this);
-        }
-    }
+        => GetOrAddDocumentUnderLock(documentId, ref _idToAdditionalDocumentMap, s_tryCreateAdditionalDocumentFunction, this);
 
     /// <summary>
     /// Get the analyzer config document in this project with the specified document Id.
     /// </summary>
     public AnalyzerConfigDocument? GetAnalyzerConfigDocument(DocumentId documentId)
+        => GetOrAddDocumentUnderLock(documentId, ref _idToAnalyzerConfigDocumentMap, s_tryCreateAnalyzerConfigDocumentFunction, this);
+
+    private static TDocument GetOrAddDocumentUnderLock<TDocument, TArg>(DocumentId documentId, ref Dictionary<DocumentId, TDocument>? idMap, Func<DocumentId, TArg, TDocument> tryCreate, TArg arg)
     {
-        lock (_gate)
+        if (idMap == null)
         {
-            _idToAnalyzerConfigDocumentMap ??= [];
-            return _idToAnalyzerConfigDocumentMap.GetOrAdd(documentId, s_tryCreateAnalyzerConfigDocumentFunction, this);
+            // First call assigns a new dictionary. Any other simultaneous requests will get the same
+            // dictionary, and the normal locking rules will apply at that point.
+            Interlocked.CompareExchange(ref idMap, new Dictionary<DocumentId, TDocument>(), null);
+        }
+
+        lock (idMap)
+        {
+            return idMap.GetOrAdd(documentId, tryCreate, arg);
+        }
+    }
+
+    private static bool TryGetDocumentValueUnderLock<TDocument>(DocumentId documentId, ref Dictionary<DocumentId, TDocument>? idMap, out TDocument? document)
+    {
+        if (idMap == null)
+        {
+            document = default;
+            return false;
+        }
+
+        lock (idMap)
+        {
+            return idMap.TryGetValue(documentId, out document);
         }
     }
 
@@ -309,13 +318,7 @@ public partial class Project
 
         // return an iterator to avoid eagerly allocating all the document instances
         return generatedDocumentStates.States.Values.Select(state =>
-        {
-            lock (_gate)
-            {
-                _idToSourceGeneratedDocumentMap ??= [];
-                return _idToSourceGeneratedDocumentMap.GetOrAdd(state.Id, s_createSourceGeneratedDocumentFunction, (state, this));
-            }
-        });
+            GetOrAddDocumentUnderLock(state.Id, ref _idToSourceGeneratedDocumentMap, s_createSourceGeneratedDocumentFunction, (state, this)));
     }
 
     internal async IAsyncEnumerable<Document> GetAllRegularAndSourceGeneratedDocumentsAsync([EnumeratorCancellation] CancellationToken cancellationToken)
@@ -339,7 +342,7 @@ public partial class Project
             return null;
 
         // Quick check first: if we already have created a SourceGeneratedDocument wrapper, we're good
-        if (_idToSourceGeneratedDocumentMap != null && _idToSourceGeneratedDocumentMap.TryGetValue(documentId, out var sourceGeneratedDocument))
+        if (TryGetDocumentValueUnderLock(documentId, ref _idToSourceGeneratedDocumentMap, out var sourceGeneratedDocument))
             return sourceGeneratedDocument;
 
         // We'll have to run generators if we haven't already and now try to find it.
@@ -352,13 +355,7 @@ public partial class Project
     }
 
     internal SourceGeneratedDocument GetOrCreateSourceGeneratedDocument(SourceGeneratedDocumentState state)
-    {
-        lock (_gate)
-        {
-            _idToSourceGeneratedDocumentMap ??= [];
-            return _idToSourceGeneratedDocumentMap.GetOrAdd(state.Id, s_createSourceGeneratedDocumentFunction, (state, this));
-        }
-    }
+        => GetOrAddDocumentUnderLock(state.Id, ref _idToSourceGeneratedDocumentMap, s_createSourceGeneratedDocumentFunction, (state, this));
 
     /// <summary>
     /// Returns the <see cref="SourceGeneratedDocumentState"/> for a source generated document that has already been generated and observed.
@@ -379,7 +376,7 @@ public partial class Project
             return null;
 
         // Easy case: do we already have the SourceGeneratedDocument created?
-        if (_idToSourceGeneratedDocumentMap != null && _idToSourceGeneratedDocumentMap.TryGetValue(documentId, out var document))
+        if (TryGetDocumentValueUnderLock(documentId, ref _idToSourceGeneratedDocumentMap, out var document))
             return document;
 
         // Trickier case now: it's possible we generated this, but we don't actually have the SourceGeneratedDocument for it, so let's go
@@ -388,11 +385,7 @@ public partial class Project
         if (documentState == null)
             return null;
 
-        lock (_gate)
-        {
-            _idToSourceGeneratedDocumentMap ??= [];
-            return _idToSourceGeneratedDocumentMap.GetOrAdd(documentId, s_createSourceGeneratedDocumentFunction, (documentState, this));
-        }
+        return GetOrAddDocumentUnderLock(documentId, ref _idToSourceGeneratedDocumentMap, s_createSourceGeneratedDocumentFunction, (documentState, this));
     }
 
     internal ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(CancellationToken cancellationToken)
