@@ -293,14 +293,11 @@ internal static class ProducerConsumer<TItem>
         CancellationToken cancellationToken)
     {
         return RunAsync(
-            static (callback, outerArgs, cancellationToken) =>
-            {
-                var (source, produceItems, args) = outerArgs;
-                return RoslynParallel.ForEachAsync(
-                    source, cancellationToken,
-                    async (source, cancellationToken) => await produceItems(
-                        source, callback, args, cancellationToken).ConfigureAwait(false));
-            },
+            static (callback, args, cancellationToken) =>
+                RoslynParallel.ForEachAsync(
+                    args.source, cancellationToken,
+                    async (source, cancellationToken) => await args.produceItems(
+                        source, callback, args.args, cancellationToken).ConfigureAwait(false)),
             args: (source, produceItems, args),
             cancellationToken);
     }
