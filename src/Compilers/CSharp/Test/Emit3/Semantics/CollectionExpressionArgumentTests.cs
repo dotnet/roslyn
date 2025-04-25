@@ -589,7 +589,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 verify: Verification.Skipped,
                 expectedOutput: IncludeExpectedOutput("[], [], "));
             verifier.VerifyDiagnostics();
-            string expectedIL = """
+            string expectedIL = (interfaceType == "IReadOnlyDictionary") ?
+                """
+                {
+                  // Code size       11 (0xb)
+                  .maxstack  1
+                  IL_0000:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor()"
+                  IL_0005:  newobj     "System.Collections.ObjectModel.ReadOnlyDictionary<K, V>..ctor(System.Collections.Generic.IDictionary<K, V>)"
+                  IL_000a:  ret
+                }
+                """ :
+                """
                 {
                   // Code size        6 (0x6)
                   .maxstack  1

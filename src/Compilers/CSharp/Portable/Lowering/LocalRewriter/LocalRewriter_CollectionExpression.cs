@@ -523,13 +523,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             var typeArguments = interfaceType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
             var collectionType = _factory.WellKnownType(WellKnownType.System_Collections_Generic_Dictionary_KV).Construct(typeArguments);
 
-            // https://github.com/dotnet/roslyn/issues/77878: Create a custom interface implementation for IReadOnlyDictionary<K, V> to enforce immutability.
             // Dictionary<K, V> dictionary = new();
             var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor)).AsMember(collectionType);
             var rewrittenReceiver = _factory.New(constructor, ImmutableArray<BoundExpression>.Empty);
-
             var collection = PopulateDictionary(node, collectionType, rewrittenReceiver);
-            return _factory.Convert(node.Type, collection);
+
+            if ((object)interfaceType.OriginalDefinition == _compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IReadOnlyDictionary_KV))
+            {
+                // new ReadOnlyDictionary<K, V>((IDictionary<K, V>)dictionary)
+                var readOnlyDictionaryType = _factory.WellKnownType(WellKnownType.System_Collections_ObjectModel_ReadOnlyDictionary_KV).Construct(typeArguments);
+                var readOnlyDictionaryConstructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_ObjectModel_ReadOnlyDictionary_KV__ctor)).AsMember(readOnlyDictionaryType);
+                collection = _factory.New(
+                    readOnlyDictionaryConstructor,
+                    _factory.Convert(
+                        readOnlyDictionaryConstructor.Parameters[0].Type,
+                        collection));
+            }
+
+            return _factory.Convert(interfaceType, collection);
         }
 
         private BoundExpression VisitCollectionBuilderCollectionExpression(BoundCollectionExpression node)
