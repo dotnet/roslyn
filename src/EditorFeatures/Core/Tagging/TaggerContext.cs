@@ -4,10 +4,7 @@
 
 #nullable disable
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -15,7 +12,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging;
 
@@ -25,6 +21,14 @@ internal class TaggerContext<TTag> where TTag : ITag
 
     internal ImmutableArray<SnapshotSpan> _spansTagged;
     public readonly SegmentedList<ITagSpan<TTag>> TagSpans = [];
+
+    /// <summary>
+    /// If the client should compute tags using frozen partial semantics.  This generally should have no effect if tags
+    /// are computed within this process as the provided <see cref="SpansToTag"/> will be given the right frozen or
+    /// unfrozen documents.  However, this is relevant when making calls to our external OOP server to ensure that it
+    /// also does the same when processing the request on its side.
+    /// </summary>
+    public bool FrozenPartialSemantics { get; }
 
     public ImmutableArray<DocumentSnapshotSpan> SpansToTag { get; }
     public SnapshotPoint? CaretPosition { get; }
@@ -48,22 +52,31 @@ internal class TaggerContext<TTag> where TTag : ITag
 
     // For testing only.
     internal TaggerContext(
-        Document document, ITextSnapshot snapshot,
+        Document document,
+        ITextSnapshot snapshot,
+        bool frozenPartialSemantics,
         SnapshotPoint? caretPosition = null,
         TextChangeRange? textChangeRange = null)
-        : this(state: null, [new DocumentSnapshotSpan(document, snapshot.GetFullSpan())],
-               caretPosition, textChangeRange, existingTags: null)
+        : this(
+              state: null,
+              frozenPartialSemantics,
+              [new DocumentSnapshotSpan(document, snapshot.GetFullSpan())],
+              caretPosition,
+              textChangeRange,
+              existingTags: null)
     {
     }
 
     internal TaggerContext(
         object state,
+        bool frozenPartialSemantics,
         ImmutableArray<DocumentSnapshotSpan> spansToTag,
         SnapshotPoint? caretPosition,
         TextChangeRange? textChangeRange,
         ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> existingTags)
     {
         this.State = state;
+        this.FrozenPartialSemantics = frozenPartialSemantics;
         this.SpansToTag = spansToTag;
         this.CaretPosition = caretPosition;
         this.TextChangeRange = textChangeRange;

@@ -133,7 +133,7 @@ internal abstract partial class AbstractInheritanceMarginService
         using var _ = ArrayBuilder<InheritanceMarginItem>.GetInstance(out var result);
 
         if (includeGlobalImports && !remapped)
-            result.AddRange(await GetGlobalImportsItemsAsync(document, spanToSearch, frozenPartialSemantics: frozenPartialSemantics, cancellationToken).ConfigureAwait(false));
+            result.AddRange(await GetGlobalImportsItemsAsync(document, spanToSearch, frozenPartialSemantics, cancellationToken).ConfigureAwait(false));
 
         if (!symbolAndLineNumbers.IsEmpty)
         {
@@ -141,7 +141,7 @@ internal abstract partial class AbstractInheritanceMarginService
                 remappedProject,
                 document: remapped ? null : document,
                 symbolAndLineNumbers,
-                frozenPartialSemantics: frozenPartialSemantics,
+                frozenPartialSemantics,
                 cancellationToken).ConfigureAwait(false));
         }
 

@@ -57,6 +57,12 @@ internal sealed partial class ReferenceHighlightingViewTaggerProvider(
 
     protected override TaggerDelay EventChangeDelay => TaggerDelay.Medium;
 
+    /// <summary>
+    /// We support frozen partial semantics, so we can quickly get reference highlights without building SG docs.  We
+    /// will still run a tagging pass after the frozen-pass where we run again on non-frozen docs.
+    /// </summary>
+    protected override bool SupportsFrozenPartialSemantics => true;
+
     protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
     {
         // Note: we don't listen for OnTextChanged.  Text changes to this buffer will get
@@ -149,6 +155,10 @@ internal sealed partial class ReferenceHighlightingViewTaggerProvider(
                 var service = document.GetLanguageService<IDocumentHighlightsService>();
                 if (service != null)
                 {
+                    // Ensure that if we're producing tags for frozen/partial documents, that we pass along that info so
+                    // that we preserve that same behavior in OOP if we end up computing the tags there.
+                    options = options with { FrozenPartialSemantics = context.FrozenPartialSemantics };
+
                     // We only want to search inside documents that correspond to the snapshots
                     // we're looking at
                     var documentsToSearch = ImmutableHashSet.CreateRange(context.SpansToTag.Select(vt => vt.Document).WhereNotNull());

@@ -35,7 +35,7 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider(
     IAsynchronousOperationListenerProvider listenerProvider,
     IGlobalOptionService globalOptions) : ITaggerProvider
 {
-    private readonly IAsynchronousOperationListener _asyncListener = listenerProvider.GetListener(FeatureAttribute.Classification);
+    private readonly IAsynchronousOperationListenerProvider _asyncListenerProvider = listenerProvider;
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly ClassificationTypeMap _typeMap = typeMap;
     private readonly IGlobalOptionService _globalOptions = globalOptions;
@@ -51,7 +51,7 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider(
             return null;
         }
 
-        return new Tagger(this, buffer, _asyncListener, _globalOptions) as IAccurateTagger<T>;
+        return new Tagger(this, buffer, _asyncListenerProvider, _globalOptions) as IAccurateTagger<T>;
     }
 
     ITagger<T>? ITaggerProvider.CreateTagger<T>(ITextBuffer buffer)

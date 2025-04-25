@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -32,6 +31,9 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
         private readonly ITaggerEventSource _eventSource;
         private readonly IGlobalOptionService _globalOptions;
 
+        private readonly EmbeddedLanguageClassificationViewTaggerProvider _embeddedLanguageProvider;
+        private readonly SemanticClassificationViewTaggerProvider _semanticClassificationProvider;
+
         // State for the tagger.  Can be accessed from any thread.  Access should be protected by _gate.
 
         private readonly object _gate = new();
@@ -41,13 +43,17 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
         public Tagger(
             CopyPasteAndPrintingClassificationBufferTaggerProvider owner,
             ITextBuffer subjectBuffer,
-            IAsynchronousOperationListener asyncListener,
+            IAsynchronousOperationListenerProvider listenerProvider,
             IGlobalOptionService globalOptions)
         {
             _owner = owner;
             _subjectBuffer = subjectBuffer;
             _globalOptions = globalOptions;
 
+            _embeddedLanguageProvider = new(owner._threadingContext, owner._typeMap, globalOptions, visibilityTracker: null, listenerProvider);
+            _semanticClassificationProvider = new(owner._threadingContext, owner._typeMap, globalOptions, visibilityTracker: null, listenerProvider);
+
+            var asyncListener = listenerProvider.GetListener(FeatureAttribute.Classification);
             _eventSource = TaggerEventSources.Compose(
                 TaggerEventSources.OnWorkspaceChanged(subjectBuffer, asyncListener),
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer));
@@ -127,7 +133,7 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
             if (!canReuseCache)
             {
                 // Our cache is not there, or is out of date.  We need to compute the up to date results.
-                var context = new TaggerContext<IClassificationTag>(document, snapshot);
+                var context = new TaggerContext<IClassificationTag>(document, snapshot, frozenPartialSemantics: false);
                 var options = _globalOptions.GetClassificationOptions(document.Project.Language);
 
                 _owner._threadingContext.JoinableTaskFactory.Run(async () =>
@@ -136,8 +142,8 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
 
                     // When copying/pasting, ensure we have classifications fully computed for the requested spans
                     // for both semantic classifications and embedded lang classifications.
-                    await ProduceTagsAsync(context, snapshotSpan, classificationService, options, ClassificationType.Semantic, cancellationToken).ConfigureAwait(false);
-                    await ProduceTagsAsync(context, snapshotSpan, classificationService, options, ClassificationType.EmbeddedLanguage, cancellationToken).ConfigureAwait(false);
+                    await _semanticClassificationProvider.ProduceTagsAsync(context, snapshotSpan, classificationService, options, cancellationToken).ConfigureAwait(false);
+                    await _embeddedLanguageProvider.ProduceTagsAsync(context, snapshotSpan, classificationService, options, cancellationToken).ConfigureAwait(false);
                 });
 
                 cachedTaggedSpan = spanToTag;
@@ -154,14 +160,6 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
                 static (args, tags) => args.cachedTags?.AddIntersectingTagSpans(args.spans, tags),
                 (cachedTags, spans),
                 _: (ITagSpan<IClassificationTag>?)null);
-        }
-
-        private Task ProduceTagsAsync(
-            TaggerContext<IClassificationTag> context, DocumentSnapshotSpan snapshotSpan,
-            IClassificationService classificationService, ClassificationOptions options, ClassificationType type, CancellationToken cancellationToken)
-        {
-            return ClassificationUtilities.ProduceTagsAsync(
-                context, snapshotSpan, classificationService, _owner._typeMap, options, type, cancellationToken);
         }
 
         private void GetCachedInfo(out SnapshotSpan? cachedTaggedSpan, out TagSpanIntervalTree<IClassificationTag>? cachedTags)

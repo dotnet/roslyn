@@ -57,7 +57,7 @@ internal abstract partial class AbstractInheritanceMarginService : IInheritanceM
             var result = await remoteClient.TryInvokeAsync<IRemoteInheritanceMarginService, ImmutableArray<InheritanceMarginItem>>(
                 solution,
                 (service, solutionInfo, cancellationToken) =>
-                    service.GetInheritanceMarginItemsAsync(solutionInfo, document.Id, spanToSearch, includeGlobalImports: includeGlobalImports, frozenPartialSemantics: frozenPartialSemantics, cancellationToken),
+                    service.GetInheritanceMarginItemsAsync(solutionInfo, document.Id, spanToSearch, includeGlobalImports, frozenPartialSemantics, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
             if (!result.HasValue)
@@ -72,8 +72,8 @@ internal abstract partial class AbstractInheritanceMarginService : IInheritanceM
             return await GetInheritanceMarginItemsInProcessAsync(
                 document,
                 spanToSearch,
-                includeGlobalImports: includeGlobalImports,
-                frozenPartialSemantics: frozenPartialSemantics,
+                includeGlobalImports,
+                frozenPartialSemantics,
                 cancellationToken).ConfigureAwait(false);
         }
     }
