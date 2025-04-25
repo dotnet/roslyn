@@ -258,8 +258,8 @@ public partial class Project
     {
         if (idMap == null)
         {
-            // First call assigns a new dictionary. Any other simultaneous requests will get the same
-            // dictionary, and the normal locking rules will apply at that point.
+            // First call assigns a new dictionary. Any other simultaneous requests will not assign the
+            // dictionary they created to idMap. At that point, normal locking rules apply.
             Interlocked.CompareExchange(ref idMap, new Dictionary<DocumentId, TDocument>(), null);
         }
 
