@@ -9,6 +9,5 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion;
 
 internal interface ICSharpCopilotContextProviderService
 {
-    IAsyncEnumerable<IContextItem> GetContextItemsAsync(
-        Document document, int position, IReadOnlyDictionary<string, object> activeExperiments, CancellationToken cancellationToken);
+    IAsyncEnumerable<IContextItem> GetContextItemsAsync(Document document, int position, IReadOnlyDictionary<string, object> activeExperiments, CancellationToken cancellationToken);
 }
