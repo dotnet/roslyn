@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -195,6 +196,9 @@ public sealed partial class CodeGenerationTests
         using var testContext = await TestContext.CreateAsync(initial, expected);
         var parameterSymbols = GetParameterSymbols(parameters, testContext);
         var parsedStatements = testContext.ParseStatements(statements);
+
+        if (modifiers == default)
+            modifiers = new Editing.DeclarationModifiers(isStatic: true);
 
         var methods = operatorKinds.Select(kind => CodeGenerationSymbolFactory.CreateOperatorSymbol(
             attributes: default,
