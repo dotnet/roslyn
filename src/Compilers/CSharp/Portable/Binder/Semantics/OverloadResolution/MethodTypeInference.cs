@@ -692,6 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         MakeSpreadElementTypeInferences(spread, targetElementType, ref useSiteInfo);
                         break;
                     case BoundKeyValuePairElement keyValuePairElement:
+                    case BoundKeyValuePairExpressionElement keyValuePairExpressionElement:
                         // https://github.com/dotnet/roslyn/issues/77873: Handle input type inference for key:value elements.
                         break;
                     default:

@@ -626,14 +626,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 [source, s_dictionaryExtensions],
                 expectedOutput: "[], ");
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Program.F<K, V>", """
-                {
-                  // Code size        6 (0x6)
-                  .maxstack  1
-                  IL_0000:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor()"
-                  IL_0005:  ret
-                }
-                """);
+            if (typeName == "IReadOnlyDictionary")
+            {
+                verifier.VerifyIL("Program.F<K, V>", """
+                    {
+                      // Code size       11 (0xb)
+                      .maxstack  1
+                      IL_0000:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor()"
+                      IL_0005:  newobj     "System.Collections.ObjectModel.ReadOnlyDictionary<K, V>..ctor(System.Collections.Generic.IDictionary<K, V>)"
+                      IL_000a:  ret
+                    }
+                    """);
+            }
+            else
+            {
+                verifier.VerifyIL("Program.F<K, V>", """
+                    {
+                      // Code size        6 (0x6)
+                      .maxstack  1
+                      IL_0000:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor()"
+                      IL_0005:  ret
+                    }
+                    """);
+            }
         }
 
         [Theory]
@@ -662,60 +677,121 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 [source, s_dictionaryExtensions],
                 expectedOutput: "[1:one, 2:two, 3:three], ");
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Program.F<K, V>", """
-                {
-                  // Code size       94 (0x5e)
-                  .maxstack  3
-                  .locals init (System.Collections.Generic.Dictionary<K, V> V_0,
-                                System.Collections.Generic.KeyValuePair<K, V> V_1,
-                                System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<K, V>> V_2,
-                                System.Collections.Generic.KeyValuePair<K, V> V_3)
-                  IL_0000:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor()"
-                  IL_0005:  stloc.0
-                  IL_0006:  ldloc.0
-                  IL_0007:  ldarg.0
-                  IL_0008:  ldarg.1
-                  IL_0009:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
-                  IL_000e:  ldarg.2
-                  IL_000f:  stloc.1
-                  IL_0010:  ldloc.0
-                  IL_0011:  ldloca.s   V_1
-                  IL_0013:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
-                  IL_0018:  ldloca.s   V_1
-                  IL_001a:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
-                  IL_001f:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
-                  IL_0024:  ldarg.3
-                  IL_0025:  callvirt   "System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<K, V>> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<K, V>>.GetEnumerator()"
-                  IL_002a:  stloc.2
-                  .try
-                  {
-                    IL_002b:  br.s       IL_0048
-                    IL_002d:  ldloc.2
-                    IL_002e:  callvirt   "System.Collections.Generic.KeyValuePair<K, V> System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<K, V>>.Current.get"
-                    IL_0033:  stloc.3
-                    IL_0034:  ldloc.0
-                    IL_0035:  ldloca.s   V_3
-                    IL_0037:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
-                    IL_003c:  ldloca.s   V_3
-                    IL_003e:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
-                    IL_0043:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
-                    IL_0048:  ldloc.2
-                    IL_0049:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
-                    IL_004e:  brtrue.s   IL_002d
-                    IL_0050:  leave.s    IL_005c
-                  }
-                  finally
-                  {
-                    IL_0052:  ldloc.2
-                    IL_0053:  brfalse.s  IL_005b
-                    IL_0055:  ldloc.2
-                    IL_0056:  callvirt   "void System.IDisposable.Dispose()"
-                    IL_005b:  endfinally
-                  }
-                  IL_005c:  ldloc.0
-                  IL_005d:  ret
-                }
-                """);
+            if (typeName == "IReadOnlyDictionary")
+            {
+                verifier.VerifyIL("Program.F<K, V>", """
+                    {
+                      // Code size       99 (0x63)
+                      .maxstack  3
+                      .locals init (System.Collections.Generic.Dictionary<K, V> V_0,
+                                    System.Collections.Generic.KeyValuePair<K, V> V_1,
+                                    System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<K, V>> V_2,
+                                    System.Collections.Generic.KeyValuePair<K, V> V_3)
+                      IL_0000:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor()"
+                      IL_0005:  stloc.0
+                      IL_0006:  ldloc.0
+                      IL_0007:  ldarg.0
+                      IL_0008:  ldarg.1
+                      IL_0009:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                      IL_000e:  ldarg.2
+                      IL_000f:  stloc.1
+                      IL_0010:  ldloc.0
+                      IL_0011:  ldloca.s   V_1
+                      IL_0013:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                      IL_0018:  ldloca.s   V_1
+                      IL_001a:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                      IL_001f:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                      IL_0024:  ldarg.3
+                      IL_0025:  callvirt   "System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<K, V>> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<K, V>>.GetEnumerator()"
+                      IL_002a:  stloc.2
+                      .try
+                      {
+                        IL_002b:  br.s       IL_0048
+                        IL_002d:  ldloc.2
+                        IL_002e:  callvirt   "System.Collections.Generic.KeyValuePair<K, V> System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<K, V>>.Current.get"
+                        IL_0033:  stloc.3
+                        IL_0034:  ldloc.0
+                        IL_0035:  ldloca.s   V_3
+                        IL_0037:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                        IL_003c:  ldloca.s   V_3
+                        IL_003e:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                        IL_0043:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                        IL_0048:  ldloc.2
+                        IL_0049:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                        IL_004e:  brtrue.s   IL_002d
+                        IL_0050:  leave.s    IL_005c
+                      }
+                      finally
+                      {
+                        IL_0052:  ldloc.2
+                        IL_0053:  brfalse.s  IL_005b
+                        IL_0055:  ldloc.2
+                        IL_0056:  callvirt   "void System.IDisposable.Dispose()"
+                        IL_005b:  endfinally
+                      }
+                      IL_005c:  ldloc.0
+                      IL_005d:  newobj     "System.Collections.ObjectModel.ReadOnlyDictionary<K, V>..ctor(System.Collections.Generic.IDictionary<K, V>)"
+                      IL_0062:  ret
+                    }
+                    """);
+            }
+            else
+            {
+                verifier.VerifyIL("Program.F<K, V>", """
+                    {
+                      // Code size       94 (0x5e)
+                      .maxstack  3
+                      .locals init (System.Collections.Generic.Dictionary<K, V> V_0,
+                                    System.Collections.Generic.KeyValuePair<K, V> V_1,
+                                    System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<K, V>> V_2,
+                                    System.Collections.Generic.KeyValuePair<K, V> V_3)
+                      IL_0000:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor()"
+                      IL_0005:  stloc.0
+                      IL_0006:  ldloc.0
+                      IL_0007:  ldarg.0
+                      IL_0008:  ldarg.1
+                      IL_0009:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                      IL_000e:  ldarg.2
+                      IL_000f:  stloc.1
+                      IL_0010:  ldloc.0
+                      IL_0011:  ldloca.s   V_1
+                      IL_0013:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                      IL_0018:  ldloca.s   V_1
+                      IL_001a:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                      IL_001f:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                      IL_0024:  ldarg.3
+                      IL_0025:  callvirt   "System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<K, V>> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<K, V>>.GetEnumerator()"
+                      IL_002a:  stloc.2
+                      .try
+                      {
+                        IL_002b:  br.s       IL_0048
+                        IL_002d:  ldloc.2
+                        IL_002e:  callvirt   "System.Collections.Generic.KeyValuePair<K, V> System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<K, V>>.Current.get"
+                        IL_0033:  stloc.3
+                        IL_0034:  ldloc.0
+                        IL_0035:  ldloca.s   V_3
+                        IL_0037:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                        IL_003c:  ldloca.s   V_3
+                        IL_003e:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                        IL_0043:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                        IL_0048:  ldloc.2
+                        IL_0049:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                        IL_004e:  brtrue.s   IL_002d
+                        IL_0050:  leave.s    IL_005c
+                      }
+                      finally
+                      {
+                        IL_0052:  ldloc.2
+                        IL_0053:  brfalse.s  IL_005b
+                        IL_0055:  ldloc.2
+                        IL_0056:  callvirt   "void System.IDisposable.Dispose()"
+                        IL_005b:  endfinally
+                      }
+                      IL_005c:  ldloc.0
+                      IL_005d:  ret
+                    }
+                    """);
+            }
             var comp = (CSharpCompilation)verifier.Compilation;
             string constructMethod = typeName == "Dictionary" ? "System.Collections.Generic.Dictionary<K, V>..ctor()" : "null";
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
@@ -797,51 +873,104 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     comp,
                     expectedOutput: "[], [1:three, 2:two], ");
                 verifier.VerifyDiagnostics();
-                verifier.VerifyIL("Program.Empty<K, V>", $$"""
-                    {
-                      // Code size       11 (0xb)
-                      .maxstack  1
-                      IL_0000:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor()"
-                      IL_0005:  call       "void Program.Params<K, V>(params System.Collections.Generic.{{typeName}}<K, V>)"
-                      IL_000a:  ret
-                    }
-                    """);
-                verifier.VerifyIL("Program.Three<K, V>", $$"""
-                    {
-                      // Code size       77 (0x4d)
-                      .maxstack  4
-                      .locals init (System.Collections.Generic.KeyValuePair<K, V> V_0,
-                                    System.Collections.Generic.KeyValuePair<K, V> V_1,
-                                    System.Collections.Generic.KeyValuePair<K, V> V_2)
-                      IL_0000:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor()"
-                      IL_0005:  ldarg.0
-                      IL_0006:  stloc.0
-                      IL_0007:  dup
-                      IL_0008:  ldloca.s   V_0
-                      IL_000a:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
-                      IL_000f:  ldloca.s   V_0
-                      IL_0011:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
-                      IL_0016:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
-                      IL_001b:  ldarg.1
-                      IL_001c:  stloc.1
-                      IL_001d:  dup
-                      IL_001e:  ldloca.s   V_1
-                      IL_0020:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
-                      IL_0025:  ldloca.s   V_1
-                      IL_0027:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
-                      IL_002c:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
-                      IL_0031:  ldarg.2
-                      IL_0032:  stloc.2
-                      IL_0033:  dup
-                      IL_0034:  ldloca.s   V_2
-                      IL_0036:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
-                      IL_003b:  ldloca.s   V_2
-                      IL_003d:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
-                      IL_0042:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
-                      IL_0047:  call       "void Program.Params<K, V>(params System.Collections.Generic.{{typeName}}<K, V>)"
-                      IL_004c:  ret
-                    }
-                    """);
+                if (typeName == "IReadOnlyDictionary")
+                {
+                    verifier.VerifyIL("Program.Empty<K, V>", $$"""
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  1
+                          IL_0000:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor()"
+                          IL_0005:  newobj     "System.Collections.ObjectModel.ReadOnlyDictionary<K, V>..ctor(System.Collections.Generic.IDictionary<K, V>)"
+                          IL_000a:  call       "void Program.Params<K, V>(params System.Collections.Generic.IReadOnlyDictionary<K, V>)"
+                          IL_000f:  ret
+                        }
+                        """);
+                    verifier.VerifyIL("Program.Three<K, V>", $$"""
+                        {
+                          // Code size       82 (0x52)
+                          .maxstack  4
+                          .locals init (System.Collections.Generic.KeyValuePair<K, V> V_0,
+                                        System.Collections.Generic.KeyValuePair<K, V> V_1,
+                                        System.Collections.Generic.KeyValuePair<K, V> V_2)
+                          IL_0000:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor()"
+                          IL_0005:  ldarg.0
+                          IL_0006:  stloc.0
+                          IL_0007:  dup
+                          IL_0008:  ldloca.s   V_0
+                          IL_000a:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                          IL_000f:  ldloca.s   V_0
+                          IL_0011:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                          IL_0016:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                          IL_001b:  ldarg.1
+                          IL_001c:  stloc.1
+                          IL_001d:  dup
+                          IL_001e:  ldloca.s   V_1
+                          IL_0020:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                          IL_0025:  ldloca.s   V_1
+                          IL_0027:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                          IL_002c:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                          IL_0031:  ldarg.2
+                          IL_0032:  stloc.2
+                          IL_0033:  dup
+                          IL_0034:  ldloca.s   V_2
+                          IL_0036:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                          IL_003b:  ldloca.s   V_2
+                          IL_003d:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                          IL_0042:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                          IL_0047:  newobj     "System.Collections.ObjectModel.ReadOnlyDictionary<K, V>..ctor(System.Collections.Generic.IDictionary<K, V>)"
+                          IL_004c:  call       "void Program.Params<K, V>(params System.Collections.Generic.IReadOnlyDictionary<K, V>)"
+                          IL_0051:  ret
+                        }
+                        """);
+                }
+                else
+                {
+                    verifier.VerifyIL("Program.Empty<K, V>", $$"""
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  1
+                          IL_0000:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor()"
+                          IL_0005:  call       "void Program.Params<K, V>(params System.Collections.Generic.{{typeName}}<K, V>)"
+                          IL_000a:  ret
+                        }
+                        """);
+                    verifier.VerifyIL("Program.Three<K, V>", $$"""
+                        {
+                          // Code size       77 (0x4d)
+                          .maxstack  4
+                          .locals init (System.Collections.Generic.KeyValuePair<K, V> V_0,
+                                        System.Collections.Generic.KeyValuePair<K, V> V_1,
+                                        System.Collections.Generic.KeyValuePair<K, V> V_2)
+                          IL_0000:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor()"
+                          IL_0005:  ldarg.0
+                          IL_0006:  stloc.0
+                          IL_0007:  dup
+                          IL_0008:  ldloca.s   V_0
+                          IL_000a:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                          IL_000f:  ldloca.s   V_0
+                          IL_0011:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                          IL_0016:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                          IL_001b:  ldarg.1
+                          IL_001c:  stloc.1
+                          IL_001d:  dup
+                          IL_001e:  ldloca.s   V_1
+                          IL_0020:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                          IL_0025:  ldloca.s   V_1
+                          IL_0027:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                          IL_002c:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                          IL_0031:  ldarg.2
+                          IL_0032:  stloc.2
+                          IL_0033:  dup
+                          IL_0034:  ldloca.s   V_2
+                          IL_0036:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                          IL_003b:  ldloca.s   V_2
+                          IL_003d:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                          IL_0042:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                          IL_0047:  call       "void Program.Params<K, V>(params System.Collections.Generic.{{typeName}}<K, V>)"
+                          IL_004c:  ret
+                        }
+                        """);
+                }
             }
         }
 
@@ -1020,6 +1149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void DictionaryNotImplementingIDictionary(string typeName)
         {
             string sourceA = """
+                using System.Collections.Generic;
                 namespace System
                 {
                     public class Object { }
@@ -1080,6 +1210,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         public Dictionary() { }
                         public TValue this[TKey key] { get { return default; } set { } }
+                        IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator() => null;
+                        IEnumerator IEnumerable.GetEnumerator() => null;
+                    }
+                }
+                namespace System.Collections.ObjectModel
+                {
+                    public sealed class ReadOnlyDictionary<TKey, TValue> : IReadOnlyDictionary<TKey, TValue>
+                    {
+                        public ReadOnlyDictionary(IDictionary<TKey, TValue> d) { }
                         IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator() => null;
                         IEnumerator IEnumerable.GetEnumerator() => null;
                     }
@@ -2277,7 +2416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Main", """
                 {
-                  // Code size      145 (0x91)
+                  // Code size      150 (0x96)
                   .maxstack  5
                   .locals init (System.Collections.Generic.Dictionary<int, string> V_0,
                                 System.Collections.Generic.KeyValuePair<int, string> V_1,
@@ -2336,8 +2475,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0087:  conv.i4
                   IL_0088:  blt.s      IL_0063
                   IL_008a:  ldloc.0
-                  IL_008b:  call       "void DictionaryExtensions.Report<int, string>(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<int, string>>)"
-                  IL_0090:  ret
+                  IL_008b:  newobj     "System.Collections.ObjectModel.ReadOnlyDictionary<int, string>..ctor(System.Collections.Generic.IDictionary<int, string>)"
+                  IL_0090:  call       "void DictionaryExtensions.Report<int, string>(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<int, string>>)"
+                  IL_0095:  ret
                 }
                 """);
         }
@@ -2384,7 +2524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.F<K, V>", """
                 {
-                  // Code size      119 (0x77)
+                  // Code size      124 (0x7c)
                   .maxstack  3
                   .locals init (System.Collections.Generic.Dictionary<K, V> V_0,
                                 K V_1,
@@ -2438,7 +2578,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_006a:  call       "V Program.Identity<V>(V)"
                   IL_006f:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
                   IL_0074:  ldloc.s    V_4
-                  IL_0076:  ret
+                  IL_0076:  newobj     "System.Collections.ObjectModel.ReadOnlyDictionary<K, V>..ctor(System.Collections.Generic.IDictionary<K, V>)"
+                  IL_007b:  ret
                 }
                 """);
         }
@@ -4297,6 +4438,395 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (1,35): error CS9500: Collection expression type 'MyDictionary<string, object>' does not support key-value pair elements.
                 // MyDictionary<string, object> d = [default:default];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "default:default").WithArguments("MyDictionary<string, object>").WithLocation(1, 35));
+        }
+
+        [Fact]
+        public void IReadOnlyDictionary_01()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Empty<int, string>();
+                        Pair(1, "one");
+                        Many([new KeyValuePair<int, string>(3, "three")]);
+                        ParamsEmptyOrOne(new KeyValuePair<int, string>(2, "two"));
+                    }
+                    static void Empty<K, V>() { Report<K, V>([]); }
+                    static void Pair<K, V>(K k, V v) { Report<K, V>([k:v]); }
+                    static void Many<K, V>(KeyValuePair<K, V>[] s) { Report([..s]); }
+                    static void Params<K, V>(params IReadOnlyDictionary<K, V> d) { Report(d); }
+                    static void ParamsEmptyOrOne<K, V>(KeyValuePair<K, V> e)
+                    {
+                        Params<K, V>();
+                        Params(e);
+                    }
+                    static void Report<K, V>(IReadOnlyDictionary<K, V> d)
+                    {
+                        Console.Write("{0}: ", d.GetType().GetTypeName());
+                        d.Report();
+                        Console.WriteLine();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensions, s_dictionaryExtensions],
+                expectedOutput: """
+                    System.Collections.ObjectModel.ReadOnlyDictionary<System.Int32, System.String>: [], 
+                    System.Collections.ObjectModel.ReadOnlyDictionary<System.Int32, System.String>: [1:one], 
+                    System.Collections.ObjectModel.ReadOnlyDictionary<System.Int32, System.String>: [3:three], 
+                    System.Collections.ObjectModel.ReadOnlyDictionary<System.Int32, System.String>: [], 
+                    System.Collections.ObjectModel.ReadOnlyDictionary<System.Int32, System.String>: [2:two],  
+                    """);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Empty<K, V>", """
+                {
+                  // Code size       16 (0x10)
+                  .maxstack  1
+                  IL_0000:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor()"
+                  IL_0005:  newobj     "System.Collections.ObjectModel.ReadOnlyDictionary<K, V>..ctor(System.Collections.Generic.IDictionary<K, V>)"
+                  IL_000a:  call       "void Program.Report<K, V>(System.Collections.Generic.IReadOnlyDictionary<K, V>)"
+                  IL_000f:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.Pair<K, V>", """
+                {
+                  // Code size       24 (0x18)
+                  .maxstack  4
+                  IL_0000:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor()"
+                  IL_0005:  dup
+                  IL_0006:  ldarg.0
+                  IL_0007:  ldarg.1
+                  IL_0008:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_000d:  newobj     "System.Collections.ObjectModel.ReadOnlyDictionary<K, V>..ctor(System.Collections.Generic.IDictionary<K, V>)"
+                  IL_0012:  call       "void Program.Report<K, V>(System.Collections.Generic.IReadOnlyDictionary<K, V>)"
+                  IL_0017:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.Many<K, V>", """
+                {
+                  // Code size       62 (0x3e)
+                  .maxstack  3
+                  .locals init (System.Collections.Generic.Dictionary<K, V> V_0,
+                                System.Collections.Generic.KeyValuePair<K, V>[] V_1,
+                                int V_2,
+                                System.Collections.Generic.KeyValuePair<K, V> V_3)
+                  IL_0000:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldarg.0
+                  IL_0007:  stloc.1
+                  IL_0008:  ldc.i4.0
+                  IL_0009:  stloc.2
+                  IL_000a:  br.s       IL_002c
+                  IL_000c:  ldloc.1
+                  IL_000d:  ldloc.2
+                  IL_000e:  ldelem     "System.Collections.Generic.KeyValuePair<K, V>"
+                  IL_0013:  stloc.3
+                  IL_0014:  ldloc.0
+                  IL_0015:  ldloca.s   V_3
+                  IL_0017:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                  IL_001c:  ldloca.s   V_3
+                  IL_001e:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                  IL_0023:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_0028:  ldloc.2
+                  IL_0029:  ldc.i4.1
+                  IL_002a:  add
+                  IL_002b:  stloc.2
+                  IL_002c:  ldloc.2
+                  IL_002d:  ldloc.1
+                  IL_002e:  ldlen
+                  IL_002f:  conv.i4
+                  IL_0030:  blt.s      IL_000c
+                  IL_0032:  ldloc.0
+                  IL_0033:  newobj     "System.Collections.ObjectModel.ReadOnlyDictionary<K, V>..ctor(System.Collections.Generic.IDictionary<K, V>)"
+                  IL_0038:  call       "void Program.Report<K, V>(System.Collections.Generic.IReadOnlyDictionary<K, V>)"
+                  IL_003d:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.ParamsEmptyOrOne<K, V>", """
+                {
+                  // Code size       53 (0x35)
+                  .maxstack  4
+                  .locals init (System.Collections.Generic.KeyValuePair<K, V> V_0)
+                  IL_0000:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor()"
+                  IL_0005:  newobj     "System.Collections.ObjectModel.ReadOnlyDictionary<K, V>..ctor(System.Collections.Generic.IDictionary<K, V>)"
+                  IL_000a:  call       "void Program.Params<K, V>(params System.Collections.Generic.IReadOnlyDictionary<K, V>)"
+                  IL_000f:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor()"
+                  IL_0014:  ldarg.0
+                  IL_0015:  stloc.0
+                  IL_0016:  dup
+                  IL_0017:  ldloca.s   V_0
+                  IL_0019:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                  IL_001e:  ldloca.s   V_0
+                  IL_0020:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                  IL_0025:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_002a:  newobj     "System.Collections.ObjectModel.ReadOnlyDictionary<K, V>..ctor(System.Collections.Generic.IDictionary<K, V>)"
+                  IL_002f:  call       "void Program.Params<K, V>(params System.Collections.Generic.IReadOnlyDictionary<K, V>)"
+                  IL_0034:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void IReadOnlyDictionary_02()
+        {
+            string source = """
+                using System;
+                using static System.Console;
+                using System.Collections;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = new KeyValuePair<int, string>(2, "two");
+                        var y = new[] { new KeyValuePair<int, string>(3, "three") };
+                        ReportDictionary<int, string>([], 2, "two");
+                        ReportDictionary([1:"one", x, ..y], 2, "two");
+                    }
+                    static void ReportDictionary<K, V>(IReadOnlyDictionary<K, V> x, K k, V v)
+                    {
+                        int length = x.Count;
+                        KeyValuePair<K, V>[] a;
+                        Write("{0}: ", x.GetType().GetTypeName());
+                        ReportCollection(x, new KeyValuePair<K, V>(k, v));
+                        WriteLine("IDictionary.IsFixedSize: {0}", ((IDictionary)x).IsFixedSize);
+                        WriteLine("IDictionary.IsReadOnly: {0}", ((IDictionary)x).IsReadOnly);
+                        WriteLine("IDictionary.this[k]: {0}", Invoke(() => ((IDictionary)x)[k]));
+                        WriteLine("IDictionary.this[k] = v: {0}", Invoke(() => { ((IDictionary)x)[k] = v; }));
+                        ((IDictionary)x).Keys.Report(includeType: true);
+                        ((IDictionary)x).Values.Report(includeType: true);
+                        WriteLine("IDictionary.Add(k, v): {0}", Invoke(() => ((IDictionary)x).Add(k, v)));
+                        WriteLine("IDictionary.Clear(): {0}", Invoke(() => ((IDictionary)x).Clear()));
+                        WriteLine("IDictionary.Contains(k): {0}", Invoke(() => ((IDictionary)x).Contains(k)));
+                        Write("IDictionary.CopyTo(..., 0): ");
+                        a = new KeyValuePair<K, V>[length];
+                        ((IDictionary)x).CopyTo(a, 0);
+                        a.Report(includeType: true);
+                        WriteLine();
+                        WriteLine("IDictionary.Remove(k): {0}", Invoke(() => ((IDictionary)x).Remove(k)));
+                        WriteLine("IDictionary<K, V>.Count: {0}", ((IDictionary<K, V>)x).Count);
+                        WriteLine("IDictionary<K, V>.IsReadOnly: {0}", ((IDictionary<K, V>)x).IsReadOnly);
+                        WriteLine("IDictionary<K, V>.this[k]: {0}", Invoke(() => ((IDictionary<K, V>)x)[k]));
+                        WriteLine("IDictionary<K, V>.this[k] = v: {0}", Invoke(() => { ((IDictionary<K, V>)x)[k] = v; }));
+                        ((IDictionary<K, V>)x).Keys.Report(includeType: true);
+                        ((IDictionary<K, V>)x).Values.Report(includeType: true);
+                        WriteLine("IDictionary<K, V>.Add(k, v): {0}", Invoke(() => ((IDictionary<K, V>)x).Add(k, v)));
+                        WriteLine("IDictionary<K, V>.Clear(): {0}", Invoke(() => ((IDictionary<K, V>)x).Clear()));
+                        WriteLine("IDictionary<K, V>.ContainsKey(k): {0}", Invoke(() => ((IDictionary<K, V>)x).ContainsKey(k)));
+                        Write("IDictionary<K, V>.CopyTo(..., 0): ");
+                        a = new KeyValuePair<K, V>[length];
+                        ((IDictionary<K, V>)x).CopyTo(a, 0);
+                        a.Report(includeType: true);
+                        WriteLine();
+                        WriteLine("IDictionary<K, V>.Remove(k): {0}", Invoke(() => ((IDictionary<K, V>)x).Remove(k)));
+                        WriteLine("IDictionary<K, V>.TryGetValue(k, out v): {0}", Invoke(() => ((IDictionary<K, V>)x).TryGetValue(k, out _)));
+                        WriteLine("IReadOnlyDictionary<K, V>.Count: {0}", ((IReadOnlyDictionary<K, V>)x).Count);
+                        WriteLine("IReadOnlyDictionary<K, V>.this[k]: {0}", Invoke(() => ((IReadOnlyDictionary<K, V>)x)[k]));
+                        ((IReadOnlyDictionary<K, V>)x).Keys.Report(includeType: true);
+                        ((IReadOnlyDictionary<K, V>)x).Values.Report(includeType: true);
+                        WriteLine("IReadOnlyDictionary<K, V>.ContainsKey(k): {0}", Invoke(() => ((IReadOnlyDictionary<K, V>)x).ContainsKey(k)));
+                        WriteLine("IReadOnlyDictionary<K, V>.TryGetValue(k, out v): {0}", Invoke(() => ((IReadOnlyDictionary<K, V>)x).TryGetValue(k, out _)));
+                    }
+                    static void ReportCollection<T>(IReadOnlyCollection<T> x, T value)
+                    {
+                        int length = x.Count;
+                        T[] a;
+                        Write("IEnumerable.GetEnumerator(): ");
+                        ((IEnumerable)x).Report(includeType: true);
+                        WriteLine();
+                        WriteLine("ICollection.Count: {0}", ((ICollection)x).Count);
+                        WriteLine("ICollection.IsSynchronized: {0}", ((ICollection)x).IsSynchronized);
+                        WriteLine("ICollection.SyncRoot == (object)x: {0}", ((ICollection)x).SyncRoot == (object)x);
+                        Write("ICollection.CopyTo(..., 0): ");
+                        a = new T[length];
+                        ((ICollection)x).CopyTo(a, 0);
+                        a.Report(includeType: true);
+                        WriteLine();
+                        Write("IEnumerable<T>.GetEnumerator(): ");
+                        ((IEnumerable<T>)x).Report(includeType: true);
+                        WriteLine();
+                        WriteLine("IReadOnlyCollection<T>.Count: {0}", ((IReadOnlyCollection<T>)x).Count);
+                        WriteLine("ICollection<T>.Count: {0}", ((ICollection<T>)x).Count);
+                        WriteLine("ICollection<T>.IsReadOnly: {0}", ((ICollection<T>)x).IsReadOnly);
+                        WriteLine("ICollection<T>.Add(value): {0}", Invoke(() => ((ICollection<T>)x).Add(value)));
+                        WriteLine("ICollection<T>.Clear(): {0}", Invoke(() => ((ICollection<T>)x).Clear()));
+                        WriteLine("ICollection<T>.Contains(value): {0}", ((ICollection<T>)x).Contains(value));
+                        Write("ICollection<T>.CopyTo(..., 0): ");
+                        a = new T[length];
+                        ((ICollection<T>)x).CopyTo(a, 0);
+                        a.Report(includeType: true);
+                        WriteLine();
+                        WriteLine("ICollection<T>.Remove(value): {0}", Invoke(() => ((ICollection<T>)x).Remove(value)));
+                    }
+                    static string Invoke<T>(Func<T> f)
+                    {
+                        try
+                        {
+                            var value = f();
+                            return value is null ? "null" : value.ToString();
+                        }
+                        catch (Exception e)
+                        {
+                            return e.GetType().FullName;
+                        }
+                    }
+                    static string Invoke(Action a)
+                    {
+                        try
+                        {
+                            a();
+                            return "completed";
+                        }
+                        catch (Exception e)
+                        {
+                            return e.GetType().FullName;
+                        }
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensions],
+                expectedOutput: $$"""
+                    System.Collections.ObjectModel.ReadOnlyDictionary<System.Int32, System.String>: IEnumerable.GetEnumerator(): (System.Collections.ObjectModel.ReadOnlyDictionary<System.Int32, System.String>) [], 
+                    ICollection.Count: 0
+                    ICollection.IsSynchronized: False
+                    ICollection.SyncRoot == (object)x: False
+                    ICollection.CopyTo(..., 0): (System.Collections.Generic.KeyValuePair<System.Int32, System.String>[]) [], 
+                    IEnumerable<T>.GetEnumerator(): (System.Collections.ObjectModel.ReadOnlyDictionary<System.Int32, System.String>) [], 
+                    IReadOnlyCollection<T>.Count: 0
+                    ICollection<T>.Count: 0
+                    ICollection<T>.IsReadOnly: True
+                    ICollection<T>.Add(value): System.NotSupportedException
+                    ICollection<T>.Clear(): System.NotSupportedException
+                    ICollection<T>.Contains(value): False
+                    ICollection<T>.CopyTo(..., 0): (System.Collections.Generic.KeyValuePair<System.Int32, System.String>[]) [], 
+                    ICollection<T>.Remove(value): System.NotSupportedException
+                    IDictionary.IsFixedSize: True
+                    IDictionary.IsReadOnly: True
+                    IDictionary.this[k]: {{(ExecutionConditionUtil.IsMonoOrCoreClr ? "null" : "System.Collections.Generic.KeyNotFoundException")}}
+                    IDictionary.this[k] = v: System.NotSupportedException
+                    (System.Collections.ObjectModel.ReadOnlyDictionary<TKey, TValue>.KeyCollection<System.Int32, System.String>) [], (System.Collections.ObjectModel.ReadOnlyDictionary<TKey, TValue>.ValueCollection<System.Int32, System.String>) [], IDictionary.Add(k, v): System.NotSupportedException
+                    IDictionary.Clear(): System.NotSupportedException
+                    IDictionary.Contains(k): False
+                    IDictionary.CopyTo(..., 0): (System.Collections.Generic.KeyValuePair<System.Int32, System.String>[]) [], 
+                    IDictionary.Remove(k): System.NotSupportedException
+                    IDictionary<K, V>.Count: 0
+                    IDictionary<K, V>.IsReadOnly: True
+                    IDictionary<K, V>.this[k]: System.Collections.Generic.KeyNotFoundException
+                    IDictionary<K, V>.this[k] = v: System.NotSupportedException
+                    (System.Collections.ObjectModel.ReadOnlyDictionary<TKey, TValue>.KeyCollection<System.Int32, System.String>) [], (System.Collections.ObjectModel.ReadOnlyDictionary<TKey, TValue>.ValueCollection<System.Int32, System.String>) [], IDictionary<K, V>.Add(k, v): System.NotSupportedException
+                    IDictionary<K, V>.Clear(): System.NotSupportedException
+                    IDictionary<K, V>.ContainsKey(k): False
+                    IDictionary<K, V>.CopyTo(..., 0): (System.Collections.Generic.KeyValuePair<System.Int32, System.String>[]) [], 
+                    IDictionary<K, V>.Remove(k): System.NotSupportedException
+                    IDictionary<K, V>.TryGetValue(k, out v): False
+                    IReadOnlyDictionary<K, V>.Count: 0
+                    IReadOnlyDictionary<K, V>.this[k]: System.Collections.Generic.KeyNotFoundException
+                    (System.Collections.ObjectModel.ReadOnlyDictionary<TKey, TValue>.KeyCollection<System.Int32, System.String>) [], (System.Collections.ObjectModel.ReadOnlyDictionary<TKey, TValue>.ValueCollection<System.Int32, System.String>) [], IReadOnlyDictionary<K, V>.ContainsKey(k): False
+                    IReadOnlyDictionary<K, V>.TryGetValue(k, out v): False
+                    System.Collections.ObjectModel.ReadOnlyDictionary<System.Int32, System.String>: IEnumerable.GetEnumerator(): (System.Collections.ObjectModel.ReadOnlyDictionary<System.Int32, System.String>) [[1, one], [2, two], [3, three]], 
+                    ICollection.Count: 3
+                    ICollection.IsSynchronized: False
+                    ICollection.SyncRoot == (object)x: False
+                    ICollection.CopyTo(..., 0): (System.Collections.Generic.KeyValuePair<System.Int32, System.String>[]) [[1, one], [2, two], [3, three]], 
+                    IEnumerable<T>.GetEnumerator(): (System.Collections.ObjectModel.ReadOnlyDictionary<System.Int32, System.String>) [[1, one], [2, two], [3, three]], 
+                    IReadOnlyCollection<T>.Count: 3
+                    ICollection<T>.Count: 3
+                    ICollection<T>.IsReadOnly: True
+                    ICollection<T>.Add(value): System.NotSupportedException
+                    ICollection<T>.Clear(): System.NotSupportedException
+                    ICollection<T>.Contains(value): True
+                    ICollection<T>.CopyTo(..., 0): (System.Collections.Generic.KeyValuePair<System.Int32, System.String>[]) [[1, one], [2, two], [3, three]], 
+                    ICollection<T>.Remove(value): System.NotSupportedException
+                    IDictionary.IsFixedSize: True
+                    IDictionary.IsReadOnly: True
+                    IDictionary.this[k]: two
+                    IDictionary.this[k] = v: System.NotSupportedException
+                    (System.Collections.ObjectModel.ReadOnlyDictionary<TKey, TValue>.KeyCollection<System.Int32, System.String>) [1, 2, 3], (System.Collections.ObjectModel.ReadOnlyDictionary<TKey, TValue>.ValueCollection<System.Int32, System.String>) [one, two, three], IDictionary.Add(k, v): System.NotSupportedException
+                    IDictionary.Clear(): System.NotSupportedException
+                    IDictionary.Contains(k): True
+                    IDictionary.CopyTo(..., 0): (System.Collections.Generic.KeyValuePair<System.Int32, System.String>[]) [[1, one], [2, two], [3, three]], 
+                    IDictionary.Remove(k): System.NotSupportedException
+                    IDictionary<K, V>.Count: 3
+                    IDictionary<K, V>.IsReadOnly: True
+                    IDictionary<K, V>.this[k]: two
+                    IDictionary<K, V>.this[k] = v: System.NotSupportedException
+                    (System.Collections.ObjectModel.ReadOnlyDictionary<TKey, TValue>.KeyCollection<System.Int32, System.String>) [1, 2, 3], (System.Collections.ObjectModel.ReadOnlyDictionary<TKey, TValue>.ValueCollection<System.Int32, System.String>) [one, two, three], IDictionary<K, V>.Add(k, v): System.NotSupportedException
+                    IDictionary<K, V>.Clear(): System.NotSupportedException
+                    IDictionary<K, V>.ContainsKey(k): True
+                    IDictionary<K, V>.CopyTo(..., 0): (System.Collections.Generic.KeyValuePair<System.Int32, System.String>[]) [[1, one], [2, two], [3, three]], 
+                    IDictionary<K, V>.Remove(k): System.NotSupportedException
+                    IDictionary<K, V>.TryGetValue(k, out v): True
+                    IReadOnlyDictionary<K, V>.Count: 3
+                    IReadOnlyDictionary<K, V>.this[k]: two
+                    (System.Collections.ObjectModel.ReadOnlyDictionary<TKey, TValue>.KeyCollection<System.Int32, System.String>) [1, 2, 3], (System.Collections.ObjectModel.ReadOnlyDictionary<TKey, TValue>.ValueCollection<System.Int32, System.String>) [one, two, three], IReadOnlyDictionary<K, V>.ContainsKey(k): True
+                    IReadOnlyDictionary<K, V>.TryGetValue(k, out v): True
+                    """);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("Dictionary")]
+        [InlineData("IDictionary")]
+        [InlineData("IReadOnlyDictionary")]
+        public void IReadOnlyDictionary_MissingMembers(string typeName)
+        {
+            string source = $$"""
+                using System.Collections.Generic;
+                {{typeName}}<int, string> d;
+                var x = new KeyValuePair<int, string>(2, "two");
+                var y = new[] { new KeyValuePair<int, string>(3, "three") };
+                d = [];
+                d = [1:"one"];
+                d = [x, ..y];
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Collections_ObjectModel_ReadOnlyDictionary_KV);
+            if (typeName == "IReadOnlyDictionary")
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (5,5): error CS0656: Missing compiler required member 'System.Collections.ObjectModel.ReadOnlyDictionary`2..ctor'
+                    // d = [];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.ObjectModel.ReadOnlyDictionary`2", ".ctor").WithLocation(5, 5),
+                    // (6,5): error CS0656: Missing compiler required member 'System.Collections.ObjectModel.ReadOnlyDictionary`2..ctor'
+                    // d = [1:"one"];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[1:""one""]").WithArguments("System.Collections.ObjectModel.ReadOnlyDictionary`2", ".ctor").WithLocation(6, 5),
+                    // (7,5): error CS0656: Missing compiler required member 'System.Collections.ObjectModel.ReadOnlyDictionary`2..ctor'
+                    // d = [x, ..y];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[x, ..y]").WithArguments("System.Collections.ObjectModel.ReadOnlyDictionary`2", ".ctor").WithLocation(7, 5));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+
+            comp = CreateCompilation(source);
+            comp.MakeMemberMissing(WellKnownMember.System_Collections_ObjectModel_ReadOnlyDictionary_KV__ctor);
+            if (typeName == "IReadOnlyDictionary")
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (5,5): error CS0656: Missing compiler required member 'System.Collections.ObjectModel.ReadOnlyDictionary`2..ctor'
+                    // d = [];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.ObjectModel.ReadOnlyDictionary`2", ".ctor").WithLocation(5, 5),
+                    // (6,5): error CS0656: Missing compiler required member 'System.Collections.ObjectModel.ReadOnlyDictionary`2..ctor'
+                    // d = [1:"one"];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[1:""one""]").WithArguments("System.Collections.ObjectModel.ReadOnlyDictionary`2", ".ctor").WithLocation(6, 5),
+                    // (7,5): error CS0656: Missing compiler required member 'System.Collections.ObjectModel.ReadOnlyDictionary`2..ctor'
+                    // d = [x, ..y];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[x, ..y]").WithArguments("System.Collections.ObjectModel.ReadOnlyDictionary`2", ".ctor").WithLocation(7, 5));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
         }
 
         [Fact]

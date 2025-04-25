@@ -5227,6 +5227,18 @@ namespace Microsoft.CodeAnalysis
                 0,                                                                                                          // Arity
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.GenericTypeParameter, 1, // Return Type
+
+                // System_Collections_ObjectModel_ReadOnlyDictionary_KV__ctor
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Collections_ObjectModel_ReadOnlyDictionary_KV - WellKnownType.ExtSentinel),  // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+                    (byte)SignatureTypeCode.GenericTypeInstance,
+                        (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Collections_Generic_IDictionary_KV,
+                        2,
+                        (byte)SignatureTypeCode.GenericTypeParameter, 0,
+                        (byte)SignatureTypeCode.GenericTypeParameter, 1,
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -5857,6 +5869,7 @@ namespace Microsoft.CodeAnalysis
                 "set_Item",                                 // System_Collections_Generic_Dictionary_KV__set_Item
                 "get_Key",                                  // System_Collections_Generic_KeyValuePair_KV__get_Key
                 "get_Value",                                // System_Collections_Generic_KeyValuePair_KV__get_Value
+                ".ctor",                                    // System_Collections_ObjectModel_ReadOnlyDictionary_KV__ctor
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);
