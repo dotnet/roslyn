@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Options;
@@ -26,118 +27,65 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-[Export(typeof(LanguageServerProjectSystem)), Shared]
-internal sealed class LanguageServerProjectSystem
+internal abstract class LanguageServerProjectLoader
 {
-    /// <summary>
-    /// A single gate for code that is adding work to <see cref="_projectsToLoadAndReload" />. This is just we don't have code simultaneously trying to load and unload solutions at once.
-    /// </summary>
-    private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
+    protected readonly AsyncBatchingWorkQueue<ProjectToLoad> ProjectsToLoadAndReload;
 
-    /// <summary>
-    /// The suffix to use for the binary log name; incremented each time we have a new build. Should be incremented with <see cref="Interlocked.Increment(ref int)"/>.
-    /// </summary>
-    private int _binaryLogNumericSuffix;
-
-    /// <summary>
-    /// A GUID put into all binary log file names, so that way one session doesn't accidentally overwrite the logs from a prior session.
-    /// </summary>
-    private readonly Guid _binaryLogGuidSuffix = Guid.NewGuid();
-
-    private readonly AsyncBatchingWorkQueue<ProjectToLoad> _projectsToLoadAndReload;
-
-    private readonly LanguageServerWorkspaceFactory _workspaceFactory;
+    protected readonly ProjectSystemProjectFactory ProjectFactory;
+    private readonly ProjectTargetFrameworkManager _targetFrameworkManager;
+    private readonly ProjectSystemHostInfo _projectSystemHostInfo;
     private readonly IFileChangeWatcher _fileChangeWatcher;
     private readonly IGlobalOptionService _globalOptionService;
-    private readonly ILoggerFactory _loggerFactory;
+    protected readonly ILoggerFactory LoggerFactory;
     private readonly ILogger _logger;
     private readonly ProjectLoadTelemetryReporter _projectLoadTelemetryReporter;
+    private readonly BinlogNamer _binlogNamer;
     private readonly ProjectFileExtensionRegistry _projectFileExtensionRegistry;
-    private readonly ImmutableDictionary<string, string> AdditionalProperties;
+    protected readonly ImmutableDictionary<string, string> AdditionalProperties;
 
     /// <summary>
     /// The list of loaded projects in the workspace, keyed by project file path. The outer dictionary is a concurrent dictionary since we may be loading
     /// multiple projects at once; the key is a single List we just have a single thread processing any given project file. This is only to be used
     /// in <see cref="LoadOrReloadProjectsAsync" /> and downstream calls; any other updating of this (like unloading projects) should be achieved by adding
-    /// things to the <see cref="_projectsToLoadAndReload" />.
+    /// things to the <see cref="ProjectsToLoadAndReload" />.
     /// </summary>
     private readonly ConcurrentDictionary<string, List<LoadedProject>> _loadedProjects = [];
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public LanguageServerProjectSystem(
-        LanguageServerWorkspaceFactory workspaceFactory,
+    protected LanguageServerProjectLoader(
+        ProjectSystemProjectFactory projectFactory,
+        ProjectTargetFrameworkManager targetFrameworkManager,
+        ProjectSystemHostInfo projectSystemHostInfo,
         IFileChangeWatcher fileChangeWatcher,
         IGlobalOptionService globalOptionService,
         ILoggerFactory loggerFactory,
         IAsynchronousOperationListenerProvider listenerProvider,
         ProjectLoadTelemetryReporter projectLoadTelemetry,
-        ServerConfigurationFactory serverConfigurationFactory)
+        ServerConfigurationFactory serverConfigurationFactory,
+        BinlogNamer binlogNamer)
     {
-        _workspaceFactory = workspaceFactory;
+        ProjectFactory = projectFactory;
+        _targetFrameworkManager = targetFrameworkManager;
+        _projectSystemHostInfo = projectSystemHostInfo;
         _fileChangeWatcher = fileChangeWatcher;
         _globalOptionService = globalOptionService;
-        _loggerFactory = loggerFactory;
-        _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectSystem));
+        LoggerFactory = loggerFactory;
+        _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectLoader));
         _projectLoadTelemetryReporter = projectLoadTelemetry;
-        _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(workspaceFactory.Workspace.CurrentSolution.Services, new DiagnosticReporter(workspaceFactory.Workspace));
+        _binlogNamer = binlogNamer;
+        var workspace = projectFactory.Workspace;
+        _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(workspace.CurrentSolution.Services, new DiagnosticReporter(workspace));
         var razorDesignTimePath = serverConfigurationFactory.ServerConfiguration?.RazorDesignTimePath;
 
         AdditionalProperties = razorDesignTimePath is null
             ? ImmutableDictionary<string, string>.Empty
             : ImmutableDictionary<string, string>.Empty.Add("RazorDesignTimeTargets", razorDesignTimePath);
 
-        _projectsToLoadAndReload = new AsyncBatchingWorkQueue<ProjectToLoad>(
+        ProjectsToLoadAndReload = new AsyncBatchingWorkQueue<ProjectToLoad>(
             TimeSpan.FromMilliseconds(100),
             LoadOrReloadProjectsAsync,
             ProjectToLoad.Comparer,
             listenerProvider.GetListener(FeatureAttribute.Workspace),
             CancellationToken.None); // TODO: do we need to introduce a shutdown cancellation token for this?
-    }
-
-    public async Task OpenSolutionAsync(string solutionFilePath)
-    {
-        using (await _gate.DisposableWaitAsync())
-        {
-            _logger.LogInformation(string.Format(LanguageServerResources.Loading_0, solutionFilePath));
-            _workspaceFactory.ProjectSystemProjectFactory.SolutionPath = solutionFilePath;
-
-            // We'll load solutions out-of-proc, since it's possible we might be running on a runtime that doesn't have a matching SDK installed,
-            // and we don't want any MSBuild registration to set environment variables in our process that might impact child processes.
-            await using var buildHostProcessManager = new BuildHostProcessManager(globalMSBuildProperties: AdditionalProperties, loggerFactory: _loggerFactory);
-            var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessKind.NetCore, CancellationToken.None);
-
-            // If we don't have a .NET Core SDK on this machine at all, try .NET Framework
-            if (!await buildHost.HasUsableMSBuildAsync(solutionFilePath, CancellationToken.None))
-            {
-                var kind = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? BuildHostProcessKind.NetFramework : BuildHostProcessKind.Mono;
-                buildHost = await buildHostProcessManager.GetBuildHostAsync(kind, CancellationToken.None);
-            }
-
-            foreach (var project in await buildHost.GetProjectsInSolutionAsync(solutionFilePath, CancellationToken.None))
-            {
-                _projectsToLoadAndReload.AddWork(new ProjectToLoad(project.ProjectPath, project.ProjectGuid, ReportTelemetry: true));
-            }
-
-            // Wait for the in progress batch to complete and send a project initialized notification to the client.
-            await _projectsToLoadAndReload.WaitUntilCurrentBatchCompletesAsync();
-            await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync();
-        }
-    }
-
-    public async Task OpenProjectsAsync(ImmutableArray<string> projectFilePaths)
-    {
-        if (!projectFilePaths.Any())
-            return;
-
-        using (await _gate.DisposableWaitAsync())
-        {
-            _projectsToLoadAndReload.AddWork(projectFilePaths.Select(p => new ProjectToLoad(p, ProjectGuid: null, ReportTelemetry: true)));
-
-            // Wait for the in progress batch to complete and send a project initialized notification to the client.
-            await _projectsToLoadAndReload.WaitUntilCurrentBatchCompletesAsync();
-            await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync();
-        }
     }
 
     private sealed class ToastErrorReporter
@@ -161,9 +109,9 @@ internal sealed class LanguageServerProjectSystem
 
         // TODO: support configuration switching
 
-        var binaryLogPath = GetMSBuildBinaryLogPath();
+        var binaryLogPath = _binlogNamer.GetMSBuildBinaryLogPath();
 
-        await using var buildHostProcessManager = new BuildHostProcessManager(globalMSBuildProperties: AdditionalProperties, binaryLogPath: binaryLogPath, loggerFactory: _loggerFactory);
+        await using var buildHostProcessManager = new BuildHostProcessManager(globalMSBuildProperties: AdditionalProperties, binaryLogPath: binaryLogPath, loggerFactory: LoggerFactory);
         var toastErrorReporter = new ToastErrorReporter();
 
         try
@@ -198,19 +146,6 @@ internal sealed class LanguageServerProjectSystem
         }
     }
 
-    private string? GetMSBuildBinaryLogPath()
-    {
-        if (_globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.BinaryLogPath) is not string binaryLogDirectory)
-            return null;
-
-        var numericSuffix = Interlocked.Increment(ref _binaryLogNumericSuffix);
-        var binaryLogPath = Path.Combine(binaryLogDirectory, $"LanguageServerDesignTimeBuild-{_binaryLogGuidSuffix}-{numericSuffix}.binlog");
-
-        _logger.LogInformation($"Logging design-time builds to {binaryLogPath}");
-
-        return binaryLogPath;
-    }
-
     /// <returns>True if the project needs a NuGet restore, false otherwise.</returns>
     private async Task<bool> LoadOrReloadProjectAsync(ProjectToLoad projectToLoad, ToastErrorReporter toastErrorReporter, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
     {
@@ -241,7 +176,7 @@ internal sealed class LanguageServerProjectSystem
             // The out-of-proc build host supports more languages than we may actually have Workspace binaries for, so ensure we can actually process that
             // language in-process.
             var projectLanguage = loadedProjectInfos.FirstOrDefault()?.Language;
-            if (projectLanguage != null && _workspaceFactory.Workspace.Services.GetLanguageService<ICommandLineParserService>(projectLanguage) == null)
+            if (projectLanguage != null && ProjectFactory.Workspace.Services.GetLanguageService<ICommandLineParserService>(projectLanguage) == null)
             {
                 return false;
             }
@@ -272,14 +207,14 @@ internal sealed class LanguageServerProjectSystem
                         CompilationOutputAssemblyFilePath = loadedProjectInfo.IntermediateOutputFilePath
                     };
 
-                    var projectSystemProject = await _workspaceFactory.ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(
+                    var projectSystemProject = await ProjectFactory.CreateAndAddToWorkspaceAsync(
                         projectSystemName,
                         loadedProjectInfo.Language,
                         projectCreationInfo,
-                        _workspaceFactory.ProjectSystemHostInfo);
+                        _projectSystemHostInfo);
 
-                    var loadedProject = new LoadedProject(projectSystemProject, _workspaceFactory.Workspace.Services.SolutionServices, _fileChangeWatcher, _workspaceFactory.TargetFrameworkManager);
-                    loadedProject.NeedsReload += (_, _) => _projectsToLoadAndReload.AddWork(projectToLoad with { ReportTelemetry = false });
+                    var loadedProject = new LoadedProject(projectSystemProject, ProjectFactory.Workspace.Services.SolutionServices, _fileChangeWatcher, _targetFrameworkManager);
+                    loadedProject.NeedsReload += (_, _) => ProjectsToLoadAndReload.AddWork(projectToLoad with { ReportTelemetry = false });
                     existingProjects.Add(loadedProject);
 
                     (targetTelemetryInfo, targetNeedsRestore) = await loadedProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo, _logger);
