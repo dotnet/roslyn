@@ -2212,7 +2212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void KeyValuePairConversions_Params(
+        public void KeyValuePairConversions_Params_01(
             [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
             [CombinatorialValues(
                 "System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<K, V>>",
@@ -2304,6 +2304,51 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
+        public void KeyValuePairConversions_Params_02(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = new KeyValuePair<int, string>(2, "two");
+                        Params(x);
+                        Params<int, string>(x);
+                        /*<bind>*/Params<int?, object>(x)/*</bind>*/;
+                    }
+                    static void Params<K, V>(params ReadOnlySpan<System.Collections.Generic.KeyValuePair<K, V>> args)
+                    {
+                        args.ToArray().Report();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                [sourceA, s_collectionExtensions],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe,
+                targetFramework: TargetFramework.Net80);
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (10,40): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
+                    //         /*<bind>*/Params<int?, object>(x)/*</bind>*/;
+                    Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(10, 40));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[[2, two]], [[2, two]], [[2, two]], "));
+                verifier.VerifyDiagnostics();
+                verifier.VerifyIL("Program.Main", """
+                    ...
+                    """);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void KeyValuePairConversions_Span(
             [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
@@ -2318,19 +2363,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         string v = "one";
                         var x = new KeyValuePair<int, string>(2, "two");
                         var y = new[] { new KeyValuePair<int, string>(3, "three") };
-                        ReadOnlySpan<KeyValuePair<int, string>> c1;
-                        c1 = [k:v, x, ..y];
+                        ReadOnlySpan<KeyValuePair<int, string>> c1 = [k:v, x, ..y];
                         c1.ToArray().Report();
-                        ReadOnlySpan<KeyValuePair<int?, object>> c2;
-                        c2 = [k:v, x, ..y];
+                        ReadOnlySpan<KeyValuePair<int?, object>> c2 = [k:v, x, ..y];
                         c2.ToArray().Report();
-                        Params(x);
-                        Params<int, string>(x);
-                        Params<int?, object>(x);
-                    }
-                    static void Params<K, V>(params ReadOnlySpan<KeyValuePair<K, V>> args)
-                    {
-                        args.ToArray().Report();
                     }
                 }
                 """;
@@ -2342,27 +2378,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion == LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (12,15): error CS9300: Collection expression type 'ReadOnlySpan<KeyValuePair<int, string>>' does not support key-value pair elements.
-                    //         c1 = [k:v, x, ..y];
-                    Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "k:v").WithArguments("System.ReadOnlySpan<System.Collections.Generic.KeyValuePair<int, string>>").WithLocation(12, 15),
-                    // (12,16): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         c1 = [k:v, x, ..y];
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, ":").WithArguments("dictionary expressions").WithLocation(12, 16),
-                    // (15,15): error CS9300: Collection expression type 'ReadOnlySpan<KeyValuePair<int?, object>>' does not support key-value pair elements.
-                    //         c2 = [k:v, x, ..y];
-                    Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "k:v").WithArguments("System.ReadOnlySpan<System.Collections.Generic.KeyValuePair<int?, object>>").WithLocation(15, 15),
-                    // (15,16): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         c2 = [k:v, x, ..y];
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, ":").WithArguments("dictionary expressions").WithLocation(15, 16),
-                    // (15,20): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
-                    //         c2 = [k:v, x, ..y];
-                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(15, 20),
-                    // (15,25): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
-                    //         c2 = [k:v, x, ..y];
-                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "y").WithArguments("System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(15, 25),
-                    // (19,30): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
-                    //         Params<int?, object>(x);
-                    Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(19, 30));
+                    // (11,55): error CS9500: Collection expression type 'ReadOnlySpan<KeyValuePair<int, string>>' does not support key-value pair elements.
+                    //         ReadOnlySpan<KeyValuePair<int, string>> c1 = [k:v, x, ..y];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "k:v").WithArguments("System.ReadOnlySpan<System.Collections.Generic.KeyValuePair<int, string>>").WithLocation(11, 55),
+                    // (11,56): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         ReadOnlySpan<KeyValuePair<int, string>> c1 = [k:v, x, ..y];
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, ":").WithArguments("dictionary expressions").WithLocation(11, 56),
+                    // (13,56): error CS9500: Collection expression type 'ReadOnlySpan<KeyValuePair<int?, object>>' does not support key-value pair elements.
+                    //         ReadOnlySpan<KeyValuePair<int?, object>> c2 = [k:v, x, ..y];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "k:v").WithArguments("System.ReadOnlySpan<System.Collections.Generic.KeyValuePair<int?, object>>").WithLocation(13, 56),
+                    // (13,57): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         ReadOnlySpan<KeyValuePair<int?, object>> c2 = [k:v, x, ..y];
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, ":").WithArguments("dictionary expressions").WithLocation(13, 57),
+                    // (13,61): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
+                    //         ReadOnlySpan<KeyValuePair<int?, object>> c2 = [k:v, x, ..y];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(13, 61),
+                    // (13,66): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
+                    //         ReadOnlySpan<KeyValuePair<int?, object>> c2 = [k:v, x, ..y];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "y").WithArguments("System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(13, 66));
             }
             else
             {
@@ -3128,10 +3161,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     conversion to MyKeyValuePair<Int32, String>: 1, one
                     MyKeyValuePair`2[System.Int32,System.String][]
                     conversion to MyKeyValuePair<Int32, String>: 2, two
-                    conversion to MyKeyValuePair<Int32, String>: 2, two
                     conversion to MyKeyValuePair<Int32, String>: 3, three
-                    conversion to MyKeyValuePair<Int32, String>: 3, three
-                    [1:one, 2:two, 3:three], 
+                    [1:one, 2:two, 3:three],
                     """);
             verifier.VerifyDiagnostics();
         }
@@ -3632,7 +3663,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 ICollectionExpressionOperation (3 elements, ConstructMethod: MyDictionary<K, V>..ctor([System.Collections.Generic.IEqualityComparer<K> comparer = null])) (OperationKind.CollectionExpression, Type: MyDictionary<K, V>) (Syntax: '[with(null) ... :v, e, ..s]')
                   Elements(3):
                       IOperation:  (OperationKind.None, Type: null) (Syntax: 'k:v')
-                      IOperation:  (OperationKind.None, Type: null) (Syntax: 'e')
+                      IParameterReferenceOperation: e (OperationKind.ParameterReference, Type: System.Collections.Generic.KeyValuePair<K, V>) (Syntax: 'e')
                       ISpreadOperation (ElementType: System.Collections.Generic.KeyValuePair<K, V>) (OperationKind.Spread, Type: null) (Syntax: '..s')
                         Operand:
                           IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Collections.Generic.KeyValuePair<K, V>[]) (Syntax: 's')
