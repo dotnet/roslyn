@@ -22,19 +22,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class RazorStartupServiceFactory(
     [Import(AllowDefault = true)] IUIContextActivationService? uIContextActivationService,
-    [Import(AllowDefault = true)] Lazy<IRazorCohostDynamicRegistrationService>? dynamicRegistrationService,
     [Import(AllowDefault = true)] Lazy<ICohostStartupService>? cohostStartupService) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
-        return new RazorStartupService(uIContextActivationService, dynamicRegistrationService, cohostStartupService);
+        return new RazorStartupService(uIContextActivationService, cohostStartupService);
     }
 
     private class RazorStartupService(
         IUIContextActivationService? uIContextActivationService,
-#pragma warning disable CS0618 // Type or member is obsolete
-        Lazy<IRazorCohostDynamicRegistrationService>? dynamicRegistrationService,
-#pragma warning restore CS0618 // Type or member is obsolete
         Lazy<ICohostStartupService>? cohostStartupService) : ILspService, IOnInitialized, IDisposable
     {
         private readonly CancellationTokenSource _disposalTokenSource = new();
@@ -55,7 +51,7 @@ internal sealed class RazorStartupServiceFactory(
                 return Task.CompletedTask;
             }
 
-            if (dynamicRegistrationService is null && cohostStartupService is null)
+            if (cohostStartupService is null)
             {
                 return Task.CompletedTask;
             }
@@ -95,11 +91,6 @@ internal sealed class RazorStartupServiceFactory(
             if (cohostStartupService is not null)
             {
                 await cohostStartupService.Value.StartupAsync(serializedClientCapabilities, requestContext, cancellationToken).ConfigureAwait(false);
-            }
-
-            if (dynamicRegistrationService is not null)
-            {
-                await dynamicRegistrationService.Value.RegisterAsync(serializedClientCapabilities, requestContext, cancellationToken).ConfigureAwait(false);
             }
         }
     }
