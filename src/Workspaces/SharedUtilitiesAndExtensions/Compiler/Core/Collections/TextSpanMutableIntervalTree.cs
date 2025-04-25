@@ -26,4 +26,7 @@ internal sealed class TextSpanMutableIntervalTree(IEnumerable<TextSpan>? values)
 
     public bool HasIntervalThatIntersectsWith(TextSpan span)
         => this.HasIntervalThatIntersectsWith(span.Start, span.Length);
+
+    public bool HasIntervalThatOverlapsWith(TextSpan span)
+        => this.HasIntervalThatOverlapsWith(span.Start, span.Length);
 }
