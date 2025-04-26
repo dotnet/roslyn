@@ -164,7 +164,7 @@ public abstract class MSBuildWorkspaceTestBase : WorkspaceTestBase
 
         if (throwOnWorkspaceFailed)
         {
-            workspace.WorkspaceFailed += (s, e) => throw new Exception($"Workspace failure {e.Diagnostic.Kind}:{e.Diagnostic.Message}");
+            _ = workspace.RegisterWorkspaceFailedHandler((e) => throw new Exception($"Workspace failure {e.Diagnostic.Kind}:{e.Diagnostic.Message}"));
         }
 
         if (skipUnrecognizedProjects)
