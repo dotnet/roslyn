@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Display `MyType@File.cs` instead of `MyType`.
         /// </summary>
-        IncludeContainingFileForFileTypes = 1 << 8,
+        IncludeContainingFileForFileTypes = 1 << 9,
 
         /// <summary>
         /// Does not include parameter name if the parameter is displayed on its own
