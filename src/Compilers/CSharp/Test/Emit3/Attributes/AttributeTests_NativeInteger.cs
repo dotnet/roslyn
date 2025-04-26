@@ -1526,11 +1526,11 @@ C<T, U, V>
                 AssertNativeIntegerAttributes(module, expectedAttributes);
                 var c = module.GlobalNamespace.GetTypeMember("C");
 
-                assert("C<dynamic, T, nint>", "F0");
-                assert("C<dynamic, nint, System.IntPtr>", "F1");
-                assert("C<dynamic, nuint, System.UIntPtr>", "F2");
-                assert("C<T, nint, System.IntPtr>", "F3");
-                assert("C<T, nuint, System.UIntPtr>", "F4");
+                assert("C<dynamic, T, System.IntPtr>", "F0");
+                assert("C<dynamic, System.IntPtr, System.IntPtr>", "F1");
+                assert("C<dynamic, System.UIntPtr, System.UIntPtr>", "F2");
+                assert("C<T, System.IntPtr, System.IntPtr>", "F3");
+                assert("C<T, System.UIntPtr, System.UIntPtr>", "F4");
 
                 void assert(string expectedType, string fieldName)
                 {
@@ -1575,15 +1575,15 @@ C
                 AssertNativeIntegerAttributes(module, expectedAttributes);
                 var c = module.GlobalNamespace.GetTypeMember("C");
 
-                assert("delegate*<nint, System.Object, System.Object>", "F0");
-                assert("delegate*<nint, nint, nint>", "F1");
-                assert("delegate*<System.IntPtr, System.IntPtr, nint>", "F2");
-                assert("delegate*<nint, System.IntPtr, System.IntPtr>", "F3");
-                assert("delegate*<System.IntPtr, nint, System.IntPtr>", "F4");
-                assert("delegate*<delegate*<System.IntPtr, System.IntPtr, System.IntPtr>, nint>", "F5");
-                assert("delegate*<nint, delegate*<System.IntPtr, System.IntPtr, System.IntPtr>>", "F6");
-                assert("delegate*<delegate*<System.IntPtr, System.IntPtr, nint>, System.IntPtr>", "F7");
-                assert("delegate*<System.IntPtr, delegate*<System.IntPtr, nint, System.IntPtr>>", "F8");
+                assert("delegate*<System.IntPtr, System.Object, System.Object>", "F0");
+                assert("delegate*<System.IntPtr, System.IntPtr, System.IntPtr>", "F1");
+                assert("delegate*<System.IntPtr, System.IntPtr, System.IntPtr>", "F2");
+                assert("delegate*<System.IntPtr, System.IntPtr, System.IntPtr>", "F3");
+                assert("delegate*<System.IntPtr, System.IntPtr, System.IntPtr>", "F4");
+                assert("delegate*<delegate*<System.IntPtr, System.IntPtr, System.IntPtr>, System.IntPtr>", "F5");
+                assert("delegate*<System.IntPtr, delegate*<System.IntPtr, System.IntPtr, System.IntPtr>>", "F6");
+                assert("delegate*<delegate*<System.IntPtr, System.IntPtr, System.IntPtr>, System.IntPtr>", "F7");
+                assert("delegate*<System.IntPtr, delegate*<System.IntPtr, System.IntPtr, System.IntPtr>>", "F8");
 
                 void assert(string expectedType, string fieldName)
                 {
