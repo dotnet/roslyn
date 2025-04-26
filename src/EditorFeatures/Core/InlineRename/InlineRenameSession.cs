@@ -57,7 +57,7 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
     private bool _isApplyingEdit;
     private string _replacementText;
     private readonly Dictionary<ITextBuffer, OpenTextBufferManager> _openTextBuffers = [];
-    private WorkspaceEventRegistration? _workspaceChangedDisposer;
+    private WorkspaceEventRegistration _workspaceChangedDisposer;
 
     /// <summary>
     /// The original <see cref="Document"/> where rename was triggered

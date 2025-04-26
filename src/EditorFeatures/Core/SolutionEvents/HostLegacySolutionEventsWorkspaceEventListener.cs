@@ -33,7 +33,7 @@ internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : I
     private readonly AsyncBatchingWorkQueue<WorkspaceChangeEventArgs> _eventQueue;
 
     private WorkspaceEventRegistration? _workspaceChangedDisposer;
-    
+
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public HostLegacySolutionEventsWorkspaceEventListener(
