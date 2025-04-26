@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             {
                 if (IsContextType(parameter.Type, _compilationStartAnalysisContext, _codeBlockStartAnalysisContext, _operationBlockStartAnalysisContext))
                 {
-                    _declaredStartAnalysisContextParams ??= new HashSet<IParameterSymbol>();
+                    _declaredStartAnalysisContextParams ??= [];
                     _declaredStartAnalysisContextParams.Add(parameter);
                 }
             }
@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 // This is to avoid false positives, as the registration responsibility is not on the current method.
                 if (IsContextType(parameter.Type, _compilationStartAnalysisContext, _codeBlockStartAnalysisContext, _operationBlockStartAnalysisContext))
                 {
-                    _startAnalysisContextParamsToSkip ??= new HashSet<IParameterSymbol>();
+                    _startAnalysisContextParamsToSkip ??= [];
                     _startAnalysisContextParamsToSkip.Add(parameter);
                 }
             }
@@ -479,10 +479,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     return;
                 }
 
-                _nestedActionsMap ??= new Dictionary<IParameterSymbol, List<NodeAndSymbol>>();
+                _nestedActionsMap ??= [];
                 if (!_nestedActionsMap.TryGetValue(contextParameter, out List<NodeAndSymbol> registerInvocations))
                 {
-                    registerInvocations = new List<NodeAndSymbol>();
+                    registerInvocations = [];
                 }
 
                 registerInvocations.Add(new NodeAndSymbol { Invocation = invocation, Method = method });

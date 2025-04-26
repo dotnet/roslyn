@@ -13,4 +13,5 @@ internal enum EditAndContinueErrorCode
     DocumentIsOutOfSyncWithDebuggee = 5,
     UnableToReadSourceFileOrPdb = 6,
     AddingTypeRuntimeCapabilityRequired = 7,
+    UpdatingDocumentInStaleProject = 8,
 }

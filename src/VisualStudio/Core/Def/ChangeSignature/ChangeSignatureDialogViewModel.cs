@@ -112,7 +112,7 @@ internal sealed partial class ChangeSignatureDialogViewModel : AbstractNotifyPro
             if (!parameter.IsRemoved)
             {
                 parameterNameOverlapMap
-                    .GetOrAdd(parameter.ParameterName, _ => new List<ParameterViewModel>())
+                    .GetOrAdd(parameter.ParameterName, _ => [])
                     .Add(parameter);
             }
             else

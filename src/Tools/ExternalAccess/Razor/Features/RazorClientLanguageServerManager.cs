@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
-internal class RazorClientLanguageServerManager(IClientLanguageServerManager clientLanguageServerManager) : IRazorCohostClientLanguageServerManager
+internal class RazorClientLanguageServerManager(IClientLanguageServerManager clientLanguageServerManager) : IRazorClientLanguageServerManager
 {
     public Task<TResponse> SendRequestAsync<TParams, TResponse>(string methodName, TParams @params, CancellationToken cancellationToken)
         => clientLanguageServerManager.SendRequestAsync<TParams, TResponse>(methodName, @params, cancellationToken);

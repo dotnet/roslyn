@@ -53,7 +53,7 @@ internal sealed partial class SolutionCompilationState
     /// question quickly after computing for the first one.  Created on demand.
     /// </summary>
     private ConditionalWeakTable<ISymbol, OriginatingProjectInfo?>? _unrootedSymbolToProjectId;
-    private static readonly Func<ConditionalWeakTable<ISymbol, OriginatingProjectInfo?>> s_createTable = () => new ConditionalWeakTable<ISymbol, OriginatingProjectInfo?>();
+    private static readonly Func<ConditionalWeakTable<ISymbol, OriginatingProjectInfo?>> s_createTable = () => new();
 
     private readonly AsyncLazy<SolutionCompilationState> _cachedFrozenSnapshot;
 
