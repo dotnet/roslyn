@@ -133,8 +133,6 @@ public abstract partial class Workspace
             }
         }
 
-        Debug.Assert(disposer != null, $"Event handler for event type {eventType} was not registered.");
-
         disposer?.Dispose();
     }
 }

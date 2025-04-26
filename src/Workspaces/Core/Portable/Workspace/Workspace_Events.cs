@@ -37,7 +37,10 @@ public abstract partial class Workspace
         => RegisterHandler(WorkspaceEventType.WorkspaceChange, handler, options);
 
     /// <summary>
-    /// Registers a handler that is fired whenever the current solution is changed.
+    /// Registers a handler that is fired *immediately* whenever the current solution is changed.
+    /// Handlers should be written to be very fast. Always called from the thread changing the workspace,
+    /// regardless of the preferences indicated by the passed in options. This thread my vary depending
+    /// on the workspace.
     /// </summary>
     internal WorkspaceEventRegistration RegisterWorkspaceChangedImmediateHandler(Action<WorkspaceChangeEventArgs> handler, WorkspaceEventOptions? options = null)
         => RegisterHandler(WorkspaceEventType.WorkspaceChangedImmediate, handler, options);
