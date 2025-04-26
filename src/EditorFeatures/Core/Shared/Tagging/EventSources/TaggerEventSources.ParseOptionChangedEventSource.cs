@@ -13,13 +13,20 @@ internal partial class TaggerEventSources
 {
     private sealed class ParseOptionChangedEventSource(ITextBuffer subjectBuffer) : AbstractWorkspaceTrackingTaggerEventSource(subjectBuffer)
     {
+        private WorkspaceEventRegistration? _workspaceChangedDisposer;
+
         protected override void ConnectToWorkspace(Workspace workspace)
-            => workspace.WorkspaceChanged += OnWorkspaceChanged;
+        {
+            _workspaceChangedDisposer = workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
+        }
 
         protected override void DisconnectFromWorkspace(Workspace workspace)
-            => workspace.WorkspaceChanged -= OnWorkspaceChanged;
+        {
+            _workspaceChangedDisposer?.Dispose();
+            _workspaceChangedDisposer = null;
+        }
 
-        private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
+        private void OnWorkspaceChanged(WorkspaceChangeEventArgs e)
         {
             if (e.Kind == WorkspaceChangeKind.ProjectChanged)
             {

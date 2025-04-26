@@ -37,6 +37,8 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
     protected ProjectId ProjectId { get; }
     protected IAnalyzersCommandHandler CommandHandler { get; }
 
+    private WorkspaceEventRegistration? _workspaceChangedDisposer;
+
     /// <summary>
     /// The analyzer reference that has been found. Once it's been assigned a non-null value, it'll never be assigned
     /// <see langword="null"/> again.
@@ -77,7 +79,7 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
 
             // Listen for changes that would affect the set of analyzers/generators in this reference, and kick off work
             // to now get the items for this source.
-            Workspace.WorkspaceChanged += OnWorkspaceChanged;
+            _workspaceChangedDisposer = Workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
             _workQueue.AddWork();
         }
     }
@@ -101,7 +103,8 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
         var project = this.Workspace.CurrentSolution.GetProject(this.ProjectId);
         if (project is null || !project.AnalyzerReferences.Contains(analyzerReference))
         {
-            this.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
+            _workspaceChangedDisposer?.Dispose();
+            _workspaceChangedDisposer = null;
 
             _cancellationTokenSource.Cancel();
 
@@ -204,7 +207,7 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
         }
     }
 
-    private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+    private void OnWorkspaceChanged(WorkspaceChangeEventArgs e)
     {
         switch (e.Kind)
         {

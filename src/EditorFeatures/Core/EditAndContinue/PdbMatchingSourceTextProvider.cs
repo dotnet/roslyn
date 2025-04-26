@@ -30,14 +30,20 @@ internal sealed class PdbMatchingSourceTextProvider() : IEventListener, IPdbMatc
     private bool _isActive;
     private int _baselineSolutionVersion;
     private readonly Dictionary<string, (DocumentState state, int solutionVersion)> _documentsWithChangedLoaderByPath = [];
+    private WorkspaceEventRegistration? _workspaceChangedDisposer;
 
     public void StartListening(Workspace workspace)
-        => workspace.WorkspaceChanged += WorkspaceChanged;
+    {
+        _workspaceChangedDisposer = workspace.RegisterWorkspaceChangedHandler(WorkspaceChanged);
+    }
 
     public void StopListening(Workspace workspace)
-        => workspace.WorkspaceChanged -= WorkspaceChanged;
+    {
+        _workspaceChangedDisposer?.Dispose();
+        _workspaceChangedDisposer = null;
+    }
 
-    private void WorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
+    private void WorkspaceChanged(WorkspaceChangeEventArgs e)
     {
         if (!_isActive)
         {

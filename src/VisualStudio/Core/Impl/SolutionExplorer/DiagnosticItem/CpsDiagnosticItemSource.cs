@@ -20,6 +20,8 @@ internal sealed partial class CpsDiagnosticItemSource : BaseDiagnosticAndGenerat
     private readonly IVsHierarchyItem _item;
     private readonly string _projectDirectoryPath;
 
+    private WorkspaceEventRegistration? _workspaceChangedDisposer;
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public CpsDiagnosticItemSource(
@@ -46,7 +48,9 @@ internal sealed partial class CpsDiagnosticItemSource : BaseDiagnosticAndGenerat
             // then connect to it.
             if (workspace.CurrentSolution.ContainsProject(projectId))
             {
-                Workspace.WorkspaceChanged += OnWorkspaceChangedLookForAnalyzer;
+                // Main thread dependency as OnWorkspaceChangedLookForAnalyzer accesses the IVsHierarchy
+                // and fires the PropertyChanged event 
+                _workspaceChangedDisposer = Workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChangedLookForAnalyzer, WorkspaceEventOptions.RequiresMainThreadOptions);
                 item.PropertyChanged += IVsHierarchyItem_PropertyChanged;
 
                 // Now that we've subscribed, check once more in case we missed the event
@@ -63,7 +67,9 @@ internal sealed partial class CpsDiagnosticItemSource : BaseDiagnosticAndGenerat
 
     private void UnsubscribeFromEvents()
     {
-        Workspace.WorkspaceChanged -= OnWorkspaceChangedLookForAnalyzer;
+        _workspaceChangedDisposer?.Dispose();
+        _workspaceChangedDisposer = null;
+
         _item.PropertyChanged -= IVsHierarchyItem_PropertyChanged;
     }
 
@@ -80,7 +86,7 @@ internal sealed partial class CpsDiagnosticItemSource : BaseDiagnosticAndGenerat
 
     public override object SourceItem => _item;
 
-    private void OnWorkspaceChangedLookForAnalyzer(object sender, WorkspaceChangeEventArgs e)
+    private void OnWorkspaceChangedLookForAnalyzer(WorkspaceChangeEventArgs e)
     {
         // If the project has gone away in this change, it's not coming back, so we can stop looking at this point
         if (!e.NewSolution.ContainsProject(ProjectId))
