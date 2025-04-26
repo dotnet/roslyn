@@ -40,7 +40,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     private protected static readonly ActiveStatementSpanProvider s_noActiveSpans =
         (_, _, _) => new([]);
 
-    private protected const TargetFramework DefaultTargetFramework = TargetFramework.NetStandard20;
+    private protected const TargetFramework DefaultTargetFramework = TargetFramework.NetLatest;
 
     private protected readonly Dictionary<ProjectId, CompilationOutputs> _mockCompilationOutputs = [];
     private protected readonly List<string> _telemetryLog = [];
@@ -224,7 +224,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         Solution solution,
         ActiveStatementSpanProvider? activeStatementSpanProvider = null)
     {
-        var result = await session.EmitSolutionUpdateAsync(solution, runningProjects: [], activeStatementSpanProvider ?? s_noActiveSpans, CancellationToken.None);
+        var result = await session.EmitSolutionUpdateAsync(solution, runningProjects: ImmutableDictionary<ProjectId, RunningProjectInfo>.Empty, activeStatementSpanProvider ?? s_noActiveSpans, CancellationToken.None);
         return (result.ModuleUpdates, result.Diagnostics.OrderBy(d => d.ProjectId.DebugName).ToImmutableArray().ToDiagnosticData(solution));
     }
 

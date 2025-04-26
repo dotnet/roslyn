@@ -4,10 +4,11 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
@@ -45,7 +46,7 @@ internal static class EditAndContinueDiagnosticDescriptors
             }
 
             builder[index] = new DiagnosticDescriptor(
-                $"ENC{id:D4}",
+                GetDiagnosticId(id),
                 title,
                 messageFormat: new LocalizableResourceString(resourceName, FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                 DiagnosticCategory.EditAndContinue,
@@ -210,4 +211,10 @@ internal static class EditAndContinueDiagnosticDescriptors
 
     private static int GetDescriptorIndex(EditAndContinueErrorCode errorCode)
         => s_diagnosticBaseIndex + (int)errorCode;
+
+    private static string GetDiagnosticId(int id)
+        => $"ENC{id:D4}";
+
+    public static RudeEditKind GetRudeEditKind(string diagnosticId)
+        => diagnosticId.StartsWith("ENC", StringComparison.Ordinal) && int.TryParse(diagnosticId[3..], out var id) ? (RudeEditKind)id : RudeEditKind.None;
 }
