@@ -51,10 +51,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         internal static readonly ConversionKind[] ExplicitNullableIdentity = new[] { ConversionKind.ExplicitNullable, ConversionKind.Identity };
 
         internal static readonly SymbolDisplayFormat TestFormat = SymbolDisplayFormat.TestFormat
-            .WithCompilerInternalOptions(SymbolDisplayFormat.TestFormat.CompilerInternalOptions | SymbolDisplayCompilerInternalOptions.UseNativeIntegerType);
+            .RemoveCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType);
 
         internal static readonly SymbolDisplayFormat ILFormat = SymbolDisplayFormat.ILVisualizationFormat
-            .WithCompilerInternalOptions(SymbolDisplayFormat.ILVisualizationFormat.CompilerInternalOptions | SymbolDisplayCompilerInternalOptions.UseNativeIntegerType);
+            .RemoveCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType);
 
         internal static bool IsNoConversion(ConversionKind[] conversionKinds)
         {

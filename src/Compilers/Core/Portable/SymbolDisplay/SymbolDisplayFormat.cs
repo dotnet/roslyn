@@ -200,6 +200,7 @@ namespace Microsoft.CodeAnalysis
                 compilerInternalOptions:
                     SymbolDisplayCompilerInternalOptions.IncludeScriptType |
                     SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames |
+                    SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType |
                     SymbolDisplayCompilerInternalOptions.FlagMissingMetadataTypes |
                     SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers |
                     SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes);
