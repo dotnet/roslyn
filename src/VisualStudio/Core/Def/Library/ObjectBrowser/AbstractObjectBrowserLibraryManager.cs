@@ -41,7 +41,7 @@ internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLi
     private ObjectListItem _activeListItem;
     private AbstractListItemFactory _listItemFactory;
     private readonly object _classMemberGate = new();
-    private WorkspaceEventRegistration? _workspaceChangedDisposer;
+    private WorkspaceEventRegistration _workspaceChangedDisposer;
 
     protected AbstractObjectBrowserLibraryManager(
         string languageName,
