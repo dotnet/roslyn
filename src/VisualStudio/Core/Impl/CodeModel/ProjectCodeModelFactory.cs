@@ -151,6 +151,10 @@ internal sealed class ProjectCodeModelFactory : IProjectCodeModelFactory
         var stopwatch = SharedStopwatch.StartNew();
         foreach (var (projectCodeModel, filename) in projectCodeModelAndFileNames)
         {
+            // If we've been asked to shutdown, don't bother reporting any more events.
+            if (_threadingContext.DisposalToken.IsCancellationRequested)
+                return;
+
             FireEventsForDocument(projectCodeModel, filename);
 
             // Keep firing events for this doc, as long as we haven't exceeded MaxTimeSlice ms or input isn't pending.
@@ -170,18 +174,10 @@ internal sealed class ProjectCodeModelFactory : IProjectCodeModelFactory
             }
         }
 
-        void FireEventsForDocument(ProjectCodeModel projectCodeModel, string filename)
+        static void FireEventsForDocument(ProjectCodeModel projectCodeModel, string filename)
         {
-            // If we've been asked to shutdown, don't bother reporting any more events.
-            if (_threadingContext.DisposalToken.IsCancellationRequested)
-                return;
-
-            if (!projectCodeModel.TryGetCachedFileCodeModel(filename, out var fileCodeModelHandle))
-                return;
-
-            var codeModel = fileCodeModelHandle.Object;
-            codeModel.FireEvents();
-            return;
+            if (projectCodeModel.TryGetCachedFileCodeModel(filename, out var fileCodeModelHandle))
+                fileCodeModelHandle.Object.FireEvents();
         }
 
         // Returns true if any keyboard or mouse button input is pending on the message queue.
