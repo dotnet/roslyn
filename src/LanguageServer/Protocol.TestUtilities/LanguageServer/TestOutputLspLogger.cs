@@ -18,6 +18,7 @@ internal sealed class TestOutputLspLogger : AbstractLspLogger, ILspService
     }
 
     public override IDisposable? CreateContext(string context) => null;
+    public override IDisposable? CreateLanguageContext(string? context) => null;
 
     public override void LogDebug(string message, params object[] @params) => Log("Debug", message, @params);
 
