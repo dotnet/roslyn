@@ -664,11 +664,11 @@ internal static partial class ISymbolExtensions
 
         // PERF: HasUnsupportedMetadata may require recreating the syntax tree to get the base class, so first
         // check to see if we're referencing a symbol defined in source.
+        // PERF: Perform locations check last to avoid realizing all locations
+        // of each namespace symbol, which might end up allocating in LOH
         var filteredSymbols = symbols.WhereAsArray(static (s, arg) =>
-            // Check if symbol is namespace (which is always visible) first to avoid realizing all locations
-            // of each namespace symbol, which might end up allocating in LOH
             !arg.overriddenSymbols.Contains(s) &&
-            (s is INamespaceSymbol || s.Locations.Any(static loc => loc.IsInSource) || !s.HasUnsupportedMetadata) &&
+            (s is INamespaceSymbol || !s.HasUnsupportedMetadata || s.Locations.Any(static loc => loc.IsInSource)) &&
             !s.IsDestructor() &&
             s.IsEditorBrowsable(
                 arg.hideAdvancedMembers,
