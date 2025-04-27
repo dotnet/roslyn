@@ -47,27 +47,38 @@ internal abstract partial class AbstractTypeImportCompletionService : ITypeImpor
         CacheService.WorkQueue.AddWork(project);
     }
 
-    public async Task<(ImmutableArray<ImmutableArray<CompletionItem>>, bool)> GetAllTopLevelTypesAsync(
+    public async Task<bool> AddAllTopLevelTypesAsync(
         SyntaxContext syntaxContext,
         bool forceCacheCreation,
         CompletionOptions options,
+        ArrayBuilder<ArrayBuilder<CompletionItem>> topLevelTypesBuilder,
         CancellationToken cancellationToken)
     {
         var currentProject = syntaxContext.Document.Project;
-        var (getCacheResults, isPartialResult) = await GetCacheEntriesAsync(currentProject, syntaxContext.SemanticModel.Compilation, forceCacheCreation, cancellationToken).ConfigureAwait(false);
+        using var _ = ArrayBuilder<TypeImportCompletionCacheEntry>.GetInstance(out var cacheEntriesBuilder);
+        var isPartialResult = await AddCacheEntriesAsync(currentProject, syntaxContext.SemanticModel.Compilation, forceCacheCreation, cacheEntriesBuilder, cancellationToken).ConfigureAwait(false);
 
         var currentCompilation = syntaxContext.SemanticModel.Compilation;
-        return (getCacheResults.SelectAsArray(GetItemsFromCacheResult), isPartialResult);
 
-        ImmutableArray<CompletionItem> GetItemsFromCacheResult(TypeImportCompletionCacheEntry cacheEntry)
-            => cacheEntry.GetItemsForContext(
+        foreach (var cacheEntry in cacheEntriesBuilder)
+        {
+            // Ownership is transferred to caller
+            var builder = ArrayBuilder<CompletionItem>.GetInstance();
+
+            cacheEntry.AddItemsForContext(
                 currentCompilation,
                 Language,
                 GenericTypeSuffix,
                 syntaxContext.IsAttributeNameContext,
                 syntaxContext.IsEnumBaseListContext,
                 IsCaseSensitive,
-                options.MemberDisplayOptions.HideAdvancedMembers);
+                options.MemberDisplayOptions.HideAdvancedMembers,
+                builder);
+
+            topLevelTypesBuilder.Add(builder);
+        }
+
+        return isPartialResult;
     }
 
     private static MetadataId? GetMetadataId(PortableExecutableReference reference)
@@ -82,14 +93,13 @@ internal abstract partial class AbstractTypeImportCompletionService : ITypeImpor
         }
     }
 
-    private async Task<(ImmutableArray<TypeImportCompletionCacheEntry> results, bool isPartial)> GetCacheEntriesAsync(Project currentProject, Compilation originCompilation, bool forceCacheCreation, CancellationToken cancellationToken)
+    private async Task<bool> AddCacheEntriesAsync(Project currentProject, Compilation originCompilation, bool forceCacheCreation, ArrayBuilder<TypeImportCompletionCacheEntry> resultBuilder, CancellationToken cancellationToken)
     {
         try
         {
             var isPartialResult = false;
-            using var _1 = ArrayBuilder<TypeImportCompletionCacheEntry>.GetInstance(out var resultBuilder);
-            using var _2 = ArrayBuilder<Project>.GetInstance(out var projectsBuilder);
-            using var _3 = PooledHashSet<ProjectId>.GetInstance(out var nonGlobalAliasedProjectReferencesSet);
+            using var _1 = ArrayBuilder<Project>.GetInstance(out var projectsBuilder);
+            using var _2 = PooledHashSet<ProjectId>.GetInstance(out var nonGlobalAliasedProjectReferencesSet);
 
             var solution = currentProject.Solution;
             var graph = solution.GetProjectDependencyGraph();
@@ -147,7 +157,7 @@ internal abstract partial class AbstractTypeImportCompletionService : ITypeImpor
                 }
             }
 
-            return (resultBuilder.ToImmutable(), isPartialResult);
+            return isPartialResult;
         }
         finally
         {
@@ -158,13 +168,16 @@ internal abstract partial class AbstractTypeImportCompletionService : ITypeImpor
 
     public static async ValueTask BatchUpdateCacheAsync(ImmutableSegmentedList<Project> projects, CancellationToken cancellationToken)
     {
+        using var _1 = ArrayBuilder<TypeImportCompletionCacheEntry>.GetInstance(out var resultBuilder);
+
         var latestProjects = CompletionUtilities.GetDistinctProjectsFromLatestSolutionSnapshot(projects);
         foreach (var project in latestProjects)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var service = (AbstractTypeImportCompletionService)project.GetRequiredLanguageService<ITypeImportCompletionService>();
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            _ = await service.GetCacheEntriesAsync(project, compilation, forceCacheCreation: true, cancellationToken).ConfigureAwait(false);
+            _ = await service.AddCacheEntriesAsync(project, compilation, forceCacheCreation: true, resultBuilder, cancellationToken).ConfigureAwait(false);
+            resultBuilder.Clear();
         }
     }
 

@@ -52,24 +52,24 @@ internal sealed class TypeImportCompletionCacheEntry
         HasEnumBaseTypes = hasEnumBaseTypes;
     }
 
-    public ImmutableArray<CompletionItem> GetItemsForContext(
+    public void AddItemsForContext(
         Compilation originCompilation,
         string language,
         string genericTypeSuffix,
         bool isAttributeContext,
         bool isEnumBaseListContext,
         bool isCaseSensitive,
-        bool hideAdvancedMembers)
+        bool hideAdvancedMembers,
+        ArrayBuilder<CompletionItem> builder)
     {
         if (AssemblySymbolKey.Resolve(originCompilation).Symbol is not IAssemblySymbol assemblySymbol)
-            return [];
+            return;
 
         if (isEnumBaseListContext && !HasEnumBaseTypes)
-            return [];
+            return;
 
         var isSameLanguage = Language == language;
         var isInternalsVisible = originCompilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(assemblySymbol);
-        using var _ = ArrayBuilder<CompletionItem>.GetInstance(out var builder);
 
         // PERF: try set the capacity upfront to avoid allocation from Resize
         if (!isAttributeContext && !isEnumBaseListContext)
@@ -129,7 +129,7 @@ internal sealed class TypeImportCompletionCacheEntry
             builder.Add(item);
         }
 
-        return builder.ToImmutableAndClear();
+        return;
 
         static CompletionItem GetAppropriateAttributeItem(CompletionItem attributeItem, bool isCaseSensitive)
         {

@@ -3,12 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Roslyn.Utilities;
@@ -36,16 +36,22 @@ internal abstract class AbstractTypeImportCompletionProvider<AliasDeclarationTyp
         {
             var telemetryCounter = new TelemetryCounter();
             var typeImportCompletionService = completionContext.Document.GetRequiredLanguageService<ITypeImportCompletionService>();
+            using var _ = ArrayBuilder<ArrayBuilder<CompletionItem>>.GetInstance(out var topLevelTypesBuilder);
 
-            var (itemsFromAllAssemblies, isPartialResult) = await typeImportCompletionService.GetAllTopLevelTypesAsync(
+            var isPartialResult = await typeImportCompletionService.AddAllTopLevelTypesAsync(
                 syntaxContext,
                 forceCacheCreation: completionContext.CompletionOptions.ForceExpandedCompletionIndexCreation,
                 completionContext.CompletionOptions,
+                topLevelTypesBuilder,
                 cancellationToken).ConfigureAwait(false);
 
             var aliasTargetNamespaceToTypeNameMap = GetAliasTypeDictionary(completionContext.Document, syntaxContext, cancellationToken);
-            foreach (var items in itemsFromAllAssemblies)
+            foreach (var items in topLevelTypesBuilder)
                 AddItems(items, completionContext, namespacesInScope, aliasTargetNamespaceToTypeNameMap, telemetryCounter);
+
+            // Cleanup all the array builders
+            foreach (var items in topLevelTypesBuilder)
+                items.Free();
 
             if (isPartialResult)
                 telemetryCounter.CacheMiss = true;
@@ -114,7 +120,7 @@ internal abstract class AbstractTypeImportCompletionProvider<AliasDeclarationTyp
     }
 
     private static void AddItems(
-        ImmutableArray<CompletionItem> items,
+        ArrayBuilder<CompletionItem> items,
         CompletionContext completionContext,
         HashSet<string> namespacesInScope,
         MultiDictionary<string, string> aliasTargetNamespaceToTypeNameMap,
