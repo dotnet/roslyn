@@ -69,7 +69,6 @@ public sealed class ImplementInterfaceTests
             TestCode = initialMarkup,
             FixedCode = expectedMarkup,
             Options = { AllOptionsOff },
-            CodeActionEquivalenceKey = codeAction?.equivalenceKey,
             CodeActionIndex = codeAction?.index,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
@@ -108,7 +107,6 @@ public sealed class ImplementInterfaceTests
         {
             TestCode = initialMarkup,
             FixedCode = expectedMarkup,
-            CodeActionEquivalenceKey = codeAction?.equivalenceKey,
             CodeActionIndex = codeAction?.index,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
@@ -565,8 +563,6 @@ public sealed class ImplementInterfaceTests
                     """,
                 },
             },
-            CodeActionEquivalenceKey = "False;False;True:global::IInterface;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
-            CodeActionIndex = 0,
         };
 
         test.Options.AddRange(AllOptionsOff);
@@ -1252,7 +1248,6 @@ codeAction: ("False;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterf
                 MarkupHandling = MarkupMode.Allow,
             },
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
-            CodeActionEquivalenceKey = "False;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;i",
             CodeActionIndex = 1,
         };
 
@@ -2302,8 +2297,6 @@ codeAction: ("True;False;False:global::i1;Microsoft.CodeAnalysis.ImplementInterf
             """,
             Options = { AllOptionsOff },
             CodeActionsVerifier = codeActions => Assert.Equal(3, codeActions.Length),
-            CodeActionEquivalenceKey = "False;False;True:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
-            CodeActionIndex = 0,
         }.RunAsync();
 
         await new VerifyCS.Test
@@ -2327,7 +2320,6 @@ codeAction: ("True;False;False:global::i1;Microsoft.CodeAnalysis.ImplementInterf
             """,
             Options = { AllOptionsOff },
             CodeActionsVerifier = codeActions => Assert.Equal(3, codeActions.Length),
-            CodeActionEquivalenceKey = "False;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;i",
             CodeActionIndex = 1,
         }.RunAsync();
 
@@ -2352,7 +2344,6 @@ codeAction: ("True;False;False:global::i1;Microsoft.CodeAnalysis.ImplementInterf
             """,
             Options = { AllOptionsOff },
             CodeActionsVerifier = codeActions => Assert.Equal(3, codeActions.Length),
-            CodeActionEquivalenceKey = "True;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 2,
         }.RunAsync();
     }
@@ -2586,7 +2577,6 @@ codeAction: ("False;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterf
             CodeActionsVerifier = codeActions => Assert.Equal(3, codeActions.Length),
             DiagnosticSelector = diagnostics => diagnostics[0],
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
-            CodeActionEquivalenceKey = "False;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;a",
             CodeActionIndex = 1,
         }.RunAsync();
 
@@ -2666,7 +2656,6 @@ codeAction: ("False;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterf
             CodeActionsVerifier = codeActions => Assert.Equal(3, codeActions.Length),
             DiagnosticSelector = diagnostics => diagnostics[1],
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
-            CodeActionEquivalenceKey = "False;False;False:global::I2;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;a",
             CodeActionIndex = 1,
         }.RunAsync();
     }
@@ -2730,7 +2719,6 @@ codeAction: ("False;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterf
             },
             Options = { AllOptionsOff },
             CodeActionsVerifier = codeActions => Assert.Equal(4, codeActions.Length),
-            CodeActionEquivalenceKey = "False;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;a",
             CodeActionIndex = 1,
         }.RunAsync();
 
@@ -2790,7 +2778,6 @@ codeAction: ("False;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterf
             },
             Options = { AllOptionsOff },
             CodeActionsVerifier = codeActions => Assert.Equal(4, codeActions.Length),
-            CodeActionEquivalenceKey = "False;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;aa",
             CodeActionIndex = 2,
         }.RunAsync();
     }
@@ -2882,7 +2869,6 @@ codeAction: ("False;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterf
             CodeActionsVerifier = codeActions => Assert.Equal(3, codeActions.Length),
             DiagnosticSelector = diagnostics => diagnostics[0],
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
-            CodeActionEquivalenceKey = "False;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;a",
             CodeActionIndex = 1,
         }.RunAsync();
 
@@ -2970,7 +2956,6 @@ codeAction: ("False;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterf
             CodeActionsVerifier = codeActions => Assert.Equal(3, codeActions.Length),
             DiagnosticSelector = diagnostics => diagnostics[1],
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
-            CodeActionEquivalenceKey = "False;False;False:global::I2;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;b",
             CodeActionIndex = 1,
         }.RunAsync();
     }
@@ -3015,7 +3000,6 @@ codeAction: ("False;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterf
             """,
             Options = { AllOptionsOff },
             CodeActionsVerifier = codeActions => Assert.Equal(3, codeActions.Length),
-            CodeActionEquivalenceKey = "False;False;False:global::IB;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;IA.B",
             CodeActionIndex = 1,
         }.RunAsync();
     }
@@ -6285,7 +6269,6 @@ class C : System.IDisposable
 {DisposePattern("protected virtual ", "C", "void System.IDisposable.", gcPrefix: "System.")}
 }}
 ",
-            CodeActionEquivalenceKey = "True;False;False:global::System.IDisposable;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;",
             CodeActionIndex = 3,
 
             // 🐛 generated QualifiedName where SimpleMemberAccessExpression was expected
@@ -7096,7 +7079,6 @@ codeAction: ("True;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterfa
             },
             Options = { AllOptionsOff },
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
-            CodeActionEquivalenceKey = "True;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 1,
         }.RunAsync();
     }
@@ -7155,7 +7137,6 @@ codeAction: ("True;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterfa
                     """,
                 },
             },
-            CodeActionEquivalenceKey = "True;False;False:global::IGoo;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 1,
         };
 
@@ -7218,8 +7199,6 @@ codeAction: ("True;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterfa
                     """,
                 },
             },
-            CodeActionEquivalenceKey = "False;False;True:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
-            CodeActionIndex = 0,
         }.RunAsync();
     }
 
@@ -7287,8 +7266,6 @@ codeAction: ("True;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterfa
                     """,
                 },
             },
-            CodeActionEquivalenceKey = "False;False;True:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
-            CodeActionIndex = 0,
         };
 
         test.Options.AddRange(AllOptionsOff);
@@ -7479,7 +7456,6 @@ class Program : IDisposable
             {
                 _options.FieldNamesAreCamelCaseWithUnderscorePrefix,
             },
-            CodeActionEquivalenceKey = "False;False;True:global::System.IDisposable;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;",
             CodeActionIndex = 1,
         }.RunAsync();
     }
@@ -8584,7 +8560,6 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
             }
             """,
             Options = { AllOptionsOff },
-            CodeActionEquivalenceKey = "True;False;False:global::IInterface;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 1,
         }.RunAsync();
     }
@@ -8623,7 +8598,6 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
             }
             """,
             Options = { AllOptionsOff },
-            CodeActionEquivalenceKey = "False;True;True:global::IInterface;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 1,
         }.RunAsync();
     }
@@ -8731,8 +8705,6 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
             Options = { AllOptionsOff },
             DiagnosticSelector = diagnostics => diagnostics[1],
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
-            CodeActionEquivalenceKey = "True;False;False:global::IInterface;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
-            CodeActionIndex = 0,
         }.RunAsync();
     }
 
@@ -8896,7 +8868,6 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
             },
             Options = { AllOptionsOff },
             CodeActionEquivalenceKey = "True;False;False:global::IInterface;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
-            CodeActionIndex = 0,
         }.RunAsync();
     }
 
@@ -9022,7 +8993,6 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
             }
             """,
             Options = { AllOptionsOff },
-            CodeActionEquivalenceKey = "True;False;False:global::IInterface;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 1,
         }.RunAsync();
     }
@@ -9061,7 +9031,6 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
             }
             """,
             Options = { AllOptionsOff },
-            CodeActionEquivalenceKey = "False;True;True:global::IInterface;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 1,
         }.RunAsync();
     }
@@ -9176,7 +9145,6 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
                 MarkupHandling = MarkupMode.Allow,
             },
             Options = { AllOptionsOff },
-            CodeActionEquivalenceKey = "True;False;False:global::IInterface;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 1,
         }.RunAsync();
     }
@@ -9788,7 +9756,6 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
                 MarkupHandling = MarkupMode.Allow,
             },
             Options = { AllOptionsOff },
-            CodeActionEquivalenceKey = "True;False;False:global::IInterface;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 1,
         }.RunAsync();
     }
@@ -9925,7 +9892,6 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
             }
             """,
             Options = { AllOptionsOff },
-            CodeActionEquivalenceKey = "True;False;False:global::IInterface;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 1,
         }.RunAsync();
     }
@@ -9964,7 +9930,6 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
             }
             """,
             Options = { AllOptionsOff },
-            CodeActionEquivalenceKey = "False;True;True:global::IInterface;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 1,
         }.RunAsync();
     }
@@ -10054,7 +10019,6 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
             }
             """,
             Options = { AllOptionsOff },
-            CodeActionEquivalenceKey = "True;False;False:global::IInterface;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 1,
         }.RunAsync();
     }
@@ -10097,7 +10061,6 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
             }
             """,
             Options = { AllOptionsOff },
-            CodeActionEquivalenceKey = "False;True;True:global::IInterface;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 1,
         }.RunAsync();
     }
@@ -11094,8 +11057,6 @@ interface I
             }
             """,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(CodeFixesResources.Implement_interface, codeAction.Title),
-            CodeActionEquivalenceKey = "False;False;True:global::ITest;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
-            CodeActionIndex = 0,
         }.RunAsync();
     }
 
@@ -11131,7 +11092,6 @@ interface I
             }
             """,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(CodeFixesResources.Implement_all_members_explicitly, codeAction.Title),
-            CodeActionEquivalenceKey = "True;False;False:global::ITest;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 1,
         }.RunAsync();
     }
@@ -11168,7 +11128,6 @@ interface I
             }
             """,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(CodeFixesResources.Implement_interface_abstractly, codeAction.Title),
-            CodeActionEquivalenceKey = "False;True;True:global::ITest;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 1,
         }.RunAsync();
     }
@@ -11203,8 +11162,6 @@ interface I
             }
             """,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(CodeFixesResources.Implement_all_members_explicitly, codeAction.Title),
-            CodeActionEquivalenceKey = "True;False;False:global::ITest;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
-            CodeActionIndex = 0,
         }.RunAsync();
     }
 
@@ -11238,8 +11195,6 @@ interface I
             }
             """,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(CodeFixesResources.Implement_all_members_explicitly, codeAction.Title),
-            CodeActionEquivalenceKey = "True;False;False:global::ITest;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
-            CodeActionIndex = 0,
         }.RunAsync();
     }
 
@@ -11280,8 +11235,6 @@ interface I
             }
             """,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(CodeFixesResources.Implement_interface, codeAction.Title),
-            CodeActionEquivalenceKey = "False;False;True:global::ITest<global::C>;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
-            CodeActionIndex = 0,
         }.RunAsync();
     }
 
@@ -11315,8 +11268,6 @@ interface I
             }
             """,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(CodeFixesResources.Implement_interface, codeAction.Title),
-            CodeActionEquivalenceKey = "False;False;True:global::ITest<global::C>;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
-            CodeActionIndex = 0,
         }.RunAsync();
     }
 
@@ -11350,7 +11301,6 @@ interface I
             }
             """,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(CodeFixesResources.Implement_all_members_explicitly, codeAction.Title),
-            CodeActionEquivalenceKey = "True;False;False:global::ITest<global::C>;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 1,
         }.RunAsync();
     }
@@ -11385,7 +11335,6 @@ interface I
             }
             """,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(CodeFixesResources.Implement_interface_abstractly, codeAction.Title),
-            CodeActionEquivalenceKey = "False;True;True:global::ITest<global::C>;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 1,
 
         }.RunAsync();
@@ -11421,7 +11370,6 @@ interface I
             }
             """,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(CodeFixesResources.Implement_all_members_explicitly, codeAction.Title),
-            CodeActionEquivalenceKey = "True;False;False:global::ITest;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 1,
 
         }.RunAsync();
@@ -11457,9 +11405,6 @@ interface I
             }
             """,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(CodeFixesResources.Implement_interface, codeAction.Title),
-            CodeActionEquivalenceKey = "False;False;True:global::ITest;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
-            CodeActionIndex = 0,
-
         }.RunAsync();
     }
 
@@ -11493,9 +11438,6 @@ interface I
             }
             """,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(CodeFixesResources.Implement_interface, codeAction.Title),
-            CodeActionEquivalenceKey = "False;False;True:global::ITest<global::C>;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
-            CodeActionIndex = 0,
-
         }.RunAsync();
     }
 
@@ -11529,7 +11471,6 @@ interface I
             }
             """,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(CodeFixesResources.Implement_all_members_explicitly, codeAction.Title),
-            CodeActionEquivalenceKey = "True;False;False:global::ITest<global::C>;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 1,
 
         }.RunAsync();
@@ -11565,7 +11506,6 @@ interface I
             }
             """,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(CodeFixesResources.Implement_interface_abstractly, codeAction.Title),
-            CodeActionEquivalenceKey = "False;True;True:global::ITest<global::C>;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 1,
 
         }.RunAsync();
@@ -11642,7 +11582,6 @@ interface I
             }
             """,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(CodeFixesResources.Implement_all_members_explicitly, codeAction.Title),
-            CodeActionEquivalenceKey = "True;False;False:global::I1<global::C3>;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 1,
         }.RunAsync();
     }
@@ -11718,8 +11657,6 @@ interface I
             }
             """,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(CodeFixesResources.Implement_interface, codeAction.Title),
-            CodeActionEquivalenceKey = "False;False;True:global::I1<global::C3>;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
-            CodeActionIndex = 0,
         }.RunAsync();
     }
 
@@ -11794,7 +11731,6 @@ interface I
             }
             """,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(CodeFixesResources.Implement_interface_abstractly, codeAction.Title),
-            CodeActionEquivalenceKey = "False;True;True:global::I1<global::C3>;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 1,
         }.RunAsync();
     }
@@ -12065,7 +12001,6 @@ interface I
                 }
                 """,
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = "True;False;False:global::I11<global::C11>;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(CodeFixesResources.Implement_all_members_explicitly, codeAction.Title),
         }.RunAsync();
     }

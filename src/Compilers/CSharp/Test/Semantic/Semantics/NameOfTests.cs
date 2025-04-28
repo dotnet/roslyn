@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -1082,7 +1083,7 @@ public class Program
                     AssertEx.SetEqual(
                         symbols.Select(s => s.GetPublicSymbol()),
                         symbolInfo.CandidateSymbols,
-                        Roslyn.Utilities.ReferenceEqualityComparer.Instance);
+                        ReferenceEqualityComparer.Instance);
                 }
             }
 
@@ -1246,7 +1247,7 @@ public class Program
                     AssertEx.SetEqual(
                         symbols.Select(s => s.GetPublicSymbol()),
                         symbolInfo.CandidateSymbols,
-                        Roslyn.Utilities.ReferenceEqualityComparer.Instance);
+                        ReferenceEqualityComparer.Instance);
                 }
             }
 
