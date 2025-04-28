@@ -80,7 +80,7 @@ internal partial class ContainedLanguage
         Workspace = workspace;
 
         _editorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
-        _diagnosticAnalyzerService = componentModel.GetService<IDiagnosticAnalyzerService>();
+        _diagnosticAnalyzerService = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
         // Get the ITextBuffer for the secondary buffer
         Marshal.ThrowExceptionForHR(bufferCoordinator.GetSecondaryBuffer(out var secondaryTextLines));

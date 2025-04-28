@@ -61,9 +61,7 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         var document = GetDocumentFromIncompleteProject(workspace);
 
-        var exportProvider = workspace.Services.SolutionServices.ExportProvider;
-        var service = exportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
-        var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
+        var service = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
         var diagnostics = await service.GetDiagnosticsForIdsAsync(
             workspace.CurrentSolution.Projects.Single(), documentId: null, diagnosticIds: null, shouldIncludeAnalyzer: null,

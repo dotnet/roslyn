@@ -43,7 +43,7 @@ public sealed class CodeFixServiceTests
 ";
         using var workspace = TestWorkspace.CreateCSharp(code, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService, openDocuments: true);
 
-        var diagnosticService = workspace.GetService<IDiagnosticAnalyzerService>();
+        var diagnosticService = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
         var analyzerReference = new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
         workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
@@ -323,7 +323,7 @@ public sealed class CodeFixServiceTests
         Assert.True(errorReported);
     }
 
-    private static (EditorTestWorkspace workspace, IDiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
+    private static (EditorTestWorkspace workspace, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
         CodeFixProvider codefix,
         bool includeConfigurationFixProviders = false,
         bool throwExceptionInFixerCreation = false,
@@ -331,7 +331,7 @@ public sealed class CodeFixServiceTests
         string code = "class Program { }")
         => ServiceSetup([codefix], includeConfigurationFixProviders, throwExceptionInFixerCreation, additionalDocument, code);
 
-    private static (EditorTestWorkspace workspace, IDiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
+    private static (EditorTestWorkspace workspace, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
         ImmutableArray<CodeFixProvider> codefixers,
         bool includeConfigurationFixProviders = false,
         bool throwExceptionInFixerCreation = false,
@@ -355,7 +355,7 @@ public sealed class CodeFixServiceTests
         var analyzerReference = new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
         workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
 
-        var diagnosticService = workspace.GetService<IDiagnosticAnalyzerService>();
+        var diagnosticService = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
         var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => new TestErrorLogger()));
         var errorLogger = logger.First().Value;
 
@@ -369,7 +369,7 @@ public sealed class CodeFixServiceTests
             fixers,
             configurationFixProviders);
 
-        return (workspace, diagnosticService, fixService, errorLogger);
+        return (workspace, fixService, errorLogger);
     }
 
     private static void GetDocumentAndExtensionManager(
@@ -1033,7 +1033,6 @@ class C
 
         var tuple = ServiceSetup(codeFix, code: code);
         using var workspace = tuple.workspace;
-        var analyzerService = tuple.analyzerService;
         GetDocumentAndExtensionManager(workspace, out var document,
             out var extensionManager, analyzerReference);
 
@@ -1047,6 +1046,7 @@ class C
         // We enable full solution analysis so the 'AnalyzeDocumentAsync' doesn't skip analysis based on whether the document is active/open.
         workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution);
 
+        var analyzerService = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
         var diagnostics = await analyzerService.ForceAnalyzeProjectAsync(sourceDocument.Project, CancellationToken.None);
         await VerifyCachedDiagnosticsAsync(
             sourceDocument, expectedCachedDiagnostic: diagnosticOnFixLineInPriorSnapshot, testSpan, diagnostics);
