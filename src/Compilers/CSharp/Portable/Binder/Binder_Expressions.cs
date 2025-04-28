@@ -6623,10 +6623,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(enumeratorInfo.ElementType is { }); // ElementType is set always, even for IEnumerable.
-            // We should use .WithSuppression(syntax.Expression.IsSuppressed) here, as in ConvertCollectionExpressionElements.bindSpreadElement(),
-            // but currently we're not reporting nullable warnings for spread elements generated through this method, so this is not observable.
-            // See https://github.com/dotnet/roslyn/issues/68786 and CollectionExpressionTests.Nullable_Spread_04.
-            var itemPlaceholder = new BoundValuePlaceholder(syntax, enumeratorInfo.ElementType);
+            var itemPlaceholder = new BoundValuePlaceholder(syntax, enumeratorInfo.ElementType) { WasCompilerGenerated = true };
+            itemPlaceholder = (BoundValuePlaceholder)itemPlaceholder.WithSuppression(element.Expression.IsSuppressed);
             var item = bindItem(
                 this,
                 syntax.Expression,

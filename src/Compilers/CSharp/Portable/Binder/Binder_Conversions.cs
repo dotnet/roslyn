@@ -1075,10 +1075,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.Add(convertedElement);
                 }
             }
-            else if (ConversionsBase.TryGetCollectionKeyValuePairTypes(Compilation, elementType) is (var elementKeyType, var elementValueType))
+            else
             {
+                var elementKeyValueTypes = ConversionsBase.TryGetCollectionKeyValuePairTypes(Compilation, elementType);
                 var elementConversions = conversion.UnderlyingConversions;
-
                 Debug.Assert(elementConversions.All(c => c.Exists));
 
                 int conversionIndex = 0;
@@ -1094,7 +1094,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BoundExpression expressionElement:
                             {
-                                if (elementConversion.TryGetKeyValueConversions(out var keyConversion, out var valueConversion))
+                                if (elementKeyValueTypes is (var elementKeyType, var elementValueType) &&
+                                    elementConversion.TryGetKeyValueConversions(out var keyConversion, out var valueConversion))
                                 {
                                     if (!ConversionsBase.IsKeyValuePairType(Compilation, expressionElement.Type, out var keyType, out var valueType))
                                     {
@@ -1126,7 +1127,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 implicitReceiver!, // PROTOTYPE: We don't need an implicit receiver here, and in fact it can be null.
                                 static (binder, syntax, item, implicitReceiver, arg, diagnostics) =>
                                 {
-                                    if (arg.elementConversion.TryGetKeyValueConversions(out var keyConversion, out var valueConversion))
+                                    if (arg.elementKeyValueTypes is (var elementKeyType, var elementValueType) &&
+                                        arg.elementConversion.TryGetKeyValueConversions(out var keyConversion, out var valueConversion))
                                     {
                                         if (!ConversionsBase.IsKeyValuePairType(binder.Compilation, item.Type, out var keyType, out var valueType))
                                         {
@@ -1139,8 +1141,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             expression: item,
                                             keyPlaceholder: keyPlaceholder,
                                             valuePlaceholder: valuePlaceholder,
-                                            keyConversion: binder.CreateConversion(keyPlaceholder, keyConversion, arg.elementKeyType, diagnostics),
-                                            valueConversion: binder.CreateConversion(valuePlaceholder, valueConversion, arg.elementValueType, diagnostics),
+                                            keyConversion: binder.CreateConversion(keyPlaceholder, keyConversion, elementKeyType, diagnostics),
+                                            valueConversion: binder.CreateConversion(valuePlaceholder, valueConversion, elementValueType, diagnostics),
                                             type: arg.elementType);
                                     }
                                     else
@@ -1148,20 +1150,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         return binder.CreateConversion(item, arg.elementConversion, arg.elementType, diagnostics);
                                     }
                                 },
-                                (elementType, elementConversion, elementKeyType, elementValueType),
+                                (elementType, elementConversion, elementKeyValueTypes),
                                 diagnostics);
                             break;
                         case BoundKeyValuePairElement keyValuePairElement:
                             {
-                                if (!elementConversion.TryGetKeyValueConversions(out var keyConversion, out var valueConversion))
+                                if (elementKeyValueTypes is (var elementKeyType, var elementValueType) &&
+                                    elementConversion.TryGetKeyValueConversions(out var keyConversion, out var valueConversion))
+                                {
+                                    var keyValuePairSyntax = (KeyValuePairElementSyntax)keyValuePairElement.Syntax;
+                                    convertedElement = new BoundKeyValuePairElement(
+                                        keyValuePairSyntax,
+                                        CreateConversion(keyValuePairElement.Key, keyConversion, elementKeyType, diagnostics),
+                                        CreateConversion(keyValuePairElement.Value, valueConversion, elementValueType, diagnostics));
+                                }
+                                else
                                 {
                                     throw ExceptionUtilities.UnexpectedValue(elementConversion);
                                 }
-                                var keyValuePairSyntax = (KeyValuePairElementSyntax)keyValuePairElement.Syntax;
-                                convertedElement = new BoundKeyValuePairElement(
-                                    keyValuePairSyntax,
-                                    CreateConversion(keyValuePairElement.Key, keyConversion, elementKeyType, diagnostics),
-                                    CreateConversion(keyValuePairElement.Value, valueConversion, elementValueType, diagnostics));
                             }
                             break;
                         default:
@@ -1173,74 +1179,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(conversionIndex == elementConversions.Length);
                 conversion.MarkUnderlyingConversionsChecked();
             }
-            else
-            {
-                var elementConversions = conversion.UnderlyingConversions;
-                Debug.Assert(elementConversions.All(c => c.Exists));
-
-                int conversionIndex = 0;
-                foreach (var element in elements)
-                {
-                    BoundNode convertedElement;
-                    switch (element)
-                    {
-                        case BoundCollectionExpressionWithElement withElement:
-                            continue;
-                        case BoundCollectionExpressionSpreadElement spreadElement:
-                            convertedElement = bindSpreadElement(
-                                spreadElement,
-                                elementType,
-                                elementConversions[conversionIndex++],
-                                diagnostics);
-                            break;
-                        case BoundExpression expressionElement:
-                            convertedElement = CreateConversion(
-                                element.Syntax,
-                                expressionElement,
-                                elementConversions[conversionIndex++],
-                                isCast: false,
-                                conversionGroupOpt: null,
-                                destination: elementType,
-                                diagnostics);
-                            break;
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(element);
-                    }
-                    builder.Add(convertedElement!);
-                }
-
-                Debug.Assert(conversionIndex == elementConversions.Length);
-                conversion.MarkUnderlyingConversionsChecked();
-            }
 
             return builder.ToImmutableAndFree();
-
-            BoundNode bindSpreadElement(BoundCollectionExpressionSpreadElement element, TypeSymbol elementType, Conversion elementConversion, BindingDiagnosticBag diagnostics)
-            {
-                var enumeratorInfo = element.EnumeratorInfoOpt;
-                Debug.Assert(enumeratorInfo is { });
-                Debug.Assert(enumeratorInfo.ElementType is { }); // ElementType is set always, even for IEnumerable.
-
-                var expressionSyntax = element.Expression.Syntax;
-                var elementPlaceholder = new BoundValuePlaceholder(expressionSyntax, enumeratorInfo.ElementType) { WasCompilerGenerated = true };
-                elementPlaceholder = (BoundValuePlaceholder)elementPlaceholder.WithSuppression(element.Expression.IsSuppressed);
-                var convertElement = CreateConversion(
-                    expressionSyntax,
-                    elementPlaceholder,
-                    elementConversion,
-                    isCast: false,
-                    conversionGroupOpt: null,
-                    destination: elementType,
-                    diagnostics);
-                return element.Update(
-                    element.Expression,
-                    expressionPlaceholder: element.ExpressionPlaceholder,
-                    conversion: element.Conversion,
-                    enumeratorInfo,
-                    elementPlaceholder: elementPlaceholder,
-                    iteratorBody: new BoundExpressionStatement(expressionSyntax, convertElement) { WasCompilerGenerated = true },
-                    lengthOrCount: element.LengthOrCount);
-            }
         }
 
         internal BoundMethodGroup BindCollectionBuilderMethodGroup(
