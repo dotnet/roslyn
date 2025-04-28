@@ -40,19 +40,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
 internal sealed partial class RenameTrackingTaggerProvider(
     IThreadingContext threadingContext,
     IInlineRenameService inlineRenameService,
-    IDiagnosticAnalyzerService diagnosticAnalyzerService,
     IGlobalOptionService globalOptions,
     IAsynchronousOperationListenerProvider listenerProvider) : ITaggerProvider
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly IAsynchronousOperationListener _asyncListener = listenerProvider.GetListener(FeatureAttribute.RenameTracking);
     private readonly IInlineRenameService _inlineRenameService = inlineRenameService;
-    private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService = diagnosticAnalyzerService;
     private readonly IGlobalOptionService _globalOptions = globalOptions;
 
     public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
     {
-        var stateMachine = buffer.Properties.GetOrCreateSingletonProperty(() => new StateMachine(_threadingContext, buffer, _inlineRenameService, _diagnosticAnalyzerService, _globalOptions, _asyncListener));
+        var stateMachine = buffer.Properties.GetOrCreateSingletonProperty(() => new StateMachine(_threadingContext, buffer, _inlineRenameService, _globalOptions, _asyncListener));
         return new Tagger(stateMachine) as ITagger<T>;
     }
 

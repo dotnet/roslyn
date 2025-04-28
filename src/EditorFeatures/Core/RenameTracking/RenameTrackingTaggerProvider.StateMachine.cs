@@ -38,7 +38,6 @@ internal sealed partial class RenameTrackingTaggerProvider
 
         private readonly IInlineRenameService _inlineRenameService;
         private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
 
         // Store committed sessions so they can be restored on undo/redo. The undo transactions
         // may live beyond the lifetime of the buffer tracked by this StateMachine, so storing
@@ -58,7 +57,6 @@ internal sealed partial class RenameTrackingTaggerProvider
             IThreadingContext threadingContext,
             ITextBuffer buffer,
             IInlineRenameService inlineRenameService,
-            IDiagnosticAnalyzerService diagnosticAnalyzerService,
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListener asyncListener)
         {
@@ -67,7 +65,6 @@ internal sealed partial class RenameTrackingTaggerProvider
             Buffer.Changed += Buffer_Changed;
             _inlineRenameService = inlineRenameService;
             _asyncListener = asyncListener;
-            _diagnosticAnalyzerService = diagnosticAnalyzerService;
             GlobalOptions = globalOptions;
         }
 
@@ -238,8 +235,8 @@ internal sealed partial class RenameTrackingTaggerProvider
                     // provide a diagnostic/codefix, but nothing has changed in the workspace
                     // to trigger the diagnostic system to reanalyze, so we trigger it 
                     // manually.
-
-                    _diagnosticAnalyzerService?.RequestDiagnosticRefresh();
+                    var service = document.Project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+                    service.RequestDiagnosticRefresh();
                 }
 
                 // Disallow the existing TrackingSession from triggering IdentifierFound.
