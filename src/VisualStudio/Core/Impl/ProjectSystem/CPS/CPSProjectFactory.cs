@@ -84,6 +84,7 @@ internal sealed partial class CPSProjectFactory : IWorkspaceProjectContextFactor
 
             // Property added in VS 17.4 compiler targets capturing values of LangVersion and DefineConstants.
             // ChecksumAlgorithm value added to the property in 17.5.
+            // Features and DocumentationFile added after 17.14.
             //
             // Impact on Hot Reload: incorrect ChecksumAlgorithm will prevent Hot Reload in detecting changes correctly in certain scenarios.
             // However, given that projects that explicitly set ChecksumAlgorithm to a non-default value are rare and the project system

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,6 +26,7 @@ internal sealed partial class RemoteCopilotChangeAnalysisService(
         Checksum solutionChecksum,
         DocumentId documentId,
         ImmutableArray<TextChange> edits,
+        string proposalId,
         CancellationToken cancellationToken)
     {
         return RunServiceAsync(solutionChecksum, async solution =>
@@ -34,7 +36,7 @@ internal sealed partial class RemoteCopilotChangeAnalysisService(
 
             var service = solution.Services.GetRequiredService<ICopilotChangeAnalysisService>();
             return await service.AnalyzeChangeAsync(
-                document, edits, cancellationToken).ConfigureAwait(false);
+                document, edits, proposalId, cancellationToken).ConfigureAwait(false);
         }, cancellationToken);
     }
 }

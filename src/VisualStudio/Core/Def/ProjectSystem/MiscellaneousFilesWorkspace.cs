@@ -22,6 +22,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.WorkspaceEventMap;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
@@ -172,7 +173,11 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
         // to the RDT in the background thread. Since this is all asynchronous a bit more asynchrony is fine.
         if (!_threadingContext.JoinableTaskContext.IsOnMainThread)
         {
-            ScheduleTask(() => Registration_WorkspaceChanged(sender, e));
+            // Require main thread on the callback as this method requires that per the comment above.
+            var handlerAndOptions = new WorkspaceEventHandlerAndOptions(args => Registration_WorkspaceChanged(sender, e), WorkspaceEventOptions.RequiresMainThreadOptions);
+            var handlerSet = EventHandlerSet.Create(handlerAndOptions);
+
+            ScheduleTask(e, handlerSet);
             return;
         }
 

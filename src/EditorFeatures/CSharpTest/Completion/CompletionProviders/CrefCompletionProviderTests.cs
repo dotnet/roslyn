@@ -27,7 +27,7 @@ public sealed class CrefCompletionProviderTests : AbstractCSharpCompletionProvid
 
     private protected override async Task VerifyWorkerAsync(string code, int position, string expectedItemOrNull,
         string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, char? deletedCharTrigger,
-        bool checkForAbsence, int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
+        bool checkForAbsence, Glyph? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
         string displayTextPrefix, string? inlineDescription = null, bool? isComplexTextEdit = null,
         List<CompletionFilter>? matchingFilters = null, CompletionItemFlags? flags = null,
         CompletionOptions? options = null, bool skipSpeculation = false)

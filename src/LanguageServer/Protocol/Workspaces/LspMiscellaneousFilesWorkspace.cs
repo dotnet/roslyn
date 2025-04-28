@@ -36,7 +36,7 @@ internal sealed class LspMiscellaneousFilesWorkspace(ILspServices lspServices, I
     /// Calls to this method and <see cref="TryRemoveMiscellaneousDocument(Uri, bool)"/> are made
     /// from LSP text sync request handling which do not run concurrently.
     /// </summary>
-    public Document? AddMiscellaneousDocument(Uri uri, SourceText documentText, string languageId, ILspLogger logger)
+    public TextDocument? AddMiscellaneousDocument(Uri uri, SourceText documentText, string languageId, ILspLogger logger)
     {
         var documentFilePath = ProtocolConversions.GetDocumentFilePathFromUri(uri);
 
@@ -62,6 +62,12 @@ internal sealed class LspMiscellaneousFilesWorkspace(ILspServices lspServices, I
         var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
             this, documentFilePath, sourceTextLoader, languageInformation, documentText.ChecksumAlgorithm, Services.SolutionServices, []);
         OnProjectAdded(projectInfo);
+
+        if (languageInformation.LanguageName == "Razor")
+        {
+            var docId = projectInfo.AdditionalDocuments.Single().Id;
+            return CurrentSolution.GetRequiredAdditionalDocument(docId);
+        }
 
         var id = projectInfo.Documents.Single().Id;
         return CurrentSolution.GetRequiredDocument(id);

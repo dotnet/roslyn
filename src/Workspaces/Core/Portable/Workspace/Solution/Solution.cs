@@ -27,9 +27,8 @@ namespace Microsoft.CodeAnalysis;
 /// </summary>
 public partial class Solution
 {
-
-    // Values for all these are created on demand.
-    private ImmutableDictionary<ProjectId, Project> _projectIdToProjectMap;
+    // Values for all these are created on demand. Only access when holding the dictionary as a lock.
+    private readonly Dictionary<ProjectId, Project> _projectIdToProjectMap = [];
 
     /// <summary>
     /// Result of calling <see cref="WithFrozenPartialCompilationsAsync"/>.
@@ -46,7 +45,6 @@ public partial class Solution
         SolutionCompilationState compilationState,
         AsyncLazy<Solution>? cachedFrozenSolution = null)
     {
-        _projectIdToProjectMap = ImmutableDictionary<ProjectId, Project>.Empty;
         CompilationState = compilationState;
 
         _cachedFrozenSolution = cachedFrozenSolution ??
@@ -152,7 +150,10 @@ public partial class Solution
     {
         if (this.ContainsProject(projectId))
         {
-            return ImmutableInterlocked.GetOrAdd(ref _projectIdToProjectMap, projectId, s_createProjectFunction, this);
+            lock (_projectIdToProjectMap)
+            {
+                return _projectIdToProjectMap.GetOrAdd(projectId, s_createProjectFunction, this);
+            }
         }
 
         return null;
@@ -1391,11 +1392,15 @@ public partial class Solution
         return WithCompilationState(CompilationState.WithDocumentSyntaxRoots(syntaxRoots, mode));
     }
 
-    internal Solution WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState, bool forceEvenIfTreesWouldDiffer)
-        => WithCompilationState(CompilationState.WithDocumentContentsFrom([(documentId, documentState)], forceEvenIfTreesWouldDiffer));
+    internal Solution WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState)
+        => WithDocumentContentsFrom([(documentId, documentState)]);
 
-    internal Solution WithDocumentContentsFrom(ImmutableArray<(DocumentId documentId, DocumentState documentState)> documentIdsAndStates, bool forceEvenIfTreesWouldDiffer)
-        => WithCompilationState(CompilationState.WithDocumentContentsFrom(documentIdsAndStates, forceEvenIfTreesWouldDiffer));
+    internal Solution WithDocumentContentsFrom(ImmutableArray<(DocumentId documentId, DocumentState documentState)> documentIdsAndStates)
+        // This code path is all about updating linked files to match the contents of the document they are linked to.
+        // We always want to try to allow the linked files to reuse the root from the linked document if possible, or
+        // reparse if it is not.  Hence why we pass `forceEvenIfTreesWouldDiffer: false` as we don't want reuse in the
+        // cases like when PP directives change and the docs contain a #if directive.
+        => WithCompilationState(CompilationState.WithDocumentContentsFrom(documentIdsAndStates, forceEvenIfTreesWouldDiffer: false));
 
     /// <summary>
     /// Creates a new solution instance with the document specified updated to have the source

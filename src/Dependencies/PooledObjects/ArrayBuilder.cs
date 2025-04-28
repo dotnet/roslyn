@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             _builder.Sort();
         }
 
-        public void Sort(IComparer<T> comparer)
+        public void Sort(IComparer<T>? comparer)
         {
             _builder.Sort(comparer);
         }
@@ -684,12 +684,14 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             set.Free();
         }
 
-        public void SortAndRemoveDuplicates(IComparer<T> comparer)
+        public void SortAndRemoveDuplicates(IComparer<T>? comparer = null)
         {
             if (Count <= 1)
             {
                 return;
             }
+
+            comparer ??= Comparer<T>.Default;
 
             Sort(comparer);
 

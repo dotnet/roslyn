@@ -14,11 +14,8 @@ internal sealed partial class DiagnosticAnalyzerService
     private DiagnosticIncrementalAnalyzer CreateIncrementalAnalyzerCallback(Workspace workspace)
     {
         // subscribe to active context changed event for new workspace
-        workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
+        _ = workspace.RegisterDocumentActiveContextChangedHandler(args => RequestDiagnosticRefresh());
 
         return new DiagnosticIncrementalAnalyzer(this, AnalyzerInfoCache, this.GlobalOptions);
     }
-
-    private void OnDocumentActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs e)
-        => RequestDiagnosticRefresh();
 }

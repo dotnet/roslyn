@@ -364,3 +364,41 @@ class extension { } // type may not be named "extension"
 class C<extension> { } // type parameter may not be named "extension"
 ```
 
+## Partial properties and events are now implicitly virtual and public
+
+***Introduced in Visual Studio 2022 version 17.15***
+
+We have fixed [an inconsistency](https://github.com/dotnet/roslyn/issues/77346)
+where partial interface properties and events would not be implicitly `virtual` and `public` unlike their non-partial equivalents.
+This inconsistency is however [preserved](./Deviations%20from%20Standard.md#interface-partial-methods) for partial interface methods to avoid a larger breaking change.
+Note that Visual Basic and other languages not supporting default interface members will start requiring to implement implicitly virtual `partial` interface members.
+
+To keep the previous behavior, explicitly mark `partial` interface members as `private` (if they don't have any accessibility modifiers)
+and `sealed` (if they don't have the `private` modifier which implies `sealed`, and they don't already have modifier `virtual` or `sealed`).
+
+```cs
+System.Console.Write(((I)new C()).P); // wrote 1 previously, writes 2 now
+
+partial interface I
+{
+    public partial int P { get; }
+    public partial int P => 1; // implicitly virtual now
+}
+
+class C : I
+{
+    public int P => 2; // implements I.P
+}
+```
+
+```cs
+System.Console.Write(((I)new C()).P); // inaccessible previously, writes 1 now
+
+partial interface I
+{
+    partial int P { get; } // implicitly public now
+    partial int P => 1;
+}
+
+class C : I;
+```

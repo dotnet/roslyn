@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static DeclarationModifiers GetDeclarationModifiers() => DeclarationModifiers.Private | DeclarationModifiers.Static;
 
-        internal override bool HasSpecialName => true; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : reconcile with spec
+        internal override bool HasSpecialName => true;
 
         internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {

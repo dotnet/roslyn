@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.VisualBasic;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -51,17 +52,30 @@ internal static class Extensions
             i = eoln + LineSeparator.Length;
         }
     }
-
-    public static Project AddTestProject(this Solution solution, string projectName, string language = LanguageNames.CSharp)
-        => AddTestProject(solution, projectName, language, out _);
+#nullable enable
 
     public static Project AddTestProject(this Solution solution, string projectName, out ProjectId id)
         => AddTestProject(solution, projectName, LanguageNames.CSharp, out id);
 
     public static Project AddTestProject(this Solution solution, string projectName, string language, out ProjectId id)
+        => AddTestProject(solution, projectName, language, TargetFramework.NetLatest, id = ProjectId.CreateNewId(debugName: projectName));
+
+    public static Project AddTestProject(this Solution solution, string projectName, string language, TargetFramework targetFramework, out ProjectId id)
     {
-        var info = CreateProjectInfo(projectName, language);
-        return solution.AddProject(info).GetRequiredProject(id = info.Id);
+        var project = AddTestProject(solution, projectName, language, targetFramework, id: null);
+        id = project.Id;
+        return project;
+    }
+
+    public static Project AddTestProject(this Solution solution, string projectName, string language = LanguageNames.CSharp, TargetFramework targetFramework = TargetFramework.NetLatest, ProjectId? id = null)
+    {
+        id ??= ProjectId.CreateNewId(debugName: projectName);
+
+        var info = CreateProjectInfo(projectName, id, language);
+        return solution
+            .AddProject(info)
+            .WithProjectMetadataReferences(id, TargetFrameworkUtil.GetReferences(targetFramework))
+            .GetRequiredProject(id);
     }
 
     public static Document AddTestDocument(this Project project, string source, string path)
@@ -75,7 +89,9 @@ internal static class Extensions
             id = DocumentId.CreateNewId(projectId),
             name: PathUtilities.GetFileName(path),
             SourceText.From(source, Encoding.UTF8, SourceHashAlgorithms.Default),
-            filePath: path).GetRequiredDocument(id);
+            filePath: PathUtilities.IsAbsolute(path)
+                ? path : Path.Combine(Path.GetDirectoryName(solution.GetRequiredProject(projectId).FilePath!)!, path))
+        .GetRequiredDocument(id);
 
     public static Guid CreateProjectTelemetryId(string projectName)
     {
@@ -83,9 +99,9 @@ internal static class Extensions
         return BlobContentId.FromHash(Encoding.UTF8.GetBytes(projectName.PadRight(20, '\0'))).Guid;
     }
 
-    public static ProjectInfo CreateProjectInfo(string projectName, string language = LanguageNames.CSharp)
+    public static ProjectInfo CreateProjectInfo(string projectName, ProjectId id, string language = LanguageNames.CSharp)
         => ProjectInfo.Create(
-            ProjectId.CreateNewId(debugName: projectName),
+            id,
             VersionStamp.Create(),
             name: projectName,
             assemblyName: projectName,
@@ -98,16 +114,15 @@ internal static class Extensions
                 _ => throw ExceptionUtilities.UnexpectedValue(language)
             },
             compilationOptions: TestOptions.DebugDll,
-            filePath: projectName + language switch
+            filePath: Path.Combine(TempRoot.Root, projectName, projectName + language switch
             {
                 LanguageNames.CSharp => ".csproj",
                 LanguageNames.VisualBasic => ".vbproj",
                 NoCompilationConstants.LanguageName => ".noproj",
                 _ => throw ExceptionUtilities.UnexpectedValue(language)
-            })
+            }))
             .WithCompilationOutputInfo(new CompilationOutputInfo(
                 assemblyPath: Path.Combine(TempRoot.Root, projectName + ".dll"),
                 generatedFilesOutputDirectory: null))
             .WithTelemetryId(CreateProjectTelemetryId(projectName));
-
 }
