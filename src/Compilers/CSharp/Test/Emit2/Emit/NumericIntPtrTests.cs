@@ -6250,7 +6250,7 @@ $@"class Program
                 var model = comp.GetSemanticModel(tree);
                 var expr = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
                 var symbolInfo = model.GetSymbolInfo(expr);
-                Assert.Equal(expectedSymbol, symbolInfo.Symbol?.ToDisplayString(SymbolDisplayFormat.TestFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
+                Assert.Equal(expectedSymbol, symbolInfo.Symbol?.ToDisplayString(TestFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
 
                 if (expectedDiagnostics.Length == 0)
                 {
@@ -6626,7 +6626,7 @@ class Program
                     isPrefix ? SyntaxKind.PreDecrementExpression : SyntaxKind.PostDecrementExpression;
                 var expr = tree.GetRoot().DescendantNodes().Single(n => n.Kind() == kind);
                 var symbolInfo = model.GetSymbolInfo(expr);
-                Assert.Equal(expectedSymbol, symbolInfo.Symbol?.ToDisplayString(SymbolDisplayFormat.TestFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
+                Assert.Equal(expectedSymbol, symbolInfo.Symbol?.ToDisplayString(TestFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
 
                 if (expectedDiagnostics.Length == 0)
                 {
@@ -6858,7 +6858,7 @@ class Program
                 var kind = (op == "++") ? SyntaxKind.PreIncrementExpression : SyntaxKind.PreDecrementExpression;
                 var expr = tree.GetRoot().DescendantNodes().Single(n => n.Kind() == kind);
                 var symbolInfo = model.GetSymbolInfo(expr);
-                Assert.Equal(expectedSymbol, symbolInfo.Symbol?.ToDisplayString(SymbolDisplayFormat.TestFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
+                Assert.Equal(expectedSymbol, symbolInfo.Symbol?.ToDisplayString(TestFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
 
                 if (expectedDiagnostics.Length == 0)
                 {
@@ -8131,7 +8131,7 @@ $@"class Program
                 var model = comp.GetSemanticModel(tree);
                 var expr = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
                 var symbolInfo = model.GetSymbolInfo(expr);
-                Assert.Equal(expectedSymbol, symbolInfo.Symbol?.ToDisplayString(SymbolDisplayFormat.TestFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
+                Assert.Equal(expectedSymbol, symbolInfo.Symbol?.ToDisplayString(TestFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
 
                 if (expectedDiagnostics.Length == 0)
                 {

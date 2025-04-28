@@ -6113,7 +6113,7 @@ $@"class Program
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>();
-            var actualOperators = nodes.Select(n => model.GetSymbolInfo(n).Symbol.ToTestDisplayString()).ToArray();
+            var actualOperators = nodes.Select(n => model.GetSymbolInfo(n).Symbol.ToDisplayString(TestFormat)).ToArray();
             var expectedOperators = new[]
             {
                 $"{type} {type}.op_Addition({type} left, {type} right)",
