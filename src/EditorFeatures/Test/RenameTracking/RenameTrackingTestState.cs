@@ -98,7 +98,6 @@ internal sealed class RenameTrackingTestState : IDisposable
         var tracker = new RenameTrackingTaggerProvider(
             Workspace.GetService<IThreadingContext>(),
             Workspace.GetService<IInlineRenameService>(),
-            Workspace.GetService<IDiagnosticAnalyzerService>(),
             Workspace.GetService<IGlobalOptionService>(),
             Workspace.GetService<IAsynchronousOperationListenerProvider>());
 
