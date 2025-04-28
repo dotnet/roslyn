@@ -1011,7 +1011,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 setMethod,
                 wasTargetTyped: true,
                 node,
-                ConvertCollectionExpressionElements(node, targetType, conversion, collectionTypeKind, elementType, implicitReceiver, setMethod, diagnostics),
+                ConvertCollectionExpressionElements(node, targetType, conversion, collectionTypeKind, elementType, implicitReceiver, diagnostics),
                 targetType)
             { WasCompilerGenerated = node.IsParamsArrayOrCollection, IsParamsArrayOrCollection = node.IsParamsArrayOrCollection };
         }
@@ -1023,7 +1023,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             CollectionExpressionTypeKind collectionTypeKind,
             TypeSymbol elementType,
             BoundObjectOrCollectionValuePlaceholder? implicitReceiver,
-            MethodSymbol? setMethod,
             BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(elementType is { });
