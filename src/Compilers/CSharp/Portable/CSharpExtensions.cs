@@ -116,6 +116,22 @@ namespace Microsoft.CodeAnalysis
             return list.IndexOf(kind) >= 0;
         }
 
+        internal static int Count<TNode>(this SeparatedSyntaxList<TNode> list, Func<TNode, bool> predicate)
+            where TNode : SyntaxNode
+        {
+            int n = list.Count;
+            int count = 0;
+            for (int i = 0; i < n; i++)
+            {
+                if (predicate(list[i]))
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
         /// <summary>
         /// Returns the index of the first trivia of a specified kind in the trivia list.
         /// </summary>
