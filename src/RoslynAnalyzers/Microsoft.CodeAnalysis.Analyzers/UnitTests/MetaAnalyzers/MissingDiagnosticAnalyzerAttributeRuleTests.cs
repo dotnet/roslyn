@@ -18,57 +18,59 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers;
 using VerifyCS = CSharpCodeFixVerifier<DiagnosticAnalyzerAttributeAnalyzer, CSharpApplyDiagnosticAnalyzerAttributeFix>;
 using VerifyVB = VisualBasicCodeFixVerifier<DiagnosticAnalyzerAttributeAnalyzer, BasicApplyDiagnosticAnalyzerAttributeFix>;
 
-public class MissingDiagnosticAnalyzerAttributeRuleTests
+public sealed class MissingDiagnosticAnalyzerAttributeRuleTests
 {
     [Fact]
     public async Task CSharp_VerifyDiagnosticAndFixesAsync()
     {
-        var source = @"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+        var source = """
+            using System;
+            using System.Collections.Immutable;
+            using Microsoft.CodeAnalysis;
+            using Microsoft.CodeAnalysis.Diagnostics;
 
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+            class MyAnalyzer : DiagnosticAnalyzer
+            {
+                public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                {
+                    get
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
 
-    public override void Initialize(AnalysisContext context)
-    {
-    }
-}";
+                public override void Initialize(AnalysisContext context)
+                {
+                }
+            }
+            """;
 #pragma warning disable RS0030 // Do not use banned APIs
-        DiagnosticResult expected = VerifyCS.Diagnostic(DiagnosticAnalyzerAttributeAnalyzer.MissingDiagnosticAnalyzerAttributeRule).WithLocation(7, 7).WithArguments(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsDiagnosticAnalyzerAttribute);
+        DiagnosticResult expected = VerifyCS.Diagnostic(DiagnosticAnalyzerAttributeAnalyzer.MissingDiagnosticAnalyzerAttributeRule).WithLocation(6, 7).WithArguments(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsDiagnosticAnalyzerAttribute);
 #pragma warning restore RS0030 // Do not use banned APIs
         await VerifyCS.VerifyAnalyzerAsync(source, expected);
 
-        var fixedCode_WithCSharpAttribute = @"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+        var fixedCode_WithCSharpAttribute = """
+            using System;
+            using System.Collections.Immutable;
+            using Microsoft.CodeAnalysis;
+            using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+            [DiagnosticAnalyzer(LanguageNames.CSharp)]
+            class MyAnalyzer : DiagnosticAnalyzer
+            {
+                public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                {
+                    get
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
 
-    public override void Initialize(AnalysisContext context)
-    {
-    }
-}";
+                public override void Initialize(AnalysisContext context)
+                {
+                }
+            }
+            """;
 
         await new VerifyCS.Test
         {
@@ -81,27 +83,28 @@ class MyAnalyzer : DiagnosticAnalyzer
             CodeActionEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.CSharp),
         }.RunAsync();
 
-        var fixedCode_WithCSharpAndVBAttributes = @"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+        var fixedCode_WithCSharpAndVBAttributes = """
+            using System;
+            using System.Collections.Immutable;
+            using Microsoft.CodeAnalysis;
+            using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+            [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+            class MyAnalyzer : DiagnosticAnalyzer
+            {
+                public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                {
+                    get
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
 
-    public override void Initialize(AnalysisContext context)
-    {
-    }
-}";
+                public override void Initialize(AnalysisContext context)
+                {
+                }
+            }
+            """;
 
         await new VerifyCS.Test
         {
@@ -119,48 +122,48 @@ class MyAnalyzer : DiagnosticAnalyzer
     [Fact]
     public async Task VisualBasic_VerifyDiagnosticAndFixesAsync()
     {
-        var source = @"
-Imports System
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
+        var source = """
+            Imports System
+            Imports System.Collections.Immutable
+            Imports Microsoft.CodeAnalysis
+            Imports Microsoft.CodeAnalysis.Diagnostics
 
-Class MyAnalyzer
-	Inherits DiagnosticAnalyzer
-	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-		Get
-			Throw New NotImplementedException()
-		End Get
-	End Property
+            Class MyAnalyzer
+            	Inherits DiagnosticAnalyzer
+            	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+            		Get
+            			Throw New NotImplementedException()
+            		End Get
+            	End Property
 
-	Public Overrides Sub Initialize(context As AnalysisContext)
-	End Sub
-End Class
-";
+            	Public Overrides Sub Initialize(context As AnalysisContext)
+            	End Sub
+            End Class
+            """;
 #pragma warning disable RS0030 // Do not use banned APIs
-        DiagnosticResult expected = VerifyVB.Diagnostic(DiagnosticAnalyzerAttributeAnalyzer.MissingDiagnosticAnalyzerAttributeRule).WithLocation(7, 7).WithArguments(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsDiagnosticAnalyzerAttribute);
+        DiagnosticResult expected = VerifyVB.Diagnostic(DiagnosticAnalyzerAttributeAnalyzer.MissingDiagnosticAnalyzerAttributeRule).WithLocation(6, 7).WithArguments(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsDiagnosticAnalyzerAttribute);
 #pragma warning restore RS0030 // Do not use banned APIs
         await VerifyVB.VerifyAnalyzerAsync(source, expected);
 
-        var fixedCode_WithVBAttribute = @"
-Imports System
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
+        var fixedCode_WithVBAttribute = """
+            Imports System
+            Imports System.Collections.Immutable
+            Imports Microsoft.CodeAnalysis
+            Imports Microsoft.CodeAnalysis.Diagnostics
 
-<DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-Class MyAnalyzer
-	Inherits DiagnosticAnalyzer
-	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-		Get
-			Throw New NotImplementedException()
-		End Get
-	End Property
+            <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
+            Class MyAnalyzer
+            	Inherits DiagnosticAnalyzer
+            	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+            		Get
+            			Throw New NotImplementedException()
+            		End Get
+            	End Property
 
-	Public Overrides Sub Initialize(context As AnalysisContext)
-	End Sub
-End Class
-";
+            	Public Overrides Sub Initialize(context As AnalysisContext)
+            	End Sub
+            End Class
+            """;
 
         await new VerifyVB.Test
         {
@@ -174,25 +177,25 @@ End Class
             CodeActionEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.VisualBasic),
         }.RunAsync();
 
-        var fixedCode_WithCSharpAndVBAttributes = @"
-Imports System
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
+        var fixedCode_WithCSharpAndVBAttributes = """
+            Imports System
+            Imports System.Collections.Immutable
+            Imports Microsoft.CodeAnalysis
+            Imports Microsoft.CodeAnalysis.Diagnostics
 
-<DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
-Class MyAnalyzer
-	Inherits DiagnosticAnalyzer
-	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-		Get
-			Throw New NotImplementedException()
-		End Get
-	End Property
+            <DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
+            Class MyAnalyzer
+            	Inherits DiagnosticAnalyzer
+            	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+            		Get
+            			Throw New NotImplementedException()
+            		End Get
+            	End Property
 
-	Public Overrides Sub Initialize(context As AnalysisContext)
-	End Sub
-End Class
-";
+            	Public Overrides Sub Initialize(context As AnalysisContext)
+            	End Sub
+            End Class
+            """;
 
         await new VerifyVB.Test
         {
@@ -210,61 +213,61 @@ End Class
     [Fact]
     public async Task CSharp_NoDiagnosticCasesAsync()
     {
-        var source = @"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+        var source = """
+            using System;
+            using System.Collections.Immutable;
+            using Microsoft.CodeAnalysis;
+            using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-class MyAnalyzerWithLanguageSpecificAttribute : DiagnosticAnalyzer
-{
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+            [DiagnosticAnalyzer(LanguageNames.CSharp)]
+            class MyAnalyzerWithLanguageSpecificAttribute : DiagnosticAnalyzer
+            {
+                public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                {
+                    get
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
 
-    public override void Initialize(AnalysisContext context)
-    {
-    }
-}
+                public override void Initialize(AnalysisContext context)
+                {
+                }
+            }
 
-public abstract class MyAbstractAnalyzerWithoutAttribute : DiagnosticAnalyzer
-{
-}
-";
+            public abstract class MyAbstractAnalyzerWithoutAttribute : DiagnosticAnalyzer
+            {
+            }
+            """;
         await VerifyCS.VerifyAnalyzerAsync(source);
     }
 
     [Fact]
     public async Task VisualBasic_NoDiagnosticCasesAsync()
     {
-        var source = @"
-Imports System
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
+        var source = """
+            Imports System
+            Imports System.Collections.Immutable
+            Imports Microsoft.CodeAnalysis
+            Imports Microsoft.CodeAnalysis.Diagnostics
 
-<DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-Class MyAnalyzerWithLanguageSpecificAttribute
-	Inherits DiagnosticAnalyzer
-	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-		Get
-			Throw New NotImplementedException()
-		End Get
-	End Property
+            <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
+            Class MyAnalyzerWithLanguageSpecificAttribute
+            	Inherits DiagnosticAnalyzer
+            	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+            		Get
+            			Throw New NotImplementedException()
+            		End Get
+            	End Property
 
-	Public Overrides Sub Initialize(context As AnalysisContext)
-	End Sub
-End Class
+            	Public Overrides Sub Initialize(context As AnalysisContext)
+            	End Sub
+            End Class
 
-Public MustInherit Class MyAbstractAnalyzerWithoutAttribute
-	Inherits DiagnosticAnalyzer
-End Class
-";
+            Public MustInherit Class MyAbstractAnalyzerWithoutAttribute
+            	Inherits DiagnosticAnalyzer
+            End Class
+            """;
         await VerifyVB.VerifyAnalyzerAsync(source);
     }
 }
