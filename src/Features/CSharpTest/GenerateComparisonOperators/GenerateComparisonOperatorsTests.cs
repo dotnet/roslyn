@@ -402,33 +402,35 @@ public sealed class GenerateComparisonOperatorsTests
             }
             """;
         static string GetFixedCode(string type)
-=> $@"using System;
+            => $$"""
+            using System;
 
-class C : IComparable<C>, IComparable<int>
-{{
-    public int CompareTo(C c) => 0;
-    public int CompareTo(int c) => 0;
+            class C : IComparable<C>, IComparable<int>
+            {
+                public int CompareTo(C c) => 0;
+                public int CompareTo(int c) => 0;
 
-    public static bool operator <(C left, {type} right)
-    {{
-        return left.CompareTo(right) < 0;
-    }}
+                public static bool operator <(C left, {{type}} right)
+                {
+                    return left.CompareTo(right) < 0;
+                }
 
-    public static bool operator >(C left, {type} right)
-    {{
-        return left.CompareTo(right) > 0;
-    }}
+                public static bool operator >(C left, {{type}} right)
+                {
+                    return left.CompareTo(right) > 0;
+                }
 
-    public static bool operator <=(C left, {type} right)
-    {{
-        return left.CompareTo(right) <= 0;
-    }}
+                public static bool operator <=(C left, {{type}} right)
+                {
+                    return left.CompareTo(right) <= 0;
+                }
 
-    public static bool operator >=(C left, {type} right)
-    {{
-        return left.CompareTo(right) >= 0;
-    }}
-}}";
+                public static bool operator >=(C left, {{type}} right)
+                {
+                    return left.CompareTo(right) >= 0;
+                }
+            }
+            """;
 
         await new VerifyCS.Test
         {
