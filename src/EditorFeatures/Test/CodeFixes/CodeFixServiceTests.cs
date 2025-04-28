@@ -757,7 +757,7 @@ public sealed class CodeFixServiceTests
 
         using var workspace = TestWorkspace.CreateCSharp(code, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService, openDocuments: true);
 
-        var diagnosticService = workspace.GetService<IDiagnosticAnalyzerService>();
+        var diagnosticService = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
         var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => workspace.Services.GetRequiredService<IErrorLoggerService>()));
         var fixService = new CodeFixService(
