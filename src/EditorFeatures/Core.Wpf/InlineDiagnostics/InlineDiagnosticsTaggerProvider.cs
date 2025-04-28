@@ -30,8 +30,7 @@ internal sealed class InlineDiagnosticsTaggerProvider(
     IClassificationFormatMapService classificationFormatMapService,
     IClassificationTypeRegistryService classificationTypeRegistryService)
     : AbstractDiagnosticsTaggerProvider<InlineDiagnosticsTag>(
-        taggerHost,
-        FeatureAttribute.ErrorSquiggles)
+        taggerHost, FeatureAttribute.ErrorSquiggles)
 {
     private readonly IEditorFormatMap _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
     private readonly IClassificationFormatMapService _classificationFormatMapService = classificationFormatMapService;
