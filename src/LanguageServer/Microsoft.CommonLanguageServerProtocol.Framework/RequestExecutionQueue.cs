@@ -248,6 +248,8 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
                     // the didOpen, ensuring that this line will only run once all prior didOpens have completed.
                     var didGetLanguage = _languageServer.TryGetLanguageForRequest(work.MethodName, work.SerializedRequest, out var language);
 
+                    using var languageScope = _logger.CreateLanguageContext(language);
+
                     // Now that we know the actual language, we can deserialize the request and start creating the request context.
                     var (metadata, handler, methodInfo) = GetHandlerForRequest(work, language ?? LanguageServerConstants.DefaultLanguageName);
 
