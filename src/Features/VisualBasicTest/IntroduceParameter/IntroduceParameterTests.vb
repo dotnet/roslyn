@@ -30,7 +30,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 
@@ -74,7 +74,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 
@@ -102,7 +102,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 
@@ -162,7 +162,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 
@@ -606,7 +606,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 
@@ -629,7 +629,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 
@@ -671,7 +671,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 
@@ -700,7 +700,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 
@@ -839,7 +839,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 
@@ -972,7 +972,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 
@@ -1003,7 +1003,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 
