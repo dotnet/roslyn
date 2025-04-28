@@ -25,15 +25,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class InlineDiagnosticsTaggerProvider(
-    IDiagnosticAnalyzerService analyzerService,
     TaggerHost taggerHost,
     IEditorFormatMapService editorFormatMapService,
     IClassificationFormatMapService classificationFormatMapService,
     IClassificationTypeRegistryService classificationTypeRegistryService)
     : AbstractDiagnosticsTaggerProvider<InlineDiagnosticsTag>(
-        analyzerService,
-        taggerHost,
-        FeatureAttribute.ErrorSquiggles)
+        taggerHost, FeatureAttribute.ErrorSquiggles)
 {
     private readonly IEditorFormatMap _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
     private readonly IClassificationFormatMapService _classificationFormatMapService = classificationFormatMapService;
