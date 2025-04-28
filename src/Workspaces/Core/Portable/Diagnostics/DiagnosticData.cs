@@ -187,7 +187,8 @@ internal sealed class DiagnosticData(
                 }
                 catch (Exception e) when (FatalError.ReportWithDumpAndCatch(e, ErrorSeverity.Critical))
                 {
-                    // Help track down https://github.com/dotnet/roslyn/issues/76225
+                    // Help track down https://github.com/dotnet/roslyn/issues/76225 which appears to be an
+                    // issue caused by https://github.com/dotnet/roslyn/pull/74728
                     throw;
                 }
 
