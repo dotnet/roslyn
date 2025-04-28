@@ -451,7 +451,6 @@ class Class
                 var suppressionProviderFactory = new Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>(() => suppressionProvider,
                     new CodeChangeProviderMetadata("SuppressionProvider", languages: [LanguageNames.CSharp]));
                 var fixService = new CodeFixService(
-                    diagnosticService,
                     loggers: [],
                     fixers: [],
                     [suppressionProviderFactory]);

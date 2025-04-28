@@ -50,7 +50,7 @@ public sealed class CodeFixServiceTests
 
         var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => workspace.Services.GetRequiredService<IErrorLoggerService>()));
         var fixService = new CodeFixService(
-            diagnosticService, logger, fixers, configurationProviders: []);
+            logger, fixers, configurationProviders: []);
 
         var reference = new MockAnalyzerReference();
         var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
@@ -363,12 +363,7 @@ public sealed class CodeFixServiceTests
             ? workspace.ExportProvider.GetExports<IConfigurationFixProvider, CodeChangeProviderMetadata>()
             : [];
 
-        var fixService = new CodeFixService(
-            diagnosticService,
-            logger,
-            fixers,
-            configurationFixProviders);
-
+        var fixService = new CodeFixService(logger, fixers, configurationFixProviders);
         return (workspace, fixService, errorLogger);
     }
 
@@ -760,8 +755,7 @@ public sealed class CodeFixServiceTests
         var diagnosticService = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
         var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => workspace.Services.GetRequiredService<IErrorLoggerService>()));
-        var fixService = new CodeFixService(
-            diagnosticService, logger, vsixFixers, configurationProviders: []);
+        var fixService = new CodeFixService(logger, vsixFixers, configurationProviders: []);
 
         diagnosticAnalyzer ??= new MockAnalyzerReference.MockDiagnosticAnalyzer();
         var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(diagnosticAnalyzer);
