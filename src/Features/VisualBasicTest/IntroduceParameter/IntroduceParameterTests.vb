@@ -31,7 +31,6 @@ End Class"
                 {
                    .TestCode = source,
                    .FixedCode = expected,
-                   .CodeActionIndex = 0
                 }.RunAsync()
         End Function
 
@@ -76,7 +75,6 @@ End Class"
                 {
                    .TestCode = source,
                    .FixedCode = expected,
-                   .CodeActionIndex = 0
                 }.RunAsync()
         End Function
 
@@ -105,7 +103,6 @@ End Class"
                 {
                    .TestCode = source,
                    .FixedCode = expected,
-                   .CodeActionIndex = 0
                 }.RunAsync()
         End Function
 
@@ -166,7 +163,6 @@ End Class"
                 {
                    .TestCode = source,
                    .FixedCode = expected,
-                   .CodeActionIndex = 0
                 }.RunAsync()
         End Function
 
@@ -611,7 +607,6 @@ End Class"
                 {
                    .TestCode = source,
                    .FixedCode = expected,
-                   .CodeActionIndex = 0
                 }.RunAsync()
         End Function
 
@@ -635,7 +630,6 @@ End Class"
                 {
                    .TestCode = source,
                    .FixedCode = expected,
-                   .CodeActionIndex = 0
                 }.RunAsync()
         End Function
 
@@ -678,7 +672,6 @@ End Class"
                 {
                    .TestCode = source,
                    .FixedCode = expected,
-                   .CodeActionIndex = 0
                 }.RunAsync()
         End Function
 
@@ -708,7 +701,6 @@ End Class"
                 {
                    .TestCode = source,
                    .FixedCode = expected,
-                   .CodeActionIndex = 0
                 }.RunAsync()
         End Function
 
@@ -848,7 +840,6 @@ End Class"
                 {
                    .TestCode = source,
                    .FixedCode = expected,
-                   .CodeActionIndex = 0
                 }.RunAsync()
         End Function
 
@@ -982,7 +973,6 @@ End Class"
                 {
                    .TestCode = source,
                    .FixedCode = expected,
-                   .CodeActionIndex = 0
                 }.RunAsync()
         End Function
 
@@ -1014,7 +1004,6 @@ End Class"
                 {
                    .TestCode = source,
                    .FixedCode = expected,
-                   .CodeActionIndex = 0
                 }.RunAsync()
         End Function
 

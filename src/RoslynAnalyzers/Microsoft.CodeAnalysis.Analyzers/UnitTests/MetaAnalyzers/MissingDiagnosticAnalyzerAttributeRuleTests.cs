@@ -78,7 +78,6 @@ class MyAnalyzer : DiagnosticAnalyzer
                     ExpectedDiagnostics = { expected },
                 },
                 FixedState = { Sources = { fixedCode_WithCSharpAttribute } },
-                CodeActionIndex = 0,
                 CodeActionEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.CSharp),
             }.RunAsync();
 

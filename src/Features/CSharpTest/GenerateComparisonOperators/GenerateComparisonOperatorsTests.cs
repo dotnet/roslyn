@@ -434,7 +434,6 @@ class C : IComparable<C>, IComparable<int>
         {
             TestCode = code,
             FixedCode = GetFixedCode("C"),
-            CodeActionIndex = 0,
             CodeActionEquivalenceKey = "Generate_for_0_C",
         }.RunAsync();
 
