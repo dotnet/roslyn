@@ -11257,8 +11257,7 @@ interface I
         }.RunAsync();
     }
 
-    [Theory(Skip = "Yes")] // PROTOTYPE: Something doesn't work
-    [CombinatorialData]
+    [Theory, CombinatorialData]
     public async Task TestInstanceIncrementOperator_ImplementExplicitly([CombinatorialValues("++", "--")] string op)
     {
         await new VerifyCS.Test
@@ -11266,35 +11265,33 @@ interface I
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.Preview,
             TestCode = $$$"""
-            interface ITest
-            {
-                abstract void operator {{{op}}}();
-            }
-            class C : {|CS0535:ITest|}
-            {
-            }
-            """ + CompilerFeatureRequiredAttribute,
-            FixedCode = $$$"""
-            interface ITest
-            {
-                abstract void operator {{{op}}}();
-            }
-            class C : ITest
-            {
-                void ITest.operator {{{op}}}()
+                interface ITest
                 {
-                    throw new System.NotImplementedException();
+                    abstract void operator {{{op}}}();
                 }
-            }
-            """ + CompilerFeatureRequiredAttribute,
+                class C : {|CS0535:ITest|}
+                {
+                }
+                """ + CompilerFeatureRequiredAttribute,
+            FixedCode = $$$"""
+                interface ITest
+                {
+                    abstract void operator {{{op}}}();
+                }
+                class C : ITest
+                {
+                    void ITest.operator {{{op}}}()
+                    {
+                        throw new System.NotImplementedException();
+                    }
+                }
+                """ + CompilerFeatureRequiredAttribute,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(CodeFixesResources.Implement_all_members_explicitly, codeAction.Title),
-            CodeActionEquivalenceKey = "True;False;False:global::ITest;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
-            CodeActionIndex = 0,
+            CodeActionIndex = 1,
         }.RunAsync();
     }
 
-    [Theory(Skip = "Yes")] // PROTOTYPE: Something doesn't work
-    [CombinatorialData]
+    [Theory, CombinatorialData]
     public async Task TestInstanceCompoundAssignmentOperator_ImplementExplicitly([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
     {
         await new VerifyCS.Test
@@ -11302,30 +11299,29 @@ interface I
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.Preview,
             TestCode = $$"""
-            interface ITest
-            {
-                abstract void operator {{op}}(int y);
-            }
-            class C : {|CS0535:ITest|}
-            {
-            }
-            """ + CompilerFeatureRequiredAttribute,
-            FixedCode = $$"""
-            interface ITest
-            {
-                abstract void operator {{op}}(int y);
-            }
-            class C : ITest
-            {
-                void ITest.operator {{op}}}(int y)
+                interface ITest
                 {
-                    throw new System.NotImplementedException();
+                    abstract void operator {{op}}(int y);
                 }
-            }
-            """ + CompilerFeatureRequiredAttribute,
+                class C : {|CS0535:ITest|}
+                {
+                }
+                """ + CompilerFeatureRequiredAttribute,
+            FixedCode = $$"""
+                interface ITest
+                {
+                    abstract void operator {{op}}(int y);
+                }
+                class C : ITest
+                {
+                    void ITest.operator {{op}}(int y)
+                    {
+                        throw new System.NotImplementedException();
+                    }
+                }
+                """ + CompilerFeatureRequiredAttribute,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(CodeFixesResources.Implement_all_members_explicitly, codeAction.Title),
-            CodeActionEquivalenceKey = "True;False;False:global::ITest;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
-            CodeActionIndex = 0,
+            CodeActionIndex = 1,
         }.RunAsync();
     }
 
