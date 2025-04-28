@@ -7,23 +7,23 @@
 using System.Threading.Tasks;
 using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers;
+using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.Fixers;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.CodeFixes;
+using Test.Utilities;
 using Xunit;
-using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
-    Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.DiagnosticAnalyzerAttributeAnalyzer,
-    Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.Fixers.CSharpApplyDiagnosticAnalyzerAttributeFix>;
-using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
-    Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.DiagnosticAnalyzerAttributeAnalyzer,
-    Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.CodeFixes.BasicApplyDiagnosticAnalyzerAttributeFix>;
 
-namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
+namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers;
+
+using VerifyCS = CSharpCodeFixVerifier<DiagnosticAnalyzerAttributeAnalyzer, CSharpApplyDiagnosticAnalyzerAttributeFix>;
+using VerifyVB = VisualBasicCodeFixVerifier<DiagnosticAnalyzerAttributeAnalyzer, BasicApplyDiagnosticAnalyzerAttributeFix>;
+
+public class MissingDiagnosticAnalyzerAttributeRuleTests
 {
-    public class MissingDiagnosticAnalyzerAttributeRuleTests
+    [Fact]
+    public async Task CSharp_VerifyDiagnosticAndFixesAsync()
     {
-        [Fact]
-        public async Task CSharp_VerifyDiagnosticAndFixesAsync()
-        {
-            var source = @"
+        var source = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -44,11 +44,11 @@ class MyAnalyzer : DiagnosticAnalyzer
     }
 }";
 #pragma warning disable RS0030 // Do not use banned APIs
-            DiagnosticResult expected = VerifyCS.Diagnostic(DiagnosticAnalyzerAttributeAnalyzer.MissingDiagnosticAnalyzerAttributeRule).WithLocation(7, 7).WithArguments(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsDiagnosticAnalyzerAttribute);
+        DiagnosticResult expected = VerifyCS.Diagnostic(DiagnosticAnalyzerAttributeAnalyzer.MissingDiagnosticAnalyzerAttributeRule).WithLocation(7, 7).WithArguments(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsDiagnosticAnalyzerAttribute);
 #pragma warning restore RS0030 // Do not use banned APIs
-            await VerifyCS.VerifyAnalyzerAsync(source, expected);
+        await VerifyCS.VerifyAnalyzerAsync(source, expected);
 
-            var fixedCode_WithCSharpAttribute = @"
+        var fixedCode_WithCSharpAttribute = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -70,18 +70,18 @@ class MyAnalyzer : DiagnosticAnalyzer
     }
 }";
 
-            await new VerifyCS.Test
+        await new VerifyCS.Test
+        {
+            TestState =
             {
-                TestState =
-                {
-                    Sources = { source },
-                    ExpectedDiagnostics = { expected },
-                },
-                FixedState = { Sources = { fixedCode_WithCSharpAttribute } },
-                CodeActionEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.CSharp),
-            }.RunAsync();
+                Sources = { source },
+                ExpectedDiagnostics = { expected },
+            },
+            FixedState = { Sources = { fixedCode_WithCSharpAttribute } },
+            CodeActionEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.CSharp),
+        }.RunAsync();
 
-            var fixedCode_WithCSharpAndVBAttributes = @"
+        var fixedCode_WithCSharpAndVBAttributes = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -103,23 +103,23 @@ class MyAnalyzer : DiagnosticAnalyzer
     }
 }";
 
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { source },
-                    ExpectedDiagnostics = { expected },
-                },
-                FixedState = { Sources = { fixedCode_WithCSharpAndVBAttributes } },
-                CodeActionIndex = 2,
-                CodeActionEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_2, LanguageNames.CSharp, LanguageNames.VisualBasic),
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task VisualBasic_VerifyDiagnosticAndFixesAsync()
+        await new VerifyCS.Test
         {
-            var source = @"
+            TestState =
+            {
+                Sources = { source },
+                ExpectedDiagnostics = { expected },
+            },
+            FixedState = { Sources = { fixedCode_WithCSharpAndVBAttributes } },
+            CodeActionIndex = 2,
+            CodeActionEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_2, LanguageNames.CSharp, LanguageNames.VisualBasic),
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task VisualBasic_VerifyDiagnosticAndFixesAsync()
+    {
+        var source = @"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -138,11 +138,11 @@ Class MyAnalyzer
 End Class
 ";
 #pragma warning disable RS0030 // Do not use banned APIs
-            DiagnosticResult expected = VerifyVB.Diagnostic(DiagnosticAnalyzerAttributeAnalyzer.MissingDiagnosticAnalyzerAttributeRule).WithLocation(7, 7).WithArguments(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsDiagnosticAnalyzerAttribute);
+        DiagnosticResult expected = VerifyVB.Diagnostic(DiagnosticAnalyzerAttributeAnalyzer.MissingDiagnosticAnalyzerAttributeRule).WithLocation(7, 7).WithArguments(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsDiagnosticAnalyzerAttribute);
 #pragma warning restore RS0030 // Do not use banned APIs
-            await VerifyVB.VerifyAnalyzerAsync(source, expected);
+        await VerifyVB.VerifyAnalyzerAsync(source, expected);
 
-            var fixedCode_WithVBAttribute = @"
+        var fixedCode_WithVBAttribute = @"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -162,19 +162,19 @@ Class MyAnalyzer
 End Class
 ";
 
-            await new VerifyVB.Test
+        await new VerifyVB.Test
+        {
+            TestState =
             {
-                TestState =
-                {
-                    Sources = { source },
-                    ExpectedDiagnostics = { expected },
-                },
-                FixedState = { Sources = { fixedCode_WithVBAttribute } },
-                CodeActionIndex = 1,
-                CodeActionEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.VisualBasic),
-            }.RunAsync();
+                Sources = { source },
+                ExpectedDiagnostics = { expected },
+            },
+            FixedState = { Sources = { fixedCode_WithVBAttribute } },
+            CodeActionIndex = 1,
+            CodeActionEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.VisualBasic),
+        }.RunAsync();
 
-            var fixedCode_WithCSharpAndVBAttributes = @"
+        var fixedCode_WithCSharpAndVBAttributes = @"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -194,23 +194,23 @@ Class MyAnalyzer
 End Class
 ";
 
-            await new VerifyVB.Test
-            {
-                TestState =
-                {
-                    Sources = { source },
-                    ExpectedDiagnostics = { expected },
-                },
-                FixedState = { Sources = { fixedCode_WithCSharpAndVBAttributes } },
-                CodeActionIndex = 2,
-                CodeActionEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_2, LanguageNames.CSharp, LanguageNames.VisualBasic),
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task CSharp_NoDiagnosticCasesAsync()
+        await new VerifyVB.Test
         {
-            var source = @"
+            TestState =
+            {
+                Sources = { source },
+                ExpectedDiagnostics = { expected },
+            },
+            FixedState = { Sources = { fixedCode_WithCSharpAndVBAttributes } },
+            CodeActionIndex = 2,
+            CodeActionEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_2, LanguageNames.CSharp, LanguageNames.VisualBasic),
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task CSharp_NoDiagnosticCasesAsync()
+    {
+        var source = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -236,13 +236,13 @@ public abstract class MyAbstractAnalyzerWithoutAttribute : DiagnosticAnalyzer
 {
 }
 ";
-            await VerifyCS.VerifyAnalyzerAsync(source);
-        }
+        await VerifyCS.VerifyAnalyzerAsync(source);
+    }
 
-        [Fact]
-        public async Task VisualBasic_NoDiagnosticCasesAsync()
-        {
-            var source = @"
+    [Fact]
+    public async Task VisualBasic_NoDiagnosticCasesAsync()
+    {
+        var source = @"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -265,7 +265,6 @@ Public MustInherit Class MyAbstractAnalyzerWithoutAttribute
 	Inherits DiagnosticAnalyzer
 End Class
 ";
-            await VerifyVB.VerifyAnalyzerAsync(source);
-        }
+        await VerifyVB.VerifyAnalyzerAsync(source);
     }
 }
