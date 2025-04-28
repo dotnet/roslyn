@@ -23,6 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable();
         }
 
+        public override BoundNode? VisitKeyValuePairConversion(BoundKeyValuePairConversion node)
+        {
+            // Should be handled within RewriteCollectionExpressionConversion().
+            throw ExceptionUtilities.Unreachable();
+        }
+
         public override BoundNode? VisitUnconvertedCollectionExpression(BoundUnconvertedCollectionExpression node)
         {
             throw ExceptionUtilities.Unreachable();
@@ -290,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Assert that binding layer agrees with lowering layer about whether this collection-expr will allocate.
                     Debug.Assert(!IsAllocatingRefStructCollectionExpression(node, collectionTypeKind, elementType.Type, _compilation));
                     var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array)).AsMember(spanType);
-                    var rewrittenElements = elements.SelectAsArray(static (element, rewriter) => rewriter.RewriteNonSpreadElement(element), this);
+                    var rewrittenElements = elements.SelectAsArray(static (element, rewriter) => rewriter.RewriteCollectionExpressionElementExpression(element, allowSpreadElement: false), this);
                     return _factory.New(constructor, _factory.Array(elementType.Type, rewrittenElements));
                 }
 
@@ -450,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression fieldValue = kind switch
                     {
                         // fieldValue = e1;
-                        SynthesizedReadOnlyListKind.SingleElement => RewriteNonSpreadElement(elements.Single()),
+                        SynthesizedReadOnlyListKind.SingleElement => RewriteCollectionExpressionElementExpression(elements.Single(), allowSpreadElement: false),
                         // fieldValue = new ElementType[] { e1, ..., eN };
                         SynthesizedReadOnlyListKind.Array => createArray(node, ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType)),
                         // fieldValue = new List<ElementType> { e1, ..., eN };
@@ -475,38 +481,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return optimizedArray;
 
                 return CreateAndPopulateArray(node, arrayType);
-            }
-        }
-
-        private BoundExpression RewriteNonSpreadElement(BoundNode element)
-        {
-            switch (element)
-            {
-                case BoundKeyValuePairElement keyValuePairElement:
-                    {
-                        RewriteKeyValuePairElement(keyValuePairElement, out var rewrittenKey, out var rewrittenValue);
-                        return CreateKeyValuePair(rewrittenKey, rewrittenValue);
-                    }
-                case BoundKeyValuePairConversion keyValuePairConversion:
-                    {
-                        var localsBuilder = ArrayBuilder<BoundLocal>.GetInstance();
-                        var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
-                        RewriteKeyValuePairConversion(keyValuePairConversion, out var rewrittenKeyConversion, out var rewrittenValueConversion, localsBuilder, sideEffects);
-                        var value = CreateKeyValuePair(rewrittenKeyConversion, rewrittenValueConversion);
-                        Debug.Assert(value.Type is { });
-                        var locals = localsBuilder.SelectAsArray(local => local.LocalSymbol);
-                        localsBuilder.Free();
-                        return new BoundSequence(
-                            keyValuePairConversion.Syntax,
-                            locals,
-                            sideEffects.ToImmutableAndFree(),
-                            value,
-                            value.Type);
-                    }
-                case BoundExpression expression:
-                    return VisitExpression(expression);
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(element);
             }
         }
 
@@ -798,7 +772,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var initialization = new BoundArrayInitialization(
                     syntax,
                     isInferred: false,
-                    elements.SelectAsArray(static (element, rewriter) => rewriter.RewriteNonSpreadElement(element), this));
+                    elements.SelectAsArray(static (element, rewriter) => rewriter.RewriteCollectionExpressionElementExpression(element, allowSpreadElement: false), this));
                 return new BoundArrayCreation(
                     syntax,
                     ImmutableArray.Create<BoundExpression>(
@@ -999,7 +973,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Cannot use CopyTo when spread element has non-identity conversion to target element type.
             // Could do a covariant conversion of ReadOnlySpan in future: https://github.com/dotnet/roslyn/issues/71106
-            if (spreadElement.IteratorBody is not BoundExpressionStatement expressionStatement || expressionStatement.Expression is BoundConversion)
+            if (spreadElement.IteratorBody is not BoundExpressionStatement expressionStatement || expressionStatement.Expression is BoundConversion or BoundKeyValuePairConversion)
                 return null;
 
             if (_factory.WellKnownMethod(WellKnownMember.System_Span_T__Slice_Int_Int, isOptional: true) is not { } spanSliceMethod)
@@ -1469,13 +1443,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _factory.New(constructor, key, value);
         }
 
-        private BoundExpression RewriteCollectionExpressionElementExpression(BoundNode element)
+        private BoundExpression RewriteCollectionExpressionElementExpression(BoundNode element, bool allowSpreadElement)
         {
-            // PROTOTYPE: Are we testing this with BoundKeyValuePairElement and BoundKeyValuePairConversion?
-            var expression = element is BoundCollectionExpressionSpreadElement spreadElement ?
-                spreadElement.Expression :
-                (BoundExpression)element;
-            return VisitExpression(expression);
+            switch (element)
+            {
+                case BoundKeyValuePairElement keyValuePairElement:
+                    {
+                        RewriteKeyValuePairElement(keyValuePairElement, out var rewrittenKey, out var rewrittenValue);
+                        return CreateKeyValuePair(rewrittenKey, rewrittenValue);
+                    }
+                case BoundKeyValuePairConversion keyValuePairConversion:
+                    {
+                        var localsBuilder = ArrayBuilder<BoundLocal>.GetInstance();
+                        var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
+                        RewriteKeyValuePairConversion(keyValuePairConversion, out var rewrittenKeyConversion, out var rewrittenValueConversion, localsBuilder, sideEffects);
+                        var value = CreateKeyValuePair(rewrittenKeyConversion, rewrittenValueConversion);
+                        Debug.Assert(value.Type is { });
+                        var locals = localsBuilder.SelectAsArray(local => local.LocalSymbol);
+                        localsBuilder.Free();
+                        return new BoundSequence(
+                            keyValuePairConversion.Syntax,
+                            locals,
+                            sideEffects.ToImmutableAndFree(),
+                            value,
+                            value.Type);
+                    }
+                case BoundExpression expression:
+                    return VisitExpression(expression);
+                case BoundCollectionExpressionSpreadElement spreadElement when allowSpreadElement:
+                    return VisitExpression(spreadElement.Expression);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(element);
+            }
         }
 
         private void RewriteCollectionExpressionElementsIntoTemporaries(
@@ -1486,7 +1485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             for (int i = 0; i < numberIncludingLastSpread; i++)
             {
-                var rewrittenExpression = RewriteCollectionExpressionElementExpression(elements[i]);
+                var rewrittenExpression = RewriteCollectionExpressionElementExpression(elements[i], allowSpreadElement: true);
                 BoundAssignmentOperator assignmentToTemp;
                 BoundLocal temp = _factory.StoreToTemp(rewrittenExpression, out assignmentToTemp);
                 locals.Add(temp);
@@ -1508,7 +1507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var element = elements[i];
                 var rewrittenExpression = i < numberIncludingLastSpread ?
                     rewrittenExpressions[i] :
-                    RewriteCollectionExpressionElementExpression(element);
+                    RewriteCollectionExpressionElementExpression(element, allowSpreadElement: true);
 
                 if (element is BoundCollectionExpressionSpreadElement spreadElement)
                 {
@@ -1520,7 +1519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         rewrittenExpression,
                         iteratorBody =>
                         {
-                            var rewrittenValue = RewriteNonSpreadElement(((BoundExpressionStatement)iteratorBody).Expression);
+                            var rewrittenValue = RewriteCollectionExpressionElementExpression(((BoundExpressionStatement)iteratorBody).Expression, allowSpreadElement: false);
                             var builder = ArrayBuilder<BoundExpression>.GetInstance();
                             addElement(builder, rewrittenReceiver, rewrittenValue, false);
                             var statements = builder.SelectAsArray(expr => (BoundStatement)new BoundExpressionStatement(expr.Syntax, expr));

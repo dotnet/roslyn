@@ -1282,7 +1282,7 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = element.WasCompilerGenerated;
             var elementType = element.EnumeratorInfoOpt?.ElementType.GetPublicSymbol();
             // https://github.com/dotnet/roslyn/issues/77872: For key-value pairs, we probably need a pair of conversions rather a single conversion.
-            var elementConversion = (expr.CollectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer or CollectionExpressionTypeKind.DictionaryInterface) ?
+            var elementConversion = iteratorItem is BoundKeyValuePairConversion ?
                 Conversion.Identity :
                 BoundNode.GetConversion(iteratorItem, element.ElementPlaceholder);
             return new SpreadOperation(
