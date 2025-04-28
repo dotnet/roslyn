@@ -1631,7 +1631,7 @@ public class Test
   .locals init (System.ReadOnlySpan<byte> V_0, //s1
                 System.ReadOnlySpan<int> V_1, //s2
                 System.ReadOnlySpan<long> V_2, //s3
-                System.ReadOnlySpan<nint> V_3) //s4
+                System.ReadOnlySpan<System.IntPtr> V_3) //s4
   IL_0000:  ldloca.s   V_0
   IL_0002:  ldsflda    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.039058C6F2C0CB492C533B0A4D14EF77CC0F78ABCCCED5287D84A1A2011CFB81"
   IL_0007:  ldc.i4.3
@@ -1685,11 +1685,11 @@ public class Test
   IL_0081:  stelem.i
   IL_0082:  dup
   IL_0083:  stsfld     "nint[] <PrivateImplementationDetails>.A52856308140261655B0EC09C0AC3BD6EA183729842D3B8029A1493EA881439B_B8"
-  IL_0088:  call       "System.ReadOnlySpan<nint>..ctor(nint[])"
+  IL_0088:  call       "System.ReadOnlySpan<System.IntPtr>..ctor(System.IntPtr[])"
   IL_008d:  ldloc.3
-  IL_008e:  call       "void Test.Print<nint>(System.ReadOnlySpan<nint>)"
+  IL_008e:  call       "void Test.Print<System.IntPtr>(System.ReadOnlySpan<System.IntPtr>)"
   IL_0093:  ldloca.s   V_3
-  IL_0095:  call       "bool System.ReadOnlySpan<nint>.IsEmpty.get"
+  IL_0095:  call       "bool System.ReadOnlySpan<System.IntPtr>.IsEmpty.get"
   IL_009a:  pop
   IL_009b:  ret
 }
@@ -3009,7 +3009,7 @@ public class C
   IL_0013:  stelem.i
   IL_0014:  dup
   IL_0015:  stsfld     "nint[] <PrivateImplementationDetails>.67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450_B8"
-  IL_001a:  newobj     "System.ReadOnlySpan<nint>..ctor(nint[])"
+  IL_001a:  newobj     "System.ReadOnlySpan<System.IntPtr>..ctor(System.IntPtr[])"
   IL_001f:  ret
 }
 """;
@@ -3052,7 +3052,7 @@ public class C
   IL_0017:  stelem.i
   IL_0018:  dup
   IL_0019:  stsfld     "nint[] <PrivateImplementationDetails>.A2C70538651A7E9296B097E8C3DFC1B195A945802FFE45AA471868FBA6F1042E_B8"
-  IL_001e:  newobj     "System.ReadOnlySpan<nint>..ctor(nint[])"
+  IL_001e:  newobj     "System.ReadOnlySpan<System.IntPtr>..ctor(System.IntPtr[])"
   IL_0023:  ret
 }
 """;
@@ -3102,7 +3102,7 @@ public class C
   IL_0013:  stelem.i
   IL_0014:  dup
   IL_0015:  stsfld     "nuint[] <PrivateImplementationDetails>.67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450_B16"
-  IL_001a:  newobj     "System.ReadOnlySpan<nuint>..ctor(nuint[])"
+  IL_001a:  newobj     "System.ReadOnlySpan<System.UIntPtr>..ctor(System.UIntPtr[])"
   IL_001f:  ret
 }
 """;
@@ -3145,7 +3145,7 @@ public class C
   IL_0013:  stelem.i
   IL_0014:  dup
   IL_0015:  stsfld     "nuint[] <PrivateImplementationDetails>.AD95131BC0B799C0B1AF477FB14FCF26A6A9F76079E48BF090ACB7E8367BFD0E_B16"
-  IL_001a:  newobj     "System.ReadOnlySpan<nuint>..ctor(nuint[])"
+  IL_001a:  newobj     "System.ReadOnlySpan<System.UIntPtr>..ctor(System.UIntPtr[])"
   IL_001f:  ret
 }
 """;
@@ -3192,7 +3192,7 @@ public class C
   IL_0013:  stelem.i
   IL_0014:  dup
   IL_0015:  stsfld     "nuint[] <PrivateImplementationDetails>.67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450_B16"
-  IL_001a:  newobj     "System.ReadOnlySpan<nuint>..ctor(nuint[])"
+  IL_001a:  newobj     "System.ReadOnlySpan<System.UIntPtr>..ctor(System.UIntPtr[])"
   IL_001f:  ret
 }
 """);
@@ -3213,7 +3213,7 @@ public class C
   IL_0013:  stelem.i
   IL_0014:  dup
   IL_0015:  stsfld     "nint[] <PrivateImplementationDetails>.67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450_B8"
-  IL_001a:  newobj     "System.ReadOnlySpan<nint>..ctor(nint[])"
+  IL_001a:  newobj     "System.ReadOnlySpan<System.IntPtr>..ctor(System.IntPtr[])"
   IL_001f:  ret
 }
 """);
@@ -3502,7 +3502,7 @@ class Test
   IL_003f:  call       "void System.Console.Write(bool)"
   IL_0044:  ret
 }
-""");
+""", ilFormat: SymbolDisplayFormat.ILVisualizationFormat.RemoveCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType));
         }
 
         [Theory]
