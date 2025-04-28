@@ -196,6 +196,9 @@ internal sealed class BuildHost : IBuildHost
         return _server.AddTarget(projectFile);
     }
 
+    // When using the Mono runtime, the MSBuild types used in this method must be available
+    // to the JIT during compilation of the method, so they have to be loaded by the caller;
+    // therefore this method must not be inlined.
     [MethodImpl(MethodImplOptions.NoInlining)]
     private int LoadProjectCore(string projectFilePath, string projectContent, string languageName)
     {
@@ -208,8 +211,8 @@ internal sealed class BuildHost : IBuildHost
             _ => throw ExceptionUtilities.UnexpectedValue(languageName)
         };
 
-        _logger.LogInformation($"Loading {projectFilePath}");
-        var projectFile = projectLoader.LoadProjectFile(projectFilePath, projectContent, _buildManager);
+        _logger.LogInformation($"Loading an in-memory project with the path {projectFilePath}");
+        var projectFile = projectLoader.LoadProject(projectFilePath, projectContent, _buildManager);
         return _server.AddTarget(projectFile);
     }
 

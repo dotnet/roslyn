@@ -30,14 +30,19 @@ internal abstract class ProjectFileLoader
         return this.CreateProjectFile(project, buildManager, log);
     }
 
-    public ProjectFile LoadProjectFile(string path, string projectContent, ProjectBuildManager buildManager)
+    public ProjectFile LoadProject(string path, string projectContent, ProjectBuildManager buildManager)
     {
         if (path == null)
         {
             throw new ArgumentNullException(nameof(path));
         }
 
-        // load project file
+        // We expect MSBuild to consume this stream with a utf-8 encoding.
+        // This is because we expect the stream we create to not include a BOM nor an an encoding declaration a la `<?xml encoding="..."?>`.
+        // In this scenario, the XML standard requires XML processors to consume the document with a UTF-8 encoding.
+        // https://www.w3.org/TR/xml/#d0e4623
+        // Theoretically we could also enforce that 'projectContent' does not contain an encoding declaration with non-UTF-8 encoding.
+        // But it seems like a very unlikely scenario to actually get into--this is not something people generally put on real project files.
         var stream = new MemoryStream(Encoding.UTF8.GetBytes(projectContent));
         var (project, log) = buildManager.LoadProject(path, stream);
 
