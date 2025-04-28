@@ -446,12 +446,11 @@ class Class
                 var analyzerReference = new AnalyzerImageReference([new CSharpCompilerDiagnosticAnalyzer()]);
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
 
-                var diagnosticService = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
+                var diagnosticService = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
                 var suppressionProvider = CreateDiagnosticProviderAndFixer(workspace).Item2;
                 var suppressionProviderFactory = new Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>(() => suppressionProvider,
                     new CodeChangeProviderMetadata("SuppressionProvider", languages: [LanguageNames.CSharp]));
                 var fixService = new CodeFixService(
-                    diagnosticService,
                     loggers: [],
                     fixers: [],
                     [suppressionProviderFactory]);

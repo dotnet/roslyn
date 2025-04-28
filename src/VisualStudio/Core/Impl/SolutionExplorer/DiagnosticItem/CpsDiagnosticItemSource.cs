@@ -29,9 +29,8 @@ internal sealed partial class CpsDiagnosticItemSource : BaseDiagnosticAndGenerat
         ProjectId projectId,
         IVsHierarchyItem item,
         IAnalyzersCommandHandler commandHandler,
-        IDiagnosticAnalyzerService analyzerService,
         IAsynchronousOperationListenerProvider listenerProvider)
-        : base(threadingContext, workspace, projectId, commandHandler, analyzerService, listenerProvider)
+        : base(threadingContext, workspace, projectId, commandHandler, listenerProvider)
     {
         _item = item;
         _projectDirectoryPath = Path.GetDirectoryName(projectPath);

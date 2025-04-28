@@ -45,7 +45,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     project.FilePath,
                     project.Id,
                     New MockHierarchyItem() With {.CanonicalName = "\net472\analyzerdependency\" + analyzerPath},
-                    New FakeAnalyzersCommandHandler, workspace.GetService(Of IDiagnosticAnalyzerService),
+                    New FakeAnalyzersCommandHandler(),
                     listenerProvider)
 
                 Assert.True(source.HasItems)

@@ -39,7 +39,6 @@ using LanguageKind = String;
 [Export(typeof(ICodeFixService)), Shared]
 internal partial class CodeFixService : ICodeFixService
 {
-    private readonly IDiagnosticAnalyzerService _diagnosticService;
     private readonly ImmutableArray<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> _fixers;
     private readonly ImmutableDictionary<string, ImmutableArray<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>> _fixersPerLanguageMap;
 
@@ -59,12 +58,10 @@ internal partial class CodeFixService : ICodeFixService
     [ImportingConstructor]
     [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
     public CodeFixService(
-        IDiagnosticAnalyzerService diagnosticAnalyzerService,
         [ImportMany] IEnumerable<Lazy<IErrorLoggerService>> loggers,
         [ImportMany] IEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> fixers,
         [ImportMany] IEnumerable<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>> configurationProviders)
     {
-        _diagnosticService = diagnosticAnalyzerService;
         _errorLoggers = [.. loggers];
 
         _fixers = [.. fixers];
@@ -108,9 +105,11 @@ internal partial class CodeFixService : ICodeFixService
 
         ImmutableArray<DiagnosticData> allDiagnostics;
 
-        using (TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetMostSevereFixAsync)}.{nameof(_diagnosticService.GetDiagnosticsForSpanAsync)}"))
+        using (TelemetryLogging.LogBlockTimeAggregatedHistogram(
+            FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetMostSevereFixAsync)}.{nameof(IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync)}"))
         {
-            allDiagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
+            var service = document.Project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+            allDiagnostics = await service.GetDiagnosticsForSpanAsync(
                 document, range, GetShouldIncludeDiagnosticPredicate(document, priorityProvider),
                 priorityProvider, DiagnosticKind.All, isExplicit: false, cancellationToken).ConfigureAwait(false);
 
@@ -198,9 +197,11 @@ internal partial class CodeFixService : ICodeFixService
         // user-invoked diagnostic requests, for example, user invoked Ctrl + Dot operation for lightbulb.
         ImmutableArray<DiagnosticData> diagnostics;
 
-        using (TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(_diagnosticService.GetDiagnosticsForSpanAsync)}"))
+        using (TelemetryLogging.LogBlockTimeAggregatedHistogram(
+            FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync)}"))
         {
-            diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
+            var service = document.Project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+            diagnostics = await service.GetDiagnosticsForSpanAsync(
                 document, range, GetShouldIncludeDiagnosticPredicate(document, priorityProvider),
                 priorityProvider, DiagnosticKind.All, isExplicit: true, cancellationToken).ConfigureAwait(false);
             if (!includeSuppressionFixes)
@@ -298,9 +299,11 @@ internal partial class CodeFixService : ICodeFixService
         using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"{nameof(GetDocumentFixAllForIdInSpanAsync)}");
         ImmutableArray<DiagnosticData> diagnostics;
 
-        using (TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"{nameof(GetDocumentFixAllForIdInSpanAsync)}.{nameof(_diagnosticService.GetDiagnosticsForSpanAsync)}"))
+        using (TelemetryLogging.LogBlockTimeAggregatedHistogram(
+            FunctionId.CodeFix_Summary, $"{nameof(GetDocumentFixAllForIdInSpanAsync)}.{nameof(IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync)}"))
         {
-            diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
+            var service = document.Project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+            diagnostics = await service.GetDiagnosticsForSpanAsync(
                 document, range, diagnosticId, priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
                 DiagnosticKind.All, isExplicit: false, cancellationToken).ConfigureAwait(false);
 
@@ -788,7 +791,7 @@ internal partial class CodeFixService : ICodeFixService
 
             var diagnosticProvider = fixAllForInSpan
                 ? new FixAllPredefinedDiagnosticProvider(allDiagnostics)
-                : (FixAllContext.DiagnosticProvider)new FixAllDiagnosticProvider(_diagnosticService, diagnosticIds);
+                : (FixAllContext.DiagnosticProvider)new FixAllDiagnosticProvider(diagnosticIds);
 
             var codeFixProvider = (fixer as CodeFixProvider) ?? new WrapperCodeFixProvider((IConfigurationFixProvider)fixer, diagnostics.Select(d => d.Id));
 

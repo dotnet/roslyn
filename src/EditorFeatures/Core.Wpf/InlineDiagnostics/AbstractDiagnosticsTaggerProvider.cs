@@ -31,7 +31,6 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
     private readonly ImmutableArray<SingleDiagnosticKindPullTaggerProvider> _diagnosticsTaggerProviders;
 
     public AbstractDiagnosticsTaggerProvider(
-        IDiagnosticAnalyzerService analyzerService,
         TaggerHost taggerHost,
         string featureName)
     {
@@ -48,7 +47,7 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
         return;
 
         SingleDiagnosticKindPullTaggerProvider CreateDiagnosticsTaggerProvider(DiagnosticKind diagnosticKind)
-            => new(this, analyzerService, diagnosticKind, taggerHost, featureName);
+            => new(this, diagnosticKind, taggerHost, featureName);
     }
 
     // Functionality for subclasses to control how this diagnostic tagging operates.  All the individual

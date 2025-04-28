@@ -21,16 +21,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeCleanup;
 
-internal abstract class AbstractCodeCleanupService : ICodeCleanupService
+internal abstract class AbstractCodeCleanupService(ICodeFixService codeFixService) : ICodeCleanupService
 {
-    private readonly ICodeFixService _codeFixService;
-    private readonly IDiagnosticAnalyzerService _diagnosticService;
-
-    protected AbstractCodeCleanupService(ICodeFixService codeFixService, IDiagnosticAnalyzerService diagnosticAnalyzerService)
-    {
-        _codeFixService = codeFixService;
-        _diagnosticService = diagnosticAnalyzerService;
-    }
+    private readonly ICodeFixService _codeFixService = codeFixService;
 
     protected abstract string OrganizeImportsDescription { get; }
     protected abstract ImmutableArray<DiagnosticSet> GetDiagnosticSets();
@@ -194,13 +187,15 @@ internal abstract class AbstractCodeCleanupService : ICodeCleanupService
         return solution.GetDocument(document.Id) ?? throw new NotSupportedException(FeaturesResources.Removal_of_document_not_supported);
     }
 
-    private async Task<ImmutableArray<(string diagnosticId, string? title)>> GetThirdPartyDiagnosticIdsAndTitlesAsync(Document document, CancellationToken cancellationToken)
+    private async Task<ImmutableArray<(string diagnosticId, string? title)>> GetThirdPartyDiagnosticIdsAndTitlesAsync(
+        Document document, CancellationToken cancellationToken)
     {
         var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var range = new TextSpan(0, tree.Length);
 
         // Compute diagnostics for everything that is not an IDE analyzer
-        var diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(document, range,
+        var diagnosticService = document.Project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+        var diagnostics = await diagnosticService.GetDiagnosticsForSpanAsync(document, range,
             shouldIncludeDiagnostic: static diagnosticId => !(IDEDiagnosticIdToOptionMappingHelper.IsKnownIDEDiagnosticId(diagnosticId)),
             priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
             DiagnosticKind.All, isExplicit: false,

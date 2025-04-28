@@ -61,9 +61,7 @@ public class DiagnosticAnalyzerServiceTests
 
         var document = GetDocumentFromIncompleteProject(workspace);
 
-        var exportProvider = workspace.Services.SolutionServices.ExportProvider;
-        var service = exportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
-        var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
+        var service = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
         var diagnostics = await service.GetDiagnosticsForIdsAsync(
             workspace.CurrentSolution.Projects.Single(), documentId: null, diagnosticIds: null, shouldIncludeAnalyzer: null,
@@ -175,8 +173,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
         var applied = workspace.TryApplyChanges(document.Project.Solution);
         Assert.True(applied);
 
-        var exportProvider = workspace.Services.SolutionServices.ExportProvider;
-        var service = exportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
+        var service = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
         // listen to events
         var syntaxDiagnostic = false;
@@ -215,9 +212,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
         Func<bool, bool, ImmutableArray<DiagnosticData>, (bool, bool)> resultSetter,
         bool expectedSyntax, bool expectedSemantic)
     {
-        var exportProvider = workspace.Services.SolutionServices.ExportProvider;
-
-        var service = exportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
+        var service = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
         var syntax = false;
         var semantic = false;
@@ -307,8 +302,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
                                   loader: TextLoader.From(TextAndVersion.Create(SourceText.From("class A {}"), VersionStamp.Create(), filePath: "test.cs")),
                                   filePath: "test.cs")]));
 
-        var exportProvider = workspace.Services.SolutionServices.ExportProvider;
-        var service = exportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
+        var service = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
         var diagnostics = await service.ForceAnalyzeProjectAsync(project, CancellationToken.None);
         Assert.NotEmpty(diagnostics);
@@ -392,8 +386,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
 
     private static async Task TestFullSolutionAnalysisForProjectAsync(AdhocWorkspace workspace, Project project, bool expectAnalyzerExecuted)
     {
-        var exportProvider = workspace.Services.SolutionServices.ExportProvider;
-        var service = exportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
+        var service = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
         var diagnostics = await service.ForceAnalyzeProjectAsync(project, CancellationToken.None);
 
@@ -438,8 +431,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
         var applied = workspace.TryApplyChanges(project.Solution);
         Assert.True(applied);
 
-        var exportProvider = workspace.Services.SolutionServices.ExportProvider;
-        var service = exportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
+        var service = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
         var firstAdditionalDocument = project.AdditionalDocuments.FirstOrDefault();
 
@@ -503,7 +495,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
         var project = workspace.CurrentSolution.Projects.Single();
         var document = project.Documents.Single();
 
-        var service = workspace.GetService<IDiagnosticAnalyzerService>();
+        var service = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
         var globalOptions = workspace.GetService<IGlobalOptionService>();
 
         switch (analysisScope)
@@ -620,7 +612,7 @@ class A
         else
             Assert.IsType<Document>(document);
 
-        var service = workspace.GetService<IDiagnosticAnalyzerService>();
+        var service = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
         var text = await document.GetTextAsync();
 
@@ -858,7 +850,7 @@ class A
             workspace.OpenDocument(document.Id);
         }
 
-        var service = workspace.GetService<IDiagnosticAnalyzerService>();
+        var service = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
         var diagnostics = await service.ForceAnalyzeProjectAsync(project, CancellationToken.None);
 
