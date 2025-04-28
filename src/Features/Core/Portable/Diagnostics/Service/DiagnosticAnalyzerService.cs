@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -27,7 +26,7 @@ internal sealed class DiagnosticAnalyzerServiceFactory(
     IGlobalOptionService globalOptions,
     IDiagnosticsRefresher diagnosticsRefresher,
     DiagnosticAnalyzerInfoCache.SharedGlobalCache globalCache,
-    IAsynchronousOperationListenerProvider listenerProvider) : IWorkspaceServiceFactory
+    [Import(AllowDefault = true)] IAsynchronousOperationListenerProvider? listenerProvider) : IWorkspaceServiceFactory
 {
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
     {
@@ -56,11 +55,11 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         IGlobalOptionService globalOptions,
         IDiagnosticsRefresher diagnosticsRefresher,
         DiagnosticAnalyzerInfoCache.SharedGlobalCache globalCache,
-        IAsynchronousOperationListenerProvider listenerProvider,
+        IAsynchronousOperationListenerProvider? listenerProvider,
         Workspace workspace)
     {
         AnalyzerInfoCache = globalCache.AnalyzerInfoCache;
-        Listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
+        Listener = listenerProvider?.GetListener(FeatureAttribute.DiagnosticService) ?? AsynchronousOperationListenerProvider.NullListener;
         GlobalOptions = globalOptions;
         _diagnosticsRefresher = diagnosticsRefresher;
         _incrementalAnalyzer = new DiagnosticIncrementalAnalyzer(this, AnalyzerInfoCache, this.GlobalOptions);
