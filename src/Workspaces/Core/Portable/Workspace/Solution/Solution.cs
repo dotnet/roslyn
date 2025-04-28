@@ -27,9 +27,8 @@ namespace Microsoft.CodeAnalysis;
 /// </summary>
 public partial class Solution
 {
-
-    // Values for all these are created on demand.
-    private ImmutableDictionary<ProjectId, Project> _projectIdToProjectMap;
+    // Values for all these are created on demand. Only access when holding the dictionary as a lock.
+    private readonly Dictionary<ProjectId, Project> _projectIdToProjectMap = [];
 
     /// <summary>
     /// Result of calling <see cref="WithFrozenPartialCompilationsAsync"/>.
@@ -46,7 +45,6 @@ public partial class Solution
         SolutionCompilationState compilationState,
         AsyncLazy<Solution>? cachedFrozenSolution = null)
     {
-        _projectIdToProjectMap = ImmutableDictionary<ProjectId, Project>.Empty;
         CompilationState = compilationState;
 
         _cachedFrozenSolution = cachedFrozenSolution ??
@@ -152,7 +150,10 @@ public partial class Solution
     {
         if (this.ContainsProject(projectId))
         {
-            return ImmutableInterlocked.GetOrAdd(ref _projectIdToProjectMap, projectId, s_createProjectFunction, this);
+            lock (_projectIdToProjectMap)
+            {
+                return _projectIdToProjectMap.GetOrAdd(projectId, s_createProjectFunction, this);
+            }
         }
 
         return null;

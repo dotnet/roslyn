@@ -142,13 +142,12 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
     /// Remote API.
     /// </summary>
     public ValueTask<EmitSolutionUpdateResults.Data> EmitSolutionUpdateAsync(
-        Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, IImmutableSet<ProjectId> runningProjects, CancellationToken cancellationToken)
+        Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, ImmutableDictionary<ProjectId, RunningProjectInfo> runningProjects, CancellationToken cancellationToken)
     {
         return RunServiceAsync(solutionChecksum, async solution =>
         {
             var service = GetService();
 
-            var firstProject = solution.GetProject(runningProjects.FirstOrDefault()) ?? solution.Projects.First();
             try
             {
                 return (await service.EmitSolutionUpdateAsync(sessionId, solution, runningProjects, CreateActiveStatementSpanProvider(callbackId), cancellationToken).ConfigureAwait(false)).Dehydrate();
@@ -158,11 +157,11 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
                 return new EmitSolutionUpdateResults.Data()
                 {
                     ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Blocked, []),
-                    Diagnostics = GetUnexpectedUpdateError(firstProject, e.Message),
+                    Diagnostics = GetUnexpectedUpdateError(solution.GetProject(runningProjects.FirstOrDefault().Key) ?? solution.Projects.First(), e.Message),
                     RudeEdits = [],
                     SyntaxError = null,
                     ProjectsToRebuild = [],
-                    ProjectsToRestart = [],
+                    ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty,
                 };
             }
         }, cancellationToken);

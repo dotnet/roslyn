@@ -240,4 +240,7 @@
   <data name="FeatureName_Initialization" xml:space="preserve">
     <value>Initialization</value>
   </data>
+  <data name="FeatureName_CopilotChangeAnalysis" xml:space="preserve">
+    <value>Copilot change analysis</value>
+  </data>
 </root>
