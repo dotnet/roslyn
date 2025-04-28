@@ -1021,11 +1021,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol targetType,
             Conversion conversion,
             CollectionExpressionTypeKind collectionTypeKind,
-            TypeSymbol? elementType,
+            TypeSymbol elementType,
             BoundObjectOrCollectionValuePlaceholder? implicitReceiver,
             MethodSymbol? setMethod,
             BindingDiagnosticBag diagnostics)
         {
+            Debug.Assert(elementType is { });
+
             var syntax = node.Syntax;
             var elements = node.Elements;
             var builder = ArrayBuilder<BoundNode>.GetInstance(elements.Length);
@@ -1042,6 +1044,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundCollectionExpressionWithElement:
                             continue;
                         case BoundCollectionExpressionSpreadElement spreadElement:
+                            // PROTOTYPE: Test with KeyValuePair<,> variance conversion.
                             convertedElement = BindCollectionExpressionSpreadElement(
                                 (SpreadElementSyntax)spreadElement.Syntax,
                                 spreadElement,
@@ -1058,6 +1061,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 diagnostics);
                             break;
                         case BoundExpression expressionElement:
+                            // PROTOTYPE: Test with KeyValuePair<,> variance conversion.
                             convertedElement = BindCollectionInitializerElementAddMethod(
                                 element.Syntax,
                                 [expressionElement],
@@ -1072,11 +1076,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.Add(convertedElement);
                 }
             }
-            else if (elementType is { } && ConversionsBase.TryGetCollectionKeyValuePairTypes(Compilation, elementType) is (var elementKeyType, var elementValueType))
+            else if (ConversionsBase.TryGetCollectionKeyValuePairTypes(Compilation, elementType) is (var elementKeyType, var elementValueType))
             {
                 var elementConversions = conversion.UnderlyingConversions;
 
-                Debug.Assert(elementType is { });
                 Debug.Assert(elementConversions.All(c => c.Exists));
 
                 int conversionIndex = 0;
@@ -1174,8 +1177,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var elementConversions = conversion.UnderlyingConversions;
-
-                Debug.Assert(elementType is { });
                 Debug.Assert(elementConversions.All(c => c.Exists));
 
                 int conversionIndex = 0;

@@ -2319,7 +2319,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<K, V>>",
                 "System.Collections.Generic.KeyValuePair<K, V>[]",
                 "System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<K, V>>",
-                "System.ReadOnlySpan<System.Collections.Generic.KeyValuePair<K, V>>")] string typeName)
+                "System.ReadOnlySpan<System.Collections.Generic.KeyValuePair<K, V>>",
+                "System.Collections.Immutable.ImmutableArray<KeyValuePair<K, V>>")] string typeName)
         {
             string source = $$"""
                 using System.Collections.Generic;
@@ -2559,6 +2560,56 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                       IL_0066:  brtrue.s   IL_001b
                       IL_0068:  ldloc.2
                       IL_0069:  ret
+                    }
+                    """,
+                "System.Collections.Immutable.ImmutableArray<KeyValuePair<K, V>>" => """
+                    {
+                      // Code size      101 (0x65)
+                      .maxstack  4
+                      .locals init (System.Collections.Immutable.ImmutableArray<System.Collections.Generic.KeyValuePair<K, V>> V_0,
+                                    int V_1,
+                                    System.Collections.Generic.KeyValuePair<KBase, VBase>[] V_2,
+                                    System.Collections.Immutable.ImmutableArray<System.Collections.Generic.KeyValuePair<K, V>>.Enumerator V_3,
+                                    System.Collections.Generic.KeyValuePair<K, V> V_4,
+                                    System.Collections.Generic.KeyValuePair<K, V> V_5)
+                      IL_0000:  ldarg.0
+                      IL_0001:  stloc.0
+                      IL_0002:  ldc.i4.0
+                      IL_0003:  stloc.1
+                      IL_0004:  ldloca.s   V_0
+                      IL_0006:  call       "int System.Collections.Immutable.ImmutableArray<System.Collections.Generic.KeyValuePair<K, V>>.Length.get"
+                      IL_000b:  newarr     "System.Collections.Generic.KeyValuePair<KBase, VBase>"
+                      IL_0010:  stloc.2
+                      IL_0011:  ldloca.s   V_0
+                      IL_0013:  call       "System.Collections.Immutable.ImmutableArray<System.Collections.Generic.KeyValuePair<K, V>>.Enumerator System.Collections.Immutable.ImmutableArray<System.Collections.Generic.KeyValuePair<K, V>>.GetEnumerator()"
+                      IL_0018:  stloc.3
+                      IL_0019:  br.s       IL_005a
+                      IL_001b:  ldloca.s   V_3
+                      IL_001d:  call       "System.Collections.Generic.KeyValuePair<K, V> System.Collections.Immutable.ImmutableArray<System.Collections.Generic.KeyValuePair<K, V>>.Enumerator.Current.get"
+                      IL_0022:  stloc.s    V_4
+                      IL_0024:  ldloc.2
+                      IL_0025:  ldloc.1
+                      IL_0026:  ldloc.s    V_4
+                      IL_0028:  stloc.s    V_5
+                      IL_002a:  ldloca.s   V_5
+                      IL_002c:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                      IL_0031:  box        "K"
+                      IL_0036:  unbox.any  "KBase"
+                      IL_003b:  ldloca.s   V_5
+                      IL_003d:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                      IL_0042:  box        "V"
+                      IL_0047:  unbox.any  "VBase"
+                      IL_004c:  newobj     "System.Collections.Generic.KeyValuePair<KBase, VBase>..ctor(KBase, VBase)"
+                      IL_0051:  stelem     "System.Collections.Generic.KeyValuePair<KBase, VBase>"
+                      IL_0056:  ldloc.1
+                      IL_0057:  ldc.i4.1
+                      IL_0058:  add
+                      IL_0059:  stloc.1
+                      IL_005a:  ldloca.s   V_3
+                      IL_005c:  call       "bool System.Collections.Immutable.ImmutableArray<System.Collections.Generic.KeyValuePair<K, V>>.Enumerator.MoveNext()"
+                      IL_0061:  brtrue.s   IL_001b
+                      IL_0063:  ldloc.2
+                      IL_0064:  ret
                     }
                     """,
                 _ => throw ExceptionUtilities.UnexpectedValue(typeName),
@@ -2822,6 +2873,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        // PROTOTYPE: Test key-value conversion with Add() method that takes: object; dynamic; type for which there is an implicit conversion from KVP<K, V>.
+        // PROTOTYPE: Test key-value conversion from KVP<K1, V1> to KVP<K2, V2> when there is: Add(KVP<K1, V1>); Add(KVP<K2, V2>); both Add(KVP<K1, V1>) and Add(KVP<K2, V2>).
+
         [Theory]
         [CombinatorialData]
         public void KeyValuePairConversions_CustomType(
@@ -2835,14 +2889,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 using System.Collections.Generic;
                 using System.Runtime.CompilerServices;
                 [CollectionBuilder(typeof(MyBuilder), "Create")]
-                class MyCollection<T> : IEnumerable<T>
+                public class MyCollection<T> : IEnumerable<T>
                 {
                     private readonly List<T> _items;
                     internal MyCollection(ReadOnlySpan<T> items) { _items = new(items.ToArray()); }
                     public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
                     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
                 }
-                class MyBuilder
+                public class MyBuilder
                 {
                     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => new(items);
                 }
@@ -2851,16 +2905,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 using System;
                 using System.Collections;
                 using System.Collections.Generic;
-                class MyCollection<T> : IEnumerable<T>
+                public class MyCollection<T> : IEnumerable<T>
                 {
                     private readonly List<T> _items;
-                    internal MyCollection() { _items = new(); }
+                    public MyCollection() { _items = new(); }
                     public void Add(T t) { _items.Add(t); }
                     public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
                     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
                 }
                 """;
-            string sourceB = """
+            var comp = CreateCompilation(
+                sourceA,
+                targetFramework: TargetFramework.Net80);
+            var refA = comp.EmitToImageReference();
+
+            string sourceB1 = """
                 using System.Collections.Generic;
                 class Program
                 {
@@ -2876,20 +2935,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         MyCollection<KeyValuePair<int?, object>> c2;
                         c2 = [k:v, x, ..y];
                         c2.Report();
-                        Params(x);
-                        Params<int, string>(x);
-                        Params<int?, object>(x);
-                    }
-                    static void Params<K, V>(params MyCollection<KeyValuePair<K, V>> args)
-                    {
-                        args.Report();
                     }
                 }
                 """;
-            var comp = CreateCompilation(
-                [sourceA, sourceB, s_collectionExtensions],
+            comp = CreateCompilation(
+                [sourceB1, s_collectionExtensions],
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.ReleaseExe,
+                references: [refA],
                 targetFramework: TargetFramework.Net80);
             if (languageVersion == LanguageVersion.CSharp13)
             {
@@ -2911,16 +2964,40 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(14, 20),
                     // (14,25): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
                     //         c2 = [k:v, x, ..y];
-                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "y").WithArguments("System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(14, 25),
-                    // (18,30): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
-                    //         Params<int?, object>(x);
-                    Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(18, 30));
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "y").WithArguments("System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(14, 25));
             }
             else
             {
-                var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[1:one, 2:two, 3:three], "));
+                var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[[1, one], [2, two], [3, three]], [[1, one], [2, two], [3, three]], "));
                 verifier.VerifyDiagnostics();
             }
+
+            string sourceB2 = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = new KeyValuePair<int, string>(2, "two");
+                        Params(x);
+                        Params<int, string>(x);
+                        Params<int?, object>(x);
+                    }
+                    static void Params<K, V>(params MyCollection<KeyValuePair<K, V>> args)
+                    {
+                    }
+                }
+                """;
+            comp = CreateCompilation(
+                sourceB2,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                references: [refA],
+                targetFramework: TargetFramework.Net80);
+            // PROTOTYPE: Support KeyValuePair<,> variance with params?
+            comp.VerifyEmitDiagnostics(
+                // (9,30): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
+                //         Params<int?, object>(x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(9, 30));
         }
 
         [Theory]
