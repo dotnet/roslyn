@@ -58,7 +58,6 @@ internal sealed partial class CodeFixService : ICodeFixService
     [ImportingConstructor]
     [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
     public CodeFixService(
-        IDiagnosticAnalyzerService diagnosticAnalyzerService,
         [ImportMany] IEnumerable<Lazy<IErrorLoggerService>> loggers,
         [ImportMany] IEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> fixers,
         [ImportMany] IEnumerable<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>> configurationProviders)
