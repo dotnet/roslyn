@@ -2525,5 +2525,170 @@ public class C1
             Dim c1Constructor = c1.InstanceConstructors.Single()
             AssertEx.Equal("System.ObsoleteAttribute", c1Constructor.GetAttributes().Single().AttributeClass.ToTestDisplayString())
         End Sub
+
+        <Fact>
+        Public Sub UnknownCompilerFeatureRequired()
+            ' Equivalent to
+            ' public class C
+            ' {
+            '    public required int Prop { get; set; }
+            '    [CompilerFeatureRequired("Unknown")]
+            '    public C() {}
+            ' }
+            Dim il = "
+.class public auto ansi C
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 0
+    )
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // CompilerFeatureRequiredAttribute(""Unknown"")
+        .custom instance void System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = (
+            01 00 07 55 6e 6b 6e 6f 77 6e 00 00
+        )
+        .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string, bool) = (
+            01 00 5f 43 6f 6e 73 74 72 75 63 74 6f 72 73 20
+            6f 66 20 74 79 70 65 73 20 77 69 74 68 20 72 65
+            71 75 69 72 65 64 20 6d 65 6d 62 65 72 73 20 61
+            72 65 20 6e 6f 74 20 73 75 70 70 6f 72 74 65 64
+            20 69 6e 20 74 68 69 73 20 76 65 72 73 69 6f 6e
+            20 6f 66 20 79 6f 75 72 20 63 6f 6d 70 69 6c 65
+            72 2e 01 00 00
+        )
+        .custom instance void System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = (
+            01 00 0f 52 65 71 75 69 72 65 64 4d 65 6d 62 65
+            72 73 00 00
+        )
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
+        
+    .method public hidebysig specialname 
+        instance int32 get_Prop () cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        ldarg.0
+        ldfld int32 C::'<Prop>k__BackingField'
+        ret
+    }
+        
+    .method public hidebysig specialname 
+        instance void set_Prop (
+            int32 'value'
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        ldarg.0
+        ldarg.1
+        stfld int32 C::'<Prop>k__BackingField'
+        ret
+    }
+
+    .property instance int32 Prop()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 C::get_Prop()
+        .set instance void C::set_Prop(int32)
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 ff 7f 00 00 02 00 54 02 0d 41 6c 6c 6f 77
+        4d 75 6c 74 69 70 6c 65 01 54 02 09 49 6e 68 65
+        72 69 74 65 64 00
+    )
+    // Fields
+    .field private initonly string '<FeatureName>k__BackingField'
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private initonly bool '<IsOptional>k__BackingField'
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+        01 00 00 00
+    )
+
+    .field public static literal string RefStructs = ""RefStructs""
+    .field public static literal string RequiredMembers = ""RequiredMembers""
+         
+    // Methods
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            string featureName
+        ) cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Attribute::.ctor()
+        ldarg.0
+        ldarg.1
+        stfld string System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::'<FeatureName>k__BackingField'
+        ret
+    } // end of method CompilerFeatureRequiredAttribute::.ctor
+         
+    .method public hidebysig specialname 
+        instance string get_FeatureName () cil managed 
+    {
+        ldarg.0
+        ldfld string System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::'<FeatureName>k__BackingField'
+        ret
+    } // end of method CompilerFeatureRequiredAttribute::get_FeatureName
+         
+    .method public hidebysig specialname 
+        instance bool get_IsOptional () cil managed 
+    {
+        ldarg.0
+        ldfld bool System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::'<IsOptional>k__BackingField'
+        ret
+    } // end of method CompilerFeatureRequiredAttribute::get_IsOptional
+         
+    .method public hidebysig specialname 
+        instance void modreq([mscorlib]System.Runtime.CompilerServices.IsExternalInit) set_IsOptional (
+            bool 'value'
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld bool System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::'<IsOptional>k__BackingField'
+        ret
+    } // end of method CompilerFeatureRequiredAttribute::set_IsOptional
+         
+    // Properties
+    .property instance string FeatureName()
+    {
+        .get instance string System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::get_FeatureName()
+    }
+    .property instance bool IsOptional()
+    {
+        .get instance bool System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::get_IsOptional()
+        .set instance void modreq([mscorlib]System.Runtime.CompilerServices.IsExternalInit) System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::set_IsOptional(bool)
+    }
+         
+} // end of class System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute
+"
+        
+            Dim ilRef = CompileIL(il)
+            
+            Dim comp = CreateCompilation("", {ilRef}, targetFramework:=TargetFramework.Net70)
+            Dim c = comp.GetTypeByMetadataName("C")
+            
+            Dim constructor As MethodSymbol = c.InstanceConstructors.Single()
+            AssertEx.Equal({"System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute(""Unknown"")",
+                            "System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute(""RequiredMembers"")"},
+                           constructor.GetAttributes().Select(Function(a) $"{a.AttributeClass.ToTestDisplayString()}({String.Join(", ", a.CommonConstructorArguments.Select(Function(arg) arg.ToCSharpString()))})"))
+            
+            Assert.False(constructor.HasSetsRequiredMembers)
+        End Sub
     End Class
 End Namespace
