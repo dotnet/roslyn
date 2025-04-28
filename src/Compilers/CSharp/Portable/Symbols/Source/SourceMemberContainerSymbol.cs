@@ -2735,6 +2735,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedSubtractionOperatorName, WellKnownMemberNames.SubtractionOperatorName, symmetricCheck: false);
             CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedExplicitConversionName, WellKnownMemberNames.ExplicitConversionName, symmetricCheck: false);
 
+            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedAdditionAssignmentOperatorName, WellKnownMemberNames.AdditionAssignmentOperatorName, symmetricCheck: false);
+            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedDivisionAssignmentOperatorName, WellKnownMemberNames.DivisionAssignmentOperatorName, symmetricCheck: false);
+            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedMultiplicationAssignmentOperatorName, WellKnownMemberNames.MultiplicationAssignmentOperatorName, symmetricCheck: false);
+            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedSubtractionAssignmentOperatorName, WellKnownMemberNames.SubtractionAssignmentOperatorName, symmetricCheck: false);
+
             // We also produce a warning if == / != is overridden without also overriding
             // Equals and GetHashCode, or if Equals is overridden without GetHashCode.
 
@@ -2788,6 +2793,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (var op1 in ops1)
             {
+                if (op1.IsOverride)
+                {
+                    continue;
+                }
+
                 bool foundMatch = false;
                 foreach (var op2 in ops2)
                 {

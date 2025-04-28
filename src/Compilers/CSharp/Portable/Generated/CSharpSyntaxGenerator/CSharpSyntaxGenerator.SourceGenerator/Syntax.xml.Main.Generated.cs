@@ -5438,7 +5438,18 @@ public static partial class SyntaxFactory
             case SyntaxKind.GreaterThanEqualsToken:
             case SyntaxKind.FalseKeyword:
             case SyntaxKind.TrueKeyword:
-            case SyntaxKind.IsKeyword: break;
+            case SyntaxKind.IsKeyword:
+            case SyntaxKind.PlusEqualsToken:
+            case SyntaxKind.MinusEqualsToken:
+            case SyntaxKind.AsteriskEqualsToken:
+            case SyntaxKind.SlashEqualsToken:
+            case SyntaxKind.PercentEqualsToken:
+            case SyntaxKind.AmpersandEqualsToken:
+            case SyntaxKind.BarEqualsToken:
+            case SyntaxKind.CaretEqualsToken:
+            case SyntaxKind.LessThanLessThanEqualsToken:
+            case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+            case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken: break;
             default: throw new ArgumentException(nameof(operatorToken));
         }
         if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
@@ -5894,7 +5905,18 @@ public static partial class SyntaxFactory
             case SyntaxKind.GreaterThanToken:
             case SyntaxKind.GreaterThanEqualsToken:
             case SyntaxKind.FalseKeyword:
-            case SyntaxKind.TrueKeyword: break;
+            case SyntaxKind.TrueKeyword:
+            case SyntaxKind.PlusEqualsToken:
+            case SyntaxKind.MinusEqualsToken:
+            case SyntaxKind.AsteriskEqualsToken:
+            case SyntaxKind.SlashEqualsToken:
+            case SyntaxKind.PercentEqualsToken:
+            case SyntaxKind.AmpersandEqualsToken:
+            case SyntaxKind.BarEqualsToken:
+            case SyntaxKind.CaretEqualsToken:
+            case SyntaxKind.LessThanLessThanEqualsToken:
+            case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+            case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken: break;
             default: throw new ArgumentException(nameof(operatorToken));
         }
         return (OperatorMemberCrefSyntax)Syntax.InternalSyntax.SyntaxFactory.OperatorMemberCref((Syntax.InternalSyntax.SyntaxToken)operatorKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)checkedKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, parameters == null ? null : (Syntax.InternalSyntax.CrefParameterListSyntax)parameters.Green).CreateRed();

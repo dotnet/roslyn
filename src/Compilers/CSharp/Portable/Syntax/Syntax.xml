@@ -3967,6 +3967,17 @@
       <Kind Name="FalseKeyword"/>
       <Kind Name="TrueKeyword"/>
       <Kind Name="IsKeyword"/>
+      <Kind Name="PlusEqualsToken"/>
+      <Kind Name="MinusEqualsToken"/>
+      <Kind Name="AsteriskEqualsToken"/>
+      <Kind Name="SlashEqualsToken"/>
+      <Kind Name="PercentEqualsToken"/>
+      <Kind Name="AmpersandEqualsToken"/>
+      <Kind Name="BarEqualsToken"/>
+      <Kind Name="CaretEqualsToken"/>
+      <Kind Name="LessThanLessThanEqualsToken"/>
+      <Kind Name="GreaterThanGreaterThanEqualsToken"/>
+      <Kind Name="GreaterThanGreaterThanGreaterThanEqualsToken"/>
     </Field>
     <Field Name="ParameterList" Type="ParameterListSyntax" Override="true"/>
     <Choice>
@@ -4517,6 +4528,17 @@
       <Kind Name="GreaterThanEqualsToken"/>
       <Kind Name="FalseKeyword"/>
       <Kind Name="TrueKeyword"/>
+      <Kind Name="PlusEqualsToken"/>
+      <Kind Name="MinusEqualsToken"/>
+      <Kind Name="AsteriskEqualsToken"/>
+      <Kind Name="SlashEqualsToken"/>
+      <Kind Name="PercentEqualsToken"/>
+      <Kind Name="AmpersandEqualsToken"/>
+      <Kind Name="BarEqualsToken"/>
+      <Kind Name="CaretEqualsToken"/>
+      <Kind Name="LessThanLessThanEqualsToken"/>
+      <Kind Name="GreaterThanGreaterThanEqualsToken"/>
+      <Kind Name="GreaterThanGreaterThanGreaterThanEqualsToken"/>
     </Field>
     <Field Name="Parameters" Type="CrefParameterListSyntax" Optional="true"/>
   </Node>

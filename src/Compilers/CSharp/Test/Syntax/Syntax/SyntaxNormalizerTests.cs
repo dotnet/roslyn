@@ -1217,6 +1217,93 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
         }
 
+        [Theory]
+        [InlineData("+=")]
+        [InlineData("-=")]
+        [InlineData("*=")]
+        [InlineData("/=")]
+        [InlineData("%=")]
+        [InlineData("&=")]
+        [InlineData("|=")]
+        [InlineData("^=")]
+        [InlineData("<<=")]
+        [InlineData(">>=")]
+        [InlineData(">>>=")]
+        public void TestNormalizeCompoundAssignmentOperatorDeclarations(string op)
+        {
+            TestNormalizeDeclaration(
+"class a{b operator    " + op + "  ( c  d ){}}",
+@"class a
+{
+  b operator " + op + @"(c d)
+  {
+  }
+}");
+            TestNormalizeDeclaration(
+"class a{b I1 . operator    " + op + "  ( c  d ){}}",
+@"class a
+{
+  b I1.operator " + op + @"(c d)
+  {
+  }
+}");
+            TestNormalizeDeclaration(
+"class a{b operator" + op + "  ( c  d ){}}",
+@"class a
+{
+  b operator " + op + @"(c d)
+  {
+  }
+}");
+            TestNormalizeDeclaration(
+"class a{b I1 . operator" + op + "  ( c  d ){}}",
+@"class a
+{
+  b I1.operator " + op + @"(c d)
+  {
+  }
+}");
+        }
+
+        [Theory]
+        [InlineData("++")]
+        [InlineData("--")]
+        public void TestNormalizeIncrementOperatorDeclarations(string op)
+        {
+            TestNormalizeDeclaration(
+"class a{void    operator    " + op + "  ( ){}}",
+@"class a
+{
+  void operator " + op + @"()
+  {
+  }
+}");
+            TestNormalizeDeclaration(
+"class a{void   I1 . operator    " + op + "  ( ){}}",
+@"class a
+{
+  void I1.operator " + op + @"()
+  {
+  }
+}");
+            TestNormalizeDeclaration(
+"class a{void  operator" + op + "  ( ){}}",
+@"class a
+{
+  void operator " + op + @"()
+  {
+  }
+}");
+            TestNormalizeDeclaration(
+"class a{void   I1 . operator" + op + "  ( ){}}",
+@"class a
+{
+  void I1.operator " + op + @"()
+  {
+  }
+}");
+        }
+
         [Fact]
         public void TestNormalizePropertyDeclarations()
         {

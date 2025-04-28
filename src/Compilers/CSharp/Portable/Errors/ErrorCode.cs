@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_IdentityConversion = 555,
         ERR_ConversionNotInvolvingContainedType = 556,
         ERR_DuplicateConversionInClass = 557,
-        ERR_OperatorsMustBeStatic = 558,
+        ERR_OperatorsMustBeStaticAndPublic = 558,
         ERR_BadIncDecSignature = 559,
         ERR_BadUnaryOperatorSignature = 562,
         ERR_BadBinaryOperatorSignature = 563,
@@ -2398,6 +2398,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ModifierOnUnnamedReceiverParameter = 9305,
         ERR_ExtensionTypeNameDisallowed = 9306,
         ERR_ExpressionTreeContainsNamedArgumentOutOfPosition = 9307,
+
+        ERR_OperatorsMustBePublic = 9501, // PROTOTYPE: Pack numbers
+        ERR_BadIncrementOpArgs = 9502,
+        ERR_OperatorMustReturnVoid = 9503,
+        ERR_CloseUnimplementedInterfaceMemberOperatorMismatch = 9504,
+        ERR_OperatorMismatchOnOverride = 9505,
+        ERR_BadCompoundAssignmentOpArgs = 9506,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

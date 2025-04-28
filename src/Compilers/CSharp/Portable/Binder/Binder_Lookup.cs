@@ -1485,6 +1485,10 @@ symIsHidden:;
             {
                 return LookupResult.Empty();
             }
+            else if ((options & LookupOptions.MustBeOperator) != 0 && unwrappedSymbol is not MethodSymbol { MethodKind: MethodKind.UserDefinedOperator })
+            {
+                return LookupResult.Empty();
+            }
             else if (!IsInScopeOfAssociatedSyntaxTree(unwrappedSymbol))
             {
                 return LookupResult.Empty();
@@ -1503,7 +1507,7 @@ symIsHidden:;
             {
                 return LookupResult.WrongArity(symbol, diagInfo);
             }
-            else if (!InCref && !unwrappedSymbol.CanBeReferencedByNameIgnoringIllegalCharacters)
+            else if (!InCref && !unwrappedSymbol.CanBeReferencedByNameIgnoringIllegalCharacters && (options & LookupOptions.MustBeOperator) == 0)
             {
                 // Strictly speaking, this test should actually check CanBeReferencedByName.
                 // However, we don't want to pay that cost in cases where the lookup is based

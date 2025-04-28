@@ -5676,6 +5676,7 @@ Microsoft.CodeAnalysis.CSharp.SyntaxFacts.IsNamespaceAliasQualifier(Microsoft.Co
 Microsoft.CodeAnalysis.CSharp.SyntaxFacts.IsNamespaceMemberDeclaration(Microsoft.CodeAnalysis.CSharp.SyntaxKind)
 Microsoft.CodeAnalysis.CSharp.SyntaxFacts.IsNewLine(System.Char)
 Microsoft.CodeAnalysis.CSharp.SyntaxFacts.IsOverloadableBinaryOperator(Microsoft.CodeAnalysis.CSharp.SyntaxKind)
+Microsoft.CodeAnalysis.CSharp.SyntaxFacts.IsOverloadableCompoundAssignmentOperator(Microsoft.CodeAnalysis.CSharp.SyntaxKind)
 Microsoft.CodeAnalysis.CSharp.SyntaxFacts.IsOverloadableUnaryOperator(Microsoft.CodeAnalysis.CSharp.SyntaxKind)
 Microsoft.CodeAnalysis.CSharp.SyntaxFacts.IsPostfixUnaryExpression(Microsoft.CodeAnalysis.CSharp.SyntaxKind)
 Microsoft.CodeAnalysis.CSharp.SyntaxFacts.IsPostfixUnaryExpressionToken(Microsoft.CodeAnalysis.CSharp.SyntaxKind)

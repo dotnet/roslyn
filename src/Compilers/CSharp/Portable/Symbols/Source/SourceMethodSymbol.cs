@@ -224,6 +224,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor));
             }
+
+            if (IsInstanceIncrementDecrementOrCompoundAssignmentOperator(target))
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor,
+                    ImmutableArray.Create(new TypedConstant(compilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, nameof(CompilerFeatureRequiredFeatures.UserDefinedCompoundAssignmentOperators)))
+                    ));
+            }
+        }
+
+        internal static bool IsInstanceIncrementDecrementOrCompoundAssignmentOperator(MethodSymbol target)
+        {
+            if (target.MethodKind == MethodKind.UserDefinedOperator && !target.IsStatic)
+            {
+                SyntaxKind syntaxKind = SyntaxFacts.GetOperatorKind(target.Name);
+
+                return syntaxKind is (SyntaxKind.PlusPlusToken or SyntaxKind.MinusMinusToken) ||
+                       SyntaxFacts.IsOverloadableCompoundAssignmentOperator(syntaxKind);
+            }
+
+            return false;
         }
     }
 }
