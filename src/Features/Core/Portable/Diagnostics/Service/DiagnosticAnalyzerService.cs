@@ -49,9 +49,8 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
     public IAsynchronousOperationListener Listener { get; }
     private IGlobalOptionService GlobalOptions { get; }
 
-    private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer> _map = new();
-    private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>.CreateValueCallback _createIncrementalAnalyzer;
     private readonly IDiagnosticsRefresher _diagnosticsRefresher;
+    private readonly DiagnosticIncrementalAnalyzer _incrementalAnalyzer;
 
     public DiagnosticAnalyzerService(
         IGlobalOptionService globalOptions,
@@ -64,7 +63,7 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         Listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
         GlobalOptions = globalOptions;
         _diagnosticsRefresher = diagnosticsRefresher;
-        _createIncrementalAnalyzer = _ => new DiagnosticIncrementalAnalyzer(this, AnalyzerInfoCache, this.GlobalOptions);
+        _incrementalAnalyzer = new DiagnosticIncrementalAnalyzer(this, AnalyzerInfoCache, this.GlobalOptions);
 
         globalOptions.AddOptionChangedHandler(this, (_, _, e) =>
         {
@@ -100,9 +99,6 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
     public void RequestDiagnosticRefresh()
         => _diagnosticsRefresher.RequestWorkspaceRefresh();
 
-    private DiagnosticIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-        => _map.GetValue(workspace, _createIncrementalAnalyzer);
-
     public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
         TextDocument document,
         TextSpan? range,
@@ -111,27 +107,21 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         DiagnosticKind diagnosticKinds,
         CancellationToken cancellationToken)
     {
-        var analyzer = CreateIncrementalAnalyzer(document.Project.Solution.Workspace);
-
         // always make sure that analyzer is called on background thread.
         await Task.Yield().ConfigureAwait(false);
         priorityProvider ??= new DefaultCodeActionRequestPriorityProvider();
 
-        return await analyzer.GetDiagnosticsForSpanAsync(
+        return await _incrementalAnalyzer.GetDiagnosticsForSpanAsync(
             document, range, shouldIncludeDiagnostic, priorityProvider, diagnosticKinds, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<ImmutableArray<DiagnosticData>> ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
-    {
-        var analyzer = CreateIncrementalAnalyzer(project.Solution.Workspace);
-        return await analyzer.ForceAnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
-    }
+    public Task<ImmutableArray<DiagnosticData>> ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
+        => _incrementalAnalyzer.ForceAnalyzeProjectAsync(project, cancellationToken);
 
     public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
         Project project, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
     {
-        var analyzer = CreateIncrementalAnalyzer(project.Solution.Workspace);
-        return analyzer.GetDiagnosticsForIdsAsync(project, documentId, diagnosticIds, shouldIncludeAnalyzer, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics, cancellationToken);
+        return _incrementalAnalyzer.GetDiagnosticsForIdsAsync(project, documentId, diagnosticIds, shouldIncludeAnalyzer, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics, cancellationToken);
     }
 
     public Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
@@ -139,8 +129,7 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer,
         bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
     {
-        var analyzer = CreateIncrementalAnalyzer(project.Solution.Workspace);
-        return analyzer.GetProjectDiagnosticsForIdsAsync(project, diagnosticIds, shouldIncludeAnalyzer, includeNonLocalDocumentDiagnostics, cancellationToken);
+        return _incrementalAnalyzer.GetProjectDiagnosticsForIdsAsync(project, diagnosticIds, shouldIncludeAnalyzer, includeNonLocalDocumentDiagnostics, cancellationToken);
     }
 
     public TestAccessor GetTestAccessor()
@@ -149,8 +138,6 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
     public readonly struct TestAccessor(DiagnosticAnalyzerService service)
     {
         public Task<ImmutableArray<DiagnosticAnalyzer>> GetAnalyzersAsync(Project project, CancellationToken cancellationToken)
-        {
-            return service.CreateIncrementalAnalyzer(project.Solution.Workspace).GetAnalyzersForTestingPurposesOnlyAsync(project, cancellationToken);
-        }
+            => service._incrementalAnalyzer.GetAnalyzersForTestingPurposesOnlyAsync(project, cancellationToken);
     }
 }
