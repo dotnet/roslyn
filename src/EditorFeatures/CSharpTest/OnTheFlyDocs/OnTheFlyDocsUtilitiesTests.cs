@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
@@ -430,13 +431,18 @@ public sealed class OnTheFlyDocsUtilitiesTests
         var testCode = """
         class C
         {
-            void ProcessTuple((CustomUser user, int count) data)
+            void ProcessTuple((CustomUser user, CustomUser2 user2) data)
             {
-                System.Console.WriteLine($"{data.user.Name}: {data.count}");
+                System.Console.WriteLine($"{data.user.Name}: {data.user2.Name}");
             }
         }
 
         class CustomUser
+        {
+            public string Name { get; set; }
+        }
+
+        class CustomUser2
         {
             public string Name { get; set; }
         }
@@ -449,7 +455,14 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
         """;
 
-        await TestSuccessAsync<MethodDeclarationSyntax>(testCode, expectedText: customUserText);
+        var customUser2Text = """
+        class CustomUser2
+        {
+            public string Name { get; set; }
+        }
+        """;
+
+        await TestSuccessAsync<MethodDeclarationSyntax>(testCode, customUserText, customUser2Text);
     }
 
     [Fact]
@@ -602,24 +615,592 @@ public sealed class OnTheFlyDocsUtilitiesTests
             expectedText: keyText);
     }
 
+    [Fact]
+    public async Task TestParametersWithPointerType()
+    {
+        var testCode = """
+        unsafe class C
+            
+        {
+            void ProcessPointer(CustomStruct* ptr)
+            {
+                System.Console.WriteLine(ptr->Value);
+            }
+        }
+
+        struct CustomStruct
+        {
+            public int Value;
+        }
+        """;
+
+        var customStructText = """
+        struct CustomStruct
+        {
+            public int Value;
+        }
+        """;
+
+        await TestSuccessAsync<MethodDeclarationSyntax>(testCode, expectedText: customStructText);
+    }
+
+    [Fact]
+    public async Task TestParametersWithPartialType()
+    {
+        var testCode = """
+        class C
+        {
+            void ProcessPartial(PartialType data)
+            {
+                System.Console.WriteLine(data.Name);
+                System.Console.WriteLine(data.Id);
+            }
+        }
+
+        partial class PartialType
+        {
+            public string Name { get; set; }
+        }
+
+        partial class PartialType
+        {
+            public int Id { get; set; }
+        }
+        """;
+
+        var partialTypeFirstPart = """
+        partial class PartialType
+        {
+            public string Name { get; set; }
+        }
+        """;
+
+        var partialTypeSecondPart = """
+        partial class PartialType
+        {
+            public int Id { get; set; }
+        }
+        """;
+
+        await TestSuccessAsync<MethodDeclarationSyntax>(testCode, partialTypeFirstPart, partialTypeSecondPart);
+    }
+
+    [Fact]
+    public async Task TestPropertyInitializers()
+    {
+        var testCode = """
+        class C
+        {
+            public CustomType PropertyWithInitializer { get; set; } = new CustomType();
+        }
+
+        class CustomType
+        {
+            public string Name { get; set; }
+        }
+        """;
+
+        var customTypeText = """
+        class CustomType
+        {
+            public string Name { get; set; }
+        }
+        """;
+
+        await TestSymbolContextAsync(
+            testCode,
+            (syntaxTree, semanticModel) =>
+            {
+                var propertyDeclaration = syntaxTree.GetRoot()
+                    .DescendantNodes()
+                    .OfType<PropertyDeclarationSyntax>()
+                    .First();
+
+                return semanticModel.GetDeclaredSymbol(propertyDeclaration)!;
+            },
+            expectedText: customTypeText);
+    }
+
+    [Fact]
+    public async Task TestPropertyAccessors()
+    {
+        var testCode = """
+        class C
+        {
+            private CustomType _value;
+            
+            public CustomType Property 
+            { 
+                get => _value; 
+                set => _value = value; 
+            }
+        }
+
+        class CustomType
+        {
+            public string Name { get; set; }
+        }
+        """;
+
+        var customTypeText = """
+        class CustomType
+        {
+            public string Name { get; set; }
+        }
+        """;
+
+        await TestSymbolContextAsync(
+            testCode,
+            (syntaxTree, semanticModel) =>
+            {
+                var propertyDeclaration = syntaxTree.GetRoot()
+                    .DescendantNodes()
+                    .OfType<PropertyDeclarationSyntax>()
+                    .First();
+
+                return semanticModel.GetDeclaredSymbol(propertyDeclaration)!;
+            },
+            expectedText: customTypeText);
+    }
+
+    [Fact]
+    public async Task TestConstructors()
+    {
+        var testCode = """
+        class C
+        {
+            public C(CustomParam param)
+            {
+                Console.WriteLine(param.Value);
+            }
+        }
+
+        class CustomParam
+        {
+            public int Value { get; set; }
+        }
+        """;
+
+        var customParamText = """
+        class CustomParam
+        {
+            public int Value { get; set; }
+        }
+        """;
+
+        await TestSymbolContextAsync(
+            testCode,
+            (syntaxTree, semanticModel) =>
+            {
+                var constructorDeclaration = syntaxTree.GetRoot()
+                    .DescendantNodes()
+                    .OfType<ConstructorDeclarationSyntax>()
+                    .First();
+
+                return semanticModel.GetDeclaredSymbol(constructorDeclaration)!;
+            },
+            expectedText: customParamText);
+    }
+
+    [Fact]
+    public async Task TestOperators()
+    {
+        var testCode = """
+        class CustomNumeric
+        {
+            public int Value { get; set; }
+            
+            public static CustomNumeric operator +(CustomNumeric a, CustomNumeric b)
+            {
+                return new CustomNumeric { Value = a.Value + b.Value };
+            }
+        }
+        """;
+
+        var customNumericText = """
+        class CustomNumeric
+        {
+            public int Value { get; set; }
+            
+            public static CustomNumeric operator +(CustomNumeric a, CustomNumeric b)
+            {
+                return new CustomNumeric { Value = a.Value + b.Value };
+            }
+        }
+        """;
+
+        await TestSymbolContextAsync(
+            testCode,
+            (syntaxTree, semanticModel) =>
+            {
+                var operatorDeclaration = syntaxTree.GetRoot()
+                    .DescendantNodes()
+                    .OfType<OperatorDeclarationSyntax>()
+                    .First();
+
+                return semanticModel.GetDeclaredSymbol(operatorDeclaration)!;
+            },
+            expectedText: customNumericText);
+    }
+
+    [Fact]
+    public async Task TestIndexerParameters()
+    {
+        var testCode = """
+        class CustomDictionary
+        {
+            private Dictionary<CustomKey, string> _dict = new Dictionary<CustomKey, string>();
+            
+            public string this[CustomKey key]
+            {
+                get => _dict.TryGetValue(key, out var value) ? value : string.Empty;
+                set => _dict[key] = value;
+            }
+        }
+
+        class CustomKey
+        {
+            public string Id { get; set; }
+            public override int GetHashCode() => Id.GetHashCode();
+            public override bool Equals(object obj) => obj is CustomKey key && Id == key.Id;
+        }
+        """;
+
+        var customKeyText = """
+        class CustomKey
+        {
+            public string Id { get; set; }
+            public override int GetHashCode() => Id.GetHashCode();
+            public override bool Equals(object obj) => obj is CustomKey key && Id == key.Id;
+        }
+        """;
+
+        await TestSymbolContextAsync(
+            testCode,
+            (syntaxTree, semanticModel) =>
+            {
+                var indexerDeclaration = syntaxTree.GetRoot()
+                    .DescendantNodes()
+                    .OfType<IndexerDeclarationSyntax>()
+                    .First();
+
+                return semanticModel.GetDeclaredSymbol(indexerDeclaration)!;
+            },
+            expectedText: customKeyText);
+    }
+
+    [Fact]
+    public async Task TestLocalFunctions()
+    {
+        var testCode = """
+        class C
+        {
+            public void Method()
+            {
+                LocalFunction(new CustomType());
+                
+                void LocalFunction(CustomType param)
+                {
+                    System.Console.WriteLine(param.Name);
+                }
+            }
+        }
+
+        class CustomType
+        {
+            public string Name { get; set; }
+        }
+        """;
+
+        var customTypeText = """
+        class CustomType
+        {
+            public string Name { get; set; }
+        }
+        """;
+
+        await TestSymbolContextAsync(
+            testCode,
+            (syntaxTree, semanticModel) =>
+            {
+                var localFunctionStatement = syntaxTree.GetRoot()
+                    .DescendantNodes()
+                    .OfType<LocalFunctionStatementSyntax>()
+                    .First();
+
+                return semanticModel.GetDeclaredSymbol(localFunctionStatement)!;
+            },
+            expectedText: customTypeText);
+    }
+
+    [Fact]
+    public async Task TestTopLevelFunctions()
+    {
+        var testCode = """
+        using System;
+        
+        void TopLevelFunction(CustomParam param)
+        {
+            Console.WriteLine(param.Value);
+        }
+
+        class CustomParam
+        {
+            public int Value { get; set; }
+        }
+        """;
+
+        var customParamText = """
+        class CustomParam
+        {
+            public int Value { get; set; }
+        }
+        """;
+
+        await TestSymbolContextAsync(
+            testCode,
+            (syntaxTree, semanticModel) =>
+            {
+                var functionDeclaration = syntaxTree.GetRoot()
+                    .DescendantNodes()
+                    .OfType<GlobalStatementSyntax>()
+                    .First()
+                    .DescendantNodes()
+                    .OfType<LocalFunctionStatementSyntax>()
+                    .First();
+
+                return semanticModel.GetDeclaredSymbol(functionDeclaration)!;
+            },
+            expectedText: customParamText);
+    }
+
+    [Fact]
+    public async Task TestLambdaExpressions()
+    {
+        var testCode = """
+        using System;
+        
+        class C
+        {
+            public void Method()
+            {
+                Action<CustomType> lambda = (CustomType param) => 
+                {
+                    Console.WriteLine(param.Name);
+                };
+                
+                lambda(new CustomType());
+            }
+        }
+
+        class CustomType
+        {
+            public string Name { get; set; }
+        }
+        """;
+
+        var customTypeText = """
+        class CustomType
+        {
+            public string Name { get; set; }
+        }
+        """;
+
+        await TestSymbolContextAsync(
+            testCode,
+            (syntaxTree, semanticModel) =>
+            {
+                var lambdaExpression = syntaxTree.GetRoot()
+                    .DescendantNodes()
+                    .OfType<ParenthesizedLambdaExpressionSyntax>()
+                    .First();
+
+                return semanticModel.GetSymbolInfo(lambdaExpression).Symbol!;
+            },
+            expectedText: customTypeText);
+    }
+
+    [Fact]
+    public async Task TestAnonymousMethodExpressions()
+    {
+        var testCode = """
+        using System;
+        
+        class C
+        {
+            public void Method()
+            {
+                Action<CustomType> anonymousMethod = delegate(CustomType param)
+                {
+                    Console.WriteLine(param.Name);
+                };
+                
+                anonymousMethod(new CustomType());
+            }
+        }
+
+        class CustomType
+        {
+            public string Name { get; set; }
+        }
+        """;
+
+        var customTypeText = """
+        class CustomType
+        {
+            public string Name { get; set; }
+        }
+        """;
+
+        await TestSymbolContextAsync(
+            testCode,
+            (syntaxTree, semanticModel) =>
+            {
+                var anonymousMethod = syntaxTree.GetRoot()
+                    .DescendantNodes()
+                    .OfType<AnonymousMethodExpressionSyntax>()
+                    .First();
+
+                return semanticModel.GetSymbolInfo(anonymousMethod).Symbol!;
+            },
+            expectedText: customTypeText);
+    }
+
+    [Fact]
+    public async Task TestGenericMethodWithConstraints()
+    {
+        var testCode = """
+        class C
+        {
+            public void Process<T>(T item) where T : CustomBase
+            {
+                System.Console.WriteLine(item.Id);
+            }
+        }
+
+        class CustomBase
+        {
+            public int Id { get; set; }
+        }
+        """;
+
+        var customBaseText = """
+        class CustomBase
+        {
+            public int Id { get; set; }
+        }
+        """;
+
+        await TestSuccessAsync<MethodDeclarationSyntax>(testCode, expectedText: customBaseText);
+    }
+
+    [Fact]
+    public async Task TestDelegateDeclaration()
+    {
+        var testCode = """
+        using System;
+
+        public delegate void CustomCallback(CustomEventArgs args);
+
+        class C
+        {
+            public event CustomCallback OnSomething;
+            
+            public void RaiseEvent()
+            {
+                OnSomething?.Invoke(new CustomEventArgs { Message = "Event raised" });
+            }
+        }
+
+        class CustomEventArgs
+        {
+            public string Message { get; set; }
+        }
+        """;
+
+        var customEventArgsText = """
+        class CustomEventArgs
+        {
+            public string Message { get; set; }
+        }
+        """;
+
+        await TestSymbolContextAsync(
+            testCode,
+            (syntaxTree, semanticModel) =>
+            {
+                var delegateDeclaration = syntaxTree.GetRoot()
+                    .DescendantNodes()
+                    .OfType<DelegateDeclarationSyntax>()
+                    .First();
+
+                return semanticModel.GetDeclaredSymbol(delegateDeclaration)!;
+            },
+            expectedText: customEventArgsText);
+    }
+
+    [Fact]
+    public async Task TestEventDeclaration()
+    {
+        var testCode = """
+        using System;
+
+        public delegate void CustomCallback(CustomEventArgs args);
+
+        class C
+        {
+            public event CustomCallback OnSomething;
+        }
+
+        class CustomEventArgs
+        {
+            public string Message { get; set; }
+        }
+        """;
+
+        var customEventArgsText = """
+        class CustomEventArgs
+        {
+            public string Message { get; set; }
+        }
+        """;
+
+        await TestSymbolContextAsync(
+            testCode,
+            (syntaxTree, semanticModel) =>
+            {
+                var eventDeclaration = syntaxTree.GetRoot()
+                    .DescendantNodes()
+                    .OfType<EventFieldDeclarationSyntax>()
+                    .First()
+                    .Declaration
+                    .Variables
+                    .First();
+
+                return semanticModel.GetDeclaredSymbol(eventDeclaration)!;
+            },
+            expectedText: customEventArgsText);
+    }
+
     private static async Task<(EditorTestWorkspace workspace, Document document, SemanticModel semanticModel)> SetupWorkspaceAsync(string testCode)
     {
         using var workspace = EditorTestWorkspace.CreateCSharp(testCode);
         var solution = workspace.CurrentSolution;
-        var document = workspace.CurrentSolution.Projects.First().Documents.First();
+        var document = solution.Projects.First().Documents.First();
 
         var semanticModel = await document.GetSemanticModelAsync();
 
         return (workspace, document, semanticModel!);
     }
 
-    private static async Task TestFailureAsync<TSyntaxNode>(string testCode) where TSyntaxNode : SyntaxNode
+    private static async Task TestFailureAsync<TSyntaxNode>([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string testCode) where TSyntaxNode : SyntaxNode
     {
         var results = await GetOnTheFlyDocsResults(testCode, GetSymbol<TSyntaxNode>);
         Assert.True(results.All(item => item == null));
     }
 
-    private static Task TestSuccessAsync<TSyntaxNode>(string testCode, params string[] expectedText) where TSyntaxNode : SyntaxNode
+    private static Task TestSuccessAsync<TSyntaxNode>(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string testCode, [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] params string[] expectedText) where TSyntaxNode : SyntaxNode
     {
         return TestSymbolContextAsync(
             testCode,
@@ -629,10 +1210,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
 
     private static ISymbol? GetSymbol<TSyntaxNode>(SyntaxTree syntaxTree, SemanticModel semanticModel) where TSyntaxNode : SyntaxNode
     {
-        var node = syntaxTree.GetRoot()
-                    .DescendantNodes()
-                    .OfType<TSyntaxNode>()
-                    .FirstOrDefault();
+        var node = syntaxTree.GetRoot().DescendantNodes().OfType<TSyntaxNode>().FirstOrDefault();
 
         if (node == null)
         {
@@ -660,7 +1238,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
     private static async Task TestSymbolContextAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string testCode,
         Func<SyntaxTree, SemanticModel, ISymbol?> getSymbol,
-        params string[] expectedText)
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] params string[] expectedText)
     {
         var results = await GetOnTheFlyDocsResults(testCode, getSymbol);
 
@@ -674,7 +1252,7 @@ public sealed class OnTheFlyDocsUtilitiesTests
         }
     }
 
-    private static async Task<System.Collections.Immutable.ImmutableArray<OnTheFlyDocsRelevantFileInfo?>> GetOnTheFlyDocsResults(string testCode, Func<SyntaxTree, SemanticModel, ISymbol?> getSymbol)
+    private static async Task<ImmutableArray<OnTheFlyDocsRelevantFileInfo>> GetOnTheFlyDocsResults(string testCode, Func<SyntaxTree, SemanticModel, ISymbol?> getSymbol)
     {
         var (_, document, semanticModel) = await SetupWorkspaceAsync(testCode);
 
@@ -682,44 +1260,6 @@ public sealed class OnTheFlyDocsUtilitiesTests
         var results = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(document.Project.Solution, symbol!);
         return results;
     }
-
-    /*private static Task TestMethodContextAsync(string testCode, params string[] expectedText)
-    {
-        return TestSymbolContextAsync(
-            testCode,
-            (syntaxTree, semanticModel) => GetMethodSymbol(syntaxTree, semanticModel), expectedText);
-    }*/
-
-    /*private static Task TestObjectCreationTypeContextAsync(string testCode, params string[] expectedText)
-    {
-        return TestSymbolContextAsync(
-            testCode,
-            (syntaxTree, semanticModel) =>
-            {
-                var objectCreation = syntaxTree.GetRoot()
-                    .DescendantNodes()
-                    .OfType<ObjectCreationExpressionSyntax>()
-                    .First();
-
-                return semanticModel.GetTypeInfo(objectCreation).Type!;
-            },
-            expectedText: expectedText);
-    }
-
-    private static Task TestInvocationContextAsync(string testCode, params string[] expectedText)
-    {
-        return TestSymbolContextAsync(
-            testCode,
-            (syntaxTree, semanticModel) =>
-            {
-                var methodInvocation = syntaxTree.GetRoot()
-                    .DescendantNodes()
-                    .OfType<InvocationExpressionSyntax>()
-                    .First();
-
-                return semanticModel.GetSymbolInfo(methodInvocation).Symbol!;
-            }, expectedText);
-    }*/
 
     private static async Task AssertSymbolTextMatchesAsync(OnTheFlyDocsRelevantFileInfo onTheFlyDocsRelevantFileInfo, string actualSymbolText)
     {

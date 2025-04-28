@@ -4,8 +4,10 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.QuickInfo;
 
@@ -13,30 +15,75 @@ internal static class OnTheFlyDocsUtilities
 {
     public static ImmutableArray<OnTheFlyDocsRelevantFileInfo> GetAdditionalOnTheFlyDocsContext(Solution solution, ISymbol symbol)
     {
+        using var _ = PooledHashSet<OnTheFlyDocsRelevantFileInfo>.GetInstance(out var results);
+
+        if (symbol is IPropertySymbol propertySymbol)
+        {
+            results.AddRange(GetOnTheFlyDocsRelevantFileInfos(propertySymbol.Type).Where(info => info != null).Cast<OnTheFlyDocsRelevantFileInfo>());
+        }
+        else if (symbol is IEventSymbol eventSymbol)
+        {
+            if (eventSymbol.Type is INamedTypeSymbol delegateType && delegateType.TypeKind == TypeKind.Delegate)
+            {
+                ProcessDelegateTypeSymbol(delegateType, results);
+            }
+        }
+        else if (symbol is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.TypeKind == TypeKind.Delegate)
+        {
+            ProcessDelegateTypeSymbol(namedTypeSymbol, results);
+        }
+
         var parameters = symbol.GetParameters();
         var typeArguments = symbol.GetTypeArguments();
 
-        var parameterStrings = parameters.Select(parameter =>
+        results.AddRange(parameters.SelectMany(parameter =>
         {
             var typeSymbol = parameter.Type;
-            return GetOnTheFlyDocsRelevantFileInfo(typeSymbol);
-        }).ToImmutableArray();
+            return GetOnTheFlyDocsRelevantFileInfos(typeSymbol);
+        }).Where(info => info != null).Cast<OnTheFlyDocsRelevantFileInfo>());
 
-        var typeArgumentStrings = typeArguments.Select(GetOnTheFlyDocsRelevantFileInfo).ToImmutableArray();
+        results.AddRange(typeArguments.SelectMany(type => GetOnTheFlyDocsRelevantFileInfos(type)).Where(info => info != null).Cast<OnTheFlyDocsRelevantFileInfo>());
 
-        return parameterStrings.AddRange(typeArgumentStrings).Where(info => info != null).ToImmutableArray().Distinct();
+        return [.. results];
 
-        OnTheFlyDocsRelevantFileInfo? GetOnTheFlyDocsRelevantFileInfo(ITypeSymbol typeSymbol)
+        // Helper method to process a delegate type symbol
+        void ProcessDelegateTypeSymbol(INamedTypeSymbol delegateType, PooledHashSet<OnTheFlyDocsRelevantFileInfo> resultSet)
         {
+            var invokeMethod = delegateType.DelegateInvokeMethod;
+            if (invokeMethod != null)
+            {
+                // Process each parameter of the delegate invoke method
+                foreach (var parameter in invokeMethod.Parameters)
+                {
+                    resultSet.AddRange(GetOnTheFlyDocsRelevantFileInfos(parameter.Type)
+                        .Where(info => info != null)
+                        .Cast<OnTheFlyDocsRelevantFileInfo>());
+                }
+
+                // Process the return type if it's not void
+                if (!invokeMethod.ReturnsVoid)
+                {
+                    resultSet.AddRange(GetOnTheFlyDocsRelevantFileInfos(invokeMethod.ReturnType)
+                        .Where(info => info != null)
+                        .Cast<OnTheFlyDocsRelevantFileInfo>());
+                }
+            }
+        }
+
+        ImmutableArray<OnTheFlyDocsRelevantFileInfo?> GetOnTheFlyDocsRelevantFileInfos(ITypeSymbol typeSymbol)
+        {
+            var results = ImmutableArray.CreateBuilder<OnTheFlyDocsRelevantFileInfo?>();
             if (typeSymbol.IsTupleType && typeSymbol is INamedTypeSymbol tupleType)
             {
                 foreach (var typeArgument in tupleType.TypeArguments)
                 {
-                    var elementInfo = GetOnTheFlyDocsRelevantFileInfo(typeArgument);
-                    if (elementInfo is not null)
-                    {
-                        return elementInfo;
-                    }
+                    var elementInfos = GetOnTheFlyDocsRelevantFileInfos(typeArgument);
+                    results.AddRange(elementInfos);
+                }
+
+                if (results.Count > 0)
+                {
+                    return results.ToImmutable();
                 }
             }
 
@@ -44,11 +91,13 @@ internal static class OnTheFlyDocsUtilities
             {
                 foreach (var constraintType in typeParameterSymbol.ConstraintTypes)
                 {
-                    var constraintInfo = GetOnTheFlyDocsRelevantFileInfo(constraintType);
-                    if (constraintInfo is not null)
-                    {
-                        return constraintInfo;
-                    }
+                    var constraintInfos = GetOnTheFlyDocsRelevantFileInfos(constraintType);
+                    results.AddRange(constraintInfos);
+                }
+
+                if (results.Count > 0)
+                {
+                    return results.ToImmutable();
                 }
             }
 
@@ -57,23 +106,27 @@ internal static class OnTheFlyDocsUtilities
                 typeSymbol = arrayTypeSymbol.ElementType;
             }
 
+            if (typeSymbol is IPointerTypeSymbol pointerTypeSymbol)
+            {
+                typeSymbol = pointerTypeSymbol.PointedAtType;
+            }
+
             if (typeSymbol.IsNullable(out var underlyingType))
             {
                 typeSymbol = underlyingType;
             }
 
-            var typeSyntaxReference = typeSymbol.DeclaringSyntaxReferences.FirstOrDefault();
-            if (typeSyntaxReference is not null)
+            foreach (var typeSyntaxReference in typeSymbol.DeclaringSyntaxReferences)
             {
                 var typeSpan = typeSyntaxReference.Span;
                 var syntaxReferenceDocument = solution.GetDocument(typeSyntaxReference.SyntaxTree);
                 if (syntaxReferenceDocument is not null)
                 {
-                    return new OnTheFlyDocsRelevantFileInfo(syntaxReferenceDocument, typeSpan);
+                    results.Add(new OnTheFlyDocsRelevantFileInfo(syntaxReferenceDocument, typeSpan));
                 }
             }
 
-            return null;
+            return results.ToImmutable();
         }
     }
 }
