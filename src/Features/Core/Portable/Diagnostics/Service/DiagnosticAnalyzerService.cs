@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -19,7 +20,26 @@ using Microsoft.CodeAnalysis.Threading;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-[Export(typeof(IDiagnosticAnalyzerService)), Shared]
+[ExportWorkspaceServiceFactory(typeof(IDiagnosticAnalyzerService)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class DiagnosticAnalyzerServiceFactory(
+    IGlobalOptionService globalOptions,
+    IDiagnosticsRefresher diagnosticsRefresher,
+    DiagnosticAnalyzerInfoCache.SharedGlobalCache globalCache,
+    IAsynchronousOperationListenerProvider listenerProvider) : IWorkspaceServiceFactory
+{
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+    {
+        return new DiagnosticAnalyzerService(
+            globalOptions,
+            diagnosticsRefresher,
+            globalCache,
+            listenerProvider,
+            workspaceServices.Workspace);
+    }
+}
+
 internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerService
 {
     private static readonly Option2<bool> s_crashOnAnalyzerException = new("dotnet_crash_on_analyzer_exception", defaultValue: false);
@@ -33,19 +53,18 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
     private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>.CreateValueCallback _createIncrementalAnalyzer;
     private readonly IDiagnosticsRefresher _diagnosticsRefresher;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public DiagnosticAnalyzerService(
-        IAsynchronousOperationListenerProvider listenerProvider,
-        DiagnosticAnalyzerInfoCache.SharedGlobalCache globalCache,
         IGlobalOptionService globalOptions,
-        IDiagnosticsRefresher diagnosticsRefresher)
+        IDiagnosticsRefresher diagnosticsRefresher,
+        DiagnosticAnalyzerInfoCache.SharedGlobalCache globalCache,
+        IAsynchronousOperationListenerProvider listenerProvider,
+        Workspace workspace)
     {
         AnalyzerInfoCache = globalCache.AnalyzerInfoCache;
         Listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
         GlobalOptions = globalOptions;
         _diagnosticsRefresher = diagnosticsRefresher;
-        _createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
+        _createIncrementalAnalyzer = _ => new DiagnosticIncrementalAnalyzer(this, AnalyzerInfoCache, this.GlobalOptions);
 
         globalOptions.AddOptionChangedHandler(this, (_, _, e) =>
         {
@@ -54,6 +73,10 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
                 RequestDiagnosticRefresh();
             }
         });
+
+        // When the workspace changes what context a document is in (when a user picks a different tfm to view the
+        // document in), kick off a refresh so that diagnostics properly update in the task list and editor.
+        workspace.RegisterDocumentActiveContextChangedHandler(args => RequestDiagnosticRefresh());
     }
 
     public static Task<VersionStamp> GetDiagnosticVersionAsync(Project project, CancellationToken cancellationToken)
@@ -76,6 +99,9 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
 
     public void RequestDiagnosticRefresh()
         => _diagnosticsRefresher.RequestWorkspaceRefresh();
+
+    private DiagnosticIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
+        => _map.GetValue(workspace, _createIncrementalAnalyzer);
 
     public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
         TextDocument document,
