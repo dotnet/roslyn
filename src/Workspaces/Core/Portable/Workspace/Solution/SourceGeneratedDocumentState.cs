@@ -191,12 +191,27 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
 
     public SourceGeneratedDocumentState WithSyntaxRoot(SyntaxNode newRoot)
     {
-        // See if we can reuse this instance directly
-        if (this.TryGetSyntaxTree(out var tree) && tree == newRoot.SyntaxTree)
-            return this;
+        SyntaxTree newTree;
+        if (this.TryGetSyntaxTree(out var tree))
+        {
+            // See if we can reuse this instance directly
+            if (tree.TryGetRoot(out var root) && root == newRoot)
+                return this;
+
+            newTree = tree.WithRootAndOptions(newRoot, ParseOptions);
+        }
+        else
+        {
+            // We don't have a tree yet, so we need to create one. Using "newRoot.SyntaxTree" is the last resort though
+            // as it could lazily create one, which doesn't know about our parse options.
+            var factory = LanguageServices.GetService<ISyntaxTreeFactoryService>();
+            newTree = factory is not null
+                ? factory.CreateSyntaxTree(Attributes.SyntaxTreeFilePath, ParseOptions, SourceText, SourceText.Encoding, SourceText.ChecksumAlgorithm, newRoot)
+                : newRoot.SyntaxTree;
+        }
 
         var newTreeVersion = GetNewTreeVersionForUpdatedTree(newRoot, GetNewerVersion(), PreservationMode.PreserveValue);
-        var newTreeSource = SimpleTreeAndVersionSource.Create(new TreeAndVersion(newRoot.SyntaxTree, newTreeVersion));
+        var newTreeSource = SimpleTreeAndVersionSource.Create(new TreeAndVersion(newTree, newTreeVersion));
 
         return new(
             this.Identity,
