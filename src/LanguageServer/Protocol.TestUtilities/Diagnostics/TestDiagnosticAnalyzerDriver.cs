@@ -25,9 +25,7 @@ public sealed class TestDiagnosticAnalyzerDriver
 
     public TestDiagnosticAnalyzerDriver(Workspace workspace, bool includeSuppressedDiagnostics = false, bool includeNonLocalDocumentDiagnostics = false)
     {
-        var mefServices = workspace.Services.SolutionServices.ExportProvider;
-
-        _diagnosticAnalyzerService = mefServices.GetExportedValue<IDiagnosticAnalyzerService>();
+        _diagnosticAnalyzerService = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
         _includeSuppressedDiagnostics = includeSuppressedDiagnostics;
         _includeNonLocalDocumentDiagnostics = includeNonLocalDocumentDiagnostics;
     }
