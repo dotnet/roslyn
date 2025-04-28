@@ -310,7 +310,7 @@ public partial class D
 
             Dim peekableItemSource As New PeekableItemSource(
                 textBuffer,
-                DirectCast(workspace.GetService(Of IPeekableItemFactory), PeekableItemFactory),
+                workspace.GetService(Of PeekableItemFactory),
                 New MockPeekResultFactory(workspace.GetService(Of IPersistentSpanFactory)),
                 workspace.GetService(Of IThreadingContext),
                 workspace.GetService(Of IUIThreadOperationExecutor))
