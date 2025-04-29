@@ -148,7 +148,7 @@ internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationL
     }
 
     private static List<string> GetOrderedElements<TKey, TValue>(Dictionary<TKey, TValue> dictionary)
-        => dictionary.Select(kvp => $"{kvp.Key}_{kvp.Value}").OrderBy(v => v).ToList();
+        => [.. dictionary.Select(kvp => $"{kvp.Key}_{kvp.Value}").OrderBy(v => v)];
 
     private static ImmutableArray<TextChange> Normalize(IEnumerable<ProposedEdit> editGroup)
     {
