@@ -17,6 +17,9 @@
     <!-- TODO: https://github.com/dotnet/roslyn/issues/71667 -->
     <NoWarn>$(NoWarn);NU1507</NoWarn>
 
+    <!-- Suppress package reference warnings new in net10 as they are often wrong for Roslyn -->
+    <NoWarn>$(NoWarn);NU1510</NoWarn>
+
     <CommonExtensionInstallationRoot>CommonExtensions</CommonExtensionInstallationRoot>
     <LanguageServicesExtensionInstallationFolder>Microsoft\VBCSharp\LanguageServices</LanguageServicesExtensionInstallationFolder>
 
