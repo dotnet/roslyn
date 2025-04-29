@@ -101,9 +101,10 @@ internal sealed class DefaultCopilotChangeAnalysisService(
 
         foreach (var change in changes)
         {
-            var newSpan = new TextSpan(change.Span.Start + totalDelta, change.Span.Length);
-            newSpans.Add(newSpan);
-            totalDelta += change.NewText!.Length - change.Span.Length;
+            var newTextLength = change.NewText!.Length;
+
+            newSpans.Add(new TextSpan(change.Span.Start + totalDelta, newTextLength));
+            totalDelta += newTextLength - change.Span.Length;
         }
 
         // First, determine the diagnostics produced in the edits that copilot makes.  Done non-concurrently with
@@ -123,7 +124,6 @@ internal sealed class DefaultCopilotChangeAnalysisService(
 
         var sourceGeneratedDocuments = await newDocument.Project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
 
-        var documentTextLength = newText.Length;
         var projectDocumentCount = newDocument.Project.DocumentIds.Count;
         var projectSourceGeneratedDocumentCount = sourceGeneratedDocuments.Count();
         var projectConeCount = 1 + document.Project.Solution
@@ -134,7 +134,9 @@ internal sealed class DefaultCopilotChangeAnalysisService(
 
         return new CopilotChangeAnalysis(
             Succeeded: true,
-            DocumentTextLength: documentTextLength,
+            OldDocumentTextLength: oldText.Length,
+            NewDocumentTextLength: newText.Length,
+            TextChangeDelta: totalDelta,
             ProjectDocumentCount: projectDocumentCount,
             ProjectSourceGeneratedDocumentCount: projectSourceGeneratedDocumentCount,
             ProjectConeCount: projectConeCount,
@@ -275,7 +277,7 @@ internal sealed class DefaultCopilotChangeAnalysisService(
                     IncrementElapsedTime(providerNameToApplicationTime, providerName, applicationTime);
                 }
             },
-            args: (@this: this, newDocument.Project.Solution, diagnosticIdToCount, diagnosticIdToApplicationTime, diagnosticIdToProviderName, diagnosticIdToApplicationTime),
+            args: (@this: this, newDocument.Project.Solution, diagnosticIdToCount, diagnosticIdToApplicationTime, diagnosticIdToProviderName, providerNameToApplicationTime),
             cancellationToken).ConfigureAwait(false);
         var totalApplicationTime = totalApplicationTimeStopWatch.Elapsed;
 
@@ -301,8 +303,11 @@ internal sealed class DefaultCopilotChangeAnalysisService(
                     {
                         // Ignore the suppress/configure codefixes that are almost always present.
                         // We would not ever want to apply those to a copilot change.
-                        if (codeFixCollection.Provider is not IConfigurationFixProvider &&
-                            codeFixCollection.Fixes is [var codeFix, ..] &&
+                        if (codeFixCollection is
+                            {
+                                Provider: not IConfigurationFixProvider,
+                                Fixes: [var codeFix, ..],
+                            } &&
                             (codeFixCollection.Provider.GetType().Namespace ?? "").StartsWith("Microsoft.CodeAnalysis"))
                         {
                             // The first for a particular span is the one we would apply.  Ignore others that fix the same span.
