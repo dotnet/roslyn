@@ -9,7 +9,6 @@
     <NoWarn>$(NoWarn);CS0436</NoWarn>
     <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
     <!-- Excluded from source build. Otherwise this should be conditionalized to only be set when DotNetBuildSourceOnly != true -->
-    <MicrosoftCodeAnalysisVersion Condition="'$(MicrosoftCodeAnalysisVersion)' == ''">$(MicrosoftCodeAnalysisVersionForMetrics)</MicrosoftCodeAnalysisVersion>
     <SQLitePCLRawVersion>1.1.2</SQLitePCLRawVersion>
     <VersionPrefix>$(MetricsVersionPrefix)</VersionPrefix>
   </PropertyGroup>
@@ -18,15 +17,15 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Build.Locator" />
 
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Features" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzer)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzer)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzer)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzer)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzer)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Features" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzer)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzer)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzer)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzer)" />
 
     <PackageReference Include="SQLitePCLRaw.bundle_green" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
     <PackageReference Include="SQLitePCLRaw.core" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />

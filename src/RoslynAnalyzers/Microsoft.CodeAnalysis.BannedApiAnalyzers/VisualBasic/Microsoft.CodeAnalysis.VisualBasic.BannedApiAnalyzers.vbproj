@@ -2,12 +2,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <MicrosoftCodeAnalysisVersion Condition="'$(MicrosoftCodeAnalysisVersion)' == ''">$(MicrosoftCodeAnalysisVersionForBannedApiAnalyzers)</MicrosoftCodeAnalysisVersion>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzer)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzer)" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.BannedApiAnalyzers.csproj" />

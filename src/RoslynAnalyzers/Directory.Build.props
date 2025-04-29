@@ -36,6 +36,11 @@
     <Features>$(Features);flow-analysis</Features>
 
     <DefineConstants Condition="'$(LEGACY_CODE_METRICS_MODE)' == 'true'">$(DefineConstants),LEGACY_CODE_METRICS_MODE</DefineConstants>
+
+    <MicrosoftCodeAnalysisVersionForAnalyzer>4.0.1</MicrosoftCodeAnalysisVersionForAnalyzer>
+    <MicrosoftCodeAnalysisVersionForAnalyzerTests>4.9.0-3.final</MicrosoftCodeAnalysisVersionForAnalyzerTests>
+    <MicrosoftCodeAnalysisVersionForAnaylzerExecution>4.6.0-1.final</MicrosoftCodeAnalysisVersionForAnalyzerExecution>
+
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(DotNetBuildSourceOnly)' == 'true'">

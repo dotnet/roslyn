@@ -7,7 +7,6 @@
       Restore would conclude that there is a cyclic dependency between us and the Roslyn.Diagnostics.Analyzers package.
     -->
     <PackageId>*$(MSBuildProjectFile)*</PackageId>
-    <MicrosoftCodeAnalysisVersion Condition="'$(MicrosoftCodeAnalysisVersion)' == ''">$(MicrosoftCodeAnalysisForRoslynDiagnosticsAnalyzersVersion)</MicrosoftCodeAnalysisVersion>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Roslyn.Diagnostics.CSharp.Analyzers" />
@@ -15,8 +14,8 @@
     <InternalsVisibleTo Include="Roslyn.Diagnostics.Analyzers.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzer)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzer)" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="RoslynDiagnosticsAnalyzersResources.resx" GenerateSource="true" />
