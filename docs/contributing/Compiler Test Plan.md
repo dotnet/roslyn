@@ -175,7 +175,12 @@ M();
 ++x; 
 x++; 
 --x; 
-x--; 
+x--;
+a?.M(); // conditional access / null-propagating operator
+a?[b] = c;
+a?.b = c;
+a?[b] = c;
+var x = a?.M(); // similar "value is used" versions of the above '?.' cases
 new C(); 
 if (…) … else … 
 switch(…) { … case (…) when (…): … } 
