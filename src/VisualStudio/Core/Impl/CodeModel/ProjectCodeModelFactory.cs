@@ -152,7 +152,7 @@ internal sealed class ProjectCodeModelFactory : IProjectCodeModelFactory
         foreach (var (projectCodeModel, filename) in projectCodeModelAndFileNames)
         {
             // If we've been asked to shutdown, don't bother reporting any more events.
-            if (_threadingContext.DisposalToken.IsCancellationRequested)
+            if (cancellationToken.IsCancellationRequested)
                 return;
 
             FireEventsForDocument(projectCodeModel, filename);
