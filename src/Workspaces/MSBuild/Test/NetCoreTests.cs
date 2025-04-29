@@ -6,8 +6,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -92,6 +94,27 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         var semanticModel = await document.GetSemanticModelAsync();
         var diagnostics = semanticModel.GetDiagnostics();
         Assert.Empty(diagnostics);
+    }
+
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
+    public async Task TestOpenInMemoryProject_NetCoreApp()
+    {
+        CreateFiles(GetNetCoreAppFiles());
+
+        var projectFilePath = GetSolutionFileName("Project.csproj");
+        var content = File.ReadAllText(projectFilePath);
+        File.Delete(projectFilePath);
+        var projectDir = Path.GetDirectoryName(projectFilePath);
+
+        await using var buildHostProcessManager = new BuildHostProcessManager(ImmutableDictionary<string, string>.Empty);
+
+        var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessManager.BuildHostProcessKind.NetCore, CancellationToken.None);
+        var projectFile = await buildHost.LoadProjectAsync(projectFilePath, content, LanguageNames.CSharp, CancellationToken.None);
+        var projectFileInfo = (await projectFile.GetProjectFileInfosAsync(CancellationToken.None)).Single();
+
+        Assert.Equal(Path.Combine(projectDir, "bin", "Debug", "netcoreapp3.1", "Project.dll"), projectFileInfo.OutputFilePath);
     }
 
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]

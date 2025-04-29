@@ -756,7 +756,6 @@ public sealed class AddParameterCheckTests
                 }
             }
             """,
-            CodeActionIndex = 0,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
         }.RunAsync();
     }

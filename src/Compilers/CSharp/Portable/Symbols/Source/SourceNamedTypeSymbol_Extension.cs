@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (_lazyExtensionInfo.LazyImplementationMap is null)
             {
-                var builder = ImmutableDictionary.CreateBuilder<MethodSymbol, MethodSymbol>(Roslyn.Utilities.ReferenceEqualityComparer.Instance);
+                var builder = ImmutableDictionary.CreateBuilder<MethodSymbol, MethodSymbol>(ReferenceEqualityComparer.Instance);
 
                 builder.AddRange(
                     containingType.GetMembersUnordered().OfType<SourceExtensionImplementationMethodSymbol>().

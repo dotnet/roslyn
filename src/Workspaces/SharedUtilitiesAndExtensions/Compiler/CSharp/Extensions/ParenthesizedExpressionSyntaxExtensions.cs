@@ -110,15 +110,29 @@ internal static class ParenthesizedExpressionSyntaxExtensions
         if (expression.IsKind(SyntaxKind.TupleExpression))
             return true;
 
+        // Cases:
+        //   {(x)} -> {x}
+        if (nodeParent is InitializerExpressionSyntax)
+        {
+            // `{ ([]) }` can't become `{ [] }` as `[` in an initializer will be parsed as an index assignment.
+            if (tokenAfterParen.Kind() == SyntaxKind.OpenBracketToken)
+                return false;
+
+            // Assignment expressions and collection expressions are not allowed in initializers
+            // as they are not parsed as expressions, but as more complex constructs
+            if (expression is AssignmentExpressionSyntax)
+                return false;
+
+            return true;
+        }
+
         // ([...]) -> [...]
         if (expression.IsKind(SyntaxKind.CollectionExpression))
             return true;
 
         // int Prop => (x); -> int Prop => x;
         if (nodeParent is ArrowExpressionClauseSyntax arrowExpressionClause && arrowExpressionClause.Expression == node)
-        {
             return true;
-        }
 
         // Easy statement-level cases:
         //   var y = (x);           -> var y = x;
@@ -180,15 +194,6 @@ internal static class ParenthesizedExpressionSyntaxExtensions
         //   ($"{x}") -> $"{x}"
         if (expression.IsKind(SyntaxKind.InterpolatedStringExpression))
             return true;
-
-        // Cases:
-        //   {(x)} -> {x}
-        if (nodeParent is InitializerExpressionSyntax)
-        {
-            // Assignment expressions and collection expressions are not allowed in initializers
-            // as they are not parsed as expressions, but as more complex constructs
-            return expression is not AssignmentExpressionSyntax and not CollectionExpressionSyntax;
-        }
 
         // Cases:
         //   new {(x)} -> {x}
