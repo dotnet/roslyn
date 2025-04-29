@@ -137,7 +137,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)
         {
-            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref lazyDocComment);
+            // Neither the culture nor the expandIncludes affect the XML for extension implementation methods.
+            string result = SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes: false, ref lazyDocComment);
+
+#if DEBUG
+            string withIncludes = DocumentationCommentCompiler.GetDocumentationCommentXml(this, processIncludes: true, default);
+            Debug.Assert(string.Equals(result, withIncludes, System.StringComparison.Ordinal));
+#endif
+
+            return result;
         }
 
         private sealed class ExtensionMetadataMethodParameterSymbol : RewrittenMethodParameterSymbol
