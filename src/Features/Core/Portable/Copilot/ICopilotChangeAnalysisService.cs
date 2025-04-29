@@ -83,6 +83,8 @@ internal sealed class DefaultCopilotChangeAnalysisService(
         // Keep track of how long our analysis takes entirely.
         var totalAnalysisTimeStopWatch = SharedStopwatch.StartNew();
 
+        var forkingTimeStopWatch = SharedStopwatch.StartNew();
+
         // Fork the starting document with the changes copilot wants to make.  Keep track of where the edited spans
         // move to in the forked doucment, as that is what we will want to analyze.
         var oldText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -92,6 +94,7 @@ internal sealed class DefaultCopilotChangeAnalysisService(
 
         // Get the semantic model and keep it alive so none of the work we do causes it to be dropped.
         var semanticModel = await newDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var forkingTime = forkingTimeStopWatch.Elapsed;
 
         var totalDelta = 0;
         using var _ = ArrayBuilder<TextSpan>.GetInstance(out var newSpans);
@@ -116,12 +119,28 @@ internal sealed class DefaultCopilotChangeAnalysisService(
         var codeFixAnalysis = await ComputeCodeFixAnalysisAsync(
             newDocument, newSpans, cancellationToken).ConfigureAwait(false);
 
+        var totalAnalysisTime = totalAnalysisTimeStopWatch.Elapsed;
+
         GC.KeepAlive(semanticModel);
+
+        var sourceGeneratedDocuments = await newDocument.Project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
+
+        var documentTextLength = newText.Length;
+        var projectDocumentCount = newDocument.Project.DocumentIds.Count;
+        var projectSourceGeneratedDocumentCount = sourceGeneratedDocuments.Count();
+        var projectConeCount = 1 + document.Project.Solution
+            .GetProjectDependencyGraph()
+            .GetProjectsThatThisProjectTransitivelyDependsOn(document.Project.Id).Count;
 
         return new CopilotChangeAnalysis(
             Succeeded: true,
-            totalAnalysisTimeStopWatch.Elapsed,
-            totalDiagnosticComputationTime,
+            DocumentTextLength: documentTextLength,
+            ProjectDocumentCount: projectDocumentCount,
+            ProjectSourceGeneratedDocumentCount: projectSourceGeneratedDocumentCount,
+            ProjectConeCount: projectConeCount,
+            TotalAnalysisTime: totalAnalysisTime,
+            ForkingTime: forkingTime,
+            TotalDiagnosticComputationTime: totalDiagnosticComputationTime,
             diagnosticAnalyses,
             codeFixAnalysis);
     }
