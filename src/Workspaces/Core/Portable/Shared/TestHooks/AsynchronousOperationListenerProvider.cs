@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks;
 [Export(typeof(AsynchronousOperationListenerProvider))]
 internal sealed partial class AsynchronousOperationListenerProvider : IAsynchronousOperationListenerProvider
 {
-    public static readonly IAsynchronousOperationListenerProvider NullProvider = new NullListenerProvider();
-    public static readonly IAsynchronousOperationListener NullListener = new NullOperationListener();
+    public static IAsynchronousOperationListenerProvider NullProvider => NullAsynchronousOperationListenerProvider.Instance;
+    public static IAsynchronousOperationListener NullListener => NullAsynchronousOperationListenerProvider.Listener;
 
     /// <summary>
     /// indicate whether asynchronous listener is enabled or not.
