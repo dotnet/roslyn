@@ -65,7 +65,7 @@ internal sealed class CompileTimeSolutionProvider : ICompileTimeSolutionProvider
 
     public CompileTimeSolutionProvider(Workspace workspace)
     {
-        workspace.WorkspaceChanged += (s, e) =>
+        _ = workspace.RegisterWorkspaceChangedHandler((e) =>
         {
             if (e.Kind is WorkspaceChangeKind.SolutionCleared or WorkspaceChangeKind.SolutionRemoved)
             {
@@ -79,7 +79,7 @@ internal sealed class CompileTimeSolutionProvider : ICompileTimeSolutionProvider
                     _lastCompileTimeSolution = null;
                 }
             }
-        };
+        });
     }
 
     private static bool IsRazorAnalyzerConfig(TextDocumentState documentState)
