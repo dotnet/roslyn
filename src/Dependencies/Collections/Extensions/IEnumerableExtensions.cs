@@ -347,6 +347,19 @@ namespace Roslyn.Utilities
             return source.Where((Func<T?, bool>)s_notNullTest)!;
         }
 
+        public static ImmutableArray<T> WhereAsArray<T, TArg>(this IEnumerable<T> values, Func<T, TArg, bool> predicate, TArg arg)
+        {
+            var result = ArrayBuilder<T>.GetInstance();
+
+            foreach (var value in values)
+            {
+                if (predicate(value, arg))
+                    result.Add(value);
+            }
+
+            return result.ToImmutableAndFree();
+        }
+
         public static T[] AsArray<T>(this IEnumerable<T> source)
             => source as T[] ?? source.ToArray();
 

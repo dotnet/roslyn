@@ -7,17 +7,35 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Roslyn.Utilities;
+namespace Microsoft.CodeAnalysis;
 
 internal static class ICollectionExtensions
 {
+    public static void RemoveRange<T>(this ICollection<T> collection, IEnumerable<T>? items)
+    {
+        if (items != null)
+        {
+            foreach (var item in items)
+            {
+                collection.Remove(item);
+            }
+        }
+    }
+
+    public static void AddIfNotNull<T>(this ICollection<T> collection, T? value) where T : struct
+    {
+        if (value != null)
+            collection.Add(value.Value);
+    }
+
+    public static void AddIfNotNull<T>(this ICollection<T> collection, T? value) where T : class
+    {
+        if (value != null)
+            collection.Add(value);
+    }
+
     public static void AddRange<T>(this ICollection<T> collection, IEnumerable<T>? values)
     {
-        if (collection == null)
-        {
-            throw new ArgumentNullException(nameof(collection));
-        }
-
         if (values != null)
         {
             foreach (var item in values)
@@ -29,9 +47,6 @@ internal static class ICollectionExtensions
 
     public static void AddRange<T>(this ICollection<T> collection, ArrayBuilder<T>? values)
     {
-        if (collection == null)
-            throw new ArgumentNullException(nameof(collection));
-
         if (values != null)
         {
             foreach (var item in values)
@@ -41,9 +56,6 @@ internal static class ICollectionExtensions
 
     public static void AddRange<T>(this ICollection<T> collection, HashSet<T>? values)
     {
-        if (collection == null)
-            throw new ArgumentNullException(nameof(collection));
-
         if (values != null)
         {
             foreach (var item in values)
@@ -53,9 +65,6 @@ internal static class ICollectionExtensions
 
     public static void AddRange<TKey, TValue>(this ICollection<TKey> collection, Dictionary<TKey, TValue>.KeyCollection? keyCollection) where TKey : notnull
     {
-        if (collection == null)
-            throw new ArgumentNullException(nameof(collection));
-
         if (keyCollection != null)
         {
             foreach (var key in keyCollection)
@@ -65,11 +74,6 @@ internal static class ICollectionExtensions
 
     public static void AddRange<T>(this ICollection<T> collection, ImmutableArray<T> values)
     {
-        if (collection == null)
-        {
-            throw new ArgumentNullException(nameof(collection));
-        }
-
         if (!values.IsDefault)
         {
             foreach (var item in values)
