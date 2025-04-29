@@ -7980,6 +7980,6 @@ public class Derived : Base
                         "System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute(\"RequiredMembers\")"],
                        constructor.GetAttributes().Select(a => $"{a.AttributeClass.ToTestDisplayString()}({string.Join(", ", a.CommonConstructorArguments.Select(arg => arg.ToCSharpString()))})"));
 
-        Assert.False(constructor.ShouldCheckRequiredMembers());
+        Assert.True(constructor.ShouldCheckRequiredMembers());
     }
 }
