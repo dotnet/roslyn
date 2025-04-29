@@ -107,7 +107,7 @@ internal sealed class CrefCompletionProvider() : AbstractCrefCompletionProvider
             parentNode, cancellationToken).ConfigureAwait(false);
 
         var symbols = GetSymbols(token, semanticModel, cancellationToken)
-            .FilterToVisibleAndBrowsableSymbols(options.MemberDisplayOptions.HideAdvancedMembers, semanticModel.Compilation);
+            .FilterToVisibleAndBrowsableSymbols(options.MemberDisplayOptions.HideAdvancedMembers, semanticModel.Compilation, inclusionFilter: static s => true);
 
         return (token, semanticModel, symbols);
     }

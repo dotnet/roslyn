@@ -355,18 +355,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal void GetExtensionContainers(ArrayBuilder<NamedTypeSymbol> extensions)
+        internal virtual void GetExtensionContainers(ArrayBuilder<NamedTypeSymbol> extensions)
         {
             foreach (var type in this.GetTypeMembersUnordered())
             {
-                if (!type.IsReferenceType || !type.IsStatic || type.IsGenericType || !type.MightContainExtensionMethods) continue;
+                AddExtensionContainersInType(type, extensions);
+            }
+        }
 
-                foreach (var nestedType in type.GetTypeMembersUnordered())
+        protected void AddExtensionContainersInType(NamedTypeSymbol type, ArrayBuilder<NamedTypeSymbol> extensions)
+        {
+            // Consider whether IsClassType could be used instead. Tracked by https://github.com/dotnet/roslyn/issues/78275
+            if (!type.IsReferenceType || !type.IsStatic || type.IsGenericType || !type.MightContainExtensionMethods) return;
+
+            foreach (var nestedType in type.GetTypeMembersUnordered())
+            {
+                if (nestedType.IsExtension)
                 {
-                    if (nestedType.IsExtension)
-                    {
-                        extensions.Add(nestedType);
-                    }
+                    extensions.Add(nestedType);
                 }
             }
         }

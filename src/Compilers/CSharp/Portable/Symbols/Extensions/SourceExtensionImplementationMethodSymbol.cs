@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override MethodKind MethodKind => MethodKind.Ordinary;
         public override bool IsImplicitlyDeclared => true;
 
-        internal override bool HasSpecialName => true; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : reconcile with spec
+        internal override bool HasSpecialName => false;
 
         internal override int ParameterCount
         {
@@ -65,6 +65,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
+            if (_originalMethod is SourcePropertyAccessorSymbol { AssociatedSymbol: SourcePropertySymbolBase extensionProperty })
+            {
+                foreach (CSharpAttributeData attr in extensionProperty.GetAttributes())
+                {
+                    if (attr.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute))
+                    {
+                        AddSynthesizedAttribute(ref attributes, attr);
+                    }
+                }
+            }
+
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
             SourceMethodSymbol.AddSynthesizedAttributes(this, moduleBuilder, ref attributes);
         }
@@ -108,6 +119,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             thisParameter = null;
             return true;
+        }
+
+        internal override int TryGetOverloadResolutionPriority()
+        {
+            if (UnderlyingMethod is SourcePropertyAccessorSymbol { AssociatedSymbol: SourcePropertySymbol property })
+            {
+                return property.TryGetOverloadResolutionPriority();
+            }
+
+            return UnderlyingMethod.TryGetOverloadResolutionPriority();
         }
 
         private sealed class ExtensionMetadataMethodParameterSymbol : RewrittenMethodParameterSymbol

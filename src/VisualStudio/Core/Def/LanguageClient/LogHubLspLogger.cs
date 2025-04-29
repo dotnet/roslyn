@@ -38,6 +38,7 @@ internal sealed class LogHubLspLogger : AbstractLspLogger, ILspService
     }
 
     public override IDisposable? CreateContext(string context) => null;
+    public override IDisposable? CreateLanguageContext(string? language) => null;
 
     public override void LogDebug(string message, params object[] @params)
     {

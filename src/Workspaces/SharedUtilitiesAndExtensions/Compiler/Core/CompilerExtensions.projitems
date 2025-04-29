@@ -508,7 +508,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ProducerConsumer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\PublicContract.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\EditDistance.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\EventMap.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IBidirectionalMap.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ICacheEntry.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ICollectionExtensions.cs" />

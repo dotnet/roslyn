@@ -354,7 +354,7 @@ internal sealed class EditSession
         foreach (var documentId in newProject.State.DocumentStates.GetChangedStateIds(oldProject.State.DocumentStates, ignoreUnchangedContent: true))
         {
             var document = newProject.GetRequiredDocument(documentId);
-            if (document.State.Attributes.DesignTimeOnly)
+            if (!document.State.SupportsEditAndContinue())
             {
                 continue;
             }
@@ -375,7 +375,7 @@ internal sealed class EditSession
         foreach (var documentId in newProject.State.DocumentStates.GetAddedStateIds(oldProject.State.DocumentStates))
         {
             var document = newProject.GetRequiredDocument(documentId);
-            if (document.State.Attributes.DesignTimeOnly)
+            if (!document.State.SupportsEditAndContinue())
             {
                 continue;
             }
@@ -827,6 +827,30 @@ internal sealed class EditSession
             using var _5 = ArrayBuilder<Document>.GetInstance(out var changedOrAddedDocuments);
             using var _6 = ArrayBuilder<(DocumentId, ImmutableArray<RudeEditDiagnostic>)>.GetInstance(out var documentsWithRudeEdits);
             using var _7 = ArrayBuilder<ProjectId>.GetInstance(out var projectsToStale);
+
+            // After all projects have been analyzed "true" value indicates changed document that is only included in stale projects.
+            var changedDocumentsStaleness = new Dictionary<string, bool>(SolutionState.FilePathComparer);
+
+            void UpdateChangedDocumentsStaleness(bool isStale)
+            {
+                foreach (var changedDocument in changedOrAddedDocuments)
+                {
+                    var path = changedDocument.FilePath;
+
+                    // Only documents that support EnC (have paths) are added to the list.
+                    Contract.ThrowIfNull(path);
+
+                    if (isStale)
+                    {
+                        _ = changedDocumentsStaleness.TryAdd(path, true);
+                    }
+                    else
+                    {
+                        changedDocumentsStaleness[path] = false;
+                    }
+                }
+            }
+
             Diagnostic? syntaxError = null;
 
             var oldSolution = DebuggingSession.LastCommittedSolution;
@@ -860,13 +884,6 @@ internal sealed class EditSession
                     continue;
                 }
 
-                // We don't track document changes in stale projects until they are rebuilt (removed from stale set).
-                if (oldSolution.IsStaleProject(newProject.Id))
-                {
-                    Log.Write($"EnC state of {newProject.Name} '{newProject.FilePath}' queried: project is stale");
-                    continue;
-                }
-
                 await PopulateChangedAndAddedDocumentsAsync(Log, oldProject, newProject, changedOrAddedDocuments, diagnostics, cancellationToken).ConfigureAwait(false);
                 if (changedOrAddedDocuments.IsEmpty)
                 {
@@ -874,6 +891,16 @@ internal sealed class EditSession
                 }
 
                 Log.Write($"Found {changedOrAddedDocuments.Count} potentially changed document(s) in project {newProject.Name} '{newProject.FilePath}'");
+
+                var isStaleProject = oldSolution.IsStaleProject(newProject.Id);
+
+                // We don't consider document changes in stale projects until they are rebuilt (removed from stale set).
+                if (isStaleProject)
+                {
+                    Log.Write($"EnC state of {newProject.Name} '{newProject.FilePath}' queried: project is stale");
+                    UpdateChangedDocumentsStaleness(isStale: true);
+                    continue;
+                }
 
                 var (mvid, mvidReadError) = await DebuggingSession.GetProjectModuleIdAsync(newProject, cancellationToken).ConfigureAwait(false);
                 if (mvidReadError != null)
@@ -891,6 +918,7 @@ internal sealed class EditSession
                 if (mvid == Guid.Empty)
                 {
                     Log.Write($"Changes not applied to {newProject.Name} '{newProject.FilePath}': project not built");
+                    UpdateChangedDocumentsStaleness(isStale: true);
                     continue;
                 }
 
@@ -931,9 +959,14 @@ internal sealed class EditSession
                     // The project is considered stale as long as it has at least one document that is out-of-sync.
                     // Treat the project the same as if it hasn't been built. We won't produce delta for it until it gets rebuilt.
                     Log.Write($"Changes not applied to {newProject.Name} '{newProject.FilePath}': binaries not up-to-date");
+
                     projectsToStale.Add(newProject.Id);
+                    UpdateChangedDocumentsStaleness(isStale: true);
+
                     continue;
                 }
+
+                UpdateChangedDocumentsStaleness(isStale: false);
 
                 foreach (var changedDocumentAnalysis in changedDocumentAnalyses)
                 {
@@ -1156,6 +1189,22 @@ internal sealed class EditSession
                                 await fileLog.WriteDocumentChangeAsync(oldDocument, newDocument, updateId, generation, cancellationToken).ConfigureAwait(false);
                             }
                         }
+                    }
+                }
+            }
+
+            // Report stale document updates.
+            // We report a warning when a changed/added document is only included in (linked to) stale projects.
+
+            foreach (var (documentPath, isStale) in changedDocumentsStaleness)
+            {
+                if (isStale)
+                {
+                    foreach (var documentId in solution.GetDocumentIdsWithFilePath(documentPath))
+                    {
+                        var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.UpdatingDocumentInStaleProject);
+                        var diagnostic = Diagnostic.Create(descriptor, Location.Create(documentPath, textSpan: default, lineSpan: default), [documentPath]);
+                        diagnostics.Add(new ProjectDiagnostics(documentId.ProjectId, [diagnostic]));
                     }
                 }
             }

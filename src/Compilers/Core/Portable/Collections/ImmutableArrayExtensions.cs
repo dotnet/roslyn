@@ -1296,6 +1296,9 @@ namespace Microsoft.CodeAnalysis
         internal static int IndexOf<T>(this ImmutableArray<T> array, T item, IEqualityComparer<T> comparer)
             => array.IndexOf(item, startIndex: 0, comparer);
 
+        internal static bool IsSorted<T>(this ImmutableArray<T> array, Comparison<T> comparison)
+            => IsSorted(array, Comparer<T>.Create(comparison));
+
         internal static bool IsSorted<T>(this ImmutableArray<T> array, IComparer<T>? comparer = null)
         {
             comparer ??= Comparer<T>.Default;
