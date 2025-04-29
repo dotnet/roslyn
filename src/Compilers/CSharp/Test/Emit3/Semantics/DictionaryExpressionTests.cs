@@ -1203,6 +1203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                     public struct KeyValuePair<TKey, TValue>
                     {
+                        public KeyValuePair(TKey key, TValue value) { }
                         public TKey Key { get; }
                         public TValue Value { get; }
                     }
@@ -1237,9 +1238,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     static void Main()
                     {
-                        var d = F(1, "one", new KeyValuePair<int, string>(), null);
+                        Empty<int, string>();
+                        Many(1, "one", new KeyValuePair<int, string>(), null);
                     }
-                    static {{typeName}}<K, V> F<K, V>(K k, V v, KeyValuePair<K, V> x, IEnumerable<KeyValuePair<K, V>> y)
+                    static {{typeName}}<K, V> Empty<K, V>()
+                    {
+                        return [];
+                    }
+                    static {{typeName}}<K, V> Many<K, V>(K k, V v, KeyValuePair<K, V> x, IEnumerable<KeyValuePair<K, V>> y)
                     {
                         return [k:v, x, ..y];
                     }
@@ -1254,9 +1260,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             else
             {
                 comp.VerifyEmitDiagnostics(emitOptions,
-                    // 1.cs(10,16): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.Dictionary<K, V>' to 'System.Collections.Generic.IDictionary<K, V>'
+                    // 1.cs(11,16): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.Dictionary<K, V>' to 'System.Collections.Generic.IDictionary<K, V>'
+                    //         return [];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "[]").WithArguments("System.Collections.Generic.Dictionary<K, V>", $"System.Collections.Generic.{typeName}<K, V>").WithLocation(11, 16),
+                    // 1.cs(15,16): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.Dictionary<K, V>' to 'System.Collections.Generic.IDictionary<K, V>'
                     //         return [k:v, x, ..y];
-                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "[k:v, x, ..y]").WithArguments("System.Collections.Generic.Dictionary<K, V>", $"System.Collections.Generic.{typeName}<K, V>").WithLocation(10, 16));
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "[k:v, x, ..y]").WithArguments("System.Collections.Generic.Dictionary<K, V>", $"System.Collections.Generic.{typeName}<K, V>").WithLocation(15, 16));
             }
         }
 
@@ -1354,6 +1363,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [InlineData("IDictionary<int, string>")]
         [InlineData("IReadOnlyDictionary<int, string>")]
+        [InlineData("IDictionary<int?, object>")]
+        [InlineData("IReadOnlyDictionary<int?, object>")]
         public void KeyValuePair_MissingMember_DictionaryInterface(string typeName)
         {
             string source = $$"""
@@ -1382,7 +1393,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[1:""one""]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Key").WithLocation(4, 5),
                 // (4,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
                 // d = [1:"one"];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[1:""one""]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(4, 5));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[1:""one""]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(4, 5),
+                // (4,6): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2..ctor'
+                // d = [1:"one"];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"1:""one""").WithArguments("System.Collections.Generic.KeyValuePair`2", ".ctor").WithLocation(4, 6));
 
             comp = CreateCompilation(source);
             comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key);
@@ -1415,6 +1429,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (6,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
                 // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[.. new KeyValuePair<int, string>[] { new(3, ""three"") }]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(6, 5));
+
+            comp = CreateCompilation(source);
+            comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__ctor);
+            if (typeName.Contains("<int, string>"))
+            {
+                // PROTOTYPE: Should we really require KeyValuePair<,>..ctor() here?
+                comp.VerifyEmitDiagnostics(
+                    // (4,6): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2..ctor'
+                    // d = [1:"one"];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"1:""one""").WithArguments("System.Collections.Generic.KeyValuePair`2", ".ctor").WithLocation(4, 6));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,6): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2..ctor'
+                    // d = [1:"one"];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"1:""one""").WithArguments("System.Collections.Generic.KeyValuePair`2", ".ctor").WithLocation(4, 6),
+                    // (5,6): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2..ctor'
+                    // d = [new KeyValuePair<int, string>(2, "two")];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"new KeyValuePair<int, string>(2, ""two"")").WithArguments("System.Collections.Generic.KeyValuePair`2", ".ctor").WithLocation(5, 6),
+                    // (6,9): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2..ctor'
+                    // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"new KeyValuePair<int, string>[] { new(3, ""three"") }").WithArguments("System.Collections.Generic.KeyValuePair`2", ".ctor").WithLocation(6, 9));
+            }
         }
 
         [Fact]
@@ -1492,6 +1530,58 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (6,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
                 // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[.. new KeyValuePair<int, string>[] { new(3, ""three"") }]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(6, 5));
+
+            comp = CreateCompilation(sourceB, references: [refA]);
+            comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__ctor);
+            comp.VerifyEmitDiagnostics(
+                // (4,6): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2..ctor'
+                // d = [1:"one"];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"1:""one""").WithArguments("System.Collections.Generic.KeyValuePair`2", ".ctor").WithLocation(4, 6));
+        }
+
+        [Theory]
+        [InlineData("KeyValuePair<int?, object>[]")]
+        [InlineData("List<KeyValuePair<int?, object>>")]
+        public void KeyValuePair_MissingMember_NonDictionary(string typeName)
+        {
+            string source = $$"""
+                using System.Collections.Generic;
+                {{typeName}} d;
+                d = [];
+                d = [1:"one"];
+                d = [new KeyValuePair<int, string>(2, "two")];
+                d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(source);
+            comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key);
+            comp.VerifyEmitDiagnostics(
+                // (5,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Key'
+                // d = [new KeyValuePair<int, string>(2, "two")];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[new KeyValuePair<int, string>(2, ""two"")]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Key").WithLocation(5, 5));
+
+            comp = CreateCompilation(source);
+            comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value);
+            comp.VerifyEmitDiagnostics(
+                // (5,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
+                // d = [new KeyValuePair<int, string>(2, "two")];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[new KeyValuePair<int, string>(2, ""two"")]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(5, 5));
+
+            comp = CreateCompilation(source);
+            comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__ctor);
+            comp.VerifyEmitDiagnostics(
+                // (4,6): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2..ctor'
+                // d = [1:"one"];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"1:""one""").WithArguments("System.Collections.Generic.KeyValuePair`2", ".ctor").WithLocation(4, 6),
+                // (5,6): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2..ctor'
+                // d = [new KeyValuePair<int, string>(2, "two")];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"new KeyValuePair<int, string>(2, ""two"")").WithArguments("System.Collections.Generic.KeyValuePair`2", ".ctor").WithLocation(5, 6),
+                // (6,9): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2..ctor'
+                // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"new KeyValuePair<int, string>[] { new(3, ""three"") }").WithArguments("System.Collections.Generic.KeyValuePair`2", ".ctor").WithLocation(6, 9));
         }
 
         [Fact]
@@ -2065,18 +2155,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             string collectionTypeName = typeName.Replace("K, V", "System.Int32?, System.Object");
             // https://github.com/dotnet/roslyn/issues/77872: Include IOperation support for implicit Key and Value conversions.
-            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
-                (languageVersion == LanguageVersion.CSharp12) ?
+            string expectedIOperation = (languageVersion == LanguageVersion.CSharp12) ?
                 $$"""
                 ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: {{collectionTypeName}}, IsInvalid) (Syntax: '[k:v]')
                   Elements(1):
                       IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'k:v')
                 """ :
+                (typeName == "System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<K, V>>") ?
+                $$"""
+                ICollectionExpressionOperation (1 elements, ConstructMethod: System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<System.Int32?, System.Object>>..ctor()) (OperationKind.CollectionExpression, Type: System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<System.Int32?, System.Object>>) (Syntax: '[k:v]')
+                  Elements(1):
+                      IObjectCreationOperation (Constructor: System.Collections.Generic.KeyValuePair<System.Int32?, System.Object>..ctor(System.Int32? key, System.Object value)) (OperationKind.ObjectCreation, Type: System.Collections.Generic.KeyValuePair<System.Int32?, System.Object>, IsImplicit) (Syntax: 'k:v')
+                        Arguments(2):
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: key) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'k')
+                              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, IsImplicit) (Syntax: 'k')
+                                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                Operand:
+                                  IParameterReferenceOperation: k (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'k')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'v')
+                              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'v')
+                                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                Operand:
+                                  IParameterReferenceOperation: v (OperationKind.ParameterReference, Type: System.String) (Syntax: 'v')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Initializer:
+                          null
+                """ :
                 $$"""
                 ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: {{collectionTypeName}}) (Syntax: '[k:v]')
                   Elements(1):
                       IOperation:  (OperationKind.None, Type: null) (Syntax: 'k:v')
-                """);
+                """;
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp, expectedIOperation);
         }
 
         [Theory]
@@ -2162,18 +2275,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             string collectionTypeName = typeName.Replace("K, V", "System.Int32?, System.Object");
             // https://github.com/dotnet/roslyn/issues/77872: Include IOperation support for implicit Key and Value conversions.
-            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
-                (languageVersion == LanguageVersion.CSharp12) ?
+            string expectedIOperation = (languageVersion == LanguageVersion.CSharp12) ?
                 $$"""
                 ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: {{collectionTypeName}}, IsInvalid) (Syntax: '[e]')
                   Elements(1):
                       IParameterReferenceOperation: e (OperationKind.ParameterReference, Type: System.Collections.Generic.KeyValuePair<System.Int32, System.String>, IsInvalid) (Syntax: 'e')
                 """ :
+                (typeName == "System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<K, V>>") ?
+                $$"""
+                ICollectionExpressionOperation (1 elements, ConstructMethod: System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<System.Int32?, System.Object>>..ctor()) (OperationKind.CollectionExpression, Type: System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<System.Int32?, System.Object>>) (Syntax: '[e]')
+                  Elements(1):
+                      IOperation:  (OperationKind.None, Type: System.Collections.Generic.KeyValuePair<System.Int32?, System.Object>) (Syntax: 'e')
+                """ :
                 $$"""
                 ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: {{collectionTypeName}}) (Syntax: '[e]')
                   Elements(1):
                       IOperation:  (OperationKind.None, Type: System.Collections.Generic.KeyValuePair<System.Int32?, System.Object>) (Syntax: 'e')
-                """);
+                """;
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp, expectedIOperation);
         }
 
         [Theory]
@@ -2290,8 +2409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             string collectionTypeName = typeName.Replace("K, V", "System.Int32?, System.Object");
             // https://github.com/dotnet/roslyn/issues/77872: Include IOperation support for implicit Key and Value conversions.
-            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
-                (languageVersion == LanguageVersion.CSharp12) ?
+            string expectedIOperation = (languageVersion == LanguageVersion.CSharp12) ?
                 $$"""
                 ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: {{collectionTypeName}}, IsInvalid) (Syntax: '[..s]')
                   Elements(1):
@@ -2301,6 +2419,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         ElementConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           (NoConversion)
                 """ :
+                (typeName == "System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<K, V>>") ?
+                $$"""
+                ICollectionExpressionOperation (1 elements, ConstructMethod: System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<System.Int32?, System.Object>>..ctor()) (OperationKind.CollectionExpression, Type: System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<System.Int32?, System.Object>>) (Syntax: '[..s]')
+                  Elements(1):
+                      ISpreadOperation (ElementType: System.Collections.Generic.KeyValuePair<System.Int32, System.String>) (OperationKind.Spread, Type: null) (Syntax: '..s')
+                        Operand:
+                          IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Collections.Generic.KeyValuePair<System.Int32, System.String>[]) (Syntax: 's')
+                        ElementConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (Identity)
+                """ :
                 $$"""
                 ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: {{collectionTypeName}}) (Syntax: '[..s]')
                   Elements(1):
@@ -2309,7 +2437,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                           IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Collections.Generic.KeyValuePair<System.Int32, System.String>[]) (Syntax: 's')
                         ElementConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           (Identity)
-                """);
+                """;
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp, expectedIOperation);
         }
 
         [Theory]

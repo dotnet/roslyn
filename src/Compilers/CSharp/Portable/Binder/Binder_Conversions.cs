@@ -871,6 +871,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer or CollectionExpressionTypeKind.DictionaryInterface)
             {
+                // PROTOTYPE: Check System_Collections_Generic_KeyValuePair_KV__ctor always as well?
+                // PROTOTYPE: Should we check all of these for non-dictionary collections of KeyValuePair<,>?
                 _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key, diagnostics, syntax: syntax);
                 _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value, diagnostics, syntax: syntax);
             }
@@ -1055,7 +1057,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (elementKeyValueTypes is (var elementKeyType, var elementValueType) &&
                                 elementConversion.TryGetKeyValueConversions(out var keyConversion, out var valueConversion))
                             {
-                                _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__ctor, diagnostics, syntax: expressionSyntax); // PROTOTYPE: Test missing constructor.
+                                _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__ctor, diagnostics, syntax: expressionSyntax);
                                 if (!ConversionsBase.IsKeyValuePairType(Compilation, expressionElement.Type, out var keyType, out var valueType))
                                 {
                                     throw ExceptionUtilities.UnexpectedValue(expressionElement.Type);
@@ -1073,6 +1075,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     elementType);
                                 if (collectionInitializerAddMethodBinder is { })
                                 {
+                                    // PROTOTYPE: Need to check System_Collections_Generic_KeyValuePair_KV__getKey and __getValue are available. Test KeyValuePair_MissingMember_NonDictionary() currently fails some cases in lowering.
                                     convertedElement = BindCollectionInitializerElementAddMethod(
                                         expressionSyntax,
                                         [keyValuePairConversion],
@@ -1113,7 +1116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (arg.elementKeyValueTypes is (var elementKeyType, var elementValueType) &&
                                     arg.elementConversion.TryGetKeyValueConversions(out var keyConversion, out var valueConversion))
                                 {
-                                    _ = binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__ctor, diagnostics, syntax: syntax); // PROTOTYPE: Test missing constructor.
+                                    _ = binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__ctor, diagnostics, syntax: syntax);
                                     if (!ConversionsBase.IsKeyValuePairType(binder.Compilation, item.Type, out var keyType, out var valueType))
                                     {
                                         throw ExceptionUtilities.UnexpectedValue(item.Type);
@@ -1130,6 +1133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         type: arg.elementType);
                                     if (arg.collectionInitializerAddMethodBinder is { })
                                     {
+                                        // PROTOTYPE: Need to check System_Collections_Generic_KeyValuePair_KV__getKey and __getValue are available. Test KeyValuePair_MissingMember_NonDictionary() currently fails some cases in lowering.
                                         return binder.BindCollectionInitializerElementAddMethod(
                                             syntax,
                                             [keyValuePairConversion],
@@ -1172,14 +1176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var value = CreateConversion(keyValuePairElement.Value, valueConversion, elementValueType, diagnostics);
                                 if (collectionInitializerAddMethodBinder is { })
                                 {
-                                    Debug.Assert(keyValuePairConstructor != null); // PROTOTYPE: Test missing constructor.
-#if DEBUG
-                                    Debug.Assert(ConversionsBase.IsKeyValuePairType(Compilation, elementType, out var keyType, out var valueType) &&
-                                        keyType.Equals(key.Type, TypeCompareKind.AllIgnoreOptions) &&
-                                        valueType.Equals(value.Type, TypeCompareKind.AllIgnoreOptions));
-#endif
-                                    keyValuePairConstructor = keyValuePairConstructor.AsMember((NamedTypeSymbol)elementType);
-                                    var keyValuePair = new BoundObjectCreationExpression(keyValuePairSyntax, keyValuePairConstructor, key, value) { WasCompilerGenerated = true };
+                                    var keyValuePair = createKeyValuePair(keyValuePairSyntax, keyValuePairConstructor, key, value, elementType);
                                     convertedElement = BindCollectionInitializerElementAddMethod(
                                         keyValuePairSyntax,
                                         [keyValuePair],
@@ -1209,6 +1206,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             conversion.MarkUnderlyingConversionsChecked();
 
             return builder.ToImmutableAndFree();
+
+            BoundExpression createKeyValuePair(
+                SyntaxNode syntax,
+                MethodSymbol? constructor,
+                BoundExpression key,
+                BoundExpression value,
+                TypeSymbol keyValuePairType)
+            {
+#if DEBUG
+                Debug.Assert(ConversionsBase.IsKeyValuePairType(Compilation, keyValuePairType, out var keyType, out var valueType) &&
+                    keyType.Equals(key.Type, TypeCompareKind.AllIgnoreOptions) &&
+                    valueType.Equals(value.Type, TypeCompareKind.AllIgnoreOptions));
+#endif
+                if (constructor is null)
+                {
+                    return new BoundBadExpression(syntax, LookupResultKind.Empty, symbols: [], childBoundNodes: [], keyValuePairType) { WasCompilerGenerated = true };
+                }
+                constructor = constructor.AsMember((NamedTypeSymbol)keyValuePairType);
+                return new BoundObjectCreationExpression(syntax, constructor, key, value) { WasCompilerGenerated = true };
+            }
         }
 
         internal BoundMethodGroup BindCollectionBuilderMethodGroup(

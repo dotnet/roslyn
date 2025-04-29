@@ -23,12 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable();
         }
 
-        public override BoundNode? VisitKeyValuePairConversion(BoundKeyValuePairConversion node)
-        {
-            // Should be handled within RewriteCollectionExpressionConversion().
-            throw ExceptionUtilities.Unreachable();
-        }
-
         public override BoundNode? VisitUnconvertedCollectionExpression(BoundUnconvertedCollectionExpression node)
         {
             throw ExceptionUtilities.Unreachable();
@@ -1452,22 +1446,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         RewriteKeyValuePairElement(keyValuePairElement, out var rewrittenKey, out var rewrittenValue);
                         return CreateKeyValuePair(rewrittenKey, rewrittenValue);
                     }
-                case BoundKeyValuePairConversion keyValuePairConversion:
-                    {
-                        var localsBuilder = ArrayBuilder<BoundLocal>.GetInstance();
-                        var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
-                        RewriteKeyValuePairConversion(keyValuePairConversion, out var rewrittenKeyConversion, out var rewrittenValueConversion, localsBuilder, sideEffects);
-                        var value = CreateKeyValuePair(rewrittenKeyConversion, rewrittenValueConversion);
-                        Debug.Assert(value.Type is { });
-                        var locals = localsBuilder.SelectAsArray(local => local.LocalSymbol);
-                        localsBuilder.Free();
-                        return new BoundSequence(
-                            keyValuePairConversion.Syntax,
-                            locals,
-                            sideEffects.ToImmutableAndFree(),
-                            value,
-                            value.Type);
-                    }
                 case BoundExpression expression:
                     return VisitExpression(expression);
                 case BoundCollectionExpressionSpreadElement spreadElement when allowSpreadElement:
@@ -1475,6 +1453,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     throw ExceptionUtilities.UnexpectedValue(element);
             }
+        }
+
+        public override BoundNode? VisitKeyValuePairConversion(BoundKeyValuePairConversion node)
+        {
+            var localsBuilder = ArrayBuilder<BoundLocal>.GetInstance();
+            var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
+            RewriteKeyValuePairConversion(node, out var rewrittenKeyConversion, out var rewrittenValueConversion, localsBuilder, sideEffects);
+            var value = CreateKeyValuePair(rewrittenKeyConversion, rewrittenValueConversion);
+            Debug.Assert(value.Type is { });
+            var locals = localsBuilder.SelectAsArray(local => local.LocalSymbol);
+            localsBuilder.Free();
+            return new BoundSequence(
+                node.Syntax,
+                locals,
+                sideEffects.ToImmutableAndFree(),
+                value,
+                value.Type);
         }
 
         private void RewriteCollectionExpressionElementsIntoTemporaries(
