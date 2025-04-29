@@ -2147,7 +2147,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.IsCompleted = isCompleted;
             this.GetResult = getResult;
             this.RuntimeAsyncAwaitMethod = runtimeAsyncAwaitMethod;
+            Validate();
         }
+
+        [Conditional("DEBUG")]
+        private partial void Validate();
 
         public BoundAwaitableValuePlaceholder? AwaitableInstancePlaceholder { get; }
         public bool IsDynamic { get; }

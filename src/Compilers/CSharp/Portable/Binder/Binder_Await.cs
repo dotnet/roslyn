@@ -59,12 +59,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out PropertySymbol? isCompleted,
                 out MethodSymbol? getResult,
                 getAwaiterGetResultCall: out _,
-                out MethodSymbol? runtimeAsyncAwaitCall,
+                out MethodSymbol? runtimeAsyncAwaitMethod,
                 node,
                 diagnostics);
             hasErrors |= hasGetAwaitableErrors;
 
-            return new BoundAwaitableInfo(node, placeholder, isDynamic: isDynamic, getAwaiter, isCompleted, getResult, runtimeAsyncAwaitCall, hasErrors: hasGetAwaitableErrors) { WasCompilerGenerated = true };
+            return new BoundAwaitableInfo(node, placeholder, isDynamic: isDynamic, getAwaiter, isCompleted, getResult, runtimeAsyncAwaitMethod, hasErrors: hasGetAwaitableErrors) { WasCompilerGenerated = true };
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return GetAwaitableExpressionInfo(expression, getAwaiterGetResultCall: out _, runtimeAsyncAwaitCall: out _,
+            return GetAwaitableExpressionInfo(expression, getAwaiterGetResultCall: out _, runtimeAsyncAwaitMethod: out _,
                 node: syntax, diagnostics: BindingDiagnosticBag.Discarded);
         }
 
@@ -244,11 +244,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool GetAwaitableExpressionInfo(
             BoundExpression expression,
             out BoundExpression? getAwaiterGetResultCall,
-            out MethodSymbol? runtimeAsyncAwaitCall,
+            out MethodSymbol? runtimeAsyncAwaitMethod,
             SyntaxNode node,
             BindingDiagnosticBag diagnostics)
         {
-            return GetAwaitableExpressionInfo(expression, expression, out _, out _, out _, out _, out getAwaiterGetResultCall, out runtimeAsyncAwaitCall, node, diagnostics);
+            return GetAwaitableExpressionInfo(expression, expression, out _, out _, out _, out _, out getAwaiterGetResultCall, out runtimeAsyncAwaitMethod, node, diagnostics);
         }
 
         private bool GetAwaitableExpressionInfo(
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out PropertySymbol? isCompleted,
             out MethodSymbol? getResult,
             out BoundExpression? getAwaiterGetResultCall,
-            out MethodSymbol? runtimeAsyncAwaitCall,
+            out MethodSymbol? runtimeAsyncAwaitMethod,
             SyntaxNode node,
             BindingDiagnosticBag diagnostics)
         {
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             isCompleted = null;
             getResult = null;
             getAwaiterGetResultCall = null;
-            runtimeAsyncAwaitCall = null;
+            runtimeAsyncAwaitMethod = null;
 
             if (!ValidateAwaitedExpression(expression, node, diagnostics))
             {
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // When RuntimeAsync is enabled, we first check for whether there is an AsyncHelpers.Await method that can handle the expression.
             // PROTOTYPE: Do the full algorithm specified in https://github.com/dotnet/roslyn/pull/77957
 
-            if (tryGetRuntimeAwaitHelper(out runtimeAsyncAwaitCall))
+            if (isRuntimeAsyncEnabled && tryGetRuntimeAwaitHelper(expression, out runtimeAsyncAwaitMethod, diagnostics))
             {
                 return true;
             }
@@ -303,19 +303,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetIsCompletedProperty(awaiterType, node, expression.Type!, diagnostics, out isCompleted)
                 && AwaiterImplementsINotifyCompletion(awaiterType, node, diagnostics)
                 && GetGetResultMethod(getAwaiter, node, expression.Type!, diagnostics, out getResult, out getAwaiterGetResultCall)
-                && (!isRuntimeAsyncEnabled || getRuntimeAwaitAwaiter(awaiterType, out runtimeAsyncAwaitCall));
+                && (!isRuntimeAsyncEnabled || getRuntimeAwaitAwaiter(awaiterType, out runtimeAsyncAwaitMethod, expression.Syntax, diagnostics));
 
-            bool tryGetRuntimeAwaitHelper(out MethodSymbol? runtimeAwaitHelper)
+            bool tryGetRuntimeAwaitHelper(BoundExpression expression, out MethodSymbol? runtimeAwaitHelper, BindingDiagnosticBag diagnostics)
             {
-                if (!isRuntimeAsyncEnabled)
-                {
-                    runtimeAwaitHelper = null;
-                    return false;
-                }
-
                 var exprOriginalType = expression.Type!.OriginalDefinition;
                 SpecialMember awaitCall;
-                TypeWithAnnotations? maybeNestedType = null;
+                TypeWithAnnotations? maybeResultType = null;
                 if (ReferenceEquals(exprOriginalType, GetSpecialType(InternalSpecialType.System_Threading_Tasks_Task, diagnostics, expression.Syntax)))
                 {
                     awaitCall = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitTask;
@@ -323,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (ReferenceEquals(exprOriginalType, GetSpecialType(InternalSpecialType.System_Threading_Tasks_Task_T, diagnostics, expression.Syntax)))
                 {
                     awaitCall = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitTaskT_T;
-                    maybeNestedType = ((NamedTypeSymbol)expression.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+                    maybeResultType = ((NamedTypeSymbol)expression.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
                 }
                 else if (ReferenceEquals(exprOriginalType, GetSpecialType(InternalSpecialType.System_Threading_Tasks_ValueTask, diagnostics, expression.Syntax)))
                 {
@@ -332,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (ReferenceEquals(exprOriginalType, GetSpecialType(InternalSpecialType.System_Threading_Tasks_ValueTask_T, diagnostics, expression.Syntax)))
                 {
                     awaitCall = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTaskT_T;
-                    maybeNestedType = ((NamedTypeSymbol)expression.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+                    maybeResultType = ((NamedTypeSymbol)expression.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
                 }
                 else
                 {
@@ -347,23 +341,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                if (maybeNestedType is { } nestedType)
+                Debug.Assert((runtimeAwaitHelper is { Arity: 1 } && maybeResultType is { }) || runtimeAwaitHelper.TypeParameters.Length == 0);
+
+                if (maybeResultType is { } resultType)
                 {
-                    Debug.Assert(runtimeAwaitHelper.TypeParameters.Length == 1);
-                    runtimeAwaitHelper = runtimeAwaitHelper.Construct([nestedType]);
-                    checkMethodGenericConstraints(runtimeAwaitHelper, diagnostics, expression.Syntax.Location);
+                    runtimeAwaitHelper = runtimeAwaitHelper.Construct([resultType]);
+                    ConstraintsHelper.CheckConstraints(
+                        runtimeAwaitHelper,
+                        new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, expression.Syntax.Location, diagnostics));
                 }
-#if DEBUG
-                else
-                {
-                    Debug.Assert(runtimeAwaitHelper.TypeParameters.Length == 0);
-                }
-#endif
 
                 return true;
             }
 
-            bool getRuntimeAwaitAwaiter(TypeSymbol awaiterType, out MethodSymbol? runtimeAwaitAwaiterMethod)
+            bool getRuntimeAwaitAwaiter(TypeSymbol awaiterType, out MethodSymbol? runtimeAwaitAwaiterMethod, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
             {
                 // Use site info is discarded because we don't actually do this conversion, we just need to know which generic
                 // method to call.
@@ -378,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ? SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter
                         : SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter,
                     diagnostics,
-                    expression.Syntax);
+                    syntax);
 
                 if (awaitMethod is null)
                 {
@@ -389,42 +380,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(awaitMethod is { Arity: 1 });
 
                 runtimeAwaitAwaiterMethod = awaitMethod.Construct(awaiterType);
-                checkMethodGenericConstraints(runtimeAwaitAwaiterMethod, diagnostics, expression.Syntax.Location);
+                ConstraintsHelper.CheckConstraints(
+                    runtimeAwaitAwaiterMethod,
+                    new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, syntax.Location, diagnostics));
 
                 return true;
-            }
-
-            void checkMethodGenericConstraints(MethodSymbol method, BindingDiagnosticBag diagnostics, Location location)
-            {
-                var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
-                ArrayBuilder<TypeParameterDiagnosticInfo>? useSiteDiagnosticsBuilder = null;
-                ConstraintsHelper.CheckMethodConstraints(
-                    method,
-                    new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, location, diagnostics: null),
-                    diagnosticsBuilder,
-                    nullabilityDiagnosticsBuilderOpt: null,
-                    ref useSiteDiagnosticsBuilder);
-
-                foreach (var pair in diagnosticsBuilder)
-                {
-                    if (pair.UseSiteInfo.DiagnosticInfo is { } diagnosticInfo)
-                    {
-                        diagnostics.Add(diagnosticInfo, location);
-                    }
-                    diagnosticsBuilder.Free();
-                }
-
-                if (useSiteDiagnosticsBuilder is { })
-                {
-                    foreach (var pair in useSiteDiagnosticsBuilder)
-                    {
-                        if (pair.UseSiteInfo.DiagnosticInfo is { } diagnosticInfo)
-                        {
-                            diagnostics.Add(diagnosticInfo, location);
-                        }
-                    }
-                    useSiteDiagnosticsBuilder.Free();
-                }
             }
         }
 
