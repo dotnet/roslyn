@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Roslyn.Utilities;
 
@@ -20,10 +21,52 @@ internal partial class VisualStudioMetadataReferenceManager
         /// </summary>
         private sealed class FileTimeStampProvider
         {
+            private static FileTimeStampProvider? s_instance;
+
             private readonly Dictionary<string, DateTime> _cachedTimestamps = [];
             private readonly Dictionary<string, IFileChangeContext> _fileChangeContexts = [];
 
-            public DateTime GetTimeStamp(string fullPath, IFileChangeWatcher watcher)
+            private FileTimeStampProvider(Workspace workspace)
+            {
+                _ = workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
+            }
+
+            private void OnWorkspaceChanged(WorkspaceChangeEventArgs args)
+            {
+                switch (args.Kind)
+                {
+                    case WorkspaceChangeKind.SolutionAdded:
+                    case WorkspaceChangeKind.SolutionCleared:
+                    case WorkspaceChangeKind.SolutionReloaded:
+                    case WorkspaceChangeKind.SolutionRemoved:
+                        ResetCaches();
+                        break;
+                }
+
+                return;
+
+                void ResetCaches()
+                {
+                    lock (_cachedTimestamps)
+                    {
+                        foreach (var (_, context) in _fileChangeContexts)
+                            context.FileChanged -= OnContextFileChanged;
+
+                        _fileChangeContexts.Clear();
+                        _cachedTimestamps.Clear();
+                    }
+                }
+            }
+
+            public static DateTime GetTimeStamp(string fullPath, IFileChangeWatcher watcher, Workspace workspace)
+               => GetInstance(workspace).GetTimeStamp(fullPath, watcher);
+
+            private static FileTimeStampProvider GetInstance(Workspace workspace)
+            {
+                return s_instance ??= new FileTimeStampProvider(workspace);
+            }
+
+            private DateTime GetTimeStamp(string fullPath, IFileChangeWatcher watcher)
             {
                 DateTime timestamp;
 

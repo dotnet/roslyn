@@ -65,6 +65,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     private readonly ReaderWriterLockSlim _smartOpenScopeLock = new();
 
     private readonly IFileChangeWatcher _fileChangeWatcher;
+    private readonly Workspace _workspace;
 
     /// <summary>
     /// The smart open scope service. This can be null during shutdown when using the service might crash. Any
@@ -82,6 +83,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     {
         _runtimeDirectories = GetRuntimeDirectories();
         _fileChangeWatcher = fileChangeWatcherProvider.Watcher;
+        _workspace = workspace;
 
         _xmlMemberIndexService = (IVsXMLMemberIndexService)serviceProvider.GetService(typeof(SVsXMLMemberIndexService));
         Assumes.Present(_xmlMemberIndexService);
@@ -132,7 +134,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     }
 
     public PortableExecutableReference CreateMetadataReferenceSnapshot(string filePath, MetadataReferenceProperties properties)
-        => new VisualStudioPortableExecutableReference(this, properties, filePath, _fileChangeWatcher);
+        => new VisualStudioPortableExecutableReference(this, properties, filePath, _fileChangeWatcher, _workspace);
 
     private bool VsSmartScopeCandidate(string fullPath)
         => _runtimeDirectories.Any(static (d, fullPath) => fullPath.StartsWith(d, StringComparison.OrdinalIgnoreCase), fullPath);
