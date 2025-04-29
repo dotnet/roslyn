@@ -27,7 +27,6 @@ We use the following helper APIs to indicate suspension points to the runtime, i
 ```cs
 namespace System.Runtime.CompilerServices;
 
-// TODO: Clarify which of these should be preferred? Should we always emit the `Unsafe` version when awaiting something that implements `ICriticalNotifyCompletion`?
 namespace System.Runtime.CompilerServices;
 
     [System.Diagnostics.CodeAnalysis.ExperimentalAttribute("SYSLIB5007", UrlFormat = "https://aka.ms/dotnet-warnings/{0}")]
@@ -62,17 +61,6 @@ public enum MethodImplOptions
 }
 ```
 
-Additionally, we use the following helper type to indicate information to the runtime. If this type is not present in the reference assemblies, we will generate it; the runtime matches by full
-name, not by type identity, so we do not need to care about using the "canonical" version.
-
-```cs
-namespace System.Runtime.CompilerServices;
-
-// Used to mark locals that should be hoisted to the generated async closure. Note that the runtime does not guarantee that all locals marked with this modreq will be hoisted; if it can prove that it
-// doesn't need to hoist a variable, it may avoid doing so.
-public class HoistedLocal();
-```
-
 For experimentation purposes, we recognize an attribute that can be used to force the compiler to generate the runtime async code, or to force the compiler to generate a full state machine. This attribute is not
 defined in the BCL, and exists as an escape hatch for experimentation. It may be removed when the feature ships in stable.
 
@@ -97,8 +85,6 @@ TODO: Go over `IAsyncEnumerable` and confirm that the initial rewrite to a `Task
 
 TODO: Clarify with the debugger team where NOPs need to be inserted for debugging/ENC scenarios.
     We will likely need to insert AwaitYieldPoint and AwaitResumePoints for the scenarios where we emit calls to `AsyncHelpers` async helpers, but can we avoid them for calls in runtime async form?
-
-TODO: Do we need to implement clearing of locals marked with `Hoisted`, or will the runtime handle that?
 
 ### Example transformations
 
