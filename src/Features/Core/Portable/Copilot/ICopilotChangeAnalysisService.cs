@@ -41,11 +41,9 @@ internal interface ICopilotChangeAnalysisService : IWorkspaceService
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class DefaultCopilotChangeAnalysisService(
-    ICodeFixService codeFixService,
-    IDiagnosticAnalyzerService diagnosticAnalyzerService) : ICopilotChangeAnalysisService
+    ICodeFixService codeFixService) : ICopilotChangeAnalysisService
 {
     private readonly ICodeFixService _codeFixService = codeFixService;
-    private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService = diagnosticAnalyzerService;
 
     public async Task<CopilotChangeAnalysis> AnalyzeChangeAsync(
         Document document,
@@ -149,7 +147,7 @@ internal sealed class DefaultCopilotChangeAnalysisService(
         map[key] = currentElapsed + elapsed;
     }
 
-    private Task<ImmutableArray<CopilotDiagnosticAnalysis>> ComputeAllDiagnosticAnalysesAsync(
+    private static Task<ImmutableArray<CopilotDiagnosticAnalysis>> ComputeAllDiagnosticAnalysesAsync(
         Document newDocument,
         ArrayBuilder<TextSpan> newSpans,
         CancellationToken cancellationToken)
@@ -159,13 +157,13 @@ internal sealed class DefaultCopilotChangeAnalysisService(
             [DiagnosticKind.CompilerSyntax, DiagnosticKind.CompilerSemantic, DiagnosticKind.AnalyzerSyntax, DiagnosticKind.AnalyzerSemantic],
             static async (diagnosticKind, callback, args, cancellationToken) =>
             {
-                var (diagnosticAnalyzerService, newDocument, newSpans) = args;
+                var (newDocument, newSpans) = args;
 
                 var computationTime = SharedStopwatch.StartNew();
 
                 // Compute the diagnostics.
                 var diagnostics = await ComputeDiagnosticsAsync(
-                    diagnosticAnalyzerService, newDocument, newSpans, diagnosticKind, cancellationToken).ConfigureAwait(false);
+                    newDocument, newSpans, diagnosticKind, cancellationToken).ConfigureAwait(false);
 
                 // Collect the data to report as telemetry.
                 var idToCount = new Dictionary<string, int>();
@@ -186,11 +184,10 @@ internal sealed class DefaultCopilotChangeAnalysisService(
                     categoryToCount,
                     severityToCount));
             },
-            args: (_diagnosticAnalyzerService, newDocument, newSpans),
+            args: (newDocument, newSpans),
             cancellationToken);
 
         static Task<ImmutableArray<DiagnosticData>> ComputeDiagnosticsAsync(
-           IDiagnosticAnalyzerService diagnosticAnalyzerService,
            Document newDocument,
            ArrayBuilder<TextSpan> newSpans,
            DiagnosticKind diagnosticKind,
@@ -201,7 +198,8 @@ internal sealed class DefaultCopilotChangeAnalysisService(
                 newSpans,
                 static async (span, callback, args, cancellationToken) =>
                 {
-                    var (diagnosticAnalyzerService, newDocument, diagnosticKind) = args;
+                    var (newDocument, diagnosticKind) = args;
+                    var diagnosticAnalyzerService = newDocument.Project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
                     var diagnostics = await diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(
                         newDocument, span, diagnosticKind, cancellationToken).ConfigureAwait(false);
                     foreach (var diagnostic in diagnostics)
@@ -212,7 +210,7 @@ internal sealed class DefaultCopilotChangeAnalysisService(
                             callback(diagnostic);
                     }
                 },
-                args: (diagnosticAnalyzerService, newDocument, diagnosticKind),
+                args: (newDocument, diagnosticKind),
                 cancellationToken);
         }
     }

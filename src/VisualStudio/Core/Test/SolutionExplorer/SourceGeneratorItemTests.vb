@@ -272,7 +272,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 workspace.GetService(Of IThreadingContext),
                 New AnalyzerItem(New AnalyzersFolderItem(workspace.GetService(Of IThreadingContext), workspace, projectId, Nothing, Nothing), analyzerReference, Nothing),
                 New FakeAnalyzersCommandHandler,
-                workspace.GetService(Of IDiagnosticAnalyzerService),
                 workspace.GetService(Of IAsynchronousOperationListenerProvider))
         End Function
 

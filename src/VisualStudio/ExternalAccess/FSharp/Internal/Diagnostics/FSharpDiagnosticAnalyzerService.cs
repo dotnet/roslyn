@@ -7,24 +7,17 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics;
 
-[Shared]
-[Export(typeof(IFSharpDiagnosticAnalyzerService))]
-internal class FSharpDiagnosticAnalyzerService : IFSharpDiagnosticAnalyzerService
+[Export(typeof(IFSharpDiagnosticAnalyzerService)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class FSharpDiagnosticAnalyzerService(IDiagnosticsRefresher refresher) : IFSharpDiagnosticAnalyzerService
 {
-    private readonly Microsoft.CodeAnalysis.Diagnostics.IDiagnosticAnalyzerService _delegatee;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public FSharpDiagnosticAnalyzerService(Microsoft.CodeAnalysis.Diagnostics.IDiagnosticAnalyzerService delegatee)
-    {
-        _delegatee = delegatee;
-    }
-
     public void Reanalyze(Workspace workspace, IEnumerable<ProjectId> projectIds = null, IEnumerable<DocumentId> documentIds = null, bool highPriority = false)
-        => _delegatee.RequestDiagnosticRefresh();
+        => refresher.RequestWorkspaceRefresh();
 }

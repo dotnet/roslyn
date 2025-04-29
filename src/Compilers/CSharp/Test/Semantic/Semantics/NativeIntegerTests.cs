@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
@@ -42,6 +41,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         internal static readonly ConversionKind[] ExplicitNullableNumeric = new[] { ConversionKind.ExplicitNullable, ConversionKind.ExplicitNumeric };
         internal static readonly ConversionKind[] ExplicitNullablePointerToInteger = new[] { ConversionKind.ExplicitNullable, ConversionKind.ExplicitPointerToInteger };
         internal static readonly ConversionKind[] ExplicitNullableIdentity = new[] { ConversionKind.ExplicitNullable, ConversionKind.Identity };
+
+        internal static readonly SymbolDisplayFormat TestFormat = SymbolDisplayFormat.TestFormat
+            .RemoveCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType);
+
+        internal static readonly SymbolDisplayFormat ILFormat = SymbolDisplayFormat.ILVisualizationFormat
+            .RemoveCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType);
 
         internal static bool IsNoConversion(ConversionKind[] conversionKinds)
         {
@@ -112,12 +117,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             VerifyType(type.GetPublicSymbol(), signed: false, isNativeInt: false);
 
             var method = comp.GetMember<MethodSymbol>("I.F1");
-            Assert.Equal("void I.F1(System.IntPtr x, nint y)", method.ToTestDisplayString());
+            Assert.Equal("void I.F1(System.IntPtr x, nint y)", method.ToDisplayString(TestFormat));
             Assert.Equal("Sub I.F1(x As System.IntPtr, y As System.IntPtr)", VisualBasic.SymbolDisplay.ToDisplayString(method.GetPublicSymbol(), SymbolDisplayFormat.TestFormat));
             VerifyTypes((NamedTypeSymbol)method.Parameters[0].Type, (NamedTypeSymbol)method.Parameters[1].Type, signed: true);
 
             method = comp.GetMember<MethodSymbol>("I.F2");
-            Assert.Equal("void I.F2(System.UIntPtr x, nuint y)", method.ToTestDisplayString());
+            Assert.Equal("void I.F2(System.UIntPtr x, nuint y)", method.ToDisplayString(TestFormat));
             Assert.Equal("Sub I.F2(x As System.UIntPtr, y As System.UIntPtr)", VisualBasic.SymbolDisplay.ToDisplayString(method.GetPublicSymbol(), SymbolDisplayFormat.TestFormat));
             VerifyTypes((NamedTypeSymbol)method.Parameters[0].Type, (NamedTypeSymbol)method.Parameters[1].Type, signed: false);
         }
@@ -208,11 +213,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 VerifyType(type.GetPublicSymbol(), signed: false, isNativeInt: false);
 
                 var method = comp.GetMember<MethodSymbol>("I.F1");
-                Assert.Equal("void I.F1(System.IntPtr x, nint y)", method.ToTestDisplayString());
+                Assert.Equal("void I.F1(System.IntPtr x, nint y)", method.ToDisplayString(TestFormat));
                 VerifyTypes((NamedTypeSymbol)method.Parameters[0].Type, (NamedTypeSymbol)method.Parameters[1].Type, signed: true);
 
                 method = comp.GetMember<MethodSymbol>("I.F2");
-                Assert.Equal("void I.F2(System.UIntPtr x, nuint y)", method.ToTestDisplayString());
+                Assert.Equal("void I.F2(System.UIntPtr x, nuint y)", method.ToDisplayString(TestFormat));
                 VerifyTypes((NamedTypeSymbol)method.Parameters[0].Type, (NamedTypeSymbol)method.Parameters[1].Type, signed: false);
             }
         }
@@ -712,11 +717,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             static void verify(CSharpCompilation comp)
             {
                 var method = comp.GetMember<MethodSymbol>("I.F1");
-                Assert.Equal("void I.F1(System.IntPtr x, nint y)", method.ToTestDisplayString());
+                Assert.Equal("void I.F1(System.IntPtr x, nint y)", method.ToDisplayString(TestFormat));
                 VerifyErrorTypes((NamedTypeSymbol)method.Parameters[0].Type, (NamedTypeSymbol)method.Parameters[1].Type, signed: true);
 
                 method = comp.GetMember<MethodSymbol>("I.F2");
-                Assert.Equal("void I.F2(System.UIntPtr x, nuint y)", method.ToTestDisplayString());
+                Assert.Equal("void I.F2(System.UIntPtr x, nuint y)", method.ToDisplayString(TestFormat));
                 VerifyErrorTypes((NamedTypeSymbol)method.Parameters[0].Type, (NamedTypeSymbol)method.Parameters[1].Type, signed: false);
             }
         }
@@ -809,7 +814,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             static void verifyField(FieldSymbol field, string expectedSymbol, AssemblySymbol expectedAssembly)
             {
                 Assert.IsType<Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting.RetargetingFieldSymbol>(field);
-                Assert.Equal(expectedSymbol, field.ToTestDisplayString());
+                Assert.Equal(expectedSymbol, field.ToDisplayString(TestFormat));
                 var type = (NamedTypeSymbol)field.Type;
                 Assert.True(type.IsNativeIntegerWrapperType);
                 Assert.IsType<NativeIntegerTypeSymbol>(type);
@@ -922,7 +927,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             static void verifyField(FieldSymbol field, string expectedSymbol, AssemblySymbol expectedAssembly)
             {
                 Assert.IsType<Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting.RetargetingFieldSymbol>(field);
-                Assert.Equal(expectedSymbol, field.ToTestDisplayString());
+                Assert.Equal(expectedSymbol, field.ToDisplayString(TestFormat));
                 var type = (NamedTypeSymbol)field.Type;
                 Assert.True(type.IsNativeIntegerWrapperType);
                 Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(type);
@@ -1029,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             static void verifyField(FieldSymbol field, string expectedSymbol, AssemblySymbol expectedAssembly)
             {
                 Assert.IsType<Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting.RetargetingFieldSymbol>(field);
-                Assert.Equal(expectedSymbol, field.ToTestDisplayString());
+                Assert.Equal(expectedSymbol, field.ToDisplayString(TestFormat));
                 var type = (NamedTypeSymbol)field.Type;
                 Assert.True(type.IsNativeIntegerWrapperType);
                 Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(type);
@@ -1101,7 +1106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             static void verifyField(FieldSymbol field, string expectedSymbol)
             {
                 Assert.IsType<Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting.RetargetingFieldSymbol>(field);
-                Assert.Equal(expectedSymbol, field.ToTestDisplayString());
+                Assert.Equal(expectedSymbol, field.ToDisplayString(TestFormat));
                 var type = (NamedTypeSymbol)field.Type;
                 Assert.True(type.IsNativeIntegerWrapperType);
                 Assert.IsType<NativeIntegerTypeSymbol>(type);
@@ -1786,7 +1791,7 @@ namespace System
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            var actualLocals = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Select(d => model.GetDeclaredSymbol(d).ToTestDisplayString());
+            var actualLocals = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Select(d => model.GetDeclaredSymbol(d).ToDisplayString(TestFormat));
             var expectedLocals = new[]
             {
                 "nint x1",
@@ -1806,7 +1811,7 @@ namespace System
                 VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
 
                 var members = type.GetMembers().Sort(SymbolComparison);
-                var actualMembers = members.SelectAsArray(m => m.ToTestDisplayString());
+                var actualMembers = members.SelectAsArray(m => m.ToDisplayString(TestFormat));
                 var expectedMembers = new[]
                 {
                     $"System.Boolean {type}.TryParse(System.String s, out {type} value)",
@@ -1971,7 +1976,7 @@ class Program
                 VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
 
                 var members = type.GetMembers().Sort(SymbolComparison);
-                var actualMembers = members.SelectAsArray(m => m.ToTestDisplayString());
+                var actualMembers = members.SelectAsArray(m => m.ToDisplayString(TestFormat));
                 var expectedMembers = new[]
                 {
                     $"System.Boolean {type}.Equals({type} other)",
@@ -2141,7 +2146,7 @@ class Program
                 VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
 
                 var members = type.GetMembers().Sort(SymbolComparison);
-                var actualMembers = members.SelectAsArray(m => m.ToTestDisplayString());
+                var actualMembers = members.SelectAsArray(m => m.ToDisplayString(TestFormat));
                 var expectedMembers = new[]
                 {
                     $"{type}..ctor()",
@@ -2237,7 +2242,7 @@ class Program
                 VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
 
                 var members = type.GetMembers().Sort(SymbolComparison);
-                var actualMembers = members.SelectAsArray(m => m.ToTestDisplayString());
+                var actualMembers = members.SelectAsArray(m => m.ToDisplayString(TestFormat));
                 var expectedMembers = new[]
                 {
                     $"System.Boolean {type}.Equals(System.Object obj)",
@@ -2343,7 +2348,7 @@ class Program
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            var actualLocals = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Select(d => model.GetDeclaredSymbol(d).ToTestDisplayString());
+            var actualLocals = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Select(d => model.GetDeclaredSymbol(d).ToDisplayString(TestFormat));
             var expectedLocals = new[]
             {
                 "nint x1",
@@ -2365,7 +2370,7 @@ class Program
 
                 var underlyingType = type.NativeIntegerUnderlyingType;
                 var members = type.GetMembers().Sort(SymbolComparison);
-                var actualMembers = members.SelectAsArray(m => m.ToTestDisplayString());
+                var actualMembers = members.SelectAsArray(m => m.ToDisplayString(TestFormat));
                 var expectedMembers = new[]
                 {
                     $"{type}..ctor()",
@@ -2463,7 +2468,7 @@ class Program
 
             var tree = compB.SyntaxTrees[0];
             var model = compB.GetSemanticModel(tree);
-            var actualLocals = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Select(d => model.GetDeclaredSymbol(d).ToTestDisplayString());
+            var actualLocals = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Select(d => model.GetDeclaredSymbol(d).ToDisplayString(TestFormat));
             var expectedLocals = new[]
             {
                 "nint x1",
@@ -2490,7 +2495,7 @@ class Program
                     Assert.True(member.GetExplicitInterfaceImplementations().IsEmpty);
                 }
 
-                var actualMembers = members.SelectAsArray(m => m.ToTestDisplayString());
+                var actualMembers = members.SelectAsArray(m => m.ToDisplayString(TestFormat));
                 var expectedMembers = new[]
                 {
                     $"{type} {type}.F()",
@@ -2641,7 +2646,7 @@ class Program
 
                 var underlyingType = type.NativeIntegerUnderlyingType;
                 var members = type.GetMembers().Sort(SymbolComparison);
-                var actualMembers = members.SelectAsArray(m => m.ToTestDisplayString());
+                var actualMembers = members.SelectAsArray(m => m.ToDisplayString(TestFormat));
                 var expectedMembers = new[]
                 {
                     $"{type} {type}.F3()",
@@ -2743,7 +2748,7 @@ namespace System.Reflection
 
                 var underlyingType = type.NativeIntegerUnderlyingType;
                 var members = type.GetMembers().Sort(SymbolComparison);
-                var actualMembers = members.SelectAsArray(m => m.ToTestDisplayString());
+                var actualMembers = members.SelectAsArray(m => m.ToDisplayString(TestFormat));
                 var expectedMembers = new[]
                 {
                     $"{type}..ctor()",
@@ -2883,7 +2888,7 @@ namespace System.Reflection
 
                 var underlyingType = type.NativeIntegerUnderlyingType;
                 var members = type.GetMembers().Sort(SymbolComparison);
-                var actualMembers = members.SelectAsArray(m => m.ToTestDisplayString());
+                var actualMembers = members.SelectAsArray(m => m.ToDisplayString(TestFormat));
                 var expectedMembers = new[]
                 {
                     $"System.IComparable<{type} modopt({underlyingType})> {type}.F5()",
@@ -2991,7 +2996,7 @@ namespace System.Reflection
   IL_0000:  call       ""void Program.F<nint>()""
   IL_0005:  call       ""void Program.F<nuint>()""
   IL_000a:  ret
-}");
+}", ilFormat: ILFormat);
         }
 
         [Fact]
@@ -3074,7 +3079,7 @@ System.UIntPtr: 4294967295");
   IL_0044:  stelem.i
   IL_0045:  call       ""void Program.Report<nuint>(nuint[])""
   IL_004a:  ret
-}");
+}", ilFormat: ILFormat);
         }
 
         [Fact]
@@ -3634,10 +3639,10 @@ interface I
                 var nodes = tree.GetRoot().DescendantNodes().ToArray();
                 var model = comp.GetSemanticModel(tree);
                 var underlyingType = model.GetDeclaredSymbol(nodes.OfType<ClassDeclarationSyntax>().Single());
-                Assert.Equal("nint", underlyingType.ToTestDisplayString());
+                Assert.Equal("nint", underlyingType.ToDisplayString());
                 Assert.Equal(SpecialType.None, underlyingType.SpecialType);
                 var method = model.GetDeclaredSymbol(nodes.OfType<MethodDeclarationSyntax>().Single());
-                Assert.Equal("nint I.Add(nint x, nuint y)", method.ToTestDisplayString());
+                Assert.Equal("nint I.Add(nint x, nuint y)", method.ToDisplayString(TestFormat));
                 var underlyingType0 = method.Parameters[0].Type.GetSymbol<NamedTypeSymbol>();
                 var underlyingType1 = method.Parameters[1].Type.GetSymbol<NamedTypeSymbol>();
                 Assert.Equal(SpecialType.None, underlyingType0.SpecialType);
@@ -3679,7 +3684,7 @@ class Program
 @"System.Int16
 System.Object");
                 var method = comp.GetMember<MethodSymbol>("Program.F");
-                Assert.Equal("System.Int16 Program.F(System.Int16 x, System.Object y)", method.ToTestDisplayString());
+                Assert.Equal("System.Int16 Program.F(System.Int16 x, System.Object y)", method.ToDisplayString(TestFormat));
                 var underlyingType0 = (NamedTypeSymbol)method.Parameters[0].Type;
                 var underlyingType1 = (NamedTypeSymbol)method.Parameters[1].Type;
                 Assert.Equal(SpecialType.System_Int16, underlyingType0.SpecialType);
@@ -3713,7 +3718,7 @@ class Program
             static void verify(CSharpCompilation comp)
             {
                 var method = comp.GetMember<MethodSymbol>("Program.F");
-                Assert.Equal("System.Int16 Program.F(System.Int16 x, nuint y)", method.ToTestDisplayString());
+                Assert.Equal("System.Int16 Program.F(System.Int16 x, nuint y)", method.ToDisplayString(TestFormat));
                 var underlyingType0 = (NamedTypeSymbol)method.Parameters[0].Type;
                 var underlyingType1 = (NamedTypeSymbol)method.Parameters[1].Type;
                 Assert.Equal(SpecialType.System_Int16, underlyingType0.SpecialType);
@@ -3747,7 +3752,7 @@ class Program
             static void verify(CSharpCompilation comp)
             {
                 var method = comp.GetMember<MethodSymbol>("Program.F");
-                Assert.Equal("System.Int16 Program.F(System.Int16 x, nuint y)", method.ToTestDisplayString());
+                Assert.Equal("System.Int16 Program.F(System.Int16 x, nuint y)", method.ToDisplayString(TestFormat));
                 var underlyingType0 = (NamedTypeSymbol)method.Parameters[0].Type;
                 var underlyingType1 = (NamedTypeSymbol)method.Parameters[1].Type;
                 Assert.Equal(SpecialType.System_Int16, underlyingType0.SpecialType);
@@ -4516,7 +4521,7 @@ class Program
   IL_0009:  ldsfld     ""nuint Program.F2""
   IL_000e:  add
   IL_000f:  ret
-}");
+}", ilFormat: ILFormat);
         }
 
         // PEVerify should succeed. Previously, PEVerify reported duplicate
@@ -4705,7 +4710,7 @@ False
   IL_0007:  ldloca.s   V_0
   IL_0009:  call       ""string System.IntPtr.ToString()""
   IL_000e:  ret
-}");
+}", ilFormat: ILFormat);
             verifier.VerifyIL("MyInt.GetHashCode",
 @"{
   // Code size       29 (0x1d)
@@ -4718,7 +4723,7 @@ False
   IL_0012:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
   IL_0017:  callvirt   ""int System.Func<int>.Invoke()""
   IL_001c:  ret
-}");
+}", ilFormat: ILFormat);
             verifier.VerifyIL("MyInt.Equals",
 @"{
   // Code size       51 (0x33)
@@ -4743,7 +4748,7 @@ False
   IL_0028:  box        ""nint?""
   IL_002d:  call       ""bool System.IntPtr.Equals(object)""
   IL_0032:  ret
-}");
+}", ilFormat: ILFormat);
         }
 
         /// <summary>
@@ -4917,7 +4922,7 @@ False
   IL_0034:  call       ""nuint nuint?.GetValueOrDefault()""
   IL_0039:  pop
   IL_003a:  ret
-}");
+}", ilFormat: ILFormat);
             verifier.VerifyIL("B.M2",
 @"{
   // Code size       95 (0x5f)
@@ -4961,7 +4966,7 @@ False
   IL_0054:  newobj     ""nuint?..ctor(nuint)""
   IL_0059:  stsfld     ""nuint? A.F4""
   IL_005e:  ret
-}");
+}", ilFormat: ILFormat);
         }
 
         [WorkItem(3259, "https://github.com/dotnet/csharplang/issues/3259")]
@@ -5058,7 +5063,7 @@ False
   IL_008c:  div.un
   IL_008d:  pop
   IL_008e:  ret
-}");
+}", ilFormat: ILFormat);
 
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular8);
             comp.VerifyEmitDiagnostics(
@@ -5274,7 +5279,7 @@ class A
   IL_0034:  call       ""nuint nuint?.GetValueOrDefault()""
   IL_0039:  pop
   IL_003a:  ret
-}");
+}", ilFormat: ILFormat);
             verifier.VerifyIL("B.M2",
 @"{
   // Code size       95 (0x5f)
@@ -5318,7 +5323,7 @@ class A
   IL_0054:  newobj     ""nuint?..ctor(nuint)""
   IL_0059:  stsfld     ""nuint? A.F4""
   IL_005e:  ret
-}");
+}", ilFormat: ILFormat);
         }
 
         [WorkItem(3259, "https://github.com/dotnet/csharplang/issues/3259")]
@@ -5442,7 +5447,7 @@ class A
   IL_00ec:  newobj     ""nuint?..ctor(nuint)""
   IL_00f1:  stsfld     ""nuint? A.F4""
   IL_00f6:  ret
-}");
+}", ilFormat: ILFormat);
 
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -6059,7 +6064,7 @@ $@"class Program
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>();
-            var actualOperators = nodes.Select(n => model.GetSymbolInfo(n).Symbol.ToTestDisplayString()).ToArray();
+            var actualOperators = nodes.Select(n => model.GetSymbolInfo(n).Symbol.ToDisplayString(TestFormat)).ToArray();
             var expectedOperators = new[]
             {
                 "nint nint.op_UnaryPlus(nint value)",
@@ -6107,7 +6112,7 @@ $@"class Program
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>();
-            var actualOperators = nodes.Select(n => model.GetSymbolInfo(n).Symbol.ToTestDisplayString()).ToArray();
+            var actualOperators = nodes.Select(n => model.GetSymbolInfo(n).Symbol.ToDisplayString(TestFormat)).ToArray();
             var expectedOperators = new[]
             {
                 $"{type} {type}.op_Addition({type} left, {type} right)",
@@ -6694,7 +6699,7 @@ $@"class Program
   IL_00cb:  call       ""void Program.F(nint)""
   IL_00d0:  ret
 }";
-            verifier.VerifyIL("Program.Main", expectedIL);
+            verifier.VerifyIL("Program.Main", expectedIL, ilFormat: ILFormat);
         }
 
         [Fact]
@@ -6805,7 +6810,7 @@ $@"class Program
   IL_0087:  call       ""void Program.F(nuint)""
   IL_008c:  ret
 }";
-            verifier.VerifyIL("Program.Main", expectedIL);
+            verifier.VerifyIL("Program.Main", expectedIL, ilFormat: ILFormat);
         }
 
         [Fact]
@@ -7395,7 +7400,7 @@ default: 0
       IL_00c7:  ldarg.0
       IL_00c8:  ret
     }
-");
+", ilFormat: ILFormat);
         }
 
         [Fact]
@@ -7556,7 +7561,7 @@ default: 0
       IL_00b6:  ldarg.0
       IL_00b7:  ret
     }
-");
+", ilFormat: ILFormat);
         }
 
         [Fact]
@@ -9510,7 +9515,7 @@ enum E {{ }}
                 if (expectedIL != null)
                 {
                     var verifier = CompileAndVerify(comp, verify: useUnsafeContext || !verify ? Verification.Skipped : Verification.Passes);
-                    verifier.VerifyIL("Program.Convert", expectedIL);
+                    verifier.VerifyIL("Program.Convert", expectedIL, ilFormat: ILFormat);
                 }
 
                 static bool useUnsafe(string type) => type == "void*" || type == "delegate*<void>";
@@ -9729,12 +9734,12 @@ $@"class Program
                 var model = comp.GetSemanticModel(tree);
                 var expr = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
                 var symbolInfo = model.GetSymbolInfo(expr);
-                Assert.Equal(expectedSymbol, symbolInfo.Symbol?.ToDisplayString(SymbolDisplayFormat.TestFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
+                Assert.Equal(expectedSymbol, symbolInfo.Symbol?.ToDisplayString(TestFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
 
                 if (expectedDiagnostics.Length == 0)
                 {
                     var verifier = CompileAndVerify(comp, expectedOutput: expectedResult);
-                    verifier.VerifyIL("Program.Evaluate", expectedIL);
+                    verifier.VerifyIL("Program.Evaluate", expectedIL, ilFormat: ILFormat);
                 }
             }
         }
@@ -10106,12 +10111,12 @@ class Program
                     isPrefix ? SyntaxKind.PreDecrementExpression : SyntaxKind.PostDecrementExpression;
                 var expr = tree.GetRoot().DescendantNodes().Single(n => n.Kind() == kind);
                 var symbolInfo = model.GetSymbolInfo(expr);
-                Assert.Equal(expectedSymbol, symbolInfo.Symbol?.ToDisplayString(SymbolDisplayFormat.TestFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
+                Assert.Equal(expectedSymbol, symbolInfo.Symbol?.ToDisplayString(TestFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
 
                 if (expectedDiagnostics.Length == 0)
                 {
                     var verifier = CompileAndVerify(comp, expectedOutput: expectedResult);
-                    verifier.VerifyIL("Program.Evaluate", expectedIL);
+                    verifier.VerifyIL("Program.Evaluate", expectedIL, ilFormat: ILFormat);
                 }
             }
         }
@@ -10331,12 +10336,12 @@ class Program
                 var kind = (op == "++") ? SyntaxKind.PreIncrementExpression : SyntaxKind.PreDecrementExpression;
                 var expr = tree.GetRoot().DescendantNodes().Single(n => n.Kind() == kind);
                 var symbolInfo = model.GetSymbolInfo(expr);
-                Assert.Equal(expectedSymbol, symbolInfo.Symbol?.ToDisplayString(SymbolDisplayFormat.TestFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
+                Assert.Equal(expectedSymbol, symbolInfo.Symbol?.ToDisplayString(TestFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
 
                 if (expectedDiagnostics.Length == 0)
                 {
                     var verifier = CompileAndVerify(comp, expectedOutput: expectedResult);
-                    verifier.VerifyIL("Program.Evaluate", expectedIL);
+                    verifier.VerifyIL("Program.Evaluate", expectedIL, ilFormat: ILFormat);
                 }
             }
         }
@@ -12380,7 +12385,7 @@ $@"class Program
                 var model = comp.GetSemanticModel(tree);
                 var expr = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
                 var symbolInfo = model.GetSymbolInfo(expr);
-                Assert.Equal(expectedSymbol, symbolInfo.Symbol?.ToDisplayString(SymbolDisplayFormat.TestFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
+                Assert.Equal(expectedSymbol, symbolInfo.Symbol?.ToDisplayString(TestFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
 
                 if (expectedDiagnostics.Length == 0)
                 {
@@ -13570,16 +13575,16 @@ class C : I
             comp.VerifyEmitDiagnostics();
 
             var type = comp.GetTypeByMetadataName("I");
-            Assert.Equal("S<nint> I.F1()", type.GetMember("F1").ToTestDisplayString());
-            Assert.Equal("S<System.IntPtr> I.F2()", type.GetMember("F2").ToTestDisplayString());
-            Assert.Equal("S<nint> I.F3()", type.GetMember("F3").ToTestDisplayString());
-            Assert.Equal("S<System.IntPtr> I.F4()", type.GetMember("F4").ToTestDisplayString());
+            Assert.Equal("S<nint> I.F1()", type.GetMember("F1").ToDisplayString(TestFormat));
+            Assert.Equal("S<System.IntPtr> I.F2()", type.GetMember("F2").ToDisplayString(TestFormat));
+            Assert.Equal("S<nint> I.F3()", type.GetMember("F3").ToDisplayString(TestFormat));
+            Assert.Equal("S<System.IntPtr> I.F4()", type.GetMember("F4").ToDisplayString(TestFormat));
 
             type = comp.GetTypeByMetadataName("C");
-            Assert.Equal("S<System.IntPtr> C.I.F1()", type.GetMember("I.F1").ToTestDisplayString());
-            Assert.Equal("S<nint> C.I.F2()", type.GetMember("I.F2").ToTestDisplayString());
-            Assert.Equal("S<nint> C.I.F3()", type.GetMember("I.F3").ToTestDisplayString());
-            Assert.Equal("S<System.IntPtr> C.I.F4()", type.GetMember("I.F4").ToTestDisplayString());
+            Assert.Equal("S<System.IntPtr> C.I.F1()", type.GetMember("I.F1").ToDisplayString(TestFormat));
+            Assert.Equal("S<nint> C.I.F2()", type.GetMember("I.F2").ToDisplayString(TestFormat));
+            Assert.Equal("S<nint> C.I.F3()", type.GetMember("I.F3").ToDisplayString(TestFormat));
+            Assert.Equal("S<System.IntPtr> C.I.F4()", type.GetMember("I.F4").ToDisplayString(TestFormat));
         }
 
         [WorkItem(42500, "https://github.com/dotnet/roslyn/issues/42500")]
@@ -13606,16 +13611,16 @@ class B : A
             comp.VerifyEmitDiagnostics();
 
             var type = comp.GetTypeByMetadataName("A");
-            Assert.Equal("nint[] A.F1()", type.GetMember("F1").ToTestDisplayString());
-            Assert.Equal("System.IntPtr[] A.F2()", type.GetMember("F2").ToTestDisplayString());
-            Assert.Equal("nint[] A.F3()", type.GetMember("F3").ToTestDisplayString());
-            Assert.Equal("System.IntPtr[] A.F4()", type.GetMember("F4").ToTestDisplayString());
+            Assert.Equal("nint[] A.F1()", type.GetMember("F1").ToDisplayString(TestFormat));
+            Assert.Equal("System.IntPtr[] A.F2()", type.GetMember("F2").ToDisplayString(TestFormat));
+            Assert.Equal("nint[] A.F3()", type.GetMember("F3").ToDisplayString(TestFormat));
+            Assert.Equal("System.IntPtr[] A.F4()", type.GetMember("F4").ToDisplayString(TestFormat));
 
             type = comp.GetTypeByMetadataName("B");
-            Assert.Equal("System.IntPtr[] B.F1()", type.GetMember("F1").ToTestDisplayString());
-            Assert.Equal("nint[] B.F2()", type.GetMember("F2").ToTestDisplayString());
-            Assert.Equal("nint[] B.F3()", type.GetMember("F3").ToTestDisplayString());
-            Assert.Equal("System.IntPtr[] B.F4()", type.GetMember("F4").ToTestDisplayString());
+            Assert.Equal("System.IntPtr[] B.F1()", type.GetMember("F1").ToDisplayString(TestFormat));
+            Assert.Equal("nint[] B.F2()", type.GetMember("F2").ToDisplayString(TestFormat));
+            Assert.Equal("nint[] B.F3()", type.GetMember("F3").ToDisplayString(TestFormat));
+            Assert.Equal("System.IntPtr[] B.F4()", type.GetMember("F4").ToDisplayString(TestFormat));
         }
 
         [WorkItem(42500, "https://github.com/dotnet/roslyn/issues/42500")]
@@ -13665,16 +13670,16 @@ class B : A
             comp.VerifyEmitDiagnostics();
 
             var type = comp.GetTypeByMetadataName("A");
-            Assert.Equal("void A.F1(nint modopt(System.Int32) i)", type.GetMember("F1").ToTestDisplayString());
-            Assert.Equal("void A.F2(System.IntPtr modopt(System.Int32) i)", type.GetMember("F2").ToTestDisplayString());
-            Assert.Equal("void A.F3(nint modopt(System.Int32) i)", type.GetMember("F3").ToTestDisplayString());
-            Assert.Equal("void A.F4(System.IntPtr modopt(System.Int32) i)", type.GetMember("F4").ToTestDisplayString());
+            Assert.Equal("void A.F1(nint modopt(System.Int32) i)", type.GetMember("F1").ToDisplayString(TestFormat));
+            Assert.Equal("void A.F2(System.IntPtr modopt(System.Int32) i)", type.GetMember("F2").ToDisplayString(TestFormat));
+            Assert.Equal("void A.F3(nint modopt(System.Int32) i)", type.GetMember("F3").ToDisplayString(TestFormat));
+            Assert.Equal("void A.F4(System.IntPtr modopt(System.Int32) i)", type.GetMember("F4").ToDisplayString(TestFormat));
 
             type = comp.GetTypeByMetadataName("B");
-            Assert.Equal("void B.F1(System.IntPtr modopt(System.Int32) i)", type.GetMember("F1").ToTestDisplayString());
-            Assert.Equal("void B.F2(nint modopt(System.Int32) i)", type.GetMember("F2").ToTestDisplayString());
-            Assert.Equal("void B.F3(nint modopt(System.Int32) i)", type.GetMember("F3").ToTestDisplayString());
-            Assert.Equal("void B.F4(System.IntPtr modopt(System.Int32) i)", type.GetMember("F4").ToTestDisplayString());
+            Assert.Equal("void B.F1(System.IntPtr modopt(System.Int32) i)", type.GetMember("F1").ToDisplayString(TestFormat));
+            Assert.Equal("void B.F2(nint modopt(System.Int32) i)", type.GetMember("F2").ToDisplayString(TestFormat));
+            Assert.Equal("void B.F3(nint modopt(System.Int32) i)", type.GetMember("F3").ToDisplayString(TestFormat));
+            Assert.Equal("void B.F4(System.IntPtr modopt(System.Int32) i)", type.GetMember("F4").ToDisplayString(TestFormat));
         }
 
         [WorkItem(42500, "https://github.com/dotnet/roslyn/issues/42500")]
@@ -13728,16 +13733,16 @@ class B : A
             comp.VerifyEmitDiagnostics();
 
             var type = comp.GetTypeByMetadataName("A");
-            Assert.Equal("nint[] modopt(System.Int32) A.F1()", type.GetMember("F1").ToTestDisplayString());
-            Assert.Equal("System.IntPtr[] modopt(System.Int32) A.F2()", type.GetMember("F2").ToTestDisplayString());
-            Assert.Equal("nint[] modopt(System.Int32) A.F3()", type.GetMember("F3").ToTestDisplayString());
-            Assert.Equal("System.IntPtr[] modopt(System.Int32) A.F4()", type.GetMember("F4").ToTestDisplayString());
+            Assert.Equal("nint[] modopt(System.Int32) A.F1()", type.GetMember("F1").ToDisplayString(TestFormat));
+            Assert.Equal("System.IntPtr[] modopt(System.Int32) A.F2()", type.GetMember("F2").ToDisplayString(TestFormat));
+            Assert.Equal("nint[] modopt(System.Int32) A.F3()", type.GetMember("F3").ToDisplayString(TestFormat));
+            Assert.Equal("System.IntPtr[] modopt(System.Int32) A.F4()", type.GetMember("F4").ToDisplayString(TestFormat));
 
             type = comp.GetTypeByMetadataName("B");
-            Assert.Equal("System.IntPtr[] modopt(System.Int32) B.F1()", type.GetMember("F1").ToTestDisplayString());
-            Assert.Equal("nint[] modopt(System.Int32) B.F2()", type.GetMember("F2").ToTestDisplayString());
-            Assert.Equal("nint[] modopt(System.Int32) B.F3()", type.GetMember("F3").ToTestDisplayString());
-            Assert.Equal("System.IntPtr[] modopt(System.Int32) B.F4()", type.GetMember("F4").ToTestDisplayString());
+            Assert.Equal("System.IntPtr[] modopt(System.Int32) B.F1()", type.GetMember("F1").ToDisplayString(TestFormat));
+            Assert.Equal("nint[] modopt(System.Int32) B.F2()", type.GetMember("F2").ToDisplayString(TestFormat));
+            Assert.Equal("nint[] modopt(System.Int32) B.F3()", type.GetMember("F3").ToDisplayString(TestFormat));
+            Assert.Equal("System.IntPtr[] modopt(System.Int32) B.F4()", type.GetMember("F4").ToDisplayString(TestFormat));
         }
 
         [WorkItem(42457, "https://github.com/dotnet/roslyn/issues/42457")]
@@ -15574,7 +15579,7 @@ class C
   IL_002b:  newobj     ""nint?..ctor(nint)""
   IL_0030:  ret
 }
-");
+", ilFormat: ILFormat);
 
             // lifted value and lifted count
             CompileAndVerify("""
@@ -15618,7 +15623,7 @@ class C
   IL_0039:  newobj     ""nint?..ctor(nint)""
   IL_003e:  ret
 }
-");
+", ilFormat: ILFormat);
             return;
 
             static string nint_shr(int count) => shift(count, "System.IntPtr", "shr");
@@ -15831,7 +15836,7 @@ class C
 """;
                 var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
                 var verifier = CompileAndVerify(comp, expectedOutput: "RAN");
-                verifier.VerifyIL("C.M", expectedIL);
+                verifier.VerifyIL("C.M", expectedIL, ilFormat: ILFormat);
             }
         }
 
@@ -15884,7 +15889,7 @@ class C
   IL_0000:  ldarg.0
   IL_0001:  ret
 }
-");
+", ilFormat: ILFormat);
         }
     }
 }

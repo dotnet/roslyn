@@ -28,7 +28,6 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
-using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis
 {
