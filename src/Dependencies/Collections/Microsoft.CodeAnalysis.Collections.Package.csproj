@@ -51,4 +51,5 @@
   </Target>
 
   <Import Project="..\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
+  <Import Project="..\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
 </Project>

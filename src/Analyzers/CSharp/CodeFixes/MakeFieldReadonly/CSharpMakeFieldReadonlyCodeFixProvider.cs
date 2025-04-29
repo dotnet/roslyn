@@ -21,5 +21,5 @@ internal sealed class CSharpMakeFieldReadonlyCodeFixProvider() : AbstractMakeFie
         => declaration.Initializer?.Value;
 
     protected override ImmutableList<VariableDeclaratorSyntax> GetVariableDeclarators(FieldDeclarationSyntax fieldDeclaration)
-        => fieldDeclaration.Declaration.Variables.ToImmutableListOrEmpty();
+        => fieldDeclaration.Declaration.Variables.ToImmutableList();
 }

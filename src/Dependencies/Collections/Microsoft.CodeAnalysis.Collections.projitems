@@ -63,6 +63,31 @@
     <Compile Include="$(MSBuildThisFileDirectory)SegmentedDictionary`2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SegmentedHashSet`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SegmentedList`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)BitVector.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IOrderedReadOnlySet.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TemporaryArray`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConcurrentSet.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConsList`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSetWithInsertionOrder`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MultiDictionary.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)OneOrMany.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)OrderedMultiDictionary.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SetWithInsertionOrder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SpecializedCollections.Empty.Collection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SpecializedCollections.Empty.Dictionary.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SpecializedCollections.Empty.Enumerable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SpecializedCollections.Empty.Enumerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SpecializedCollections.Empty.Enumerator`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SpecializedCollections.Empty.List.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SpecializedCollections.Empty.Set.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SpecializedCollections.Empty.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SpecializedCollections.ReadOnly.Collection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SpecializedCollections.ReadOnly.Enumerable`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SpecializedCollections.ReadOnly.Enumerable`2.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SpecializedCollections.ReadOnly.Set.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SpecializedCollections.Singleton.Collection`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SpecializedCollections.Singleton.Enumerator`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SpecializedCollections.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)Internal\Strings.resx" GenerateSource="true" ClassName="Microsoft.CodeAnalysis.Collections.Internal.SR" ManifestResourceName="Microsoft.CodeAnalysis.Internal.Strings" />
