@@ -121,8 +121,6 @@ internal sealed class DefaultCopilotChangeAnalysisService(
 
         var totalAnalysisTime = totalAnalysisTimeStopWatch.Elapsed;
 
-        GC.KeepAlive(semanticModel);
-
         var sourceGeneratedDocuments = await newDocument.Project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
 
         var documentTextLength = newText.Length;
@@ -131,6 +129,8 @@ internal sealed class DefaultCopilotChangeAnalysisService(
         var projectConeCount = 1 + document.Project.Solution
             .GetProjectDependencyGraph()
             .GetProjectsThatThisProjectTransitivelyDependsOn(document.Project.Id).Count;
+
+        GC.KeepAlive(semanticModel);
 
         return new CopilotChangeAnalysis(
             Succeeded: true,
