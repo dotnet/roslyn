@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis;
 public partial class Solution
 {
     // Values for all these are created on demand. Only access when holding the dictionary as a lock.
+    // Intentionally a simple dictionary rather than a ConcurrentDictionary or ImmutableDictionary
+    // for performance reasons.
     private readonly Dictionary<ProjectId, Project> _projectIdToProjectMap = [];
 
     /// <summary>

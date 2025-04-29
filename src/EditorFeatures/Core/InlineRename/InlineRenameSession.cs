@@ -51,13 +51,14 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
     private readonly ITextView _triggerView;
     private readonly IDisposable _inlineRenameSessionDurationLogBlock;
     private readonly IThreadingContext _threadingContext;
+    private readonly WorkspaceEventRegistration _workspaceChangedDisposer;
+
     public readonly InlineRenameService RenameService;
 
     private bool _dismissed;
     private bool _isApplyingEdit;
     private string _replacementText;
     private readonly Dictionary<ITextBuffer, OpenTextBufferManager> _openTextBuffers = [];
-    private WorkspaceEventRegistration _workspaceChangedDisposer;
 
     /// <summary>
     /// The original <see cref="Document"/> where rename was triggered
@@ -704,8 +705,7 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
 
         void DismissUIAndRollbackEdits()
         {
-            _workspaceChangedDisposer?.Dispose();
-            _workspaceChangedDisposer = null;
+            _workspaceChangedDisposer.Dispose();
 
             _textBufferAssociatedViewService.SubjectBuffersConnected -= OnSubjectBuffersConnected;
 
