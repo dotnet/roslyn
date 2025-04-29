@@ -11,6 +11,9 @@ namespace Microsoft.CodeAnalysis.PooledObjects
     // Dictionary that can be recycled via an object pool
     // NOTE: these dictionaries always have the default comparer.
     internal sealed partial class PooledDictionary<K, V> : Dictionary<K, V>
+#if !MICROSOFT_CODEANALYSIS_POOLEDOBJECTS_NO_POOLED_DISPOSER
+        , IPooled
+#endif
         where K : notnull
     {
         private readonly ObjectPool<PooledDictionary<K, V>> _pool;
@@ -53,5 +56,17 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             Debug.Assert(instance.Count == 0);
             return instance;
         }
+
+#if !MICROSOFT_CODEANALYSIS_POOLEDOBJECTS_NO_POOLED_DISPOSER
+        public static PooledDisposer<PooledDictionary<K, V>> GetInstance(out PooledDictionary<K, V> instance)
+        {
+            instance = GetInstance();
+            return new PooledDisposer<PooledDictionary<K, V>>(instance);
+        }
+
+        // Nothing special to do here.
+        void IPooled.Free(bool discardLargeInstance)
+            => this.Free();
+#endif
     }
 }
