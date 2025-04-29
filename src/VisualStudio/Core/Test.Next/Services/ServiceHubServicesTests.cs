@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
@@ -1579,6 +1580,49 @@ public sealed partial class ServiceHubServicesTests
         // We should have successfully changed the version for the C# project.
         Assert.NotEqual(initialExecutionMap[projectId1], finalExecutionMap[projectId1]);
         Assert.NotEqual(initialExecutionMap[noCompilationProject.Id], finalExecutionMap[noCompilationProject.Id]);
+    }
+
+    [Fact]
+    internal async Task TestCopilotChangeAnalysis()
+    {
+        using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features);
+
+        var code = """
+            class C
+            {
+                void M()
+                {
+            X
+                }
+            }
+            """;
+        workspace.InitializeDocuments(LanguageNames.CSharp, files: [code]);
+
+        var analyzerReference = new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
+        workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
+
+        var service = workspace.Services.GetRequiredService<ICopilotChangeAnalysisService>();
+        var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
+
+        var text = await document.GetTextAsync();
+        var listIndex = text.ToString().IndexOf("X");
+
+        var result = await service.AnalyzeChangeAsync(
+            document, [new TextChange(new TextSpan(listIndex, 1), """
+            <<<<<<<
+            Goo
+            =======
+            Bar
+            >>>>>>>
+            """)], CancellationToken.None);
+
+        Assert.True(result.Succeeded);
+
+        var diagnosticAnalysis = result.DiagnosticAnalyses.Single(d => d.Kind == DiagnosticKind.CompilerSyntax);
+        Assert.Equal(1, diagnosticAnalysis.IdToCount["CS8300"]);
+
+        Assert.Equal(1, result.CodeFixAnalysis.DiagnosticIdToCount["CS8300"]);
+        Assert.Equal("CSharp.ConflictMarkerResolution.CSharpResolveConflictMarkerCodeFixProvider", result.CodeFixAnalysis.DiagnosticIdToProviderName["CS8300"].Single());
     }
 
     private static void VerifyStates(Solution solution1, Solution solution2, string projectName, ImmutableArray<string> documentNames)
