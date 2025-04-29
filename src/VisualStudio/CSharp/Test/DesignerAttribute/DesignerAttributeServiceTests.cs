@@ -5,6 +5,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -123,7 +124,7 @@ public sealed class DesignerAttributeServiceTests
         var compilation = await document.Project.GetRequiredCompilationAsync(CancellationToken.None);
         var actual = await DesignerAttributeDiscoveryService.ComputeDesignerAttributeCategoryAsync(
             compilation.DesignerCategoryAttributeType() != null, document.Project, document.Id, existingCategory, CancellationToken.None);
-
+        
         Assert.Equal(category, actual);
     }
 }
