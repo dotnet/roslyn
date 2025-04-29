@@ -198,8 +198,10 @@ jobs:
       IsOptProf: ${{ parameters.IsOptProf }}
 
   - ${{ if and(parameters.EnableDotNetFormatCheck, not(parameters.EnableLinuxBuild)) }}:
-    - script: dotnet format --verify-no-changes --no-restore
+    - script: dotnet format --verify-no-changes
       displayName: 💅 Verify formatted code
+      env:
+        dotnetformat: true # part of a workaround for https://github.com/dotnet/sdk/issues/44951
 
   - ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
     - template: microbuild.after.yml
@@ -240,9 +242,11 @@ jobs:
           Is1ESPT: ${{ parameters.Is1ESPT }}
           RunTests: ${{ parameters.RunTests }}
       - ${{ if parameters.EnableDotNetFormatCheck }}:
-        - script: dotnet format --verify-no-changes --no-restore
+        - script: dotnet format --verify-no-changes
           displayName: 💅 Verify formatted code
-      - template: expand-template.yml
+          env:
+            dotnetformat: true # part of a workaround for https://github.com/dotnet/sdk/issues/44951
+  - template: expand-template.yml
 
   - ${{ if parameters.EnableMacOSBuild }}:
     - job: macOS
@@ -283,6 +287,8 @@ jobs:
       - macOS
     pool: ${{ parameters.windowsPool }} # Use Windows agent because PublishSymbols task requires it (https://github.com/microsoft/azure-pipelines-tasks/issues/13821).
     condition: succeededOrFailed()
+    variables:
+      ONEES_ENFORCED_CODEQL_ENABLED: false # CodeQL runs on build jobs, we don't need it here
     ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
       templateContext:
         ${{ if not(parameters.RealSign) }}:
