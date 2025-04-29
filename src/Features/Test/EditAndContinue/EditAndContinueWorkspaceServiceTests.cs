@@ -82,7 +82,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         using var _ = CreateWorkspace(out var solution, out var service, [typeof(NoCompilationLanguageService)]);
 
         solution = solution
-            .AddTestProject("P", LanguageNames.CSharp, projectPId).Solution
+            .AddTestProject("P", LanguageNames.CSharp, id: projectPId).Solution
             .WithProjectChecksumAlgorithm(projectPId, SourceHashAlgorithm.Sha1);
 
         var documentIdA = DocumentId.CreateNewId(projectPId, debugName: "A");
@@ -187,7 +187,10 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(ModuleUpdateStatus.None, updates.Status);
         Assert.Empty(updates.Updates);
-        Assert.Empty(emitDiagnostics);
+        AssertEx.Equal(
+        [
+            $"{document1.Project.FilePath}: (0,0)-(0,0): Warning ENC1008: {string.Format(FeaturesResources.Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit, document1.FilePath)}"
+        ], InspectDiagnostics(emitDiagnostics));
 
         EndDebuggingSession(debuggingSession);
     }
@@ -401,7 +404,6 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         solution = solution.
             AddTestProject("test", language, out var projectId).
-            AddMetadataReferences(TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40)).
             AddTestDocument(source, path: sourceFilePath, out var documentId).Project.Solution;
 
         var designTimeOnlyDocumentId = DocumentId.CreateNewId(projectId);
@@ -522,7 +524,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(ModuleUpdateStatus.RestartRequired, updates.Status);
         Assert.Empty(updates.Updates);
-        AssertEx.Equal([$"proj.csproj: (0,0)-(0,0): Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, moduleFile.Path, expectedErrorMessage)}"], InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"{document1.Project.FilePath}: (0,0)-(0,0): Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, moduleFile.Path, expectedErrorMessage)}"], InspectDiagnostics(emitDiagnostics));
 
         // correct the error:
         EmitLibrary(projectId, source2);
@@ -601,7 +603,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(ModuleUpdateStatus.Blocked, updates.Status);
         Assert.Empty(updates.Updates);
-        AssertEx.Equal([$"proj.csproj: (0,0)-(0,0): Error ENC1006: {string.Format(FeaturesResources.UnableToReadSourceFileOrPdb, sourceFile.Path)}"], InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"{project.FilePath}: (0,0)-(0,0): Error ENC1006: {string.Format(FeaturesResources.UnableToReadSourceFileOrPdb, sourceFile.Path)}"], InspectDiagnostics(emitDiagnostics));
 
         EndDebuggingSession(debuggingSession);
 
@@ -623,7 +625,6 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         var document1 = solution.
             AddTestProject("test").
-            AddMetadataReferences(TargetFrameworkUtil.GetReferences(DefaultTargetFramework)).
             AddDocument("a.cs", SourceText.From(source1, Encoding.UTF8, SourceHashAlgorithm.Sha1), filePath: sourceFile.Path);
 
         var project = document1.Project;
@@ -648,7 +649,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(ModuleUpdateStatus.Blocked, updates.Status);
         Assert.Empty(updates.Updates);
-        AssertEx.Equal([$"test.csproj: (0,0)-(0,0): Error ENC1006: {string.Format(FeaturesResources.UnableToReadSourceFileOrPdb, sourceFile.Path)}"], InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"{document1.Project.FilePath}: (0,0)-(0,0): Error ENC1006: {string.Format(FeaturesResources.UnableToReadSourceFileOrPdb, sourceFile.Path)}"], InspectDiagnostics(emitDiagnostics));
 
         fileLock.Dispose();
 
@@ -681,7 +682,6 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         var documentA = solution.
             AddTestProject("test").
-            AddMetadataReferences(TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40)).
             AddDocument("test.cs", CreateText(sourceA), filePath: sourceFileA.Path);
 
         var project = documentA.Project;
@@ -1365,13 +1365,14 @@ class C { int Y => 2; }
 
         EmitSolutionUpdateResults result;
         var readers = ImmutableArray<IDisposable>.Empty;
+        var runningProjects = ImmutableDictionary<ProjectId, RunningProjectInfo>.Empty.Add(projectId, new RunningProjectInfo() { RestartWhenChangesHaveNoEffect = false, AllowPartialUpdate = true });
 
         // change the source (valid edit):
         if (validChangeBeforeRudeEdit)
         {
             solution = solution.WithDocumentText(documentId, CreateText(source2));
 
-            result = await debuggingSession.EmitSolutionUpdateAsync(solution, runningProjects: [projectId], s_noActiveSpans, CancellationToken.None);
+            result = await debuggingSession.EmitSolutionUpdateAsync(solution, runningProjects, s_noActiveSpans, CancellationToken.None);
             Assert.Equal(ModuleUpdateStatus.Ready, result.ModuleUpdates.Status);
             Assert.Empty(result.ProjectsToRebuild);
             Assert.Empty(result.ProjectsToRestart);
@@ -1400,10 +1401,10 @@ class C { int Y => 2; }
             diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
         // validate solution update status and emit:
-        result = await debuggingSession.EmitSolutionUpdateAsync(solution, runningProjects: [projectId], s_noActiveSpans, CancellationToken.None);
+        result = await debuggingSession.EmitSolutionUpdateAsync(solution, runningProjects, s_noActiveSpans, CancellationToken.None);
         Assert.Equal(ModuleUpdateStatus.RestartRequired, result.ModuleUpdates.Status);
         AssertEx.Equal([projectId], result.ProjectsToRebuild);
-        AssertEx.Equal([projectId], result.ProjectsToRestart);
+        AssertEx.Equal([projectId], result.ProjectsToRestart.Keys);
 
         // restart and rebuild:
         _debuggerService.LoadedModules.Remove(moduleId);
@@ -1430,7 +1431,7 @@ class C { int Y => 2; }
         Assert.Empty(await service.GetDocumentDiagnosticsAsync(solution.GetRequiredDocument(documentId), s_noActiveSpans, CancellationToken.None));
 
         // apply valid change:
-        result = await debuggingSession.EmitSolutionUpdateAsync(solution, runningProjects: [projectId], s_noActiveSpans, CancellationToken.None);
+        result = await debuggingSession.EmitSolutionUpdateAsync(solution, runningProjects, s_noActiveSpans, CancellationToken.None);
         Assert.Equal(ModuleUpdateStatus.Ready, result.ModuleUpdates.Status);
         CommitSolutionUpdate(debuggingSession);
 
@@ -1558,12 +1559,12 @@ class C { int Y => 2; }
         var projectCId = ProjectId.CreateNewId("C");
 
         solution = solution.
-            AddTestProject("A", projectAId).
+            AddTestProject("A", id: projectAId).
             AddDocument("A.cs", "class Program { void Main() { System.Console.WriteLine(1); } }", filePath: pathA).Project.Solution.
-            AddTestProject("B", projectBId).
+            AddTestProject("B", id: projectBId).
             AddDocument("Common.cs", "class Common {}", filePath: pathCommon).Project.
             AddDocument("B.cs", "class B {}", filePath: pathB).Project.Solution.
-            AddTestProject("C", projectCId).
+            AddTestProject("C", id: projectCId).
             AddDocument("Common.cs", "class Common {}", filePath: pathCommon).Project.
             AddDocument("C.cs", "class C {}", filePath: pathC).Project.Solution;
 
@@ -1915,7 +1916,7 @@ class C { int Y => 2; }
         // add project that matches assembly B and update the document:
 
         var documentB2 = solution.
-            AddTestProject("B", projectBId).
+            AddTestProject("B", id: projectBId).
             AddTestDocument(sourceB2, path: sourceFileB.Path);
 
         solution = documentB2.Project.Solution;
@@ -2135,7 +2136,7 @@ class G
 
         // They are reported as emit diagnostics
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-        AssertEx.Equal([$"proj.csproj: (0,0)-(0,0): Error ENC1007: {FeaturesResources.ChangesRequiredSynthesizedType}"], InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"{project.FilePath}: (0,0)-(0,0): Error ENC1007: {FeaturesResources.ChangesRequiredSynthesizedType}"], InspectDiagnostics(emitDiagnostics));
 
         // no emitted delta:
         Assert.Empty(updates.Updates);
@@ -2224,7 +2225,6 @@ class G
         // the workspace starts with a version of the source that's not updated with the output of single file generator (or design-time build):
         var document1 = solution.
             AddTestProject("test").
-            AddMetadataReferences(TargetFrameworkUtil.GetReferences(DefaultTargetFramework)).
             AddDocument("test.cs", CreateText("class C1 { void M() { System.Console.WriteLine(0); } }"), filePath: sourceFile.Path);
 
         var documentId = document1.Id;
@@ -2312,7 +2312,6 @@ class G
         // the workspace starts with a version of the source that's not updated with the output of single file generator (or design-time build):
         var document2 = solution.
             AddTestProject("test").
-            AddMetadataReferences(TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40)).
             AddDocument("test.cs", CreateText(source2), filePath: sourceFile.Path);
 
         var documentId = document2.Id;
@@ -2356,7 +2355,10 @@ class G
         sourceFile.WriteAllText(source1, Encoding.UTF8);
 
         (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-        Assert.Empty(emitDiagnostics);
+        AssertEx.Equal(
+        [
+            $"{project.FilePath}: (0,0)-(0,0): Warning ENC1008: {string.Format(FeaturesResources.Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit, sourceFile.Path)}"
+        ], InspectDiagnostics(emitDiagnostics));
 
         // the content actually hasn't changed:
         Assert.Equal(ModuleUpdateStatus.None, updates.Status);
@@ -2779,6 +2781,187 @@ partial class E { int B = 2; public E(int a, int b) { A = a; B = new System.Func
         EndDebuggingSession(debuggingSession);
     }
 
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78244")]
+    public async Task MultiProjectUpdates_ValidSignificantChange_RudeEdit()
+    {
+        var sourceA1 = """
+            using System;
+
+            class A
+            {
+                static void F()
+                {
+                    Console.WriteLine(1);
+                }
+            }
+            """;
+
+        var sourceB1 = """
+            using System;
+            
+            interface I
+            {
+            }
+            """;
+
+        var sourceA2 = """
+            using System;
+            class A
+            {
+                static void F()
+                {
+                    Console.WriteLine(2);
+                }
+            }
+            """;
+
+        var sourceB2 = """
+            using System;
+
+            interface I
+            {
+                void F() {}
+            }
+            """;
+
+        using var _ = CreateWorkspace(out var solution, out var service);
+
+        solution = solution
+            .AddTestProject("A", out var projectAId)
+                .AddTestDocument(sourceA1, "A.cs", out var documentAId).Project.Solution
+            .AddTestProject("B", out var projectBId)
+                .AddTestDocument(sourceB1, "B.cs", out var documentBId).Project.Solution;
+
+        EmitAndLoadLibraryToDebuggee(solution.GetRequiredDocument(documentAId));
+        EmitAndLoadLibraryToDebuggee(solution.GetRequiredDocument(documentBId));
+
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+        // change the source (valid edit in A and rude edit in B):
+        solution = solution
+            .WithDocumentText(documentAId, CreateText(sourceA2))
+            .WithDocumentText(documentBId, CreateText(sourceB2));
+
+        // Rude Edit reported:
+        var diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetRequiredDocument(documentBId), s_noActiveSpans, CancellationToken.None);
+        AssertEx.Equal(
+            ["ENC0023: " + string.Format(FeaturesResources.Adding_an_abstract_0_or_overriding_an_inherited_0_requires_restarting_the_application, FeaturesResources.method)],
+            diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
+
+        // validate solution update status and emit:
+        var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
+        Assert.Empty(emitDiagnostics);
+        Assert.Equal(ModuleUpdateStatus.RestartRequired, updates.Status);
+
+        // TODO: https://github.com/dotnet/roslyn/issues/78244
+        // Should emit delta for the valid change
+
+        //// check emitted delta:
+        //var delta = updates.Updates.Single();
+        //Assert.Empty(delta.ActiveStatements);
+        //Assert.NotEmpty(delta.ILDelta);
+        //Assert.NotEmpty(delta.MetadataDelta);
+        //Assert.NotEmpty(delta.PdbDelta);
+        //Assert.Equal(6, delta.UpdatedMethods.Length);  // F, C.C(), D.D(), E.E(int), E.E(int, int), lambda
+        //AssertEx.SetEqual([0x02000002, 0x02000003, 0x02000004, 0x02000005], delta.UpdatedTypes, itemInspector: t => "0x" + t.ToString("X"));
+
+        //debuggingSession.DiscardSolutionUpdate();
+        EndDebuggingSession(debuggingSession);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78244")]
+    public async Task MultiProjectUpdates_ValidSignificantChange_NoEffectEdit()
+    {
+        var sourceA1 = """
+            class A
+            {
+                static void F()
+                {
+                    System.Console.WriteLine(1);
+                }
+            }
+            """;
+
+        var sourceB1 = """
+            class B
+            {
+                static B()
+                {
+                    System.Console.WriteLine(10);
+                }
+            }
+            """;
+
+        var sourceA2 = """
+            class A
+            {
+                static void F()
+                {
+                    System.Console.WriteLine(2);
+                }
+            }
+            """;
+
+        var sourceB2 = """
+            class B
+            {
+                static B()
+                {
+                    System.Console.WriteLine(20);
+                }
+            }
+            """;
+
+        using var _ = CreateWorkspace(out var solution, out var service);
+
+        solution = solution
+            .AddTestProject("A", out var projectAId)
+                .AddTestDocument(sourceA1, "A.cs", out var documentAId).Project.Solution
+            .AddTestProject("B", out var projectBId)
+                .AddTestDocument(sourceB1, "B.cs", out var documentBId).Project.Solution;
+
+        EmitAndLoadLibraryToDebuggee(solution.GetRequiredDocument(documentAId));
+        EmitAndLoadLibraryToDebuggee(solution.GetRequiredDocument(documentBId));
+
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+        // change the source (valid edit in A and no-effect edit in B):
+        solution = solution
+            .WithDocumentText(documentAId, CreateText(sourceA2))
+            .WithDocumentText(documentBId, CreateText(sourceB2));
+
+        // no-effect warning reported:
+        var diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetRequiredDocument(documentBId), s_noActiveSpans, CancellationToken.None);
+        AssertEx.Equal(
+            ["ENC0118: Warning: " + string.Format(FeaturesResources.Changing_0_might_not_have_any_effect_until_the_application_is_restarted, FeaturesResources.static_constructor)],
+            diagnostics.Select(d => $"{d.Id}: {d.Severity}: {d.GetMessage()}"));
+
+        // TODO: Set RestartWhenChangesHaveNoEffect=true and AllowPartialUpdate=true
+        // https://github.com/dotnet/roslyn/issues/78244
+        var runningProjects = ImmutableDictionary<ProjectId, RunningProjectInfo>.Empty
+            .Add(projectAId, new RunningProjectInfo() { RestartWhenChangesHaveNoEffect = false, AllowPartialUpdate = false })
+            .Add(projectBId, new RunningProjectInfo() { RestartWhenChangesHaveNoEffect = false, AllowPartialUpdate = false });
+
+        // emit updates:
+        var result = await debuggingSession.EmitSolutionUpdateAsync(solution, runningProjects, s_noActiveSpans, CancellationToken.None);
+
+        AssertEx.SetEqual([], result.ProjectsToRestart.Select(p => p.Key.DebugName));
+
+        var updates = result.ModuleUpdates;
+        Assert.Empty(result.Diagnostics);
+        Assert.Equal(ModuleUpdateStatus.Ready, updates.Status);
+
+        // check emitted delta:
+        Assert.Equal(2, updates.Updates.Length);
+
+        // Process will be restarted, so discard all updates:
+        debuggingSession.DiscardSolutionUpdate();
+
+        EndDebuggingSession(debuggingSession);
+    }
+
     [Theory]
     [CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/72331")]
@@ -2877,7 +3060,7 @@ class C { int Y => 2; }
         solution = solution.WithDocumentText(document1.Id, CreateText(sourceV2));
 
         // validate solution update status and emit:
-        var results = (await debuggingSession.EmitSolutionUpdateAsync(solution, runningProjects: [], s_noActiveSpans, CancellationToken.None).ConfigureAwait(false)).Dehydrate();
+        var results = (await debuggingSession.EmitSolutionUpdateAsync(solution, runningProjects: ImmutableDictionary<ProjectId, RunningProjectInfo>.Empty, s_noActiveSpans, CancellationToken.None).ConfigureAwait(false)).Dehydrate();
         var diagnostics = results.GetAllDiagnostics();
 
         var generatedFilePath = Path.Combine(
@@ -3206,7 +3389,7 @@ class C { int Y => 1; }
 
         // They are reported as emit diagnostics
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-        AssertEx.Equal([$"proj.csproj: (0,0)-(0,0): Error ENC1007: {FeaturesResources.ChangesRequiredSynthesizedType}"], InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"{project.FilePath}: (0,0)-(0,0): Error ENC1007: {FeaturesResources.ChangesRequiredSynthesizedType}"], InspectDiagnostics(emitDiagnostics));
 
         // no emitted delta:
         Assert.Empty(updates.Updates);
@@ -3246,7 +3429,6 @@ class C { int Y => 1; }
         var projectA = documentA.Project;
 
         var projectB = solution.AddTestProject("B").WithAssemblyName("A").
-            AddMetadataReferences(projectA.MetadataReferences).
             AddDocument("DocB", source1, filePath: Path.Combine(TempRoot.Root, "DocB.cs")).Project;
 
         solution = projectB.Solution;
@@ -3387,12 +3569,10 @@ class C { int Y => 1; }
 
         var sourcePath = dir.CreateFile("Lib.cs").WriteAllText(source1, Encoding.UTF8).Path;
 
-        var documentA = solution.AddTestProject("A").WithAssemblyName("A").
-            AddMetadataReferences(TargetFrameworkUtil.GetReferences(TargetFramework.NetStandard20)).
+        var documentA = solution.AddTestProject("A", targetFramework: TargetFramework.NetStandard20).WithAssemblyName("A").
             AddDocument("Lib.cs", source1, filePath: sourcePath);
 
-        var documentB = documentA.Project.Solution.AddTestProject("B").WithAssemblyName("A").
-            AddMetadataReferences(TargetFrameworkUtil.GetReferences(TargetFramework.Net90)).
+        var documentB = documentA.Project.Solution.AddTestProject("B", targetFramework: TargetFramework.Net90).WithAssemblyName("A").
             AddDocument("Lib.cs", source1, filePath: sourcePath);
 
         solution = documentB.Project.Solution;
@@ -3472,6 +3652,58 @@ class C { int Y => 1; }
     }
 
     [Fact]
+    public async Task MultiTargeted_AllTargetsStale()
+    {
+        var dir = Temp.CreateDirectory();
+
+        var source0 = "class A { void M() { System.Console.WriteLine(0); } }";
+        var source1 = "class A { void M() { System.Console.WriteLine(1); } }";
+        var source2 = "class A { void M() { System.Console.WriteLine(2); } }";
+
+        // Create two projects with a shared (linked) document.
+
+        using var _ = CreateWorkspace(out var solution, out var service);
+
+        var sourcePath = dir.CreateFile("Lib.cs").WriteAllText(source1, Encoding.UTF8).Path;
+
+        var documentA = solution.AddTestProject("A", targetFramework: TargetFramework.NetStandard20).WithAssemblyName("A").
+            AddDocument("Lib.cs", source1, filePath: sourcePath);
+
+        var documentB = documentA.Project.Solution.AddTestProject("B", targetFramework: TargetFramework.Net90).WithAssemblyName("A").
+            AddDocument("Lib.cs", source1, filePath: sourcePath);
+
+        solution = documentB.Project.Solution;
+        var projectAId = documentA.Project.Id;
+        var projectBId = documentB.Project.Id;
+
+        // target A is built with stale source:
+        var mvidA = EmitAndLoadLibraryToDebuggee(projectAId, source0, sourceFilePath: sourcePath, assemblyName: "A", targetFramework: TargetFramework.NetStandard20);
+
+        // target B is built with stale source:
+        var mvidB = EmitAndLoadLibraryToDebuggee(projectBId, source0, sourceFilePath: sourcePath, assemblyName: "A", targetFramework: TargetFramework.Net90);
+
+        // force document checksum validation:
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution, initialState: CommittedSolution.DocumentState.None);
+
+        EnterBreakState(debuggingSession);
+
+        // update source file in the editor:
+        var text2 = CreateText(source2);
+        solution = solution.WithDocumentText(documentA.Id, text2).WithDocumentText(documentB.Id, text2);
+
+        // no updates
+        var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
+        Assert.Equal(ModuleUpdateStatus.None, updates.Status);
+        AssertEx.Equal(
+        [
+            $"{documentA.Project.FilePath}: (0,0)-(0,0): Warning ENC1008: {string.Format(FeaturesResources.Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit, sourcePath)}",
+            $"{documentB.Project.FilePath}: (0,0)-(0,0): Warning ENC1008: {string.Format(FeaturesResources.Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit, sourcePath)}"
+        ], InspectDiagnostics(emitDiagnostics));
+
+        EndDebuggingSession(debuggingSession);
+    }
+
+    [Fact]
     public async Task ValidSignificantChange_BaselineCreationFailed_NoStream()
     {
         using var _ = CreateWorkspace(out var solution, out var service);
@@ -3492,7 +3724,7 @@ class C { int Y => 1; }
         solution = solution.WithDocumentText(document1.Id, CreateText("class C1 { void M() { System.Console.WriteLine(2); } }"));
 
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-        AssertEx.Equal([$"proj.csproj: (0,0)-(0,0): Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, "test-pdb", new FileNotFoundException().Message)}"], InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"{document1.Project.FilePath}: (0,0)-(0,0): Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, "test-pdb", new FileNotFoundException().Message)}"], InspectDiagnostics(emitDiagnostics));
         Assert.Equal(ModuleUpdateStatus.RestartRequired, updates.Status);
     }
 
@@ -3525,7 +3757,7 @@ class C { int Y => 1; }
         solution = solution.WithDocumentText(document1.Id, CreateText("class C1 { void M() { System.Console.WriteLine(2); } }"));
 
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-        AssertEx.Equal([$"proj.csproj: (0,0)-(0,0): Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, "test-assembly", "*message*")}"], InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"{document.Project.FilePath}: (0,0)-(0,0): Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, "test-assembly", "*message*")}"], InspectDiagnostics(emitDiagnostics));
         Assert.Equal(ModuleUpdateStatus.RestartRequired, updates.Status);
 
         EndDebuggingSession(debuggingSession);
@@ -4510,9 +4742,7 @@ class C
 
         using var _ = CreateWorkspace(out var solution, out var encService);
 
-        var projectP = solution.
-            AddTestProject("P").
-            WithMetadataReferences(TargetFrameworkUtil.GetReferences(DefaultTargetFramework));
+        var projectP = solution.AddTestProject("P");
 
         solution = projectP.Solution;
 
@@ -4538,14 +4768,14 @@ class C
 
             var solution1 = solution.WithDocumentText(documentIdA, CreateText("class C { void M() { System.Console.WriteLine(" + i + "); } }"));
 
-            var result1 = await encService.EmitSolutionUpdateAsync(sessionId, solution1, runningProjects: [], s_noActiveSpans, CancellationToken.None);
+            var result1 = await encService.EmitSolutionUpdateAsync(sessionId, solution1, runningProjects: ImmutableDictionary<ProjectId, RunningProjectInfo>.Empty, s_noActiveSpans, CancellationToken.None);
             Assert.Empty(result1.Diagnostics);
             Assert.Equal(1, result1.ModuleUpdates.Updates.Length);
             encService.DiscardSolutionUpdate(sessionId);
 
             var solution2 = solution1.WithDocumentText(documentIdA, CreateText(source3));
 
-            var result2 = await encService.EmitSolutionUpdateAsync(sessionId, solution2, runningProjects: [], s_noActiveSpans, CancellationToken.None);
+            var result2 = await encService.EmitSolutionUpdateAsync(sessionId, solution2, runningProjects: ImmutableDictionary<ProjectId, RunningProjectInfo>.Empty, s_noActiveSpans, CancellationToken.None);
             Assert.Equal("CS0103", result2.Diagnostics.Single().Diagnostics.Single().Id);
             Assert.Empty(result2.ModuleUpdates.Updates);
 
@@ -4568,7 +4798,7 @@ class C
         EndDebuggingSession(debuggingSession);
 
         // The folling methods shall not be called after the debugging session ended.
-        await Assert.ThrowsAsync<ObjectDisposedException>(async () => await debuggingSession.EmitSolutionUpdateAsync(solution, runningProjects: [], s_noActiveSpans, CancellationToken.None));
+        await Assert.ThrowsAsync<ObjectDisposedException>(async () => await debuggingSession.EmitSolutionUpdateAsync(solution, runningProjects: ImmutableDictionary<ProjectId, RunningProjectInfo>.Empty, s_noActiveSpans, CancellationToken.None));
         Assert.Throws<ObjectDisposedException>(() => debuggingSession.BreakStateOrCapabilitiesChanged(inBreakState: true));
         Assert.Throws<ObjectDisposedException>(() => debuggingSession.DiscardSolutionUpdate());
         Assert.Throws<ObjectDisposedException>(() => debuggingSession.CommitSolutionUpdate());

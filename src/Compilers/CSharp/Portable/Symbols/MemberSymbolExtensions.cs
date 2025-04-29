@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -101,6 +102,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return member.ContainingSymbol is TypeSymbol { IsExtension: true };
         }
 
+        internal static bool TryGetInstanceExtensionParameter(this Symbol symbol, [NotNullWhen(true)] out ParameterSymbol? extensionParameter)
+        {
+            if (symbol is not null
+                && symbol.GetIsNewExtensionMember()
+                && !symbol.IsStatic
+                && symbol.ContainingType.ExtensionParameter is { } foundExtensionParameter)
+            {
+                extensionParameter = foundExtensionParameter;
+                return true;
+            }
+
+            extensionParameter = null;
+            return false;
+        }
+
         internal static int GetMemberArityIncludingExtension(this Symbol member)
         {
             if (member.GetIsNewExtensionMember())
@@ -111,15 +127,74 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return member.GetMemberArity();
         }
 
-        internal static ImmutableArray<ParameterSymbol> GetParametersIncludingExtensionParameter(this Symbol symbol)
+        internal static ImmutableArray<TypeParameterSymbol> GetTypeParametersIncludingExtension<TMember>(this TMember member) where TMember : Symbol
+        {
+            Debug.Assert(member.GetMemberArityIncludingExtension() != 0);
+
+            if (member is MethodSymbol method)
+            {
+                return method.GetIsNewExtensionMember()
+                    ? method.ContainingType.TypeParameters.Concat(method.TypeParameters)
+                    : method.TypeParameters;
+            }
+
+            if (member is PropertySymbol property)
+            {
+                Debug.Assert(property.GetIsNewExtensionMember());
+                return property.ContainingType.TypeParameters;
+            }
+
+            throw ExceptionUtilities.UnexpectedValue(member);
+        }
+
+        internal static Dictionary<TypeParameterSymbol, int>? MakeAdjustedTypeParameterOrdinalsIfNeeded<TMember>(this TMember member, ImmutableArray<TypeParameterSymbol> originalTypeParameters)
+            where TMember : Symbol
+        {
+            if (member is MethodSymbol method)
+            {
+                Dictionary<TypeParameterSymbol, int>? ordinals = null;
+                if (method.GetIsNewExtensionMember() && method.Arity > 0 && method.ContainingType.Arity > 0)
+                {
+                    Debug.Assert(originalTypeParameters.Length == method.Arity + method.ContainingType.Arity);
+
+                    // Since we're concatenating type parameters from the extension and from the method together
+                    // we need to control the ordinals that are used
+                    ordinals = new Dictionary<TypeParameterSymbol, int>(ReferenceEqualityComparer.Instance);
+                    for (int i = 0; i < originalTypeParameters.Length; i++)
+                    {
+                        ordinals.Add(originalTypeParameters[i], i);
+                    }
+                }
+
+                return ordinals;
+            }
+
+            if (member is PropertySymbol)
+            {
+                return null;
+            }
+
+            throw ExceptionUtilities.UnexpectedValue(member);
+        }
+
+        internal static ImmutableArray<ParameterSymbol> GetParametersIncludingExtensionParameter(this Symbol symbol, bool skipExtensionIfStatic)
         {
             // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider optimizing
-            if (symbol.GetIsNewExtensionMember() && symbol.ContainingType.ExtensionParameter is { } extensionParameter)
+            if (!skipExtensionIfStatic || !symbol.IsStatic)
             {
-                return [extensionParameter, .. symbol.GetParameters()];
+                if (symbol.GetIsNewExtensionMember() && symbol.ContainingType.ExtensionParameter is { } extensionParameter)
+                {
+                    return [extensionParameter, .. symbol.GetParameters()];
+                }
             }
 
             return symbol.GetParameters();
+        }
+
+        internal static int GetParameterCountIncludingExtensionParameter(this Symbol symbol)
+        {
+            bool hasExtensionParameter = symbol.GetIsNewExtensionMember() && symbol.ContainingType.ExtensionParameter is { };
+            return symbol.GetParameterCount() + (hasExtensionParameter ? 1 : 0);
         }
 
         /// <summary>
@@ -231,20 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var constraintArgs = new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false,
                    NoLocation.Singleton, diagnostics: BindingDiagnosticBag.Discarded, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded);
 
-                bool success = true;
-
-                if (symbol.GetIsNewExtensionMember())
-                {
-                    NamedTypeSymbol extensionDeclaration = symbol.ContainingType;
-                    success = extensionDeclaration.CheckConstraints(constraintArgs);
-                }
-
-                if (success)
-                {
-                    success = symbol.CheckConstraints(constraintArgs);
-                }
-
-                return success;
+                return symbol.CheckConstraints(constraintArgs);
             }
         }
 #nullable disable

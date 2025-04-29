@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         methodSymbol.IsGenericMethod ||
                         !methodSymbol.IsStatic ||
                         !methodSymbol.ReturnsVoid ||
-                        methodSymbol.ParameterCount != 1) // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Should we accept more than one parameter (in case new versions add more info)?
+                        methodSymbol.ParameterCount != 1)
                     {
                         return null; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
                     }
@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (uncommon.LazyImplementationMap is null)
             {
-                Interlocked.CompareExchange(ref uncommon.LazyImplementationMap, new ConcurrentDictionary<MethodSymbol, MethodSymbol?>(Roslyn.Utilities.ReferenceEqualityComparer.Instance), null);
+                Interlocked.CompareExchange(ref uncommon.LazyImplementationMap, new ConcurrentDictionary<MethodSymbol, MethodSymbol?>(ReferenceEqualityComparer.Instance), null);
             }
 
             return uncommon.LazyImplementationMap.GetOrAdd(method, findCorrespondingExtensionImplementationMethod, this);
@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 foreach (var member in @this.ContainingType.GetMembers(method.Name))
                 {
-                    if (member is not MethodSymbol { HasSpecialName: true, IsStatic: true } candidate)
+                    if (member is not MethodSymbol { IsStatic: true } candidate)
                     {
                         continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
                     }

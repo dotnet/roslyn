@@ -51,11 +51,25 @@ internal sealed class LspLogMessageLogger(string categoryName, ILoggerFactory fa
 
         string messagePrefix = "";
 
+        var logMethod = Methods.WindowLogMessageName;
+
         _externalScopeProvider?.ForEachScope((scope, _) =>
         {
             if (scope is LspLoggingScope lspLoggingScope)
             {
-                messagePrefix += $"[{lspLoggingScope.Context}] ";
+                if (lspLoggingScope.Context is not null)
+                {
+                    messagePrefix += $"[{lspLoggingScope.Context}] ";
+                }
+
+                if (lspLoggingScope.Language is not null)
+                {
+                    logMethod = lspLoggingScope.Language switch
+                    {
+                        LanguageInfoProvider.RazorLanguageName => "razor/log",
+                        _ => logMethod,
+                    };
+                }
             }
         }, state);
 
@@ -63,7 +77,7 @@ internal sealed class LspLogMessageLogger(string categoryName, ILoggerFactory fa
 
         try
         {
-            var _ = server.GetRequiredLspService<IClientLanguageServerManager>().SendNotificationAsync(Methods.WindowLogMessageName, new LogMessageParams()
+            var _ = server.GetRequiredLspService<IClientLanguageServerManager>().SendNotificationAsync(logMethod, new LogMessageParams()
             {
                 Message = $"{messagePrefix} {message}",
                 MessageType = LogLevelToMessageType(logLevel),

@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 
@@ -14,9 +13,9 @@ namespace Microsoft.CodeAnalysis.Host.Mef;
 
 internal static class MefHostServicesHelpers
 {
-    public static ImmutableArray<Assembly> LoadNearbyAssemblies(IEnumerable<string> assemblyNames)
+    public static ImmutableArray<Assembly> LoadNearbyAssemblies(ImmutableArray<string> assemblyNames)
     {
-        var assemblies = new List<Assembly>();
+        var assemblies = new List<Assembly>(assemblyNames.Length);
 
         foreach (var assemblyName in assemblyNames)
         {
@@ -30,12 +29,12 @@ internal static class MefHostServicesHelpers
         return [.. assemblies];
     }
 
-    private static Assembly TryLoadNearbyAssembly(string assemblySimpleName)
+    private static Assembly? TryLoadNearbyAssembly(string assemblySimpleName)
     {
         var thisAssemblyName = typeof(MefHostServicesHelpers).GetTypeInfo().Assembly.GetName();
         var assemblyShortName = thisAssemblyName.Name;
         var assemblyVersion = thisAssemblyName.Version;
-        var publicKeyToken = thisAssemblyName.GetPublicKeyToken().Aggregate(string.Empty, (s, b) => s + b.ToString("x2"));
+        var publicKeyToken = thisAssemblyName.GetPublicKeyToken()?.Aggregate(string.Empty, (s, b) => s + b.ToString("x2"));
 
         if (string.IsNullOrEmpty(publicKeyToken))
         {
@@ -52,5 +51,24 @@ internal static class MefHostServicesHelpers
         {
             return null;
         }
+    }
+
+    public static string? TryFindNearbyAssemblyLocation(string assemblySimpleName)
+    {
+        // Try to find the assembly location by looking for a filename matching that assembly name
+        // at the same location as this assembly.
+        var thisAssemblyName = typeof(MefHostServicesHelpers).GetTypeInfo().Assembly.Location;
+        var thisAssemblyFolder = Path.GetDirectoryName(thisAssemblyName);
+        var potentialAssemblyPath = thisAssemblyFolder != null
+            ? Path.Combine(thisAssemblyFolder, assemblySimpleName + ".dll")
+            : null;
+
+        if (File.Exists(potentialAssemblyPath))
+            return potentialAssemblyPath;
+
+        // Otherwise, fall back to loading the assembly to find the file locations
+        var assembly = TryLoadNearbyAssembly(assemblySimpleName);
+
+        return assembly?.Location;
     }
 }

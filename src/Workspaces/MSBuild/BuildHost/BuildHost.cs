@@ -167,6 +167,15 @@ internal sealed class BuildHost : IBuildHost
         return LoadProjectFileCoreAsync(projectFilePath, languageName, cancellationToken);
     }
 
+    /// <summary>
+    /// Returns the target ID of the <see cref="ProjectFile"/> object created for this.
+    /// </summary>
+    public int LoadProject(string projectFilePath, string projectContent, string languageName)
+    {
+        EnsureMSBuildLoaded(projectFilePath);
+        return LoadProjectCore(projectFilePath, projectContent, languageName);
+    }
+
     // When using the Mono runtime, the MSBuild types used in this method must be available
     // to the JIT during compilation of the method, so they have to be loaded by the caller;
     // therefore this method must not be inlined.
@@ -184,6 +193,26 @@ internal sealed class BuildHost : IBuildHost
 
         _logger.LogInformation($"Loading {projectFilePath}");
         var projectFile = await projectLoader.LoadProjectFileAsync(projectFilePath, _buildManager, cancellationToken).ConfigureAwait(false);
+        return _server.AddTarget(projectFile);
+    }
+
+    // When using the Mono runtime, the MSBuild types used in this method must be available
+    // to the JIT during compilation of the method, so they have to be loaded by the caller;
+    // therefore this method must not be inlined.
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private int LoadProjectCore(string projectFilePath, string projectContent, string languageName)
+    {
+        CreateBuildManager();
+
+        ProjectFileLoader projectLoader = languageName switch
+        {
+            LanguageNames.CSharp => new CSharpProjectFileLoader(),
+            LanguageNames.VisualBasic => new VisualBasicProjectFileLoader(),
+            _ => throw ExceptionUtilities.UnexpectedValue(languageName)
+        };
+
+        _logger.LogInformation($"Loading an in-memory project with the path {projectFilePath}");
+        var projectFile = projectLoader.LoadProject(projectFilePath, projectContent, _buildManager);
         return _server.AddTarget(projectFile);
     }
 

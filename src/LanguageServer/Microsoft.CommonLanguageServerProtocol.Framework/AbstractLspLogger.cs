@@ -12,6 +12,7 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 internal abstract class AbstractLspLogger : ILspLogger
 {
     public abstract IDisposable? CreateContext(string context);
+    public abstract IDisposable? CreateLanguageContext(string? language);
 
     public abstract void LogDebug(string message, params object[] @params);
     public abstract void LogInformation(string message, params object[] @params);

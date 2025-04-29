@@ -49,12 +49,12 @@ internal sealed class AssemblyResolver : IAssemblyResolver
         }
     }
 
-    public Task<PEFile> ResolveAsync(IAssemblyReference name)
+    public Task<MetadataFile> ResolveAsync(IAssemblyReference name)
     {
         return Task.FromResult(Resolve(name));
     }
 
-    public Task<PEFile> ResolveModuleAsync(PEFile mainModule, string moduleName)
+    public Task<MetadataFile> ResolveModuleAsync(MetadataFile mainModule, string moduleName)
     {
         return Task.FromResult(ResolveModule(mainModule, moduleName));
     }
@@ -70,7 +70,7 @@ internal sealed class AssemblyResolver : IAssemblyResolver
         return null;
     }
 
-    public PEFile Resolve(IAssemblyReference name)
+    public MetadataFile Resolve(IAssemblyReference name)
     {
         Log("------------------");
         Log(FeaturesResources.Resolve_0, name.FullName);
@@ -147,7 +147,7 @@ internal sealed class AssemblyResolver : IAssemblyResolver
         }
     }
 
-    public PEFile ResolveModule(PEFile mainModule, string moduleName)
+    public MetadataFile ResolveModule(MetadataFile mainModule, string moduleName)
     {
         Log("-------------");
         Log(FeaturesResources.Resolve_module_0_of_1, moduleName, mainModule.FullName);

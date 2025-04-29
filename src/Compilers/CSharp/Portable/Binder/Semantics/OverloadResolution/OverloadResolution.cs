@@ -803,19 +803,18 @@ outerDefault:
             var constraintsArgs = new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, location: NoLocation.Singleton, diagnostics: null, template);
 
             bool constraintsSatisfied = true;
-            if (member is MethodSymbol method && method.Arity > 0)
+            if (member is MethodSymbol method)
             {
-                constraintsSatisfied &= ConstraintsHelper.CheckMethodConstraints(
+                constraintsSatisfied = ConstraintsHelper.CheckMethodConstraints(
                     method,
                     constraintsArgs,
                     diagnosticsBuilder,
                     nullabilityDiagnosticsBuilderOpt: null,
                     ref useSiteDiagnosticsBuilder);
             }
-
-            if (member.GetIsNewExtensionMember() && member.ContainingType is { } extension && ConstraintsHelper.RequiresChecking(extension))
+            else if (member.GetIsNewExtensionMember() && member.ContainingType is { } extension && ConstraintsHelper.RequiresChecking(extension))
             {
-                constraintsSatisfied &= ConstraintsHelper.CheckConstraints(extension, in constraintsArgs,
+                constraintsSatisfied = ConstraintsHelper.CheckConstraints(extension, in constraintsArgs,
                     extension.TypeSubstitution, extension.TypeParameters, extension.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics,
                     diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null, ref useSiteDiagnosticsBuilder);
             }
@@ -1880,7 +1879,8 @@ outerDefault:
 
             foreach (var result in results)
             {
-                Debug.Assert(result.MemberWithPriority is not null);
+                TMember memberWithPriority = result.MemberWithPriority;
+                Debug.Assert(memberWithPriority is not null);
 
                 // We don't filter out inapplicable members here, as we want to keep them in the list for diagnostics
                 // However, we don't want to take them into account for the priority filtering
@@ -1890,11 +1890,14 @@ outerDefault:
                     continue;
                 }
 
-                var containingType = result.MemberWithPriority.ContainingType; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : how should ORPA apply to new extension methods?
+                NamedTypeSymbol containingType = memberWithPriority.GetIsNewExtensionMember()
+                    ? memberWithPriority.ContainingType.ContainingType
+                    : memberWithPriority.ContainingType;
+
                 if (resultsByContainingType.TryGetValue(containingType, out var previousResults))
                 {
                     var previousPriority = previousResults.First().MemberWithPriority.GetOverloadResolutionPriority();
-                    var currentPriority = result.MemberWithPriority.GetOverloadResolutionPriority();
+                    var currentPriority = memberWithPriority.GetOverloadResolutionPriority();
 
                     if (currentPriority > previousPriority)
                     {
@@ -3879,7 +3882,7 @@ outerDefault:
 
             hasAnyRefOmittedArgument = false;
 
-            ImmutableArray<ParameterSymbol> parameters = member.GetParametersIncludingExtensionParameter();
+            ImmutableArray<ParameterSymbol> parameters = member.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: false);
 
             // We simulate an extra parameter for vararg methods 
             int parameterCount = parameters.Length + (member.GetIsVararg() ? 1 : 0);
@@ -4041,7 +4044,7 @@ outerDefault:
             var types = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             var refs = ArrayBuilder<RefKind>.GetInstance();
             bool anyRef = false;
-            var parameters = member.GetParametersIncludingExtensionParameter();
+            var parameters = member.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: false);
             bool hasAnyRefArg = argumentRefKinds.Any();
             hasAnyRefOmittedArgument = false;
             TypeWithAnnotations paramsIterationType = default;
@@ -4279,7 +4282,7 @@ outerDefault:
                     {
                         // infer generic type arguments:
                         MemberAnalysisResult inferenceError;
-                        ImmutableArray<TypeParameterSymbol> typeParameters = GetTypeParametersIncludingExtension(leastOverriddenMember);
+                        ImmutableArray<TypeParameterSymbol> typeParameters = leastOverriddenMember.GetTypeParametersIncludingExtension();
 
                         typeArguments = InferMethodTypeArguments(member,
                                             typeParameters,
@@ -4340,7 +4343,8 @@ outerDefault:
                     ignoreOpenTypes = false;
                 }
 
-                var map = new TypeMap(GetTypeParametersIncludingExtension(isNewExtensionMember ? leastOverriddenMember.OriginalDefinition : leastOverriddenMember), typeArguments, allowAlpha: true);
+                var methodForTypeParameters = isNewExtensionMember ? leastOverriddenMember.OriginalDefinition : leastOverriddenMember;
+                var map = new TypeMap(methodForTypeParameters.GetTypeParametersIncludingExtension(), typeArguments, allowAlpha: true);
 
                 constructedEffectiveParameters = new EffectiveParameters(
                     map.SubstituteTypes(constructedFromEffectiveParameters.ParameterTypes),
@@ -4389,24 +4393,6 @@ outerDefault:
             }
         }
 
-        internal static ImmutableArray<TypeParameterSymbol> GetTypeParametersIncludingExtension<TMember>(TMember member) where TMember : Symbol
-        {
-            if (member is MethodSymbol method)
-            {
-                return method.GetIsNewExtensionMember()
-                    ? method.ContainingType.TypeParameters.Concat(method.TypeParameters)
-                    : method.ConstructedFrom.TypeParameters;
-            }
-
-            if (member is PropertySymbol property)
-            {
-                Debug.Assert(property.GetIsNewExtensionMember());
-                return property.ContainingType.TypeParameters;
-            }
-
-            throw ExceptionUtilities.UnexpectedValue(member);
-        }
-
         private ImmutableArray<TypeWithAnnotations> InferMethodTypeArguments<TMember>(
             TMember member,
             ImmutableArray<TypeParameterSymbol> originalTypeParameters,
@@ -4424,7 +4410,7 @@ outerDefault:
             // a possibly constructed generic type, is exceedingly subtle. See the comments
             // in "Infer" for details.
 
-            PooledDictionary<TypeParameterSymbol, int> ordinals = makeOrdinalsIfNeeded(member, originalTypeParameters);
+            Dictionary<TypeParameterSymbol, int> ordinals = member.MakeAdjustedTypeParameterOrdinalsIfNeeded(originalTypeParameters);
 
             var inferenceResult = MethodTypeInferrer.Infer(
                 _binder,
@@ -4436,8 +4422,6 @@ outerDefault:
                 args,
                 ref useSiteInfo,
                 ordinals: ordinals);
-
-            ordinals?.Free();
 
             if (inferenceResult.Success)
             {
@@ -4483,38 +4467,7 @@ outerDefault:
             hasTypeArgumentsInferredFromFunctionType = false;
             error = MemberAnalysisResult.TypeInferenceFailed();
             return default(ImmutableArray<TypeWithAnnotations>);
-
-#nullable enable
-            static PooledDictionary<TypeParameterSymbol, int>? makeOrdinalsIfNeeded(TMember member, ImmutableArray<TypeParameterSymbol> originalTypeParameters)
-            {
-                if (member is MethodSymbol method)
-                {
-                    PooledDictionary<TypeParameterSymbol, int>? ordinals = null;
-                    if (method.GetIsNewExtensionMember() && method.Arity > 0 && method.ContainingType.Arity > 0)
-                    {
-                        Debug.Assert(originalTypeParameters.Length == method.Arity + method.ContainingType.Arity);
-
-                        // Since we're concatenating type parameters from the extension and from the method together
-                        // we need to control the ordinals that are used
-                        ordinals = PooledDictionary<TypeParameterSymbol, int>.GetInstance();
-                        for (int i = 0; i < originalTypeParameters.Length; i++)
-                        {
-                            ordinals.Add(originalTypeParameters[i], i);
-                        }
-                    }
-
-                    return ordinals;
-                }
-
-                if (member is PropertySymbol)
-                {
-                    return null;
-                }
-
-                throw ExceptionUtilities.UnexpectedValue(member);
-            }
         }
-#nullable disable
 
         private MemberAnalysisResult IsApplicable(
             Symbol candidate, // method or property

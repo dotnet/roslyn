@@ -11,12 +11,11 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Analyz
 
 internal sealed class AnalyzerSettingsProviderFactory(
     Workspace workspace,
-    IDiagnosticAnalyzerService analyzerService,
     IGlobalOptionService globalOptionService) : IWorkspaceSettingsProviderFactory<AnalyzerSetting>
 {
     public ISettingsProvider<AnalyzerSetting> GetForFile(string filePath)
     {
         var updater = new AnalyzerSettingsUpdater(workspace, filePath);
-        return new AnalyzerSettingsProvider(filePath, updater, workspace, analyzerService, globalOptionService);
+        return new AnalyzerSettingsProvider(filePath, updater, workspace, globalOptionService);
     }
 }

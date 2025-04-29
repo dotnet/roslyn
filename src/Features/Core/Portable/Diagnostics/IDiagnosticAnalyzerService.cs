@@ -7,11 +7,12 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal interface IDiagnosticAnalyzerService
+internal interface IDiagnosticAnalyzerService : IWorkspaceService
 {
     /// <summary>
     /// Provides and caches analyzer information.

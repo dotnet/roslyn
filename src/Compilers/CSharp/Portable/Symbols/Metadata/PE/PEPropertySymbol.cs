@@ -1045,7 +1045,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override int TryGetOverloadResolutionPriority()
         {
-            Debug.Assert(IsIndexer || IsIndexedProperty);
+            Debug.Assert(IsIndexer || IsIndexedProperty || this.GetIsNewExtensionMember());
             if (!_flags.IsOverloadResolutionPriorityPopulated)
             {
                 if (_containingType.ContainingPEModule.Module.TryGetOverloadResolutionPriorityValue(_handle, out int priority) &&
