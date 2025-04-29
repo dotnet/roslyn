@@ -55,9 +55,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
 
             MetadataOrSourceAssemblySymbol msCorLibRef = (MetadataOrSourceAssemblySymbol)assemblies[0];
 
-            var knownMissingTypes = new HashSet<int>()
+            var knownMissingSpecialTypes = new HashSet<SpecialType>()
             {
-                (int)SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute
+                SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute,
+            };
+
+            var knownMissingInternalSpecialTypes = new HashSet<InternalSpecialType>()
+            {
+                InternalSpecialType.System_Runtime_CompilerServices_AsyncHelpers,
             };
 
             for (int i = 1; i <= (int)SpecialType.Count; i++)
@@ -66,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
                 Assert.Equal((SpecialType)i, t.SpecialType);
                 Assert.Equal((ExtendedSpecialType)i, t.ExtendedSpecialType);
                 Assert.Same(msCorLibRef, t.ContainingAssembly);
-                if (knownMissingTypes.Contains(i))
+                if (knownMissingSpecialTypes.Contains((SpecialType)i))
                 {
                     // not present on dotnet core 3.1
                     Assert.Equal(TypeKind.Error, t.TypeKind);
@@ -83,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
                 Assert.Equal(SpecialType.None, t.SpecialType);
                 Assert.Equal((ExtendedSpecialType)i, t.ExtendedSpecialType);
                 Assert.Same(msCorLibRef, t.ContainingAssembly);
-                if (knownMissingTypes.Contains(i))
+                if (knownMissingInternalSpecialTypes.Contains((InternalSpecialType)i))
                 {
                     // not present on dotnet core 3.1
                     Assert.Equal(TypeKind.Error, t.TypeKind);
@@ -128,8 +133,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
                 }
             }
 
-            Assert.Equal((int)SpecialType.Count, count + knownMissingTypes.Count);
-            Assert.Equal(knownMissingTypes.Any(), msCorLibRef.KeepLookingForDeclaredSpecialTypes);
+            Assert.Equal((int)SpecialType.Count, count + knownMissingSpecialTypes.Count);
+            Assert.Equal(knownMissingSpecialTypes.Any(), msCorLibRef.KeepLookingForDeclaredSpecialTypes);
         }
 
         [Fact]

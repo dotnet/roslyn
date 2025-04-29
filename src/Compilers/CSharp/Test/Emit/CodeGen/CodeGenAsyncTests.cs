@@ -8442,7 +8442,7 @@ class Test1
             // Runtime async not turned on, so we shouldn't care about the missing member
             comp = CreateRuntimeAsyncCompilation(code, parseOptions: TestOptions.RegularPreview);
             comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitTask);
-            CompileAndVerify(comp);
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify);
         }
 
         [Fact]
@@ -8463,7 +8463,7 @@ class Test1
             // Runtime async not turned on, so we shouldn't care about the missing member
             comp = CreateRuntimeAsyncCompilation(code, parseOptions: TestOptions.RegularPreview);
             comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitTaskT_T);
-            CompileAndVerify(comp);
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify);
         }
 
         [Fact]
@@ -8484,7 +8484,7 @@ class Test1
             // Runtime async not turned on, so we shouldn't care about the missing member
             comp = CreateRuntimeAsyncCompilation(code, parseOptions: TestOptions.RegularPreview);
             comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTask);
-            CompileAndVerify(comp);
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify);
         }
 
         [Fact]
@@ -8505,7 +8505,7 @@ class Test1
             // Runtime async not turned on, so we shouldn't care about the missing member
             comp = CreateRuntimeAsyncCompilation(code, parseOptions: TestOptions.RegularPreview);
             comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTaskT_T);
-            CompileAndVerify(comp);
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify);
         }
 
         [Fact]
@@ -8526,7 +8526,7 @@ class Test1
             // Runtime async not turned on, so we shouldn't care about the missing member
             comp = CreateRuntimeAsyncCompilation(code, parseOptions: TestOptions.RegularPreview);
             comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter);
-            CompileAndVerify(comp);
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify);
         }
 
         [Fact]
@@ -8561,7 +8561,7 @@ class Test1
             // Runtime async not turned on, so we shouldn't care about the missing member
             comp = CreateRuntimeAsyncCompilation(code, parseOptions: TestOptions.RegularPreview);
             comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter);
-            CompileAndVerify(comp);
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify);
         }
 
         [Fact]
