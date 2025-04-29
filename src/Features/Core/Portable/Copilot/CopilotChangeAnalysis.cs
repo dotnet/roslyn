@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.Copilot;
 [DataContract]
 internal readonly record struct CopilotChangeAnalysis(
     [property: DataMember(Order = 0)] bool Succeeded,
-    [property: DataMember(Order = 1)] int OldTextLength,
-    [property: DataMember(Order = 2)] int NewTextLength,
+    [property: DataMember(Order = 1)] int OldDocumentLength,
+    [property: DataMember(Order = 2)] int NewDocumentLength,
     [property: DataMember(Order = 3)] int TextChangeDelta,
     [property: DataMember(Order = 4)] int ProjectDocumentCount,
     [property: DataMember(Order = 5)] int ProjectSourceGeneratedDocumentCount,

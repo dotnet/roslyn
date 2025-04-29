@@ -134,8 +134,8 @@ internal sealed class DefaultCopilotChangeAnalysisService(
 
         return new CopilotChangeAnalysis(
             Succeeded: true,
-            OldDocumentTextLength: oldText.Length,
-            NewDocumentTextLength: newText.Length,
+            OldDocumentLength: oldText.Length,
+            NewDocumentLength: newText.Length,
             TextChangeDelta: totalDelta,
             ProjectDocumentCount: projectDocumentCount,
             ProjectSourceGeneratedDocumentCount: projectSourceGeneratedDocumentCount,
