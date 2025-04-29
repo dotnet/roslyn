@@ -2677,17 +2677,17 @@ public class C1
          
 } // end of class System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute
 "
-        
+
             Dim ilRef = CompileIL(il)
-            
+
             Dim comp = CreateCompilation("", {ilRef}, targetFramework:=TargetFramework.Net70)
             Dim c = comp.GetTypeByMetadataName("C")
-            
+
             Dim constructor As MethodSymbol = c.InstanceConstructors.Single()
             AssertEx.Equal({"System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute(""Unknown"")",
                             "System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute(""RequiredMembers"")"},
                            constructor.GetAttributes().Select(Function(a) $"{a.AttributeClass.ToTestDisplayString()}({String.Join(", ", a.CommonConstructorArguments.Select(Function(arg) arg.ToCSharpString()))})"))
-            
+
             Assert.False(constructor.HasSetsRequiredMembers)
         End Sub
     End Class
