@@ -241,11 +241,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (symbol is SourceExtensionImplementationMethodSymbol implementation)
             {
-                var symbolForDocComment = implementation.UnderlyingMethod is SourcePropertyAccessorSymbol accessorSymbol
-                    ? accessorSymbol.AssociatedSymbol
-                    : implementation.UnderlyingMethod;
+                MethodSymbol underlyingMethod = implementation.UnderlyingMethod;
+                Symbol symbolForDocComment = underlyingMethod.IsAccessor()
+                    ? underlyingMethod.AssociatedSymbol
+                    : underlyingMethod;
 
-                if (symbolForDocComment.GetDocumentationCommentXml(preferredCulture: null, _processIncludes, _cancellationToken).IsEmpty())
+                if (!hasDocumentationTrivia(symbolForDocComment))
                 {
                     return;
                 }
@@ -258,7 +259,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            DefaultVisit(symbol);
+            base.VisitMethod(symbol);
+            return;
+
+            static bool hasDocumentationTrivia(Symbol symbol)
+            {
+                foreach (SyntaxReference reference in symbol.DeclaringSyntaxReferences)
+                {
+                    foreach (var trivia in reference.GetSyntax().GetLeadingTrivia())
+                    {
+                        if (trivia.IsDocumentationCommentTrivia)
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
         }
 
         /// <summary>

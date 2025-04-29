@@ -36824,7 +36824,10 @@ static class E
 {
     extension<T>(T t)
     {
+        // comment
         public static void M<U>(U u) => throw null!;
+
+        // comment
         public static int P => 0;
     }
 }
@@ -36849,6 +36852,64 @@ static class E
 
         var pGetImplementation = e.GetMember<MethodSymbol>("get_P");
         Assert.Empty(pGetImplementation.GetDocumentationCommentXml());
+    }
+
+    [Fact]
+    public void XmlDoc_04()
+    {
+        // Error docs
+        var src = """
+static class E
+{
+    extension<T>(T t)
+    {
+        /// <summary></error>
+        public static void M<U>(U u) => throw null!;
+
+        /// <summary></error>
+        public static int P => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (5,24): warning CS1570: XML comment has badly formed XML -- 'End tag 'error' does not match the start tag 'summary'.'
+            //         /// <summary></error>
+            Diagnostic(ErrorCode.WRN_XMLParseError, "error").WithArguments("error", "summary").WithLocation(5, 24),
+            // (8,24): warning CS1570: XML comment has badly formed XML -- 'End tag 'error' does not match the start tag 'summary'.'
+            //         /// <summary></error>
+            Diagnostic(ErrorCode.WRN_XMLParseError, "error").WithArguments("error", "summary").WithLocation(8, 24));
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        var extension = e.GetTypeMembers().Single();
+
+        var mSkeleton = extension.GetMember<MethodSymbol>("M");
+        AssertEx.Equal("""
+<!-- Badly formed XML comment ignored for member "M:E.<>E__0`1.M``1(``0)" -->
+
+""", mSkeleton.GetDocumentationCommentXml());
+
+        var mImplementation = e.GetMember<MethodSymbol>("M");
+        AssertEx.Equal("""
+<member name="M:E.M``2(``1)">
+    <inheritdoc cref="M:E.<>E__0`1.M``1(``0)"/>
+</member>
+
+""", mImplementation.GetDocumentationCommentXml());
+
+        var p = extension.GetMember<PropertySymbol>("P");
+        AssertEx.Equal("""
+<!-- Badly formed XML comment ignored for member "P:E.<>E__0`1.P" -->
+
+""", p.GetDocumentationCommentXml());
+
+        var pGetImplementation = e.GetMember<MethodSymbol>("get_P");
+        AssertEx.Equal("""
+<member name="M:E.get_P``1">
+    <inheritdoc cref="P:E.<>E__0`1.P"/>
+</member>
+
+""", pGetImplementation.GetDocumentationCommentXml());
     }
 
     [Fact]
