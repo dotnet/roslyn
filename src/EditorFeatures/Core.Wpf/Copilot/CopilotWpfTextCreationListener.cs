@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Threading;
@@ -87,6 +88,7 @@ internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationL
     private static async ValueTask ProcessEventAsync(
         SuggestionAcceptedEventArgs eventArgs, CancellationToken cancellationToken)
     {
+        var featureId = "<unknown>";
         var proposal = eventArgs.FinalProposal;
         var proposalId = proposal.ProposalId;
 
@@ -105,10 +107,48 @@ internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationL
                 continue;
 
             var changeAnalysisService = document.Project.Solution.Services.GetRequiredService<ICopilotChangeAnalysisService>();
-            await changeAnalysisService.AnalyzeChangeAsync(
-                document, normalizedEdits, proposalId, cancellationToken).ConfigureAwait(false);
+            var analysisResult = await changeAnalysisService.AnalyzeChangeAsync(
+                document, normalizedEdits, cancellationToken).ConfigureAwait(false);
+
+            Logger.LogBlock(FunctionId.Copilot_AnalyzeChange, KeyValueLogMessage.Create(static (d, args) =>
+            {
+                var (featureId, proposalId, analysisResult) = args;
+                d["FeatureId"] = featureId;
+                d["ProposalId"] = proposalId;
+
+                d["Succeeded"] = analysisResult.Succeeded;
+
+                d["OldDocumentLength"] = analysisResult.OldDocumentLength;
+                d["NewDocumentLength"] = analysisResult.NewDocumentLength;
+                d["TextChangeDelta"] = analysisResult.TextChangeDelta;
+
+                d["ProjectDocumentCount"] = analysisResult.ProjectDocumentCount;
+                d["ProjectSourceGeneratedDocumentCount"] = analysisResult.ProjectSourceGeneratedDocumentCount;
+                d["ProjectConeCount"] = analysisResult.ProjectConeCount;
+
+                foreach (var diagnosticAnalysis in analysisResult.DiagnosticAnalyses)
+                {
+                    var keyPrefix = $"DiagnosticAnalysis_{diagnosticAnalysis.Kind}";
+
+                    d[$"{keyPrefix}_ComputationTime"] = diagnosticAnalysis.ComputationTime;
+                    d[$"{keyPrefix}_IdToCount"] = GetOrderedElements(diagnosticAnalysis.IdToCount);
+                    d[$"{keyPrefix}_CategoryToCount"] = GetOrderedElements(diagnosticAnalysis.CategoryToCount);
+                    d[$"{keyPrefix}_SeverityToCount"] = GetOrderedElements(diagnosticAnalysis.SeverityToCount);
+                }
+
+                d["CodeFixAnalysis_TotalComputationTime"] = analysisResult.CodeFixAnalysis.TotalComputationTime;
+                d["CodeFixAnalysis_TotalApplicationTime"] = analysisResult.CodeFixAnalysis.TotalApplicationTime;
+                d["CodeFixAnalysis_DiagnosticIdToCount"] = GetOrderedElements(analysisResult.CodeFixAnalysis.DiagnosticIdToCount);
+                d["CodeFixAnalysis_DiagnosticIdToApplicationTime"] = GetOrderedElements(analysisResult.CodeFixAnalysis.DiagnosticIdToApplicationTime);
+                d["CodeFixAnalysis_DiagnosticIdToProviderName"] = GetOrderedElements(analysisResult.CodeFixAnalysis.DiagnosticIdToProviderName);
+                d["CodeFixAnalysis_ProviderNameToApplicationTime"] = GetOrderedElements(analysisResult.CodeFixAnalysis.ProviderNameToApplicationTime);
+            }, args: (featureId, proposalId, analysisResult)),
+            cancellationToken);
         }
     }
+
+    private static List<string> GetOrderedElements<TKey, TValue>(Dictionary<TKey, TValue> dictionary)
+        => dictionary.Select(kvp => $"{kvp.Key}_{kvp.Value}").OrderBy(v => v).ToList();
 
     private static ImmutableArray<TextChange> Normalize(IEnumerable<ProposedEdit> editGroup)
     {

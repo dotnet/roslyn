@@ -34,7 +34,7 @@ internal interface ICopilotChangeAnalysisService : IWorkspaceService
     /// make to it.  <paramref name="changes"/> must be sorted and normalized before calling this.
     /// </summary>
     Task<CopilotChangeAnalysis> AnalyzeChangeAsync(
-        Document document, ImmutableArray<TextChange> changes, string proposalId, CancellationToken cancellationToken);
+        Document document, ImmutableArray<TextChange> changes, CancellationToken cancellationToken);
 }
 
 [ExportWorkspaceService(typeof(ICopilotChangeAnalysisService)), Shared]
@@ -43,12 +43,13 @@ internal interface ICopilotChangeAnalysisService : IWorkspaceService
 internal sealed class DefaultCopilotChangeAnalysisService(
     ICodeFixService codeFixService) : ICopilotChangeAnalysisService
 {
+    private const string RoslynPrefix = "Microsoft.CodeAnalysis.";
+
     private readonly ICodeFixService _codeFixService = codeFixService;
 
     public async Task<CopilotChangeAnalysis> AnalyzeChangeAsync(
         Document document,
         ImmutableArray<TextChange> changes,
-        string proposalId,
         CancellationToken cancellationToken)
     {
         if (!document.SupportsSemanticModel)
@@ -65,13 +66,14 @@ internal sealed class DefaultCopilotChangeAnalysisService(
                 // Don't need to sync the entire solution over.  Just the cone of projects this document it contained within.
                 document.Project,
                 (service, checksum, cancellationToken) => service.AnalyzeChangeAsync(
-                    checksum, document.Id, changes, proposalId, cancellationToken),
+                    checksum, document.Id, changes, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
             return value.HasValue ? value.Value : default;
         }
         else
         {
-            return await AnalyzeChangeInCurrentProcessAsync(document, changes, cancellationToken).ConfigureAwait(false);
+            return await AnalyzeChangeInCurrentProcessAsync(
+                document, changes, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -225,9 +227,9 @@ internal sealed class DefaultCopilotChangeAnalysisService(
                         newDocument, span, diagnosticKind, cancellationToken).ConfigureAwait(false);
                     foreach (var diagnostic in diagnostics)
                     {
-                        // Ignore supressed diagnostics.  These are things the user has said they do not care about
-                        // and would then have no interest in being auto fixed.
-                        if (!diagnostic.IsSuppressed)
+                        // Ignore supressed and hidden diagnostics.  These are things the user has said they do not
+                        // care about and would then have no interest in being auto fixed.
+                        if (IsVisibleDiagnostic(diagnostic.IsSuppressed, diagnostic.Severity))
                             callback(diagnostic);
                     }
                 },
@@ -235,6 +237,9 @@ internal sealed class DefaultCopilotChangeAnalysisService(
                 cancellationToken);
         }
     }
+
+    private static bool IsVisibleDiagnostic(bool isSuppressed, DiagnosticSeverity severity)
+        => !isSuppressed && severity != DiagnosticSeverity.Hidden;
 
     private async Task<CopilotCodeFixAnalysis> ComputeCodeFixAnalysisAsync(
         Document newDocument,
@@ -269,7 +274,7 @@ internal sealed class DefaultCopilotChangeAnalysisService(
                 await foreach (var (codeFixCollection, applicationTime) in values)
                 {
                     var diagnosticId = codeFixCollection.FirstDiagnostic.Id;
-                    var providerName = codeFixCollection.Provider.GetType().FullName!;
+                    var providerName = codeFixCollection.Provider.GetType().FullName![RoslynPrefix.Length..];
 
                     IncrementCount(diagnosticIdToCount, diagnosticId);
                     IncrementElapsedTime(diagnosticIdToApplicationTime, diagnosticId, applicationTime);
@@ -308,9 +313,10 @@ internal sealed class DefaultCopilotChangeAnalysisService(
                                 Provider: not IConfigurationFixProvider,
                                 Fixes: [var codeFix, ..],
                             } &&
-                            (codeFixCollection.Provider.GetType().Namespace ?? "").StartsWith("Microsoft.CodeAnalysis"))
+                            IsVisibleDiagnostic(codeFix.PrimaryDiagnostic.IsSuppressed, codeFix.PrimaryDiagnostic.Severity) &&
+                            (codeFixCollection.Provider.GetType().Namespace ?? "").StartsWith(RoslynPrefix))
                         {
-                            // The first for a particular span is the one we would apply.  Ignore others that fix the same span.
+                            // The first for a par<ticular span is the one we would apply.  Ignore others that fix the same span.
                             if (intervalTree.HasIntervalThatOverlapsWith(codeFixCollection.TextSpan))
                                 continue;
 
