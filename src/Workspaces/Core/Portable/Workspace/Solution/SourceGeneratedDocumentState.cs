@@ -202,12 +202,8 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
         }
         else
         {
-            // We don't have a tree yet, so we need to create one. Using "newRoot.SyntaxTree" is the last resort though
-            // as it could lazily create one, which doesn't know about our parse options.
-            var factory = LanguageServices.GetService<ISyntaxTreeFactoryService>();
-            newTree = factory is not null
-                ? factory.CreateSyntaxTree(Attributes.SyntaxTreeFilePath, ParseOptions, SourceText, SourceText.Encoding, SourceText.ChecksumAlgorithm, newRoot)
-                : newRoot.SyntaxTree;
+            var factory = LanguageServices.GetRequiredService<ISyntaxTreeFactoryService>();
+            newTree = factory.CreateSyntaxTree(Attributes.SyntaxTreeFilePath, ParseOptions, SourceText, SourceText.Encoding, SourceText.ChecksumAlgorithm, newRoot);
         }
 
         var newTreeVersion = GetNewTreeVersionForUpdatedTree(newRoot, GetNewerVersion(), PreservationMode.PreserveValue);
