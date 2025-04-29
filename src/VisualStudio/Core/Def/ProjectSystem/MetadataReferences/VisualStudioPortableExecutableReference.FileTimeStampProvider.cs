@@ -73,7 +73,7 @@ internal partial class VisualStudioMetadataReferenceManager
                 lock (_cachedTimestamps)
                 {
                     // Attempt to use the cached timestamp for this file. 
-                    if (!_cachedTimestamps.TryGetValue(fullPath, out timestamp))
+                    if (_cachedTimestamps.TryGetValue(fullPath, out timestamp))
                         return timestamp;
                 }
 
