@@ -61,7 +61,7 @@ internal sealed class ProjectCodeModelFactory : IProjectCodeModelFactory
             Listener,
             threadingContext.DisposalToken);
 
-        _visualStudioWorkspace.WorkspaceChanged += OnWorkspaceChanged;
+        _ = _visualStudioWorkspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
     }
 
     internal IAsynchronousOperationListener Listener { get; }
@@ -153,7 +153,7 @@ internal sealed class ProjectCodeModelFactory : IProjectCodeModelFactory
         }
     }
 
-    private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+    private void OnWorkspaceChanged(WorkspaceChangeEventArgs e)
     {
         // Events that can't change existing code model items.  Can just ignore them.
         switch (e.Kind)

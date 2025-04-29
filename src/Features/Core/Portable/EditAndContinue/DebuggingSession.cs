@@ -512,7 +512,7 @@ internal sealed class DebuggingSession : IDisposable
 
     public async ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(
         Solution solution,
-        IImmutableSet<ProjectId> runningProjects,
+        ImmutableDictionary<ProjectId, RunningProjectInfo> runningProjects,
         ActiveStatementSpanProvider activeStatementSpanProvider,
         CancellationToken cancellationToken)
     {
@@ -553,7 +553,7 @@ internal sealed class DebuggingSession : IDisposable
         }
 
         using var _ = ArrayBuilder<ProjectDiagnostics>.GetInstance(out var rudeEditDiagnostics);
-        foreach (var (projectId, projectRudeEdits) in solutionUpdate.DocumentsWithRudeEdits.GroupBy(static e => e.DocumentId.ProjectId))
+        foreach (var (projectId, projectRudeEdits) in solutionUpdate.DocumentsWithRudeEdits.GroupBy(static e => e.DocumentId.ProjectId).OrderBy(static id => id))
         {
             foreach (var (documentId, rudeEdits) in projectRudeEdits)
             {

@@ -30,6 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
+        internal override int TryGetOverloadResolutionPriority()
+            => _originalMethod.TryGetOverloadResolutionPriority();
+
         protected override ImmutableArray<ParameterSymbol> MakeParameters()
         {
             return ImmutableArray<ParameterSymbol>.CastUp(_originalMethod.Parameters.SelectAsArray(static (p, @this) => new RewrittenMethodParameterSymbol(@this, p), this));

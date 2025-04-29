@@ -16,14 +16,12 @@ internal sealed partial class LegacyDiagnosticItemSource : BaseDiagnosticAndGene
         IThreadingContext threadingContext,
         AnalyzerItem item,
         IAnalyzersCommandHandler commandHandler,
-        IDiagnosticAnalyzerService diagnosticAnalyzerService,
         IAsynchronousOperationListenerProvider listenerProvider)
         : base(
             threadingContext,
             item.AnalyzersFolder.Workspace,
             item.AnalyzersFolder.ProjectId,
             commandHandler,
-            diagnosticAnalyzerService,
             listenerProvider)
     {
         _item = item;

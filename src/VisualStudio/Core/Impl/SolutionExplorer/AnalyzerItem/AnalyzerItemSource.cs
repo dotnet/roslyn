@@ -37,6 +37,8 @@ internal sealed class AnalyzerItemSource : IAttachedCollectionSource
     private Workspace Workspace => _analyzersFolder.Workspace;
     private ProjectId ProjectId => _analyzersFolder.ProjectId;
 
+    private WorkspaceEventRegistration? _workspaceChangedDisposer;
+
     public AnalyzerItemSource(
         AnalyzersFolderItem analyzersFolder,
         IAnalyzersCommandHandler commandHandler,
@@ -51,7 +53,7 @@ internal sealed class AnalyzerItemSource : IAttachedCollectionSource
             listenerProvider.GetListener(FeatureAttribute.SourceGenerators),
             _cancellationTokenSource.Token);
 
-        this.Workspace.WorkspaceChanged += OnWorkspaceChanged;
+        _workspaceChangedDisposer = this.Workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
 
         // Kick off the initial work to determine the starting set of items.
         _workQueue.AddWork();
@@ -64,7 +66,7 @@ internal sealed class AnalyzerItemSource : IAttachedCollectionSource
 
     public IEnumerable Items => _items;
 
-    private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+    private void OnWorkspaceChanged(WorkspaceChangeEventArgs e)
     {
         switch (e.Kind)
         {
@@ -93,7 +95,8 @@ internal sealed class AnalyzerItemSource : IAttachedCollectionSource
         var project = this.Workspace.CurrentSolution.GetProject(this.ProjectId);
         if (project is null)
         {
-            this.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
+            _workspaceChangedDisposer?.Dispose();
+            _workspaceChangedDisposer = null;
 
             _cancellationTokenSource.Cancel();
 

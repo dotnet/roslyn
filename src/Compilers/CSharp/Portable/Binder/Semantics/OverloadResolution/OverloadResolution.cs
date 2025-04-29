@@ -1878,7 +1878,8 @@ outerDefault:
 
             foreach (var result in results)
             {
-                Debug.Assert(result.MemberWithPriority is not null);
+                TMember memberWithPriority = result.MemberWithPriority;
+                Debug.Assert(memberWithPriority is not null);
 
                 // We don't filter out inapplicable members here, as we want to keep them in the list for diagnostics
                 // However, we don't want to take them into account for the priority filtering
@@ -1888,11 +1889,14 @@ outerDefault:
                     continue;
                 }
 
-                var containingType = result.MemberWithPriority.ContainingType; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : how should ORPA apply to new extension methods?
+                NamedTypeSymbol containingType = memberWithPriority.GetIsNewExtensionMember()
+                    ? memberWithPriority.ContainingType.ContainingType
+                    : memberWithPriority.ContainingType;
+
                 if (resultsByContainingType.TryGetValue(containingType, out var previousResults))
                 {
                     var previousPriority = previousResults.First().MemberWithPriority.GetOverloadResolutionPriority();
-                    var currentPriority = result.MemberWithPriority.GetOverloadResolutionPriority();
+                    var currentPriority = memberWithPriority.GetOverloadResolutionPriority();
 
                     if (currentPriority > previousPriority)
                     {

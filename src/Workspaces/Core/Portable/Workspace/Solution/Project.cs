@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis;
 [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
 public partial class Project
 {
-    // Only access these dictionaries when holding them as a lock
+    // Only access these dictionaries when holding them as a lock. These are intentionally simple dictionaries
+    // rather than ConcurrentDictionaries or ImmutableDictionaries for performance reasons.
     private Dictionary<DocumentId, Document?>? _idToDocumentMap;
     private Dictionary<DocumentId, SourceGeneratedDocument>? _idToSourceGeneratedDocumentMap;
     private Dictionary<DocumentId, AdditionalDocument?>? _idToAdditionalDocumentMap;

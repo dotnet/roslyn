@@ -11,8 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -23,10 +21,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspaceServiceFactory
 {
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-    {
-        var diagnosticAnalyzerService = workspaceServices.SolutionServices.ExportProvider.GetExports<IDiagnosticAnalyzerService>().Single().Value;
-        return new CodeAnalysisDiagnosticAnalyzerService(diagnosticAnalyzerService, workspaceServices.Workspace);
-    }
+        => new CodeAnalysisDiagnosticAnalyzerService(workspaceServices.Workspace);
 
     private sealed class CodeAnalysisDiagnosticAnalyzerService : ICodeAnalysisDiagnosticAnalyzerService
     {
@@ -50,16 +45,17 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
         private readonly ConcurrentSet<ProjectId> _clearedProjectIds = [];
 
         public CodeAnalysisDiagnosticAnalyzerService(
-            IDiagnosticAnalyzerService diagnosticAnalyzerService,
             Workspace workspace)
         {
-            _diagnosticAnalyzerService = diagnosticAnalyzerService;
             _workspace = workspace;
+            _diagnosticAnalyzerService = _workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
-            _workspace.WorkspaceChanged += OnWorkspaceChanged;
+            // Main thread as OnWorkspaceChanged's call to IDiagnosticAnalyzerService.RequestDiagnosticRefresh isn't clear on
+            // threading requirements
+            _ = workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged, WorkspaceEventOptions.RequiresMainThreadOptions);
         }
 
-        private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
+        private void OnWorkspaceChanged(WorkspaceChangeEventArgs e)
         {
             switch (e.Kind)
             {

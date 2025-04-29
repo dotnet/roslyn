@@ -41,6 +41,7 @@ internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLi
     private ObjectListItem _activeListItem;
     private AbstractListItemFactory _listItemFactory;
     private readonly object _classMemberGate = new();
+    private WorkspaceEventRegistration _workspaceChangedDisposer;
 
     protected AbstractObjectBrowserLibraryManager(
         string languageName,
@@ -53,7 +54,7 @@ internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLi
         _languageName = languageName;
 
         Workspace = workspace;
-        Workspace.WorkspaceChanged += OnWorkspaceChanged;
+        _workspaceChangedDisposer = Workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
 
         _libraryService = new Lazy<ILibraryService>(() => Workspace.Services.GetLanguageServices(_languageName).GetService<ILibraryService>());
     }
@@ -73,9 +74,12 @@ internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLi
     }
 
     public void Dispose()
-        => this.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
+    {
+        _workspaceChangedDisposer?.Dispose();
+        _workspaceChangedDisposer = null;
+    }
 
-    private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+    private void OnWorkspaceChanged(WorkspaceChangeEventArgs e)
     {
         switch (e.Kind)
         {

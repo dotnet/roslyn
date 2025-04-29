@@ -364,10 +364,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool HasUnscopedRefAttribute => UnderlyingMethod.HasUnscopedRefAttribute;
 
         internal sealed override bool UseUpdatedEscapeRules => UnderlyingMethod.UseUpdatedEscapeRules;
-
-        internal sealed override int TryGetOverloadResolutionPriority()
-        {
-            return UnderlyingMethod.TryGetOverloadResolutionPriority();
-        }
     }
 }

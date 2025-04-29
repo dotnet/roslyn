@@ -14,6 +14,7 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument>(TDocument do
     where TDocument : TextDocument
 {
     public TDocument Document { get; } = document;
+    public Solution Solution => this.Document.Project.Solution;
 
     public abstract bool IsLiveSource();
 
