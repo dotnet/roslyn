@@ -1029,156 +1029,184 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var syntax = node.Syntax;
             var elements = node.Elements;
+            var elementConversions = conversion.UnderlyingConversions;
+            Debug.Assert(elementConversions.All(c => c.Exists));
+            var elementKeyValueTypes = ConversionsBase.TryGetCollectionKeyValuePairTypes(Compilation, elementType);
             var builder = ArrayBuilder<BoundNode>.GetInstance(elements.Length);
+            int conversionIndex = 0;
+            var collectionInitializerAddMethodBinder = (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable) ?
+                new CollectionInitializerAddMethodBinder(syntax, targetType, this) :
+                null;
+            Debug.Assert(collectionInitializerAddMethodBinder is null || implicitReceiver is { });
 
-            if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable)
+            foreach (var element in elements)
             {
-                Debug.Assert(implicitReceiver is { });
-                var collectionInitializerAddMethodBinder = new CollectionInitializerAddMethodBinder(syntax, targetType, this);
-                foreach (var element in elements)
+                if (element is BoundCollectionExpressionWithElement)
                 {
-                    BoundNode convertedElement;
-                    switch (element)
-                    {
-                        case BoundCollectionExpressionWithElement:
-                            continue;
-                        case BoundCollectionExpressionSpreadElement spreadElement:
-                            // PROTOTYPE: Test with KeyValuePair<,> variance conversion.
-                            convertedElement = BindCollectionExpressionSpreadElement(
-                                (SpreadElementSyntax)spreadElement.Syntax,
-                                spreadElement,
-                                implicitReceiver,
-                                static (binder, syntax, element, implicitReceiver, collectionInitializerAddMethodBinder, diagnostics) =>
-                                    binder.BindCollectionInitializerElementAddMethod(
-                                        syntax,
-                                        [element],
+                    continue;
+                }
+                var elementConversion = elementConversions[conversionIndex++];
+                BoundNode convertedElement;
+                switch (element)
+                {
+                    case BoundExpression expressionElement:
+                        {
+                            var expressionSyntax = expressionElement.Syntax;
+                            if (elementKeyValueTypes is (var elementKeyType, var elementValueType) &&
+                                elementConversion.TryGetKeyValueConversions(out var keyConversion, out var valueConversion))
+                            {
+                                _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__ctor, diagnostics, syntax: expressionSyntax); // PROTOTYPE: Test missing constructor.
+                                if (!ConversionsBase.IsKeyValuePairType(Compilation, expressionElement.Type, out var keyType, out var valueType))
+                                {
+                                    throw ExceptionUtilities.UnexpectedValue(expressionElement.Type);
+                                }
+                                BoundExpression convertedExpression = BindToNaturalType(expressionElement, diagnostics);
+                                var keyPlaceholder = new BoundValuePlaceholder(expressionSyntax, keyType);
+                                var valuePlaceholder = new BoundValuePlaceholder(expressionSyntax, valueType);
+                                var keyValuePairConversion = new BoundKeyValuePairConversion(
+                                    expressionSyntax,
+                                    expression: convertedExpression,
+                                    keyPlaceholder: keyPlaceholder,
+                                    valuePlaceholder: valuePlaceholder,
+                                    keyConversion: CreateConversion(keyPlaceholder, keyConversion, elementKeyType, diagnostics),
+                                    valueConversion: CreateConversion(valuePlaceholder, valueConversion, elementValueType, diagnostics),
+                                    elementType);
+                                if (collectionInitializerAddMethodBinder is { })
+                                {
+                                    convertedElement = BindCollectionInitializerElementAddMethod(
+                                        expressionSyntax,
+                                        [keyValuePairConversion],
                                         hasEnumerableInitializerType: true,
                                         collectionInitializerAddMethodBinder,
                                         diagnostics,
-                                        implicitReceiver),
-                                collectionInitializerAddMethodBinder,
-                                diagnostics);
-                            break;
-                        case BoundExpression expressionElement:
-                            // PROTOTYPE: Test with KeyValuePair<,> variance conversion.
-                            convertedElement = BindCollectionInitializerElementAddMethod(
-                                element.Syntax,
-                                [expressionElement],
-                                hasEnumerableInitializerType: true,
-                                collectionInitializerAddMethodBinder,
-                                diagnostics,
-                                implicitReceiver);
-                            break;
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(element);
-                    }
-                    builder.Add(convertedElement);
-                }
-            }
-            else
-            {
-                var elementKeyValueTypes = ConversionsBase.TryGetCollectionKeyValuePairTypes(Compilation, elementType);
-                var elementConversions = conversion.UnderlyingConversions;
-                Debug.Assert(elementConversions.All(c => c.Exists));
-
-                int conversionIndex = 0;
-                foreach (var element in elements)
-                {
-                    if (element is BoundCollectionExpressionWithElement)
-                    {
-                        continue;
-                    }
-                    var elementConversion = elementConversions[conversionIndex++];
-                    BoundNode convertedElement;
-                    switch (element)
-                    {
-                        case BoundExpression expressionElement:
-                            {
-                                if (elementKeyValueTypes is (var elementKeyType, var elementValueType) &&
-                                    elementConversion.TryGetKeyValueConversions(out var keyConversion, out var valueConversion))
-                                {
-                                    if (!ConversionsBase.IsKeyValuePairType(Compilation, expressionElement.Type, out var keyType, out var valueType))
-                                    {
-                                        throw ExceptionUtilities.UnexpectedValue(expressionElement.Type);
-                                    }
-                                    BoundExpression convertedExpression = BindToNaturalType(expressionElement, diagnostics);
-                                    var expressionSyntax = expressionElement.Syntax;
-                                    var keyPlaceholder = new BoundValuePlaceholder(expressionSyntax, keyType);
-                                    var valuePlaceholder = new BoundValuePlaceholder(expressionSyntax, valueType);
-                                    convertedElement = new BoundKeyValuePairConversion(
-                                        expressionSyntax,
-                                        expression: convertedExpression,
-                                        keyPlaceholder: keyPlaceholder,
-                                        valuePlaceholder: valuePlaceholder,
-                                        keyConversion: CreateConversion(keyPlaceholder, keyConversion, elementKeyType, diagnostics),
-                                        valueConversion: CreateConversion(valuePlaceholder, valueConversion, elementValueType, diagnostics),
-                                        elementType);
+                                        implicitReceiver);
                                 }
                                 else
                                 {
-                                    convertedElement = CreateConversion(expressionElement, elementConversion, elementType, diagnostics);
+                                    convertedElement = keyValuePairConversion;
                                 }
                             }
-                            break;
-                        case BoundCollectionExpressionSpreadElement spreadElement:
-                            convertedElement = BindCollectionExpressionSpreadElement(
-                                (SpreadElementSyntax)spreadElement.Syntax,
-                                spreadElement,
-                                implicitReceiver!, // PROTOTYPE: We don't need an implicit receiver here, and in fact it can be null.
-                                static (binder, syntax, item, implicitReceiver, arg, diagnostics) =>
+                            else if (collectionInitializerAddMethodBinder is { })
+                            {
+                                convertedElement = BindCollectionInitializerElementAddMethod(
+                                    expressionSyntax,
+                                    [expressionElement],
+                                    hasEnumerableInitializerType: true,
+                                    collectionInitializerAddMethodBinder,
+                                    diagnostics,
+                                    implicitReceiver);
+                            }
+                            else
+                            {
+                                convertedElement = CreateConversion(expressionElement, elementConversion, elementType, diagnostics);
+                            }
+                        }
+                        break;
+                    case BoundCollectionExpressionSpreadElement spreadElement:
+                        convertedElement = BindCollectionExpressionSpreadElement(
+                            (SpreadElementSyntax)spreadElement.Syntax,
+                            spreadElement,
+                            implicitReceiver!, // PROTOTYPE: We don't always need an implicit receiver here, and in fact it can be null.
+                            static (binder, syntax, item, implicitReceiver, arg, diagnostics) =>
+                            {
+                                // PROTOTYPE: This implementation is almost identical to the BoundExpression case above. The code should be shared.
+                                if (arg.elementKeyValueTypes is (var elementKeyType, var elementValueType) &&
+                                    arg.elementConversion.TryGetKeyValueConversions(out var keyConversion, out var valueConversion))
                                 {
-                                    if (arg.elementKeyValueTypes is (var elementKeyType, var elementValueType) &&
-                                        arg.elementConversion.TryGetKeyValueConversions(out var keyConversion, out var valueConversion))
+                                    _ = binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__ctor, diagnostics, syntax: syntax); // PROTOTYPE: Test missing constructor.
+                                    if (!ConversionsBase.IsKeyValuePairType(binder.Compilation, item.Type, out var keyType, out var valueType))
                                     {
-                                        if (!ConversionsBase.IsKeyValuePairType(binder.Compilation, item.Type, out var keyType, out var valueType))
-                                        {
-                                            throw ExceptionUtilities.UnexpectedValue(item.Type);
-                                        }
-                                        var keyPlaceholder = new BoundValuePlaceholder(syntax, keyType);
-                                        var valuePlaceholder = new BoundValuePlaceholder(syntax, valueType);
-                                        return new BoundKeyValuePairConversion(
+                                        throw ExceptionUtilities.UnexpectedValue(item.Type);
+                                    }
+                                    var keyPlaceholder = new BoundValuePlaceholder(syntax, keyType);
+                                    var valuePlaceholder = new BoundValuePlaceholder(syntax, valueType);
+                                    var keyValuePairConversion = new BoundKeyValuePairConversion(
+                                        syntax,
+                                        expression: item,
+                                        keyPlaceholder: keyPlaceholder,
+                                        valuePlaceholder: valuePlaceholder,
+                                        keyConversion: binder.CreateConversion(keyPlaceholder, keyConversion, elementKeyType, diagnostics),
+                                        valueConversion: binder.CreateConversion(valuePlaceholder, valueConversion, elementValueType, diagnostics),
+                                        type: arg.elementType);
+                                    if (arg.collectionInitializerAddMethodBinder is { })
+                                    {
+                                        return binder.BindCollectionInitializerElementAddMethod(
                                             syntax,
-                                            expression: item,
-                                            keyPlaceholder: keyPlaceholder,
-                                            valuePlaceholder: valuePlaceholder,
-                                            keyConversion: binder.CreateConversion(keyPlaceholder, keyConversion, elementKeyType, diagnostics),
-                                            valueConversion: binder.CreateConversion(valuePlaceholder, valueConversion, elementValueType, diagnostics),
-                                            type: arg.elementType);
+                                            [keyValuePairConversion],
+                                            hasEnumerableInitializerType: true,
+                                            arg.collectionInitializerAddMethodBinder,
+                                            diagnostics,
+                                            implicitReceiver);
                                     }
                                     else
                                     {
-                                        return binder.CreateConversion(item, arg.elementConversion, arg.elementType, diagnostics);
+                                        return keyValuePairConversion;
                                     }
-                                },
-                                (elementType, elementConversion, elementKeyValueTypes),
-                                diagnostics);
-                            break;
-                        case BoundKeyValuePairElement keyValuePairElement:
-                            {
-                                if (elementKeyValueTypes is (var elementKeyType, var elementValueType) &&
-                                    elementConversion.TryGetKeyValueConversions(out var keyConversion, out var valueConversion))
+                                }
+                                else if (arg.collectionInitializerAddMethodBinder is { })
                                 {
-                                    var keyValuePairSyntax = (KeyValuePairElementSyntax)keyValuePairElement.Syntax;
-                                    convertedElement = new BoundKeyValuePairElement(
-                                        keyValuePairSyntax,
-                                        CreateConversion(keyValuePairElement.Key, keyConversion, elementKeyType, diagnostics),
-                                        CreateConversion(keyValuePairElement.Value, valueConversion, elementValueType, diagnostics));
+                                    return binder.BindCollectionInitializerElementAddMethod(
+                                        syntax,
+                                        [item],
+                                        hasEnumerableInitializerType: true,
+                                        arg.collectionInitializerAddMethodBinder,
+                                        diagnostics,
+                                        implicitReceiver);
                                 }
                                 else
                                 {
-                                    throw ExceptionUtilities.UnexpectedValue(elementConversion);
+                                    return binder.CreateConversion(item, arg.elementConversion, arg.elementType, diagnostics);
+                                }
+                            },
+                            (elementType, elementConversion, elementKeyValueTypes, collectionInitializerAddMethodBinder),
+                            diagnostics);
+                        break;
+                    case BoundKeyValuePairElement keyValuePairElement:
+                        {
+                            if (elementKeyValueTypes is (var elementKeyType, var elementValueType) &&
+                                elementConversion.TryGetKeyValueConversions(out var keyConversion, out var valueConversion))
+                            {
+                                var keyValuePairSyntax = (KeyValuePairElementSyntax)keyValuePairElement.Syntax;
+                                var keyValuePairConstructor = (MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__ctor, diagnostics, syntax: keyValuePairSyntax); // PROTOTYPE: Test missing constructor.
+                                var key = CreateConversion(keyValuePairElement.Key, keyConversion, elementKeyType, diagnostics);
+                                var value = CreateConversion(keyValuePairElement.Value, valueConversion, elementValueType, diagnostics);
+                                if (collectionInitializerAddMethodBinder is { })
+                                {
+                                    Debug.Assert(keyValuePairConstructor != null); // PROTOTYPE: Test missing constructor.
+#if DEBUG
+                                    Debug.Assert(ConversionsBase.IsKeyValuePairType(Compilation, elementType, out var keyType, out var valueType) &&
+                                        keyType.Equals(key.Type, TypeCompareKind.AllIgnoreOptions) &&
+                                        valueType.Equals(value.Type, TypeCompareKind.AllIgnoreOptions));
+#endif
+                                    keyValuePairConstructor = keyValuePairConstructor.AsMember((NamedTypeSymbol)elementType);
+                                    var keyValuePair = new BoundObjectCreationExpression(keyValuePairSyntax, keyValuePairConstructor, key, value) { WasCompilerGenerated = true };
+                                    convertedElement = BindCollectionInitializerElementAddMethod(
+                                        keyValuePairSyntax,
+                                        [keyValuePair],
+                                        hasEnumerableInitializerType: true,
+                                        collectionInitializerAddMethodBinder,
+                                        diagnostics,
+                                        implicitReceiver);
+                                }
+                                else
+                                {
+                                    convertedElement = new BoundKeyValuePairElement(keyValuePairSyntax, key, value);
                                 }
                             }
-                            break;
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(element);
-                    }
-                    builder.Add(convertedElement);
+                            else
+                            {
+                                throw ExceptionUtilities.UnexpectedValue(elementConversion);
+                            }
+                        }
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(element);
                 }
-
-                Debug.Assert(conversionIndex == elementConversions.Length);
-                conversion.MarkUnderlyingConversionsChecked();
+                builder.Add(convertedElement);
             }
+
+            Debug.Assert(conversionIndex == elementConversions.Length);
+            conversion.MarkUnderlyingConversionsChecked();
 
             return builder.ToImmutableAndFree();
         }
@@ -1930,6 +1958,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (expr.CollectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable)
             {
+                // PROTOTYPE: For a k:v element, or for an expression element with a KeyValuePair<,> variance conversion,
+                // simply unwrapping call to get the argument is not sufficient because a KeyValuePair<,> instance
+                // of the expected collection element type was created in ConvertCollectionExpressionElements().
                 switch (element)
                 {
                     case BoundCollectionElementInitializer collectionInitializer:
