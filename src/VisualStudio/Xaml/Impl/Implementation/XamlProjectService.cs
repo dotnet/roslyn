@@ -27,7 +27,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 namespace Microsoft.VisualStudio.LanguageServices.Xaml;
 
 [Export]
-internal sealed partial class XamlProjectService
+internal sealed partial class XamlProjectService : IDisposable
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly Workspace _workspace;
@@ -36,6 +36,7 @@ internal sealed partial class XamlProjectService
     private readonly IThreadingContext _threadingContext;
     private readonly Dictionary<IVsHierarchy, ProjectSystemProject> _xamlProjects = [];
     private readonly ConcurrentDictionary<string, DocumentId> _documentIds = new ConcurrentDictionary<string, DocumentId>(StringComparer.OrdinalIgnoreCase);
+    private readonly WorkspaceEventRegistration _documentClosedHandlerDisposer;
 
     private RunningDocumentTable? _rdt;
     private IVsSolution? _vsSolution;
@@ -58,8 +59,12 @@ internal sealed partial class XamlProjectService
 
         AnalyzerService = analyzerService;
 
-        _workspace.DocumentClosed += OnDocumentClosed;
+        // Require main thread on the callback as OnDocumentClosed is not thread safe.
+        _documentClosedHandlerDisposer = _workspace.RegisterDocumentClosedHandler(OnDocumentClosed, WorkspaceEventOptions.RequiresMainThreadOptions);
     }
+
+    public void Dispose()
+        => _documentClosedHandlerDisposer.Dispose();
 
     public static IXamlDocumentAnalyzerService? AnalyzerService { get; private set; }
 
@@ -188,13 +193,11 @@ internal sealed partial class XamlProjectService
         return null;
     }
 
-    private void OnDocumentClosed(object sender, DocumentEventArgs e)
+    private void OnDocumentClosed(DocumentEventArgs e)
     {
         var filePath = e.Document.FilePath;
         if (filePath == null)
-        {
             return;
-        }
 
         if (_documentIds.TryGetValue(filePath, out var documentId))
         {

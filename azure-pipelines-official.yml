@@ -101,7 +101,7 @@ variables:
 
   - ${{ if and(notin(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/main')) }}:
     - name: enableSourceIndex
-      value: false
+      value: true
   - name: VSCodeOptimizationDataRoot
     value: $(Pipeline.Workspace)/profilingInputs/merged mibc
 

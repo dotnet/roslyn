@@ -51,6 +51,8 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
     private readonly ITextView _triggerView;
     private readonly IDisposable _inlineRenameSessionDurationLogBlock;
     private readonly IThreadingContext _threadingContext;
+    private readonly WorkspaceEventRegistration _workspaceChangedDisposer;
+
     public readonly InlineRenameService RenameService;
 
     private bool _dismissed;
@@ -157,7 +159,9 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
         _inlineRenameSessionDurationLogBlock = Logger.LogBlock(FunctionId.Rename_InlineSession, CancellationToken.None);
 
         Workspace = workspace;
-        Workspace.WorkspaceChanged += OnWorkspaceChanged;
+
+        // Requires the main thread due to OnWorkspaceChanged calling the Cancel method
+        _workspaceChangedDisposer = workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged, WorkspaceEventOptions.RequiresMainThreadOptions);
 
         _textBufferFactoryService = textBufferFactoryService;
         _textBufferCloneService = textBufferCloneService;
@@ -379,7 +383,7 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
         }
     }
 
-    private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs args)
+    private void OnWorkspaceChanged(WorkspaceChangeEventArgs args)
     {
         if (args.Kind != WorkspaceChangeKind.DocumentChanged)
         {
@@ -697,7 +701,8 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
 
         void DismissUIAndRollbackEdits()
         {
-            Workspace.WorkspaceChanged -= OnWorkspaceChanged;
+            _workspaceChangedDisposer.Dispose();
+
             _textBufferAssociatedViewService.SubjectBuffersConnected -= OnSubjectBuffersConnected;
 
             // Reenable completion now that the inline rename session is done

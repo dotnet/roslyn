@@ -24,7 +24,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(containingSymbol != null);
             Debug.Assert(containingSymbol.DeclaringCompilation is not null);
 
-            _originalVariable = originalVariable;
+            //avoid double wrapping
+            //this can happen e.g. if a local is substituted in ExtensionMethodBodyRewriter
+            //and later it is substituted for example in ClosureConversion again
+            _originalVariable = originalVariable switch
+            {
+                TypeSubstitutedLocalSymbol tsl => tsl._originalVariable,
+                var l => l
+            };
+
             _type = type;
             _containingSymbol = containingSymbol;
         }
@@ -122,6 +130,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return _originalVariable.GetConstantValueDiagnostics(boundInitValue);
         }
+
+        internal LocalSymbol UnderlyingLocalSymbol => _originalVariable;
 
         internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(
             SynthesizedLocalKind kind, SyntaxNode syntax

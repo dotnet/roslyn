@@ -83,6 +83,8 @@ internal sealed class RazorStartupServiceFactory(
 
             await TaskScheduler.Default.SwitchTo(alwaysYield: true);
 
+            using var languageScope = context.Logger.CreateLanguageContext(Constants.RazorLanguageName);
+
             // We use a string to pass capabilities to/from Razor to avoid version issues with the Protocol DLL
             var serializedClientCapabilities = JsonSerializer.Serialize(clientCapabilities, ProtocolConversions.LspJsonSerializerOptions);
 

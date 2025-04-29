@@ -16,28 +16,19 @@ internal static class UnitTestingWorkspaceExtensions
 
     private sealed class EventHandlerWrapper : IDisposable
     {
-        private readonly Workspace _workspace;
-        private readonly EventHandler<TextDocumentEventArgs> _handler;
-        private readonly bool _opened;
+        private readonly WorkspaceEventRegistration _textDocumentOperationDisposer;
 
         internal EventHandlerWrapper(Workspace workspace, Action<UnitTestingTextDocumentEventArgsWrapper> action, bool opened)
         {
-            _workspace = workspace;
-            _handler = (sender, args) => action(new UnitTestingTextDocumentEventArgsWrapper(args));
-            _opened = opened;
+            _textDocumentOperationDisposer = opened
+                ? workspace.RegisterTextDocumentOpenedHandler(HandleEvent)
+                : workspace.RegisterTextDocumentClosedHandler(HandleEvent);
 
-            if (_opened)
-                _workspace.TextDocumentOpened += _handler;
-            else
-                _workspace.TextDocumentClosed += _handler;
+            void HandleEvent(TextDocumentEventArgs args)
+                => action(new UnitTestingTextDocumentEventArgsWrapper(args));
         }
 
         public void Dispose()
-        {
-            if (_opened)
-                _workspace.TextDocumentOpened -= _handler;
-            else
-                _workspace.TextDocumentClosed -= _handler;
-        }
+            => _textDocumentOperationDisposer.Dispose();
     }
 }

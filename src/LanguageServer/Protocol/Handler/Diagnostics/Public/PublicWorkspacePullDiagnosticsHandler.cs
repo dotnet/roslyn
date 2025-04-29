@@ -20,19 +20,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 using WorkspaceDiagnosticPartialReport = SumType<WorkspaceDiagnosticReport, WorkspaceDiagnosticReportPartialResult>;
 
 [Method(Methods.WorkspaceDiagnosticName)]
-internal sealed partial class PublicWorkspacePullDiagnosticsHandler : AbstractWorkspacePullDiagnosticsHandler<WorkspaceDiagnosticParams, WorkspaceDiagnosticPartialReport, WorkspaceDiagnosticReport?>, IDisposable
+internal sealed partial class PublicWorkspacePullDiagnosticsHandler(
+    LspWorkspaceManager workspaceManager,
+    LspWorkspaceRegistrationService registrationService,
+    IDiagnosticSourceManager diagnosticSourceManager,
+    IDiagnosticsRefresher diagnosticRefresher,
+    IGlobalOptionService globalOptions)
+    : AbstractWorkspacePullDiagnosticsHandler<WorkspaceDiagnosticParams, WorkspaceDiagnosticPartialReport, WorkspaceDiagnosticReport?>(
+        workspaceManager, registrationService, diagnosticSourceManager, diagnosticRefresher, globalOptions), IDisposable
 {
-    public PublicWorkspacePullDiagnosticsHandler(
-        LspWorkspaceManager workspaceManager,
-        LspWorkspaceRegistrationService registrationService,
-        IDiagnosticAnalyzerService analyzerService,
-        IDiagnosticSourceManager diagnosticSourceManager,
-        IDiagnosticsRefresher diagnosticRefresher,
-        IGlobalOptionService globalOptions)
-        : base(workspaceManager, registrationService, analyzerService, diagnosticSourceManager, diagnosticRefresher, globalOptions)
-    {
-    }
-
     protected override string? GetRequestDiagnosticCategory(WorkspaceDiagnosticParams diagnosticsParams)
         => diagnosticsParams.Identifier;
 

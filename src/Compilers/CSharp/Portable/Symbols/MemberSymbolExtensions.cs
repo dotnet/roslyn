@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // Since we're concatenating type parameters from the extension and from the method together
                     // we need to control the ordinals that are used
-                    ordinals = new Dictionary<TypeParameterSymbol, int>(Roslyn.Utilities.ReferenceEqualityComparer.Instance);
+                    ordinals = new Dictionary<TypeParameterSymbol, int>(ReferenceEqualityComparer.Instance);
                     for (int i = 0; i < originalTypeParameters.Length; i++)
                     {
                         ordinals.Add(originalTypeParameters[i], i);

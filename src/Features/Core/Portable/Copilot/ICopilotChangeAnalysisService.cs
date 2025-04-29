@@ -33,12 +33,10 @@ internal interface ICopilotChangeAnalysisService : IWorkspaceService
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class DefaultCopilotChangeAnalysisService(
-    [Import(AllowDefault = true)] ICodeFixService? codeFixService = null,
-    [Import(AllowDefault = true)] IDiagnosticAnalyzerService? diagnosticAnalyzerService = null) : ICopilotChangeAnalysisService
+    [Import(AllowDefault = true)] ICodeFixService? codeFixService = null) : ICopilotChangeAnalysisService
 {
 #pragma warning disable IDE0052 // Remove unread private members
     private readonly ICodeFixService? _codeFixService = codeFixService;
-    private readonly IDiagnosticAnalyzerService? _diagnosticAnalyzerService = diagnosticAnalyzerService;
 #pragma warning restore IDE0052 // Remove unread private members
 
     public async Task<CopilotChangeAnalysis> AnalyzeChangeAsync(
