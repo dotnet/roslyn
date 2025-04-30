@@ -330,6 +330,3 @@ internal sealed class DefaultCopilotChangeAnalysisService(
         }
     }
 }
-    }
-}
-#endif
