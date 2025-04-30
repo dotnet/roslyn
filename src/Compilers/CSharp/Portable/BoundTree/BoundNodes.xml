@@ -693,7 +693,7 @@
     <Field Name="GetAwaiter" Type="BoundExpression?" Null="allow"/>
     <Field Name="IsCompleted" Type="PropertySymbol?" Null="allow"/>
     <Field Name="GetResult" Type="MethodSymbol?" Null="allow"/>
-    <!-- Refers to the runtime async helper we method for awaiting. Either this is an instance of an AsyncHelpers.Await method symbol, and 
+    <!-- Refers to the runtime async helper method we use for awaiting. Either this is an instance of an AsyncHelpers.Await method symbol, and 
          GetAwaiter, IsCompleted, and GetResult are null, or this is AsyncHelpers.AwaitAwaiter/UnsafeAwaitAwaiter, and the other
          fields are not null. -->
     <!-- PROTOTYPE: Look at consumers of this API and see if we can assert that this is null when it should be -->

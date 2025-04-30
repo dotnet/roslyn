@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis
         public static explicit operator SpecialType(ExtendedSpecialType value) => value._value < (int)InternalSpecialType.First ? (SpecialType)value._value : SpecialType.None;
 
         public static implicit operator ExtendedSpecialType(InternalSpecialType value) => new ExtendedSpecialType((int)value);
+        public static explicit operator InternalSpecialType(ExtendedSpecialType value) => value._value is < (int)InternalSpecialType.First or >= (int)InternalSpecialType.NextAvailable ? InternalSpecialType.Unknown : (InternalSpecialType)value._value;
 
         public static explicit operator ExtendedSpecialType(int value) => new ExtendedSpecialType(value);
         public static explicit operator int(ExtendedSpecialType value) => value._value;

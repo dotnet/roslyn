@@ -331,10 +331,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var methodReturn = method.ReturnType.OriginalDefinition;
-            if (!ReferenceEquals(methodReturn, GetSpecialType(InternalSpecialType.System_Threading_Tasks_Task))
-                && !ReferenceEquals(methodReturn, GetSpecialType(InternalSpecialType.System_Threading_Tasks_Task_T))
-                && !ReferenceEquals(methodReturn, GetSpecialType(InternalSpecialType.System_Threading_Tasks_ValueTask))
-                && !ReferenceEquals(methodReturn, GetSpecialType(InternalSpecialType.System_Threading_Tasks_ValueTask_T)))
+            if (((InternalSpecialType)methodReturn.ExtendedSpecialType) is not (
+                    InternalSpecialType.System_Threading_Tasks_Task or
+                    InternalSpecialType.System_Threading_Tasks_Task_T or
+                    InternalSpecialType.System_Threading_Tasks_ValueTask or
+                    InternalSpecialType.System_Threading_Tasks_ValueTask_T))
             {
                 return false;
             }

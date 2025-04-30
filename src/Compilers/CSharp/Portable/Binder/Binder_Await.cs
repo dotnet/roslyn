@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var exprOriginalType = expression.Type!.OriginalDefinition;
                 SpecialMember awaitCall;
-                TypeWithAnnotations? maybeResultType = null;
+                TypeWithAnnotations resultType = default;
                 if (ReferenceEquals(exprOriginalType, GetSpecialType(InternalSpecialType.System_Threading_Tasks_Task, diagnostics, expression.Syntax)))
                 {
                     awaitCall = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitTask;
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (ReferenceEquals(exprOriginalType, GetSpecialType(InternalSpecialType.System_Threading_Tasks_Task_T, diagnostics, expression.Syntax)))
                 {
                     awaitCall = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitTaskT_T;
-                    maybeResultType = ((NamedTypeSymbol)expression.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+                    resultType = ((NamedTypeSymbol)expression.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
                 }
                 else if (ReferenceEquals(exprOriginalType, GetSpecialType(InternalSpecialType.System_Threading_Tasks_ValueTask, diagnostics, expression.Syntax)))
                 {
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (ReferenceEquals(exprOriginalType, GetSpecialType(InternalSpecialType.System_Threading_Tasks_ValueTask_T, diagnostics, expression.Syntax)))
                 {
                     awaitCall = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTaskT_T;
-                    maybeResultType = ((NamedTypeSymbol)expression.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+                    resultType = ((NamedTypeSymbol)expression.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
                 }
                 else
                 {
@@ -341,9 +341,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                Debug.Assert((runtimeAwaitHelper is { Arity: 1 } && maybeResultType is { }) || runtimeAwaitHelper.TypeParameters.Length == 0);
+                Debug.Assert(runtimeAwaitHelper.Arity == (resultType.HasType ? 1 : 0));
 
-                if (maybeResultType is { } resultType)
+                if (resultType.HasType)
                 {
                     runtimeAwaitHelper = runtimeAwaitHelper.Construct([resultType]);
                     ConstraintsHelper.CheckConstraints(
