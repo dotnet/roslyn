@@ -61,8 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override DllImportData? GetDllImportData() => null;
         internal sealed override bool IsExternal => false;
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : How doc comments are supposed to work? GetDocumentationCommentXml
-
         internal sealed override bool IsDeclaredReadOnly => false;
 
         public sealed override Symbol ContainingSymbol => _originalMethod.ContainingType.ContainingSymbol;
