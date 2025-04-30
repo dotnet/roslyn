@@ -14,7 +14,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Roslyn.Utilities
 {
@@ -791,8 +790,7 @@ namespace Roslyn.Utilities
             var groups = data.GroupBy(keySelector, comparer);
             foreach (var grouping in groups)
             {
-                var items = grouping.AsImmutable();
-                dictionary.Add(grouping.Key, items);
+                dictionary.Add(grouping.Key, [.. grouping]);
             }
 
             return dictionary;
@@ -861,8 +859,6 @@ namespace System.Linq
     {
         public static bool SequenceEqual<T>(this IEnumerable<T>? first, IEnumerable<T>? second, Func<T, T, bool> comparer)
         {
-            RoslynDebug.Assert(comparer != null);
-
             if (first == second)
             {
                 return true;

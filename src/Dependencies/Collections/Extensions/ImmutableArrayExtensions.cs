@@ -14,8 +14,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 #if DEBUG
 using System.Linq;

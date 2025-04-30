@@ -16,7 +16,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Hashing\XxHashShared.cs" Link="Hashing\XxHashShared.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ConcurrentDictionaryExtensions.cs" Link="InternalUtilities\ConcurrentDictionaryExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs" Link="InternalUtilities\Debug.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\EnumerableExtensions.cs" Link="InternalUtilities\EnumerableExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\RoslynExperiments.cs" Link="InternalUtilities\RoslynExperiments.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\InterlockedOperations.cs" Link="InternalUtilities\InterlockedOperations.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\KeyValuePairUtil.cs" Link="InternalUtilities\KeyValuePairUtil.cs" />
@@ -24,29 +23,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReferenceEqualityComparer.cs" Link="InternalUtilities\ReferenceEqualityComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\RoslynString.cs" Link="InternalUtilities\RoslynString.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SingleInitNullable.cs" Link="InternalUtilities\SingleInitNullable.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.cs" Link="InternalUtilities\SpecializedCollections.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SharedStopwatch.cs" Link="InternalUtilities\SharedStopwatch.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Collection.cs" Link="InternalUtilities\SpecializedCollections.Empty.Collection.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.cs" Link="InternalUtilities\SpecializedCollections.Empty.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Dictionary.cs" Link="InternalUtilities\SpecializedCollections.Empty.Dictionary.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Enumerable.cs" Link="InternalUtilities\SpecializedCollections.Empty.Enumerable.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Enumerator.cs" Link="InternalUtilities\SpecializedCollections.Empty.Enumerator.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Enumerator`1.cs" Link="InternalUtilities\SpecializedCollections.Empty.Enumerator`1.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.List.cs" Link="InternalUtilities\SpecializedCollections.Empty.List.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Set.cs" Link="InternalUtilities\SpecializedCollections.Empty.Set.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.ReadOnly.Collection.cs" Link="InternalUtilities\SpecializedCollections.ReadOnly.Collection.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.ReadOnly.Enumerable`1.cs" Link="InternalUtilities\SpecializedCollections.ReadOnly.Enumerable`1.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.ReadOnly.Enumerable`2.cs" Link="InternalUtilities\SpecializedCollections.ReadOnly.Enumerable`2.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.ReadOnly.Set.cs" Link="InternalUtilities\SpecializedCollections.ReadOnly.Set.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Singleton.Collection`1.cs" Link="InternalUtilities\SpecializedCollections.Singleton.Collection`1.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Singleton.Enumerator`1.cs" Link="InternalUtilities\SpecializedCollections.Singleton.Enumerator`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\StringExtensions.cs" Link="InternalUtilities\StringExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ValueTaskFactory.cs" Link="InternalUtilities\ValueTaskFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Syntax\SyntaxTreeExtensions.cs" Link="Syntax\SyntaxTreeExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\ImmutableArrayExtensions.cs" Link="Collections\ImmutableArrayExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\BitVector.cs" Link="Collections\BitVector.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\TemporaryArrayExtensions.cs" Link="Collections\TemporaryArrayExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\TemporaryArray`1.cs" Link="Collections\TemporaryArray`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\IOrderedReadOnlySet.cs" Link="Collections\IOrderedReadOnlySet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs" Link="InternalUtilities\Hash.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\SourceGeneration\GeneratedCodeUtilities.cs" Link="SourceGeneration\GeneratedCodeUtilities.cs" />
@@ -127,9 +108,6 @@
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\FileSystem\PathKind.cs">
       <Link>FileSystem\PathKind.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\OneOrMany.cs">
-      <Link>InternalUtilities\OneOrMany.cs</Link>
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\PerformanceSensitiveAttribute.cs" Condition="'$(DotNetBuildSourceOnly)' == 'true'">
       <Link>InternalUtilities\PerformanceSensitiveAttribute.cs</Link>
