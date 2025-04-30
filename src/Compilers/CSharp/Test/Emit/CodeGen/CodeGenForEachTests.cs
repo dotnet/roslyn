@@ -3681,7 +3681,7 @@ public static class Extensions
 {
     public static C.Enumerator2 GetEnumerator(this C self) => throw null;
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9)
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.StandardAndCSharp)
                 .VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }

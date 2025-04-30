@@ -19,7 +19,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class CodeGen_DynamicTests() : CSharpTestBase(TargetFramework.NetStandard20)
+    public class CodeGen_DynamicTests() : CSharpTestBase(TargetFramework.StandardAndCSharp)
     {
         #region Helpers
 
@@ -15876,7 +15876,7 @@ class Program
     }
 }";
             VerifyTypeIL(
-                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True", references: new[] { CSharpRef }),
+                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True"),
                 "Program",
                 @"
 .class private auto ansi beforefieldinit Program
@@ -15979,7 +15979,7 @@ class Program
     }
 }";
             VerifyTypeIL(
-                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True", references: new[] { CSharpRef }),
+                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True"),
                 "Program",
                 @"
 .class private auto ansi beforefieldinit Program
@@ -16105,7 +16105,7 @@ class Program
     }
 }";
             VerifyTypeIL(
-                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True", references: new[] { CSharpRef }),
+                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True"),
                 "Program",
                 @"
 .class private auto ansi beforefieldinit Program
@@ -16216,7 +16216,7 @@ class Program
     }
 }";
             VerifyTypeIL(
-                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True", references: new[] { CSharpRef }),
+                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True"),
                 "Program",
                 @"
 .class private auto ansi beforefieldinit Program
@@ -16333,7 +16333,7 @@ class Class<T1>
     }
 }";
             VerifyTypeIL(
-                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True", references: new[] { CSharpRef }),
+                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True"),
                 "Class`1",
                 @"
 .class private auto ansi beforefieldinit Class`1<T1>
