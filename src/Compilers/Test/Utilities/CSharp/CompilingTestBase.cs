@@ -15,7 +15,7 @@ using Roslyn.Test.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     // Some utility functions for compiling and checking errors.
-    public abstract class CompilingTestBase : CSharpTestBase
+    public abstract class CompilingTestBase(TargetFramework? targetFramework = null) : CSharpTestBase(targetFramework)
     {
         private const string DefaultTypeName = "C";
         private const string DefaultMethodName = "M";

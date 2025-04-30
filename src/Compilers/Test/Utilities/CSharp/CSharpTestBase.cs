@@ -875,13 +875,13 @@ namespace System.Diagnostics.CodeAnalysis
         public TargetFramework DefaultTargetFramework { get; }
 
         public CSharpTestBase()
-            : this(TargetFramework.NetLatest)
+            : this(null)
         {
         }
 
-        public CSharpTestBase(TargetFramework targetFramework)
+        public CSharpTestBase(TargetFramework? targetFramework)
         {
-            DefaultTargetFramework = targetFramework;
+            DefaultTargetFramework = targetFramework ?? TargetFramework.NetLatest;
         }
 
         protected static T GetSyntax<T>(SyntaxTree tree, string text)
@@ -1100,6 +1100,42 @@ namespace System.Diagnostics.CodeAnalysis
                 parseOptions,
                 emitOptions,
                 TargetFramework.NetStandard20,
+                verify);
+
+        internal CompilationVerifier CompileAndVerifyWithNetCoreApp(
+            CSharpTestSource source,
+            IEnumerable<MetadataReference>? references = null,
+            IEnumerable<ResourceDescription>? manifestResources = null,
+            IEnumerable<ModuleData>? dependencies = null,
+            Action<ModuleSymbol>? sourceSymbolValidator = null,
+            Action<PEAssembly>? assemblyValidator = null,
+            Action<ModuleSymbol>? symbolValidator = null,
+            SignatureDescription[]? expectedSignatures = null,
+            string? expectedOutput = null,
+            bool trimOutput = true,
+            int? expectedReturnCode = null,
+            string[]? args = null,
+            CSharpCompilationOptions? options = null,
+            CSharpParseOptions? parseOptions = null,
+            EmitOptions? emitOptions = null,
+            Verification verify = default) =>
+            CompileAndVerify(
+                source,
+                references,
+                manifestResources,
+                dependencies,
+                sourceSymbolValidator,
+                assemblyValidator,
+                symbolValidator,
+                expectedSignatures,
+                expectedOutput,
+                trimOutput,
+                expectedReturnCode,
+                args,
+                options,
+                parseOptions,
+                emitOptions,
+                TargetFramework.NetCoreApp,
                 verify);
 
         internal CompilationVerifier CompileAndVerify(
@@ -1421,6 +1457,14 @@ namespace System.Diagnostics.CodeAnalysis
             CSharpParseOptions? parseOptions = null,
             string assemblyName = "") =>
             CreateCompilation(source, TargetFramework.NetLatest, references, options, parseOptions, assemblyName);
+
+        public static CSharpCompilation CreateCompilationWithNetCoreApp(
+            CSharpTestSource source,
+            IEnumerable<MetadataReference>? references = null,
+            CSharpCompilationOptions? options = null,
+            CSharpParseOptions? parseOptions = null,
+            string assemblyName = "") =>
+            CreateCompilation(source, TargetFramework.NetCoreApp, references, options, parseOptions, assemblyName);
 
         public static CSharpCompilation CreateCompilation(
             CSharpTestSource source,
