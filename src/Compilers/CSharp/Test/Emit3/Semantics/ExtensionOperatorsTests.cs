@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     {
         [Theory]
         [CombinatorialData]
-        public void Unary_001_Declaration([CombinatorialValues("+", "-", "!")] string op)
+        public void Unary_001_Declaration([CombinatorialValues("+", "-", "!", "~")] string op)
         {
             var src = $$$"""
 static class Extensions1
@@ -314,7 +314,7 @@ static class C1
 
         [Theory]
         [CombinatorialData]
-        public void Unary_004_Declaration([CombinatorialValues("+", "-", "!")] string op)
+        public void Unary_004_Declaration([CombinatorialValues("+", "-", "!", "~")] string op)
         {
             var src = $$$"""
 public static class Extensions1
@@ -428,7 +428,7 @@ struct S1
 
         [Theory]
         [CombinatorialData]
-        public void Unary_007_Declaration([CombinatorialValues("+", "-", "!", "++", "--")] string op, [CombinatorialValues("virtual", "abstract", "new", "override", "sealed", "readonly", "extern")] string modifier)
+        public void Unary_007_Declaration([CombinatorialValues("+", "-", "!", "~", "++", "--")] string op, [CombinatorialValues("virtual", "abstract", "new", "override", "sealed", "readonly", "extern")] string modifier)
         {
             var src = $$$"""
 static class Extensions1
@@ -1720,3 +1720,5 @@ struct S1
         }
     }
 }
+
+// PROTOTYPE: Test unsafe and partial
