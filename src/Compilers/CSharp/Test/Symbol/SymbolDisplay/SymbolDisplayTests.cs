@@ -8240,7 +8240,7 @@ class B
     static void F3(nint? x, UIntPtr? y) { }
     static void F4(nint[] x, A<nuint> y) { }
 }";
-            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilationWithNetStandard(new[] { source }, parseOptions: TestOptions.Regular9);
             var formatWithoutOptions = new SymbolDisplayFormat(
                 memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName,
@@ -8757,7 +8757,7 @@ ref struct S<T>
     ref readonly T F2;
 }";
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilationWithNetStandard(source);
             comp.VerifyDiagnostics(
                 // (4,11): error CS9064: Target runtime doesn't support ref fields.
                 //     ref T F1;
@@ -8956,7 +8956,7 @@ class Program
     static void F2(ref R r1, ref R r2) => throw null;
 }";
 
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilationWithNetStandard(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyDiagnostics();
 
             var format = SymbolDisplayFormat.TestFormat.

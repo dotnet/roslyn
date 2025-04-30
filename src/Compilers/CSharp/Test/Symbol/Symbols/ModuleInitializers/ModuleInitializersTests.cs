@@ -18,7 +18,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.ModuleInitializers
 {
     [CompilerTrait(CompilerFeature.ModuleInitializers)]
-    public sealed class ModuleInitializersTests : CSharpTestBase
+    public sealed class ModuleInitializersTests() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         private static readonly CSharpParseOptions s_parseOptions = TestOptions.Regular9;
 

@@ -15,7 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class ExtendedPartialMethodsTests : CSharpTestBase
+    public class ExtendedPartialMethodsTests() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         [Fact]
         public void NonVoidReturnType_LangVersion()

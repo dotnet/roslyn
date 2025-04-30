@@ -30,10 +30,8 @@ class C
     [ModuleInitializer]
     " + keywords + @" static void M() { }
 }
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
+            var compilation = CreateCompilationWithNetCoreApp(source, parseOptions: s_parseOptions);
             compilation.VerifyEmitDiagnostics(
                 // (6,6): error CS8796: Module initializer method 'M' must be accessible at the module level
                 //     [ModuleInitializer]
@@ -88,8 +86,6 @@ class Program
 {
     static void Main() => Console.WriteLine(""Program.Main"");
 }
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
             CompileAndVerify(source, parseOptions: s_parseOptions, expectedOutput: @"
 C.M
@@ -113,10 +109,8 @@ public class C
         public static void M() { }
     }
 }
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
+            var compilation = CreateCompilationWithNetCoreApp(source, parseOptions: s_parseOptions);
             compilation.VerifyEmitDiagnostics(
                 // (8,10): error CS8796: Module initializer method 'M' must be accessible at the module level
                 //         [ModuleInitializer]
@@ -153,10 +147,8 @@ partial class C
 class Program
 {
 }
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
+            var compilation = CreateCompilationWithNetCoreApp(source, parseOptions: s_parseOptions);
             compilation.VerifyEmitDiagnostics(
                 // (7,6): error CS8814: Module initializer method 'M1' must be accessible at the module level
                 //     [ModuleInitializer] // 1
@@ -212,7 +204,7 @@ namespace System.Runtime.CompilerServices
     class ModuleInitializerAttribute : System.Attribute { }
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
+            var compilation = CreateCompilationWithNetStandard(source, parseOptions: s_parseOptions);
             compilation.VerifyEmitDiagnostics(
                 // (7,6): error CS8814: Module initializer method 'M1' must be accessible at the module level
                 //     [ModuleInitializer] // 1
@@ -277,10 +269,8 @@ partial class C
     [ModuleInitializer] // 1
     public static partial void M1() { }
 }
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
+            var compilation = CreateCompilationWithNetCoreApp(source, parseOptions: s_parseOptions);
             compilation.VerifyEmitDiagnostics(
                     // (9,6): error CS0579: Duplicate 'ModuleInitializer' attribute
                     //     [ModuleInitializer] // 1

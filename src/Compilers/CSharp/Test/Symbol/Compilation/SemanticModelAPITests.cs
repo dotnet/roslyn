@@ -3547,7 +3547,7 @@ class C
             var source =
 @"using System;
 class C { }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilationWithNetStandard(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -3568,7 +3568,7 @@ class C { }";
             var source =
 @"using System;
 class C { }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilationWithNetStandard(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);

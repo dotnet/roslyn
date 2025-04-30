@@ -3005,7 +3005,7 @@ Console.WriteLine(2);
         [Fact]
         public void RuntimeCapabilitiesSupported()
         {
-            var compilation = CreateCompilation("Compilation");
+            var compilation = CreateCompilationWithNetStandard("Compilation");
             Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.ByRefFields));
             Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses));
             Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));

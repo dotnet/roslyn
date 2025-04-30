@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.ModuleInitializers
 {
     [CompilerTrait(CompilerFeature.ModuleInitializers)]
-    public sealed class SignatureTests : CSharpTestBase
+    public sealed class SignatureTests() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         private static readonly CSharpParseOptions s_parseOptions = TestOptions.Regular9;
 

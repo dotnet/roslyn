@@ -2469,7 +2469,7 @@ B");
                 Assert.True(assembly.MightContainExtensionMethods);
             };
 
-            CompileAndVerify(
+            CompileAndVerifyWithNetStandard(
                 source: source,
                 sourceSymbolValidator: validator(true),
                 symbolValidator: validator(false),

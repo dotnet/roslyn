@@ -704,7 +704,7 @@ namespace System
     }
 }
 ";
-            var compilation = CreateCompilation(text);
+            var compilation = CreateCompilationWithNetStandard(text);
             compilation.VerifyDiagnostics(
                 // (10,13): warning CS0436: The type 'System.Void' in '' conflicts with the imported type 'void' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //             System.Void.Equals(1, 1);

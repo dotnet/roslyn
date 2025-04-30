@@ -3581,7 +3581,7 @@ class C
             Assert.Equal("MessageBox(IntPtr.Zero, \"\", \"\", 1)", expr.ToString());
 
             var symbolInfo = model.GetSymbolInfo(expr);
-            Assert.Equal("C.MessageBox(System.IntPtr, string, string, uint)", symbolInfo.Symbol.ToDisplayString());
+            Assert.Equal("System.Int32 C.MessageBox(System.IntPtr hwnd, System.String t, System.String c, System.UInt32 t2)", symbolInfo.Symbol.ToTestDisplayString());
 
             var argTypeInfo = model.GetTypeInfo(expr.ArgumentList.Arguments.First().Expression);
             Assert.Equal("System.IntPtr", argTypeInfo.Type.ToTestDisplayString());

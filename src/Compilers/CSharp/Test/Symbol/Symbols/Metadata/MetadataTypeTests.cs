@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataTypeSymbolGenInterface01()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilation(text);
+            var compilation = CreateCompilationWithNetStandard(text);
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);

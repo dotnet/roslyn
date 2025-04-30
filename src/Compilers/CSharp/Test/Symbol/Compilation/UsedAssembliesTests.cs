@@ -20,7 +20,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class UsedAssembliesTests : CSharpTestBase
+    public class UsedAssembliesTests() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         [Fact]
         public void NoReferences_01()

@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class RecordTests : CompilingTestBase
+    public class RecordTests() : CompilingTestBase(TargetFramework.NetStandard20)
     {
         private CSharpCompilation CreateCompilation(CSharpTestSource source)
             => base.CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);

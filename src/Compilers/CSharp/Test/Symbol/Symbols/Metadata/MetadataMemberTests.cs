@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataMethodSymbolCtor01()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilation(text);
+            var compilation = CreateCompilationWithNetStandard(text);
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataMethodSymbolGen02()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilation(text);
+            var compilation = CreateCompilationWithNetStandard(text);
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataParameterSymbolGen02()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilation(text);
+            var compilation = CreateCompilationWithNetStandard(text);
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);

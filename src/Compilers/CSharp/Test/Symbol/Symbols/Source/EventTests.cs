@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
 {
-    public class EventTests : CSharpTestBase
+    public class EventTests() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         #region Positive Cases
         [WorkItem(537323, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537323")]

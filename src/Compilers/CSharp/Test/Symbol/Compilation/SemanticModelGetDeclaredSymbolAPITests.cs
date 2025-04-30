@@ -18,7 +18,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class SemanticModelTests : CSharpTestBase
+    public partial class SemanticModelTests() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         [Fact]
         public void RefForEachVar()

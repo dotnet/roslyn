@@ -1100,7 +1100,7 @@ public class MyClass
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilationWithNetStandard(source);
             comp.MakeMemberMissing(SpecialMember.System_IntPtr__op_Explicit_FromInt32);
             comp.VerifyEmitDiagnostics(
                 // (8,10): error CS0656: Missing compiler required member 'System.IntPtr.op_Explicit'
