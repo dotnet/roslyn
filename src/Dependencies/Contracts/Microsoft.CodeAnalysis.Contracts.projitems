@@ -25,8 +25,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)RequiredMemberAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SetsRequiredMembersAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExceptionUtilities.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Index.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Range.cs" />
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />

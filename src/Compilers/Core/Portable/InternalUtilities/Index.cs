@@ -2,16 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if NET
-
-#pragma warning disable RS0016 // Add public types and members to the declared API (this is a supporting forwarder for an internal polyfill API)
-[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Index))]
-#pragma warning restore RS0016 // Add public types and members to the declared API
-
-#else
-
+#if !NETCOREAPP
 using System.Runtime.CompilerServices;
-
 namespace System
 {
     /// <summary>Represent a type can be used to index a collection either from the start or the end.</summary>

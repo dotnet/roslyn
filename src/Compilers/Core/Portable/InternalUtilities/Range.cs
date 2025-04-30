@@ -2,15 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if NET
-
-#pragma warning disable RS0016 // Add public types and members to the declared API (this is a supporting forwarder for an internal polyfill API)
-[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Range))]
-#pragma warning restore RS0016 // Add public types and members to the declared API
-
-#else
+#if !NETCOREAPP
 using System.Runtime.CompilerServices;
-
+using Roslyn.Utilities;
 namespace System
 {
     /// <summary>Represent a range has start and end indexes.</summary>
@@ -52,7 +46,9 @@ namespace System
 
         /// <summary>Returns the hash code for this instance.</summary>
         public override int GetHashCode()
-            => unchecked(Start.GetHashCode() * (int)0xA5555529 + End.GetHashCode());
+        {
+            return Hash.Combine(Start.GetHashCode(), End.GetHashCode());
+        }
 
         /// <summary>Converts the value of the current Range object to its equivalent string representation.</summary>
         public override string ToString()
