@@ -2,34 +2,29 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Copilot;
 
-[Shared]
 [Method(MethodName)]
-[ExportCSharpVisualBasicStatelessLspService(typeof(CopilotCompletionResolveContextHandler), WellKnownLspServerKinds.Any)]
-internal sealed class CopilotCompletionResolveContextHandler : ILspServiceDocumentRequestHandler<ContextResolveParam, IContextItem[]>
+[ExportCSharpVisualBasicStatelessLspService(typeof(CopilotCompletionResolveContextHandler), WellKnownLspServerKinds.Any), Shared]
+[method: ImportingConstructor]
+[method: Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
+internal sealed class CopilotCompletionResolveContextHandler(ICSharpCopilotContextProviderService contextProviderService)
+    : ILspServiceDocumentRequestHandler<ContextResolveParam, IContextItem[]>
 {
     // "@2" prefix to differentiate it from the implementation previously located in devkit extension.
     private const string MethodName = "roslyn/resolveContext@2";
-
-    [ImportingConstructor]
-    [Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
-    public CopilotCompletionResolveContextHandler(ICSharpCopilotContextProviderService contextProviderService)
-    {
-        ContextProviderService = contextProviderService;
-    }
 
     public bool MutatesSolutionState => false;
 
     public bool RequiresLSPSolution => true;
 
-    public ICSharpCopilotContextProviderService ContextProviderService { get; }
+    public ICSharpCopilotContextProviderService ContextProviderService { get; } = contextProviderService;
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(ContextResolveParam request)
         => request.DocumentContext.TextDocument;
@@ -41,13 +36,11 @@ internal sealed class CopilotCompletionResolveContextHandler : ILspServiceDocume
 
         var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var position = text.Lines.GetPosition(linePosition);
-        var builder = ImmutableArray.CreateBuilder<IContextItem>();
         var activeExperiments = param.GetUnpackedActiveExperiments();
 
+        using var _ = ArrayBuilder<IContextItem>.GetInstance(out var builder);
         await foreach (var item in ContextProviderService.GetContextItemsAsync(document, position, activeExperiments, cancellationToken).ConfigureAwait(false))
-        {
             builder.Add(item);
-        }
 
         return builder.ToArray();
     }

@@ -22,6 +22,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="Internal\Strings.resx" GenerateSource="true" ClassName="Microsoft.CodeAnalysis.Collections.Internal.SR" />
@@ -51,4 +52,5 @@
   </Target>
 
   <Import Project="..\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
+  <Import Project="..\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
 </Project>
