@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
-    public class ImplicitObjectCreationTests : CSharpTestBase
+    public class ImplicitObjectCreationTests() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         private static readonly CSharpParseOptions ImplicitObjectCreationTestOptions = TestOptions.Regular9;
 

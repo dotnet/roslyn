@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
-    public class InterpolationTests : CompilingTestBase
+    public class InterpolationTests() : CompilingTestBase(TargetFramework.NetStandard20)
     {
         [Fact]
         public void TestSimpleInterp()
@@ -17227,7 +17227,7 @@ CustomHandler c = " + expression + ";";
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "ref struct", useBoolReturns: false);
 
-            var comp = CompileAndVerify(new[] { code, handler });
+            var comp = CreateCompilation(new[] { code, handler });
 
             comp.VerifyDiagnostics(
                 // 0.cs(4,19): error CS9230: Cannot perform a dynamic invocation on an expression with type 'CustomHandler'.

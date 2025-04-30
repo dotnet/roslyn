@@ -7485,7 +7485,7 @@ System.Console.WriteLine(""Hi!"");
 return 10;
 ";
 
-            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilationWithNetStandard(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.MakeTypeMissing(SpecialType.System_Int32);
             var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Int32[missing]", entryPoint.ReturnType.ToTestDisplayString());
@@ -7507,7 +7507,7 @@ await System.Threading.Tasks.Task.Factory.StartNew(() => 5L);
 return 11;
 ";
 
-            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilationWithNetStandard(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.MakeTypeMissing(SpecialType.System_Int32);
             var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Threading.Tasks.Task<System.Int32[missing]>", entryPoint.ReturnType.ToTestDisplayString());
@@ -7571,7 +7571,7 @@ await System.Threading.Tasks.Task.Factory.StartNew(() => ""5"");
 return 11;
 ";
 
-            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilationWithNetStandard(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.MakeTypeMissing(SpecialType.System_Int32);
             comp.MakeTypeMissing(WellKnownType.System_Threading_Tasks_Task_T);
             var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);

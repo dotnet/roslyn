@@ -15,7 +15,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     [CompilerTrait(CompilerFeature.ReadOnlyReferences, CompilerFeature.RefLifetime)]
-    public class RefEscapingTests : CompilingTestBase
+    public class RefEscapingTests() : CompilingTestBase(TargetFramework.NetStandard20)
     {
         [Fact]
         public void RefStructSemanticModel()

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     /// <summary>
     /// this place is dedicated to binding related error tests
     /// </summary>
-    public class SemanticErrorTests : CompilingTestBase
+    public class SemanticErrorTests() : CompilingTestBase(TargetFramework.NetStandard20)
     {
         #region "Targeted Error Tests - please arrange tests in the order of error code"
 
