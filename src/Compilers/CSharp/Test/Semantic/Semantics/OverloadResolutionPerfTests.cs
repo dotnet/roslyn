@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     // Tests that should take a long time, perhaps even exceeding
     // test timeout, without shortcuts in overload resolution.
-    public class OverloadResolutionPerfTests : CSharpTestBase
+    public class OverloadResolutionPerfTests() : CSharpTestBase(TargetFramework.Standard)
     {
         [WorkItem(13685, "https://github.com/dotnet/roslyn/issues/13685")]
         [ConditionalFact(typeof(IsRelease), typeof(NoIOperationValidation))]

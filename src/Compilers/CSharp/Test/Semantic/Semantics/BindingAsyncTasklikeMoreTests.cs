@@ -1546,7 +1546,7 @@ class MyTaskMethodBuilder<T>
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
 
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilationWithNetStandard(source);
             compilation.VerifyDiagnostics(
                 // (15,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [A(B.F(async () => null))]

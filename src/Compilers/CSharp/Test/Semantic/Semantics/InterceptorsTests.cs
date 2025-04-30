@@ -20,7 +20,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 
-public class InterceptorsTests : CSharpTestBase
+public class InterceptorsTests() : CSharpTestBase(TargetFramework.Standard)
 {
     private static readonly (string text, string path) s_attributesSource = ("""
         namespace System.Runtime.CompilerServices;

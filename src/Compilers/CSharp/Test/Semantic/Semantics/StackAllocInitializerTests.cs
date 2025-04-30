@@ -15,7 +15,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.StackAllocInitializer)]
-    public class StackAllocInitializerTests : CompilingTestBase
+    public class StackAllocInitializerTests() : CompilingTestBase(TargetFramework.NetStandard20)
     {
         [Fact, WorkItem(33945, "https://github.com/dotnet/roslyn/issues/33945")]
         public void RestrictedTypesAllowedInStackalloc()

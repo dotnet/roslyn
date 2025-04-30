@@ -1339,7 +1339,7 @@ enum G : C { }";
 public class A { }
 public record B { }
 public record C : B { }";
-            var comp = CreateCompilation(src);
+            var comp = CreateCompilationWithNetStandard(src);
 
             var src2 = @"
 record D : C { }
@@ -1349,7 +1349,7 @@ struct G : C { }
 enum H : C { }
 ";
 
-            var comp2 = CreateCompilation(src2,
+            var comp2 = CreateCompilationWithNetStandard(src2,
                 parseOptions: TestOptions.Regular9,
                 references: new[] {
                 emitReference ? comp.EmitToImageReference() : comp.ToMetadataReference()

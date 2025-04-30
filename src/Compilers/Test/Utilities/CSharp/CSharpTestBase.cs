@@ -895,10 +895,9 @@ namespace System.Diagnostics.CodeAnalysis
             TargetFramework getTestAssemblyDefault() => this.GetType().Assembly.GetName().Name switch
             {
                 "Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests" => TargetFramework.NetLatest,
-                _ => TargetFramework.StandardAndCSharp
+                _ => TargetFramework.Standard
             };
         }
-
 
         protected static T GetSyntax<T>(SyntaxTree tree, string text)
             where T : notnull
@@ -1387,6 +1386,22 @@ namespace System.Diagnostics.CodeAnalysis
                 source,
                 ilSource,
                 TargetFramework.Mscorlib40,
+                references,
+                options,
+                parseOptions,
+                appendDefaultHeader);
+
+        public static CSharpCompilation CreateCompilationWithILAndMscorlib46Extended(
+            CSharpTestSource source,
+            string ilSource,
+            IEnumerable<MetadataReference>? references = null,
+            CSharpCompilationOptions? options = null,
+            CSharpParseOptions? parseOptions = null,
+            bool appendDefaultHeader = true) =>
+            CreateCompilationWithIL(
+                source,
+                ilSource,
+                TargetFramework.Mscorlib46Extended,
                 references,
                 options,
                 parseOptions,
@@ -2631,31 +2646,51 @@ namespace System.Diagnostics.CodeAnalysis
 
         #region Span
 
-        protected static CSharpCompilation CreateCompilationWithSpan(CSharpTestSource tree, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null)
+        private CSharpCompilation CreateCompilationWithFrameworkSources(
+            CSharpTestSource text,
+            CSharpTestSource[] frameworkSources,
+            CSharpCompilationOptions? options,
+            CSharpParseOptions? parseOptions)
         {
-            if (RuntimeUtilities.IsCoreClrRuntime)
+            if (TargetFrameworkUtil.IsNetCore(DefaultTargetFramework))
             {
-                return CreateCompilationWithNetCoreApp(tree, options: options, parseOptions: parseOptions);
+                return CreateCompilationWithNetCoreApp(text, options: options, parseOptions: parseOptions);
             }
-            else
-            {
-                var reference = CreateCompilationWithNetFramework(
-                    TestSources.Span,
-                    options: TestOptions.UnsafeReleaseDll);
 
-                reference.VerifyDiagnostics();
+            var reference = CreateCompilationWithNetFramework(
+                frameworkSources,
+                options: TestOptions.UnsafeReleaseDll);
 
-                var comp = CreateCompilationWithNetFramework(
-                    tree,
-                    references: [reference.EmitToImageReference()],
-                    options: options,
-                    parseOptions: parseOptions);
+            reference.VerifyDiagnostics();
 
-                return comp;
-            }
+            return CreateCompilationWithNetFramework(
+                text,
+                references: [reference.EmitToImageReference()],
+                options: options,
+                parseOptions: parseOptions);
         }
 
-        protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(CSharpTestSource text, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null)
+        protected CSharpCompilation CreateCompilationWithSpan(CSharpTestSource tree, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null) =>
+            CreateCompilationWithFrameworkSources(tree, [TestSources.Span], options, parseOptions);
+
+        protected CSharpCompilation CreateCompilationWithNetFrameworkAndSpan(CSharpTestSource tree, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null)
+        {
+            var reference = CreateCompilationWithNetFramework(
+                TestSources.Span,
+                options: TestOptions.UnsafeReleaseDll);
+
+            reference.VerifyDiagnostics();
+
+            var comp = CreateCompilationWithNetFramework(
+                tree,
+                references: [reference.EmitToImageReference()],
+                options: options,
+                parseOptions: parseOptions);
+
+            return comp;
+        }
+
+        protected CSharpCompilation CreateCompilationWithMscorlibAndSpan(CSharpTestSource text, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null)
         {
             var reference = CreateEmptyCompilation(
                 TestSources.Span,
@@ -2673,7 +2708,7 @@ namespace System.Diagnostics.CodeAnalysis
             return comp;
         }
 
-        protected static CSharpCompilation CreateCompilationWithMscorlibAndSpanSrc(string text, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null)
+        protected CSharpCompilation CreateCompilationWithMscorlibAndSpanSrc(string text, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null)
         {
             var textWitSpan = new string[] { text, TestSources.Span };
             var comp = CreateEmptyCompilation(
@@ -2688,82 +2723,20 @@ namespace System.Diagnostics.CodeAnalysis
 
         #region Index and Range
 
-        protected static CSharpCompilation CreateCompilationWithIndex(CSharpTestSource text, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null)
-        {
-            var reference = CreateCompilationWithNetStandard(TestSources.Index).VerifyDiagnostics();
+        protected CSharpCompilation CreateCompilationWithIndex(CSharpTestSource text, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null) =>
+            CreateCompilationWithFrameworkSources(text, [TestSources.Index], options, parseOptions);
 
-            return CreateCompilationWithNetStandard(
-                text,
-                references: [reference.EmitToImageReference()],
-                options: options,
-                parseOptions: parseOptions);
-        }
+        protected CSharpCompilation CreateCompilationWithIndexAndRange(CSharpTestSource text, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null) =>
+            CreateCompilationWithFrameworkSources(text, [TestSources.Index, TestSources.Range], options, parseOptions);
 
-        protected static CSharpCompilation CreateCompilationWithIndexAndRange(CSharpTestSource text, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null)
-        {
-            var reference = CreateCompilationWithNetStandard([TestSources.Index, TestSources.Range]).VerifyDiagnostics();
+        protected CSharpCompilation CreateCompilationWithIndexAndRangeAndSpan(CSharpTestSource text, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null) =>
+            CreateCompilationWithFrameworkSources(text, [TestSources.Index, TestSources.Range, TestSources.Span], options, parseOptions);
 
-            return CreateCompilationWithNetStandard(
-                text,
-                references: [reference.EmitToImageReference()],
-                options: options,
-                parseOptions: parseOptions);
-        }
+        protected CSharpCompilation CreateCompilationWithSpanAndMemoryExtensions(CSharpTestSource text, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null) =>
+            CreateCompilationWithFrameworkSources(text, [TestSources.Span, TestSources.MemoryExtensions], options, parseOptions);
 
-        protected static CSharpCompilation CreateCompilationWithIndexAndRangeAndSpan(CSharpTestSource text, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null)
-        {
-            var reference = CreateCompilationWithNetStandard([TestSources.Index, TestSources.Range, TestSources.Span], options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
-
-            return CreateCompilationWithNetStandard(
-                text,
-                references: [reference.EmitToImageReference()],
-                options: options,
-                parseOptions: parseOptions);
-        }
-
-        protected static CSharpCompilation CreateCompilationWithSpanAndMemoryExtensions(CSharpTestSource text, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null, TargetFramework targetFramework = TargetFramework.NetCoreApp)
-        {
-            if (ExecutionConditionUtil.IsCoreClr)
-            {
-                return CreateCompilation(text, targetFramework, options: options, parseOptions: parseOptions);
-            }
-            else
-            {
-                var reference = CreateCompilation(
-                    [TestSources.Span, TestSources.MemoryExtensions],
-                    TargetFramework.NetFramework,
-                    options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
-
-                return CreateCompilation(
-                    text,
-                    TargetFramework.NetFramework,
-                    [reference.EmitToImageReference()],
-                    options: options,
-                    parseOptions: parseOptions);
-            }
-        }
-
-        protected static CSharpCompilation CreateCompilationWithIndexAndRangeAndSpanAndMemoryExtensions(CSharpTestSource text, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null, TargetFramework targetFramework = TargetFramework.NetCoreApp)
-        {
-            if (ExecutionConditionUtil.IsCoreClr)
-            {
-                return CreateCompilation(text, targetFramework, options: options, parseOptions: parseOptions);
-            }
-            else
-            {
-                var reference = CreateCompilation(
-                    [TestSources.Index, TestSources.Range, TestSources.Span, TestSources.MemoryExtensions],
-                    TargetFramework.NetFramework,
-                    options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
-
-                return CreateCompilation(
-                    text,
-                    TargetFramework.NetFramework,
-                    [reference.EmitToImageReference()],
-                    options: options,
-                    parseOptions: parseOptions);
-            }
-        }
+        protected CSharpCompilation CreateCompilationWithIndexAndRangeAndSpanAndMemoryExtensions(CSharpTestSource text, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null) =>
+            CreateCompilationWithFrameworkSources(text, [TestSources.Index, TestSources.Range, TestSources.Span, TestSources.MemoryExtensions], options, parseOptions);
 
         internal static string GetIdForErrorCode(ErrorCode code)
         {

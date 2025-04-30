@@ -13503,7 +13503,7 @@ class T
         [Fact, WorkItem(19394, "https://github.com/dotnet/roslyn/issues/19394")]
         public void WellKnownTypeAsStruct_NonDefaultConstructor_DynamicAttribute_Array()
         {
-            var compilation = CreateCompilation(@"
+            var compilation = CreateCompilationWithCSharp(@"
 using System;
 namespace System.Runtime.CompilerServices
 {

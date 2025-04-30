@@ -21291,7 +21291,7 @@ public class C : Base2
     public override (int notA, int notB) M() { return (1, 2); }
 }";
 
-            var compMatching = CreateCompilationWithILAndMscorlib40(sourceWithMatchingNames, ilSource,
+            var compMatching = CreateCompilationWithILAndMscorlib46Extended(sourceWithMatchingNames, ilSource,
                 options: TestOptions.DebugDll);
 
             compMatching.VerifyEmitDiagnostics();
@@ -21302,7 +21302,7 @@ public class C : Base2
     public override (int a, int b) M() { return (1, 2); }
 }";
 
-            var compDifferent1 = CreateCompilationWithILAndMscorlib40(sourceWithDifferentNames1, ilSource,
+            var compDifferent1 = CreateCompilationWithILAndMscorlib46Extended(sourceWithDifferentNames1, ilSource,
                 options: TestOptions.DebugDll);
 
             compDifferent1.VerifyDiagnostics(
@@ -21317,7 +21317,7 @@ public class C : Base2
     public override (int, int) M() { return (1, 2); }
 }";
 
-            var compDifferent2 = CreateCompilationWithILAndMscorlib40(sourceWithDifferentNames2, ilSource,
+            var compDifferent2 = CreateCompilationWithILAndMscorlib46Extended(sourceWithDifferentNames2, ilSource,
                 options: TestOptions.DebugDll);
 
             compDifferent2.VerifyDiagnostics();

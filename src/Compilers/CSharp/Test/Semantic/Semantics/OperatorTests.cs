@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class SyntaxBinderTests : CompilingTestBase
+    public partial class SyntaxBinderTests() : CompilingTestBase(TargetFramework.Standard)
     {
         [Fact, WorkItem(5419, "https://github.com/dotnet/roslyn/issues/5419")]
         public void EnumBinaryOps()

@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class QueryTests : CompilingTestBase
+    public partial class QueryTests() : CompilingTestBase(TargetFramework.Standard)
     {
         [WorkItem(9229, "DevDiv_Projects/Roslyn")]
         [Fact]

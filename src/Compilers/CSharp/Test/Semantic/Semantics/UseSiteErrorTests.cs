@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     /// <summary>
     /// Tests related to use site errors.
     /// </summary>
-    public class UseSiteErrorTests : CSharpTestBase
+    public class UseSiteErrorTests() : CSharpTestBase(TargetFramework.Standard)
     {
         [Fact]
         public void TestFields()
@@ -2726,7 +2726,7 @@ class C
     S2 M2() => default;
 }
 ";
-            var comp = CreateCompilation(source, references: new[] { UnmanagedUseSiteError_Ref2 });
+            var comp = CreateCompilationWithNetStandard(source, references: new[] { UnmanagedUseSiteError_Ref2 });
             comp.VerifyEmitDiagnostics(
                 // error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1),
@@ -2735,7 +2735,7 @@ class C
                 // error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
 
-            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
+            comp = CreateCompilationWithNetStandard(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
             comp.VerifyEmitDiagnostics();
         }
 

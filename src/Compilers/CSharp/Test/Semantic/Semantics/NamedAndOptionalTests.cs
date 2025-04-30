@@ -771,7 +771,7 @@ unsafe class C
             // default(IntPtr) as "load zero, convert to type", rather than making a stack slot and calling
             // init on it.
 
-            var c = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.FailsPEVerify);
+            var c = CompileAndVerifyWithNetStandard(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.FailsPEVerify);
 
             c.VerifyIL("C.Main", @"{
   // Code size       13 (0xd)

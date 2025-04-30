@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class IndexAndRangeTests : CompilingTestBase
+    public class IndexAndRangeTests() : CompilingTestBase(TargetFramework.NetStandard20)
     {
         private const string RangeCtorSignature = "System.Range..ctor(System.Index start, System.Index end)";
         private const string RangeStartAtSignature = "System.Range System.Range.StartAt(System.Index start)";
@@ -1904,7 +1904,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithSpan(src);
+            var comp = CreateCompilationWithNetStandard([src, TestSources.Span], options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (28,16): error CS8347: Cannot use a result of 'Index.Index(Span<int>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         return new Index(s1)..;
@@ -2090,7 +2090,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithSpan(src);
+            var comp = CreateCompilationWithNetStandard([src, TestSources.Span], options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (29,16): error CS8352: Cannot use variable 'r1' in this context because it may expose referenced variables outside of their declaration scope
                 //         return r1;
