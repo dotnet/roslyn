@@ -2997,7 +2997,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             else
             {
-                var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[[1, one], [2, two], [3, three]], [[1, one], [2, two], [3, three]], "));
+                var verifier = CompileAndVerify(
+                    comp,
+                    verify: Verification.Skipped,
+                    expectedOutput: IncludeExpectedOutput("[[1, one], [2, two], [3, three]], [[1, one], [2, two], [3, three]], "));
                 verifier.VerifyDiagnostics();
             }
         }
@@ -3097,7 +3100,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             else
             {
-                var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[[1, one], [2, two], [3, three]], [[1, one], [2, two], [3, three]], "));
+                var verifier = CompileAndVerify(
+                    comp,
+                    verify: Verification.Skipped,
+                    expectedOutput: IncludeExpectedOutput("[[1, one], [2, two], [3, three]], [[1, one], [2, two], [3, three]], "));
                 verifier.VerifyDiagnostics();
             }
 

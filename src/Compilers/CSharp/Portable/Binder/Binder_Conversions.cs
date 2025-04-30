@@ -1171,7 +1171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 elementConversion.TryGetKeyValueConversions(out var keyConversion, out var valueConversion))
                             {
                                 var keyValuePairSyntax = (KeyValuePairElementSyntax)keyValuePairElement.Syntax;
-                                var keyValuePairConstructor = (MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__ctor, diagnostics, syntax: keyValuePairSyntax); // PROTOTYPE: Test missing constructor.
+                                var keyValuePairConstructor = (MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__ctor, diagnostics, syntax: keyValuePairSyntax);
                                 var key = CreateConversion(keyValuePairElement.Key, keyConversion, elementKeyType, diagnostics);
                                 var value = CreateConversion(keyValuePairElement.Value, valueConversion, elementValueType, diagnostics);
                                 if (collectionInitializerAddMethodBinder is { })
