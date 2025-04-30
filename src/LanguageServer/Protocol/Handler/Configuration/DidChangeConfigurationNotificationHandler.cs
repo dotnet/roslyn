@@ -62,8 +62,16 @@ internal sealed partial class DidChangeConfigurationNotificationHandler : ILspSe
 
     public bool RequiresLSPSolution => false;
 
-    public Task HandleNotificationAsync(DidChangeConfigurationParams request, RequestContext requestContext, CancellationToken cancellationToken)
-        => RefreshOptionsAsync(cancellationToken);
+    public async Task HandleNotificationAsync(DidChangeConfigurationParams request, RequestContext requestContext, CancellationToken cancellationToken)
+    {
+        await RefreshOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+        var onChangedList = requestContext.GetRequiredServices<IOnConfigurationChanged>();
+        foreach (var onConfigurationChanged in onChangedList)
+        {
+            await onConfigurationChanged.OnConfigurationChangedAsync(requestContext, cancellationToken).ConfigureAwait(false);
+        }
+    }
 
     private async Task RefreshOptionsAsync(CancellationToken cancellationToken)
     {
