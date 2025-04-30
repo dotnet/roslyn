@@ -67,11 +67,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
 
             for (int i = 1; i <= (int)SpecialType.Count; i++)
             {
-                var t = msCorLibRef.GetSpecialType((SpecialType)i);
-                Assert.Equal((SpecialType)i, t.SpecialType);
+                var specialType = (SpecialType)i;
+                var t = msCorLibRef.GetSpecialType(specialType);
+                Assert.Equal(specialType, t.SpecialType);
                 Assert.Equal((ExtendedSpecialType)i, t.ExtendedSpecialType);
                 Assert.Same(msCorLibRef, t.ContainingAssembly);
-                if (knownMissingSpecialTypes.Contains((SpecialType)i))
+                if (knownMissingSpecialTypes.Contains(specialType))
                 {
                     // not present on dotnet core 3.1
                     Assert.Equal(TypeKind.Error, t.TypeKind);
@@ -84,11 +85,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
 
             for (int i = (int)InternalSpecialType.First; i < (int)InternalSpecialType.NextAvailable; i++)
             {
-                var t = msCorLibRef.GetSpecialType((InternalSpecialType)i);
+                var internalSpecialType = (InternalSpecialType)i;
+                var t = msCorLibRef.GetSpecialType(internalSpecialType);
                 Assert.Equal(SpecialType.None, t.SpecialType);
                 Assert.Equal((ExtendedSpecialType)i, t.ExtendedSpecialType);
                 Assert.Same(msCorLibRef, t.ContainingAssembly);
-                if (knownMissingInternalSpecialTypes.Contains((InternalSpecialType)i))
+                if (knownMissingInternalSpecialTypes.Contains(internalSpecialType))
                 {
                     // not present on dotnet core 3.1
                     Assert.Equal(TypeKind.Error, t.TypeKind);
