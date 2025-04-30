@@ -46,13 +46,11 @@ internal static class OnTheFlyDocsUtilities
 
         return [.. results];
 
-        // Helper method to process a delegate type symbol
         void ProcessDelegateTypeSymbol(INamedTypeSymbol delegateType, PooledHashSet<OnTheFlyDocsRelevantFileInfo> resultSet)
         {
             var invokeMethod = delegateType.DelegateInvokeMethod;
             if (invokeMethod != null)
             {
-                // Process each parameter of the delegate invoke method
                 foreach (var parameter in invokeMethod.Parameters)
                 {
                     resultSet.AddRange(GetOnTheFlyDocsRelevantFileInfos(parameter.Type)
@@ -60,7 +58,6 @@ internal static class OnTheFlyDocsUtilities
                         .Cast<OnTheFlyDocsRelevantFileInfo>());
                 }
 
-                // Process the return type if it's not void
                 if (!invokeMethod.ReturnsVoid)
                 {
                     resultSet.AddRange(GetOnTheFlyDocsRelevantFileInfos(invokeMethod.ReturnType)
