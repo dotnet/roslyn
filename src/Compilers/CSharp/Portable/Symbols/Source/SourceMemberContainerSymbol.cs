@@ -2839,9 +2839,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckForEqualityAndGetHashCode(BindingDiagnosticBag diagnostics)
         {
-            if (this.IsInterfaceType())
+            if (this.IsInterfaceType() || this.IsExtension)
             {
-                // Interfaces are allowed to define Equals without GetHashCode if they want.
+                // Interfaces and extension blocks are allowed to define Equals without GetHashCode if they want.
                 return;
             }
 
@@ -4624,7 +4624,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             case MethodKind.Constructor:
                             case MethodKind.Conversion:
-                            case MethodKind.UserDefinedOperator:
                             case MethodKind.Destructor:
                             case MethodKind.EventAdd:
                             case MethodKind.EventRemove:
@@ -4634,6 +4633,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 // error, but reported elsewhere
                                 return;
                             case MethodKind.Ordinary:
+                            case MethodKind.UserDefinedOperator:
                             case MethodKind.PropertyGet:
                             case MethodKind.PropertySet:
                                 return;
