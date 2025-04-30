@@ -2399,7 +2399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExtensionTypeNameDisallowed = 9306,
         ERR_ExpressionTreeContainsNamedArgumentOutOfPosition = 9307,
 
-        ERR_OperatorsMustBePublic = 9501, // PROTOTYPE: Pack numbers
+        ERR_OperatorsMustBePublic = 9501,
         ERR_BadIncrementOpArgs = 9502,
         ERR_OperatorMustReturnVoid = 9503,
         ERR_CloseUnimplementedInterfaceMemberOperatorMismatch = 9504,

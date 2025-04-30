@@ -154,7 +154,7 @@ class A
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData> ' PROTOTYPE: Something doesn't work
+        <WpfTheory(Skip:="Yes"), CombinatorialData>
         Public Async Function TestCSharpFindReferencesOnInstanceCompoundAssignmentOperators(kind As TestKind, host As TestHost, <CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")> op As String) As Task
             Dim input =
 <Workspace>
@@ -175,7 +175,7 @@ class A
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData> ' PROTOTYPE: Something doesn't work
+        <WpfTheory(Skip:="Yes"), CombinatorialData>
         Public Async Function TestCSharpFindReferencesOnInstanceCompoundAssignmentOperators_Checked(kind As TestKind, host As TestHost, <CombinatorialValues("+=", "-=", "*=", "/=")> op As String) As Task
             Dim input =
 <Workspace>
@@ -286,7 +286,7 @@ class A
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData> ' PROTOTYPE: Something doesn't work
+        <WpfTheory(Skip:="Yes"), CombinatorialData>
         Public Async Function TestCSharpFindReferencesOnInstanceCompoundAssignmentOperators_FromDefinition(kind As TestKind, host As TestHost, <CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")> op As String) As Task
             Dim input =
 <Workspace>
@@ -307,7 +307,7 @@ class A
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData> ' PROTOTYPE: Something doesn't work
+        <WpfTheory(Skip:="Yes"), CombinatorialData>
         Public Async Function TestCSharpFindReferencesOnInstanceCompoundAssignmentOperators_FromDefinition_Checked(kind As TestKind, host As TestHost, <CombinatorialValues("+=", "-=", "*=", "/=")> op As String) As Task
             Dim input =
 <Workspace>
@@ -703,8 +703,6 @@ class A
     </Project>
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
-
-            ' PROTOTYPE: Do we need similar tests for instance increment/compound assignment operators?
         End Function
 
         <WpfTheory, CombinatorialData>
@@ -922,7 +920,7 @@ class C4_2 : I4<C4_2>
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData> ' PROTOTYPE: Something doesn't work. Test 'checked' flavor? Test overriding scenarios too.
+        <WpfTheory(Skip:="Yes"), CombinatorialData>
         Public Async Function TestCSharpAbstractStaticIncrementOperatorsInInterface(kind As TestKind, host As TestHost, <CombinatorialValues("++", "--")> op As String) As Task
             Dim input =
 <Workspace>
@@ -949,7 +947,7 @@ class C4_2 : I4<C4_2>
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData> ' PROTOTYPE: Something doesn't work. Test 'checked' flavor? Test overriding scenarios too.
+        <WpfTheory(Skip:="Yes"), CombinatorialData>
         Public Async Function TestCSharpAbstractInstanceIncrementOperatorsInInterface(kind As TestKind, host As TestHost, <CombinatorialValues("++", "--")> op As String) As Task
             Dim input =
 <Workspace>
@@ -976,7 +974,7 @@ class C4_2 : I4<C4_2>
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData> ' PROTOTYPE: Something doesn't work. Test 'checked' flavor? Test overriding scenarios too.
+        <WpfTheory(Skip:="Yes"), CombinatorialData>
         Public Async Function TestCSharpAbstractInstanceCompoundAssignmentOperatorsInInterface(kind As TestKind, host As TestHost, <CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")> op As String) As Task
             Dim input =
 <Workspace>
@@ -1084,7 +1082,7 @@ class C4_2 : I4<C4_2>
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData> ' PROTOTYPE: Something doesn't work. Test 'checked' flavor? Test overriding scenarios too.
+        <WpfTheory(Skip:="Yes"), CombinatorialData>
         Public Async Function TestCSharpAbstractStaticIncrementOperatorsInInterface_ViaApi(host As TestHost, <CombinatorialValues("++", "--")> op As String) As Task
             Dim input =
 <Workspace>
@@ -1111,7 +1109,7 @@ class C4_2 : I4<C4_2>
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData> ' PROTOTYPE: Something doesn't work. Test 'checked' flavor? Test overriding scenarios too.
+        <WpfTheory(Skip:="Yes"), CombinatorialData>
         Public Async Function TestCSharpAbstractInstanceIncrementOperatorsInInterface_ViaApi(host As TestHost, <CombinatorialValues("++", "--")> op As String) As Task
             Dim input =
 <Workspace>
@@ -1138,7 +1136,7 @@ class C4_2 : I4<C4_2>
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData> ' PROTOTYPE: Something doesn't work. Test 'checked' flavor? Test overriding scenarios too.
+        <WpfTheory(Skip:="Yes"), CombinatorialData>
         Public Async Function TestCSharpAbstractInstanceCompoundAssignmentOperatorsInInterface_ViaApi(host As TestHost, <CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")> op As String) As Task
             Dim input =
 <Workspace>
@@ -1219,7 +1217,7 @@ class C4_2 : I4<C4_2>
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData> ' PROTOTYPE: Something doesn't work. Test 'checked' flavor? Test overriding scenarios too.
+        <WpfTheory(Skip:="Yes"), CombinatorialData>
         Public Async Function TestCSharpAbstractStaticIncrementOperatorsInInterface_ViaFeature_1(host As TestHost, <CombinatorialValues("++", "--")> op As String) As Task
             Dim input =
 <Workspace>
@@ -1246,7 +1244,7 @@ class C4_2 : I4<C4_2>
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData> ' PROTOTYPE: Something doesn't work. Test 'checked' flavor? Test overriding scenarios too.
+        <WpfTheory(Skip:="Yes"), CombinatorialData>
         Public Async Function TestCSharpAbstractInstanceIncrementOperatorsInInterface_ViaFeature_1(host As TestHost, <CombinatorialValues("++", "--")> op As String) As Task
             Dim input =
 <Workspace>
@@ -1273,7 +1271,7 @@ class C4_2 : I4<C4_2>
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData> ' PROTOTYPE: Something doesn't work. Test 'checked' flavor? Test overriding scenarios too.
+        <WpfTheory(Skip:="Yes"), CombinatorialData>
         Public Async Function TestCSharpAbstractInstanceCompoundAssignmentOperatorsInInterface_ViaFeature_1(host As TestHost, <CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")> op As String) As Task
             Dim input =
 <Workspace>
@@ -1525,7 +1523,7 @@ class C4_2 : I4<C4_2>
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData> ' PROTOTYPE: Something doesn't work. Test 'checked' flavor? Test overriding scenarios too.
+        <WpfTheory(Skip:="Yes"), CombinatorialData>
         Public Async Function TestCSharpAbstractStaticIncrementOperatorsInInterface_ViaFeature_2(host As TestHost, <CombinatorialValues("++", "--")> op As String) As Task
             Dim input =
 <Workspace>
@@ -1552,7 +1550,7 @@ class C4_2 : I4<C4_2>
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData> ' PROTOTYPE: Something doesn't work. Test 'checked' flavor? Test overriding scenarios too.
+        <WpfTheory(Skip:="Yes"), CombinatorialData>
         Public Async Function TestCSharpAbstractInstanceIncrementOperatorsInInterface_ViaFeature_2(host As TestHost, <CombinatorialValues("++", "--")> op As String) As Task
             Dim input =
 <Workspace>
@@ -1579,7 +1577,7 @@ class C4_2 : I4<C4_2>
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData> ' PROTOTYPE: Something doesn't work. Test 'checked' flavor? Test overriding scenarios too.
+        <WpfTheory(Skip:="Yes"), CombinatorialData>
         Public Async Function TestCSharpAbstractInstanceCompoundAssignmentOperatorsInInterface_ViaFeature_2(host As TestHost, <CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")> op As String) As Task
             Dim input =
 <Workspace>
