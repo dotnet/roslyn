@@ -482,7 +482,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\EditDistance.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IBidirectionalMap.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ICacheEntry.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\ICollectionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IDictionaryExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IGroupingExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IntegerUtilities.cs" />
@@ -544,7 +543,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ControlFlowGraphExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ControlFlowRegionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IAssemblySymbolExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ICollectionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ICompilationExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IMethodSymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\INamedTypeSymbolExtensions.cs" />

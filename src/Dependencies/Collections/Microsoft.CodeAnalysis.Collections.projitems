@@ -66,8 +66,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)OneOrMany.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TemporaryArray`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TemporaryArrayExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\EnumerableExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IEnumerableExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ImmutableArrayExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ICollectionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Specialized\SpecializedCollections.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Specialized\SpecializedCollections.Empty.Collection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Specialized\SpecializedCollections.Empty.cs" />
