@@ -9,17 +9,17 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
+using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.EditAndContinue.AbstractEditAndContinueAnalyzer;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 
@@ -58,6 +58,7 @@ internal abstract class EditAndContinueTestVerifier
     public abstract string ProjectFileExtension { get; }
     public abstract TreeComparer<SyntaxNode> TopSyntaxComparer { get; }
     public abstract string? TryGetResource(string keyword);
+    public abstract ParseOptions ParseOptions { get; }
 
     internal static AbstractEditAndContinueAnalyzer CreateAnalyzer(Action<SyntaxNode>? faultInjector, string languageName)
     {
@@ -463,7 +464,8 @@ internal abstract class EditAndContinueTestVerifier
                 language: LanguageName,
                 compilationOutputInfo: default,
                 filePath: Path.Combine(TempRoot.Root, "project" + ProjectFileExtension),
-                checksumAlgorithm: SourceHashAlgorithms.Default));
+                checksumAlgorithm: SourceHashAlgorithms.Default),
+            parseOptions: ParseOptions);
 
         oldProject = workspace.AddProject(projectInfo).WithMetadataReferences(TargetFrameworkUtil.GetReferences(targetFramework));
         foreach (var editScript in editScripts)
