@@ -869,14 +869,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // though not all will be used for any particular collection expression. Checking all
             // gives a consistent behavior, regardless of collection expression elements.
 
-            if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer or CollectionExpressionTypeKind.DictionaryInterface)
-            {
-                // PROTOTYPE: Check System_Collections_Generic_KeyValuePair_KV__ctor always as well?
-                // PROTOTYPE: Should we check all of these for non-dictionary collections of KeyValuePair<,>?
-                _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key, diagnostics, syntax: syntax);
-                _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value, diagnostics, syntax: syntax);
-            }
-
             if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable or CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer)
             {
                 if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer)
@@ -1013,7 +1005,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 setMethod,
                 wasTargetTyped: true,
                 node,
-                ConvertCollectionExpressionElements(node, targetType, conversion, collectionTypeKind, elementType, implicitReceiver, diagnostics),
+                ConvertCollectionExpressionElements(node, targetType, conversion, collectionTypeKind, elementType, useIndexer: setMethod is { }, implicitReceiver, diagnostics),
                 targetType)
             { WasCompilerGenerated = node.IsParamsArrayOrCollection, IsParamsArrayOrCollection = node.IsParamsArrayOrCollection };
         }
@@ -1024,6 +1016,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion,
             CollectionExpressionTypeKind collectionTypeKind,
             TypeSymbol elementType,
+            bool useIndexer,
             BoundObjectOrCollectionValuePlaceholder? implicitReceiver,
             BindingDiagnosticBag diagnostics)
         {
@@ -1057,7 +1050,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (elementKeyValueTypes is (var elementKeyType, var elementValueType) &&
                                 elementConversion.TryGetKeyValueConversions(out var keyConversion, out var valueConversion))
                             {
-                                _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__ctor, diagnostics, syntax: expressionSyntax);
+                                if (!useIndexer)
+                                {
+                                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__ctor, diagnostics, syntax: expressionSyntax);
+                                }
+                                _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key, diagnostics, syntax: expressionSyntax);
+                                _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value, diagnostics, syntax: expressionSyntax);
                                 if (!ConversionsBase.IsKeyValuePairType(Compilation, expressionElement.Type, out var keyType, out var valueType))
                                 {
                                     throw ExceptionUtilities.UnexpectedValue(expressionElement.Type);
@@ -1075,7 +1073,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     elementType);
                                 if (collectionInitializerAddMethodBinder is { })
                                 {
-                                    // PROTOTYPE: Need to check System_Collections_Generic_KeyValuePair_KV__getKey and __getValue are available. Test KeyValuePair_MissingMember_NonDictionary() currently fails some cases in lowering.
                                     convertedElement = BindCollectionInitializerElementAddMethod(
                                         expressionSyntax,
                                         [keyValuePairConversion],
@@ -1101,6 +1098,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
+                                if (useIndexer)
+                                {
+                                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key, diagnostics, syntax: expressionSyntax);
+                                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value, diagnostics, syntax: expressionSyntax);
+                                }
                                 convertedElement = CreateConversion(expressionElement, elementConversion, elementType, diagnostics);
                             }
                         }
@@ -1116,7 +1118,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (arg.elementKeyValueTypes is (var elementKeyType, var elementValueType) &&
                                     arg.elementConversion.TryGetKeyValueConversions(out var keyConversion, out var valueConversion))
                                 {
-                                    _ = binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__ctor, diagnostics, syntax: syntax);
+                                    if (!arg.useIndexer)
+                                    {
+                                        _ = binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__ctor, diagnostics, syntax: syntax);
+                                    }
+                                    _ = binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key, diagnostics, syntax: syntax);
+                                    _ = binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value, diagnostics, syntax: syntax);
                                     if (!ConversionsBase.IsKeyValuePairType(binder.Compilation, item.Type, out var keyType, out var valueType))
                                     {
                                         throw ExceptionUtilities.UnexpectedValue(item.Type);
@@ -1133,7 +1140,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         type: arg.elementType);
                                     if (arg.collectionInitializerAddMethodBinder is { })
                                     {
-                                        // PROTOTYPE: Need to check System_Collections_Generic_KeyValuePair_KV__getKey and __getValue are available. Test KeyValuePair_MissingMember_NonDictionary() currently fails some cases in lowering.
                                         return binder.BindCollectionInitializerElementAddMethod(
                                             syntax,
                                             [keyValuePairConversion],
@@ -1159,10 +1165,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else
                                 {
+                                    if (arg.useIndexer)
+                                    {
+                                        _ = binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key, diagnostics, syntax: syntax);
+                                        _ = binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value, diagnostics, syntax: syntax);
+                                    }
                                     return binder.CreateConversion(item, arg.elementConversion, arg.elementType, diagnostics);
                                 }
                             },
-                            (elementType, elementConversion, elementKeyValueTypes, collectionInitializerAddMethodBinder),
+                            (elementType, useIndexer, elementConversion, elementKeyValueTypes, collectionInitializerAddMethodBinder),
                             diagnostics);
                         break;
                     case BoundKeyValuePairElement keyValuePairElement:
@@ -1171,7 +1182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 elementConversion.TryGetKeyValueConversions(out var keyConversion, out var valueConversion))
                             {
                                 var keyValuePairSyntax = (KeyValuePairElementSyntax)keyValuePairElement.Syntax;
-                                var keyValuePairConstructor = (MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__ctor, diagnostics, syntax: keyValuePairSyntax);
+                                var keyValuePairConstructor = useIndexer ? null : (MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__ctor, diagnostics, syntax: keyValuePairSyntax);
                                 var key = CreateConversion(keyValuePairElement.Key, keyConversion, elementKeyType, diagnostics);
                                 var value = CreateConversion(keyValuePairElement.Value, valueConversion, elementValueType, diagnostics);
                                 if (collectionInitializerAddMethodBinder is { })

@@ -1380,79 +1380,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilation(source);
-            comp.MakeTypeMissing(WellKnownType.System_Collections_Generic_KeyValuePair_KV);
-            comp.VerifyEmitDiagnostics(
-                // (3,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Key'
-                // d = [];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Key").WithLocation(3, 5),
-                // (3,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
-                // d = [];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(3, 5),
-                // (4,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Key'
-                // d = [1:"one"];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[1:""one""]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Key").WithLocation(4, 5),
-                // (4,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
-                // d = [1:"one"];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[1:""one""]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(4, 5),
-                // (4,6): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2..ctor'
-                // d = [1:"one"];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"1:""one""").WithArguments("System.Collections.Generic.KeyValuePair`2", ".ctor").WithLocation(4, 6));
-
-            comp = CreateCompilation(source);
             comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key);
             comp.VerifyEmitDiagnostics(
-                // (3,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Key'
-                // d = [];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Key").WithLocation(3, 5),
-                // (4,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Key'
-                // d = [1:"one"];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[1:""one""]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Key").WithLocation(4, 5),
-                // (5,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Key'
+                // (5,6): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Key'
                 // d = [new KeyValuePair<int, string>(2, "two")];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[new KeyValuePair<int, string>(2, ""two"")]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Key").WithLocation(5, 5),
-                // (6,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Key'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"new KeyValuePair<int, string>(2, ""two"")").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Key").WithLocation(5, 6),
+                // (6,9): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Key'
                 // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[.. new KeyValuePair<int, string>[] { new(3, ""three"") }]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Key").WithLocation(6, 5));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"new KeyValuePair<int, string>[] { new(3, ""three"") }").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Key").WithLocation(6, 9));
 
             comp = CreateCompilation(source);
             comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value);
             comp.VerifyEmitDiagnostics(
-                // (3,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
-                // d = [];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(3, 5),
-                // (4,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
-                // d = [1:"one"];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[1:""one""]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(4, 5),
-                // (5,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
+                // (5,6): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
                 // d = [new KeyValuePair<int, string>(2, "two")];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[new KeyValuePair<int, string>(2, ""two"")]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(5, 5),
-                // (6,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"new KeyValuePair<int, string>(2, ""two"")").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(5, 6),
+                // (6,9): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
                 // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[.. new KeyValuePair<int, string>[] { new(3, ""three"") }]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(6, 5));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"new KeyValuePair<int, string>[] { new(3, ""three"") }").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(6, 9));
 
             comp = CreateCompilation(source);
             comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__ctor);
-            if (typeName.Contains("<int, string>"))
-            {
-                // PROTOTYPE: Should we really require KeyValuePair<,>..ctor() here?
-                comp.VerifyEmitDiagnostics(
-                    // (4,6): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2..ctor'
-                    // d = [1:"one"];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"1:""one""").WithArguments("System.Collections.Generic.KeyValuePair`2", ".ctor").WithLocation(4, 6));
-            }
-            else
-            {
-                comp.VerifyEmitDiagnostics(
-                    // (4,6): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2..ctor'
-                    // d = [1:"one"];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"1:""one""").WithArguments("System.Collections.Generic.KeyValuePair`2", ".ctor").WithLocation(4, 6),
-                    // (5,6): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2..ctor'
-                    // d = [new KeyValuePair<int, string>(2, "two")];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"new KeyValuePair<int, string>(2, ""two"")").WithArguments("System.Collections.Generic.KeyValuePair`2", ".ctor").WithLocation(5, 6),
-                    // (6,9): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2..ctor'
-                    // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"new KeyValuePair<int, string>[] { new(3, ""three"") }").WithArguments("System.Collections.Generic.KeyValuePair`2", ".ctor").WithLocation(6, 9));
-            }
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -1484,65 +1433,65 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilation(sourceB, references: [refA]);
-            comp.MakeTypeMissing(WellKnownType.System_Collections_Generic_KeyValuePair_KV);
-            comp.VerifyEmitDiagnostics(
-                // (4,5): error CS1061: 'MyDictionary<int, string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<int, string>' could be found (are you missing a using directive or an assembly reference?)
-                // d = [1:"one"];
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"[1:""one""]").WithArguments("MyDictionary<int, string>", "Add").WithLocation(4, 5),
-                // (4,6): error CS9500: Collection expression type 'MyDictionary<int, string>' does not support key-value pair elements.
-                // d = [1:"one"];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, @"1:""one""").WithArguments("MyDictionary<int, string>").WithLocation(4, 6),
-                // (5,5): error CS1061: 'MyDictionary<int, string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<int, string>' could be found (are you missing a using directive or an assembly reference?)
-                // d = [new KeyValuePair<int, string>(2, "two")];
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"[new KeyValuePair<int, string>(2, ""two"")]").WithArguments("MyDictionary<int, string>", "Add").WithLocation(5, 5),
-                // (6,5): error CS1061: 'MyDictionary<int, string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<int, string>' could be found (are you missing a using directive or an assembly reference?)
-                // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"[.. new KeyValuePair<int, string>[] { new(3, ""three"") }]").WithArguments("MyDictionary<int, string>", "Add").WithLocation(6, 5));
-
-            comp = CreateCompilation(sourceB, references: [refA]);
             comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key);
             comp.VerifyEmitDiagnostics(
-                // (3,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Key'
-                // d = [];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Key").WithLocation(3, 5),
-                // (4,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Key'
-                // d = [1:"one"];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[1:""one""]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Key").WithLocation(4, 5),
-                // (5,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Key'
+                // (5,6): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Key'
                 // d = [new KeyValuePair<int, string>(2, "two")];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[new KeyValuePair<int, string>(2, ""two"")]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Key").WithLocation(5, 5),
-                // (6,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Key'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"new KeyValuePair<int, string>(2, ""two"")").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Key").WithLocation(5, 6),
+                // (6,9): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Key'
                 // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[.. new KeyValuePair<int, string>[] { new(3, ""three"") }]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Key").WithLocation(6, 5));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"new KeyValuePair<int, string>[] { new(3, ""three"") }").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Key").WithLocation(6, 9));
 
             comp = CreateCompilation(sourceB, references: [refA]);
             comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value);
             comp.VerifyEmitDiagnostics(
-                // (3,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
-                // d = [];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(3, 5),
-                // (4,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
-                // d = [1:"one"];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[1:""one""]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(4, 5),
-                // (5,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
+                // (5,6): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
                 // d = [new KeyValuePair<int, string>(2, "two")];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[new KeyValuePair<int, string>(2, ""two"")]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(5, 5),
-                // (6,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"new KeyValuePair<int, string>(2, ""two"")").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(5, 6),
+                // (6,9): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
                 // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[.. new KeyValuePair<int, string>[] { new(3, ""three"") }]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(6, 5));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"new KeyValuePair<int, string>[] { new(3, ""three"") }").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(6, 9));
 
             comp = CreateCompilation(sourceB, references: [refA]);
             comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__ctor);
-            comp.VerifyEmitDiagnostics(
-                // (4,6): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2..ctor'
-                // d = [1:"one"];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"1:""one""").WithArguments("System.Collections.Generic.KeyValuePair`2", ".ctor").WithLocation(4, 6));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Theory]
-        [InlineData("KeyValuePair<int?, object>[]")]
-        [InlineData("List<KeyValuePair<int?, object>>")]
-        public void KeyValuePair_MissingMember_NonDictionary(string typeName)
+        [CombinatorialData]
+        public void KeyValuePair_MissingMember_NonDictionary_01(
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues("KeyValuePair<int, string>[]", "List<KeyValuePair<int, string>>")] string typeName)
+        {
+            string source = $$"""
+                using System.Collections.Generic;
+                {{typeName}} d;
+                d = [];
+                d = [new KeyValuePair<int, string>(2, "two")];
+                d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
+                """;
+
+            var parseOptions = TestOptions.Regular.WithLanguageVersion(languageVersion);
+            var comp = CreateCompilation(source, parseOptions: parseOptions);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(source, parseOptions: parseOptions);
+            comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(source, parseOptions: parseOptions);
+            comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(source, parseOptions: parseOptions);
+            comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__ctor);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void KeyValuePair_MissingMember_NonDictionary_02(
+            [CombinatorialValues("KeyValuePair<int?, object>[]", "List<KeyValuePair<int?, object>>")] string typeName)
         {
             string source = $$"""
                 using System.Collections.Generic;
@@ -1559,16 +1508,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp = CreateCompilation(source);
             comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key);
             comp.VerifyEmitDiagnostics(
-                // (5,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Key'
+                // (5,6): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Key'
                 // d = [new KeyValuePair<int, string>(2, "two")];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[new KeyValuePair<int, string>(2, ""two"")]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Key").WithLocation(5, 5));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"new KeyValuePair<int, string>(2, ""two"")").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Key").WithLocation(5, 6),
+                // (6,9): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Key'
+                // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"new KeyValuePair<int, string>[] { new(3, ""three"") }").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Key").WithLocation(6, 9));
 
             comp = CreateCompilation(source);
             comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value);
             comp.VerifyEmitDiagnostics(
-                // (5,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
+                // (5,6): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
                 // d = [new KeyValuePair<int, string>(2, "two")];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[new KeyValuePair<int, string>(2, ""two"")]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(5, 5));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"new KeyValuePair<int, string>(2, ""two"")").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(5, 6),
+                // (6,9): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
+                // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"new KeyValuePair<int, string>[] { new(3, ""three"") }").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(6, 9));
 
             comp = CreateCompilation(source);
             comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__ctor);
@@ -2776,7 +2731,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 [sourceA, s_collectionExtensions],
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.ReleaseExe);
-            // PROTOTYPE: Support KeyValuePair<,> variance with params?
+            // https://github.com/dotnet/csharplang/blob/main/proposals/dictionary-expressions.md#support-keyvaluepair-variance-with-params: Support KeyValuePair<,> variance with params?
             comp.VerifyEmitDiagnostics(
                 // (9,40): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
                 //         /*<bind>*/Params<int?, object>(x)/*</bind>*/;
@@ -3128,7 +3083,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 references: [refA],
                 targetFramework: TargetFramework.Net80);
-            // PROTOTYPE: Support KeyValuePair<,> variance with params?
+            // https://github.com/dotnet/csharplang/blob/main/proposals/dictionary-expressions.md#support-keyvaluepair-variance-with-params: Support KeyValuePair<,> variance with params?
             comp.VerifyEmitDiagnostics(
                 // (9,30): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
                 //         Params<int?, object>(x);

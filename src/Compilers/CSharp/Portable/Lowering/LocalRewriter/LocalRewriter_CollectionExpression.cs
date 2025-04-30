@@ -1430,7 +1430,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(key.Type is { });
             Debug.Assert(value.Type is { });
 
-            // PROTOTYPE: Test missing KeyValuePair<K, V> constructor. Should only be reported when using k:v or a KVP conversion.
             var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__ctor));
             var type = constructor.ContainingType.Construct(key.Type, value.Type);
             constructor = constructor.AsMember(type);
