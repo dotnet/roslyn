@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             Debug.Assert(method.Name == WellKnownMemberNames.DeconstructMethodName);
                             int extensionExtra;
-                            if (method.IsStatic) // Tracked by https://github.com/dotnet/roslyn/issues/76130: Test this code path with new extensions
+                            if (method.IsStatic)
                             {
                                 Debug.Assert(method.IsExtensionMethod);
                                 receiver = _factory.Type(method.ContainingType);

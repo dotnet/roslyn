@@ -21,7 +21,7 @@ using Xunit.Sdk;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 
 [CompilerTrait(CompilerFeature.Extensions)]
-public class ExtensionTests : CompilingTestBase
+public partial class ExtensionTests : CompilingTestBase
 {
     private static string ExpectedOutput(string output)
     {
@@ -12757,17 +12757,18 @@ static class E
     }
 
     [Fact]
-    public void InstanceMethodInvocation_PatternBased_ForEach_NoMethod()
+    public void InstanceMethodInvocation_PatternBased_ForEach_MoveNext()
     {
         var src = """
 foreach (var x in new C())
 {
-    System.Console.Write(x);
-    break;
 }
 
 class C { }
-class D { }
+class D
+{
+    public int Current => 42;
+}
 
 static class E
 {
@@ -12779,6 +12780,50 @@ static class E
     extension(D d)
     {
         public bool MoveNext() => true;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,19): error CS0117: 'D' does not contain a definition for 'MoveNext'
+            // foreach (var x in new C())
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "new C()").WithArguments("D", "MoveNext").WithLocation(1, 19),
+            // (1,19): error CS0202: foreach requires that the return type 'D' of 'E.extension(C).GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+            // foreach (var x in new C())
+            Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new C()").WithArguments("D", "E.extension(C).GetEnumerator()").WithLocation(1, 19)
+            );
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var loop = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+        Assert.Null(model.GetForEachStatementInfo(loop).GetEnumeratorMethod);
+        Assert.Null(model.GetForEachStatementInfo(loop).MoveNextMethod);
+        Assert.Null(model.GetForEachStatementInfo(loop).CurrentProperty);
+    }
+
+    [Fact]
+    public void InstanceMethodInvocation_PatternBased_ForEach_Current()
+    {
+        var src = """
+foreach (var x in new C())
+{
+}
+
+class C { }
+class D
+{
+    public bool MoveNext() => true;
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public D GetEnumerator() => new D();
+    }
+
+    extension(D d)
+    {
         public int Current => 42;
     }
 }
@@ -12799,6 +12844,44 @@ static class E
         Assert.Null(model.GetForEachStatementInfo(loop).GetEnumeratorMethod);
         Assert.Null(model.GetForEachStatementInfo(loop).MoveNextMethod);
         Assert.Null(model.GetForEachStatementInfo(loop).CurrentProperty);
+    }
+
+    [Fact]
+    public void InstanceMethodInvocation_PatternBased_ForEach_GetEnumerator_Conversion()
+    {
+        var src = """
+foreach (var x in new C())
+{
+    System.Console.Write(x);
+    break;
+}
+
+class C { }
+class D
+{
+    public bool MoveNext() => true;
+    public int Current => 42;
+}
+
+static class E
+{
+    extension(object o)
+    {
+        public D GetEnumerator() => new D();
+    }
+}
+""";
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : handle conversion on receiver
+        try
+        {
+            var comp = CreateCompilation(src);
+            CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
+        }
+        catch (InvalidOperationException)
+        {
+            return;
+        }
+        Assert.False(true);
     }
 
     [Fact]
@@ -15730,7 +15813,7 @@ public class MyCollection : IEnumerable<int>
     }
 
     [Fact]
-    public void ResolveAll_CollectionExpression_ExtensionAddDelegateTypeProperty()
+    public void ResolveAll_CollectionExpression_ExtensionAdd_DelegateTypeProperty()
     {
         var source = """
 using System.Collections;
@@ -15752,12 +15835,44 @@ public class MyCollection : IEnumerable<int>
     IEnumerator IEnumerable.GetEnumerator() => throw null;
 }
 """;
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit how delegate-returning properties play into pattern-based constructs
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (4,18): error CS1061: 'MyCollection' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection' could be found (are you missing a using directive or an assembly reference?)
             // MyCollection c = [42];
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[42]").WithArguments("MyCollection", "Add").WithLocation(4, 18)
             );
+    }
+
+    [Fact]
+    public void ResolveAll_CollectionExpression_ExtensionAdd_DynamicTypeProperty()
+    {
+        var source = """
+using System.Collections;
+using System.Collections.Generic;
+
+MyCollection c = [42];
+
+static class E
+{
+    extension(MyCollection c)
+    {
+        public dynamic Add => throw null;
+    }
+}
+
+public class MyCollection : IEnumerable<int>
+{
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+""";
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit how dynamic-returning properties play into pattern-based constructs
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (4,18): error CS1061: 'MyCollection' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection' could be found (are you missing a using directive or an assembly reference?)
+            // MyCollection c = [42];
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[42]").WithArguments("MyCollection", "Add").WithLocation(4, 18));
     }
 
     [Fact]
@@ -16172,6 +16287,86 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
         Assert.Equal("System.String E.<>E__0.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ResolveAll_Query_Where_DelegateTypeProperty()
+    {
+        var src = """
+var x = from i in new C()
+        where i is not null
+        select i;
+
+System.Console.Write(x);
+
+public class C { }
+
+public static class E
+{
+    extension(C c)
+    {
+        public System.Func<System.Func<C, bool>, C> Where => (System.Func<C, bool> f) => { System.Console.Write(f(c)); return c; };
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "TrueC").VerifyDiagnostics();
+
+        src = """
+var x = from i in new C()
+        where i is not null
+        select i;
+
+System.Console.Write(x);
+
+public class C
+{
+    public System.Func<System.Func<C, bool>, C> Where => (System.Func<C, bool> f) => { System.Console.Write(f(this)); return this; };
+}
+""";
+        comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "TrueC").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ResolveAll_Query_Where_DynamicTypeProperty()
+    {
+        var src = """
+var x = from i in new C()
+        where i is not null
+        select i;
+
+public class C { }
+
+public static class E
+{
+    extension(C c)
+    {
+        public dynamic Where => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,15): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
+            //         where i is not null
+            Diagnostic(ErrorCode.ERR_BadDynamicMethodArgLambda, "i is not null").WithLocation(2, 15));
+
+        src = """
+var x = from i in new C()
+        where i is not null
+        select i;
+
+public class C
+{
+    public dynamic Where => throw null;
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,9): error CS1979: Query expressions over source type 'dynamic' or with a join sequence of type 'dynamic' are not allowed
+            //         where i is not null
+            Diagnostic(ErrorCode.ERR_BadDynamicQuery, "where i is not null").WithLocation(2, 9));
     }
 
     [Fact(Skip = "Tracked by https://github.com/dotnet/roslyn/issues/76130 : WasPropertyBackingFieldAccessChecked asserts that we're setting twice")]
@@ -19971,6 +20166,131 @@ static class E
     }
 
     [Fact]
+    public void ExtensionMemberLookup_PatternBased_ForEach_DelegateTypeProperty()
+    {
+        var src = """
+using System.Collections;
+
+foreach (var x in new C()) { }
+
+class C { }
+
+static class E
+{
+    extension(C c)
+    {
+        public System.Func<IEnumerator> GetEnumerator => throw null;
+    }
+}
+""";
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit how delegate-returning properties play into pattern-based constructs
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,19): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
+            // foreach (var x in new C()) { }
+            Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(3, 19));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var loop = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+        Assert.Null(model.GetForEachStatementInfo(loop).GetEnumeratorMethod);
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_ForEach_DynamicTypeProperty()
+    {
+        var src = """
+using System.Collections;
+
+foreach (var x in new C()) { }
+
+class C { }
+
+static class E
+{
+    extension(C c)
+    {
+        public dynamic GetEnumerator => throw null;
+    }
+}
+""";
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit how dynamic-returning properties play into pattern-based constructs
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,19): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
+            // foreach (var x in new C()) { }
+            Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(3, 19));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var loop = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+        Assert.Null(model.GetForEachStatementInfo(loop).GetEnumeratorMethod);
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_ForEach_Generic()
+    {
+        var src = """
+using System.Collections.Generic;
+
+foreach (var x in new C()) { System.Console.Write(x); }
+
+class C { }
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public IEnumerator<T> GetEnumerator()
+        {
+            yield return t;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "C").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var loop = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+        Assert.Equal("System.Collections.Generic.IEnumerator<C> E.<>E__0<C>.GetEnumerator()",
+            model.GetForEachStatementInfo(loop).GetEnumeratorMethod.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_AwaitForEach()
+    {
+        var src = """
+using System.Collections.Generic;
+
+await foreach (var x in new C()) { System.Console.Write(x); }
+
+class C { }
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public async IAsyncEnumerator<T> GetAsyncEnumerator()
+        {
+            await System.Threading.Tasks.Task.Yield();
+            yield return t;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, expectedOutput: "C").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var loop = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+        Assert.Equal("System.Collections.Generic.IAsyncEnumerator<C> E.<>E__0<C>.GetAsyncEnumerator()",
+            model.GetForEachStatementInfo(loop).GetEnumeratorMethod.ToTestDisplayString());
+    }
+
+    [Fact]
     public void ExtensionMemberLookup_PatternBased_Deconstruct_NoMethod()
     {
         var src = """
@@ -19988,7 +20308,6 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm when spec'ing pattern-based deconstruction
         CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
@@ -19996,6 +20315,55 @@ static class E
         var deconstruction = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().First();
 
         Assert.Equal("void E.<>E__0.Deconstruct(out System.Int32 i, out System.Int32 j)",
+            model.GetDeconstructionInfo(deconstruction).Method.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_Deconstruct_Conversion()
+    {
+        var src = """
+var (x, y) = new C();
+System.Console.Write((x, y));
+
+class C { }
+
+static class E
+{
+    extension(object o)
+    {
+        public void Deconstruct(out int i, out int j) { i = 42; j = 43; }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_Deconstruct_Generic()
+    {
+        var src = """
+var (x, y) = new C();
+System.Console.Write((x, y));
+
+class C { }
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public void Deconstruct(out int i, out int j) { i = 42; j = 43; }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var deconstruction = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().First();
+
+        Assert.Equal("void E.<>E__0<C>.Deconstruct(out System.Int32 i, out System.Int32 j)",
             model.GetDeconstructionInfo(deconstruction).Method.ToTestDisplayString());
     }
 
@@ -20024,7 +20392,6 @@ public static class E2
 }
 """;
         var comp = CreateCompilation(src);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm when spec'ing pattern-based deconstruction
         CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
@@ -20061,7 +20428,7 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit pattern-based deconstruction
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit how delegate-returning properties play into pattern-based constructs
         comp.VerifyDiagnostics(
             // (1,6): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x1'.
             // var (x1, y1) = new C1();
@@ -20157,7 +20524,6 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm when spec'ing pattern-based deconstruction
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
 
@@ -20170,7 +20536,29 @@ static class E
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBased_Dispose_Async_NoMethod()
+    public void ExtensionMemberLookup_PatternBased_PositionalPattern()
+    {
+        var src = """
+var c = new C();
+if (c is var (x, y))
+    System.Console.Write((x, y));
+
+class C { }
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public void Deconstruct(out int i, out int j) { i = 42; j = 43; }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_DisposeAsync_NoMethod()
     {
         var src = """
 using System.Threading.Tasks;
@@ -20188,22 +20576,13 @@ static class E
 {
     extension(C1 c)
     {
-        public async Task DisposeAsync()
-        {
-            System.Console.Write("RAN");
-            await Task.Yield();
-        }
+        public Task DisposeAsync() => throw null;
     }
 
-    public static async Task DisposeAsync(this C2 c)
-    {
-        System.Console.Write("RAN");
-        await Task.Yield();
-    }
+    public static Task DisposeAsync(this C2 c) => throw null;
 }
 """;
         var comp = CreateCompilation(src);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm when spec'ing pattern-based disposal
 
         var expectedDiagnostics = new[] {
             // (4,1): error CS8410: 'C1': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
@@ -20304,12 +20683,11 @@ static class E
 {
     extension(C c)
     {
-        public System.Func<Task> DisposeAsync => async () => { System.Console.Write("ran2"); await Task.Yield(); };
+        public System.Func<Task> DisposeAsync => async () => { await Task.Yield(); };
     }
 }
 """;
         var comp = CreateCompilation(src);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 :(instance) confirm when spec'ing pattern-based disposal
         comp.VerifyEmitDiagnostics(
             // (3,1): error CS8410: 'C': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
             // await using var x = new C();
@@ -20344,7 +20722,6 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm when spec'ing pattern-based disposal
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (4,1): error CS8410: 'C': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
@@ -20390,6 +20767,29 @@ static class E
     }
 
     [Fact]
+    public void ExtensionMemberLookup_PatternBased_Dispose_RefStruct_DelegateTypeProperty()
+    {
+        var src = """
+using var x1 = new S1();
+
+ref struct S1 { }
+
+static class E
+{
+    extension(S1 s)
+    {
+        public System.Action Dispose => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics(
+            // (1,1): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
+            // using var x1 = new S1();
+            Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using var x1 = new S1();").WithArguments("S1").WithLocation(1, 1));
+    }
+
+    [Fact]
     public void ExtensionMemberLookup_PatternBased_Fixed_NoMethod()
     {
         var text = """
@@ -20415,8 +20815,45 @@ static class E
 }
 """;
         var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm when spec'ing pattern-based fixed
         CompileAndVerify(comp, expectedOutput: "pin 2", verify: Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_Fixed_Conversion()
+    {
+        var text = """
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable())
+        {
+            System.Console.WriteLine(p[1]);
+        }
+    }
+}
+
+class Fixable { }
+
+static class E
+{
+    extension(object o)
+    {
+        public ref int GetPinnableReference() { System.Console.Write("pin "); return ref (new int[] { 1, 2, 3 })[0]; }
+    }
+}
+""";
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : handle conversion on receiver
+        try
+        {
+            var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "pin 2", verify: Verification.Skipped).VerifyDiagnostics();
+        }
+        catch (InvalidOperationException)
+        {
+            return;
+        }
+        Assert.False(true);
     }
 
     [Fact]
@@ -20457,7 +20894,7 @@ static class E
 }
 ";
         var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm when spec'ing pattern-based fixed
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit how delegate-returning properties play into pattern-based constructs
         comp.VerifyEmitDiagnostics(
             // (6,25): error CS8385: The given expression cannot be used in a fixed statement
             //         fixed (int* p = new Fixable1())
@@ -20466,6 +20903,40 @@ static class E
             //         fixed (int* p = new Fixable2())
             Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable2()").WithLocation(11, 25)
             );
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_Fixed_NoMethod_DynamicTypeProperty()
+    {
+        var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable1())
+        {
+        }
+    }
+}
+
+class Fixable1 { }
+
+delegate ref int MyDelegate();
+
+static class E
+{
+    extension(Fixable1 f)
+    {
+        public dynamic GetPinnableReference => throw null;
+    }
+}
+";
+        var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe);
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit how dynamic-returning properties play into pattern-based constructs
+        comp.VerifyEmitDiagnostics(
+            // (6,25): error CS8385: The given expression cannot be used in a fixed statement
+            //         fixed (int* p = new Fixable1())
+            Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable1()").WithLocation(6, 25));
     }
 
     [Fact]
@@ -20499,7 +20970,6 @@ static class E
 }
 """;
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm when spec'ing pattern-based fixed
         var comp = CreateCompilation(src, options: TestOptions.UnsafeReleaseExe);
         CompileAndVerify(comp, expectedOutput: "2", verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -20567,7 +21037,6 @@ static class E
 ";
 
         var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm when spec'ing pattern-based fixed
         comp.VerifyEmitDiagnostics(
             // (6,25): error CS0176: Member 'E.extension(Fixable).GetPinnableReference()' cannot be accessed with an instance reference; qualify it with a type name instead
             //         fixed (int* p = new Fixable())
@@ -20607,7 +21076,6 @@ static class E
 }
 ";
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm when spec'ing pattern-based await
         var comp = CreateCompilation(text);
         comp.VerifyEmitDiagnostics(
             // (5,9): error CS0117: 'D' does not contain a definition for 'IsCompleted'
@@ -20648,7 +21116,6 @@ static class E
 }
 ";
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm when spec'ing pattern-based await
         var comp = CreateCompilation(text);
         CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
@@ -20670,6 +21137,168 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
 """;
 
         VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(text, expectedOperationTree, [], targetFramework: TargetFramework.Net70);
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_Await_ExtensionGetAwaiter_Conversion()
+    {
+        var text = @"
+using System;
+using System.Runtime.CompilerServices;
+
+int i = await new C();
+System.Console.Write(i);
+
+class C
+{
+}
+
+class D : INotifyCompletion
+{
+    public int GetResult() => 42;
+    public void OnCompleted(Action continuation) => throw null;
+    public bool IsCompleted => true;
+}
+
+static class E
+{
+    extension(object o)
+    {
+        public D GetAwaiter() => new D();
+    }
+}
+";
+
+        var comp = CreateCompilation(text);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_Await_ExtensionGetAwaiter_DelegateTypeProperty()
+    {
+        var text = @"
+using System;
+using System.Runtime.CompilerServices;
+
+int i = await new C();
+System.Console.Write(i);
+
+class C
+{
+}
+
+class D : INotifyCompletion
+{
+    public int GetResult() => 42;
+    public void OnCompleted(Action continuation) => throw null;
+    public bool IsCompleted => true;
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public System.Func<D> GetAwaiter => () => new D();
+    }
+}
+";
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit how delegate-returning properties play into pattern-based constructs
+        var comp = CreateCompilation(text);
+        comp.VerifyEmitDiagnostics(
+            // (5,9): error CS1061: 'C' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // int i = await new C();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "await new C()").WithArguments("C", "GetAwaiter").WithLocation(5, 9));
+
+        text = @"
+using System;
+using System.Runtime.CompilerServices;
+
+int i = await new C();
+System.Console.Write(i);
+
+class C
+{
+    public System.Func<D> GetAwaiter => () => new D();
+}
+
+class D : INotifyCompletion
+{
+    public int GetResult() => 42;
+    public void OnCompleted(Action continuation) => throw null;
+    public bool IsCompleted => true;
+}
+";
+
+        comp = CreateCompilation(text);
+        comp.VerifyEmitDiagnostics(
+            // (5,9): error CS0118: 'GetAwaiter' is a property but is used like a method
+            // int i = await new C();
+            Diagnostic(ErrorCode.ERR_BadSKknown, "await new C()").WithArguments("GetAwaiter", "property", "method").WithLocation(5, 9));
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_Await_ExtensionGetAwaiter_DynamicTypeProperty()
+    {
+        var text = @"
+using System;
+using System.Runtime.CompilerServices;
+
+int i = await new C();
+System.Console.Write(i);
+
+class C
+{
+}
+
+class D : INotifyCompletion
+{
+    public int GetResult() => 42;
+    public void OnCompleted(Action continuation) => throw null;
+    public bool IsCompleted => true;
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public dynamic GetAwaiter => throw null;
+    }
+}
+";
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit how dynamic-returning properties play into pattern-based constructs
+        var comp = CreateCompilation(text);
+        comp.VerifyEmitDiagnostics(
+            // (5,9): error CS1061: 'C' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // int i = await new C();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "await new C()").WithArguments("C", "GetAwaiter").WithLocation(5, 9));
+
+        text = @"
+using System;
+using System.Runtime.CompilerServices;
+
+int i = await new C();
+System.Console.Write(i);
+
+class C
+{
+    public dynamic GetAwaiter => throw null;
+}
+
+class D : INotifyCompletion
+{
+    public int GetResult() => 42;
+    public void OnCompleted(Action continuation) => throw null;
+    public bool IsCompleted => true;
+}
+";
+
+        comp = CreateCompilation(text);
+        comp.VerifyEmitDiagnostics(
+            // (5,9): error CS0118: 'GetAwaiter' is a property but is used like a method
+            // int i = await new C();
+            Diagnostic(ErrorCode.ERR_BadSKknown, "await new C()").WithArguments("GetAwaiter", "property", "method").WithLocation(5, 9));
     }
 
     [Fact]
@@ -20702,7 +21331,6 @@ static class E
 }
 ";
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm when spec'ing pattern-based await
         var comp = CreateCompilation(text);
 
         // The error is consistent with classic extension methods
@@ -20711,10 +21339,167 @@ static class E
             // int i = await new C();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "await new C()").WithArguments("D", "GetResult").WithLocation(5, 9)
             );
+
+        text = """
+using System;
+using System.Runtime.CompilerServices;
+
+int i = await new C();
+System.Console.Write(i);
+
+class C
+{
+    public D GetAwaiter() => new D();
+}
+
+class D : INotifyCompletion
+{
+    public void OnCompleted(Action continuation) => throw null;
+    public bool IsCompleted => true;
+}
+
+static class E
+{
+    public static int GetResult(this D d) => 42;
+}
+""";
+
+        comp = CreateCompilation(text);
+        comp.VerifyEmitDiagnostics(
+            // (4,9): error CS0117: 'D' does not contain a definition for 'GetResult'
+            // int i = await new C();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "await new C()").WithArguments("D", "GetResult").WithLocation(4, 9)
+            );
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBased_IndexIndexer_NoLength()
+    public void ExtensionMemberLookup_PatternBased_Await_ExtensionGetResult_DelegateTypeProperty()
+    {
+        var text = @"
+using System;
+using System.Runtime.CompilerServices;
+
+int i = await new C();
+System.Console.Write(i);
+
+class C
+{
+    public D GetAwaiter() => new D();
+}
+
+class D : INotifyCompletion
+{
+    public void OnCompleted(Action continuation) => throw null;
+    public bool IsCompleted => true;
+}
+
+static class E
+{
+    extension(D d)
+    {
+        public System.Func<int> GetResult => () => 42;
+    }
+}
+";
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit how delegate-returning properties play into pattern-based constructs
+        var comp = CreateCompilation(text);
+        comp.VerifyEmitDiagnostics(
+            // (5,9): error CS0117: 'D' does not contain a definition for 'GetResult'
+            // int i = await new C();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "await new C()").WithArguments("D", "GetResult").WithLocation(5, 9));
+
+        text = """
+using System;
+using System.Runtime.CompilerServices;
+
+int i = await new C();
+System.Console.Write(i);
+
+class C
+{
+    public D GetAwaiter() => new D();
+}
+
+class D : INotifyCompletion
+{
+    public void OnCompleted(Action continuation) => throw null;
+    public bool IsCompleted => true;
+    public System.Func<int> GetResult => () => 42;
+}
+""";
+
+        comp = CreateCompilation(text);
+        comp.VerifyEmitDiagnostics(
+            // (4,9): error CS0118: 'GetResult' is a property but is used like a method
+            // int i = await new C();
+            Diagnostic(ErrorCode.ERR_BadSKknown, "await new C()").WithArguments("GetResult", "property", "method").WithLocation(4, 9));
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_Await_ExtensionGetResult_DynamicTypeProperty()
+    {
+        var text = @"
+using System;
+using System.Runtime.CompilerServices;
+
+int i = await new C();
+System.Console.Write(i);
+
+class C
+{
+    public D GetAwaiter() => new D();
+}
+
+class D : INotifyCompletion
+{
+    public void OnCompleted(Action continuation) => throw null;
+    public bool IsCompleted => true;
+}
+
+static class E
+{
+    extension(D d)
+    {
+        public dynamic GetResult => throw null;
+    }
+}
+";
+
+        var comp = CreateCompilation(text);
+        comp.VerifyEmitDiagnostics(
+            // (5,9): error CS0117: 'D' does not contain a definition for 'GetResult'
+            // int i = await new C();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "await new C()").WithArguments("D", "GetResult").WithLocation(5, 9));
+
+        text = """
+using System;
+using System.Runtime.CompilerServices;
+
+int i = await new C();
+System.Console.Write(i);
+
+class C
+{
+    public D GetAwaiter() => new D();
+}
+
+class D : INotifyCompletion
+{
+    public void OnCompleted(Action continuation) => throw null;
+    public bool IsCompleted => true;
+    public dynamic GetResult => throw null;
+}
+""";
+
+        comp = CreateCompilation(text);
+        comp.VerifyEmitDiagnostics(
+            // (4,9): error CS0118: 'GetResult' is a property but is used like a method
+            // int i = await new C();
+            Diagnostic(ErrorCode.ERR_BadSKknown, "await new C()").WithArguments("GetResult", "property", "method").WithLocation(4, 9));
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_IndexIndexer_Length()
     {
         var src = """
 var c = new C();
@@ -20725,20 +21510,14 @@ _ = c[^1];
 
 class C
 {
-    public int this[int i]
-    {
-        get { System.Console.Write("indexer "); return 0; }
-    }
+    public int this[int i] => throw null;
 }
 
 static class E
 {
     extension(C c)
     {
-        public int Length
-        {
-            get { System.Console.Write("length "); return 42; }
-        }
+        public int Length => throw null;
     }
 }
 """;
@@ -20748,10 +21527,7 @@ static class E
             Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "int").WithLocation(4, 7)];
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit as part of "implicit indexer access" section
         comp.VerifyEmitDiagnostics(expectedDiagnostics);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "length indexer");
 
         string expectedOperationTree = """
 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: '_ = c[^1]')
@@ -20767,10 +21543,132 @@ Right:
 """;
 
         VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net70);
+
+        src = """
+var c = new C();
+_ = c[^1];
+
+class C
+{
+    public int this[int i] => throw null;
+    public int Length => throw null;
+}
+""";
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBased_RangeIndexer_NoMethod()
+    public void ExtensionMemberLookup_PatternBased_IndexIndexer_Count()
+    {
+        var src = """
+var c = new C();
+_ = c[^1];
+
+class C
+{
+    public int this[int i] => throw null;
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public int Count => throw null;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (2,7): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+            // _ = c[^1];
+            Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "int").WithLocation(2, 7));
+
+        src = """
+var c = new C();
+_ = c[^1];
+
+class C
+{
+    public int this[int i] => throw null;
+    public int Count => throw null;
+}
+""";
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_IndexIndexer_IntIndexer()
+    {
+        var src = """
+var c = new C();
+_ = c[^1];
+
+class C
+{
+    public int Length => throw null;
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public int this[int i] => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // _ = c[^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(2, 5));
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_IndexIndexer_RegularIndexer()
+    {
+        var src = """
+var c = new C();
+_ = c[^1];
+
+class C
+{
+    public int Length => throw null;
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public int this[System.Index i] => throw null;
+    }
+}
+""";
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit when implementing extension indexers
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // _ = c[^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(2, 5));
+
+        src = """
+var c = new C();
+_ = c[^1];
+
+class C
+{
+    public int Length => throw null;
+    public int this[System.Index i] => throw null;
+}
+""";
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_RangeIndexer_Slice()
     {
         var src = """
 var c = new C();
@@ -20779,18 +21677,16 @@ var c = new C();
 _ = c[1..^1];
 /*</bind>*/
 
-class C { }
+class C 
+{
+    public int Length => throw null;
+}
 
 static class E
 {
     extension(C c)
     {
-        public int Slice(int i, int j) { System.Console.Write("slice "); return 0; }
-
-        public int Length
-        {
-            get { System.Console.Write("length "); return 42; }
-        }
+        public int Slice(int i, int j) => throw null;
     }
 }
 """;
@@ -20801,10 +21697,7 @@ static class E
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(4, 5)];
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit as part of "implicit indexer access" section
         comp.VerifyEmitDiagnostics(expectedDiagnostics);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "length slice");
 
         string expectedOperationTree = """
 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '_ = c[1..^1]')
@@ -20827,43 +21720,313 @@ Right:
 """;
 
         VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net70);
+
+        src = """
+var c = new C();
+_ = c[1..^1];
+
+class C 
+{
+    public int Length => throw null;
+    public int Slice(int i, int j) => throw null;
+}
+""";
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBased_RangeIndexer_NoApplicableMethod()
+    public void ExtensionMemberLookup_PatternBased_RangeIndexer_Length()
     {
         var src = """
 var c = new C();
-
-/*<bind>*/
 _ = c[1..^1];
-/*</bind>*/
 
-class C
+class C 
 {
-    public int Slice(int notApplicable) => throw null; // not applicable
+    public int Slice(int i, int j) => throw null;
 }
 
 static class E
 {
     extension(C c)
     {
-        public int Slice(int i, int j) { System.Console.Write("slice "); return 0; }
-
-        public int Length
-        {
-            get { System.Console.Write("length "); return 42; }
-        }
+        public int Length => throw null;
     }
 }
 """;
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit as part of "implicit indexer access" section
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
-            // (4,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             // _ = c[1..^1];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(4, 5));
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(2, 5));
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_RangeIndexer_RegularIndexer()
+    {
+        var src = """
+var c = new C();
+_ = c[1..^1];
+
+class C 
+{
+    public int Length => throw null;
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public int this[System.Range r] => throw null;
+    }
+}
+""";
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit when implementing extension indexers
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // _ = c[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(2, 5));
+
+        src = """
+var c = new C();
+_ = c[1..^1];
+
+class C 
+{
+    public int Length => throw null;
+    public int this[System.Range r] => throw null;
+}
+""";
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_ListPattern_Length()
+    {
+        var src = """
+_ = new C() is [1];
+
+class C
+{
+    public int this[int i] => throw null;
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length => throw null;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
+            // _ = new C() is [1];
+            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[1]").WithArguments("C").WithLocation(1, 16),
+            // (1,16): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+            // _ = new C() is [1];
+            Diagnostic(ErrorCode.ERR_BadArgType, "[1]").WithArguments("1", "System.Index", "int").WithLocation(1, 16));
+
+        src = """
+_ = new C() is [1];
+
+class C
+{
+    public int this[int i] => throw null;
+    public int Length => throw null;
+}
+""";
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_ListPattern_IntIndexer()
+    {
+        var src = """
+_ = new C() is [1];
+
+class C
+{
+    public int Length => throw null;
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public int this[int i] => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // _ = new C() is [1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[1]").WithArguments("C").WithLocation(1, 16));
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_ListPattern_RegularIndexer()
+    {
+        var src = """
+_ = new C() is [1];
+
+class C
+{
+    public int Length => throw null;
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public int this[System.Index i] => throw null;
+    }
+}
+""";
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit when implementing extension indexers
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // _ = new C() is [1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[1]").WithArguments("C").WithLocation(1, 16));
+
+        src = """
+_ = new C() is [1];
+
+class C
+{
+    public int Length => throw null;
+    public int this[System.Index i] => throw null;
+}
+""";
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_SpreadPattern_Length()
+    {
+        var src = """
+_ = new C() is [_, .. var x];
+
+class C
+{
+    public int this[System.Index i] => throw null;
+    public int Slice(int i, int j) => throw null;
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length => throw null;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
+            // _ = new C() is [_, .. var x];
+            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[_, .. var x]").WithArguments("C").WithLocation(1, 16),
+            // (1,20): error CS1503: Argument 1: cannot convert from 'System.Range' to 'System.Index'
+            // _ = new C() is [_, .. var x];
+            Diagnostic(ErrorCode.ERR_BadArgType, ".. var x").WithArguments("1", "System.Range", "System.Index").WithLocation(1, 20));
+
+        src = """
+_ = new C() is [_, .. var x];
+
+class C
+{
+    public int this[System.Index i] => throw null;
+    public int Slice(int i, int j) => throw null;
+    public int Length => throw null;
+}
+""";
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_SpreadPattern_Slice()
+    {
+        var src = """
+_ = new C() is [_, .. var x];
+
+class C
+{
+    public int this[System.Index i] => throw null;
+    public int Length => throw null;
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public int Slice(int i, int j) => throw null;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,20): error CS1503: Argument 1: cannot convert from 'System.Range' to 'System.Index'
+            // _ = new C() is [_, .. var x];
+            Diagnostic(ErrorCode.ERR_BadArgType, ".. var x").WithArguments("1", "System.Range", "System.Index").WithLocation(1, 20));
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_SpreadPattern_RegularIndexer()
+    {
+        var src = """
+_ = new C() is [_, .. var x];
+
+class C
+{
+    public int this[System.Index i] => throw null;
+    public int Length => throw null;
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public int this[System.Range r] => throw null;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,20): error CS1503: Argument 1: cannot convert from 'System.Range' to 'System.Index'
+            // _ = new C() is [_, .. var x];
+            Diagnostic(ErrorCode.ERR_BadArgType, ".. var x").WithArguments("1", "System.Range", "System.Index").WithLocation(1, 20));
+
+        src = """
+_ = new C() is [_, .. var x];
+
+class C
+{
+    public int this[System.Index i] => throw null;
+    public int this[System.Range r] => throw null;
+    public int Length => throw null;
+}
+""";
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -20894,6 +22057,40 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var nameColon = GetSyntax<NameColonSyntax>(tree, "Property:");
         Assert.Equal("System.Int32 E.<>E__0.Property { get; }", model.GetSymbolInfo(nameColon.Name).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_Patterns_Conversion()
+    {
+        var src = """
+var c = new C();
+
+_ = c is { Property: 42 };
+
+class C { }
+
+static class E
+{
+    extension(object o)
+    {
+        public int Property
+        {
+            get { System.Console.Write("property"); return 42; }
+        }
+    }
+}
+""";
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : handle conversion on receiver
+        try
+        {
+            var comp = CreateCompilation(src);
+            CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
+        }
+        catch (InvalidOperationException)
+        {
+            return;
+        }
+        Assert.False(true);
     }
 
     [Fact]
@@ -20958,17 +22155,15 @@ static class E
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm that we want extensions to contribute to list-patterns
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm whether we want extension Length/Count to contribute to list-patterns
         comp.VerifyEmitDiagnostics(
             // (1,33): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
             // System.Console.Write(new C() is ["hi"]);
             Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, @"[""hi""]").WithArguments("C").WithLocation(1, 33)
             );
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "length indexer");
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // Tracked by https://github.com/dotnet/roslyn/issues/76130 : metadata is undone
+    [Fact]
     public void ExtensionMemberLookup_ObjectInitializer()
     {
         var src = """
@@ -20988,9 +22183,7 @@ static class E
 """;
 
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "property");
+        CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -20998,7 +22191,39 @@ static class E
         Assert.Equal("System.Int32 E.<>E__0.Property { set; }", model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString());
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // Tracked by https://github.com/dotnet/roslyn/issues/76130 : metadata is undone
+    [Fact]
+    public void ExtensionMemberLookup_ObjectInitializer_Conversion()
+    {
+        var src = """
+/*<bind>*/
+_ = new C() { Property = 42 };
+/*</bind>*/
+
+class C { }
+
+static class E
+{
+    extension(object o)
+    {
+        public int Property { set { System.Console.Write("property"); } }
+    }
+}
+""";
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : handle conversion on receiver
+        try
+        {
+            var comp = CreateCompilation(src);
+            CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
+        }
+        catch (InvalidOperationException)
+        {
+            return;
+        }
+        Assert.False(true);
+    }
+
+    [Fact]
     public void ExtensionMemberLookup_With()
     {
         var src = """
@@ -21018,10 +22243,7 @@ static class E
 """;
 
         var comp = CreateCompilation(src);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : need to decide whether extensions apply here
-        comp.VerifyDiagnostics();
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "property");
+        CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -21030,7 +22252,7 @@ static class E
     }
 
     [Fact]
-    public void ExtensionMemberLookup_CollectionInitializer_NoMethod()
+    public void ExtensionMemberLookup_CollectionInitializer()
     {
         var src = """
 using System.Collections;
@@ -21056,7 +22278,6 @@ static class E
 """;
 
         var comp = CreateCompilation(src);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm when spec'ing pattern-based collection initializer
         CompileAndVerify(comp, expectedOutput: "add").VerifyDiagnostics();
 
         string expectedOperationTree = """
@@ -21072,6 +22293,62 @@ Right:
             IInvocationOperation ( void E.<>E__0.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '42')
               Instance Receiver:
                 IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'C')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '42')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+""";
+        var expectedDiagnostics = DiagnosticDescription.None;
+
+        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src, expectedOperationTree, expectedDiagnostics);
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_CollectionInitializer_Conversion()
+    {
+        var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+/*<bind>*/
+_ = new C() { 42 };
+/*</bind>*/
+
+class C : IEnumerable<int>, IEnumerable
+{
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+
+static class E
+{
+    extension(object o)
+    {
+        public void Add(int i) { System.Console.Write("add"); }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "add").VerifyDiagnostics();
+
+        string expectedOperationTree = """
+ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C) (Syntax: '_ = new C() { 42 }')
+Left:
+  IDiscardOperation (Symbol: C _) (OperationKind.Discard, Type: C) (Syntax: '_')
+Right:
+  IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C() { 42 }')
+    Arguments(0)
+    Initializer:
+      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C) (Syntax: '{ 42 }')
+        Initializers(1):
+            IInvocationOperation ( void E.<>E__0.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '42')
+              Instance Receiver:
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'C')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                  Operand:
+                    IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'C')
               Arguments(1):
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '42')
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
@@ -21116,7 +22393,6 @@ static class E
 }
 """;
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm when spec'ing pattern-based collection initializer
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         CompileAndVerify(comp, expectedOutput: "add").VerifyDiagnostics();
 
@@ -21224,7 +22500,6 @@ static class E
 }
 """;
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm when spec'ing pattern-based collection initializer
         // Tracked by https://github.com/dotnet/roslyn/issues/76130 : expression trees
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
@@ -21232,6 +22507,106 @@ static class E
             //     System.Linq.Expressions.Expression<System.Func<C>> e = () => new C() { 42 };
             Diagnostic(ErrorCode.ERR_ExtensionCollectionElementInitializerInExpressionTree, "42").WithLocation(6, 76)
             );
+    }
+
+    [Fact]
+    public void ResolveAll_CollectionInitializer_DelegateTypeProperty()
+    {
+        var source = """
+using System.Collections;
+using System.Collections.Generic;
+
+MyCollection c = new MyCollection() { 42 };
+
+static class E
+{
+    extension(MyCollection c)
+    {
+        public System.Action<int> Add => (int i) => { };
+    }
+}
+
+public class MyCollection : IEnumerable<int>
+{
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+""";
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit how delegate-returning properties play into pattern-based constructs
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (4,39): error CS1061: 'MyCollection' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection' could be found (are you missing a using directive or an assembly reference?)
+            // MyCollection c = new MyCollection() { 42 };
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "42").WithArguments("MyCollection", "Add").WithLocation(4, 39));
+
+        source = """
+using System.Collections;
+using System.Collections.Generic;
+
+MyCollection c = new MyCollection() { 42 };
+
+public class MyCollection : IEnumerable<int>
+{
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public System.Action<int> Add => (int i) => { };
+}
+""";
+        comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (4,39): error CS0118: 'Add' is a property but is used like a method
+            // MyCollection c = new MyCollection() { 42 };
+            Diagnostic(ErrorCode.ERR_BadSKknown, "42").WithArguments("Add", "property", "method").WithLocation(4, 39));
+    }
+
+    [Fact]
+    public void ResolveAll_CollectionInitializer_DynamicTypeProperty()
+    {
+        var source = """
+using System.Collections;
+using System.Collections.Generic;
+
+MyCollection c = new MyCollection() { 42 };
+
+static class E
+{
+    extension(MyCollection c)
+    {
+        public dynamic Add => throw null;
+    }
+}
+
+public class MyCollection : IEnumerable<int>
+{
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+""";
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit how dynamic-returning properties play into pattern-based constructs
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (4,39): error CS1061: 'MyCollection' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection' could be found (are you missing a using directive or an assembly reference?)
+            // MyCollection c = new MyCollection() { 42 };
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "42").WithArguments("MyCollection", "Add").WithLocation(4, 39));
+
+        source = """
+using System.Collections;
+using System.Collections.Generic;
+
+MyCollection c = new MyCollection() { 42 };
+
+public class MyCollection : IEnumerable<int>
+{
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public dynamic Add => throw null;
+}
+""";
+        comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (4,39): error CS0118: 'Add' is a property but is used like a method
+            // MyCollection c = new MyCollection() { 42 };
+            Diagnostic(ErrorCode.ERR_BadSKknown, "42").WithArguments("Add", "property", "method").WithLocation(4, 39));
     }
 
     [Fact]
@@ -28122,6 +29497,65 @@ static class E
     }
 
     [Fact]
+    public void Nullability_Method_03()
+    {
+        var src = """
+#nullable enable
+
+object oNotNull = new object();
+
+oNotNull.M(out object x1, null).ToString(); // 1
+oNotNull.M(out object x2, oNotNull).ToString();
+
+x1.ToString();
+x2.ToString();
+
+static class E
+{
+    extension<T>(T t1)
+    {
+        public T M<U>(out U u, T t2) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,1): warning CS8602: Dereference of a possibly null reference.
+            // oNotNull.M(out object x1, null).ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNotNull.M(out object x1, null)").WithLocation(5, 1));
+    }
+
+    [Fact]
+    public void Nullability_Method_04()
+    {
+        var src = """
+#nullable enable
+
+object oNotNull = new object();
+
+"".M(oNotNull, null).ToString(); // 1
+"".M(null, oNotNull).ToString(); // 2
+"".M(oNotNull, oNotNull).ToString();
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public U M<U>(U u1, U u2) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,1): warning CS8602: Dereference of a possibly null reference.
+            // "".M(oNotNull, null).ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, @""""".M(oNotNull, null)").WithLocation(5, 1),
+            // (6,1): warning CS8602: Dereference of a possibly null reference.
+            // "".M(null, oNotNull).ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, @""""".M(null, oNotNull)").WithLocation(6, 1));
+    }
+
+    [Fact]
     public void PropertyAccess_RemoveWorseMembers_01()
     {
         string source = """
@@ -32142,6 +33576,248 @@ public static class Extensions
                 //         foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetEnumerator()").WithLocation(7, 27)
                 );
+
+        source = """
+using System;
+public class C
+{
+    public static void Main()
+    {
+        foreach (var i in new C())
+        {
+            Console.Write(i);
+        }
+    }
+    public sealed class Enumerator
+    {
+        public int Current { get; private set; }
+    }
+
+    public C.Enumerator GetEnumerator() => new C.Enumerator();
+}
+public static class Extensions
+{
+    public static bool MoveNext(this C.Enumerator e) => false;
+}
+""";
+        CreateCompilation(source)
+            .VerifyDiagnostics(
+                // (6,27): error CS0117: 'C.Enumerator' does not contain a definition for 'MoveNext'
+                //         foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "new C()").WithArguments("C.Enumerator", "MoveNext").WithLocation(6, 27),
+                // (6,27): error CS0202: foreach requires that the return type 'C.Enumerator' of 'C.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+                //         foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetEnumerator()").WithLocation(6, 27)
+                );
+    }
+
+    [Fact]
+    public void TestMoveNextPatternViaExtensions_DelegateTypeProperty()
+    {
+        var src = """
+using System;
+
+foreach (var i in new C())
+{
+    Console.Write(i);
+}
+
+public class C
+{
+    public sealed class Enumerator
+    {
+        public int Current { get; private set; }
+    }
+
+    public C.Enumerator GetEnumerator() => new C.Enumerator();
+}
+
+public static class Extensions
+{
+    extension(C.Enumerator e)
+    {
+        public System.Func<bool> MoveNext => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics(
+            // (3,19): error CS0117: 'C.Enumerator' does not contain a definition for 'MoveNext'
+            // foreach (var i in new C())
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "new C()").WithArguments("C.Enumerator", "MoveNext").WithLocation(3, 19),
+            // (3,19): error CS0202: foreach requires that the return type 'C.Enumerator' of 'C.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+            // foreach (var i in new C())
+            Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetEnumerator()").WithLocation(3, 19));
+
+        src = """
+using System;
+
+foreach (var i in new C())
+{
+    Console.Write(i);
+}
+
+public class C
+{
+    public sealed class Enumerator
+    {
+        public int Current { get; private set; }
+        public System.Func<bool> MoveNext => throw null;
+    }
+
+    public C.Enumerator GetEnumerator() => new C.Enumerator();
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyDiagnostics(
+            // (3,19): error CS0202: foreach requires that the return type 'C.Enumerator' of 'C.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+            // foreach (var i in new C())
+            Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetEnumerator()").WithLocation(3, 19));
+    }
+
+    [Fact]
+    public void TestMoveNextPatternViaExtensions_DynamicTypeProperty()
+    {
+        var src = """
+using System;
+
+foreach (var i in new C())
+{
+    Console.Write(i);
+}
+
+public class C
+{
+    public sealed class Enumerator
+    {
+        public int Current { get; private set; }
+    }
+
+    public C.Enumerator GetEnumerator() => new C.Enumerator();
+}
+
+public static class Extensions
+{
+    extension(C.Enumerator e)
+    {
+        public System.Func<bool> MoveNext => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics(
+            // (3,19): error CS0117: 'C.Enumerator' does not contain a definition for 'MoveNext'
+            // foreach (var i in new C())
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "new C()").WithArguments("C.Enumerator", "MoveNext").WithLocation(3, 19),
+            // (3,19): error CS0202: foreach requires that the return type 'C.Enumerator' of 'C.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+            // foreach (var i in new C())
+            Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetEnumerator()").WithLocation(3, 19));
+
+        src = """
+using System;
+
+foreach (var i in new C())
+{
+    Console.Write(i);
+}
+
+public class C
+{
+    public sealed class Enumerator
+    {
+        public int Current { get; private set; }
+        public System.Func<bool> MoveNext => throw null;
+    }
+
+    public C.Enumerator GetEnumerator() => new C.Enumerator();
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyDiagnostics(
+            // (3,19): error CS0202: foreach requires that the return type 'C.Enumerator' of 'C.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+            // foreach (var i in new C())
+            Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetEnumerator()").WithLocation(3, 19));
+    }
+
+    [Fact]
+    public void TestMoveNextAsyncPatternViaExtensions_01()
+    {
+        var src = """
+await foreach (var i in new C())
+{
+}
+
+public class C
+{
+    public sealed class Enumerator
+    {
+        public int Current { get; private set; }
+    }
+
+    public C.Enumerator GetAsyncEnumerator() => new C.Enumerator();
+}
+
+public static class E
+{
+    extension(C.Enumerator e)
+    {
+        public System.Threading.Tasks.Task<bool> MoveNextAsync() => throw null;
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (1,25): error CS0117: 'C.Enumerator' does not contain a definition for 'MoveNextAsync'
+            // await foreach (var i in new C())
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "new C()").WithArguments("C.Enumerator", "MoveNextAsync").WithLocation(1, 25),
+            // (1,25): error CS8412: Asynchronous foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public 'MoveNextAsync' method and public 'Current' property
+            // await foreach (var i in new C())
+            Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(1, 25));
+
+        src = """
+await foreach (var i in new C())
+{
+}
+
+public class C
+{
+    public sealed class Enumerator
+    {
+        public int Current { get; private set; }
+    }
+
+    public C.Enumerator GetAsyncEnumerator() => new C.Enumerator();
+}
+
+public static class E
+{
+    public static System.Threading.Tasks.Task<bool> MoveNextAsync(this C.Enumerator e) => throw null;
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (1,25): error CS0117: 'C.Enumerator' does not contain a definition for 'MoveNextAsync'
+            // await foreach (var i in new C())
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "new C()").WithArguments("C.Enumerator", "MoveNextAsync").WithLocation(1, 25),
+            // (1,25): error CS8412: Asynchronous foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public 'MoveNextAsync' method and public 'Current' property
+            // await foreach (var i in new C())
+            Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(1, 25));
+
+        src = """
+await foreach (var i in new C())
+{
+}
+
+public class C
+{
+    public sealed class Enumerator
+    {
+        public int Current { get; private set; }
+        public System.Threading.Tasks.Task<bool> MoveNextAsync() => throw null;
+    }
+
+    public C.Enumerator GetAsyncEnumerator() => new C.Enumerator();
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -35263,6 +36939,243 @@ static class E
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "oNull").WithArguments("E.extension<T>(T)", "T", "object?").WithLocation(4, 16));
     }
 
+    [Fact]
+    public void Nullability_Deconstruct_05()
+    {
+        var src = """
+#nullable enable
+
+object o = new object();
+var (x1, x2) = o;
+x1.ToString(); // 1
+x2.ToString();
+
+var (y1, y2, y3) = o;
+y1.ToString(); // 2
+y2.ToString();
+
+static class E
+{
+    extension(object o)
+    {
+        public void Deconstruct(out object? o1, out object o2) => throw null!;
+    }
+
+    public static void Deconstruct(this object o, out object? o1, out object o2, out int i3) => throw null!;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,1): warning CS8602: Dereference of a possibly null reference.
+            // x1.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(5, 1),
+            // (9,1): warning CS8602: Dereference of a possibly null reference.
+            // y1.ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y1").WithLocation(9, 1));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78022")]
+    public void Nullability_PositionalPattern_01()
+    {
+        var src = """
+#nullable enable
+
+object? oNull = null;
+if (oNull is var (x1, x2))
+{
+    x1.ToString();
+}
+
+object oNotNull = new object();
+if (oNotNull is var (y1, y2))
+{
+    y1.ToString();
+}
+
+if (oNull is var (z1, z2, z3))
+{
+    z1.ToString();
+}
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public void Deconstruct(out T t1, out T t2) => throw null!;
+    }
+
+    public static void Deconstruct<T>(this T t, out T t1, out T t2, out T t3) => throw null!;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/78022 : verify nullability in the semantic model, possibly in IOperation
+    }
+
+    [Fact]
+    public void Nullability_PositionalPattern_02()
+    {
+        var src = """
+#nullable enable
+
+object? oNull = null;
+if (oNull is var (x1, x2))
+{
+}
+
+object oNotNull = new object();
+if (oNotNull is var (y1, y2))
+{
+}
+
+object? oNull2 = null;
+if (oNull2 is var (z1, z2, z3))
+{
+}
+
+if (oNotNull is var (t1, t2, t3))
+{
+}
+
+
+static class E
+{
+    extension(object o)
+    {
+        public void Deconstruct(out int i1, out int i2) => throw null!;
+    }
+
+    public static void Deconstruct(this object o, out int i1, out int i2, out int i3) => throw null!;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+        // Tracked by https://github.com/dotnet/roslyn/issues/78022 : verify nullability in the semantic model, possibly in IOperation
+    }
+
+    [Fact]
+    public void Nullability_PositionalPattern_03()
+    {
+        var src = """
+#nullable enable
+
+(object?, object?) oNull = default;
+if (oNull is var ((x1, x2), _))
+{
+}
+
+(object, object) oNotNull = (new object(), new object());
+if (oNotNull is var ((y1, y2), _))
+{
+}
+
+(object?, object?) oNull2 = default;
+if (oNull2 is var ((z1, z2, z3), _))
+{
+}
+
+if (oNotNull is var ((t1, t2, t3), _))
+{
+}
+
+static class E
+{
+    extension(object o)
+    {
+        public void Deconstruct(out int i1, out int i2) => throw null!;
+    }
+    public static void Deconstruct(this object o, out int i1, out int i2, out int i3) => throw null!;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_PositionalPattern_04()
+    {
+        var src = """
+#nullable enable
+
+object? oNull = default;
+if (oNull is var (x1, x2))
+{
+}
+else
+{
+    System.Console.Write("skipped ");
+}
+
+object oNotNull = new object();
+if (oNotNull is var (y1, y2))
+{
+}
+
+object? oNull2 = default;
+if (oNull2 is var (z1, z2, z3))
+{
+}
+else
+{
+    System.Console.Write(" skipped ");
+}
+
+if (oNotNull is var (t1, t2, t3))
+{
+}
+
+static class E
+{
+    extension<T>(T t) where T : notnull
+    {
+        public void Deconstruct(out int i1, out int i2) { System.Console.Write(t is not null); i1 = i2 = 0; }
+    }
+    public static void Deconstruct<T>(this T t, out int i1, out int i2, out int i3) where T : notnull { System.Console.Write(t is not null); i1 = i2 = i3 = 0; }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "skipped True skipped True").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_PositionalPattern_05()
+    {
+        var src = """
+#nullable enable
+
+object o = new object();
+if (o is var (x1, x2))
+{
+    x1.ToString(); // 1
+    x2.ToString();
+}
+
+if (o is var (y1, y2, y3))
+{
+    y1.ToString(); // 2
+    y2.ToString();
+}
+
+static class E
+{
+    extension(object o)
+    {
+        public void Deconstruct(out object? o1, out object o2) => throw null!;
+    }
+    public static void Deconstruct(this object o, out object? o1, out object o2, out int i3) => throw null!;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (6,5): warning CS8602: Dereference of a possibly null reference.
+            //     x1.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(6, 5),
+            // (12,5): warning CS8602: Dereference of a possibly null reference.
+            //     y1.ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y1").WithLocation(12, 5));
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78022")]
     public void Nullability_ForeachDeconstruct_01()
     {
@@ -35401,6 +37314,45 @@ static class E
             // (5,23): warning CS8604: Possible null reference argument for parameter 'o' in 'extension(object)'.
             // foreach ((_, _, _) in oNull) { } // 1
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "extension(object)").WithLocation(5, 23));
+    }
+
+    [Fact]
+    public void Nullability_ForeachDeconstruct_05()
+    {
+        var src = """
+#nullable enable
+
+object[] o = new object[] { };
+foreach (var (x1, x2) in o)
+{
+    x1.ToString(); // 1
+    x2.ToString();
+}
+
+foreach (var (y1, y2, y3) in o)
+{
+    y1.ToString(); // 2
+    y2.ToString();
+}
+
+static class E
+{
+    extension(object o)
+    {
+        public void Deconstruct(out object? o1, out object o2) => throw null!;
+    }
+
+    public static void Deconstruct(this object o, out object? o1, out object o2, out int i3) => throw null!;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (6,5): warning CS8602: Dereference of a possibly null reference.
+            //     x1.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(6, 5),
+            // (12,5): warning CS8602: Dereference of a possibly null reference.
+            //     y1.ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y1").WithLocation(12, 5));
     }
 
     [Fact]
@@ -36355,6 +38307,451 @@ static class E
             // (4,34): warning CS8604: Possible null reference argument for parameter 'o' in 'void C.M(object o)'.
             // C.Try(out var y).AssertFalse().M(y);
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("o", "void C.M(object o)").WithLocation(4, 34));
+    }
+
+    [Fact]
+    public void Nullability_ForEach_01()
+    {
+        var src = """
+#nullable enable
+using System.Collections.Generic;
+
+object? oNull = null;
+foreach (var x in oNull) { x.ToString(); }
+
+object? oNotNull = new object();
+foreach (var y in oNotNull) { y.ToString(); }
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public IEnumerator<T> GetEnumerator()
+        {
+            yield return t;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,19): warning CS8602: Dereference of a possibly null reference.
+            // foreach (var x in oNull) { x.ToString(); }
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNull").WithLocation(5, 19));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var loop = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().First();
+        // Tracked by https://github.com/dotnet/roslyn/issues/78022 : incorrect nullability
+        Assert.Equal("System.Collections.Generic.IEnumerator<System.Object>! E.extension<System.Object>(System.Object).GetEnumerator()",
+            model.GetForEachStatementInfo(loop).GetEnumeratorMethod.ToTestDisplayString(includeNonNullable: true));
+
+        src = """
+#nullable enable
+using System.Collections.Generic;
+
+object? oNull = null;
+foreach (var x in oNull) { x.ToString(); }
+
+object? oNotNull = new object();
+foreach (var y in oNotNull) { y.ToString(); }
+
+static class E
+{
+    public static IEnumerator<T> GetEnumerator<T>(this T t)
+    {
+        yield return t;
+    }
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,28): warning CS8602: Dereference of a possibly null reference.
+            // foreach (var x in oNull) { x.ToString(); }
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(5, 28));
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/78022 : incorrect nullability
+        tree = comp.SyntaxTrees.Single();
+        model = comp.GetSemanticModel(tree);
+        loop = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().First();
+        Assert.Equal("System.Collections.Generic.IEnumerator<System.Object>! E.GetEnumerator<System.Object>(this System.Object t)",
+            model.GetForEachStatementInfo(loop).GetEnumeratorMethod.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_CollectionInitializer_01()
+    {
+        var src = """
+#nullable enable
+using System.Collections;
+using System.Collections.Generic;
+
+object? oNull = null;
+object oNotNull = new object();
+MyCollection c = new MyCollection() { oNull, oNotNull };
+
+static class E
+{
+    extension(MyCollection c)
+    {
+        public void Add(object o) { }
+    }
+}
+
+public class MyCollection : IEnumerable<object>
+{
+    IEnumerator<object> IEnumerable<object>.GetEnumerator() => throw null!;
+    IEnumerator IEnumerable.GetEnumerator() => throw null!;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (7,39): warning CS8604: Possible null reference argument for parameter 'o' in 'void extension(MyCollection).Add(object o)'.
+            // MyCollection c = new MyCollection() { oNull, oNotNull };
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "void extension(MyCollection).Add(object o)").WithLocation(7, 39));
+    }
+
+    [Fact]
+    public void Nullability_CollectionExpression_Add_01()
+    {
+        var src = """
+#nullable enable
+using System.Collections;
+using System.Collections.Generic;
+
+object? oNull = null;
+object oNotNull = new object();
+MyCollection c = [oNull, oNotNull];
+
+static class E
+{
+    extension(MyCollection c)
+    {
+        public void Add(object o) { }
+    }
+}
+
+public class MyCollection : IEnumerable<object>
+{
+    IEnumerator<object> IEnumerable<object>.GetEnumerator() => throw null!;
+    IEnumerator IEnumerable.GetEnumerator() => throw null!;
+}
+""";
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : missing nullability diagnostic
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        src = """
+#nullable enable
+using System.Collections;
+using System.Collections.Generic;
+
+object? oNull = null;
+object oNotNull = new object();
+MyCollection c = [oNull, oNotNull];
+
+static class E
+{
+    public static void Add(this MyCollection c, object o) { }
+}
+
+public class MyCollection : IEnumerable<object>
+{
+    IEnumerator<object> IEnumerable<object>.GetEnumerator() => throw null!;
+    IEnumerator IEnumerable.GetEnumerator() => throw null!;
+}
+""";
+        try
+        {
+            // Assertion tracked by https://github.com/dotnet/roslyn/issues/78452
+            comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+        }
+        catch (InvalidOperationException)
+        {
+        }
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_01()
+    {
+        var src = """
+#nullable enable
+
+object? oNull = null;
+_ = new object() { Property = oNull };
+
+object oNotNull = new object();
+_ = new object() { Property = oNotNull };
+
+static class E
+{
+    extension(object o)
+    {
+        public object Property { set { } }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,31): warning CS8601: Possible null reference assignment.
+            // _ = new object() { Property = oNull };
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNull").WithLocation(4, 31));
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_02()
+    {
+        var src = """
+#nullable enable
+
+_ = new object() { Property = 42 };
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public int Property { set { } }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : incorrect nullability
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "Property = 42");
+        Assert.Equal("System.Int32 E.extension<System.Object>(System.Object).Property { set; }",
+            model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_With_01()
+    {
+        var src = """
+#nullable enable
+
+object? oNull = null;
+_ = new S() with { Property = oNull };
+
+object oNotNull = new object();
+_ = new S() with { Property = oNotNull };
+
+struct S { }
+
+static class E
+{
+    extension(object o)
+    {
+        public object Property { set { } }
+    }
+}
+""";
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : handle conversion on receiver
+        try
+        {
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+        }
+        catch (InvalidOperationException)
+        {
+            return;
+        }
+        Assert.False(true);
+    }
+
+    [Fact]
+    public void Nullability_With_02()
+    {
+        var src = """
+#nullable enable
+
+C? cNull = null;
+_ = cNull with { Property = 42 };
+
+C cNotNull = new C();
+_ = cNotNull with { Property = 42 };
+
+record C { }
+
+static class E
+{
+    extension(object o)
+    {
+        public int Property { set { } }
+    }
+}
+""";
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : handle conversion on receiver
+        try
+        {
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+        }
+        catch (InvalidOperationException)
+        {
+            return;
+        }
+        Assert.False(true);
+    }
+
+    [Fact]
+    public void Nullability_With_03()
+    {
+        var src = """
+#nullable enable
+
+C? cNull = null;
+_ = cNull with { Property = 42 };
+
+C cNotNull = new C();
+_ = cNotNull with { Property = 42 };
+
+record C { }
+
+static class E
+{
+    extension<T>(T t)
+    { 
+        public int Property { set { } }
+    }
+}
+""";
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : unexpected nullability warning
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,5): warning CS8602: Dereference of a possibly null reference.
+            // _ = cNull with { Property = 42 };
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "cNull").WithLocation(4, 5));
+    }
+
+    [Fact]
+    public void Nullability_With_04()
+    {
+        var src = """
+#nullable enable
+
+C? cNull = null;
+_ = cNull with { Property = 42 };
+
+C cNotNull = new C();
+_ = cNotNull with { Property = 42 };
+
+record C { }
+
+static class E
+{
+    extension<T>(T t) where T : notnull
+    {
+        public int Property { set { } }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,5): warning CS8602: Dereference of a possibly null reference.
+            // _ = cNull with { Property = 42 };
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "cNull").WithLocation(4, 5));
+    }
+
+    [Fact]
+    public void Nullability_Fixed_01()
+    {
+        var src = """
+#nullable enable
+
+unsafe class C
+{
+    public static void M()
+    {
+        fixed (S<object>* p = new Fixable()) { } // 1
+        fixed (S<object?>* p = new Fixable()) { }
+    }
+}
+
+class Fixable { }
+
+struct S<T> { }
+
+static class E
+{
+    extension(Fixable f)
+    {
+        public ref S<object?> GetPinnableReference() => throw null!;
+    }
+}
+""";
+        // We don't yet analyze the nullability of `fixed` statements for extension methods
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyEmitDiagnostics();
+
+        src = """
+#nullable enable
+
+unsafe class C
+{
+    public static void M()
+    {
+        fixed (S<object>* p = new Fixable()) { } // 1
+        fixed (S<object?>* p = new Fixable()) { }
+    }
+}
+
+class Fixable { }
+
+struct S<T> { }
+
+static class E
+{
+    public static ref S<object?> GetPinnableReference(this Fixable f) => throw null!;
+}
+""";
+        comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_Await_GetAwaiter_01()
+    {
+        var src = """
+#nullable enable
+
+using System;
+using System.Runtime.CompilerServices;
+
+C? cNull = null;
+_ = await cNull;
+
+C cNotNull = new C();
+_ = await cNotNull;
+
+class C { }
+
+class D : INotifyCompletion
+{
+    public int GetResult() => 42;
+    public void OnCompleted(Action continuation) => throw null!;
+    public bool IsCompleted => true;
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public D GetAwaiter() => new D();
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (7,11): warning CS8604: Possible null reference argument for parameter 'c' in 'extension(C)'.
+            // _ = await cNull;
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "cNull").WithArguments("c", "extension(C)").WithLocation(7, 11));
     }
 
     [Fact]

@@ -639,9 +639,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static ParameterSymbol? tryGetThisParameter(MethodSymbol method)
             {
-                if (method.IsExtensionMethod) // Tracked by https://github.com/dotnet/roslyn/issues/76130: Test this code path with new extensions
+                if (method.IsExtensionMethod)
                 {
                     return method.Parameters is [{ } firstParameter, ..] ? firstParameter : null;
+                }
+                else if (method.GetIsNewExtensionMember())
+                {
+                    return method.ContainingType.ExtensionParameter;
                 }
 
                 return method.TryGetThisParameter(out var thisParameter) ? thisParameter : null;

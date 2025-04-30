@@ -139,9 +139,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression result = BindInvocationExpression(
                 node, node, methodName, boundExpression, analyzedArguments, diagnostics, queryClause,
                 ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter,
-                disallowExpandedNonArrayParams: disallowExpandedNonArrayParams);
+                disallowExpandedNonArrayParams: disallowExpandedNonArrayParams, acceptOnlyMethods: !allowFieldsAndProperties);
 
-            // Query operator can't be called dynamically. 
+            // Query operator can't be called dynamically.
             if (queryClause != null && result.Kind == BoundKind.DynamicInvocation)
             {
                 // the error has already been reported by BindInvocationExpression
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundExpression = CheckValue(boundExpression, BindValueKind.RValueOrMethodGroup, diagnostics);
                 string name = boundExpression.Kind == BoundKind.MethodGroup ? GetName(node.Expression) : null;
                 BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments, allowArglist: true);
-                return BindInvocationExpression(node, node.Expression, name, boundExpression, analyzedArguments, diagnostics);
+                return BindInvocationExpression(node, node.Expression, name, boundExpression, analyzedArguments, diagnostics, acceptOnlyMethods: false);
             }
 
             static bool receiverIsInvocation(InvocationExpressionSyntax node, out InvocationExpressionSyntax nested)
@@ -326,7 +326,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             CSharpSyntaxNode queryClause = null,
             bool ignoreNormalFormIfHasValidParamsParameter = false,
-            bool disallowExpandedNonArrayParams = false)
+            bool disallowExpandedNonArrayParams = false,
+            bool acceptOnlyMethods = false)
         {
             //
             // !!! ATTENTION !!!
@@ -356,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter,
                     disallowExpandedNonArrayParams: disallowExpandedNonArrayParams,
                     anyApplicableCandidates: out _,
-                    acceptOnlyMethods: false);
+                    acceptOnlyMethods: acceptOnlyMethods);
             }
             else if ((object)(delegateType = GetDelegateType(boundExpression)) != null)
             {
@@ -727,7 +728,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(extensionMemberAccess.Kind != BoundKind.MethodGroup);
 
                 extensionMemberAccess = CheckValue(extensionMemberAccess, BindValueKind.RValue, diagnostics);
-                BoundExpression extensionMemberInvocation = BindInvocationExpression(syntax, expression, methodName: null, extensionMemberAccess, analyzedArguments, diagnostics);
+                BoundExpression extensionMemberInvocation = BindInvocationExpression(syntax, expression, methodName: null, extensionMemberAccess, analyzedArguments, diagnostics, acceptOnlyMethods: false);
                 anyApplicableCandidates = !extensionMemberInvocation.HasAnyErrors;
                 return extensionMemberInvocation;
             }
