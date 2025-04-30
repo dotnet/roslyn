@@ -735,7 +735,7 @@ public static class Extensions
             // (14,20): error CS0117: 'string' does not contain a definition for 'M'
             //             string.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("string", "M").WithLocation(14, 20),
-            // (17,9): error CS9282: Extension declarations can include only methods or properties
+            // (17,9): error CS9282: Extension declarations can include only methods, non-conversion operators or properties
             //         extension(string) { public static void M() { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "extension").WithLocation(17, 9));
 
@@ -2063,7 +2063,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,13): error CS9282: Extension declarations can include only methods or properties
+            // (5,13): error CS9282: Extension declarations can include only methods, non-conversion operators or properties
             //         int Property { get; set; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Property").WithLocation(5, 13));
 
@@ -2222,7 +2222,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,20): error CS9282: Extension declarations can include only methods or properties
+            // (5,20): error CS9282: Extension declarations can include only methods, non-conversion operators or properties
             //         static int Property { get; set; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Property").WithLocation(5, 20));
 
@@ -2435,7 +2435,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,15): error CS9282: Extension declarations can include only methods or properties
+            // (5,15): error CS9282: Extension declarations can include only methods, non-conversion operators or properties
             //         class Nested { }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Nested").WithLocation(5, 15));
 
@@ -2464,7 +2464,7 @@ public static class Extensions
             // (3,25): error CS1520: Method must have a return type
             //     extension(object) { Extensions() { } }
             Diagnostic(ErrorCode.ERR_MemberNeedsType, "Extensions").WithLocation(3, 25),
-            // (3,25): error CS9282: Extension declarations can include only methods or properties
+            // (3,25): error CS9282: Extension declarations can include only methods, non-conversion operators or properties
             //     extension(object) { Extensions() { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Extensions").WithLocation(3, 25));
 
@@ -2492,7 +2492,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,26): error CS9282: Extension declarations can include only methods or properties
+            // (3,26): error CS9282: Extension declarations can include only methods, non-conversion operators or properties
             //     extension(object) { ~Extensions() { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Extensions").WithLocation(3, 26));
 
@@ -2523,7 +2523,7 @@ public static class Extensions
             // (1,18): error CS1061: 'object' does not contain a definition for 'field' and no accessible extension method 'field' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
             // _ = new object().field;
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "field").WithArguments("object", "field").WithLocation(1, 18),
-            // (5,31): error CS9282: Extension declarations can include only methods or properties
+            // (5,31): error CS9282: Extension declarations can include only methods, non-conversion operators or properties
             //     extension(object o) { int field = 0; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "field").WithLocation(5, 31),
             // (5,31): warning CS0169: The field 'Extensions.extension(object).field' is never used
@@ -2552,7 +2552,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,35): error CS9282: Extension declarations can include only methods or properties
+            // (3,35): error CS9282: Extension declarations can include only methods, non-conversion operators or properties
             //     extension(object) { const int i = 0; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "i").WithLocation(3, 35));
 
@@ -2588,13 +2588,13 @@ public static class Extensions
             // (9,31): error CS0541: 'Extensions.extension(object).E': explicit interface declaration can only be declared in a class, record, struct or interface
             //         event System.Action I.E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "E").WithArguments("Extensions.extension(object).E").WithLocation(9, 31),
-            // (9,31): error CS9282: Extension declarations can include only methods or properties
+            // (9,31): error CS9282: Extension declarations can include only methods, non-conversion operators or properties
             //         event System.Action I.E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "E").WithLocation(9, 31),
-            // (9,35): error CS9282: Extension declarations can include only methods or properties
+            // (9,35): error CS9282: Extension declarations can include only methods, non-conversion operators or properties
             //         event System.Action I.E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "add").WithLocation(9, 35),
-            // (9,43): error CS9282: Extension declarations can include only methods or properties
+            // (9,43): error CS9282: Extension declarations can include only methods, non-conversion operators or properties
             //         event System.Action I.E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "remove").WithLocation(9, 43));
     }
@@ -13452,7 +13452,7 @@ static class E
             // (1,14): error CS1061: 'C<int>' does not contain a definition for 'StaticType' and no accessible extension method 'StaticType' accepting a first argument of type 'C<int>' could be found (are you missing a using directive or an assembly reference?)
             // new C<int>().StaticType<string>();
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "StaticType<string>").WithArguments("C<int>", "StaticType").WithLocation(1, 14),
-            // (9,29): error CS9282: Extension declarations can include only methods or properties
+            // (9,29): error CS9282: Extension declarations can include only methods, non-conversion operators or properties
             //         public static class StaticType<U> { }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "StaticType").WithLocation(9, 29));
 
@@ -23815,7 +23815,7 @@ static class Extensions
         var comp = CreateCompilation(src);
 
         comp.VerifyEmitDiagnostics(
-            // (6,15): error CS9282: Extension declarations can include only methods or properties
+            // (6,15): error CS9282: Extension declarations can include only methods, non-conversion operators or properties
             //         class Nested
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Nested").WithLocation(6, 15),
             // (11,24): error CS9293: Cannot use extension parameter 'int p' in this context.
@@ -28834,7 +28834,7 @@ static class E
             // (1,9): error CS0117: 'int' does not contain a definition for 'Const'
             // _ = int.Const;
             Diagnostic(ErrorCode.ERR_NoSuchMember, "Const").WithArguments("int", "Const").WithLocation(1, 9),
-            // (7,26): error CS9282: Extension declarations can include only methods or properties
+            // (7,26): error CS9282: Extension declarations can include only methods, non-conversion operators or properties
             //         public const int Const = 42;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Const").WithLocation(7, 26));
     }
@@ -29569,7 +29569,7 @@ public static class E
 
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (6,22): error CS9282: Extension declarations can include only methods or properties
+            // (6,22): error CS9282: Extension declarations can include only methods, non-conversion operators or properties
             //         static class Nested { }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Nested").WithLocation(6, 22));
 
@@ -33224,13 +33224,13 @@ static class E
             // (6,29): error CS0106: The modifier 'abstract' is not valid for this item
             //         public abstract int P { get; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("abstract").WithLocation(6, 29),
-            // (6,29): error CS9282: Extension declarations can include only methods or properties
+            // (6,29): error CS9282: Extension declarations can include only methods, non-conversion operators or properties
             //         public abstract int P { get; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "P").WithLocation(6, 29),
             // (7,29): error CS0106: The modifier 'abstract' is not valid for this item
             //         public abstract int P2 { set; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "P2").WithArguments("abstract").WithLocation(7, 29),
-            // (7,29): error CS9282: Extension declarations can include only methods or properties
+            // (7,29): error CS9282: Extension declarations can include only methods, non-conversion operators or properties
             //         public abstract int P2 { set; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "P2").WithLocation(7, 29),
             // (7,34): error CS8051: Auto-implemented properties must have get accessors.

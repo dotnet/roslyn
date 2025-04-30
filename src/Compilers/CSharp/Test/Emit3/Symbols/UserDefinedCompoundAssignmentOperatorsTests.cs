@@ -7504,7 +7504,7 @@ public class C1
                                  "C1." + name + "()");
         }
 
-        private static string CompoundAssignmentOperatorName(string op, bool isChecked = false)
+        internal static string CompoundAssignmentOperatorName(string op, bool isChecked = false)
         {
             var kind = op switch
             {

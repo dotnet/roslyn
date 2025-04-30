@@ -227,9 +227,29 @@
         <target state="translated">Não é possível usar uma coleção do tipo dinâmico em uma foreach assíncrona</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadExtensionBinaryOperatorSignature">
+        <source>One of the parameters of a binary operator must be the extended type.</source>
+        <target state="new">One of the parameters of a binary operator must be the extended type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadExtensionContainingType">
         <source>Extensions must be declared in a top-level, non-generic, static class</source>
         <target state="new">Extensions must be declared in a top-level, non-generic, static class</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadExtensionIncDecSignature">
+        <source>The parameter type for ++ or -- operator must be the extended type.</source>
+        <target state="new">The parameter type for ++ or -- operator must be the extended type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadExtensionShiftOperatorSignature">
+        <source>The first operand of an overloaded shift operator must have the same type as the extended type</source>
+        <target state="new">The first operand of an overloaded shift operator must have the same type as the extended type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadExtensionUnaryOperatorSignature">
+        <source>The parameter of a unary operator must be the extended type.</source>
+        <target state="new">The parameter of a unary operator must be the extended type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadFieldTypeInRecord">
@@ -793,8 +813,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionDisallowsMember">
-        <source>Extension declarations can include only methods or properties</source>
-        <target state="new">Extension declarations can include only methods or properties</target>
+        <source>Extension declarations can include only methods, non-conversion operators or properties</source>
+        <target state="new">Extension declarations can include only methods, non-conversion operators or properties</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionDisallowsName">
@@ -1695,6 +1715,11 @@
       <trans-unit id="ERR_OperatorCantBeChecked">
         <source>User-defined operator '{0}' cannot be declared checked</source>
         <target state="translated">O operador definido pelo usuário '{0}' não pode ser declarado verificado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OperatorInExtensionOfStaticClass">
+        <source>An extension block extending a static class cannot contain user-defined operators</source>
+        <target state="new">An extension block extending a static class cannot contain user-defined operators</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OperatorMismatchOnOverride">
