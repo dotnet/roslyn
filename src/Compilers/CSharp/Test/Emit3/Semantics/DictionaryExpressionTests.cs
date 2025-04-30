@@ -2962,6 +2962,180 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
+        public void KeyValuePairConversions_UseInlineArray(bool useSpan)
+        {
+            string typeName = useSpan ? "Span" : "ReadOnlySpan";
+            string source = $$"""
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        int k = 1;
+                        string v = "one";
+                        var x = new KeyValuePair<int, string>(2, "two");
+                        var y = new[] { new KeyValuePair<int, string>(3, "three") };
+                        One(k, v, x);
+                        Two(k, v, x);
+                        All(y);
+                    }
+                    static void One(int k, string v, KeyValuePair<int, string> x)
+                    {
+                        Many<int?, object>([k:v]);
+                        Many<int?, object>([x]);
+                    }
+                    static void Two(int k, string v, KeyValuePair<int, string> x)
+                    {
+                        Many<int?, object>([k:v, x]);
+                    }
+                    static void All(KeyValuePair<int, string>[] y)
+                    {
+                        Many<int?, object>([..y]);
+                    }
+                    static void Many<K, V>({{typeName}}<KeyValuePair<K, V>> s)
+                    {
+                        s.ToArray().Report();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensions],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[[1, one]], [[2, two]], [[1, one], [2, two]], [[3, three]], "));
+            verifier.VerifyDiagnostics();
+            string singleItemConstructor = useSpan ?
+                "System.Span<System.Collections.Generic.KeyValuePair<int?, object>>..ctor(ref System.Collections.Generic.KeyValuePair<int?, object>)" :
+                "System.ReadOnlySpan<System.Collections.Generic.KeyValuePair<int?, object>>..ctor(ref readonly System.Collections.Generic.KeyValuePair<int?, object>)";
+            verifier.VerifyIL("Program.One", $$"""
+                {
+                  // Code size       66 (0x42)
+                  .maxstack  3
+                  .locals init (System.Collections.Generic.KeyValuePair<int?, object> V_0,
+                                System.Collections.Generic.KeyValuePair<int?, object> V_1,
+                                System.Collections.Generic.KeyValuePair<int, string> V_2)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  ldarg.0
+                  IL_0003:  newobj     "int?..ctor(int)"
+                  IL_0008:  ldarg.1
+                  IL_0009:  call       "System.Collections.Generic.KeyValuePair<int?, object>..ctor(int?, object)"
+                  IL_000e:  ldloca.s   V_0
+                  IL_0010:  newobj     "{{singleItemConstructor}}"
+                  IL_0015:  call       "void Program.Many<int?, object>(System.{{typeName}}<System.Collections.Generic.KeyValuePair<int?, object>>)"
+                  IL_001a:  ldarg.2
+                  IL_001b:  stloc.2
+                  IL_001c:  ldloca.s   V_2
+                  IL_001e:  call       "int System.Collections.Generic.KeyValuePair<int, string>.Key.get"
+                  IL_0023:  newobj     "int?..ctor(int)"
+                  IL_0028:  ldloca.s   V_2
+                  IL_002a:  call       "string System.Collections.Generic.KeyValuePair<int, string>.Value.get"
+                  IL_002f:  newobj     "System.Collections.Generic.KeyValuePair<int?, object>..ctor(int?, object)"
+                  IL_0034:  stloc.1
+                  IL_0035:  ldloca.s   V_1
+                  IL_0037:  newobj     "{{singleItemConstructor}}"
+                  IL_003c:  call       "void Program.Many<int?, object>(System.{{typeName}}<System.Collections.Generic.KeyValuePair<int?, object>>)"
+                  IL_0041:  ret
+                }
+                """);
+            string convertInlineArray = useSpan ?
+                "System.Span<System.Collections.Generic.KeyValuePair<int?, object>> <PrivateImplementationDetails>.InlineArrayAsSpan<<>y__InlineArray2<System.Collections.Generic.KeyValuePair<int?, object>>, System.Collections.Generic.KeyValuePair<int?, object>>(ref <>y__InlineArray2<System.Collections.Generic.KeyValuePair<int?, object>>, int)" :
+                "System.ReadOnlySpan<System.Collections.Generic.KeyValuePair<int?, object>> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray2<System.Collections.Generic.KeyValuePair<int?, object>>, System.Collections.Generic.KeyValuePair<int?, object>>(in <>y__InlineArray2<System.Collections.Generic.KeyValuePair<int?, object>>, int)";
+            verifier.VerifyIL("Program.Two", $$"""
+                {
+                  // Code size       86 (0x56)
+                  .maxstack  3
+                  .locals init (<>y__InlineArray2<System.Collections.Generic.KeyValuePair<int?, object>> V_0,
+                                System.Collections.Generic.KeyValuePair<int, string> V_1)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "<>y__InlineArray2<System.Collections.Generic.KeyValuePair<int?, object>>"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  call       "ref System.Collections.Generic.KeyValuePair<int?, object> <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<System.Collections.Generic.KeyValuePair<int?, object>>, System.Collections.Generic.KeyValuePair<int?, object>>(ref <>y__InlineArray2<System.Collections.Generic.KeyValuePair<int?, object>>, int)"
+                  IL_0010:  ldarg.0
+                  IL_0011:  newobj     "int?..ctor(int)"
+                  IL_0016:  ldarg.1
+                  IL_0017:  newobj     "System.Collections.Generic.KeyValuePair<int?, object>..ctor(int?, object)"
+                  IL_001c:  stobj      "System.Collections.Generic.KeyValuePair<int?, object>"
+                  IL_0021:  ldloca.s   V_0
+                  IL_0023:  ldc.i4.1
+                  IL_0024:  call       "ref System.Collections.Generic.KeyValuePair<int?, object> <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<System.Collections.Generic.KeyValuePair<int?, object>>, System.Collections.Generic.KeyValuePair<int?, object>>(ref <>y__InlineArray2<System.Collections.Generic.KeyValuePair<int?, object>>, int)"
+                  IL_0029:  ldarg.2
+                  IL_002a:  stloc.1
+                  IL_002b:  ldloca.s   V_1
+                  IL_002d:  call       "int System.Collections.Generic.KeyValuePair<int, string>.Key.get"
+                  IL_0032:  newobj     "int?..ctor(int)"
+                  IL_0037:  ldloca.s   V_1
+                  IL_0039:  call       "string System.Collections.Generic.KeyValuePair<int, string>.Value.get"
+                  IL_003e:  newobj     "System.Collections.Generic.KeyValuePair<int?, object>..ctor(int?, object)"
+                  IL_0043:  stobj      "System.Collections.Generic.KeyValuePair<int?, object>"
+                  IL_0048:  ldloca.s   V_0
+                  IL_004a:  ldc.i4.2
+                  IL_004b:  call       "{{convertInlineArray}}"
+                  IL_0050:  call       "void Program.Many<int?, object>(System.{{typeName}}<System.Collections.Generic.KeyValuePair<int?, object>>)"
+                  IL_0055:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.All", $$"""
+                {
+                  // Code size       87 (0x57)
+                  .maxstack  4
+                  .locals init (int V_0,
+                                System.Collections.Generic.KeyValuePair<int?, object>[] V_1,
+                                System.Collections.Generic.KeyValuePair<int, string>[] V_2,
+                                int V_3,
+                                System.Collections.Generic.KeyValuePair<int, string> V_4,
+                                System.Collections.Generic.KeyValuePair<int, string> V_5)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stloc.0
+                  IL_0003:  dup
+                  IL_0004:  ldlen
+                  IL_0005:  conv.i4
+                  IL_0006:  newarr     "System.Collections.Generic.KeyValuePair<int?, object>"
+                  IL_000b:  stloc.1
+                  IL_000c:  stloc.2
+                  IL_000d:  ldc.i4.0
+                  IL_000e:  stloc.3
+                  IL_000f:  br.s       IL_0045
+                  IL_0011:  ldloc.2
+                  IL_0012:  ldloc.3
+                  IL_0013:  ldelem     "System.Collections.Generic.KeyValuePair<int, string>"
+                  IL_0018:  stloc.s    V_4
+                  IL_001a:  ldloc.1
+                  IL_001b:  ldloc.0
+                  IL_001c:  ldloc.s    V_4
+                  IL_001e:  stloc.s    V_5
+                  IL_0020:  ldloca.s   V_5
+                  IL_0022:  call       "int System.Collections.Generic.KeyValuePair<int, string>.Key.get"
+                  IL_0027:  newobj     "int?..ctor(int)"
+                  IL_002c:  ldloca.s   V_5
+                  IL_002e:  call       "string System.Collections.Generic.KeyValuePair<int, string>.Value.get"
+                  IL_0033:  newobj     "System.Collections.Generic.KeyValuePair<int?, object>..ctor(int?, object)"
+                  IL_0038:  stelem     "System.Collections.Generic.KeyValuePair<int?, object>"
+                  IL_003d:  ldloc.0
+                  IL_003e:  ldc.i4.1
+                  IL_003f:  add
+                  IL_0040:  stloc.0
+                  IL_0041:  ldloc.3
+                  IL_0042:  ldc.i4.1
+                  IL_0043:  add
+                  IL_0044:  stloc.3
+                  IL_0045:  ldloc.3
+                  IL_0046:  ldloc.2
+                  IL_0047:  ldlen
+                  IL_0048:  conv.i4
+                  IL_0049:  blt.s      IL_0011
+                  IL_004b:  ldloc.1
+                  IL_004c:  newobj     "System.{{typeName}}<System.Collections.Generic.KeyValuePair<int?, object>>..ctor(System.Collections.Generic.KeyValuePair<int?, object>[])"
+                  IL_0051:  call       "void Program.Many<int?, object>(System.{{typeName}}<System.Collections.Generic.KeyValuePair<int?, object>>)"
+                  IL_0056:  ret
+                }
+                """);
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void KeyValuePairConversions_CustomType(
             [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool useCollectionBuilder)

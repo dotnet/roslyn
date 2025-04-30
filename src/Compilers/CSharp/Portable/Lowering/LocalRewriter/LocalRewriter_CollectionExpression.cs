@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool asReadOnlySpan)
         {
             Debug.Assert(elements.Length > 0);
-            Debug.Assert(elements.All(e => e is BoundExpression)); // PROTOTYPE: Are we testing this with BoundKeyValuePairElement and BoundKeyValuePairConversion?
+            Debug.Assert(elements.All(e => e is BoundExpression or BoundKeyValuePairElement));
             Debug.Assert(_factory.ModuleBuilderOpt is { });
             Debug.Assert(_diagnostics.DiagnosticBag is { });
             Debug.Assert(_compilation.Assembly.RuntimeSupportsInlineArrayTypes);
@@ -585,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     .WellKnownType(asReadOnlySpan ? WellKnownType.System_ReadOnlySpan_T : WellKnownType.System_Span_T)
                     .Construct([elementType]);
                 var constructor = spanRefConstructor.AsMember(spanType);
-                var element = VisitExpression((BoundExpression)elements[0]);
+                var element = RewriteCollectionExpressionElementExpression(elements[0], allowSpreadElement: false);
                 var temp = _factory.StoreToTemp(element, out var assignment);
                 _additionalLocals.Add(temp.LocalSymbol);
                 var call = _factory.New(constructor, arguments: [temp], argumentRefKinds: [asReadOnlySpan ? RefKindExtensions.StrictIn : RefKind.Ref]);
@@ -613,7 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // ...
             for (int i = 0; i < arrayLength; i++)
             {
-                var element = VisitExpression((BoundExpression)elements[i]);
+                var element = RewriteCollectionExpressionElementExpression(elements[i], allowSpreadElement: false);
                 var call = _factory.Call(null, elementRef, inlineArrayLocal, _factory.Literal(i), useStrictArgumentRefKinds: true);
                 var assignment = new BoundAssignmentOperator(syntax, call, element, type: call.Type) { WasCompilerGenerated = true };
                 sideEffects.Add(assignment);
