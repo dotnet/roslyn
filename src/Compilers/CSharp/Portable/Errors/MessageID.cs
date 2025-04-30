@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureExpressionOptionalAndNamedArguments = MessageBase + 12855,
         IDS_CollectionExpression = MessageBase + 12856,
 
-        IDS_FeatureUserDefinedCompoundAssignmentOperators = MessageBase + 12901,
+        IDS_FeatureUserDefinedCompoundAssignmentOperators = MessageBase + 12901, // PROTOTYPE: Pack numbers
     }
 
     // Message IDs may refer to strings that need to be localized.
