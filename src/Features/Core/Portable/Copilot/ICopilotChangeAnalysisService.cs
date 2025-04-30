@@ -330,26 +330,6 @@ internal sealed class DefaultCopilotChangeAnalysisService(
         }
     }
 }
-
-#if false
-
-                Logger.Log(FunctionId.Copilot_AnalyzeChange, KeyValueLogMessage.Create(LogType.Trace, static (message, args) =>
-                {
-                    var (diagnosticKind, diagnostics) = args;
-                    message["DiagnosticKind"] = diagnosticKind.ToString();
-
-                    foreach (var group in diagnostics.GroupBy(d => d.Id))
-                        message[$"Id_{group.Key}"] = group.Count();
-
-                    foreach (var group in diagnostics.GroupBy(d => d.Category))
-                        message[$"{diagnosticKind}_{group.Key}"] = group.Count();
-
-                    foreach (var group in diagnostics.GroupBy(d => d.Severity))
-                        message[$"{diagnosticKind}_{group.Key}"] = group.Count();
-                }, (diagnosticKind, diagnostics)));
-
-            return default;
-        }
     }
 }
 #endif
