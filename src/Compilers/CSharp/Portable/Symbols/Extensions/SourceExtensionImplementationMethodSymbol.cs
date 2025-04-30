@@ -139,7 +139,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string result = SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes: false, ref lazyDocComment);
 
 #if DEBUG
-            string withIncludes = DocumentationCommentCompiler.GetDocumentationCommentXml(this, processIncludes: true, default);
+            string? ignored = null;
+            string withIncludes = SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes: true, lazyXmlText: ref ignored);
             Debug.Assert(string.Equals(result, withIncludes, System.StringComparison.Ordinal));
 #endif
 
