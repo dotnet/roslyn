@@ -9,6 +9,9 @@
     <ApplyNgenOptimization>full</ApplyNgenOptimization>
     <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
 
+    <!-- IPooled is not available in ResultProvider -->
+    <DefineConstants>$(DefineConstants);MICROSOFT_CODEANALYSIS_POOLEDOBJECTS_NO_POOLED_DISPOSER</DefineConstants>
+
     <!--
       Workaround: https://github.com/dotnet/roslyn/issues/78392
       We use NO_VALUE_TUPLE symbol to conditionally compile the code that
