@@ -745,7 +745,6 @@ public sealed partial class MetadataAsSourceTests
                         public void operator [|{{op}}|]();
                     }
                     """,
-                // PROTOTYPE: Not sure whether 'CompilerFeatureRequired' attribute is expected
                 false => $$"""
                     #region {{FeaturesResources.Assembly}} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
                     // {{CodeAnalysisResources.InMemoryAssembly}}
@@ -796,7 +795,6 @@ public sealed partial class MetadataAsSourceTests
                         public void operator {{op}}();
                     }
                     """,
-                // PROTOTYPE: Not sure whether 'CompilerFeatureRequired' attribute is expected
                 false => $$"""
                     #region {{FeaturesResources.Assembly}} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
                     // {{CodeAnalysisResources.InMemoryAssembly}}
@@ -851,7 +849,6 @@ public sealed partial class MetadataAsSourceTests
                         public void operator [|{{op}}|](int x);
                     }
                     """,
-                // PROTOTYPE: Expected an operator declaration syntax
                 false => $$"""
                     #region {{FeaturesResources.Assembly}} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
                     // {{CodeAnalysisResources.InMemoryAssembly}}
@@ -915,7 +912,6 @@ public sealed partial class MetadataAsSourceTests
                         public void operator {{op}}(int x);
                     }
                     """,
-                // PROTOTYPE: Expected an operator declaration syntax
                 false => $$"""
                     #region {{FeaturesResources.Assembly}} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
                     // {{CodeAnalysisResources.InMemoryAssembly}}
