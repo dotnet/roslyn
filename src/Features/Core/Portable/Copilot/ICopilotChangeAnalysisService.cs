@@ -316,7 +316,7 @@ internal sealed class DefaultCopilotChangeAnalysisService(
                             IsVisibleDiagnostic(codeFix.PrimaryDiagnostic.IsSuppressed, codeFix.PrimaryDiagnostic.Severity) &&
                             (codeFixCollection.Provider.GetType().Namespace ?? "").StartsWith(RoslynPrefix))
                         {
-                            // The first for a par<ticular span is the one we would apply.  Ignore others that fix the same span.
+                            // The first for a particular span is the one we would apply.  Ignore others that fix the same span.
                             if (intervalTree.HasIntervalThatOverlapsWith(codeFixCollection.TextSpan))
                                 continue;
 
