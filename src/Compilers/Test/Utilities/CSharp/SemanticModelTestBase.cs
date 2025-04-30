@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         protected CompilationUtils.SemanticInfoSummary GetSemanticInfoForTest<TNode>(string testSrc, CSharpParseOptions parseOptions = null) where TNode : SyntaxNode
         {
-            var compilation = CreateCompilation(testSrc, parseOptions: parseOptions);
+            var compilation = CreateCompilationWithNetStandard(testSrc, parseOptions: parseOptions);
             return GetSemanticInfoForTest<TNode>(compilation);
         }
 
