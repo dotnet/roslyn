@@ -4508,7 +4508,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             CompileAndVerify(
                 new[] { source, s_collectionExtensions },
-                references: new[] { CSharpRef },
                 expectedOutput: "(System.Object[]) [2, 3], (System.Object[]) [1, 2, 3], ");
         }
 
@@ -4591,7 +4590,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             CompileAndVerify(
                 new[] { source, s_collectionExtensions },
-                references: new[] { CSharpRef },
                 expectedOutput: "(System.String[]) [one, null], ");
         }
 
@@ -4617,7 +4615,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             CompileAndVerify(
                 new[] { source, s_collectionExtensions },
-                references: new[] { CSharpRef },
                 expectedOutput: "(System.Object[]) [one, null], 3, (System.Object[]) [one, null, three], 5, ");
         }
 
@@ -8242,7 +8239,7 @@ static class Program
                 }
                 """;
 
-            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "[1, 3], ");
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
@@ -8305,7 +8302,7 @@ static class Program
                 }
                 """;
 
-            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "[1, 2, 5], ");
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
@@ -10136,7 +10133,7 @@ static class Program
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe, expectedOutput: "[1, 2, 3], ");
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, options: TestOptions.ReleaseExe, expectedOutput: "[1, 2, 3], ");
             if (resultType == "int[]")
             {
                 verifier.VerifyIL("Program.F",
@@ -10364,7 +10361,7 @@ static class Program
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe, expectedOutput: "[1, 2, 3], ");
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, options: TestOptions.ReleaseExe, expectedOutput: "[1, 2, 3], ");
             if (resultType == "List<object>")
             {
                 verifier.VerifyIL("Program.F",
@@ -10926,7 +10923,7 @@ static class Program
                     }
                 }
                 """;
-            CompileAndVerify(new[] { source, s_collectionExtensions }, references: new[] { CSharpRef }, expectedOutput: "[1, 2, 3], ");
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[1, 2, 3], ");
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/69704")]
@@ -10950,7 +10947,7 @@ static class Program
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, options: TestOptions.ReleaseExe);
             if (targetElementType == "int")
             {
                 comp.VerifyEmitDiagnostics(
@@ -10997,7 +10994,7 @@ static class Program
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, options: TestOptions.ReleaseExe);
             if (targetElementType == "int")
             {
                 comp.VerifyEmitDiagnostics(
@@ -11055,7 +11052,7 @@ static class Program
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, sourceB, s_collectionExtensions }, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(new[] { sourceA, sourceB, s_collectionExtensions }, options: TestOptions.ReleaseExe);
             if (targetElementType == "int")
             {
                 comp.VerifyEmitDiagnostics(
@@ -11138,7 +11135,7 @@ static class Program
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, sourceB, s_collectionExtensions }, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(new[] { sourceA, sourceB, s_collectionExtensions }, options: TestOptions.ReleaseExe);
             if (targetElementType == "int")
             {
                 comp.VerifyEmitDiagnostics(
@@ -13925,7 +13922,6 @@ namespace System
                 """;
             CompileAndVerify(
                 new[] { source, s_collectionExtensions },
-                references: new[] { CSharpRef },
                 expectedOutput: "(<>z__ReadOnlyArray<System.Int32>) [1, 2, 0], (<>z__ReadOnlyArray<System.Object>) [1, 2, null], ");
         }
 
@@ -25985,7 +25981,7 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilationWithNetStandard(source);
             comp.VerifyEmitDiagnostics();
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
@@ -26996,7 +26992,7 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source, references: new[] { CSharpRef });
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
@@ -32267,7 +32263,10 @@ partial class Program
             CreateCompilation(src).VerifyEmitDiagnostics(
                 // (3,15): warning CS8602: Dereference of a possibly null reference.
                 // string[] x = [o.ToString()];
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(3, 15)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(3, 15),
+                // (3,15): warning CS8601: Possible null reference assignment.
+                // string[] x = [o.ToString()];
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "o.ToString()").WithLocation(3, 15)
                 );
         }
 

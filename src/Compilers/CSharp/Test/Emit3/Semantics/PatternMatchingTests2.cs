@@ -362,7 +362,7 @@ public class Point
         if (i is ((default)!)) {} // error 17
     }
 }";
-            var compilation = CreatePatternCompilation(source);
+            var compilation = CreateCompilationWithNetStandard(new[] { source, _iTupleSource }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithPatternCombinators);
             compilation.VerifyDiagnostics(
                 // (6,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is default) {} // error 1

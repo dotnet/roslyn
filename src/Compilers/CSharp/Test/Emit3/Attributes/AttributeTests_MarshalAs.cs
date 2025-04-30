@@ -1399,21 +1399,28 @@ class X
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (7,20): error CS7055: Unmanaged type 'ByValArray' is only valid for fields.
-                Diagnostic(ErrorCode.ERR_MarshalUnmanagedTypeOnlyValidForFields, "UnmanagedType.ByValArray").WithArguments("ByValArray"),
-                // (10,20): error CS7055: Unmanaged type 'ByValTStr' is only valid for fields.
-                Diagnostic(ErrorCode.ERR_MarshalUnmanagedTypeOnlyValidForFields, "UnmanagedType.ByValTStr").WithArguments("ByValTStr"),
-                // (16,24): error CS7055: Unmanaged type 'ByValArray' is only valid for fields.
-                Diagnostic(ErrorCode.ERR_MarshalUnmanagedTypeOnlyValidForFields, "UnmanagedType.ByValArray").WithArguments("ByValArray"),
-                // (19,24): error CS7055: Unmanaged type 'ByValTStr' is only valid for fields.
-                Diagnostic(ErrorCode.ERR_MarshalUnmanagedTypeOnlyValidForFields, "UnmanagedType.ByValTStr").WithArguments("ByValTStr"),
-                // (22,16): error CS7054: Unmanaged type 'VBByRefStr' not valid for fields.
-                Diagnostic(ErrorCode.ERR_MarshalUnmanagedTypeNotValidForFields, "UnmanagedType.VBByRefStr").WithArguments("VBByRefStr"),
-
-                // TODO (tomat): remove
-
-                // (23,16): warning CS0649: Field 'X.field' is never assigned to, and will always have its default value 0
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("X.field", "0"));
+                // (18,24): error CS7055: Unmanaged type 'ByValArray' is only valid for fields.
+                //     [return: MarshalAs(UnmanagedType.ByValArray)]
+                Diagnostic(ErrorCode.ERR_MarshalUnmanagedTypeOnlyValidForFields, "UnmanagedType.ByValArray").WithArguments("ByValArray").WithLocation(18, 24),
+                // (21,24): error CS7055: Unmanaged type 'ByValTStr' is only valid for fields.
+                //     [return: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1)]
+                Diagnostic(ErrorCode.ERR_MarshalUnmanagedTypeOnlyValidForFields, "UnmanagedType.ByValTStr").WithArguments("ByValTStr").WithLocation(21, 24),
+                // (24,16): warning CS0618: 'UnmanagedType.VBByRefStr' is obsolete: 'Marshalling as VBByRefString may be unavailable in future releases.'
+                //     [MarshalAs(UnmanagedType.VBByRefStr)]
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "UnmanagedType.VBByRefStr").WithArguments("System.Runtime.InteropServices.UnmanagedType.VBByRefStr", "Marshalling as VBByRefString may be unavailable in future releases.").WithLocation(24, 16),
+                // (24,16): error CS7054: Unmanaged type 'VBByRefStr' not valid for fields.
+                //     [MarshalAs(UnmanagedType.VBByRefStr)]
+                Diagnostic(ErrorCode.ERR_MarshalUnmanagedTypeNotValidForFields, "UnmanagedType.VBByRefStr").WithArguments("VBByRefStr").WithLocation(24, 16),
+                // (9,20): error CS7055: Unmanaged type 'ByValArray' is only valid for fields.
+                //         [MarshalAs(UnmanagedType.ByValArray)]
+                Diagnostic(ErrorCode.ERR_MarshalUnmanagedTypeOnlyValidForFields, "UnmanagedType.ByValArray").WithArguments("ByValArray").WithLocation(9, 20),
+                // (12,20): error CS7055: Unmanaged type 'ByValTStr' is only valid for fields.
+                //         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1)]
+                Diagnostic(ErrorCode.ERR_MarshalUnmanagedTypeOnlyValidForFields, "UnmanagedType.ByValTStr").WithArguments("ByValTStr").WithLocation(12, 20),
+                // (25,16): warning CS0649: Field 'X.field' is never assigned to, and will always have its default value 0
+                //     public int field;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("X.field", "0").WithLocation(25, 16)
+                );
         }
 
         [Fact]

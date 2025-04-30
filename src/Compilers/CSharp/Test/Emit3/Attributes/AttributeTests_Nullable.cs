@@ -794,7 +794,7 @@ class Program
     public object F = new object();
 }";
             // C# 7.0: No NullableAttribute.
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
+            var comp = CreateCompilationWithNetStandard(source, parseOptions: TestOptions.Regular7);
             CompileAndVerify(comp, symbolValidator: module =>
             {
                 var assembly = module.ContainingAssembly;
@@ -808,7 +808,7 @@ class Program
                     "System.Diagnostics.DebuggableAttribute");
             });
             // C# 8.0: NullableAttribute not included if no ? annotation.
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp = CreateCompilationWithNetStandard(source, parseOptions: TestOptions.Regular8);
             CompileAndVerify(comp, symbolValidator: module =>
             {
                 var assembly = module.ContainingAssembly;
@@ -967,7 +967,7 @@ class C
 {
     public object? F = new object();
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilationWithNetStandard(source, parseOptions: TestOptions.Regular8);
             CompileAndVerify(comp, symbolValidator: module =>
             {
                 var assembly = module.ContainingAssembly;
@@ -3469,10 +3469,10 @@ Program
 
             var options = WithNullableEnable().WithMetadataImportOptions(MetadataImportOptions.All);
             var parseOptions = TestOptions.Regular8;
-            AssertNullableAttributes(CreateCompilation(source, options: options, parseOptions: parseOptions), expectedAll);
-            AssertNullableAttributes(CreateCompilation(source, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly")), expectedPublicOnly);
-            AssertNullableAttributes(CreateCompilation(new[] { source, sourceIVTs }, options: options, parseOptions: parseOptions), expectedAll);
-            AssertNullableAttributes(CreateCompilation(new[] { source, sourceIVTs }, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly")), expectedPublicAndInternal);
+            AssertNullableAttributes(CreateCompilationWithNetStandard(source, options: options, parseOptions: parseOptions), expectedAll);
+            AssertNullableAttributes(CreateCompilationWithNetStandard(source, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly")), expectedPublicOnly);
+            AssertNullableAttributes(CreateCompilationWithNetStandard(new[] { source, sourceIVTs }, options: options, parseOptions: parseOptions), expectedAll);
+            AssertNullableAttributes(CreateCompilationWithNetStandard(new[] { source, sourceIVTs }, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly")), expectedPublicAndInternal);
         }
 
         /// <summary>

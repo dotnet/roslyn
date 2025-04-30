@@ -21,7 +21,7 @@ using Xunit.Sdk;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 
 [CompilerTrait(CompilerFeature.Extensions)]
-public class ExtensionTests : CompilingTestBase
+public class ExtensionTests() : CompilingTestBase(TargetFramework.NetStandard20)
 {
     private static string ExpectedOutput(string output)
     {

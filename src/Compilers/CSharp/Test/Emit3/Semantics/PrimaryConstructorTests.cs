@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     using static PrimaryConstructorTests.TestFlags;
 
-    public class PrimaryConstructorTests : CompilingTestBase
+    public class PrimaryConstructorTests() : CompilingTestBase(TargetFramework.NetStandard20)
     {
         [Flags]
         public enum TestFlags

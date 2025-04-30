@@ -379,7 +379,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 public class IsReadOnlyAttribute : System.Attribute { }
             }
             """;
-        CreateCompilation(new[] { source, RequiresLocationAttributeDefinition }).VerifyDiagnostics(
+        CreateCompilationWithNetStandard(new[] { source, RequiresLocationAttributeDefinition }).VerifyDiagnostics(
             // 0.cs(5,14): error CS8335: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
             //     void M1([IsReadOnly] ref readonly int p) { }
             Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsReadOnly").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(5, 14),

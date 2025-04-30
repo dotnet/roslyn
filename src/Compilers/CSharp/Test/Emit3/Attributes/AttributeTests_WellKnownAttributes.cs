@@ -1791,7 +1791,7 @@ class C
 }
 ";
 
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithNetStandard(source).VerifyDiagnostics(
                 // (63,65): error CS1763: 'x' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
                 //     public MyPermission5Attribute(SecurityAction action, object x = SecurityAction.Demand) : base(SecurityAction.Demand)
                 Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "x").WithArguments("x", "object").WithLocation(63, 65),
@@ -3784,7 +3784,7 @@ public class MainClass
 0";
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
-            CompileAndVerify(source, sourceSymbolValidator: attributeValidator(true), symbolValidator: attributeValidator(false), expectedOutput: expectedOutput);
+            CompileAndVerifyWithNetStandard(source, sourceSymbolValidator: attributeValidator(true), symbolValidator: attributeValidator(false), expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -3913,7 +3913,7 @@ public class MainClass
             string expectedOutput = @"string";
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
-            CompileAndVerify(source, sourceSymbolValidator: attributeValidator(true), symbolValidator: attributeValidator(false), expectedOutput: expectedOutput);
+            CompileAndVerifyWithNetStandard(source, sourceSymbolValidator: attributeValidator(true), symbolValidator: attributeValidator(false), expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -6551,7 +6551,7 @@ public class SomeAttr1: Attribute
     public SomeAttr1(Action x) {}
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithNetStandard(source).VerifyDiagnostics(
                 // (7,15): warning CS0618: 'Test.F1' is obsolete: 'F1 is obsolete'
                 //     [SomeAttr(F1)]
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "F1").WithArguments("Test.F1", "F1 is obsolete").WithLocation(7, 15),
@@ -10454,7 +10454,7 @@ public class C
     public int P => 0;
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilationWithNetStandard(source);
             comp.VerifyDiagnostics(
                 // (4,10): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // [module: SkipLocalsInitAttribute]
@@ -11926,8 +11926,8 @@ public class C
 }
 ";
 
-            var comp_init = CompileAndVerify(source_init, options: TestOptions.UnsafeReleaseDll);
-            var comp_skip = CompileAndVerify(source_skip, options: TestOptions.UnsafeReleaseDll);
+            var comp_init = CompileAndVerifyWithNetStandard(source_init, options: TestOptions.UnsafeReleaseDll);
+            var comp_skip = CompileAndVerifyWithNetStandard(source_skip, options: TestOptions.UnsafeReleaseDll);
 
             Assert.Null(comp_init.HasLocalsInit("Microsoft.CodeAnalysis.EmbeddedAttribute..ctor"));
             Assert.Null(comp_init.HasLocalsInit("System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor"));

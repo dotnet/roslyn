@@ -3118,7 +3118,7 @@ format:
                     }
                 }
                 """;
-            CompileAndVerify([source, InterpolatedStringHandlerAttribute], expectedOutput: """
+            CompileAndVerifyWithNetStandard([source, InterpolatedStringHandlerAttribute], expectedOutput: """
                 literal:8, formatted:1
                 append:'abc '
                 formatted:'xyz'
@@ -6344,7 +6344,7 @@ public static class Helpers
 }
 """;
 
-            var comp1Ref = CreateCompilation(src1).EmitToImageReference();
+            var comp1Ref = CreateCompilationWithNetCoreApp(src1).EmitToImageReference();
 
             var src2 = """
 using static Helpers;
@@ -6358,15 +6358,15 @@ class Program
     }
 }
 """;
-            var comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithNetCoreApp(src2, references: [comp1Ref], options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics();
 
-            comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
+            comp = CreateCompilationWithNetCoreApp(src2, references: [comp1Ref], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
 
             comp.VerifyEmitDiagnostics();
 
-            comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
+            comp = CreateCompilationWithNetCoreApp(src2, references: [comp1Ref], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
 
             comp.VerifyEmitDiagnostics();
         }
@@ -7254,7 +7254,7 @@ using System.Collections.Generic;
 
 public delegate void D(params IEnumerable<int> b);
 """;
-            var comp1Ref = CreateCompilation(src1).EmitToImageReference();
+            var comp1Ref = CreateCompilationWithNetCoreApp(src1).EmitToImageReference();
 
             var src2 = """
 using System.Collections.Generic;
@@ -7274,15 +7274,15 @@ class Program
     }
 }
 """;
-            var comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithNetCoreApp(src2, references: [comp1Ref], options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics();
 
-            comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
+            comp = CreateCompilationWithNetCoreApp(src2, references: [comp1Ref], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
 
             comp.VerifyEmitDiagnostics();
 
-            comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
+            comp = CreateCompilationWithNetCoreApp(src2, references: [comp1Ref], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
 
             comp.VerifyEmitDiagnostics();
         }
@@ -7378,7 +7378,7 @@ public class Program
     }
 }
 """;
-            var comp1Ref = CreateCompilation(src1).EmitToImageReference();
+            var comp1Ref = CreateCompilationWithNetCoreApp(src1).EmitToImageReference();
 
             var src2 = """
 class P
@@ -7390,15 +7390,15 @@ class P
     }
 }
 """;
-            var comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithNetCoreApp(src2, references: [comp1Ref], options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics();
 
-            comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
+            comp = CreateCompilationWithNetCoreApp(src2, references: [comp1Ref], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
 
             comp.VerifyEmitDiagnostics();
 
-            comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
+            comp = CreateCompilationWithNetCoreApp(src2, references: [comp1Ref], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
 
             comp.VerifyEmitDiagnostics();
         }
@@ -7977,7 +7977,7 @@ public class Test
 }
 """;
 
-            var comp1Ref = CreateCompilation(src1).EmitToImageReference();
+            var comp1Ref = CreateCompilationWithNetCoreApp(src1).EmitToImageReference();
 
             var src2 = """
 class Program
@@ -7989,15 +7989,15 @@ class Program
     }
 }
 """;
-            var comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithNetCoreApp(src2, references: [comp1Ref], options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics();
 
-            comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
+            comp = CreateCompilationWithNetCoreApp(src2, references: [comp1Ref], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
 
             comp.VerifyEmitDiagnostics();
 
-            comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
+            comp = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
 
             comp.VerifyEmitDiagnostics();
         }

@@ -18,7 +18,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class AttributeTests_NativeInteger : CSharpTestBase
+    public class AttributeTests_NativeInteger() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         private static readonly SymbolDisplayFormat FormatWithSpecialTypes = SymbolDisplayFormat.TestFormat
             .WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)

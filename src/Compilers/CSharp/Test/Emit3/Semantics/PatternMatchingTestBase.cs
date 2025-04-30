@@ -18,7 +18,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class PatternMatchingTestBase : CSharpTestBase
+    public class PatternMatchingTestBase(TargetFramework? targetFramework = null) : CSharpTestBase(targetFramework)
     {
         #region helpers
         protected IEnumerable<SingleVariableDesignationSyntax> GetPatternDeclarations(SyntaxTree tree, string v)

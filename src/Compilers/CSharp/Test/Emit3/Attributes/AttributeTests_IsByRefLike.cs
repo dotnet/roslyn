@@ -19,7 +19,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class AttributeTests_IsByRefLike : CSharpTestBase
+    public class AttributeTests_IsByRefLike() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         [Theory]
         [CombinatorialData]

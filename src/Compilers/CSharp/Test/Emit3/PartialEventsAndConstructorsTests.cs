@@ -909,7 +909,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
                 partial event System.Action E { add { } remove { } }
             }
             """;
-        CreateCompilation(source).VerifyDiagnostics(
+        CreateCompilationWithNetStandard(source).VerifyDiagnostics(
             // (4,37): error CS8701: Target runtime doesn't support default interface implementation.
             //     partial event System.Action E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "add").WithLocation(4, 37),
@@ -3201,7 +3201,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
                 partial C4([UnscopedRef] ref int x) { }
             }
             """;
-        CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+        CreateCompilationWithNetStandard([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
             // (5,13): error CS8988: The 'scoped' modifier of parameter 'x' doesn't match partial definition.
             //     partial C1(ref int x) { }
             Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "C1").WithArguments("x").WithLocation(5, 13),
@@ -3552,7 +3552,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_CallerArgumentExpressionParamForUnconsumedLocation, "CallerArgumentExpression").WithArguments("d").WithLocation(25, 10)
         };
 
-        CompileAndVerify([source1, source2, CallerArgumentExpressionAttributeDefinition],
+        CompileAndVerifyWithNetStandard([source1, source2, CallerArgumentExpressionAttributeDefinition],
             expectedOutput: """
                 x='42' a='1' b='file.cs' c='<Main>$' d='40 + 2'
                 x='s' a='-1' b='f' c='m' d='e'
@@ -3563,11 +3563,11 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
         // they are written to metadata as is demonstrated below.
         // See https://github.com/dotnet/roslyn/issues/73482.
 
-        var lib = CreateCompilation([source1, CallerArgumentExpressionAttributeDefinition])
+        var lib = CreateCompilationWithNetStandard([source1, CallerArgumentExpressionAttributeDefinition])
             .VerifyDiagnostics(expectedDiagnostics)
             .EmitToPortableExecutableReference();
 
-        CompileAndVerify(CreateCompilation(source2, references: [lib]),
+        CompileAndVerify(CreateCompilationWithNetStandard(source2, references: [lib]),
             expectedOutput: """
                 x='42' a='1' b='file.cs' c='<Main>$' d='40 + 2'
                 x='s' a='2' b='file.cs' c='<Main>$' d='"s"'
@@ -3627,7 +3627,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
                 public partial C(I8 i, [DisallowNull] object? x) { x.ToString(); }
             }
             """;
-        CreateCompilation([source, AllowNullAttributeDefinition, DisallowNullAttributeDefinition]).VerifyDiagnostics(
+        CreateCompilationWithNetStandard([source, AllowNullAttributeDefinition, DisallowNullAttributeDefinition]).VerifyDiagnostics(
             // (8,21): warning CS8625: Cannot convert null literal to non-nullable reference type.
             // new C(default(I5)!, null);
             Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 21),

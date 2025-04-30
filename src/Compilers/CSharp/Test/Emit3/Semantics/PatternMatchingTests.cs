@@ -5774,7 +5774,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilation(source, references: new MetadataReference[] { CSharpRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             var comp = CompileAndVerify(compilation, expectedOutput: "roslyn");
         }
 
@@ -6544,7 +6544,7 @@ False";
         switch (i) { case (default) when true: break; } // error 7
     }
 }";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithNetStandard(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (6,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is default) {} // error 1
@@ -8554,7 +8554,7 @@ class C
         public static bool SequenceEqual<T>(ReadOnlySpan<T> a, ReadOnlySpan<T> b) => false;
     }
 }";
-            var comp = CreateCompilation(sourceA);
+            var comp = CreateCompilationWithNetStandard(sourceA);
             var refA = comp.EmitToImageReference();
 
             var sourceB =
@@ -8569,7 +8569,7 @@ class Program
         _ = s switch { ""str"" => 1, _ => 0 };
     }
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilationWithNetStandard(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics(
                 // (7,18): error CS0656: Missing compiler required member 'System.ReadOnlySpan`1.get_Length'
                 //         _ = s is "str";
@@ -10158,7 +10158,7 @@ class C
         public static bool SequenceEqual<T>(Span<T> a, ReadOnlySpan<T> b) => false;
     }
 }";
-            var comp = CreateCompilation(sourceA);
+            var comp = CreateCompilationWithNetStandard(sourceA);
             var refA = comp.EmitToImageReference();
 
             var sourceB =
@@ -10173,7 +10173,7 @@ class Program
         _ = s switch { ""str"" => 1, _ => 0 };
     }
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilationWithNetStandard(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics(
                 // (7,18): error CS0656: Missing compiler required member 'System.Span`1.get_Length'
                 //         _ = s is "str";
@@ -10963,7 +10963,7 @@ class Program
         }
     }
 }";
-            var comp = CreateCompilation(sourceA);
+            var comp = CreateCompilationWithNetStandard(sourceA);
             var refA = comp.EmitToImageReference();
 
             var sourceB =
@@ -11005,7 +11005,7 @@ class Program
         };
     }
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilationWithNetStandard(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, expectedOutput: "(3, 6)");
             verifier.VerifyIL("Program.F1",
 @"{
@@ -11321,7 +11321,7 @@ class Program
         }
     }
 }";
-            var comp = CreateCompilation(sourceA);
+            var comp = CreateCompilationWithNetStandard(sourceA);
             var refA = comp.EmitToImageReference();
 
             var sourceB =
@@ -11340,7 +11340,7 @@ class Program
         F(new Span<char>(new [] { '1', '2', '3' }));
     }
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilationWithNetStandard(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput:
 @"(False, True)
@@ -11520,7 +11520,7 @@ class C
         };
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilationWithNetStandard(source);
             comp.VerifyDiagnostics();
             comp.VerifyPdb("C.M", @"
 <symbols>

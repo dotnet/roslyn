@@ -2414,7 +2414,7 @@ static class C
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithNetStandard(source).VerifyDiagnostics(
                 // (21,30): error CS0165: Use of unassigned local variable 'z'
                 //             : x.ToString() + z.ToString(); // 1
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "z").WithArguments("z").WithLocation(21, 30)
@@ -3514,7 +3514,7 @@ class C
 {
     public static bool operator ==(C? left, C? right) => false;
     public static bool operator !=(C? left, C? right) => false;
-    public override bool Equals(object obj) => false;
+    public override bool Equals(object? obj) => false;
     public override int GetHashCode() => 0;
 
     public C? M0(out int x, out int y) { x = 42; y = 42; return this; }
@@ -3588,7 +3588,7 @@ struct S
 {
     public static bool operator ==(S left, S right) => false;
     public static bool operator !=(S left, S right) => false;
-    public override bool Equals(object obj) => false;
+    public override bool Equals(object? obj) => false;
     public override int GetHashCode() => 0;
 
     public S M0(out int x, out int y) { x = 42; y = 42; return this; }
@@ -3652,7 +3652,7 @@ struct S
 {
     public static bool operator ==(S left, S right) => false;
     public static bool operator !=(S left, S right) => false;
-    public override bool Equals(object obj) => false;
+    public override bool Equals(object? obj) => false;
     public override int GetHashCode() => 0;
 
     public S M0(out int x, out int y) { x = 42; y = 42; return this; }
@@ -3716,7 +3716,7 @@ struct S
 {
     public static bool operator ==(S left, S right) => false;
     public static bool operator !=(S left, S right) => false;
-    public override bool Equals(object obj) => false;
+    public override bool Equals(object? obj) => false;
     public override int GetHashCode() => 0;
 
     public S M0(out int x, out int y) { x = 42; y = 42; return this; }
@@ -3794,7 +3794,7 @@ struct S
 {
     public static bool operator ==(" + operatorParameters + @") => false;
     public static bool operator !=(" + operatorParameters + @") => false;
-    public override bool Equals(object obj) => false;
+    public override bool Equals(object? obj) => false;
     public override int GetHashCode() => 0;
 
     public S M0(out int x, out int y) { x = 42; y = 42; return this; }
@@ -3848,7 +3848,7 @@ struct S
 {
     public static bool operator ==(S left, S right) => false;
     public static bool operator !=(S left, S right) => false;
-    public override bool Equals(object obj) => false;
+    public override bool Equals(object? obj) => false;
     public override int GetHashCode() => 0;
 
     public void M1(T? t)
@@ -4046,7 +4046,7 @@ class C
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithNetStandard(source).VerifyDiagnostics(
                 );
         }
 
@@ -4098,7 +4098,7 @@ class C
 {
     public static bool operator ==(C? left, C? right) => false;
     public static bool operator !=(C? left, C? right) => false;
-    public override bool Equals(object obj) => false;
+    public override bool Equals(object? obj) => false;
     public override int GetHashCode() => 0;
 
     public C M0(out int x, out int y) { x = 42; y = 42; return this; }
@@ -4282,7 +4282,7 @@ struct S
 {
     public static bool operator ==(S left, S right) => false;
     public static bool operator !=(S left, S right) => false;
-    public override bool Equals(object obj) => false;
+    public override bool Equals(object? obj) => false;
     public override int GetHashCode() => 0;
 
     public void M1(T? t)

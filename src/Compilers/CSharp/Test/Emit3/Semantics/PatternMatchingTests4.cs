@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     [CompilerTrait(CompilerFeature.Patterns)]
-    public class PatternMatchingTests4 : PatternMatchingTestBase
+    public class PatternMatchingTests4() : PatternMatchingTestBase(TargetFramework.NetStandard20)
     {
         [Fact]
         [WorkItem(34980, "https://github.com/dotnet/roslyn/issues/34980")]

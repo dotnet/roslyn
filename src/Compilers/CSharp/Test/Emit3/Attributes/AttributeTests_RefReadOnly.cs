@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class AttributeTests_RefReadOnly : CSharpTestBase
+    public class AttributeTests_RefReadOnly() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         [Fact]
         public void RefReadOnlyIsWrittenToMetadata_SameAssembly_Method()

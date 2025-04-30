@@ -1549,7 +1549,7 @@ public class Z
 
                 //now that the module checks out, ensure that adding it to a compilation outputting a dll
                 //results in a signed assembly.
-                var assemblyComp = CreateCompilation(source,
+                var assemblyComp = CreateCompilationWithNetStandard(source,
                     new[] { metadata.GetReference() },
                     TestOptions.SigningReleaseDll,
                     parseOptions: parseOptions);
@@ -1573,7 +1573,7 @@ public class Z
             var x = s_keyPairFile;
             string s = String.Format("{0}{1}{2}", @"[assembly: System.Reflection.AssemblyKeyFile(@""", x, @""")] public class C {}");
 
-            var other = CreateCompilation(s, options: TestOptions.SigningReleaseModule);
+            var other = CreateCompilationWithNetStandard(s, options: TestOptions.SigningReleaseModule);
 
             var outStrm = other.EmitToStream();
 
@@ -1586,7 +1586,7 @@ public class Z
         {
             string s = @"[assembly: System.Reflection.AssemblyKeyName(""roslynTestContainer"")] public class C {}";
 
-            var other = CreateCompilation(s, options: TestOptions.SigningReleaseModule);
+            var other = CreateCompilationWithNetStandard(s, options: TestOptions.SigningReleaseModule);
             var outStrm = other.EmitToStream();
 
             ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyNameAttribute, parseOptions);
@@ -1659,7 +1659,7 @@ public class Z
             string s = "public class C {}";
 
             var options = TestOptions.SigningReleaseModule.WithCryptoKeyContainer("roslynTestContainer");
-            var other = CreateCompilation(s, options: options);
+            var other = CreateCompilationWithNetStandard(s, options: options);
 
             var outStrm = new MemoryStream();
             var success = other.Emit(outStrm);
@@ -1679,7 +1679,7 @@ public class C {}";
 
             var options = TestOptions.SigningReleaseModule.WithCryptoKeyContainer("roslynTestContainer");
 
-            var other = CreateCompilation(s, options: options, parseOptions: parseOptions);
+            var other = CreateCompilationWithNetStandard(s, options: options, parseOptions: parseOptions);
 
             var outStrm = new MemoryStream();
             var success = other.Emit(outStrm);
@@ -1716,7 +1716,7 @@ public class C {}";
             string s = "public class C {}";
 
             var options = TestOptions.SigningReleaseModule.WithCryptoKeyFile(s_keyPairFile);
-            var other = CreateCompilation(s, options: options, parseOptions: parseOptions);
+            var other = CreateCompilationWithNetStandard(s, options: options, parseOptions: parseOptions);
 
             var outStrm = new MemoryStream();
             var success = other.Emit(outStrm);
@@ -1776,7 +1776,7 @@ public class C {}";
             string s = String.Format("{0}{1}{2}", @"[assembly: System.Reflection.AssemblyKeyFile(@""", x, @""")] public class C {}");
 
             var options = TestOptions.SigningReleaseModule.WithCryptoKeyFile(s_keyPairFile);
-            var other = CreateCompilation(s, options: options, parseOptions: parseOptions);
+            var other = CreateCompilationWithNetStandard(s, options: options, parseOptions: parseOptions);
 
             var outStrm = new MemoryStream();
             var success = other.Emit(outStrm);
@@ -2394,13 +2394,13 @@ public class C : B
         [MemberData(nameof(AllProviderParseOptions))]
         public void Bug529779_1(CSharpParseOptions parseOptions)
         {
-            CSharpCompilation unsigned = CreateCompilation(
+            CSharpCompilation unsigned = CreateCompilationWithNetStandard(
     @"
 public class C1
 {}
 ", options: TestOptions.SigningReleaseDll, assemblyName: "Unsigned", parseOptions: parseOptions);
 
-            CSharpCompilation other = CreateCompilation(
+            CSharpCompilation other = CreateCompilationWithNetStandard(
     @"
 public class C
 {
@@ -2422,13 +2422,13 @@ public class C
         [MemberData(nameof(AllProviderParseOptions))]
         public void Bug529779_2(CSharpParseOptions parseOptions)
         {
-            CSharpCompilation unsigned = CreateCompilation(
+            CSharpCompilation unsigned = CreateCompilationWithNetStandard(
     @"
 public class C1
 {}
 ", options: TestOptions.SigningReleaseDll, assemblyName: "Unsigned", parseOptions: parseOptions);
 
-            CSharpCompilation other = CreateCompilation(
+            CSharpCompilation other = CreateCompilationWithNetStandard(
     @"
 public class C
 {

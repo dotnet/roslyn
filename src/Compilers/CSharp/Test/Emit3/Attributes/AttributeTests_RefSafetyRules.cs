@@ -25,10 +25,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public static ref T F<T>(out T t) => throw null;
 }";
 
-            var comp = CreateCompilation(new[] { source, RefSafetyRulesAttributeDefinition }, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationWithNetStandard(new[] { source, RefSafetyRulesAttributeDefinition }, parseOptions: TestOptions.Regular10);
             CompileAndVerify(comp, symbolValidator: m => AssertRefSafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: false, publicDefinition: true));
 
-            comp = CreateCompilation(new[] { source, RefSafetyRulesAttributeDefinition });
+            comp = CreateCompilationWithNetStandard(new[] { source, RefSafetyRulesAttributeDefinition });
             CompileAndVerify(comp, symbolValidator: m => AssertRefSafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, publicDefinition: true));
         }
 
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CombinatorialData]
         public void ExplicitAttribute_FromMetadata(bool useCompilationReference)
         {
-            var comp = CreateCompilation(RefSafetyRulesAttributeDefinition, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationWithNetStandard(RefSafetyRulesAttributeDefinition, parseOptions: TestOptions.Regular10);
             CompileAndVerify(comp, symbolValidator: m => AssertRefSafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: false, publicDefinition: true));
             var ref1 = AsReference(comp, useCompilationReference);
 
@@ -46,10 +46,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public static ref T F<T>(out T t) => throw null;
 }";
 
-            comp = CreateCompilation(source, references: new[] { ref1 }, parseOptions: TestOptions.Regular10);
+            comp = CreateCompilationWithNetStandard(source, references: new[] { ref1 }, parseOptions: TestOptions.Regular10);
             CompileAndVerify(comp, symbolValidator: m => AssertRefSafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: false, publicDefinition: true));
 
-            comp = CreateCompilation(source, references: new[] { ref1 });
+            comp = CreateCompilationWithNetStandard(source, references: new[] { ref1 });
             CompileAndVerify(comp, symbolValidator: m => AssertRefSafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: true, publicDefinition: true));
         }
 
@@ -67,10 +67,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public static ref T F<T>(out T t) => throw null;
 }";
 
-            var comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationWithNetStandard(new[] { source1, source2 }, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics();
 
-            comp = CreateCompilation(new[] { source1, source2 });
+            comp = CreateCompilationWithNetStandard(new[] { source1, source2 });
             comp.VerifyEmitDiagnostics(
                 // error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RefSafetyRulesAttribute..ctor'
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Runtime.CompilerServices.RefSafetyRulesAttribute", ".ctor").WithLocation(1, 1));
@@ -122,10 +122,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData("enum E { }", true)]
         public void EmitAttribute_01(string source, bool expectedIncludesAttributeUse)
         {
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationWithNetStandard(source, parseOptions: TestOptions.Regular10);
             CompileAndVerify(comp, symbolValidator: m => AssertRefSafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: false, publicDefinition: false));
 
-            comp = CreateCompilation(source);
+            comp = CreateCompilationWithNetStandard(source);
             CompileAndVerify(comp, symbolValidator: m => AssertRefSafetyRulesAttribute(m, includesAttributeDefinition: expectedIncludesAttributeUse, includesAttributeUse: expectedIncludesAttributeUse, publicDefinition: false));
         }
 
@@ -149,12 +149,12 @@ public class A { }
 public struct S { }
 public ref struct R { }
 ";
-            var refA = CreateCompilation(sourceA, parseOptions: TestOptions.Regular10).EmitToImageReference();
+            var refA = CreateCompilationWithNetStandard(sourceA, parseOptions: TestOptions.Regular10).EmitToImageReference();
 
-            var comp = CreateCompilation(source, references: new[] { refA }, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationWithNetStandard(source, references: new[] { refA }, parseOptions: TestOptions.Regular10);
             CompileAndVerify(comp, verify: Verification.Skipped, symbolValidator: m => AssertRefSafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: false, publicDefinition: false));
 
-            comp = CreateCompilation(source, references: new[] { refA });
+            comp = CreateCompilationWithNetStandard(source, references: new[] { refA });
             CompileAndVerify(comp, verify: Verification.Skipped, symbolValidator: m => AssertRefSafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, publicDefinition: false));
         }
 
@@ -168,7 +168,7 @@ public ref struct R { }
             var sourceA =
 @"public class A { }
 ";
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA));
+            var comp = CreateCompilationWithNetStandard(sourceA, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA));
             var refA = AsReference(comp, useCompilationReference);
             bool useUpdatedEscapeRulesA = languageVersionA == LanguageVersion.CSharp11;
             Assert.Equal(useUpdatedEscapeRulesA, comp.SourceModule.UseUpdatedEscapeRules);
@@ -178,7 +178,7 @@ public ref struct R { }
 @"using System.Runtime.CompilerServices;
 [assembly: TypeForwardedTo(typeof(A))]
 ";
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
+            comp = CreateCompilationWithNetStandard(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
             Assert.Equal(languageVersionB == LanguageVersion.CSharp11, comp.SourceModule.UseUpdatedEscapeRules);
             CompileAndVerify(comp, symbolValidator: m => AssertRefSafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: false, publicDefinition: false));
         }

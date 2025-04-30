@@ -18,7 +18,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-    public class ReadOnlyStruct : CSharpTestBase
+    public class ReadOnlyStruct() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         [Fact]
         public void IsReadOnlyIsWrittenToMetadata_SameAssembly()
