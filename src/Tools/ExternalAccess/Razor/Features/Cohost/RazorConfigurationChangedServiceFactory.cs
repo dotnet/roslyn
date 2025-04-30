@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 
-[ExportCSharpVisualBasicLspServiceFactory(typeof(RazorConfigurationChangedService), WellKnownLspServerKinds.Any), Shared]
+[ExportCSharpVisualBasicLspServiceFactory(typeof(RazorConfigurationChangedService)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class RazorConfigurationChangedServiceFactory(
