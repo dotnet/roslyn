@@ -6604,8 +6604,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundCollectionExpressionSpreadElement BindCollectionExpressionSpreadElement<TArg>(
             SpreadElementSyntax syntax,
             BoundCollectionExpressionSpreadElement element,
-            BoundObjectOrCollectionValuePlaceholder implicitReceiver,
-            Func<Binder, ExpressionSyntax, BoundValuePlaceholder, BoundObjectOrCollectionValuePlaceholder, TArg, BindingDiagnosticBag, BoundExpression> bindItem,
+            BoundObjectOrCollectionValuePlaceholder? implicitReceiver,
+            Func<Binder, ExpressionSyntax, BoundValuePlaceholder, BoundObjectOrCollectionValuePlaceholder?, TArg, BindingDiagnosticBag, BoundExpression> bindItem,
             TArg arg,
             BindingDiagnosticBag diagnostics)
         {

@@ -2960,9 +2960,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        // PROTOTYPE: Test key-value conversion with Add() method that takes: object; dynamic; type for which there is an implicit conversion from KVP<K, V>.
-        // PROTOTYPE: Test key-value conversion from KVP<K1, V1> to KVP<K2, V2> when there is: Add(KVP<K1, V1>); Add(KVP<K2, V2>); both Add(KVP<K1, V1>) and Add(KVP<K2, V2>).
-
         [Theory]
         [CombinatorialData]
         public void KeyValuePairConversions_CustomType(
@@ -3088,6 +3085,534 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (9,30): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
                 //         Params<int?, object>(x);
                 Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(9, 30));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void KeyValuePairConversions_AddObject(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            bool useDynamic)
+        {
+            string parameterType = useDynamic ? "dynamic" : "object";
+            string sourceA = $$"""
+                using System.Collections;
+                using System.Collections.Generic;
+                public class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _items;
+                    public MyCollection() { _items = new(); }
+                    public void Add({{parameterType}} o) { _items.Add((T)o); }
+                    public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                """;
+            var comp = CreateCompilation(sourceA,
+                targetFramework: TargetFramework.Net80);
+            var refA = comp.EmitToImageReference();
+
+            string sourceB1 = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        int k = 1;
+                        string v = "one";
+                        var x = new KeyValuePair<int, string>(2, "two");
+                        var y = new[] { new KeyValuePair<int, string>(3, "three") };
+                        Many1(k, v, x, y).Report();
+                        Many2(k, v, x, y).Report();
+                    }
+                    static MyCollection<KeyValuePair<int, string>> Many1(int k1, string v1, KeyValuePair<int, string> x1, KeyValuePair<int, string>[] y1)
+                    {
+                        return [k1:v1, x1, ..y1];
+                    }
+                    static MyCollection<KeyValuePair<int?, object>> Many2(int k2, string v2, KeyValuePair<int, string> x2, KeyValuePair<int, string>[] y2)
+                    {
+                        return [k2:v2, x2, ..y2];
+                    }
+                }
+                """;
+            comp = CreateCompilation(
+                [sourceB1, s_collectionExtensions],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                references: [refA],
+                options: TestOptions.ReleaseExe,
+                targetFramework: TargetFramework.Net80);
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (15,17): error CS9500: Collection expression type 'MyCollection<KeyValuePair<int, string>>' does not support key-value pair elements.
+                    //         return [k1:v1, x1, ..y1];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "k1:v1").WithArguments("MyCollection<System.Collections.Generic.KeyValuePair<int, string>>").WithLocation(15, 17),
+                    // (15,19): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return [k1:v1, x1, ..y1];
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, ":").WithArguments("dictionary expressions").WithLocation(15, 19),
+                    // (19,17): error CS9500: Collection expression type 'MyCollection<KeyValuePair<int?, object>>' does not support key-value pair elements.
+                    //         return [k2:v2, x2, ..y2];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "k2:v2").WithArguments("MyCollection<System.Collections.Generic.KeyValuePair<int?, object>>").WithLocation(19, 17),
+                    // (19,19): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return [k2:v2, x2, ..y2];
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, ":").WithArguments("dictionary expressions").WithLocation(19, 19),
+                    // (19,24): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
+                    //         return [k2:v2, x2, ..y2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "x2").WithArguments("System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(19, 24),
+                    // (19,30): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
+                    //         return [k2:v2, x2, ..y2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "y2").WithArguments("System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(19, 30));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(
+                    comp,
+                    verify: Verification.Skipped,
+                    expectedOutput: IncludeExpectedOutput("[[1, one], [2, two], [3, three]], [[1, one], [2, two], [3, three]], "));
+                verifier.VerifyDiagnostics();
+                verifier.VerifyIL("Program.Many2", $$"""
+                    {
+                      // Code size      130 (0x82)
+                      .maxstack  3
+                      .locals init (MyCollection<System.Collections.Generic.KeyValuePair<int?, object>> V_0,
+                                    System.Collections.Generic.KeyValuePair<int, string> V_1,
+                                    System.Collections.Generic.KeyValuePair<int, string>[] V_2,
+                                    int V_3,
+                                    System.Collections.Generic.KeyValuePair<int, string> V_4)
+                      IL_0000:  newobj     "MyCollection<System.Collections.Generic.KeyValuePair<int?, object>>..ctor()"
+                      IL_0005:  stloc.0
+                      IL_0006:  ldloc.0
+                      IL_0007:  ldarg.0
+                      IL_0008:  newobj     "int?..ctor(int)"
+                      IL_000d:  ldarg.1
+                      IL_000e:  newobj     "System.Collections.Generic.KeyValuePair<int?, object>..ctor(int?, object)"
+                      IL_0013:  box        "System.Collections.Generic.KeyValuePair<int?, object>"
+                      IL_0018:  callvirt   "void MyCollection<System.Collections.Generic.KeyValuePair<int?, object>>.Add({{parameterType}})"
+                      IL_001d:  ldloc.0
+                      IL_001e:  ldarg.2
+                      IL_001f:  stloc.1
+                      IL_0020:  ldloca.s   V_1
+                      IL_0022:  call       "int System.Collections.Generic.KeyValuePair<int, string>.Key.get"
+                      IL_0027:  newobj     "int?..ctor(int)"
+                      IL_002c:  ldloca.s   V_1
+                      IL_002e:  call       "string System.Collections.Generic.KeyValuePair<int, string>.Value.get"
+                      IL_0033:  newobj     "System.Collections.Generic.KeyValuePair<int?, object>..ctor(int?, object)"
+                      IL_0038:  box        "System.Collections.Generic.KeyValuePair<int?, object>"
+                      IL_003d:  callvirt   "void MyCollection<System.Collections.Generic.KeyValuePair<int?, object>>.Add({{parameterType}})"
+                      IL_0042:  ldarg.3
+                      IL_0043:  stloc.2
+                      IL_0044:  ldc.i4.0
+                      IL_0045:  stloc.3
+                      IL_0046:  br.s       IL_007a
+                      IL_0048:  ldloc.2
+                      IL_0049:  ldloc.3
+                      IL_004a:  ldelem     "System.Collections.Generic.KeyValuePair<int, string>"
+                      IL_004f:  stloc.1
+                      IL_0050:  ldloc.0
+                      IL_0051:  ldloc.1
+                      IL_0052:  stloc.s    V_4
+                      IL_0054:  ldloca.s   V_4
+                      IL_0056:  call       "int System.Collections.Generic.KeyValuePair<int, string>.Key.get"
+                      IL_005b:  newobj     "int?..ctor(int)"
+                      IL_0060:  ldloca.s   V_4
+                      IL_0062:  call       "string System.Collections.Generic.KeyValuePair<int, string>.Value.get"
+                      IL_0067:  newobj     "System.Collections.Generic.KeyValuePair<int?, object>..ctor(int?, object)"
+                      IL_006c:  box        "System.Collections.Generic.KeyValuePair<int?, object>"
+                      IL_0071:  callvirt   "void MyCollection<System.Collections.Generic.KeyValuePair<int?, object>>.Add({{parameterType}})"
+                      IL_0076:  ldloc.3
+                      IL_0077:  ldc.i4.1
+                      IL_0078:  add
+                      IL_0079:  stloc.3
+                      IL_007a:  ldloc.3
+                      IL_007b:  ldloc.2
+                      IL_007c:  ldlen
+                      IL_007d:  conv.i4
+                      IL_007e:  blt.s      IL_0048
+                      IL_0080:  ldloc.0
+                      IL_0081:  ret
+                    }
+                    """);
+            }
+
+            string sourceB2 = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = new KeyValuePair<int, string>(2, "two");
+                        Params<int, string>();
+                        Params<int?, object>();
+                        Params<int, string>(x);
+                        Params<int?, object>(x);
+                    }
+                    static MyCollection<KeyValuePair<K, V>> Params<K, V>(params MyCollection<KeyValuePair<K, V>> args) => args;
+                }
+                """;
+            comp = CreateCompilation(
+                sourceB2,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                references: [refA],
+                options: TestOptions.ReleaseExe,
+                targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (10,30): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
+                //         Params<int?, object>(x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(10, 30));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void KeyValuePairConversions_AddUserDefinedConversion(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                public struct MyPair<K, V>
+                {
+                    public readonly K Key;
+                    public readonly V Value;
+                    public MyPair(K key, V value) { Key = key; Value = value; }
+                    public static implicit operator MyPair<K, V>(KeyValuePair<K, V> kvp) => new(kvp.Key, kvp.Value);
+                }
+                public class MyCollection<K, V> : IEnumerable<KeyValuePair<K, V>>
+                {
+                    private readonly List<KeyValuePair<K, V>> _items;
+                    public MyCollection() { _items = new(); }
+                    public void Add(MyPair<K, V> pair) { _items.Add(new(pair.Key, pair.Value)); }
+                    public IEnumerator<KeyValuePair<K, V>> GetEnumerator() => _items.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                """;
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            string sourceB1 = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        int k = 1;
+                        string v = "one";
+                        var x = new KeyValuePair<int, string>(2, "two");
+                        var y = new[] { new KeyValuePair<int, string>(3, "three") };
+                        Many1(k, v, x, y).Report();
+                        Many2(k, v, x, y).Report();
+                    }
+                    static MyCollection<int, string> Many1(int k1, string v1, KeyValuePair<int, string> x1, KeyValuePair<int, string>[] y1)
+                    {
+                        return [k1:v1, x1, ..y1];
+                    }
+                    static MyCollection<int?, object> Many2(int k2, string v2, KeyValuePair<int, string> x2, KeyValuePair<int, string>[] y2)
+                    {
+                        return [k2:v2, x2, ..y2];
+                    }
+                }
+                """;
+            comp = CreateCompilation(
+                [sourceB1, s_collectionExtensions],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                references: [refA],
+                options: TestOptions.ReleaseExe);
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (15,17): error CS9500: Collection expression type 'MyCollection<int, string>' does not support key-value pair elements.
+                    //         return [k1:v1, x1, ..y1];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "k1:v1").WithArguments("MyCollection<int, string>").WithLocation(15, 17),
+                    // (15,19): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return [k1:v1, x1, ..y1];
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, ":").WithArguments("dictionary expressions").WithLocation(15, 19),
+                    // (19,17): error CS9500: Collection expression type 'MyCollection<int?, object>' does not support key-value pair elements.
+                    //         return [k2:v2, x2, ..y2];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "k2:v2").WithArguments("MyCollection<int?, object>").WithLocation(19, 17),
+                    // (19,19): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return [k2:v2, x2, ..y2];
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, ":").WithArguments("dictionary expressions").WithLocation(19, 19),
+                    // (19,24): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
+                    //         return [k2:v2, x2, ..y2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "x2").WithArguments("System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(19, 24),
+                    // (19,30): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
+                    //         return [k2:v2, x2, ..y2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "y2").WithArguments("System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(19, 30));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(comp, expectedOutput: "[[1, one], [2, two], [3, three]], [[1, one], [2, two], [3, three]], ");
+                verifier.VerifyDiagnostics();
+                verifier.VerifyIL("Program.Many2", """
+                    {
+                      // Code size      130 (0x82)
+                      .maxstack  3
+                      .locals init (MyCollection<int?, object> V_0,
+                                    System.Collections.Generic.KeyValuePair<int, string> V_1,
+                                    System.Collections.Generic.KeyValuePair<int, string>[] V_2,
+                                    int V_3,
+                                    System.Collections.Generic.KeyValuePair<int, string> V_4)
+                      IL_0000:  newobj     "MyCollection<int?, object>..ctor()"
+                      IL_0005:  stloc.0
+                      IL_0006:  ldloc.0
+                      IL_0007:  ldarg.0
+                      IL_0008:  newobj     "int?..ctor(int)"
+                      IL_000d:  ldarg.1
+                      IL_000e:  newobj     "System.Collections.Generic.KeyValuePair<int?, object>..ctor(int?, object)"
+                      IL_0013:  call       "MyPair<int?, object> MyPair<int?, object>.op_Implicit(System.Collections.Generic.KeyValuePair<int?, object>)"
+                      IL_0018:  callvirt   "void MyCollection<int?, object>.Add(MyPair<int?, object>)"
+                      IL_001d:  ldloc.0
+                      IL_001e:  ldarg.2
+                      IL_001f:  stloc.1
+                      IL_0020:  ldloca.s   V_1
+                      IL_0022:  call       "int System.Collections.Generic.KeyValuePair<int, string>.Key.get"
+                      IL_0027:  newobj     "int?..ctor(int)"
+                      IL_002c:  ldloca.s   V_1
+                      IL_002e:  call       "string System.Collections.Generic.KeyValuePair<int, string>.Value.get"
+                      IL_0033:  newobj     "System.Collections.Generic.KeyValuePair<int?, object>..ctor(int?, object)"
+                      IL_0038:  call       "MyPair<int?, object> MyPair<int?, object>.op_Implicit(System.Collections.Generic.KeyValuePair<int?, object>)"
+                      IL_003d:  callvirt   "void MyCollection<int?, object>.Add(MyPair<int?, object>)"
+                      IL_0042:  ldarg.3
+                      IL_0043:  stloc.2
+                      IL_0044:  ldc.i4.0
+                      IL_0045:  stloc.3
+                      IL_0046:  br.s       IL_007a
+                      IL_0048:  ldloc.2
+                      IL_0049:  ldloc.3
+                      IL_004a:  ldelem     "System.Collections.Generic.KeyValuePair<int, string>"
+                      IL_004f:  stloc.1
+                      IL_0050:  ldloc.0
+                      IL_0051:  ldloc.1
+                      IL_0052:  stloc.s    V_4
+                      IL_0054:  ldloca.s   V_4
+                      IL_0056:  call       "int System.Collections.Generic.KeyValuePair<int, string>.Key.get"
+                      IL_005b:  newobj     "int?..ctor(int)"
+                      IL_0060:  ldloca.s   V_4
+                      IL_0062:  call       "string System.Collections.Generic.KeyValuePair<int, string>.Value.get"
+                      IL_0067:  newobj     "System.Collections.Generic.KeyValuePair<int?, object>..ctor(int?, object)"
+                      IL_006c:  call       "MyPair<int?, object> MyPair<int?, object>.op_Implicit(System.Collections.Generic.KeyValuePair<int?, object>)"
+                      IL_0071:  callvirt   "void MyCollection<int?, object>.Add(MyPair<int?, object>)"
+                      IL_0076:  ldloc.3
+                      IL_0077:  ldc.i4.1
+                      IL_0078:  add
+                      IL_0079:  stloc.3
+                      IL_007a:  ldloc.3
+                      IL_007b:  ldloc.2
+                      IL_007c:  ldlen
+                      IL_007d:  conv.i4
+                      IL_007e:  blt.s      IL_0048
+                      IL_0080:  ldloc.0
+                      IL_0081:  ret
+                    }
+                    """);
+            }
+
+            string sourceB2 = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = new KeyValuePair<int, string>(2, "two");
+                        Params<int, string>();
+                        Params<int?, object>();
+                        Params<int, string>(x);
+                        Params<int?, object>(x);
+                    }
+                    static MyCollection<K, V> Params<K, V>(params MyCollection<K, V> args) => args;
+                }
+                """;
+            comp = CreateCompilation(
+                sourceB2,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                references: [refA],
+                options: TestOptions.ReleaseExe);
+            comp.VerifyEmitDiagnostics(
+                // (10,30): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
+                //         Params<int?, object>(x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(10, 30));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void KeyValuePairConversions_AddOverloads(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            bool includeAddT)
+        {
+            string sourceA = $$"""
+                using System.Collections;
+                using System.Collections.Generic;
+                public class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _items;
+                    public MyCollection() { _items = new(); }
+                    {{(includeAddT ? "public void Add(T t) { _items.Add(t); }" : "")}}
+                    public void Add(KeyValuePair<int, string> kvp) { _items.Add((T)(object)kvp); }
+                    public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                """;
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            string sourceB1 = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        int k = 1;
+                        string v = "one";
+                        var x = new KeyValuePair<int, string>(2, "two");
+                        var y = new[] { new KeyValuePair<int, string>(3, "three") };
+                        Many1(k, v, x, y).Report();
+                        Many2(k, v, x, y).Report();
+                    }
+                    static MyCollection<KeyValuePair<int, string>> Many1(int k1, string v1, KeyValuePair<int, string> x1, KeyValuePair<int, string>[] y1)
+                    {
+                        return [k1:v1, x1, ..y1];
+                    }
+                    static MyCollection<KeyValuePair<int?, object>> Many2(int k2, string v2, KeyValuePair<int, string> x2, KeyValuePair<int, string>[] y2)
+                    {
+                        return [k2:v2, x2, ..y2];
+                    }
+                }
+                """;
+            comp = CreateCompilation(
+                [sourceB1, s_collectionExtensions],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                references: [refA],
+                options: TestOptions.ReleaseExe);
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (15,17): error CS9500: Collection expression type 'MyCollection<KeyValuePair<int, string>>' does not support key-value pair elements.
+                    //         return [k1:v1, x1, ..y1];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "k1:v1").WithArguments("MyCollection<System.Collections.Generic.KeyValuePair<int, string>>").WithLocation(15, 17),
+                    // (15,19): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return [k1:v1, x1, ..y1];
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, ":").WithArguments("dictionary expressions").WithLocation(15, 19),
+                    // (19,17): error CS9500: Collection expression type 'MyCollection<KeyValuePair<int?, object>>' does not support key-value pair elements.
+                    //         return [k2:v2, x2, ..y2];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "k2:v2").WithArguments("MyCollection<System.Collections.Generic.KeyValuePair<int?, object>>").WithLocation(19, 17),
+                    // (19,19): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return [k2:v2, x2, ..y2];
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, ":").WithArguments("dictionary expressions").WithLocation(19, 19),
+                    // (19,24): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
+                    //         return [k2:v2, x2, ..y2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "x2").WithArguments("System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(19, 24),
+                    // (19,30): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
+                    //         return [k2:v2, x2, ..y2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "y2").WithArguments("System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(19, 30));
+            }
+            else if (!includeAddT)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (19,17): error CS1950: The best overloaded Add method 'MyCollection<KeyValuePair<int?, object>>.Add(KeyValuePair<int, string>)' for the collection initializer has some invalid arguments
+                    //         return [k2:v2, x2, ..y2];
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "k2:v2").WithArguments("MyCollection<System.Collections.Generic.KeyValuePair<int?, object>>.Add(System.Collections.Generic.KeyValuePair<int, string>)").WithLocation(19, 17),
+                    // (19,17): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.KeyValuePair<int?, object>' to 'System.Collections.Generic.KeyValuePair<int, string>'
+                    //         return [k2:v2, x2, ..y2];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "k2:v2").WithArguments("1", "System.Collections.Generic.KeyValuePair<int?, object>", "System.Collections.Generic.KeyValuePair<int, string>").WithLocation(19, 17),
+                    // (19,24): error CS1950: The best overloaded Add method 'MyCollection<KeyValuePair<int?, object>>.Add(KeyValuePair<int, string>)' for the collection initializer has some invalid arguments
+                    //         return [k2:v2, x2, ..y2];
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "x2").WithArguments("MyCollection<System.Collections.Generic.KeyValuePair<int?, object>>.Add(System.Collections.Generic.KeyValuePair<int, string>)").WithLocation(19, 24),
+                    // (19,24): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.KeyValuePair<int?, object>' to 'System.Collections.Generic.KeyValuePair<int, string>'
+                    //         return [k2:v2, x2, ..y2];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "x2").WithArguments("1", "System.Collections.Generic.KeyValuePair<int?, object>", "System.Collections.Generic.KeyValuePair<int, string>").WithLocation(19, 24),
+                    // (19,30): error CS1950: The best overloaded Add method 'MyCollection<KeyValuePair<int?, object>>.Add(KeyValuePair<int, string>)' for the collection initializer has some invalid arguments
+                    //         return [k2:v2, x2, ..y2];
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "y2").WithArguments("MyCollection<System.Collections.Generic.KeyValuePair<int?, object>>.Add(System.Collections.Generic.KeyValuePair<int, string>)").WithLocation(19, 30),
+                    // (19,30): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.KeyValuePair<int?, object>' to 'System.Collections.Generic.KeyValuePair<int, string>'
+                    //         return [k2:v2, x2, ..y2];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "y2").WithArguments("1", "System.Collections.Generic.KeyValuePair<int?, object>", "System.Collections.Generic.KeyValuePair<int, string>").WithLocation(19, 30));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(comp, expectedOutput: "[[1, one], [2, two], [3, three]], [[1, one], [2, two], [3, three]], ");
+                verifier.VerifyDiagnostics();
+                verifier.VerifyIL("Program.Many2", """
+                    {
+                      // Code size      115 (0x73)
+                      .maxstack  3
+                      .locals init (MyCollection<System.Collections.Generic.KeyValuePair<int?, object>> V_0,
+                                    System.Collections.Generic.KeyValuePair<int, string> V_1,
+                                    System.Collections.Generic.KeyValuePair<int, string>[] V_2,
+                                    int V_3,
+                                    System.Collections.Generic.KeyValuePair<int, string> V_4)
+                      IL_0000:  newobj     "MyCollection<System.Collections.Generic.KeyValuePair<int?, object>>..ctor()"
+                      IL_0005:  stloc.0
+                      IL_0006:  ldloc.0
+                      IL_0007:  ldarg.0
+                      IL_0008:  newobj     "int?..ctor(int)"
+                      IL_000d:  ldarg.1
+                      IL_000e:  newobj     "System.Collections.Generic.KeyValuePair<int?, object>..ctor(int?, object)"
+                      IL_0013:  callvirt   "void MyCollection<System.Collections.Generic.KeyValuePair<int?, object>>.Add(System.Collections.Generic.KeyValuePair<int?, object>)"
+                      IL_0018:  ldloc.0
+                      IL_0019:  ldarg.2
+                      IL_001a:  stloc.1
+                      IL_001b:  ldloca.s   V_1
+                      IL_001d:  call       "int System.Collections.Generic.KeyValuePair<int, string>.Key.get"
+                      IL_0022:  newobj     "int?..ctor(int)"
+                      IL_0027:  ldloca.s   V_1
+                      IL_0029:  call       "string System.Collections.Generic.KeyValuePair<int, string>.Value.get"
+                      IL_002e:  newobj     "System.Collections.Generic.KeyValuePair<int?, object>..ctor(int?, object)"
+                      IL_0033:  callvirt   "void MyCollection<System.Collections.Generic.KeyValuePair<int?, object>>.Add(System.Collections.Generic.KeyValuePair<int?, object>)"
+                      IL_0038:  ldarg.3
+                      IL_0039:  stloc.2
+                      IL_003a:  ldc.i4.0
+                      IL_003b:  stloc.3
+                      IL_003c:  br.s       IL_006b
+                      IL_003e:  ldloc.2
+                      IL_003f:  ldloc.3
+                      IL_0040:  ldelem     "System.Collections.Generic.KeyValuePair<int, string>"
+                      IL_0045:  stloc.1
+                      IL_0046:  ldloc.0
+                      IL_0047:  ldloc.1
+                      IL_0048:  stloc.s    V_4
+                      IL_004a:  ldloca.s   V_4
+                      IL_004c:  call       "int System.Collections.Generic.KeyValuePair<int, string>.Key.get"
+                      IL_0051:  newobj     "int?..ctor(int)"
+                      IL_0056:  ldloca.s   V_4
+                      IL_0058:  call       "string System.Collections.Generic.KeyValuePair<int, string>.Value.get"
+                      IL_005d:  newobj     "System.Collections.Generic.KeyValuePair<int?, object>..ctor(int?, object)"
+                      IL_0062:  callvirt   "void MyCollection<System.Collections.Generic.KeyValuePair<int?, object>>.Add(System.Collections.Generic.KeyValuePair<int?, object>)"
+                      IL_0067:  ldloc.3
+                      IL_0068:  ldc.i4.1
+                      IL_0069:  add
+                      IL_006a:  stloc.3
+                      IL_006b:  ldloc.3
+                      IL_006c:  ldloc.2
+                      IL_006d:  ldlen
+                      IL_006e:  conv.i4
+                      IL_006f:  blt.s      IL_003e
+                      IL_0071:  ldloc.0
+                      IL_0072:  ret
+                    }
+                    """);
+            }
+
+            string sourceB2 = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = new KeyValuePair<int, string>(2, "two");
+                        Params<int, string>();
+                        Params<int?, object>();
+                        Params<int, string>(x);
+                        Params<int?, object>(x);
+                    }
+                    static MyCollection<KeyValuePair<K, V>> Params<K, V>(params MyCollection<KeyValuePair<K, V>> args) => args;
+                }
+                """;
+            comp = CreateCompilation(
+                sourceB2,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                references: [refA],
+                options: TestOptions.ReleaseExe);
+            comp.VerifyEmitDiagnostics(
+                // (10,30): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<int?, object>'
+                //         Params<int?, object>(x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int?, object>").WithLocation(10, 30));
         }
 
         [Theory]

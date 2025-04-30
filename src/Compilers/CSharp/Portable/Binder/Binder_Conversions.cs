@@ -1111,7 +1111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         convertedElement = BindCollectionExpressionSpreadElement(
                             (SpreadElementSyntax)spreadElement.Syntax,
                             spreadElement,
-                            implicitReceiver!, // PROTOTYPE: We don't always need an implicit receiver here, and in fact it can be null.
+                            implicitReceiver,
                             static (binder, syntax, item, implicitReceiver, arg, diagnostics) =>
                             {
                                 // PROTOTYPE: This implementation is almost identical to the BoundExpression case above. The code should be shared.
