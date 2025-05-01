@@ -1,14 +1,23 @@
 parameters:
-  initArgs:
+- name: initArgs
+  type: string
+  default: ''
+- name: needsAzurePublicFeeds
+  type: boolean
+  default: true # If nuget.config pulls from the azure-public account, we need to authenticate when building on the devdiv account.
 
 steps:
+- ${{ if and(parameters.needsAzurePublicFeeds, eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9')) }}:
+  - template: WIFtoPATauth.yml
+    parameters:
+      wifServiceConnectionName: azure-public/vside package pull
+      deadPATServiceConnectionId: 0ae39abc-4d06-4436-a7b5-865833df49db # azure-public/msft_consumption
 
-#- task: NuGetAuthenticate@1
-#  displayName: 🔏 Authenticate NuGet feeds
-#  inputs:
-#    ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
-#      nuGetServiceConnections: azure-public/msft_consumption
-#    forceReinstallCredentialProvider: true
+- task: NuGetAuthenticate@1
+  displayName: 🔏 Authenticate NuGet feeds
+  inputs:
+    ${{ if and(parameters.needsAzurePublicFeeds, eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9')) }}:
+      nuGetServiceConnections: azure-public/msft_consumption
 
 - powershell: |
     $AccessToken = '$(System.AccessToken)' # Avoid specifying the access token directly on the init.ps1 command line to avoid it showing up in errors
@@ -21,7 +30,7 @@ steps:
     }
   displayName: ⚙ Install prerequisites
 
-- powershell: azure-pipelines/variables/_pipelines.ps1
+- powershell: tools/variables/_define.ps1
   failOnStderr: true
   displayName: ⚙ Set pipeline variables based on source
   name: SetPipelineVariables

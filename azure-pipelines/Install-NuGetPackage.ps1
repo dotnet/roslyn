@@ -33,7 +33,7 @@ Param(
     [string]$Verbosity='normal'
 )
 
-$nugetPath = & "$PSScriptRoot\Get-NuGetTool.ps1"
+$nugetPath = & "$PSScriptRoot\..\tools\Get-NuGetTool.ps1"
 
 try {
     Write-Verbose "Installing $PackageId..."
@@ -45,7 +45,7 @@ try {
 
     if ($PSCmdlet.ShouldProcess($PackageId, 'nuget install')) {
         $p = Start-Process $nugetPath $nugetArgs -NoNewWindow -Wait -PassThru
-        if ($p.ExitCode -ne 0) { throw }
+        if ($null -ne $p.ExitCode -and $p.ExitCode -ne 0) { throw }
     }
 
     # Provide the path to the installed package directory to our caller.

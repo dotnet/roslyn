@@ -1,0 +1,19 @@
+{
+  "tsaVersion": "TsaV2",
+  "codebase": "NewOrUpdate",
+  "codebaseName": "LibraryName",
+  "tsaStamp": "DevDiv",
+  "tsaEnvironment": "PROD",
+  "notificationAliases": [
+     "vsidemicrobuild@microsoft.com"
+  ],
+  "codebaseAdmins": [
+      "REDMOND\\andarno"
+  ],
+  "instanceUrl": "https://devdiv.visualstudio.com",
+  "projectName": "DevDiv",
+  "areaPath": "DevDiv\\VS Core",
+  "iterationPath": "DevDiv",
+  "alltools": true,
+  "repositoryName": "Library.Template"
+}

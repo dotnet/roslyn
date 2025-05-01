@@ -1,0 +1,61 @@
+parameters:
+- name: windowsPool
+  type: object
+- name: RealSign
+  type: boolean
+
+jobs:
+- job: apiscan
+  displayName: APIScan
+  dependsOn: Windows
+  pool: ${{ parameters.windowsPool }}
+  timeoutInMinutes: 120
+  templateContext:
+    ${{ if not(parameters.RealSign) }}:
+      mb:
+        signing: # if the build is test-signed, install the signing plugin so that CSVTestSignPolicy.xml is available
+          enabled: true
+          zipSources: false
+          signType: test
+    outputs:
+    - output: pipelineArtifact
+      displayName: 📢 collect apiscan artifact
+      targetPath: $(Pipeline.Workspace)/.gdn/.r/apiscan/001/Logs
+      artifactName: apiscan-logs
+      condition: succeededOrFailed()
+  variables:
+  - name: SymbolsFeatureName
+    value: $[ dependencies.Windows.outputs['SetPipelineVariables.SymbolsFeatureName'] ]
+  - name: NBGV_MajorMinorVersion
+    value: $[ dependencies.Windows.outputs['nbgv.NBGV_MajorMinorVersion'] ]
+  - ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
+    # https://dev.azure.com/devdiv/DevDiv/_wiki/wikis/DevDiv.wiki/25351/APIScan-step-by-step-guide-to-setting-up-a-Pipeline
+    - group: VSEng sponsored APIScan # Expected to provide ApiScanClientId
+  steps:
+    # We need TSAOptions.json
+  - checkout: self
+    fetchDepth: 1
+
+  - download: current
+    artifact: APIScanInputs
+    displayName: 🔻 Download APIScanInputs artifact
+
+  - task: APIScan@2
+    displayName: 🔍 Run APIScan
+    inputs:
+      softwareFolder: $(Pipeline.Workspace)/APIScanInputs
+      softwareName: $(SymbolsFeatureName)
+      softwareVersionNum: $(NBGV_MajorMinorVersion)
+      isLargeApp: false
+      toolVersion: Latest
+      preserveLogsFolder: true
+    env:
+      AzureServicesAuthConnectionString: runAs=App;AppId=$(ApiScanClientId)
+
+  # File bugs when APIScan finds issues
+  - task: TSAUpload@2
+    displayName: 🪳 TSA upload
+    inputs:
+      GdnPublishTsaOnboard: True
+      GdnPublishTsaConfigFile: $(Build.SourcesDirectory)\azure-pipelines\TSAOptions.json
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))

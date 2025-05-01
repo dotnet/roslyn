@@ -2,57 +2,81 @@ parameters:
 - name: ArchiveSymbols
   type: boolean
   default: true
+- name: RealSign
+  displayName: Real sign?
+  type: boolean
+- name: PackagePush
+  type: boolean
+  default: false # Switch to true to enable the push job below
 
 stages:
-- stage: release
-  displayName: Publish
-  condition: and(succeeded(), eq(dependencies.Build.outputs['Windows.SetPipelineVariables.SignType'], 'Real'))
-  jobs:
-  - ${{ if parameters.ArchiveSymbols }}:
-    - job: symbol_archive
-      displayName: Archive symbols
-      pool: VSEngSS-MicroBuild2022-1ES
-      steps:
-      - checkout: none
-      - download: current
-        artifact: Variables-Windows
-        displayName: 🔻 Download Variables-Windows artifact
-      - powershell: $(Pipeline.Workspace)/Variables-Windows/_pipelines.ps1
-        displayName: ⚙️ Set pipeline variables based on artifacts
-      - download: current
-        artifact: symbols-legacy
-        displayName: 🔻 Download symbols-legacy artifact
-      - task: MicroBuildArchiveSymbols@4
-        displayName: 🔣 Archive symbols to Symweb
-        inputs:
-          SymbolsFeatureName: $(SymbolsFeatureName)
-          SymbolsProject: VS
-          SymbolsAgentPath: $(Pipeline.Workspace)/symbols-legacy
-          azureSubscription: Symbols Upload (DevDiv)
-      - task: MicroBuildCleanup@1
-        displayName: ☎️ Send Telemetry
+- ${{ if or(parameters.ArchiveSymbols, parameters.PackagePush) }}:
+  - stage: release
+    displayName: Publish
+    jobs:
+    - ${{ if parameters.ArchiveSymbols }}:
+      - job: symbol_archive
+        displayName: Archive symbols
+        pool: VSEngSS-MicroBuild2022-1ES
+        variables:
+          ONEES_ENFORCED_CODEQL_ENABLED: false # CodeQL runs on build stages, we don't need it here
+        steps:
+        - checkout: none
+        - download: current
+          artifact: Variables-Windows
+          displayName: 🔻 Download Variables-Windows artifact
+        - powershell: $(Pipeline.Workspace)/Variables-Windows/_define.ps1
+          displayName: ⚙️ Set pipeline variables based on artifacts
+        - download: current
+          artifact: symbols-legacy
+          displayName: 🔻 Download symbols-legacy artifact
+        - task: MicroBuildArchiveSymbols@5
+          displayName: 🔣 Archive symbols to Symweb
+          inputs:
+            SymbolsFeatureName: $(SymbolsFeatureName)
+            SymbolsProject: VS
+            SymbolsAgentPath: $(Pipeline.Workspace)/symbols-legacy
 
-  # - job: push
-  #   displayName: azure-public/vs-impl feed
-  #   ${{ if parameters.ArchiveSymbols }}:
-  #     dependsOn: symbol_archive
-  #   pool:
-  #     name: AzurePipelines-EO
-  #     vmImage: AzurePipelinesUbuntu20.04compliant
-  #   steps:
-  #   - checkout: none
-  #   - download: current
-  #     artifact: deployables-Windows
-  #     displayName: 🔻 Download deployables-Windows artifact
-  #   - task: UseDotNet@2
-  #     displayName: ⚙️ Install .NET SDK
-  #     inputs:
-  #       packageType: sdk
-  #       version: 6.x
-  #   - task: NuGetAuthenticate@1
-  #     displayName: 🔏 Authenticate NuGet feeds
-  #     inputs:
-  #       nuGetServiceConnections: azure-public/vs-impl
-  #       forceReinstallCredentialProvider: true
-  #   - script: dotnet nuget push $(Pipeline.Workspace)/deployables-Windows/NuGet/*.nupkg -s https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-impl/nuget/v3/index.json --api-key azdo --skip-duplicate
-  #     displayName: 📦 Push nuget packages
+    - ${{ if parameters.PackagePush }}:
+      - job: push
+        ${{ if parameters.RealSign }}:
+          displayName: azure-public/vs-impl feed
+        ${{ else }}:
+          displayName: devdiv/vs-impl feed # Leave this as-is, since non-signed builds must not be pushed to public feeds.
+        ${{ if parameters.ArchiveSymbols }}:
+          dependsOn: symbol_archive
+        pool:
+          name: AzurePipelines-EO
+          demands:
+          - ImageOverride -equals 1ESPT-Ubuntu22.04
+          os: Linux
+        templateContext:
+          outputs:
+          - output: nuget
+            displayName: 📦 Push nuget packages
+            packagesToPush: '$(Pipeline.Workspace)/deployables-Windows/NuGet/*.nupkg'
+            packageParentPath: $(Pipeline.Workspace)/deployables-Windows/NuGet
+            allowPackageConflicts: true
+            ${{ if parameters.RealSign }}:
+              nuGetFeedType: external
+              publishFeedCredentials: azure-public/vs-impl
+            ${{ else }}:
+              nuGetFeedType: internal
+              publishVstsFeed: vs-impl # Leave this as-is, since non-signed builds must not be pushed to public feeds.
+        variables:
+          ONEES_ENFORCED_CODEQL_ENABLED: false # CodeQL runs on build stages, we don't need it here
+        steps:
+        - checkout: none
+        - download: current
+          artifact: Variables-Windows
+          displayName: 🔻 Download Variables-Windows artifact
+        - powershell: $(Pipeline.Workspace)/Variables-Windows/_define.ps1
+          displayName: ⚙️ Set pipeline variables based on artifacts
+        - download: current
+          artifact: deployables-Windows
+          displayName: 🔻 Download deployables-Windows artifact
+        - ${{ if parameters.RealSign }}:
+          - template: WIFtoPATauth.yml
+            parameters:
+              wifServiceConnectionName: azure-public/vside package push
+              deadPATServiceConnectionId: 207efd62-fd0f-43e7-aeae-17c4febcc660 # azure-public/vs-impl

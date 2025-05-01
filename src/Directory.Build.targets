@@ -1,6 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
 <Project>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)AssemblyInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AssemblyInfo.cs" Condition=" '$(Language)'=='C#' " />
+    <Compile Include="$(MSBuildThisFileDirectory)AssemblyInfo.vb" Condition=" '$(Language)'=='VB' " />
   </ItemGroup>
 
   <Import Project="$([MSBuild]::GetPathOfFileAbove($(MSBuildThisFile), $(MSBuildThisFileDirectory)..))" />

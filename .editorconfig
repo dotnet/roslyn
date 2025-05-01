@@ -28,6 +28,7 @@ indent_size = 2
 # Xml config files
 [*.{ruleset,config,nuspec,resx,vsixmanifest,vsct,runsettings}]
 indent_size = 2
+indent_style = space
 
 # JSON files
 [*.json]
@@ -42,6 +43,7 @@ indent_size = 4
 [*.{cs,vb}]
 # Sort using and Import directives with System.* appearing first
 dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
 dotnet_style_qualification_for_field = false:warning
 dotnet_style_qualification_for_property = false:warning
 dotnet_style_qualification_for_method = false:warning
@@ -188,6 +190,9 @@ dotnet_diagnostic.DOC202.severity = warning
 
 # CA1062: Validate arguments of public methods
 dotnet_diagnostic.CA1062.severity = warning
+
+# CA2016: Forward the CancellationToken parameter
+dotnet_diagnostic.CA2016.severity = warning
 
 [*.sln]
 indent_style = tab

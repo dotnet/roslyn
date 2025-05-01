@@ -1,30 +1,160 @@
 parameters:
+##### The following parameters are not set by other YAML files that import this one,
+##### but we use parameters because they support rich types and defaults.
+##### Feel free to adjust their default value as needed.
+
+# Whether this repo uses OptProf to optimize the built binaries.
+# When enabling this, be sure to update these files:
+# - OptProf.targets: InstallationPath and match TestCase selection with what's in the VS repo.
+# - The project file(s) for the libraries to optimize must import OptProf.targets (for multi-targeted projects, only import it for ONE target).
+# - OptProf.yml: Search for LibraryName (or your library's name) and verify that those names are appropriate.
+# - OptProf_part2.yml: Search for LibraryName (or your library's name) and verify that those names are appropriate.
+# and create pipelines for OptProf.yml, OptProf_part2.yml
+- name: EnableOptProf
+  type: boolean
+  default: false
+# Whether this repo is localized.
+- name: EnableLocalization
+  type: boolean
+  default: false
+# Whether to run `dotnet format` as part of the build to ensure code style consistency.
+# This is just one of a a few mechanisms to enforce code style consistency.
+- name: EnableDotNetFormatCheck
+  type: boolean
+  default: true
+# This lists the names of the artifacts that will be published *from every OS build agent*.
+# Any new tools/artifacts/*.ps1 script needs to be added to this list.
+# If an artifact is only generated or collected on one OS, it should NOT be listed here,
+# but should be manually added to the `outputs:` field in the appropriate OS job.
+- name: artifact_names
+  type: object
+  default:
+    - build_logs
+    - coverageResults
+    - deployables
+    - projectAssetsJson
+    - symbols
+    - testResults
+    - test_symbols
+    - Variables
+
+##### 👆🏼 You MAY change the defaults above.
+##### 👇🏼 You should NOT change the defaults below.
+
+##### The following parameters are expected to be set by other YAML files that import this one.
+##### Those without defaults require explicit values to be provided by our importers.
+
+# Indicates whether the entrypoint file is 1ESPT compliant. Use this parameter to switch between publish tasks to fit 1ES or non-1ES needs.
+- name: Is1ESPT
+  type: boolean
+
+- name: RealSign
+  type: boolean
+  default: false
+
+# Whether this particular run is an OptProf profiling run.
+# This is used to skip unit tests and other non-essential work to improve reliability of the OptProf pipeline.
+- name: IsOptProf
+  type: boolean
+  default: false
+
+- name: RunTests
+  type: boolean
+  default: true
+
+- name: PublishCodeCoverage
+  type: boolean
+  default: true
+
+# Whether this is a special one-off build for inserting into VS for a validation insertion PR (that will never be merged).
+- name: SkipCodesignVerify
+  type: boolean
+  default: false
+
+- name: EnableAPIScan
+  type: boolean
+  default: false
+
+# This parameter exists to provide a workaround to get a build out even when no OptProf profiling outputs can be found.
+# Entrypoint yaml files like official.yml should expose this as a queue-time setting when EnableOptProf is true in this file.
+# The OptProf.yml entrypoint sets this parameter to true so that collecting profile data isn't blocked by a prior lack of profile data.
+- name: ShouldSkipOptimize
+  type: boolean
+  default: false
+
+# The pool parameters are set to defaults that work in the azure-public AzDO account.
+# They are overridden by callers for the devdiv AzDO account to use 1ES compliant pools.
 - name: windowsPool
   type: object
   default:
     vmImage: windows-2019-vs2019
-- name: RunTests
-  type: boolean
-  default: true
-- name: EnableCompliance
-  type: boolean
-  default: false
-- name: EnableAPIScan
-  type: boolean
-  default: false
 
 jobs:
 - job: Windows
   pool: ${{ parameters.windowsPool }}
   timeoutInMinutes: 180 # Give plenty of time due to real signing
-  variables:
-  - ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
-    # https://dev.azure.com/devdiv/DevDiv/_wiki/wikis/DevDiv.wiki/25351/APIScan-step-by-step-guide-to-setting-up-a-Pipeline
-    - group: VSEng sponsored APIScan # Expected to provide ApiScanClientId
+  ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
+    templateContext:
+      mb:
+        signing:
+          enabled: true
+          zipSources: false
+          ${{ if parameters.RealSign }}:
+            signType: real
+          ${{ else }}:
+            signType: test
+        sbom:
+          enabled: true
+        localization:
+          enabled: ${{ parameters.EnableLocalization }}
+          ${{ if eq(variables['Build.Reason'], 'pullRequest') }}:
+            languages: ENU,JPN
+        optprof:
+          enabled: ${{ parameters.EnableOptProf }}
+          ProfilingInputsDropName: $(ProfilingInputsDropName)
+          OptimizationInputsLookupMethod: DropPrefix
+          DropNamePrefix: OptimizationInputs/$(System.TeamProject)/$(Build.Repository.Name)
+          ShouldSkipOptimize: ${{ parameters.ShouldSkipOptimize }}
+          AccessToken: $(System.AccessToken)
+        mbpresteps:
+        - checkout: self
+          fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
+          clean: true
+        - ${{ if parameters.EnableOptProf }}:
+          - powershell: Write-Host "##vso[task.setvariable variable=PROFILINGINPUTSDROPNAME]$(tools/variables/ProfilingInputsDropName.ps1)"
+            displayName: ⚙ Set ProfilingInputsDropName for optprof
+
+      outputParentDirectory: $(Build.ArtifactStagingDirectory)
+      outputs:
+      - ${{ each artifact_name in parameters.artifact_names }}:
+        - ${{ if or(ne(artifact_name, 'testResults'), parameters.RunTests) }}:
+          - output: pipelineArtifact
+            displayName: 📢 Publish ${{ artifact_name }}-Windows
+            targetPath: $(Build.ArtifactStagingDirectory)/${{ artifact_name }}-Windows
+            artifactName: ${{ artifact_name }}-Windows
+            condition: succeededOrFailed()
+      - output: pipelineArtifact
+        displayName: 📢 Publish VSInsertion-Windows
+        targetPath: $(Build.ArtifactStagingDirectory)/VSInsertion-Windows
+        artifactName: VSInsertion-Windows
+      - ${{ if parameters.EnableLocalization }}:
+        - output: pipelineArtifact
+          displayName: 📢 Publish LocBin-Windows
+          targetPath: $(Build.ArtifactStagingDirectory)/LocBin-Windows
+          artifactName: LocBin-Windows
+      - ${{ if parameters.EnableAPIScan }}:
+        - output: pipelineArtifact
+          displayName: 📢 Publish APIScanInputs
+          targetPath: $(Build.ArtifactStagingDirectory)/APIScanInputs-Windows
+          artifactName: APIScanInputs
   steps:
-  - checkout: self
-    fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
-    clean: true
+  - ${{ if not(parameters.Is1ESPT) }}:
+    - checkout: self
+      fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
+      clean: true
+    - ${{ if parameters.EnableOptProf }}:
+      - powershell: Write-Host "##vso[task.setvariable variable=PROFILINGINPUTSDROPNAME]$(tools/variables/ProfilingInputsDropName.ps1)"
+        displayName: ⚙ Set ProfilingInputsDropName for optprof
 
   - ${{ if eq(variables['Build.Reason'], 'Schedule') }}:
     - template: schedule-only-steps.yml
@@ -33,32 +163,73 @@ jobs:
 
   - script: dotnet nbgv cloud -ca
     displayName: ⚙ Set build number
+    name: nbgv
 
   - ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
     - template: microbuild.before.yml
+      parameters:
+        EnableLocalization: ${{ parameters.EnableLocalization }}
+        EnableOptProf: ${{ parameters.EnableOptProf }}
+        IsOptProf: ${{ parameters.IsOptProf }}
+        ShouldSkipOptimize: ${{ parameters.ShouldSkipOptimize }}
+        RealSign: ${{ parameters.RealSign }}
 
   - template: dotnet.yml
     parameters:
+      Is1ESPT: ${{ parameters.Is1ESPT }}
       RunTests: ${{ parameters.RunTests }}
+      IsOptProf: ${{ parameters.IsOptProf }}
+
+  - ${{ if parameters.EnableDotNetFormatCheck }}:
+    - script: dotnet format --verify-no-changes
+      displayName: 💅 Verify formatted code
+      env:
+        dotnetformat: true # part of a workaround for https://github.com/dotnet/sdk/issues/44951
 
   - ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
     - template: microbuild.after.yml
       parameters:
-        EnableCompliance: ${{ parameters.EnableCompliance }}
-        EnableAPIScan: ${{ parameters.EnableAPIScan }}
+        EnableOptProf: ${{ parameters.EnableOptProf }}
+        IsOptProf: ${{ parameters.IsOptProf }}
+        SkipCodesignVerify: ${{ parameters.SkipCodesignVerify }}
 
-- job: WrapUp
-  dependsOn:
-  - Windows
-  pool: ${{ parameters.windowsPool }} # Use Windows agent because PublishSymbols task requires it (https://github.com/microsoft/azure-pipelines-tasks/issues/13821).
-  condition: succeededOrFailed()
-  steps:
-  - checkout: self
-    fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
-    clean: true
-  - template: install-dependencies.yml
-    parameters:
-      initArgs: -NoRestore
-  - template: publish-symbols.yml
-  - ${{ if parameters.RunTests }}:
-    - template: publish-codecoverage.yml
+- ${{ if not(parameters.IsOptProf) }}:
+
+  - job: WrapUp
+    dependsOn:
+    - Windows
+    pool: ${{ parameters.windowsPool }} # Use Windows agent because PublishSymbols task requires it (https://github.com/microsoft/azure-pipelines-tasks/issues/13821).
+    condition: succeededOrFailed()
+    variables:
+      ONEES_ENFORCED_CODEQL_ENABLED: false # CodeQL runs on build jobs, we don't need it here
+    ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
+      templateContext:
+        ${{ if not(parameters.RealSign) }}:
+          mb:
+            signing: # if the build is test-signed, install the signing plugin so that CSVTestSignPolicy.xml is available
+              enabled: true
+              zipSources: false
+              signType: test
+        outputParentDirectory: $(Build.ArtifactStagingDirectory)
+        outputs:
+          - output: pipelineArtifact
+            displayName: 📢 Publish symbols-legacy
+            targetPath: $(Build.ArtifactStagingDirectory)/symbols-legacy
+            artifactName: symbols-legacy
+            condition: succeededOrFailed()
+    steps:
+    - checkout: self
+      fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
+      clean: true
+    - template: install-dependencies.yml
+      parameters:
+        initArgs: -NoRestore
+    - template: publish-symbols.yml
+    - ${{ if and(parameters.RunTests, parameters.PublishCodeCoverage) }}:
+      - template: publish-codecoverage.yml
+
+  - ${{ if parameters.EnableAPIScan }}:
+    - template: apiscan.yml
+      parameters:
+        windowsPool: ${{ parameters.windowsPool }}
+        RealSign: ${{ parameters.RealSign }}

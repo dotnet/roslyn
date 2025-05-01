@@ -1,0 +1,168 @@
+# This pipeline schedules regular merges of Library.Template into a repo that is based on it.
+# Only Azure Repos are supported. GitHub support comes via a GitHub Actions workflow.
+
+trigger: none
+pr: none
+schedules:
+- cron: "0 3 * * Mon" # Sun @ 8 or 9 PM Mountain Time (depending on DST)
+  displayName: Weekly trigger
+  branches:
+    include:
+    - main
+  always: true
+
+resources:
+  repositories:
+  - repository: MicroBuildTemplate
+    type: git
+    name: 1ESPipelineTemplates/MicroBuildTemplate
+    ref: refs/tags/release
+
+parameters:
+- name: AutoComplete
+  displayName: Auto-complete pull request
+  type: boolean
+  default: false
+
+variables:
+- template: GlobalVariables.yml
+
+extends:
+  template: azure-pipelines/MicroBuild.1ES.Unofficial.yml@MicroBuildTemplate
+  parameters:
+    sdl:
+      sourceAnalysisPool:
+        name: AzurePipelines-EO
+        demands:
+        - ImageOverride -equals 1ESPT-Windows2022
+
+    stages:
+    - stage: Merge
+      jobs:
+      - job: merge
+        pool:
+          name: AzurePipelines-EO
+          demands:
+          - ImageOverride -equals 1ESPT-Ubuntu22.04
+          os: Linux
+        steps:
+        - checkout: self
+          fetchDepth: 0
+          clean: true
+        - pwsh: |
+            $LibTemplateBranch = & ./tools/Get-LibTemplateBasis.ps1 -ErrorIfNotRelated
+            if ($LASTEXITCODE -ne 0) {
+              exit $LASTEXITCODE
+            }
+
+            git fetch https://github.com/aarnott/Library.Template $LibTemplateBranch
+            if ($LASTEXITCODE -ne 0) {
+              exit $LASTEXITCODE
+            }
+            $LibTemplateCommit = git rev-parse FETCH_HEAD
+
+            if ((git rev-list FETCH_HEAD ^HEAD --count) -eq 0) {
+              Write-Host "There are no Library.Template updates to merge."
+              exit 0
+            }
+
+            $UpdateBranchName = 'auto/libtemplateUpdate'
+            git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push origin -f FETCH_HEAD:refs/heads/$UpdateBranchName
+
+            Write-Host "Creating pull request"
+            $contentType = 'application/json';
+            $headers = @{ Authorization = 'Bearer $(System.AccessToken)' };
+            $rawRequest = @{
+              sourceRefName = "refs/heads/$UpdateBranchName";
+              targetRefName = "refs/heads/main";
+              title = 'Merge latest Library.Template';
+              description = "This merges the latest features and fixes from [Library.Template's $LibTemplateBranch branch](https://github.com/AArnott/Library.Template/tree/$LibTemplateBranch).";
+            }
+            $request = ConvertTo-Json $rawRequest
+
+            $prApiBaseUri = '$(System.TeamFoundationCollectionUri)/$(System.TeamProject)/_apis/git/repositories/$(Build.Repository.ID)/pullrequests'
+            $prCreationUri = $prApiBaseUri + "?api-version=6.0"
+            Write-Host "POST $prCreationUri"
+            Write-Host $request
+
+            $prCreationResult = Invoke-RestMethod -uri $prCreationUri -method POST -Headers $headers -ContentType $contentType -Body $request
+            $prUrl = "$($prCreationResult.repository.webUrl)/pullrequest/$($prCreationResult.pullRequestId)"
+            Write-Host "Pull request: $prUrl"
+            $prApiBaseUri += "/$($prCreationResult.pullRequestId)"
+
+            $SummaryPath = Join-Path '$(Agent.TempDirectory)' 'summary.md'
+            Set-Content -Path $SummaryPath -Value "[Insertion pull request]($prUrl)"
+            Write-Host "##vso[task.uploadsummary]$SummaryPath"
+
+            # Tag the PR
+            $tagUri = "$prApiBaseUri/labels?api-version=7.0"
+            $rawRequest = @{
+              name = 'auto-template-merge';
+            }
+            $request = ConvertTo-Json $rawRequest
+            Invoke-RestMethod -uri $tagUri -method POST -Headers $headers -ContentType $contentType -Body $request | Out-Null
+
+            # Add properties to the PR that we can programatically parse later.
+            Function Set-PRProperties($properties) {
+              $rawRequest = $properties.GetEnumerator() |% {
+                @{
+                  op = 'add'
+                  path = "/$($_.key)"
+                  from = $null
+                  value = $_.value
+                }
+              }
+              $request = ConvertTo-Json $rawRequest
+              $setPrPropertyUri = "$prApiBaseUri/properties?api-version=7.0"
+              Write-Debug "$request"
+              $setPrPropertyResult = Invoke-RestMethod -uri $setPrPropertyUri -method PATCH -Headers $headers -ContentType 'application/json-patch+json' -Body $request -StatusCodeVariable setPrPropertyStatus -SkipHttpErrorCheck
+              if ($setPrPropertyStatus -ne 200) {
+                Write-Host "##vso[task.logissue type=warning]Failed to set pull request properties. Result: $setPrPropertyStatus. $($setPrPropertyResult.message)"
+              }
+            }
+            Write-Host "Setting pull request properties"
+            Set-PRProperties @{
+              'AutomatedMerge.SourceBranch' = $LibTemplateBranch
+              'AutomatedMerge.SourceCommit' = $LibTemplateCommit
+            }
+
+            # Add an *active* PR comment to warn users to *merge* the pull request instead of squash it.
+            $request = ConvertTo-Json @{
+              comments = @(
+                @{
+                  parentCommentId = 0
+                  content = "Do **not** squash this pull request when completing it. You must *merge* it."
+                  commentType = 'system'
+                }
+              )
+              status = 'active'
+            }
+            $result = Invoke-RestMethod -uri "$prApiBaseUri/threads?api-version=7.1" -method POST -Headers $headers -ContentType $contentType -Body $request -StatusCodeVariable addCommentStatus -SkipHttpErrorCheck
+            if ($addCommentStatus -ne 200) {
+              Write-Host "##vso[task.logissue type=warning]Failed to post comment on pull request. Result: $addCommentStatus. $($result.message)"
+            }
+
+            # Set auto-complete on the PR
+            if ('${{ parameters.AutoComplete }}' -eq 'True') {
+              Write-Host "Setting auto-complete"
+              $mergeMessage = "Merged PR $($prCreationResult.pullRequestId): " + $commitMessage
+              $rawRequest = @{
+                autoCompleteSetBy = @{
+                  id = $prCreationResult.createdBy.id
+                };
+                completionOptions = @{
+                  deleteSourceBranch = $true;
+                  mergeCommitMessage = $mergeMessage;
+                  mergeStrategy = 'noFastForward';
+                };
+              }
+              $request = ConvertTo-Json $rawRequest
+              Write-Host $request
+              $uri = "$($prApiBaseUri)?api-version=6.0"
+              $result = Invoke-RestMethod -uri $uri -method PATCH -Headers $headers -ContentType $contentType -Body $request -StatusCodeVariable autoCompleteStatus -SkipHttpErrorCheck
+              if ($autoCompleteStatus -ne 200) {
+                Write-Host "##vso[task.logissue type=warning]Failed to set auto-complete on pull request. Result: $autoCompleteStatus. $($result.message)"
+              }
+            }
+
+          displayName: Create pull request

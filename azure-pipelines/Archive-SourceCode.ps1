@@ -35,7 +35,7 @@
 .PARAMETER SourceCodeArchivalUri
     The URI to POST the source code archival request to.
     This value will typically come automatically by a variable group associated with your pipeline.
-    You can also look it up at https://dpsrequestforms.azurewebsites.net/#/help -> SCA Request Help -> SCA API Help -> Description
+    You can also look it up at https://dpsopsrequestforms.azurewebsites.net/#/help -> SCA Request Help -> SCA API Help -> Description
 #>
 [CmdletBinding(SupportsShouldProcess = $true, PositionalBinding = $false)]
 param (
@@ -76,7 +76,9 @@ param (
     [Parameter()]
     [string]$ServerPath = '',
     [Parameter()]
-    [Uri]$SourceCodeArchivalUri = $env:SOURCECODEARCHIVALURI
+    [Uri]$SourceCodeArchivalUri = $env:SOURCECODEARCHIVALURI,
+    [Parameter(Mandatory = $true)]
+    [string]$AccessToken
 )
 
 function Invoke-Git() {
@@ -199,20 +201,33 @@ if ($PSCmdlet.ShouldProcess('source archival request', 'post')) {
         exit 1
     }
 
+    $headers = @{
+        'Authorization' = "Bearer $AccessToken"
+    }
+
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-    $Response = Invoke-WebRequest -Uri $SourceCodeArchivalUri -Method POST -Body $RequestJson -ContentType "application/json" -UseBasicParsing -SkipHttpErrorCheck
+    $Response = Invoke-WebRequest -Uri $SourceCodeArchivalUri -Method POST -Headers $headers -Body $RequestJson -ContentType "application/json" -UseBasicParsing -SkipHttpErrorCheck
     Write-Host "Status Code : " -NoNewline
-    $responseContent = ConvertFrom-Json ($Response.Content)
     if ($Response.StatusCode -eq 200) {
         Write-Host $Response.StatusCode -ForegroundColor Green
         Write-Host "Ticket ID   : " -NoNewline
+        $responseContent = ConvertFrom-Json ($Response.Content)
         Write-Host $responseContent
     }
     else {
-        $responseContent = ConvertFrom-Json $Response.Content
         Write-Host $Response.StatusCode -ForegroundColor Red
-        Write-Host "Message     : $($responseContent.message)"
+        try {
+            $responseContent = ConvertFrom-Json $Response.Content
+            Write-Host "Message     : $($responseContent.message)"
+        }
+        catch {
+            Write-Host "JSON Parse Error: $($_.Exception.Message)"
+            Write-Host "Raw response content:"
+            Write-Host $Response.Content
+        }
+
+        exit 2
     }
 } elseif ($SourceCodeArchivalUri) {
     Write-Host "Would have posted to $SourceCodeArchivalUri"

@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -5,6 +6,8 @@
     <BaseIntermediateOutputPath>$(RepoRootPath)obj\$([MSBuild]::MakeRelative($(RepoRootPath), $(MSBuildProjectDirectory)))\</BaseIntermediateOutputPath>
     <BaseOutputPath Condition=" '$(BaseOutputPath)' == '' ">$(RepoRootPath)bin\$(MSBuildProjectName)\</BaseOutputPath>
     <PackageOutputPath>$(RepoRootPath)bin\Packages\$(Configuration)\NuGet\</PackageOutputPath>
+    <VSIXOutputPath>$(RepoRootPath)bin\Packages\$(Configuration)\Vsix\$(Platform)\</VSIXOutputPath>
+    <SBOMFileDestPath>$(VSIXOutputPath)</SBOMFileDestPath>
     <LangVersion>10.0</LangVersion>
     <Features>strict</Features>
     <Nullable>enable</Nullable>
@@ -53,6 +56,11 @@
     <PackageReference Include="DotNetAnalyzers.DocumentationAnalyzers" Version="1.0.0-beta.59" PrivateAssets="all" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <LangVersion Condition="'$(MSBuildProjectExtension)'=='.csproj'">13</LangVersion>
+    <LangVersion Condition="'$(MSBuildProjectExtension)'=='.vbproj'">16.9</LangVersion>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Include="$(RepoRootPath)obj/NOTICE" Pack="true" PackagePath="" Visible="false" Condition=" Exists('$(RepoRootPath)obj/NOTICE') " />
   </ItemGroup>
@@ -68,26 +76,9 @@
 
   <Target Name="PrepareReleaseNotes" BeforeTargets="GenerateNuspec" DependsOnTargets="GetBuildVersion">
     <PropertyGroup>
-      <PackageReleaseNotes Condition="'$(PackageProjectUrl)'!=''">$(PackageProjectUrl)/releases/tag/v$(Version)</PackageReleaseNotes>
+      <PackageReleaseNotes Condition="'$(RepositoryUrl)'!=''">$(RepositoryUrl)/releases/tag/v$(Version)</PackageReleaseNotes>
     </PropertyGroup>
   </Target>
 
-  <PropertyGroup Condition="'$(IsWpfTempProject)' == ''">
-    <IsWpfTempProject>false</IsWpfTempProject>
-    <IsWpfTempProject Condition="$(MSBuildProjectName.EndsWith('_wpftmp'))">true</IsWpfTempProject>
-  </PropertyGroup>
-
-  <!--
-    Inspired by https://github.com/dotnet/arcade/blob/cbfa29d4e859622ada3d226f90f103f659665d31/src/Microsoft.DotNet.Arcade.Sdk/tools/Workarounds.props#L14-L31
-
-    Disable Source Link and Xliff in WPF temp projects to avoid generating non-deterministic file names to obj dir.
-    The project name is non-deterministic and is included in the Source Link json file name and xlf directory names.
-    It's also not necessary to generate these assets.
-  -->
-  <PropertyGroup Condition="'$(IsWpfTempProject)' == 'true'">
-    <EnableSourceLink>false</EnableSourceLink>
-    <EmbedUntrackedSources>false</EmbedUntrackedSources>
-    <DeterministicSourcePaths>false</DeterministicSourcePaths>
-    <EnableXlfLocalization>false</EnableXlfLocalization>
-  </PropertyGroup>
+  <Import Project="azure-pipelines\NuGetSbom.props" />
 </Project>

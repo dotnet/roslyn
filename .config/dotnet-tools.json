@@ -6,25 +6,29 @@
       "version": "6.2.7",
       "commands": [
         "pwsh"
-      ]
-    },
-    "dotnet-format": {
-      "version": "5.1.250801",
-      "commands": [
-        "dotnet-format"
-      ]
+      ],
+      "rollForward": false
     },
     "dotnet-coverage": {
-      "version": "17.9.3",
+      "version": "17.14.2",
       "commands": [
         "dotnet-coverage"
-      ]
+      ],
+      "rollForward": false
     },
     "nbgv": {
-      "version": "3.6.133",
+      "version": "3.7.115",
       "commands": [
         "nbgv"
-      ]
+      ],
+      "rollForward": false
+    },
+    "docfx": {
+      "version": "2.78.3",
+      "commands": [
+        "docfx"
+      ],
+      "rollForward": false
     }
   }
 }

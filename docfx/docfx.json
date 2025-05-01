@@ -1,0 +1,48 @@
+{
+	"metadata": [
+		{
+			"src": [
+				{
+					"src": "../src/Library",
+					"files": [
+						"**/*.csproj"
+					]
+				}
+			],
+			"dest": "api"
+		}
+	],
+	"build": {
+		"content": [
+			{
+				"files": [
+					"**/*.{md,yml}"
+				],
+				"exclude": [
+					"_site/**"
+				]
+			}
+		],
+		"resource": [
+			{
+				"files": [
+					"images/**"
+				]
+			}
+		],
+		"xref": [
+			"https://learn.microsoft.com/en-us/dotnet/.xrefmap.json"
+		],
+		"output": "_site",
+		"template": [
+			"default",
+			"modern"
+		],
+		"globalMetadata": {
+			"_appName": "Library",
+			"_appTitle": "Library",
+			"_enableSearch": true,
+			"pdf": false
+		}
+	}
+}

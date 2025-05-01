@@ -1,33 +1,38 @@
 parameters:
-  EnableCompliance:
-  EnableAPIScan:
+- name: EnableOptProf
+  type: boolean
+  default: false
+- name: IsOptProf
+  type: boolean
+  default: false
+- name: SkipCodesignVerify
+  type: boolean
 
 steps:
-- task: MicroBuildCodesignVerify@3
-  displayName: 🔍 Verify Signed Files
-  inputs:
-    TargetFolders: |
-      $(Build.SourcesDirectory)/bin/Packages/$(BuildConfiguration)/NuGet
-  condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT'))
+- ${{ if not(parameters.SkipCodesignVerify) }}:
+  - task: MicroBuildCodesignVerify@3
+    displayName: 🔍 Verify Signed Files
+    inputs:
+      ApprovalListPathForSigs: $(Build.SourcesDirectory)\azure-pipelines\no_strongname.txt
+      ApprovalListPathForCerts: $(Build.SourcesDirectory)\azure-pipelines\no_authenticode.txt
+      TargetFolders: |
+        $(Build.SourcesDirectory)/bin/Packages/$(BuildConfiguration)
+    condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT'))
 
-- task: MicroBuildCleanup@1
-  condition: succeededOrFailed()
-  displayName: ⚙️ MicroBuild Cleanup
+- ${{ if parameters.IsOptProf }}:
+  - task: ms-vscs-artifact.build-tasks.artifactDropTask-1.artifactDropTask@0
+    inputs:
+      dropServiceURI: https://devdiv.artifacts.visualstudio.com
+      buildNumber: $(ProfilingInputsDropName)
+      sourcePath: $(Build.ArtifactStagingDirectory)\OptProf\ProfilingInputs
+      toLowerCase: false
+      usePat: true
+    displayName: 📢 Publish to Artifact Services - ProfilingInputs
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
 
-- task: Ref12Analyze@0
-  displayName: 📑 Ref12 (Codex) Analyze
-  inputs:
-    codexoutputroot: $(Build.ArtifactStagingDirectory)\Codex
-    workflowArguments: |
-      /sourcesDirectory:$(Build.SourcesDirectory)
-      /codexRepoUrl:$(Build.Repository.Uri)
-      /repoName:$(Build.Repository.Name)
-      /additionalCodexArguments:-bld
-      /additionalCodexArguments:$(Build.ArtifactStagingDirectory)/build_logs
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), ne(variables['Build.Reason'], 'PullRequest'), eq(variables['Agent.OS'], 'Windows_NT'))
-  continueOnError: true
-
-- ${{ if eq(parameters.EnableCompliance, 'true') }}:
-  - template: secure-development-tools.yml
-    parameters:
-      EnableAPIScan: ${{ parameters.EnableAPIScan }}
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.ArtifactStagingDirectory)/InsertionOutputs
+      ArtifactName: InsertionOutputs
+      ArtifactType: Container
+    displayName: 📢 Publish InsertionOutputs as Azure DevOps artifacts

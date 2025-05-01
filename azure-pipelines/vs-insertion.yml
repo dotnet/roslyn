@@ -2,6 +2,11 @@ trigger: none # We only want to trigger manually or based on resources
 pr: none
 
 resources:
+  repositories:
+  - repository: MicroBuildTemplate
+    type: git
+    name: 1ESPipelineTemplates/MicroBuildTemplate
+    ref: refs/tags/release
   pipelines:
   - pipeline: CI
     source: Library # TODO: This should match the name of your CI pipeline
@@ -12,46 +17,62 @@ resources:
       - Real signed
       - auto-insertion
 
-jobs:
-- job: insertion
-  displayName: VS insertion
-  pool: VSEngSS-MicroBuild2022-1ES
-  steps:
-  - checkout: none
-  - powershell: Write-Host "##vso[build.updatebuildnumber]$(resources.pipeline.CI.runName)"
-    displayName: ⚙️ Set pipeline name
-  - task: UseDotNet@2
-    displayName: ⚙️ Install .NET SDK
-    inputs:
-      packageType: sdk
-      version: 6.x
-  - task: NuGetAuthenticate@1
-    displayName: 🔏 Authenticate NuGet feeds
-    inputs:
-      forceReinstallCredentialProvider: true
-  - template: release-deployment-prep.yml
-  - download: CI
-    artifact: VSInsertion-Windows
-    displayName: 🔻 Download VSInsertion-Windows artifact
-  - script: dotnet nuget push $(Pipeline.Workspace)\CI\VSInsertion-windows\*.nupkg -s https://pkgs.dev.azure.com/devdiv/_packaging/VS/nuget/v3/index.json -k azdo --skip-duplicate
-    displayName: 📦 Push CoreXT packages to VS feed
-  - task: MicroBuildInsertVsPayload@4
-    displayName: 🏭 Insert VS Payload
-    inputs:
-      TeamName: $(TeamName)
-      TeamEmail: $(TeamEmail)
-      InsertionPayloadName: $(Build.Repository.Name) $(Build.BuildNumber)
-      InsertionBuildPolicy: Request Perf DDRITs
-      AutoCompletePR: true
-      AutoCompleteMergeStrategy: Squash
-  - task: MicroBuildCleanup@1
-    displayName: ☎️ Send Telemetry
-  - powershell: |
-      $contentType = 'application/json';
-      $headers = @{ Authorization = 'Bearer $(System.AccessToken)' };
-      $rawRequest = @{ daysValid = 365 * 2; definitionId = $(resources.pipeline.CI.pipelineID); ownerId = 'User:$(Build.RequestedForId)'; protectPipeline = $false; runId = $(resources.pipeline.CI.runId) };
-      $request = ConvertTo-Json @($rawRequest);
-      Write-Host $request
-      $uri = "$(System.CollectionUri)$(System.TeamProject)/_apis/build/retention/leases?api-version=6.0-preview.1";
-      Invoke-RestMethod -uri $uri -method POST -Headers $headers -ContentType $contentType -Body $request;
-    displayName: 🗻 Retain inserted builds
+variables:
+- template: GlobalVariables.yml
+
+extends:
+  template: azure-pipelines/MicroBuild.1ES.Official.yml@MicroBuildTemplate
+  parameters:
+    sdl:
+      sourceAnalysisPool: VSEngSS-MicroBuild2022-1ES
+
+    stages:
+    - stage: insertion
+      jobs:
+      - job: insertion
+        displayName: VS insertion
+        pool: VSEngSS-MicroBuild2022-1ES
+        templateContext:
+          outputParentDirectory: $(Pipeline.Workspace)/CI
+        steps:
+        - checkout: none
+        - powershell: Write-Host "##vso[build.updatebuildnumber]$(resources.pipeline.CI.runName)"
+          displayName: ⚙️ Set pipeline name
+        - template: azure-pipelines/release-deployment-prep.yml@self
+        - download: CI
+          artifact: VSInsertion-Windows
+          displayName: 🔻 Download VSInsertion-Windows artifact
+        - ${{ if eq(variables['ContainsVsix'], 'true') }}:
+          - task: 1ES.MicroBuildVstsDrop@1
+            displayName: 🔺 Upload VSTS Drop
+            inputs:
+              dropFolder: $(Pipeline.Workspace)/CI/VSInsertion-windows/Vsix
+              dropName: $(VstsDropNames)
+              accessToken: $(System.AccessToken)
+        - task: 1ES.PublishNuget@1
+          displayName: 📦 Push VS-repo packages to VS feed
+          inputs:
+            packagesToPush: '$(Pipeline.Workspace)/CI/VSInsertion-Windows/*.nupkg'
+            packageParentPath: $(Pipeline.Workspace)/CI/VSInsertion-Windows
+            allowPackageConflicts: true
+            publishVstsFeed: VS
+        - task: MicroBuildInsertVsPayload@5
+          displayName: 🏭 Insert VS Payload
+          inputs:
+            TeamName: $(TeamName)
+            TeamEmail: $(TeamEmail)
+            InsertionPayloadName: $(Build.Repository.Name) $(Build.BuildNumber)
+            InsertionBuildPolicies: Request Perf DDRITs
+            InsertionReviewers: $(Build.RequestedFor) # Append `,Your team name` (without quotes)
+            AutoCompletePR: true
+            AutoCompleteMergeStrategy: Squash
+            ShallowClone: true
+        - powershell: |
+            $contentType = 'application/json';
+            $headers = @{ Authorization = 'Bearer $(System.AccessToken)' };
+            $rawRequest = @{ daysValid = 365 * 2; definitionId = $(resources.pipeline.CI.pipelineID); ownerId = 'User:$(Build.RequestedForId)'; protectPipeline = $false; runId = $(resources.pipeline.CI.runId) };
+            $request = ConvertTo-Json @($rawRequest);
+            Write-Host $request
+            $uri = "$(System.CollectionUri)$(System.TeamProject)/_apis/build/retention/leases?api-version=6.0-preview.1";
+            Invoke-RestMethod -uri $uri -method POST -Headers $headers -ContentType $contentType -Body $request;
+          displayName: 🗻 Retain inserted builds

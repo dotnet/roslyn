@@ -1,0 +1,91 @@
+trigger: none
+pr: none
+
+resources:
+  pipelines:
+  - pipeline: VisualStudioBuildUnderTest
+    source: DD-CB-TestSignVS-devCI
+    trigger:
+      tags:
+      - LibraryName-insertion
+  - pipeline: DartLab
+    source: DartLab
+    branch: main
+  - pipeline: DartLab.OptProf
+    source: DartLab.OptProf
+    branch: main
+    tags:
+    - production
+  repositories:
+  - repository: DartLabTemplates
+    type: git
+    name: DartLab.Templates
+    ref: refs/heads/main
+  - repository: DartLabOptProfTemplates
+    type: git
+    name: DartLab.OptProf
+    ref: refs/tags/Production
+
+parameters:
+
+# The prefix naming of the OptimizationInputs drop
+- name: optimizationDropPrefix
+  type: string
+  default: OptimizationInputs/$(System.TeamProject)/$(Build.Repository.Name)
+
+stages:
+- template: \templates\stages\visual-studio\single-runsettings.yml@DartLabOptProfTemplates
+  parameters:
+    ##### Required #####
+    runSettingsURI: $(Pipeline.Workspace)\VisualStudioBuildUnderTest\BuildArtifacts\runsettings\LibraryName.OptProf.runsettings
+    visualStudioBootstrapperURI: https://vsdrop.corp.microsoft.com/file/v1/$(VisualStudio.BuildUnderTest.ProductsDropName);bootstrappers/Enterprise/vs_enterprise.exe
+    ##### Optional #####
+    name: OptProfProfilingWorkflow
+    displayName: OptProf Profiling Workflow
+    optOptimizationInputsDropName: $(OptimizationInputsDropName)
+    previousOptimizationInputsDropName: $(PreviousOptimizationInputsDropName)
+    testLabPoolName: VS-Platform
+    ##### Step Hooks #####
+    preTestMachineConfigurationStepList:
+    - download: VisualStudioBuildUnderTest
+    - task: PowerShell@2
+      name: SetProductsDropName
+      displayName: Set 'VisualStudio.BuildUnderTest.ProductsDropName'
+      inputs:
+        filePath: $(DartLab.Path)\Scripts\VisualStudio\Build\Get-VisualStudioDropName.ps1
+        arguments: -DropNamePrefix 'Products' -VstsDropUrlsJson '$(Pipeline.Workspace)\VisualStudioBuildUnderTest\BuildArtifacts\VstsDropUrls.json' -OutVariableName 'VisualStudio.BuildUnderTest.ProductsDropName'
+    preDeployAndRunTestsStepList:
+    - download: VisualStudioBuildUnderTest
+    prePublishOptimizationInputsDropStepList:
+    # Set parameter for  PreviousOptimizationInputsDropName, MicroBuildCommitID, and OptimizationInputsDropName
+    - powershell: |
+        try {
+          $artifactName = 'InsertionOutputs'
+          $BuildID = $(resources.pipeline.VisualStudioBuildUnderTest.runID)
+          $artifact = Get-BuildArtifact -InstanceURL 'https://dev.azure.com/devdiv' -ProjectName 'DevDiv' -BuildID $BuildID -ArtifactName $artifactName -OAuthAccessToken (ConvertTo-SecureString '$(System.AccessToken)' -AsPlainText -Force)
+          $containerName = $artifact.Resource.Data -Split '/' | Select-Object -Last 1
+          $fileName = Join-Path $containerName 'Metadata.json'
+          $jsonString = Read-BuildArtifactFile -InstanceURL 'https://dev.azure.com/devdiv' -ProjectName 'DevDiv' -BuildID $BuildID -ArtifactName $artifactName -FileName $fileName -OAuthAccessToken (ConvertTo-SecureString '$(System.AccessToken)' -AsPlainText -Force)
+          $json = $jsonString | ConvertFrom-Json
+
+          Write-Host "The content of the metadata.json file was $json"
+
+          $dropname = $json.OptimizationData
+          $commitID = $json.CommitID
+          $OptimizationInputsDropName = "${{parameters.optimizationDropPrefix}}/$($commitID)/$(Build.BuildId)/$(System.StageId)/$(System.StageAttempt)"
+
+          Write-Host "PreviousOptimizationInputsDropName: $dropname"
+          Set-AzurePipelinesVariable 'PreviousOptimizationInputsDropName' $dropname
+
+          Write-Host "MicroBuildCommitID: $commitID"
+          Set-AzurePipelinesVariable 'MicroBuildCommitID' $commitID
+
+          Write-Host "OptimizationInputsDropName: $OptimizationInputsDropName"
+          Set-AzurePipelinesVariable 'OptimizationInputsDropName' $OptimizationInputsDropName
+        }
+        catch {
+          Write-Host $_
+          Write-Error "Failed to set OptimizationInputsDropName pipeline variable"
+          throw
+        }
+      displayName: Set MicroBuildCommitID, PreviousOptimizationInputsDropName, and OptimizationInputsDropName

@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.Build.NoTargets">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <PackageOutputPath>$(RepoRootPath)bin\Packages\$(Configuration)\VSRepo\</PackageOutputPath>
+    <IncludeSymbols>false</IncludeSymbols>
+    <EnableDefaultSignFiles>false</EnableDefaultSignFiles>
+    <Description>Contains metadata for insertion into VS.</Description>
+  </PropertyGroup>
+  <Import Project="VSInsertionMetadata.targets" />
+</Project>

@@ -28,7 +28,7 @@ try {
     if ($reports) {
         $reports |% { $_.FullName } |% {
             # In addition to replacing {reporoot}, we also normalize on one kind of slash so that the report aggregates data for a file whether data was collected on Windows or not.
-            $xml = [xml](Get-Content -Path $_)
+            $xml = [xml](Get-Content -LiteralPath $_)
             $xml.coverage.packages.package.classes.class |? { $_.filename} |% {
                 $_.filename = $_.filename.Replace('{reporoot}', $RepoRoot).Replace([IO.Path]::AltDirectorySeparatorChar, [IO.Path]::DirectorySeparatorChar)
             }
