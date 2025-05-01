@@ -14,7 +14,7 @@ using Roslyn.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
 internal abstract class AbstractDocumentSyntaxAndSemanticDiagnosticSourceProvider(
-    IDiagnosticAnalyzerService diagnosticAnalyzerService, DiagnosticKind kind, string sourceName)
+    DiagnosticKind kind, string sourceName)
     : IDiagnosticSourceProvider
 {
     public bool IsDocument => true;
@@ -26,7 +26,7 @@ internal abstract class AbstractDocumentSyntaxAndSemanticDiagnosticSourceProvide
     {
         if (context.GetTrackedDocument<TextDocument>() is { } document)
         {
-            return new([new DocumentDiagnosticSource(diagnosticAnalyzerService, kind, document)]);
+            return new([new DocumentDiagnosticSource(kind, document)]);
         }
 
         return new([]);
@@ -35,8 +35,8 @@ internal abstract class AbstractDocumentSyntaxAndSemanticDiagnosticSourceProvide
     [Export(typeof(IDiagnosticSourceProvider)), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    private sealed class DocumentCompilerSyntaxDiagnosticSourceProvider([Import] IDiagnosticAnalyzerService diagnosticAnalyzerService)
-        : AbstractDocumentSyntaxAndSemanticDiagnosticSourceProvider(diagnosticAnalyzerService,
+    private sealed class DocumentCompilerSyntaxDiagnosticSourceProvider()
+        : AbstractDocumentSyntaxAndSemanticDiagnosticSourceProvider(
             DiagnosticKind.CompilerSyntax, PullDiagnosticCategories.DocumentCompilerSyntax)
     {
     }
@@ -44,17 +44,17 @@ internal abstract class AbstractDocumentSyntaxAndSemanticDiagnosticSourceProvide
     [Export(typeof(IDiagnosticSourceProvider)), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    private sealed class DocumentCompilerSemanticDiagnosticSourceProvider([Import] IDiagnosticAnalyzerService diagnosticAnalyzerService)
+    private sealed class DocumentCompilerSemanticDiagnosticSourceProvider()
         : AbstractDocumentSyntaxAndSemanticDiagnosticSourceProvider(
-            diagnosticAnalyzerService, DiagnosticKind.CompilerSemantic, PullDiagnosticCategories.DocumentCompilerSemantic)
+            DiagnosticKind.CompilerSemantic, PullDiagnosticCategories.DocumentCompilerSemantic)
     {
     }
 
     [Export(typeof(IDiagnosticSourceProvider)), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    private sealed class DocumentAnalyzerSyntaxDiagnosticSourceProvider([Import] IDiagnosticAnalyzerService diagnosticAnalyzerService)
-        : AbstractDocumentSyntaxAndSemanticDiagnosticSourceProvider(diagnosticAnalyzerService,
+    private sealed class DocumentAnalyzerSyntaxDiagnosticSourceProvider()
+        : AbstractDocumentSyntaxAndSemanticDiagnosticSourceProvider(
             DiagnosticKind.AnalyzerSyntax, PullDiagnosticCategories.DocumentAnalyzerSyntax)
     {
     }
@@ -62,8 +62,8 @@ internal abstract class AbstractDocumentSyntaxAndSemanticDiagnosticSourceProvide
     [Export(typeof(IDiagnosticSourceProvider)), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    private sealed class DocumentAnalyzerSemanticDiagnosticSourceProvider([Import] IDiagnosticAnalyzerService diagnosticAnalyzerService)
-        : AbstractDocumentSyntaxAndSemanticDiagnosticSourceProvider(diagnosticAnalyzerService,
+    private sealed class DocumentAnalyzerSemanticDiagnosticSourceProvider()
+        : AbstractDocumentSyntaxAndSemanticDiagnosticSourceProvider(
             DiagnosticKind.AnalyzerSemantic, PullDiagnosticCategories.DocumentAnalyzerSemantic)
     {
     }

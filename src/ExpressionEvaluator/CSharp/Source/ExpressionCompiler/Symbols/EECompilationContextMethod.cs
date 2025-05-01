@@ -100,6 +100,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return true;
         }
 
+        internal override int TryGetOverloadResolutionPriority()
+        {
+            return _underlyingMethod.TryGetOverloadResolutionPriority();
+        }
+
         internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
         {
             builderArgument = null;

@@ -17719,6 +17719,27 @@ class C
         ]);
     }
 
+    [Fact]
+    public void Property_ExpressionBody_Update_Auto_FieldAccess()
+    {
+        var src1 = "class C { int P => 1; }";
+        var src2 = "class C { int P => field; }";
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(
+            "Update [int P => 1;]@10 -> [int P => field;]@10",
+            "Update [=> 1]@16 -> [=> field]@16");
+
+        edits.VerifySemantics(
+            [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.P").GetMethod)],
+            capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
+
+        edits.VerifySemanticDiagnostics(
+            [Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "int P", GetResource("property getter"))],
+            capabilities: EditAndContinueCapabilities.Baseline);
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48628")]
     public void Property_ExpressionBody_ModifierUpdate()
     {
@@ -17816,6 +17837,124 @@ class C
                 SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
             ],
             capabilities: EditAndContinueCapabilities.Baseline);
+    }
+
+    [Fact]
+    public void Property_BlockBodyToExpressionBody_Auto_FieldAccess()
+    {
+        var src1 = "class C { int P { get { return field; } set; } }";
+        var src2 = "class C { int P => field; }";
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(
+            "Update [int P { get { return field; } set; }]@10 -> [int P => field;]@10",
+            "Insert [=> field]@16",
+            "Delete [{ get { return field; } set; }]@16",
+            "Delete [get { return field; }]@18",
+            "Delete [set;]@40");
+
+        edits.VerifySemantics(
+            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P")),
+            SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C")));
+    }
+
+    [Fact]
+    public void Property_BlockBodyToGetterExpressionBody_Auto_FieldAccess()
+    {
+        var src1 = "class C { int P { get { return field; } set; } }";
+        var src2 = "class C { int P { get => field; } }";
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(
+            "Update [get { return field; }]@18 -> [get => field;]@18",
+            "Delete [set;]@40");
+
+        edits.VerifySemantics(
+            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P")),
+            SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C")));
+    }
+
+    [Fact]
+    public void Property_BlockBody_Update_SetAccessor_Auto_FieldAccess()
+    {
+        var src1 = "class C { int P { get { return field; } set; } }";
+        var src2 = "class C { int P { get { return field; } set { field = value; } } }";
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(
+            "Update [set;]@40 -> [set { field = value; }]@40");
+
+        edits.VerifySemantics(
+            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_P")));
+    }
+
+    [Fact]
+    public void Property_Auto_GetterBlockBodyToGetterExpressionBody_FieldAccess()
+    {
+        var src1 = "class C { int P { get { return field; } } }";
+        var src2 = "class C { int P { get => field; } }";
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(
+            "Update [get { return field; }]@18 -> [get => field;]@18");
+
+        edits.VerifySemantics(
+            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P")));
+    }
+
+    [Fact]
+    public void Property_Auto_SetterBlockBodyToSetterExpressionBody_FieldAccess()
+    {
+        var src1 = "class C { int P { set { field = value; } } }";
+        var src2 = "class C { int P { set => field = value; } }";
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(
+            "Update [set { field = value; }]@18 -> [set => field = value;]@18");
+
+        edits.VerifySemantics(
+            SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("P").SetMethod));
+    }
+
+    [Fact]
+    public void Property_Auto_ExpressionBodyToGetterExpressionBody_FieldAccess()
+    {
+        var src1 = "class C { int P => field; }";
+        var src2 = "class C { int P { get => field; } }";
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(
+            "Update [int P => field;]@10 -> [int P { get => field; }]@10",
+            "Insert [{ get => field; }]@16",
+            "Insert [get => field;]@18",
+            "Delete [=> field]@16");
+
+        edits.VerifySemantics(
+            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P")));
+    }
+
+    [Fact]
+    public void Property_Auto_GetterExpressionBodyToExpressionBody_FieldAccess()
+    {
+        var src1 = "class C { int P { get => field; } }";
+        var src2 = "class C { int P => field; }";
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(
+            "Update [int P { get => field; }]@10 -> [int P => field;]@10",
+            "Insert [=> field]@16",
+            "Delete [{ get => field; }]@16",
+            "Delete [get => field;]@18");
+
+        edits.VerifySemantics(
+            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P")));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
@@ -18655,6 +18794,7 @@ struct S
 { 
     public int a; 
     static int c { get; set; } 
+    static int d { get => field; set; } 
     static int e { get { return 0; } set { } } 
     static int g { get; } = 1;
     static int i { get; set; } = 1;
@@ -18669,6 +18809,7 @@ struct S
 
         edits.VerifySemanticDiagnostics(
             Diagnostic(RudeEditKind.InsertOrMoveStructMember, "static int c", GetResource("auto-property"), GetResource("struct")),
+            Diagnostic(RudeEditKind.InsertOrMoveStructMember, "static int d", GetResource("auto-property"), GetResource("struct")),
             Diagnostic(RudeEditKind.InsertOrMoveStructMember, "static int g", GetResource("auto-property"), GetResource("struct")),
             Diagnostic(RudeEditKind.InsertOrMoveStructMember, "static int i", GetResource("auto-property"), GetResource("struct")));
     }
@@ -18687,6 +18828,31 @@ struct S
     }
 
     [Fact]
+    public void Property_Insert_Auto_FieldAccess()
+    {
+        var src1 = "class C { }";
+        var src2 = "class C { int P { get; set => field = value; } }";
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(
+            "Insert [int P { get; set => field = value; }]@10",
+            "Insert [{ get; set => field = value; }]@16",
+            "Insert [get;]@18",
+            "Insert [set => field = value;]@23");
+
+        edits.VerifySemantics(
+            [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember("P"))],
+            capabilities:
+                EditAndContinueCapabilities.AddMethodToExistingType |
+                EditAndContinueCapabilities.AddInstanceFieldToExistingType);
+
+        edits.VerifySemanticDiagnostics(
+            [Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "int P", GetResource("auto-property"))],
+            capabilities: EditAndContinueCapabilities.Baseline);
+    }
+
+    [Fact]
     public void Property_Insert_Auto_Static()
     {
         var src1 = "class C { }";
@@ -18697,6 +18863,31 @@ struct S
         edits.VerifySemantics(
             [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember("P"))],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType);
+    }
+
+    [Fact]
+    public void Property_Insert_Auto_Static_FieldAccess()
+    {
+        var src1 = "class C { }";
+        var src2 = "class C { static int P { get; set => field = value; } }";
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(
+            "Insert [static int P { get; set => field = value; }]@10",
+            "Insert [{ get; set => field = value; }]@23",
+            "Insert [get;]@25",
+            "Insert [set => field = value;]@30");
+
+        edits.VerifySemantics(
+            [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember("P"))],
+            capabilities:
+                EditAndContinueCapabilities.AddMethodToExistingType |
+                EditAndContinueCapabilities.AddStaticFieldToExistingType);
+
+        edits.VerifySemanticDiagnostics(
+            [Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "static int P", GetResource("auto-property"))],
+            capabilities: EditAndContinueCapabilities.Baseline);
     }
 
     [Fact]
@@ -18721,6 +18912,35 @@ struct S
     }
 
     [Fact]
+    public void Property_Insert_Auto_GenericType_FieldAccess()
+    {
+        var src1 = "class C<T> { }";
+        var src2 = "class C<T> { int P { get; set => field = value; } }";
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(
+            "Insert [int P { get; set => field = value; }]@13",
+            "Insert [{ get; set => field = value; }]@19",
+            "Insert [get;]@21",
+            "Insert [set => field = value;]@26");
+
+        edits.VerifySemantics(
+            [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember("P"))],
+            capabilities:
+                EditAndContinueCapabilities.AddMethodToExistingType |
+                EditAndContinueCapabilities.AddInstanceFieldToExistingType |
+                EditAndContinueCapabilities.GenericAddMethodToExistingType |
+                EditAndContinueCapabilities.GenericAddFieldToExistingType);
+
+        edits.VerifySemanticDiagnostics(
+            [Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "int P", GetResource("auto-property"))],
+            capabilities:
+                EditAndContinueCapabilities.AddMethodToExistingType |
+                EditAndContinueCapabilities.AddInstanceFieldToExistingType);
+    }
+
+    [Fact]
     public void Property_Insert_Auto_GenericType_Static()
     {
         var src1 = "class C<T> { }";
@@ -18739,6 +18959,35 @@ struct S
         edits.VerifySemanticDiagnostics(
             [Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "static int P", GetResource("auto-property"))],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType);
+    }
+
+    [Fact]
+    public void Property_Insert_Auto_GenericType_Static_FieldAccess()
+    {
+        var src1 = "class C<T> { }";
+        var src2 = "class C<T> { static int P { get; set => field = value; } }";
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(
+            "Insert [static int P { get; set => field = value; }]@13",
+            "Insert [{ get; set => field = value; }]@26",
+            "Insert [get;]@28",
+            "Insert [set => field = value;]@33");
+
+        edits.VerifySemantics(
+            [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember("P"))],
+            capabilities:
+                EditAndContinueCapabilities.AddMethodToExistingType |
+                EditAndContinueCapabilities.AddStaticFieldToExistingType |
+                EditAndContinueCapabilities.GenericAddMethodToExistingType |
+                EditAndContinueCapabilities.GenericAddFieldToExistingType);
+
+        edits.VerifySemanticDiagnostics(
+            [Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "static int P", GetResource("auto-property"))],
+            capabilities:
+                EditAndContinueCapabilities.AddMethodToExistingType |
+                EditAndContinueCapabilities.AddStaticFieldToExistingType);
     }
 
     // Design: Adding private accessors should also be allowed since we now allow adding private methods
@@ -19074,6 +19323,36 @@ struct S
                 Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "int P", GetResource("property getter"))
             ],
             capabilities: EditAndContinueCapabilities.Baseline);
+    }
+
+    [Fact]
+    public void Property_Auto_Accessor_Update_ReplaceImplicitGetWithExpressionBody_FieldAccess()
+    {
+        var src1 = "class C { int P { get; } }";
+        var src2 = "class C { int P { get => field; } }";
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(
+            "Update [get;]@18 -> [get => field;]@18");
+
+        edits.VerifySemantics(
+            SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.P").GetMethod));
+    }
+
+    [Fact]
+    public void Property_Auto_Accessor_Update_ReplaceImplicitSetWithExpressionBody_FieldAccess()
+    {
+        var src1 = "class C { int P { get; set; } }";
+        var src2 = "class C { int P { get; set => field = value; } }";
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(
+            "Update [set;]@23 -> [set => field = value;]@23");
+
+        edits.VerifySemantics(
+            SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.P").SetMethod));
     }
 
     [Fact]

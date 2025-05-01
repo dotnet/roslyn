@@ -412,6 +412,11 @@
         <target state="translated">Całe rozwiązanie i źródła zewnętrzne</target>
         <note />
       </trans-unit>
+      <trans-unit id="Error_encountered_updating_0">
+        <source>Error encountered updating '{0}'</source>
+        <target state="new">Error encountered updating '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Error_updating_suppressions_0">
         <source>Error updating suppressions: {0}</source>
         <target state="translated">Błąd podczas pomijania aktualizacji: {0}</target>
@@ -515,6 +520,16 @@
       <trans-unit id="Id">
         <source>Id</source>
         <target state="translated">Identyfikator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ignore">
+        <source>Ignore</source>
+        <target state="new">Ignore</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ignore_including_future_errors">
+        <source>Ignore (including future errors)</source>
+        <target state="new">Ignore (including future errors)</target>
         <note />
       </trans-unit>
       <trans-unit id="Implemented_interfaces">

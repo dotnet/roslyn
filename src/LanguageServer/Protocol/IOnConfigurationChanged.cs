@@ -4,10 +4,11 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+namespace Microsoft.CodeAnalysis.LanguageServer;
 
-internal interface IRazorCohostDynamicRegistrationService
+internal interface IOnConfigurationChanged
 {
-    Task RegisterAsync(string serializedClientCapabilities, RazorCohostRequestContext requestContext, CancellationToken cancellationToken);
+    Task OnConfigurationChangedAsync(RequestContext context, CancellationToken cancellationToken);
 }

@@ -895,7 +895,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to required formal parameter 'y'.
 
             TMember badMember = bad.Member;
-            ImmutableArray<ParameterSymbol> parameters = badMember.GetParametersIncludingExtensionParameter();
+            ImmutableArray<ParameterSymbol> parameters = badMember.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: false);
             int badParamIndex = bad.Result.BadParameter;
             string badParamName;
             if (badParamIndex == parameters.Length)
@@ -1115,7 +1115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // as there is no explicit call to Add method.
 
                 int argumentOffset = arguments.IncludesReceiverAsArgument ? 1 : 0;
-                var parameters = method.GetParametersIncludingExtensionParameter();
+                var parameters = method.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: false);
 
                 for (int i = argumentOffset; i < parameters.Length; i++)
                 {
@@ -1170,7 +1170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Early out: if the bad argument is an __arglist parameter then simply report that:
 
-            var parameters = method.GetParametersIncludingExtensionParameter();
+            var parameters = method.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: false);
             if (method.GetIsVararg() && parm == parameters.Length)
             {
                 // NOTE: No SymbolDistinguisher required, since one of the arguments is "__arglist".

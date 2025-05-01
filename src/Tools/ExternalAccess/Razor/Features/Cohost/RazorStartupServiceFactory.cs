@@ -7,7 +7,7 @@ using System.Composition;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -17,24 +17,21 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 
-[ExportCSharpVisualBasicLspServiceFactory(typeof(RazorDynamicRegistrationService), WellKnownLspServerKinds.AlwaysActiveVSLspServer), Shared]
+[ExportCSharpVisualBasicLspServiceFactory(typeof(RazorStartupService), WellKnownLspServerKinds.Any), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class RazorDynamicRegistrationServiceFactory(
+internal sealed class RazorStartupServiceFactory(
     [Import(AllowDefault = true)] IUIContextActivationService? uIContextActivationService,
-    [Import(AllowDefault = true)] Lazy<IRazorCohostDynamicRegistrationService>? dynamicRegistrationService) : ILspServiceFactory
+    [Import(AllowDefault = true)] Lazy<ICohostStartupService>? cohostStartupService) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
-        var clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
-
-        return new RazorDynamicRegistrationService(uIContextActivationService, dynamicRegistrationService, clientLanguageServerManager);
+        return new RazorStartupService(uIContextActivationService, cohostStartupService);
     }
 
-    private class RazorDynamicRegistrationService(
+    private class RazorStartupService(
         IUIContextActivationService? uIContextActivationService,
-        Lazy<IRazorCohostDynamicRegistrationService>? dynamicRegistrationService,
-        IClientLanguageServerManager? clientLanguageServerManager) : ILspService, IOnInitialized, IDisposable
+        Lazy<ICohostStartupService>? cohostStartupService) : ILspService, IOnInitialized, IDisposable
     {
         private readonly CancellationTokenSource _disposalTokenSource = new();
         private IDisposable? _activation;
@@ -48,7 +45,13 @@ internal sealed class RazorDynamicRegistrationServiceFactory(
 
         public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
         {
-            if (dynamicRegistrationService is null || clientLanguageServerManager is null)
+            if (context.ServerKind is not (WellKnownLspServerKinds.AlwaysActiveVSLspServer or WellKnownLspServerKinds.CSharpVisualBasicLspServer))
+            {
+                // We have to register this class for Any server, but only want to run in the C# server in VS or VS Code
+                return Task.CompletedTask;
+            }
+
+            if (cohostStartupService is null)
             {
                 return Task.CompletedTask;
             }
@@ -80,12 +83,17 @@ internal sealed class RazorDynamicRegistrationServiceFactory(
 
             await TaskScheduler.Default.SwitchTo(alwaysYield: true);
 
+            using var languageScope = context.Logger.CreateLanguageContext(Constants.RazorLanguageName);
+
             // We use a string to pass capabilities to/from Razor to avoid version issues with the Protocol DLL
             var serializedClientCapabilities = JsonSerializer.Serialize(clientCapabilities, ProtocolConversions.LspJsonSerializerOptions);
-            var razorCohostClientLanguageServerManager = new RazorClientLanguageServerManager(clientLanguageServerManager!);
 
             var requestContext = new RazorCohostRequestContext(context);
-            await dynamicRegistrationService!.Value.RegisterAsync(serializedClientCapabilities, requestContext, cancellationToken).ConfigureAwait(false);
+
+            if (cohostStartupService is not null)
+            {
+                await cohostStartupService.Value.StartupAsync(serializedClientCapabilities, requestContext, cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 }

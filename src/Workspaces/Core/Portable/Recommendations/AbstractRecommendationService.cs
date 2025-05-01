@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -31,12 +29,9 @@ internal abstract partial class AbstractRecommendationService<
         var namedSymbols = result.NamedSymbols;
         var unnamedSymbols = result.UnnamedSymbols;
 
-        namedSymbols = namedSymbols.FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation);
-        unnamedSymbols = unnamedSymbols.FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation);
-
         var shouldIncludeSymbolContext = new ShouldIncludeSymbolContext(syntaxContext, cancellationToken);
-        namedSymbols = namedSymbols.WhereAsArray(shouldIncludeSymbolContext.ShouldIncludeSymbol);
-        unnamedSymbols = unnamedSymbols.WhereAsArray(shouldIncludeSymbolContext.ShouldIncludeSymbol);
+        namedSymbols = namedSymbols.FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation, shouldIncludeSymbolContext.ShouldIncludeSymbol);
+        unnamedSymbols = unnamedSymbols.FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation, shouldIncludeSymbolContext.ShouldIncludeSymbol);
 
         return new RecommendedSymbols(namedSymbols, unnamedSymbols);
     }
@@ -110,7 +105,7 @@ internal abstract partial class AbstractRecommendationService<
             if (_context.IsAttributeNameContext)
             {
                 return symbol.IsOrContainsAccessibleAttribute(
-                    _context.SemanticModel.GetEnclosingNamedType(_context.LeftToken.SpanStart, _cancellationToken),
+                    _context.SemanticModel.GetEnclosingNamedType(_context.LeftToken.SpanStart, _cancellationToken)!,
                     _context.SemanticModel.Compilation.Assembly,
                     _cancellationToken);
             }

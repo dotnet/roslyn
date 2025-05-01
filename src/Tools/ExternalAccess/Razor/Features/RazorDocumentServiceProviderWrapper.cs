@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         // The lazily initialized service fields use StrongBox<T> to explicitly allow null as an initialized value.
         private StrongBox<ISpanMappingService?>? _lazySpanMappingService;
         private StrongBox<IDocumentExcerptService?>? _lazyExcerptService;
-        private StrongBox<DocumentPropertiesService?>? _lazyDocumentPropertiesService;
+        private StrongBox<IDocumentService?>? _lazyDocumentPropertiesService;
 
         public RazorDocumentServiceProviderWrapper(IRazorDocumentServiceProvider innerDocumentServiceProvider)
         {
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                     },
                     _innerDocumentServiceProvider);
 
-                return (TService?)(object?)documentPropertiesService;
+                return (TService?)documentPropertiesService;
             }
 
             return this as TService;

@@ -24,11 +24,10 @@ internal sealed class AnalyzerSettingsProvider : SettingsProviderBase<AnalyzerSe
         string fileName,
         AnalyzerSettingsUpdater settingsUpdater,
         Workspace workspace,
-        IDiagnosticAnalyzerService analyzerService,
         IGlobalOptionService optionService)
         : base(fileName, settingsUpdater, workspace, optionService)
     {
-        _analyzerService = analyzerService;
+        _analyzerService = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
         Update();
     }
 

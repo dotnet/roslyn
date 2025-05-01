@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -14,8 +13,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 #if DEBUG
 using System.Linq;
@@ -1295,6 +1294,9 @@ namespace Microsoft.CodeAnalysis
 
         internal static int IndexOf<T>(this ImmutableArray<T> array, T item, IEqualityComparer<T> comparer)
             => array.IndexOf(item, startIndex: 0, comparer);
+
+        internal static bool IsSorted<T>(this ImmutableArray<T> array, Comparison<T> comparison)
+            => IsSorted(array, Comparer<T>.Create(comparison));
 
         internal static bool IsSorted<T>(this ImmutableArray<T> array, IComparer<T>? comparer = null)
         {
