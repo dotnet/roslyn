@@ -50,6 +50,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             FatalError,
         }
 
+        /// <summary>
+        /// Used to determine the directory where the tools (like csc) are located.
+        /// See <see cref="Utilities.GenerateFullPathToTool"/>.
+        /// </summary>
+        protected virtual RoslynCompilerType GetCompilerType() => DefaultCompilerType;
+
+        protected const RoslynCompilerType DefaultCompilerType
+#if NET
+            = RoslynCompilerType.Core;
+#else
+            = RoslynCompilerType.Framework;
+#endif
+
         private CancellationTokenSource? _sharedCompileCts;
         internal readonly PropertyDictionary _store = new PropertyDictionary();
 
@@ -493,21 +506,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string?)_store[nameof(CompilerType)]; }
         }
 
-        protected override RoslynCompilerType GetCompilerType()
-        {
-            if (string.IsNullOrWhiteSpace(CompilerType))
-            {
-                return DefaultCompilerType;
-            }
-
-            if (Enum.TryParse<RoslynCompilerType>(CompilerType, ignoreCase: true, out var compilerType))
-            {
-                return compilerType;
-            }
-
-            throw new ArgumentException($"Invalid {nameof(CompilerType)} '{CompilerType}' specified. Valid values are {string.Join(", ", Enum.GetNames(typeof(RoslynCompilerType)))}.");
-        }
-
         #endregion
 
         /// <summary>
@@ -544,7 +542,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 string? tempDirectory = Path.GetTempPath();
 
                 if (!UseSharedCompilation ||
-                    !IsManagedTool ||
+                    !UsingManagedTool ||
                     !BuildServerConnection.IsCompilerServerSupported)
                 {
                     LogCompilationMessage(logger, requestId, CompilationKind.Tool, $"using command line tool by design '{pathToTool}'");

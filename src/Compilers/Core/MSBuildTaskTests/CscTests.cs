@@ -12,6 +12,8 @@ using System.IO;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities;
 using Xunit.Abstractions;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
@@ -652,5 +654,33 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 Assert.Throws<ArgumentException>(() => csc.GenerateResponseFileContents());
             }
         }
+
+#if NETFRAMEWORK && DEBUG
+
+        [Fact]
+        public void CalculateIsSdkFrameworkToCoreBridgeTask()
+        {
+            using var tempRoot = new TempRoot();
+            var binfxPath = tempRoot.CreateDirectory().CreateDirectory("binfx").Path;
+            var taskAssembly = typeof(ManagedCompiler).Assembly;
+            var taskFilePath = taskAssembly.Location!;
+            var taskPath = Path.GetDirectoryName(taskFilePath);
+            foreach (var dllPath in Directory.EnumerateFiles(taskPath, "*.dll"))
+            {
+                File.Copy(dllPath, Path.Combine(binfxPath, Path.GetFileName(dllPath)));
+            }
+
+            var appDomain = Roslyn.Test.Utilities.Desktop.AppDomainUtils.Create("TestAppDomain", binfxPath);
+            try
+            {
+                var testHost = (TaskTestHost)appDomain.CreateInstanceAndUnwrap(taskAssembly.FullName, typeof(TaskTestHost).FullName);
+                Assert.True(testHost.IsSdkFrameworkToCoreBridgeTask);
+            }
+            finally
+            {
+                AppDomain.Unload(appDomain);
+            }
+        }
+#endif
     }
 }

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Resources;
 using System.Text;
@@ -26,31 +27,30 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// ToolExe == ToolName, we know nothing is overridden, and
         /// we can use our own csc.
         /// </remarks>
-        protected bool IsManagedTool => string.IsNullOrEmpty(ToolPath) && ToolExe == ToolName;
+        protected bool UsingManagedTool => string.IsNullOrEmpty(ToolPath) && ToolExe == ToolName;
 
         /// <summary>
-        /// Used to determine the directory where the tools (like csc) are located.
-        /// See <see cref="Utilities.GenerateFullPathToTool"/>.
+        /// A copy of this task, compiled for .NET Framework, is deployed into the .NET SDK. It is a bridge task
+        /// that is loaded into .NET Framework MSBuild but launches the .NET Core compiler. This task necessarily
+        /// has different behaviors than the standard build task compiled for .NET Framework and loaded into the 
+        /// .NET Framework MSBuild.
         /// </summary>
-        protected virtual RoslynCompilerType GetCompilerType() => DefaultCompilerType;
+        /// <remarks>
+        /// This is mutable to facilitate testing
+        /// </remarks>
+        internal bool IsSdkFrameworkToCoreBridgeTask { get; set; } = CalculateIsSdkFrameworkToCoreBridgeTask();
 
-        protected const RoslynCompilerType DefaultCompilerType
-#if NET
-            = RoslynCompilerType.Core;
-#else
-            = RoslynCompilerType.Framework;
-#endif
-
-        internal string PathToManagedTool => Utilities.GenerateFullPathToTool(ToolName, GetCompilerType());
-
-        private string PathToManagedToolWithoutExtension
+        /// <summary>
+        /// Is the managed tool executed by this task running on .NET Core?
+        /// </summary>
+        internal bool IsManagedToolRunningOnCoreClr => (RuntimeHostInfo.IsCoreClrRuntime, IsSdkFrameworkToCoreBridgeTask) switch
         {
-            get
-            {
-                var extension = Path.GetExtension(PathToManagedTool);
-                return PathToManagedTool.Substring(0, PathToManagedTool.Length - extension.Length);
-            }
-        }
+            (true, _) => true,
+            (false, true) => true,
+            (false, false) => false,
+        };
+
+        internal string PathToManagedTool => Path.Combine(GetToolDirectory(), ToolName);
 
         protected ManagedToolTask(ResourceManager resourceManager)
             : base(resourceManager)
@@ -77,9 +77,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         protected sealed override string GenerateCommandLineCommands()
         {
             var commandLineArguments = GenerateToolArguments();
-            if (IsManagedTool)
+            if (UsingManagedTool && IsManagedToolRunningOnCoreClr)
             {
-                (_, commandLineArguments, _) = RuntimeHostInfo.GetProcessInfo(PathToManagedToolWithoutExtension, commandLineArguments);
+                commandLineArguments = RuntimeHostInfo.GetDotNetExecCommandLine(PathToManagedTool, commandLineArguments);
             }
 
             return commandLineArguments;
@@ -117,10 +117,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// This could be the managed assembly itself (on desktop .NET on Windows),
         /// or a runtime such as dotnet.
         /// </summary>
-        protected sealed override string GenerateFullPathToTool() =>
-            IsManagedTool
-                ? RuntimeHostInfo.GetProcessInfo(PathToManagedToolWithoutExtension, string.Empty).processFilePath
-                : Path.Combine(ToolPath ?? "", ToolExe);
+        protected sealed override string GenerateFullPathToTool() => (UsingManagedTool, IsManagedToolRunningOnCoreClr) switch
+        {
+            (true, true) => RuntimeHostInfo.GetDotNetPathOrDefault(),
+            (true, false) => PathToManagedTool,
+            (false, _) => Path.Combine(ToolPath ?? "", ToolExe)
+        };
 
         protected abstract string ToolNameWithoutExtension { get; }
 
@@ -129,18 +131,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         protected abstract void AddResponseFileCommands(CommandLineBuilderExtension commandLine);
 
         /// <summary>
-        /// ToolName is only used in cases where <see cref="IsManagedTool"/> returns true.
+        /// ToolName is only used in cases where <see cref="UsingManagedTool"/> returns true.
         /// It returns the name of the managed assembly, which might not be the path returned by
         /// GenerateFullPathToTool, which can return the path to e.g. the dotnet executable.
         /// </summary>
         /// <remarks>
         /// We *cannot* actually call IsManagedTool in the implementation of this method,
         /// as the implementation of IsManagedTool calls this property. See the comment in
-        /// <see cref="ManagedToolTask.IsManagedTool"/>.
+        /// <see cref="ManagedToolTask.UsingManagedTool"/>.
         /// </remarks>
-        protected sealed override string ToolName => RuntimeHostInfo.IsCoreClrRuntime
-            ? $"{ToolNameWithoutExtension}.dll"
-            : $"{ToolNameWithoutExtension}.exe";
+        protected sealed override string ToolName =>
+            IsManagedToolRunningOnCoreClr
+                ? $"{ToolNameWithoutExtension}.dll"
+                : $"{ToolNameWithoutExtension}.exe";
 
         /// <summary>
         /// This generates the command line arguments passed to the tool.
@@ -176,6 +179,44 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
 
             return items;
+        }
+
+        private string GetToolDirectory()
+        {
+            var buildTask = typeof(ManagedToolTask).Assembly;
+            var buildTaskDirectory = Path.GetDirectoryName(buildTask.Location)!;
+#if NET
+            return Path.Combine(buildTaskDirectory, "bincore");
+#else
+            return IsSdkFrameworkToCoreBridgeTask
+                ? Path.Combine(buildTaskDirectory, "..", "bincore")
+                : buildTaskDirectory;
+#endif
+        }
+
+        /// <summary>
+        /// <see cref="IsSdkFrameworkToCoreBridgeTask"/>
+        /// </summary>
+        /// <remarks>
+        /// Using the file system as a way to differentiate between the two tasks is not ideal, but it is effective
+        /// and allows us to avoid significantly complicating the build process.
+        /// </remarks>
+        internal static bool CalculateIsSdkFrameworkToCoreBridgeTask()
+        {
+#if NET
+            return false;
+#else
+            // This logic needs to be updated when this issue is fixed. That move csc.exe out to a subdirectory
+            // and hence the check below will need to change
+            //
+            // https://github.com/dotnet/roslyn/issues/78001
+
+            var buildTask = typeof(ManagedToolTask).Assembly;
+            var buildTaskDirectory = Path.GetDirectoryName(buildTask.Location)!;
+            var buildTaskDrectoryName = Path.GetFileName(buildTaskDirectory);
+            var isCscPresent = File.Exists(Path.Combine(buildTaskDirectory, "csc.exe"));
+            return !isCscPresent && string.Equals(buildTaskDrectoryName, "binfx", StringComparison.OrdinalIgnoreCase);
+#endif
         }
     }
 }
