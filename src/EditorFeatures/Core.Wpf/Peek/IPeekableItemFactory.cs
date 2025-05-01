@@ -23,6 +23,9 @@ public interface IPeekableItemFactory
     Task<IEnumerable<IPeekableItem>> GetPeekableItemsAsync(ISymbol symbol, Project project, IPeekResultFactory peekResultFactory, CancellationToken cancellationToken);
 }
 
+/// <summary>
+/// Legacy export for xaml.  They should move to IXamlPeekableItemFactory once this is inserted.
+/// </summary>
 [Export(typeof(IPeekableItemFactory)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
