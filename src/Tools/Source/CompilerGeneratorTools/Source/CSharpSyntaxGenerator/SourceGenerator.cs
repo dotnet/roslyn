@@ -168,7 +168,7 @@ namespace CSharpSyntaxGenerator
             }
         }
 
-        private sealed partial class StringBuilderText : SourceText
+        private sealed class StringBuilderText : SourceText
         {
             private readonly StringBuilder _builder;
             private readonly Encoding? _encoding;
