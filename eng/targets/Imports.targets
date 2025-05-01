@@ -20,20 +20,20 @@
   <PropertyGroup>
     <FileAlignment>512</FileAlignment>
 
-    <!-- 
+    <!--
       Only generate our runtimeconfig.json files for net core apps. It's unnecessary in desktop projects
       but gets included in lots of output items like VSIX.
     -->
     <GenerateRuntimeConfigurationFiles Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'">false</GenerateRuntimeConfigurationFiles>
 
     <!--
-      When building a .NET Core exe make sure to include the template runtimeconfig.json file 
-      which has all of our global settings 
+      When building a .NET Core exe make sure to include the template runtimeconfig.json file
+      which has all of our global settings
     -->
     <UserRuntimeConfig Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(OutputType)' == 'Exe'">$(RepositoryEngineeringDir)config\runtimeconfig.template.json</UserRuntimeConfig>
 
     <!--
-      Disable nullable warnings when targeting anything other than our supported .NET core version(s). 
+      Disable nullable warnings when targeting anything other than our supported .NET core version(s).
       This condition will be evaluated multiple times in multi-targeted projects hence need to be careful
       to only set in the inner builds, not the outer build where only $(TargetFrameworks) is defined.
       We still check $(TargetFrameworks) for empty though, because for single-targeted builds we want to
@@ -69,8 +69,8 @@
   <PropertyGroup Condition="'$(DisableNullableWarnings)' == 'true'">
     <NoWarn>$(NoWarn);Nullable</NoWarn>
   </PropertyGroup>
-  
-  <!-- 
+
+  <!--
     Do not copy dependencies to the output directory of a library project, unless it's a unit test project.
   -->
   <ItemDefinitionGroup Condition="'$(OutputType)' == 'Library' and '$(IsVsixProject)' != 'true' and '$(IsTestProject)' != 'true'">
@@ -155,22 +155,22 @@
     <CompareVersions Left="$(MSBuildVersion)" Right="$(MinimumMSBuildVersion)">
       <Output TaskParameter="Result" PropertyName="_VersionComparisonResult"/>
     </CompareVersions>
-  
+
     <SingleError Text="The msbuild version $(MSBuildVersion) is below the minimum required version $(MinimumMSBuildVersion)"
                  Condition="$(_VersionComparisonResult) &lt; 0"/>
-  </Target> 
+  </Target>
 
   <Target Name="_CheckLongPathSupport" BeforeTargets="BeforeBuild" Condition="'$(MSBuildRuntimeType)' == 'Full'">
     <PropertyGroup>
       <_RoslynLongPathsEnabled>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\FileSystem', 'LongPathsEnabled', null, RegistryView.Registry64, RegistryView.Registry32))</_RoslynLongPathsEnabled>
     </PropertyGroup>
-    
-    <Warning Condition="'$(_RoslynLongPathsEnabled)' != '1'" Text="Long paths are required for this project. Please run eng\enable-long-paths.reg" />
-  </Target> 
 
-  <!-- 
-    This target is used to copy referenced projects to a sub-directory vs. the direct output 
-    directory of the build. Useful when the referenced project is an EXE and the referencing 
+    <Warning Condition="'$(_RoslynLongPathsEnabled)' != '1'" Text="Long paths are required for this project. Please run eng\enable-long-paths.reg" />
+  </Target>
+
+  <!--
+    This target is used to copy referenced projects to a sub-directory vs. the direct output
+    directory of the build. Useful when the referenced project is an EXE and the referencing
     project uses an incompatible TargetFramework (e.g. CommandLineTest -> csc/vbc)
   -->
   <Target Name="CopyReferencedProjectsToDependenciesDirectory" Condition="'@(RoslynReferenceToDependencyDirectory)' != ''" AfterTargets="ResolveProjectReferences">
@@ -183,11 +183,11 @@
     </ItemGroup>
   </Target>
 
-  <!-- 
+  <!--
     Count PublicAPIs as AdditionalFiles to get them to analyzers. This is working around
     https://github.com/dotnet/project-system/issues/2160 where AdditionalFileItemNames
     isn't fully supported yet in the new project system. Removal of this hack is tracked
-    by https://github.com/dotnet/roslyn/issues/19545. 
+    by https://github.com/dotnet/roslyn/issues/19545.
   -->
   <ItemGroup>
     <AdditionalFiles Include="@(PublicAPI)" />
@@ -203,7 +203,7 @@
     <None Include="$(AppDesignerFolder)\launchSettings.json" Condition="Exists('$(AppDesignerFolder)\launchSettings.json')" />
   </ItemGroup>
 
-  <!-- 
+  <!--
     Add ThirdPartyNotices.rtf to all shipping NuGet packages.
   -->
   <ItemGroup Condition="'$(IsPackable)' == 'true' and '$(IsShipping)' == 'true'">
@@ -221,8 +221,8 @@
   <!--
     Append common text to package specific PackageDescription.
   -->
-  <Target Name="_AppendCommonPackageDescription" 
-          BeforeTargets="InitializeStandardNuspecProperties;GenerateNuspec" 
+  <Target Name="_AppendCommonPackageDescription"
+          BeforeTargets="InitializeStandardNuspecProperties;GenerateNuspec"
           DependsOnTargets="InitializeSourceControlInformation"
           Condition="'$(IsPackable)' == 'true' AND '$(SourceControlInformationFeatureSupported)' == 'true'">
     <PropertyGroup>
@@ -244,13 +244,13 @@
   </ItemGroup>
 
   <!--
-    Default settings for analyzer packages.    
+    Default settings for analyzer packages.
   -->
   <PropertyGroup Condition="'$(IsPackable)' == 'true' and '$(IsAnalyzer)' == 'true'">
     <DevelopmentDependency>true</DevelopmentDependency>
     <IncludeBuildOutput>false</IncludeBuildOutput>
   </PropertyGroup>
-  
+
   <ItemGroup Condition="'$(IsPackable)' == 'true' and '$(IsAnalyzer)' == 'true'">
     <!-- Analyzer packages should not have any dependencies. -->
     <PackageReference Update="@(PackageReference)" PrivateAssets="all"/>
@@ -358,7 +358,7 @@
     </ItemGroup>
   </Target>
 
-  <!-- 
+  <!--
     Checks assumptions made by TestUsingOptimizedRunner function in build.ps1.
   -->
   <Target Name="_CheckTestProjectTargetFileName" BeforeTargets="Build" Condition="'$(TargetFramework)' != ''">
@@ -422,5 +422,52 @@
     <PropertyGroup>
       <EnableNgenOptimization>true</EnableNgenOptimization>
     </PropertyGroup>
+  </Target>
+
+  <!--
+    Override the Arcade PackageReleasePackages target so that we can avoid changing The
+    Microsoft.CodeAnalysis.Analyzers version in the Roslyn package nuspec files.
+  -->
+  <PropertyGroup>
+    <_NuGetRepackAssembly Condition="'$(MSBuildRuntimeType)' != 'Core'">$(NuGetPackageRoot)microsoft.dotnet.nugetrepack.tasks\$(MicrosoftDotnetNuGetRepackTasksVersion)\tools\net472\Microsoft.DotNet.NuGetRepack.Tasks.dll</_NuGetRepackAssembly>
+    <_NuGetRepackAssembly Condition="'$(MSBuildRuntimeType)' == 'Core'">$(NuGetPackageRoot)microsoft.dotnet.nugetrepack.tasks\$(MicrosoftDotnetNuGetRepackTasksVersion)\tools\net9.0\Microsoft.DotNet.NuGetRepack.Tasks.dll</_NuGetRepackAssembly>
+  </PropertyGroup>
+
+  <UsingTask TaskName="Microsoft.DotNet.Tools.UpdatePackageVersionTask" AssemblyFile="$(_NuGetRepackAssembly)" />
+
+  <Target Name="PackageReleasePackages" AfterTargets="Pack" Condition="'$(DotNetFinalVersionKind)' == ''">
+    <Message Text="Building release versions of NuGet packages" Importance="high" />
+
+    <Error Text="PreReleaseVersionLabel must be non-empty when using NuGet Repack tool." Condition="'$(PreReleaseVersionLabel)' == ''" />
+
+    <ItemGroup>
+      <_BuiltPackages Include="$(ArtifactsShippingPackagesDir)*.nupkg" />
+
+      <_RoslynBuiltPackages Include="@(_BuiltPackages)" />
+      <_RoslynBuiltPackages Remove="%(_BuiltPackages.Identity)" Condition="'@(_BuiltPackages->Contains('Microsoft.CodeAnalysis.Analyzers.'))' == 'true'" />
+      <_RoslynBuiltPackages Remove="%(_BuiltPackages.Identity)" Condition="'@(_BuiltPackages->Contains('Microsoft.CodeAnalysis.AnalyzerUtilities.'))' == 'true'" />
+      <_RoslynBuiltPackages Remove="%(_BuiltPackages.Identity)" Condition="'@(_BuiltPackages->Contains('Microsoft.CodeAnalysis.BannedApiAnalyzers.'))' == 'true'" />
+      <_RoslynBuiltPackages Remove="%(_BuiltPackages.Identity)" Condition="'@(_BuiltPackages->Contains('Microsoft.CodeAnalysis.Metrics.'))' == 'true'" />
+      <_RoslynBuiltPackages Remove="%(_BuiltPackages.Identity)" Condition="'@(_BuiltPackages->Contains('Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.'))' == 'true'" />
+      <_RoslynBuiltPackages Remove="%(_BuiltPackages.Identity)" Condition="'@(_BuiltPackages->Contains('Microsoft.CodeAnalysis.PublicApiAnalyzers.'))' == 'true'" />
+      <_RoslynBuiltPackages Remove="%(_BuiltPackages.Identity)" Condition="'@(_BuiltPackages->Contains('Microsoft.CodeAnalysis.ResxSourceGenerator.'))' == 'true'" />
+      <_RoslynBuiltPackages Remove="%(_BuiltPackages.Identity)" Condition="'@(_BuiltPackages->Contains('Microsoft.CodeAnalysis.RulesetToEditorconfigConverter.'))' == 'true'" />
+      <_RoslynBuiltPackages Remove="%(_BuiltPackages.Identity)" Condition="'@(_BuiltPackages->Contains('Roslyn.Diagnostics.Analyzers.'))' == 'true'" />
+      <_RoslynBuiltPackages Remove="%(_BuiltPackages.Identity)" Condition="'@(_BuiltPackages->Contains('Text.Analyzers.'))' == 'true'" />
+
+      <_RoslynAnalyzerBuiltPackages Include="@(_BuiltPackages)" />
+      <_RoslynAnalyzerBuiltPackages Remove="@(_RoslynBuiltPackages)" />
+    </ItemGroup>
+
+    <!-- Force references among packages to use exact versions (see https://github.com/NuGet/Home/issues/7213) -->
+    <Microsoft.DotNet.Tools.UpdatePackageVersionTask VersionKind="release" Packages="@(_RoslynBuiltPackages)" OutputDirectory="$(ArtifactsPackagesDir)Release" AllowPreReleaseDependencies="true" ExactVersions="true" />
+    <Microsoft.DotNet.Tools.UpdatePackageVersionTask VersionKind="release" Packages="@(_RoslynAnalyzerBuiltPackages)" OutputDirectory="$(ArtifactsPackagesDir)Release" AllowPreReleaseDependencies="true" ExactVersions="true" />
+
+    <Microsoft.DotNet.Tools.UpdatePackageVersionTask VersionKind="prerelease" Packages="@(_RoslynBuiltPackages)" OutputDirectory="$(ArtifactsPackagesDir)PreRelease" ExactVersions="true"/>
+    <Microsoft.DotNet.Tools.UpdatePackageVersionTask VersionKind="prerelease" Packages="@(_RoslynAnalyzerBuiltPackages)" OutputDirectory="$(ArtifactsPackagesDir)PreRelease" ExactVersions="true"/>
+
+    <!-- Rewrite the version ranges of per-build pre-release packages (see https://github.com/NuGet/Home/issues/7213) -->
+    <Microsoft.DotNet.Tools.UpdatePackageVersionTask Packages="@(_RoslynBuiltPackages)" OutputDirectory="$(ArtifactsShippingPackagesDir)" ExactVersions="true"/>
+    <Microsoft.DotNet.Tools.UpdatePackageVersionTask Packages="@(_RoslynAnalyzerBuiltPackages)" OutputDirectory="$(ArtifactsShippingPackagesDir)" ExactVersions="true"/>
   </Target>
 </Project>
