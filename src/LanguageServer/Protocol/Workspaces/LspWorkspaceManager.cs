@@ -115,14 +115,14 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     private ImmutableDictionary<Uri, (SourceText Text, string LanguageId)> _trackedDocuments = ImmutableDictionary<Uri, (SourceText, string)>.Empty.WithComparers(LspUriComparer.Instance);
 
     private readonly ILspLogger _logger;
-    private readonly LspMiscellaneousFilesWorkspace? _lspMiscellaneousFilesWorkspace;
+    private readonly ILspMiscellaneousFilesWorkspace? _lspMiscellaneousFilesWorkspace;
     private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
     private readonly ILanguageInfoProvider _languageInfoProvider;
     private readonly RequestTelemetryLogger _requestTelemetryLogger;
 
     public LspWorkspaceManager(
         ILspLogger logger,
-        LspMiscellaneousFilesWorkspace? lspMiscellaneousFilesWorkspace,
+        ILspMiscellaneousFilesWorkspace? lspMiscellaneousFilesWorkspace,
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
         ILanguageInfoProvider languageInfoProvider,
         RequestTelemetryLogger requestTelemetryLogger)
@@ -582,8 +582,13 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         public TestAccessor(LspWorkspaceManager manager)
             => _manager = manager;
 
-        public LspMiscellaneousFilesWorkspace? GetLspMiscellaneousFilesWorkspace()
-            => _manager._lspMiscellaneousFilesWorkspace;
+        public Workspace? GetLspMiscellaneousFilesWorkspace()
+        {
+            // Right now this assumes for purposes of tests that the implementation of ILspMiscellaneousFilesWorkspace is itself a Workspace.
+            // If we wanted to decouple this better, we could add a member to ILspMiscellaneousFilesWorkspace, but since this is only for tests
+            // it's not the worst.
+            return (Workspace?)_manager._lspMiscellaneousFilesWorkspace;
+        }
 
         public bool IsWorkspaceRegistered(Workspace workspace)
         {

@@ -17,12 +17,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// This is not exported as a <see cref="ILspServiceFactory"/> as it requires
 /// special base language server dependencies such as the <see cref="HostServices"/>
 /// </summary>
-[ExportCSharpVisualBasicStatelessLspService(typeof(LspMiscellaneousFilesWorkspaceProvider)), Shared]
+[ExportCSharpVisualBasicStatelessLspService(typeof(ILspMiscellaneousFilesWorkspaceProvider)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class LspMiscellaneousFilesWorkspaceProvider(IMetadataAsSourceFileService metadataAsSourceFileService) : ILspService
+internal sealed class LspMiscellaneousFilesWorkspaceProvider(IMetadataAsSourceFileService metadataAsSourceFileService) : ILspMiscellaneousFilesWorkspaceProvider
 {
-    public LspMiscellaneousFilesWorkspace CreateLspMiscellaneousFilesWorkspace(ILspServices lspServices, HostServices hostServices)
+    public ILspMiscellaneousFilesWorkspace CreateLspMiscellaneousFilesWorkspace(ILspServices lspServices, HostServices hostServices)
     {
         return new LspMiscellaneousFilesWorkspace(lspServices, metadataAsSourceFileService, hostServices);
     }

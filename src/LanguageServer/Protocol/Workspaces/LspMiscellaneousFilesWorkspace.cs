@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// but that is dependent on having a x-plat mechanism for retrieving those references from the framework / sdk.
 /// </summary>
 internal sealed class LspMiscellaneousFilesWorkspace(ILspServices lspServices, IMetadataAsSourceFileService metadataAsSourceFileService, HostServices hostServices)
-    : Workspace(hostServices, WorkspaceKind.MiscellaneousFiles), ILspService, ILspWorkspace
+    : Workspace(hostServices, WorkspaceKind.MiscellaneousFiles), ILspMiscellaneousFilesWorkspace
 {
     public bool SupportsMutation => true;
 
