@@ -23,7 +23,7 @@ using Microsoft.VisualStudio.Language.Intellisense;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek;
 
-[Export(typeof(PeekableItemFactory))]
+[Export]
 internal class PeekableItemFactory
 {
     private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
