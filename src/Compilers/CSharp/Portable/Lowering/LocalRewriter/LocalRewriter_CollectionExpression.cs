@@ -484,16 +484,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(_factory.ModuleBuilderOpt is { });
             Debug.Assert(_diagnostics.DiagnosticBag is { });
             Debug.Assert(node.Type is NamedTypeSymbol);
-            Debug.Assert(node.CollectionCreation is null);
+            Debug.Assert(node.CollectionCreation is BoundCall { Method: CollectionArgumentsSignatureOnlyMethodSymbol });
             Debug.Assert(node.Placeholder is { });
 
             var interfaceType = (NamedTypeSymbol)node.Type;
             var typeArguments = interfaceType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
             var collectionType = _factory.WellKnownType(WellKnownType.System_Collections_Generic_Dictionary_KV).Construct(typeArguments);
 
-            // Dictionary<K, V> dictionary = new();
-            var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor)).AsMember(collectionType);
-            var rewrittenReceiver = _factory.New(constructor, ImmutableArray<BoundExpression>.Empty);
+            if (node.CollectionCreation is not BoundCall { Method: CollectionArgumentsSignatureOnlyMethodSymbol { WellKnownConstructor: var constructor }, Arguments: var constructorArguments })
+            {
+                throw ExceptionUtilities.UnexpectedValue(node.CollectionCreation);
+            }
+
+            // Dictionary<K, V> dictionary = new(args);
+            constructor = constructor.AsMember(collectionType);
+            var rewrittenReceiver = _factory.New(constructor, constructorArguments);
             var collection = PopulateDictionary(node, collectionType, rewrittenReceiver);
 
             if ((object)interfaceType.OriginalDefinition == _compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IReadOnlyDictionary_KV))

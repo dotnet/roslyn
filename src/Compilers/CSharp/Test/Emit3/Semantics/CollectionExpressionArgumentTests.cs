@@ -611,6 +611,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             verifier.VerifyIL("Program.EmptyArgs<K, V>", expectedIL);
         }
 
+        // PROTOTYPE: Test with unrecognized signature. BindMemberAccessReportError() expects a boundLeft that is non-null, that is, an explicit type if the method is static.
+        // PROTOTYPE: Include nullability of signatures in proposal, and test here. For instance, null should be allowed for IEqualityComparer<T>.
+        // PROTOTYPE: Test with named parameter capacity: value.
+        // PROTOTYPE: Test the full shape of the synthesized methods, including 'params', optional values, accessibility, etc.?
+        // PROTOTYPE: Test with implementation method that differs from the expected parameter name when the argument was explicitly named.
+        // PROTOTYPE: Semantic model for collection creation: what method is returned if any?
+        // PROTOTYPE: Test dynamic arguments. Shouldn't result in a BoundDynamicInvocation.
+        // PROTOTYPE: Test success cases for all interface types.
+        // PROTOTYPE: Test other constructors from List<T> and Dictionary<K, V> are not available.
+
         [Theory]
         [InlineData("IDictionary")]
         [InlineData("IReadOnlyDictionary")]
@@ -620,25 +630,110 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 using System.Collections.Generic;
                 class Program
                 {
-                    static void F<K, V>(K k, V v)
+                    static void Main()
                     {
-                        {{interfaceType}}<K, V> i;
-                        i = [with(default), k:v];
-                        i = [k:v, with(default)];
+                        Pair(1, "one").Report();
+                        Expression(null, new KeyValuePair<int, string>(2, "two")).Report();
+                    }
+                    static {{interfaceType}}<K, V> Pair<K, V>(K k, V v)
+                    {
+                        return [with(1), k:v];
+                    }
+                    static {{interfaceType}}<K, V> Expression<K, V>(IEqualityComparer<K> c, KeyValuePair<K, V> e)
+                    {
+                        return [with(1, c), e];
                     }
                 }
                 """;
-            var comp = CreateCompilation(source);
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensions],
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[[1, one]], [[2, two]], "));
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pair<K, V>", (interfaceType == "IReadOnlyDictionary") ?
+                """
+                {
+                  // Code size       20 (0x14)
+                  .maxstack  4
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(int)"
+                  IL_0006:  dup
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldarg.1
+                  IL_0009:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_000e:  newobj     "System.Collections.ObjectModel.ReadOnlyDictionary<K, V>..ctor(System.Collections.Generic.IDictionary<K, V>)"
+                  IL_0013:  ret
+                }
+                """ :
+                """
+                {
+                  // Code size       15 (0xf)
+                  .maxstack  4
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(int)"
+                  IL_0006:  dup
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldarg.1
+                  IL_0009:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_000e:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.Expression<K, V>", (interfaceType == "IReadOnlyDictionary") ?
+                """
+                {
+                  // Code size       35 (0x23)
+                  .maxstack  4
+                  .locals init (System.Collections.Generic.KeyValuePair<K, V> V_0)
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  ldarg.0
+                  IL_0002:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(int, System.Collections.Generic.IEqualityComparer<K>)"
+                  IL_0007:  ldarg.1
+                  IL_0008:  stloc.0
+                  IL_0009:  dup
+                  IL_000a:  ldloca.s   V_0
+                  IL_000c:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                  IL_0011:  ldloca.s   V_0
+                  IL_0013:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                  IL_0018:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_001d:  newobj     "System.Collections.ObjectModel.ReadOnlyDictionary<K, V>..ctor(System.Collections.Generic.IDictionary<K, V>)"
+                  IL_0022:  ret
+                }
+                """ :
+                """
+                {
+                  // Code size       30 (0x1e)
+                  .maxstack  4
+                  .locals init (System.Collections.Generic.KeyValuePair<K, V> V_0)
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  ldarg.0
+                  IL_0002:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(int, System.Collections.Generic.IEqualityComparer<K>)"
+                  IL_0007:  ldarg.1
+                  IL_0008:  stloc.0
+                  IL_0009:  dup
+                  IL_000a:  ldloca.s   V_0
+                  IL_000c:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                  IL_0011:  ldloca.s   V_0
+                  IL_0013:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                  IL_0018:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_001d:  ret
+                }
+                """);
+
+            string sourceB = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static {{interfaceType}}<K, V> Pair<K, V>(K k, V v)
+                    {
+                        return [k:v, with(1)];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(sourceB);
             comp.VerifyEmitDiagnostics(
-                // (7,14): error CS9502: Collection arguments are not supported for type 'IDictionary<K, V>'.
-                //         i = [with(default), k:v];
-                Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments($"System.Collections.Generic.{interfaceType}<K, V>").WithLocation(7, 14),
-                // (8,19): error CS9501: Collection argument element must be the first element.
-                //         i = [k:v, with(default)];
-                Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(8, 19),
-                // (8,19): error CS9502: Collection arguments are not supported for type 'IDictionary<K, V>'.
-                //         i = [k:v, with(default)];
-                Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments($"System.Collections.Generic.{interfaceType}<K, V>").WithLocation(8, 19));
+                // (6,22): error CS9501: Collection argument element must be the first element.
+                //         return [k:v, with(1)];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(6, 22));
         }
 
         [Fact]
@@ -3995,6 +4090,146 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (7,34): error CS8716: There is no target type for the default literal.
                 //         Identity([with(default), default, 3]);
                 Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(7, 34));
+        }
+
+        // PROTOTYPE: Test missing types.
+        [Theory]
+        [CombinatorialData]
+        public void InterfaceTarget_MissingMember_01(
+            [CombinatorialValues(
+                "IEnumerable<int>",
+                "IReadOnlyCollection<int>",
+                "IReadOnlyList<int>",
+                "ICollection<int>",
+                "IList<int>")]
+            string typeName,
+            [CombinatorialValues(
+                0,
+                WellKnownMember.System_Collections_Generic_List_T__ctor,
+                WellKnownMember.System_Collections_Generic_List_T__ctorInt32,
+                WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor,
+                WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_IEqualityComparer_K,
+                WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32,
+                WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32_IEqualityComparer_K)]
+            int missingMember)
+        {
+            string source = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Create(int i)
+                    {
+                        {{typeName}} c;
+                        c = [];
+                        c = [with()];
+                        c = [with(i)];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeMemberMissing((WellKnownMember)missingMember);
+            // PROTOTYPE: Support collection arguments for non-dictionary interfaces.
+            // PROTOTYPE: Should report errors for missing List<T> members.
+            comp.VerifyEmitDiagnostics(
+                // (9,14): error CS9502: Collection arguments are not supported for type 'IEnumerable<int>'.
+                //         c = [with(i)];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments($"System.Collections.Generic.{typeName}").WithLocation(9, 14));
+        }
+
+        // PROTOTYPE: Test missing types.
+        [Theory]
+        [CombinatorialData]
+        public void InterfaceTarget_MissingMember_02(
+            [CombinatorialValues(
+                "IDictionary<int, string>",
+                "IReadOnlyDictionary<int, string>")]
+            string typeName,
+            [CombinatorialValues(
+                0,
+                WellKnownMember.System_Collections_Generic_List_T__ctor,
+                WellKnownMember.System_Collections_Generic_List_T__ctorInt32,
+                WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor,
+                WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_IEqualityComparer_K,
+                WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32,
+                WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32_IEqualityComparer_K)]
+            int missingMember)
+        {
+            string source = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Create(int i, IEqualityComparer<int> e)
+                    {
+                        {{typeName}} c;
+                        c = [];
+                        c = [with()];
+                        c = [with(i)];
+                        c = [with(e)];
+                        c = [with(i, e)];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeMemberMissing((WellKnownMember)missingMember);
+            // PROTOTYPE: Should report errors for missing Dictionary<K, V> members.
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void DefiniteAssignment_01()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static HashSet<T> Create<T>()
+                    {
+                        IEqualityComparer<T> e = null;
+                        return [with(e)];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void DefiniteAssignment_02()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static IEqualityComparer<T> Create<T>()
+                    {
+                        IEqualityComparer<T> e;
+                        HashSet<T> s = [with(e = null)];
+                        return e;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void NullableAnalysis_01()
+        {
+            string source = """
+                #nullable enable
+                using System.Collections.Generic;
+                class Program
+                {
+                    static IEqualityComparer<T> Create<T>()
+                    {
+                        IEqualityComparer<T>? e = null;
+                        HashSet<T> s = [with(e = Create<T>())];
+                        return e;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]

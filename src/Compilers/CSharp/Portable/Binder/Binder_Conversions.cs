@@ -993,9 +993,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 collectionCreation = CreateConversion(collectionCreation, targetType, diagnostics);
             }
+            else if (collectionTypeKind is CollectionExpressionTypeKind.DictionaryInterface)
+            {
+                var candidateMethodGroup = BindInterfaceTargetCollectionMethodGroup(syntax, collectionTypeKind, (NamedTypeSymbol)targetType, diagnostics);
+
+                // Bind collection creation with arguments.
+                foreach (var element in elements)
+                {
+                    if (element is BoundCollectionExpressionWithElement withElement)
+                    {
+                        var collectionWithArguments = BindInterfaceTargetCollectionArguments(syntax, candidateMethodGroup, withElement, diagnostics);
+                        collectionCreation ??= collectionWithArguments;
+                    }
+                }
+
+                // Bind collection creation with no arguments.
+                if (collectionCreation is null)
+                {
+                    collectionCreation = BindInterfaceTargetCollectionArguments(syntax, candidateMethodGroup, withElement: null, diagnostics);
+                }
+            }
 
             if (collectionTypeKind is not
-                (CollectionExpressionTypeKind.ImplementsIEnumerable or CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer))
+                (CollectionExpressionTypeKind.ImplementsIEnumerable or CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer or CollectionExpressionTypeKind.DictionaryInterface))
             {
                 var withElement = elements.FirstOrDefault(e => e is BoundCollectionExpressionWithElement { Arguments.Length: > 0 });
                 if (withElement is { })
@@ -1312,6 +1332,153 @@ namespace Microsoft.CodeAnalysis.CSharp
                 acceptOnlyMethods: true).MakeCompilerGenerated();
             analyzedArguments.Free();
             return collectionCreation;
+        }
+
+        private BoundMethodGroup BindInterfaceTargetCollectionMethodGroup(
+            SyntaxNode syntax,
+            CollectionExpressionTypeKind collectionTypeKind,
+            NamedTypeSymbol targetType,
+            BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(ContainingType is { }); // PROTOTYPE: When is this false?
+            const string methodName = "<signature>"; // PROTOTYPE: What name should we use?
+            var builder = ArrayBuilder<MethodSymbol>.GetInstance();
+            addSignatures(builder, syntax, ContainingType, methodName, targetType, diagnostics);
+            // PROTOTYPE: Test case where all methods are missing.
+            return new BoundMethodGroup(
+                syntax,
+                typeArgumentsOpt: default,
+                methodName,
+                methods: builder.ToImmutableAndFree(),
+                lookupSymbolOpt: null,
+                lookupError: null,
+                flags: BoundMethodGroupFlags.None,
+                functionType: null,
+                receiverOpt: null,
+                resultKind: LookupResultKind.Viable);
+
+            void addSignatures(
+                ArrayBuilder<MethodSymbol> builder,
+                SyntaxNode syntax,
+                NamedTypeSymbol containingType,
+                string methodName,
+                NamedTypeSymbol targetType,
+                BindingDiagnosticBag diagnostics)
+            {
+                switch (collectionTypeKind)
+                {
+                    case CollectionExpressionTypeKind.ArrayInterface:
+                        // PROTOTYPE: Add signatures.
+                        break;
+                    case CollectionExpressionTypeKind.DictionaryInterface:
+                        {
+                            // PROTOTYPE: Lambda expressions should be static.
+                            var intType = TypeWithAnnotations.Create(GetSpecialType(SpecialType.System_Int32, diagnostics, syntax));
+                            // PROTOTYPE: What if targetType or targetType.TypeArugments[0] are type parameters declared
+                            // on the containing method? In that case, presumably the signature should be a generic method
+                            // where type arguments are supplied at this call site.
+                            var comparerTypeArgument = targetType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+                            var comparerType = TypeWithAnnotations.Create(
+                                GetWellKnownType(WellKnownType.System_Collections_Generic_IEqualityComparer_T, diagnostics, node: syntax).Construct([comparerTypeArgument]),
+                                NullableAnnotation.Annotated);
+                            addSignature(
+                                builder,
+                                Compilation,
+                                syntax,
+                                WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor,
+                                containingType,
+                                methodName,
+                                getParameters: _ => [],
+                                targetType,
+                                diagnostics);
+                            addSignature(
+                                builder,
+                                Compilation,
+                                syntax,
+                                WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_IEqualityComparer_K,
+                                containingType,
+                                methodName,
+                                getParameters: method => [SynthesizedParameterSymbol.Create(method, comparerType, ordinal: 1, refKind: RefKind.None, name: "comparer")],
+                                targetType,
+                                diagnostics);
+                            addSignature(
+                                builder,
+                                Compilation,
+                                syntax,
+                                WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32,
+                                containingType,
+                                methodName,
+                                getParameters: method => [SynthesizedParameterSymbol.Create(method, intType, ordinal: 1, refKind: RefKind.None, name: "capacity")],
+                                targetType,
+                                diagnostics);
+                            addSignature(
+                                builder,
+                                Compilation,
+                                syntax,
+                                WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32_IEqualityComparer_K,
+                                containingType,
+                                methodName,
+                                getParameters: method =>
+                                    [
+                                        SynthesizedParameterSymbol.Create(method, intType, ordinal: 1, refKind: RefKind.None, name: "capacity"),
+                                        SynthesizedParameterSymbol.Create(method, comparerType, ordinal: 2, refKind: RefKind.None, name: "comparer")
+                                    ],
+                                targetType,
+                                diagnostics);
+                        }
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(collectionTypeKind);
+                }
+            }
+
+            static void addSignature(
+                ArrayBuilder<MethodSymbol> builder,
+                CSharpCompilation compilation,
+                SyntaxNode syntax,
+                WellKnownMember wellKnownConstructor,
+                NamedTypeSymbol containingType,
+                string methodName,
+                Func<CollectionArgumentsSignatureOnlyMethodSymbol, ImmutableArray<ParameterSymbol>> getParameters,
+                NamedTypeSymbol resultType,
+                BindingDiagnosticBag diagnostics)
+            {
+                var constructor = (MethodSymbol?)GetWellKnownTypeMember(compilation, wellKnownConstructor, diagnostics, syntax: syntax);
+                if (constructor is { })
+                {
+                    var method = new CollectionArgumentsSignatureOnlyMethodSymbol(
+                        constructor,
+                        methodName,
+                        containingType,
+                        getParameters,
+                        returnType: TypeWithAnnotations.Create(resultType));
+                    builder.Add(method);
+                }
+            }
+        }
+
+        private BoundExpression BindInterfaceTargetCollectionArguments(
+            SyntaxNode syntax,
+            BoundMethodGroup methodGroup,
+            BoundCollectionExpressionWithElement? withElement,
+            BindingDiagnosticBag diagnostics)
+        {
+            var analyzedArguments = AnalyzedArguments.GetInstance();
+            withElement?.GetArguments(analyzedArguments);
+            var result = BindMethodGroupInvocation(
+                syntax,
+                expression: syntax,
+                methodGroup.Name,
+                methodGroup,
+                analyzedArguments,
+                diagnostics,
+                queryClause: null,
+                ignoreNormalFormIfHasValidParamsParameter: false,
+                out _,
+                disallowExpandedNonArrayParams: true,
+                acceptOnlyMethods: true).MakeCompilerGenerated();
+            analyzedArguments.Free();
+            return result;
         }
 
         private bool HasCollectionInitializerTypeInProgress(SyntaxNode syntax, TypeSymbol targetType)
@@ -3131,6 +3298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Perform final validation of the method to be invoked.
 
             Debug.Assert(memberSymbol is not MethodSymbol { MethodKind: not MethodKind.Constructor } ||
+                memberSymbol is CollectionArgumentsSignatureOnlyMethodSymbol ||
                 memberSymbol.CanBeReferencedByName);
             //note that the same assert does not hold for all properties. Some properties and (all indexers) are not referenceable by name, yet
             //their binding brings them through here, perhaps needlessly.
