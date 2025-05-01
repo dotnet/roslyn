@@ -420,21 +420,21 @@ internal sealed partial class ProjectSystemProjectFactory
     {
         Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
-        // Remove file watchers for any references we're no longer watching.
-        foreach (var reference in projectUpdateState.RemovedMetadataReferences)
-            FileWatchedPortableExecutableReferenceFactory.StopWatchingReference(reference.FilePath!, referenceToTrack: reference);
-
-        // Add file watchers for any references we are now watching.
+        // Add file watchers for any references we are now watching. Process adds before remove in case the same reference is in both lists.
         foreach (var reference in projectUpdateState.AddedMetadataReferences)
             FileWatchedPortableExecutableReferenceFactory.StartWatchingReference(reference.FilePath!);
 
         // Remove file watchers for any references we're no longer watching.
-        foreach (var reference in projectUpdateState.RemovedAnalyzerReferences)
-            FileWatchedAnalyzerReferenceFactory.StopWatchingReference(reference.FullPath!, referenceToTrack: reference);
+        foreach (var reference in projectUpdateState.RemovedMetadataReferences)
+            FileWatchedPortableExecutableReferenceFactory.StopWatchingReference(reference.FilePath!, referenceToTrack: reference);
 
-        // Add file watchers for any references we are now watching.
+        // Add file watchers for any references we are now watching. Process adds before remove in case the same reference is in both lists.
         foreach (var reference in projectUpdateState.AddedAnalyzerReferences)
             FileWatchedAnalyzerReferenceFactory.StartWatchingReference(reference.FullPath!);
+
+        // Remove file watchers for any references we're no longer watching.
+        foreach (var reference in projectUpdateState.RemovedAnalyzerReferences)
+            FileWatchedAnalyzerReferenceFactory.StopWatchingReference(reference.FullPath!, referenceToTrack: reference);
 
         // Clear the state from the this update in preparation for the next.
         projectUpdateState = projectUpdateState.ClearIncrementalState();
