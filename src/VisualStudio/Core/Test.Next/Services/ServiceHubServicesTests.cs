@@ -1623,6 +1623,8 @@ public sealed partial class ServiceHubServicesTests
 
         Assert.Equal(1, result.CodeFixAnalysis.DiagnosticIdToCount["CS8300"]);
         Assert.Equal("CSharp.ConflictMarkerResolution.CSharpResolveConflictMarkerCodeFixProvider", result.CodeFixAnalysis.DiagnosticIdToProviderName["CS8300"].Single());
+
+        CopilotChangeAnalysisUtilities.LogCopilotChangeAnalysis("TestCode", accepted: true, "TestProposalId", result, CancellationToken.None);
     }
 
     private static void VerifyStates(Solution solution1, Solution solution2, string projectName, ImmutableArray<string> documentNames)
