@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
 internal interface IUIContextActivationService
 {

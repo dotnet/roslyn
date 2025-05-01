@@ -232,7 +232,7 @@ internal sealed partial class PackageInstallerService : AbstractDelayStartedServ
         var packageSourceProvider = await GetPackageSourceProviderAsync().ConfigureAwait(false);
 
         // Start listening to additional events workspace changes.
-        Workspace.WorkspaceChanged += OnWorkspaceChanged;
+        _ = Workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
         packageSourceProvider.SourcesChanged += OnSourceProviderSourcesChanged;
 
         // Kick off an initial set of work that will analyze the entire solution.
@@ -421,7 +421,7 @@ internal sealed partial class PackageInstallerService : AbstractDelayStartedServ
         }
     }
 
-    private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+    private void OnWorkspaceChanged(WorkspaceChangeEventArgs e)
     {
         // ThisCanBeCalledOnAnyThread();
 

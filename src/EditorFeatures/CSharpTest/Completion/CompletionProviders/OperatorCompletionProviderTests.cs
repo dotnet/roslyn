@@ -105,7 +105,7 @@ public sealed class OperatorCompletionProviderTests : AbstractCSharpCompletionPr
                     c.$$;
                 }
             }
-            """, "+", inlineDescription: "x + y", glyph: (int)Glyph.Operator, matchingFilters: [FilterSet.OperatorFilter]);
+            """, "+", inlineDescription: "x + y", glyph: Glyph.Operator, matchingFilters: [FilterSet.OperatorFilter]);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
@@ -760,7 +760,7 @@ public class Program
                     d.$$
                 }
             }
-            """, "+", inlineDescription: "x + y", glyph: (int)Glyph.Operator, matchingFilters: [FilterSet.OperatorFilter]);
+            """, "+", inlineDescription: "x + y", glyph: Glyph.Operator, matchingFilters: [FilterSet.OperatorFilter]);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
@@ -778,7 +778,7 @@ public class Program
                     r.$$
                 }
             }
-            """, "==", inlineDescription: "x == y", glyph: (int)Glyph.Operator, matchingFilters: [FilterSet.OperatorFilter]);
+            """, "==", inlineDescription: "x == y", glyph: Glyph.Operator, matchingFilters: [FilterSet.OperatorFilter]);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]

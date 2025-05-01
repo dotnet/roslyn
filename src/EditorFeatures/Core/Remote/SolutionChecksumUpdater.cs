@@ -43,7 +43,8 @@ internal sealed class SolutionChecksumUpdater
     private readonly AsyncBatchingWorkQueue _synchronizeActiveDocumentQueue;
 
     private readonly object _gate = new();
-    private bool _isSynchronizeWorkspacePaused;
+    private readonly WorkspaceEventRegistration _workspaceChangedDisposer;
+    private readonly WorkspaceEventRegistration _workspaceChangedImmediateDisposer;
 
     private readonly CancellationToken _shutdownToken;
 
@@ -51,6 +52,8 @@ internal sealed class SolutionChecksumUpdater
     private const string SynchronizeTextChangesStatusFailedMetricName = "FailedCount";
     private const string SynchronizeTextChangesStatusSucceededKeyName = nameof(SolutionChecksumUpdater) + "." + SynchronizeTextChangesStatusSucceededMetricName;
     private const string SynchronizeTextChangesStatusFailedKeyName = nameof(SolutionChecksumUpdater) + "." + SynchronizeTextChangesStatusFailedMetricName;
+
+    private bool _isSynchronizeWorkspacePaused;
 
     public SolutionChecksumUpdater(
         Workspace workspace,
@@ -79,8 +82,8 @@ internal sealed class SolutionChecksumUpdater
             shutdownToken);
 
         // start listening workspace change event
-        _workspace.WorkspaceChanged += OnWorkspaceChanged;
-        _workspace.WorkspaceChangedImmediate += OnWorkspaceChangedImmediate;
+        _workspaceChangedDisposer = _workspace.RegisterWorkspaceChangedHandler(this.OnWorkspaceChanged);
+        _workspaceChangedImmediateDisposer = _workspace.RegisterWorkspaceChangedImmediateHandler(OnWorkspaceChangedImmediate);
         _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentChanged;
 
         if (_globalOperationService != null)
@@ -100,8 +103,8 @@ internal sealed class SolutionChecksumUpdater
         PauseSynchronizingPrimaryWorkspace();
 
         _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentChanged;
-        _workspace.WorkspaceChanged -= OnWorkspaceChanged;
-        _workspace.WorkspaceChangedImmediate -= OnWorkspaceChangedImmediate;
+        _workspaceChangedDisposer.Dispose();
+        _workspaceChangedImmediateDisposer.Dispose();
 
         if (_globalOperationService != null)
         {
@@ -136,7 +139,7 @@ internal sealed class SolutionChecksumUpdater
         }
     }
 
-    private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
+    private void OnWorkspaceChanged(WorkspaceChangeEventArgs _)
     {
         // Check if we're currently paused.  If so ignore this notification.  We don't want to any work in response
         // to whatever the workspace is doing.
@@ -147,7 +150,7 @@ internal sealed class SolutionChecksumUpdater
         }
     }
 
-    private void OnWorkspaceChangedImmediate(object? sender, WorkspaceChangeEventArgs e)
+    private void OnWorkspaceChangedImmediate(WorkspaceChangeEventArgs e)
     {
         if (e.Kind == WorkspaceChangeKind.DocumentChanged)
         {

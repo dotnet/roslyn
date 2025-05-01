@@ -2,9 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if !NETCOREAPP
+#if NET
+
+#pragma warning disable RS0016 // Add public types and members to the declared API (this is a supporting forwarder for an internal polyfill API)
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Range))]
+#pragma warning restore RS0016 // Add public types and members to the declared API
+
+#else
 using System.Runtime.CompilerServices;
-using Roslyn.Utilities;
+
 namespace System
 {
     /// <summary>Represent a range has start and end indexes.</summary>
@@ -46,9 +52,7 @@ namespace System
 
         /// <summary>Returns the hash code for this instance.</summary>
         public override int GetHashCode()
-        {
-            return Hash.Combine(Start.GetHashCode(), End.GetHashCode());
-        }
+            => unchecked(Start.GetHashCode() * (int)0xA5555529 + End.GetHashCode());
 
         /// <summary>Converts the value of the current Range object to its equivalent string representation.</summary>
         public override string ToString()
@@ -67,6 +71,8 @@ namespace System
 
         /// <summary>Create a Range object starting from first element to the end.</summary>
         public static Range All => new Range(Index.Start, Index.End);
+
+#if !NO_VALUE_TUPLE // workaround for https://github.com/dotnet/roslyn/issues/78392
 
         /// <summary>Calculate the start offset and length of range object using a collection length.</summary>
         /// <param name="length">The length of the collection that the range will be used with. length has to be a positive value.</param>
@@ -99,6 +105,7 @@ namespace System
 
             return (start, end - start);
         }
+#endif
     }
 }
 #endif

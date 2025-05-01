@@ -17739,7 +17739,7 @@ public interface I2<T> where T : I2<T>
                 // (12,10): error CS8928: 'C2' does not implement static interface member 'I1<C2>.operator +(C2)'. 'C2.operator +(C2)' cannot implement the interface member because it is not static.
                 //     C2 : I1<C2>
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotStatic, "I1<C2>").WithArguments("C2", "I1<C2>.operator " + checkedKeyword + op + "(C2)", "C2.operator " + checkedKeyword + op + "(C2)").WithLocation(12, 10),
-                // (14,24): error CS9502: Overloaded instance increment operator '--' must take no parameters
+                // (14,24): error CS9309: Overloaded instance increment operator '--' must take no parameters
                 //     public C2 operator --(C2 x) => throw null;
                 Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(14, 24 + checkedKeyword.Length),
                 // (18,10): error CS0737: 'C3' does not implement interface member 'I1<C3>.operator +(C3)'. 'C3.operator +(C3)' cannot implement an interface member because it is not public.
@@ -17751,7 +17751,7 @@ public interface I2<T> where T : I2<T>
                 // (24,10): error CS0535: 'C4' does not implement interface member 'I1<C4>.operator +(C4)'
                 //     C4 : I1<C4>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C4>").WithArguments("C4", "I1<C4>.operator " + checkedKeyword + op + "(C4)").WithLocation(24, 10),
-                // (26,24): error CS9502: Overloaded instance increment operator '--' must take no parameters
+                // (26,24): error CS9309: Overloaded instance increment operator '--' must take no parameters
                 //     C4 I1<C4>.operator --(C4 x) => throw null;
                 Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(26, 24 + checkedKeyword.Length),
                 // (26,24): error CS0539: 'C4.operator +(C4)' in explicit interface declaration is not found among members of the interface that can be implemented
@@ -17989,13 +17989,13 @@ public interface I2<T> where T : I2<T>
                                                  targetFramework: _supportingFramework);
 
             compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_BadIncDecRetType or (int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
-                // (14,24): error CS9502: Overloaded instance increment operator '--' must take no parameters
+                // (14,24): error CS9309: Overloaded instance increment operator '--' must take no parameters
                 //     public C2 operator --(C2 x) => throw null;
                 Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(14, 24 + checkedKeyword.Length),
                 // (20,24): error CS0558: User-defined operator 'C3.operator +(C3)' must be declared static and public
                 //     static C3 operator +(C3 x) => throw null;
                 Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("C3.operator " + checkedKeyword + op + "(C3)").WithLocation(20, 24 + checkedKeyword.Length),
-                // (26,24): error CS9502: Overloaded instance increment operator '--' must take no parameters
+                // (26,24): error CS9309: Overloaded instance increment operator '--' must take no parameters
                 //     C4 I1<C4>.operator --(C4 x) => throw null;
                 Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(26, 24 + checkedKeyword.Length),
                 // (26,24): error CS0539: 'C4.operator +(C4)' in explicit interface declaration is not found among members of the interface that can be implemented
@@ -18527,13 +18527,13 @@ interface I14 : I1
             ErrorCode badAbstractSignatureError = op.Length != 2 ? ErrorCode.ERR_BadAbstractUnaryOperatorSignature : ErrorCode.ERR_BadAbstractIncDecSignature;
 
             compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch)).Verify(
-                // (12,17): error CS9502: Overloaded instance increment operator '--' must take no parameters
+                // (12,17): error CS9309: Overloaded instance increment operator '--' must take no parameters
                 //     I1 operator --(I1 x) => default;
                 Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(12, 17 + checkedKeyword.Length),
                 // (17,24): error CS0562: The parameter of a unary operator must be the containing type
                 //     static I1 operator +(I1 x) => default;
                 Diagnostic(badSignatureError, op).WithLocation(17, 24 + checkedKeyword.Length),
-                // (22,20): error CS9502: Overloaded instance increment operator '--' must take no parameters
+                // (22,20): error CS9309: Overloaded instance increment operator '--' must take no parameters
                 //     I1 I1.operator --(I1 x) => default;
                 Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(22, 20 + checkedKeyword.Length),
                 // (22,20): error CS0539: 'I5.operator +(I1)' in explicit interface declaration is not found among members of the interface that can be implemented
@@ -18542,7 +18542,7 @@ interface I14 : I1
                 // (32,33): error CS8921: The parameter of a unary operator must be the containing type, or its type parameter constrained to it.
                 //     abstract static I1 operator +(I1 x);
                 Diagnostic(badAbstractSignatureError, op).WithLocation(32, 33 + checkedKeyword.Length),
-                // (42,16): error CS9502: Overloaded instance increment operator '--' must take no parameters
+                // (42,16): error CS9309: Overloaded instance increment operator '--' must take no parameters
                 //     T operator --(T x) => default;
                 Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(42, 16 + checkedKeyword.Length),
                 // (47,23): error CS0562: The parameter of a unary operator must be the containing type
@@ -18821,13 +18821,13 @@ interface I14 : I1
             ErrorCode badAbstractSignatureError = op.Length != 2 ? ErrorCode.ERR_BadAbstractUnaryOperatorSignature : ErrorCode.ERR_BadAbstractIncDecSignature;
 
             compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch)).Verify(
-                // (12,17): error CS9502: Overloaded instance increment operator '++' must take no parameters
+                // (12,17): error CS9309: Overloaded instance increment operator '++' must take no parameters
                 //     I1 operator ++(I1 x) => default;
                 Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(12, 17 + checkedKeyword.Length),
                 // (17,24): error CS0562: The parameter of a unary operator must be the containing type
                 //     static I1 operator +(I1 x) => default;
                 Diagnostic(badSignatureError, op).WithLocation(17, 24 + checkedKeyword.Length),
-                // (22,20): error CS9502: Overloaded instance increment operator '++' must take no parameters
+                // (22,20): error CS9309: Overloaded instance increment operator '++' must take no parameters
                 //     I1 I1.operator ++(I1 x) => default;
                 Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(22, 20 + checkedKeyword.Length),
                 // (22,20): error CS0539: 'I5.operator +(I1)' in explicit interface declaration is not found among members of the interface that can be implemented
@@ -18836,7 +18836,7 @@ interface I14 : I1
                 // (32,33): error CS8921: The parameter of a unary operator must be the containing type, or its type parameter constrained to it.
                 //     virtual  static I1 operator +(I1 x);
                 Diagnostic(badAbstractSignatureError, op).WithLocation(32, 33 + checkedKeyword.Length),
-                // (42,16): error CS9502: Overloaded instance increment operator '++' must take no parameters
+                // (42,16): error CS9309: Overloaded instance increment operator '++' must take no parameters
                 //     T operator ++(T x) => default;
                 Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(42, 16 + checkedKeyword.Length),
                 // (47,23): error CS0562: The parameter of a unary operator must be the containing type
