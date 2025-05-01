@@ -13549,7 +13549,7 @@ public class Class
             foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator " + op + "(C x1, C x2, C x3) => x;", options,
-                    // (1,12): error CS9506: Overloaded compound assignment operator '+=' takes one parameter
+                    // (1,12): error CS9313: Overloaded compound assignment operator '+=' takes one parameter
                     // C operator +=(C x1, C x2, C x3) => x;
                     Diagnostic(ErrorCode.ERR_BadCompoundAssignmentOpArgs, op).WithArguments(op).WithLocation(1, 12)
                     );
@@ -13624,7 +13624,7 @@ public class Class
             foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator " + op + "() => x;", options,
-                    // (1,12): error CS9506: Overloaded compound assignment operator '+=' takes one parameter
+                    // (1,12): error CS9313: Overloaded compound assignment operator '+=' takes one parameter
                     // C operator +=() => x;
                     Diagnostic(ErrorCode.ERR_BadCompoundAssignmentOpArgs, op).WithArguments(op).WithLocation(1, 12)
                     );

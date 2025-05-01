@@ -119,7 +119,7 @@ static class C1
 ";
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
-                // (3,19): error CS9501: User-defined operator 'C1.operator ++()' must be declared public
+                // (3,19): error CS9308: User-defined operator 'C1.operator ++()' must be declared public
                 //     void operator ++() {} 
                 Diagnostic(ErrorCode.ERR_OperatorsMustBePublic, op).WithArguments("C1.operator " + (isChecked ? "checked " : "") + op + @"()").WithLocation(3, 19 + (isChecked ? 8 : 0))
                 );
@@ -143,7 +143,7 @@ typeKeyword + @" C1
 ";
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net60);
             comp.VerifyDiagnostics(
-                // (4,19): error CS9501: User-defined operator 'C1.operator ++()' must be declared public
+                // (4,19): error CS9308: User-defined operator 'C1.operator ++()' must be declared public
                 //     void operator ++() {} 
                 Diagnostic(ErrorCode.ERR_OperatorsMustBePublic, op).WithArguments("C1.operator " + (isChecked ? "checked " : "") + op + @"()").WithLocation(4, 19 + (isChecked ? 8 : 0))
                 );
@@ -161,7 +161,7 @@ typeKeyword + @" C1
 ";
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
-                // (3,23): error CS9503: The return type for this operator must be void
+                // (3,23): error CS9310: The return type for this operator must be void
                 //     public C1 operator ++() => throw null; 
                 Diagnostic(ErrorCode.ERR_OperatorMustReturnVoid, op).WithLocation(3, 24)
                 );
@@ -179,7 +179,7 @@ typeKeyword + @" C1
 ";
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
-                // (3,32): error CS9503: The return type for this operator must be void
+                // (3,32): error CS9310: The return type for this operator must be void
                 //     public C1 operator checked ++() => throw null; 
                 Diagnostic(ErrorCode.ERR_OperatorMustReturnVoid, op).WithLocation(3, 32),
                 // (3,32): error CS9025: The operator 'C1.operator checked ++()' requires a matching non-checked version of the operator to also be defined
@@ -203,13 +203,13 @@ public " + typeKeyword + @" C1
 ";
             var comp1 = CreateCompilation(source1, targetFramework: TargetFramework.Net90);
             comp1.VerifyDiagnostics(
-                // (3,25): error CS9502: Overloaded instance increment operator '++' must take no parameters
+                // (3,25): error CS9309: Overloaded instance increment operator '++' must take no parameters
                 //     public void operator++(C1 x) {} 
                 Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(3, 25),
                 // (4,25): error CS1020: Overloadable binary operator expected
                 //     public void operator++(C1 x, C1 y) {} 
                 Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, op).WithLocation(4, 25),
-                // (5,25): error CS9502: Overloaded instance increment operator '++' must take no parameters
+                // (5,25): error CS9309: Overloaded instance increment operator '++' must take no parameters
                 //     public void operator++(C1 x, C1 y, C1 z) {} 
                 Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(5, 25)
                 );
@@ -226,13 +226,13 @@ class C2 : C1
 ";
                 var comp2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net90);
                 comp2.VerifyDiagnostics(
-                    // (4,21): error CS9502: Overloaded instance increment operator '++' must take no parameters
+                    // (4,21): error CS9309: Overloaded instance increment operator '++' must take no parameters
                     //     void C1.operator++(C1 x) {} 
                     Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(4, 21),
                     // (5,21): error CS1020: Overloadable binary operator expected
                     //     void C1.operator++(C1 x, C1 y) {} 
                     Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, op).WithLocation(5, 21),
-                    // (6,21): error CS9502: Overloaded instance increment operator '++' must take no parameters
+                    // (6,21): error CS9309: Overloaded instance increment operator '++' must take no parameters
                     //     void C1.operator++(C1 x, C1 y, C1 z) {} 
                     Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(6, 21)
                     );
@@ -253,7 +253,7 @@ typeKeyword + @" C1
 ";
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
-                // (3,34): error CS9502: Overloaded instance increment operator '++' must take no parameters
+                // (3,34): error CS9309: Overloaded instance increment operator '++' must take no parameters
                 //     public void operator checked ++(C1 x) {} 
                 Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(3, 34),
                 // (3,34): error CS9025: The operator 'C1.operator checked ++(C1)' requires a matching non-checked version of the operator to also be defined
@@ -265,7 +265,7 @@ typeKeyword + @" C1
                 // (4,34): error CS9025: The operator 'C1.operator checked ++(C1, C1)' requires a matching non-checked version of the operator to also be defined
                 //     public void operator checked ++(C1 x, C1 y) {} 
                 Diagnostic(ErrorCode.ERR_CheckedOperatorNeedsMatch, op).WithArguments("C1.operator checked " + op + "(C1, C1)").WithLocation(4, 34),
-                // (5,34): error CS9502: Overloaded instance increment operator '++' must take no parameters
+                // (5,34): error CS9309: Overloaded instance increment operator '++' must take no parameters
                 //     public void operator checked ++(C1 x, C1 y, C1 z) {} 
                 Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(5, 34),
                 // (5,34): error CS9025: The operator 'C1.operator checked ++(C1, C1, C1)' requires a matching non-checked version of the operator to also be defined
@@ -5276,13 +5276,13 @@ public class Program
 
             CSharpCompilation comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
             comp1.VerifyDiagnostics(
-                // (4,26): error CS9502: Overloaded instance increment operator '++' must take no parameters
+                // (4,26): error CS9309: Overloaded instance increment operator '++' must take no parameters
                 //     public void operator ++(int x = 0) {}
                 Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, "++").WithArguments("++").WithLocation(4, 26),
                 // (4,33): warning CS1066: The default value specified for parameter 'x' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
                 //     public void operator ++(int x = 0) {}
                 Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "x").WithArguments("x").WithLocation(4, 33),
-                // (5,25): error CS9503: The return type for this operator must be void
+                // (5,25): error CS9310: The return type for this operator must be void
                 //     public int operator --() { return 0; }
                 Diagnostic(ErrorCode.ERR_OperatorMustReturnVoid, "--").WithLocation(5, 25)
                 );
@@ -5322,7 +5322,7 @@ public class Program
 
             CSharpCompilation comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
             comp1.VerifyDiagnostics(
-                // (4,26): error CS9502: Overloaded instance increment operator '++' must take no parameters
+                // (4,26): error CS9309: Overloaded instance increment operator '++' must take no parameters
                 //     public void operator ++(params int[] x) {}
                 Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, "++").WithArguments("++").WithLocation(4, 26),
                 // (4,29): error CS1670: params is not valid in this context
@@ -5468,10 +5468,10 @@ public class C4 : C3
             var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()]);
 
             comp2.VerifyDiagnostics(
-                // (4,35): error CS9505: 'C2.operator ++()': cannot override inherited member 'C1.op_Increment()' because one of them is not an operator.
+                // (4,35): error CS9312: 'C2.operator ++()': cannot override inherited member 'C1.op_Increment()' because one of them is not an operator.
                 //     public override void operator ++() {}
                 Diagnostic(ErrorCode.ERR_OperatorMismatchOnOverride, "++").WithArguments("C2.operator ++()", "C1.op_Increment()").WithLocation(4, 35),
-                // (9,26): error CS9505: 'C4.op_Increment()': cannot override inherited member 'C3.operator ++()' because one of them is not an operator.
+                // (9,26): error CS9312: 'C4.op_Increment()': cannot override inherited member 'C3.operator ++()' because one of them is not an operator.
                 //     public override void op_Increment() {}
                 Diagnostic(ErrorCode.ERR_OperatorMismatchOnOverride, "op_Increment").WithArguments("C4.op_Increment()", "C3.operator ++()").WithLocation(9, 26)
                 );
@@ -5518,10 +5518,10 @@ public class C4 : I2
 
             var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()]);
             comp2.VerifyDiagnostics(
-                // (2,19): error CS9504: 'C1' does not implement interface member 'I1.op_Increment()'. 'C1.operator ++()' cannot implement 'I1.op_Increment()' because one of them is not an operator.
+                // (2,19): error CS9311: 'C1' does not implement interface member 'I1.op_Increment()'. 'C1.operator ++()' cannot implement 'I1.op_Increment()' because one of them is not an operator.
                 // public class C1 : I1
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C1", "I1.op_Increment()", "C1.operator ++()").WithLocation(2, 19),
-                // (7,19): error CS9504: 'C2' does not implement interface member 'I2.operator ++()'. 'C2.op_Increment()' cannot implement 'I2.operator ++()' because one of them is not an operator.
+                // (7,19): error CS9311: 'C2' does not implement interface member 'I2.operator ++()'. 'C2.op_Increment()' cannot implement 'I2.operator ++()' because one of them is not an operator.
                 // public class C2 : I2
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I2").WithArguments("C2", "I2.operator ++()", "C2.op_Increment()").WithLocation(7, 19),
                 // (12,19): error CS0535: 'C3' does not implement interface member 'I1.op_Increment()'
@@ -5578,10 +5578,10 @@ public class C22 : C21, I2
 
             var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()]);
             comp2.VerifyDiagnostics(
-                // (7,25): error CS9504: 'C12' does not implement interface member 'I1.op_Increment()'. 'C11.operator ++()' cannot implement 'I1.op_Increment()' because one of them is not an operator.
+                // (7,25): error CS9311: 'C12' does not implement interface member 'I1.op_Increment()'. 'C11.operator ++()' cannot implement 'I1.op_Increment()' because one of them is not an operator.
                 // public class C12 : C11, I1
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C12", "I1.op_Increment()", "C11.operator ++()").WithLocation(7, 25),
-                // (16,25): error CS9504: 'C22' does not implement interface member 'I2.operator ++()'. 'C21.op_Increment()' cannot implement 'I2.operator ++()' because one of them is not an operator.
+                // (16,25): error CS9311: 'C22' does not implement interface member 'I2.operator ++()'. 'C21.op_Increment()' cannot implement 'I2.operator ++()' because one of them is not an operator.
                 // public class C22 : C21, I2
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I2").WithArguments("C22", "I2.operator ++()", "C21.op_Increment()").WithLocation(16, 25)
                 );
@@ -5633,10 +5633,10 @@ public class Program
 
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (10,19): error CS9504: 'C1' does not implement interface member 'I1.operator ++()'. 'C1.op_Increment()' cannot implement 'I1.operator ++()' because one of them is not an operator.
+                // (10,19): error CS9311: 'C1' does not implement interface member 'I1.operator ++()'. 'C1.op_Increment()' cannot implement 'I1.operator ++()' because one of them is not an operator.
                 // public class C1 : I1
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C1", "I1.operator ++()", "C1.op_Increment()").WithLocation(10, 19),
-                // (26,23): error CS9504: 'C3' does not implement interface member 'I1.operator ++()'. 'C2.op_Increment()' cannot implement 'I1.operator ++()' because one of them is not an operator.
+                // (26,23): error CS9311: 'C3' does not implement interface member 'I1.operator ++()'. 'C2.op_Increment()' cannot implement 'I1.operator ++()' because one of them is not an operator.
                 // public class C3 : C2, I1
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C3", "I1.operator ++()", "C2.op_Increment()").WithLocation(26, 23)
                 );
@@ -5688,10 +5688,10 @@ public class Program
 
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (10,19): error CS9504: 'C1' does not implement interface member 'I1.op_Increment()'. 'C1.operator ++()' cannot implement 'I1.op_Increment()' because one of them is not an operator.
+                // (10,19): error CS9311: 'C1' does not implement interface member 'I1.op_Increment()'. 'C1.operator ++()' cannot implement 'I1.op_Increment()' because one of them is not an operator.
                 // public class C1 : I1
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C1", "I1.op_Increment()", "C1.operator ++()").WithLocation(10, 19),
-                // (26,23): error CS9504: 'C3' does not implement interface member 'I1.op_Increment()'. 'C2.operator ++()' cannot implement 'I1.op_Increment()' because one of them is not an operator.
+                // (26,23): error CS9311: 'C3' does not implement interface member 'I1.op_Increment()'. 'C2.operator ++()' cannot implement 'I1.op_Increment()' because one of them is not an operator.
                 // public class C3 : C2, I1
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C3", "I1.op_Increment()", "C2.operator ++()").WithLocation(26, 23)
                 );
@@ -5734,7 +5734,7 @@ public class Program
 
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (15,23): error CS9504: 'C3' does not implement interface member 'I1.operator ++()'. 'C3.op_Increment()' cannot implement 'I1.operator ++()' because one of them is not an operator.
+                // (15,23): error CS9311: 'C3' does not implement interface member 'I1.operator ++()'. 'C3.op_Increment()' cannot implement 'I1.operator ++()' because one of them is not an operator.
                 // public class C3 : C2, I1
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C3", "I1.operator ++()", "C3.op_Increment()").WithLocation(15, 23)
                 );
@@ -5777,7 +5777,7 @@ public class Program
 
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (15,23): error CS9504: 'C3' does not implement interface member 'I1.op_Increment()'. 'C3.operator ++()' cannot implement 'I1.op_Increment()' because one of them is not an operator.
+                // (15,23): error CS9311: 'C3' does not implement interface member 'I1.op_Increment()'. 'C3.operator ++()' cannot implement 'I1.op_Increment()' because one of them is not an operator.
                 // public class C3 : C2, I1
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C3", "I1.op_Increment()", "C3.operator ++()").WithLocation(15, 23)
                 );
@@ -5842,7 +5842,7 @@ public class C2 : C1, I1
             var compilation1 = CreateCompilationWithIL(source1, ilSource);
 
             compilation1.VerifyDiagnostics(
-                // (2,23): error CS9504: 'C2' does not implement interface member 'I1.operator ++()'. 'C1.op_Increment()' cannot implement 'I1.operator ++()' because one of them is not an operator.
+                // (2,23): error CS9311: 'C2' does not implement interface member 'I1.operator ++()'. 'C1.op_Increment()' cannot implement 'I1.operator ++()' because one of them is not an operator.
                 // public class C2 : C1, I1
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C2", "I1.operator ++()", "C1.op_Increment()").WithLocation(2, 23)
                 );
@@ -5929,7 +5929,7 @@ public class C2 : C1, I1
             var compilation1 = CreateCompilationWithIL(source1, ilSource);
 
             compilation1.VerifyDiagnostics(
-                // (2,23): error CS9504: 'C2' does not implement interface member 'I1.op_Increment()'. 'C1.operator ++()' cannot implement 'I1.op_Increment()' because one of them is not an operator.
+                // (2,23): error CS9311: 'C2' does not implement interface member 'I1.op_Increment()'. 'C1.operator ++()' cannot implement 'I1.op_Increment()' because one of them is not an operator.
                 // public class C2 : C1, I1
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C2", "I1.op_Increment()", "C1.operator ++()").WithLocation(2, 23)
                 );
@@ -7557,7 +7557,7 @@ partial class C1
                 // (4,20): error CS1519: Invalid token 'void' in a member declaration
                 //     public partial void operator++();
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "void").WithArguments("void").WithLocation(4, 20),
-                // (4,33): error CS9501: User-defined operator 'C1.operator ++()' must be declared public
+                // (4,33): error CS9308: User-defined operator 'C1.operator ++()' must be declared public
                 //     public partial void operator++();
                 Diagnostic(ErrorCode.ERR_OperatorsMustBePublic, op).WithArguments("C1.operator " + op + "()").WithLocation(4, 33),
                 // (4,33): error CS0501: 'C1.operator ++()' must declare a body because it is not marked abstract, extern, or partial
@@ -8109,7 +8109,7 @@ static class C1
 ";
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
-                // (3,19): error CS9501: User-defined operator 'C1.operator +=(int)' must be declared public
+                // (3,19): error CS9308: User-defined operator 'C1.operator +=(int)' must be declared public
                 //     void operator +=(int x) {} 
                 Diagnostic(ErrorCode.ERR_OperatorsMustBePublic, op).WithArguments("C1.operator " + (isChecked ? "checked " : "") + op + @"(int)").WithLocation(3, 19 + (isChecked ? 8 : 0))
                 );
@@ -8186,7 +8186,7 @@ typeKeyword + @" C1
 ";
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net60);
             comp.VerifyDiagnostics(
-                // (4,19): error CS9501: User-defined operator 'C1.operator +=(int)' must be declared public
+                // (4,19): error CS9308: User-defined operator 'C1.operator +=(int)' must be declared public
                 //     void operator +=(int x) {} 
                 Diagnostic(ErrorCode.ERR_OperatorsMustBePublic, op).WithArguments("C1.operator " + (isChecked ? "checked " : "") + op + @"(int)").WithLocation(4, 19 + (isChecked ? 8 : 0))
                 );
@@ -8204,7 +8204,7 @@ typeKeyword + @" C1
 ";
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
-                // (3,24): error CS9503: The return type for this operator must be void
+                // (3,24): error CS9310: The return type for this operator must be void
                 //     public C1 operator +=(int x) => throw null; 
                 Diagnostic(ErrorCode.ERR_OperatorMustReturnVoid, op).WithLocation(3, 24)
                 );
@@ -8222,7 +8222,7 @@ typeKeyword + @" C1
 ";
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
-                // (3,32): error CS9503: The return type for this operator must be void
+                // (3,32): error CS9310: The return type for this operator must be void
                 //     public C1 operator checked +=(int x) => throw null; 
                 Diagnostic(ErrorCode.ERR_OperatorMustReturnVoid, op).WithLocation(3, 32),
                 // (3,32): error CS9025: The operator 'C1.operator checked +=(int)' requires a matching non-checked version of the operator to also be defined
@@ -8244,7 +8244,7 @@ typeKeyword + @" C1
 ";
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
-                // (3,25): error CS9506: Overloaded compound assignment operator '+=' takes one parameter
+                // (3,25): error CS9313: Overloaded compound assignment operator '+=' takes one parameter
                 //     public void operator+=() {} 
                 Diagnostic(ErrorCode.ERR_BadCompoundAssignmentOpArgs, op).WithArguments(op).WithLocation(3, 25),
                 // (4,25): error CS1020: Overloadable binary operator expected
@@ -8266,7 +8266,7 @@ typeKeyword + @" C1
 ";
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
-                // (3,34): error CS9506: Overloaded compound assignment operator '+=' takes one parameter
+                // (3,34): error CS9313: Overloaded compound assignment operator '+=' takes one parameter
                 //     public void operator checked +=() {} 
                 Diagnostic(ErrorCode.ERR_BadCompoundAssignmentOpArgs, op).WithArguments(op).WithLocation(3, 34),
                 // (3,34): error CS9025: The operator 'C1.operator checked +=()' requires a matching non-checked version of the operator to also be defined
@@ -16650,7 +16650,7 @@ public class Program
 
             CSharpCompilation comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
             comp1.VerifyDiagnostics(
-                // (4,25): error CS9503: The return type for this operator must be void
+                // (4,25): error CS9310: The return type for this operator must be void
                 //     public int operator +=(int a) { return 0; }
                 Diagnostic(ErrorCode.ERR_OperatorMustReturnVoid, "+=").WithLocation(4, 25)
                 );
@@ -17023,10 +17023,10 @@ public class C4 : C3
             var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()]);
 
             comp2.VerifyDiagnostics(
-                // (4,35): error CS9505: 'C2.operator +=(int)': cannot override inherited member 'C1.op_AdditionAssignment(int)' because one of them is not an operator.
+                // (4,35): error CS9312: 'C2.operator +=(int)': cannot override inherited member 'C1.op_AdditionAssignment(int)' because one of them is not an operator.
                 //     public override void operator +=(int x) {}
                 Diagnostic(ErrorCode.ERR_OperatorMismatchOnOverride, "+=").WithArguments("C2.operator +=(int)", "C1.op_AdditionAssignment(int)").WithLocation(4, 35),
-                // (9,26): error CS9505: 'C4.op_AdditionAssignment(int)': cannot override inherited member 'C3.operator +=(int)' because one of them is not an operator.
+                // (9,26): error CS9312: 'C4.op_AdditionAssignment(int)': cannot override inherited member 'C3.operator +=(int)' because one of them is not an operator.
                 //     public override void op_AdditionAssignment(int x) {}
                 Diagnostic(ErrorCode.ERR_OperatorMismatchOnOverride, "op_AdditionAssignment").WithArguments("C4.op_AdditionAssignment(int)", "C3.operator +=(int)").WithLocation(9, 26)
                 );
@@ -17073,10 +17073,10 @@ public class C4 : I2
 
             var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()]);
             comp2.VerifyDiagnostics(
-                // (2,19): error CS9504: 'C1' does not implement interface member 'I1.op_AdditionAssignment(int)'. 'C1.operator +=(int)' cannot implement 'I1.op_AdditionAssignment(int)' because one of them is not an operator.
+                // (2,19): error CS9311: 'C1' does not implement interface member 'I1.op_AdditionAssignment(int)'. 'C1.operator +=(int)' cannot implement 'I1.op_AdditionAssignment(int)' because one of them is not an operator.
                 // public class C1 : I1
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C1", "I1.op_AdditionAssignment(int)", "C1.operator +=(int)").WithLocation(2, 19),
-                // (7,19): error CS9504: 'C2' does not implement interface member 'I2.operator +=(int)'. 'C2.op_AdditionAssignment(int)' cannot implement 'I2.operator +=(int)' because one of them is not an operator.
+                // (7,19): error CS9311: 'C2' does not implement interface member 'I2.operator +=(int)'. 'C2.op_AdditionAssignment(int)' cannot implement 'I2.operator +=(int)' because one of them is not an operator.
                 // public class C2 : I2
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I2").WithArguments("C2", "I2.operator +=(int)", "C2.op_AdditionAssignment(int)").WithLocation(7, 19),
                 // (12,19): error CS0535: 'C3' does not implement interface member 'I1.op_AdditionAssignment(int)'
@@ -17133,10 +17133,10 @@ public class C22 : C21, I2
 
             var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()]);
             comp2.VerifyDiagnostics(
-                // (7,25): error CS9504: 'C12' does not implement interface member 'I1.op_AdditionAssignment(int)'. 'C11.operator +=(int)' cannot implement 'I1.op_AdditionAssignment(int)' because one of them is not an operator.
+                // (7,25): error CS9311: 'C12' does not implement interface member 'I1.op_AdditionAssignment(int)'. 'C11.operator +=(int)' cannot implement 'I1.op_AdditionAssignment(int)' because one of them is not an operator.
                 // public class C12 : C11, I1
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C12", "I1.op_AdditionAssignment(int)", "C11.operator +=(int)").WithLocation(7, 25),
-                // (16,25): error CS9504: 'C22' does not implement interface member 'I2.operator +=(int)'. 'C21.op_AdditionAssignment(int)' cannot implement 'I2.operator +=(int)' because one of them is not an operator.
+                // (16,25): error CS9311: 'C22' does not implement interface member 'I2.operator +=(int)'. 'C21.op_AdditionAssignment(int)' cannot implement 'I2.operator +=(int)' because one of them is not an operator.
                 // public class C22 : C21, I2
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I2").WithArguments("C22", "I2.operator +=(int)", "C21.op_AdditionAssignment(int)").WithLocation(16, 25)
                 );
@@ -17188,10 +17188,10 @@ public class Program
 
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (10,19): error CS9504: 'C1' does not implement interface member 'I1.operator +=(int)'. 'C1.op_AdditionAssignment(int)' cannot implement 'I1.operator +=(int)' because one of them is not an operator.
+                // (10,19): error CS9311: 'C1' does not implement interface member 'I1.operator +=(int)'. 'C1.op_AdditionAssignment(int)' cannot implement 'I1.operator +=(int)' because one of them is not an operator.
                 // public class C1 : I1
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C1", "I1.operator +=(int)", "C1.op_AdditionAssignment(int)").WithLocation(10, 19),
-                // (26,23): error CS9504: 'C3' does not implement interface member 'I1.operator +=(int)'. 'C2.op_AdditionAssignment(int)' cannot implement 'I1.operator +=(int)' because one of them is not an operator.
+                // (26,23): error CS9311: 'C3' does not implement interface member 'I1.operator +=(int)'. 'C2.op_AdditionAssignment(int)' cannot implement 'I1.operator +=(int)' because one of them is not an operator.
                 // public class C3 : C2, I1
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C3", "I1.operator +=(int)", "C2.op_AdditionAssignment(int)").WithLocation(26, 23)
                 );
@@ -17243,10 +17243,10 @@ public class Program
 
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (10,19): error CS9504: 'C1' does not implement interface member 'I1.op_AdditionAssignment(int)'. 'C1.operator +=(int)' cannot implement 'I1.op_AdditionAssignment(int)' because one of them is not an operator.
+                // (10,19): error CS9311: 'C1' does not implement interface member 'I1.op_AdditionAssignment(int)'. 'C1.operator +=(int)' cannot implement 'I1.op_AdditionAssignment(int)' because one of them is not an operator.
                 // public class C1 : I1
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C1", "I1.op_AdditionAssignment(int)", "C1.operator +=(int)").WithLocation(10, 19),
-                // (26,23): error CS9504: 'C3' does not implement interface member 'I1.op_AdditionAssignment(int)'. 'C2.operator +=(int)' cannot implement 'I1.op_AdditionAssignment(int)' because one of them is not an operator.
+                // (26,23): error CS9311: 'C3' does not implement interface member 'I1.op_AdditionAssignment(int)'. 'C2.operator +=(int)' cannot implement 'I1.op_AdditionAssignment(int)' because one of them is not an operator.
                 // public class C3 : C2, I1
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C3", "I1.op_AdditionAssignment(int)", "C2.operator +=(int)").WithLocation(26, 23)
                 );
@@ -17289,7 +17289,7 @@ public class Program
 
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (15,23): error CS9504: 'C3' does not implement interface member 'I1.operator +=(int)'. 'C3.op_AdditionAssignment(int)' cannot implement 'I1.operator +=(int)' because one of them is not an operator.
+                // (15,23): error CS9311: 'C3' does not implement interface member 'I1.operator +=(int)'. 'C3.op_AdditionAssignment(int)' cannot implement 'I1.operator +=(int)' because one of them is not an operator.
                 // public class C3 : C2, I1
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C3", "I1.operator +=(int)", "C3.op_AdditionAssignment(int)").WithLocation(15, 23)
                 );
@@ -17332,7 +17332,7 @@ public class Program
 
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (15,23): error CS9504: 'C3' does not implement interface member 'I1.op_AdditionAssignment(int)'. 'C3.operator +=(int)' cannot implement 'I1.op_AdditionAssignment(int)' because one of them is not an operator.
+                // (15,23): error CS9311: 'C3' does not implement interface member 'I1.op_AdditionAssignment(int)'. 'C3.operator +=(int)' cannot implement 'I1.op_AdditionAssignment(int)' because one of them is not an operator.
                 // public class C3 : C2, I1
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C3", "I1.op_AdditionAssignment(int)", "C3.operator +=(int)").WithLocation(15, 23)
                 );
@@ -17397,7 +17397,7 @@ public class C2 : C1, I1
             var compilation1 = CreateCompilationWithIL(source1, ilSource);
 
             compilation1.VerifyDiagnostics(
-                // (2,23): error CS9504: 'C2' does not implement interface member 'I1.operator +=(int)'. 'C1.op_AdditionAssignment(int)' cannot implement 'I1.operator +=(int)' because one of them is not an operator.
+                // (2,23): error CS9311: 'C2' does not implement interface member 'I1.operator +=(int)'. 'C1.op_AdditionAssignment(int)' cannot implement 'I1.operator +=(int)' because one of them is not an operator.
                 // public class C2 : C1, I1
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C2", "I1.operator +=(int)", "C1.op_AdditionAssignment(int)").WithLocation(2, 23)
                 );
@@ -17484,7 +17484,7 @@ public class C2 : C1, I1
             var compilation1 = CreateCompilationWithIL(source1, ilSource);
 
             compilation1.VerifyDiagnostics(
-                // (2,23): error CS9504: 'C2' does not implement interface member 'I1.op_AdditionAssignment(int)'. 'C1.operator +=(int)' cannot implement 'I1.op_AdditionAssignment(int)' because one of them is not an operator.
+                // (2,23): error CS9311: 'C2' does not implement interface member 'I1.op_AdditionAssignment(int)'. 'C1.operator +=(int)' cannot implement 'I1.op_AdditionAssignment(int)' because one of them is not an operator.
                 // public class C2 : C1, I1
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C2", "I1.op_AdditionAssignment(int)", "C1.operator +=(int)").WithLocation(2, 23)
                 );
@@ -19572,7 +19572,7 @@ partial class C1
                 // (4,20): error CS1519: Invalid token 'void' in a member declaration
                 //     public partial void operator+=(int x);
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "void").WithArguments("void").WithLocation(4, 20),
-                // (4,33): error CS9501: User-defined operator 'C1.operator +=(int)' must be declared public
+                // (4,33): error CS9308: User-defined operator 'C1.operator +=(int)' must be declared public
                 //     public partial void operator+=(int x);
                 Diagnostic(ErrorCode.ERR_OperatorsMustBePublic, op).WithArguments("C1.operator " + op + "(int)").WithLocation(4, 33),
                 // (4,33): error CS0501: 'C1.operator +=(int)' must declare a body because it is not marked abstract, extern, or partial

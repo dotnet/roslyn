@@ -268,10 +268,10 @@ class C
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
 
             compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
-                // (4,23): error CS9502: Overloaded instance increment operator '--' must take no parameters
+                // (4,23): error CS9309: Overloaded instance increment operator '--' must take no parameters
                 //     C operator checked--(C x) => default;
                 Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(4, 23),
-                // (4,23): error CS9501: User-defined operator 'C.operator checked --(C)' must be declared public
+                // (4,23): error CS9308: User-defined operator 'C.operator checked --(C)' must be declared public
                 //     C operator checked--(C x) => default;
                 Diagnostic(ErrorCode.ERR_OperatorsMustBePublic, op).WithArguments("C.operator checked " + op + "(C)").WithLocation(4, 23),
                 // (4,23): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute..ctor'
