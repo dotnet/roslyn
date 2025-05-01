@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.InlineRename;
 
@@ -57,12 +58,12 @@ internal sealed class CSharpEditorInlineRenameService([ImportMany] IEnumerable<I
                 var (symbol, _, _) = await symbolService.GetSymbolProjectAndBoundSpanAsync(
                     renameDefinition.Document, semanticModel, textSpan.Start, cancellationToken).ConfigureAwait(true);
                 var docComment = symbol?.GetDocumentationCommentXml(expandIncludes: true, cancellationToken: cancellationToken);
-                if (!string.IsNullOrWhiteSpace(docComment))
+                if (!RoslynString.IsNullOrWhiteSpace(docComment))
                 {
                     var filePath = renameDefinition.Document.FilePath;
                     if (filePath != null)
                     {
-                        docComments.Add((filePath, docComment!));
+                        docComments.Add((filePath, docComment));
                     }
                 }
             }
