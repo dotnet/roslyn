@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek;
 [SupportsPeekRelationship("IsDefinedBy")]
 internal sealed class PeekableItemSourceProvider : IPeekableItemSourceProvider
 {
-    private readonly PeekableItemFactory? _peekableItemFactory;
+    private readonly PeekableItemFactory _peekableItemFactory;
     private readonly IPeekResultFactory _peekResultFactory;
     private readonly IThreadingContext _threadingContext;
     private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
@@ -27,7 +27,7 @@ internal sealed class PeekableItemSourceProvider : IPeekableItemSourceProvider
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public PeekableItemSourceProvider(
-        [Import(AllowDefault = true)] PeekableItemFactory? peekableItemFactory,
+        PeekableItemFactory peekableItemFactory,
         IPeekResultFactory peekResultFactory,
         IThreadingContext threadingContext,
         IUIThreadOperationExecutor uiThreadOperationExecutor)
@@ -39,6 +39,6 @@ internal sealed class PeekableItemSourceProvider : IPeekableItemSourceProvider
     }
 
     public IPeekableItemSource? TryCreatePeekableItemSource(ITextBuffer textBuffer)
-        => _peekableItemFactory is null ? null : textBuffer.Properties.GetOrCreateSingletonProperty(() =>
+        => textBuffer.Properties.GetOrCreateSingletonProperty(() =>
             new PeekableItemSource(textBuffer, _peekableItemFactory, _peekResultFactory, _threadingContext, _uiThreadOperationExecutor));
 }
