@@ -50,19 +50,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             FatalError,
         }
 
-        /// <summary>
-        /// Used to determine the directory where the tools (like csc) are located.
-        /// See <see cref="Utilities.GenerateFullPathToTool"/>.
-        /// </summary>
-        protected virtual RoslynCompilerType GetCompilerType() => DefaultCompilerType;
-
-        protected const RoslynCompilerType DefaultCompilerType
-#if NET
-            = RoslynCompilerType.Core;
-#else
-            = RoslynCompilerType.Framework;
-#endif
-
         private CancellationTokenSource? _sharedCompileCts;
         internal readonly PropertyDictionary _store = new PropertyDictionary();
 
@@ -1244,12 +1231,5 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             return win32Manifest;
         }
-    }
-
-    public enum RoslynCompilerType
-    {
-        Core,
-        Framework,
-        FrameworkPackage,
     }
 }
