@@ -57,6 +57,9 @@ namespace Microsoft.CodeAnalysis
             return _value.GetHashCode();
         }
 
+        /// <summary>
+        /// Returns a string representation of the ExtendedSpecialType. This exists only for debugging purposes.
+        /// </summary>
         public override string ToString()
         {
             if (_value > (int)SpecialType.None && _value <= (int)SpecialType.Count)
@@ -64,7 +67,15 @@ namespace Microsoft.CodeAnalysis
                 return ((SpecialType)_value).ToString();
             }
 
-            if (_value >= (int)InternalSpecialType.First && _value < (int)InternalSpecialType.NextAvailable)
+            // When there are overlapping labels for a value in an enum, it is undefined which label is returned.
+            // ReadOnlySpan is the one we care about most from a debugging perspective.
+            Debug.Assert(InternalSpecialType.First == InternalSpecialType.System_ReadOnlySpan_T);
+            if (_value == (int)InternalSpecialType.System_ReadOnlySpan_T)
+            {
+                return nameof(InternalSpecialType.System_ReadOnlySpan_T);
+            }
+
+            if (_value > (int)InternalSpecialType.First && _value < (int)InternalSpecialType.NextAvailable)
             {
                 return ((InternalSpecialType)_value).ToString();
             }
