@@ -56,7 +56,7 @@ public sealed class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServer
         // Create a server that supports LSP misc files and verify no misc files present.
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
-        var miscWorkspace = (Workspace)testLspServer.GetRequiredLspService<ILspMiscellaneousFilesWorkspace>();
+        var miscWorkspace = testLspServer.GetManager().GetTestAccessor().GetLspMiscellaneousFilesWorkspace();
         testLspServer.TestWorkspace.GetService<LspWorkspaceRegistrationService>().Register(miscWorkspace);
 
         Assert.Null(GetMiscellaneousDocument(testLspServer));
