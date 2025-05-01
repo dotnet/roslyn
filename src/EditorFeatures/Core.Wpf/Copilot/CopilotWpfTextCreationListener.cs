@@ -34,7 +34,7 @@ internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationL
     private readonly Lazy<SuggestionServiceBase> _suggestionServiceBase;
     private readonly IAsynchronousOperationListener _listener;
 
-    private readonly AsyncBatchingWorkQueue<SuggestionAcceptedEventArgs> _workQueue;
+    private readonly AsyncBatchingWorkQueue<(bool accepted, ProposalBase proposal)> _workQueue;
 
     private int _started;
 
@@ -48,7 +48,7 @@ internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationL
         _threadingContext = threadingContext;
         _suggestionServiceBase = suggestionServiceBase;
         _listener = listenerProvider.GetListener(FeatureAttribute.CopilotChangeAnalysis);
-        _workQueue = new AsyncBatchingWorkQueue<SuggestionAcceptedEventArgs>(
+        _workQueue = new AsyncBatchingWorkQueue<(bool accepted, ProposalBase proposal)>(
             DelayTimeSpan.Idle,
             ProcessEventsAsync,
             _listener,
@@ -66,6 +66,7 @@ internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationL
             {
                 var suggestionService = _suggestionServiceBase.Value;
                 suggestionService.SuggestionAccepted += OnSuggestionAccepted;
+                suggestionService.SuggestionDismissed += OnSuggestionDismissed;
             }).CompletesAsyncOperation(token);
         }
     }
@@ -75,21 +76,28 @@ internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationL
         if (e.FinalProposal.Edits.Count == 0)
             return;
 
-        _workQueue.AddWork(e);
+        _workQueue.AddWork((accepted: true, e.FinalProposal));
+    }
+
+    private void OnSuggestionDismissed(object sender, SuggestionDismissedEventArgs e)
+    {
+        if (e.FinalProposal is not { Edits.Count: 0 })
+            return;
+
+        _workQueue.AddWork((accepted: false, e.FinalProposal));
     }
 
     private async ValueTask ProcessEventsAsync(
-        ImmutableSegmentedList<SuggestionAcceptedEventArgs> list, CancellationToken cancellationToken)
+        ImmutableSegmentedList<(bool accepted, ProposalBase proposal)> list, CancellationToken cancellationToken)
     {
-        foreach (var eventArgs in list)
-            await ProcessEventAsync(eventArgs, cancellationToken).ConfigureAwait(false);
+        foreach (var (accepted, proposal) in list)
+            await ProcessEventAsync(accepted, proposal, cancellationToken).ConfigureAwait(false);
     }
 
     private static async ValueTask ProcessEventAsync(
-        SuggestionAcceptedEventArgs eventArgs, CancellationToken cancellationToken)
+        bool accepted, ProposalBase proposal, CancellationToken cancellationToken)
     {
-        var featureId = "<unknown>";
-        var proposal = eventArgs.FinalProposal;
+        const string featureId = "Completion";
         var proposalId = proposal.ProposalId;
 
         foreach (var editGroup in proposal.Edits.GroupBy(e => e.Span.Snapshot))
@@ -112,7 +120,8 @@ internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationL
 
             Logger.LogBlock(FunctionId.Copilot_AnalyzeChange, KeyValueLogMessage.Create(static (d, args) =>
             {
-                var (featureId, proposalId, analysisResult) = args;
+                var (accepted, proposalId, analysisResult) = args;
+                d["Accepted"] = accepted;
                 d["FeatureId"] = featureId;
                 d["ProposalId"] = proposalId;
 
@@ -142,7 +151,7 @@ internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationL
                 d["CodeFixAnalysis_DiagnosticIdToApplicationTime"] = GetOrderedElements(analysisResult.CodeFixAnalysis.DiagnosticIdToApplicationTime);
                 d["CodeFixAnalysis_DiagnosticIdToProviderName"] = GetOrderedElements(analysisResult.CodeFixAnalysis.DiagnosticIdToProviderName);
                 d["CodeFixAnalysis_ProviderNameToApplicationTime"] = GetOrderedElements(analysisResult.CodeFixAnalysis.ProviderNameToApplicationTime);
-            }, args: (featureId, proposalId, analysisResult)),
+            }, args: (accepted, proposalId, analysisResult)),
             cancellationToken);
         }
     }
