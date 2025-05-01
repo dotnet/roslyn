@@ -160,7 +160,7 @@ public abstract partial class Workspace : IDisposable
     }
 
     /// <summary>
-    /// Sets the <see cref="CurrentSolution"/> of this workspace. This method does not raise a <see cref="WorkspaceChanged"/> event.
+    /// Sets the <see cref="CurrentSolution"/> of this workspace. This method does not raise a WorkspaceChange event.
     /// </summary>
     /// <remarks>
     /// This method does not guarantee that linked files will have the same contents. Callers
@@ -170,9 +170,9 @@ public abstract partial class Workspace : IDisposable
         => SetCurrentSolutionEx(solution).newSolution;
 
     /// <summary>
-    /// Sets the <see cref="CurrentSolution"/> of this workspace. This method does not raise a <see
-    /// cref="WorkspaceChanged"/> event.  This method should be used <em>sparingly</em>.  As much as possible,
-    /// derived types should use the SetCurrentSolution overloads that take a transformation.
+    /// Sets the <see cref="CurrentSolution"/> of this workspace. This method does not raise a
+    /// WorkspaceChange event.  This method should be used <em>sparingly</em>.
+    /// As much as possible, derived types should use the SetCurrentSolution overloads that take a transformation.
     /// </summary>
     /// <remarks>
     /// This method does not guarantee that linked files will have the same contents. Callers
