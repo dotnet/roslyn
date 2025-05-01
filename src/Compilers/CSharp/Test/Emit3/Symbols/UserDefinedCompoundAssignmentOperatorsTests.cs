@@ -7504,16 +7504,320 @@ public class C1
                                  "C1." + name + "()");
         }
 
+        [Theory]
+        [CombinatorialData]
+        public void Increment_145_ExpressionTree([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+using System.Linq.Expressions;
+
+public class C1
+{
+    public void operator" + op + @"()
+    {
+    } 
+}
+
+public class Program
+{
+    static void Main()
+    {
+        Expression<System.Action<C1>> x = (c1) => c1" + op + @";
+    } 
+}
+";
+
+            var comp2 = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
+            comp2.VerifyDiagnostics(
+                // (15,51): error CS0832: An expression tree may not contain an assignment operator
+                //         Expression<System.Action<C1>> x = (c1) => c1++;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "c1" + op).WithLocation(15, 51)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_146_Partial([CombinatorialValues("++", "--")] string op)
+        {
+            var source = @"
+partial class C1
+{
+    public partial void operator" + op + @"();
+
+    public partial void M()
+    {
+    } 
+
+    public partial void M();
+}
+";
+
+            var comp2 = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
+            comp2.VerifyDiagnostics(
+                // (4,20): error CS1519: Invalid token 'void' in a member declaration
+                //     public partial void operator++();
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "void").WithArguments("void").WithLocation(4, 20),
+                // (4,33): error CS9501: User-defined operator 'C1.operator ++()' must be declared public
+                //     public partial void operator++();
+                Diagnostic(ErrorCode.ERR_OperatorsMustBePublic, op).WithArguments("C1.operator " + op + "()").WithLocation(4, 33),
+                // (4,33): error CS0501: 'C1.operator ++()' must declare a body because it is not marked abstract, extern, or partial
+                //     public partial void operator++();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, op).WithArguments("C1.operator " + op + "()").WithLocation(4, 33)
+                );
+        }
+
+        [Fact]
+        public void Increment_147_CopyModifiers()
+        {
+            /*
+                public class C1
+                {
+                    public virtual void modopt(int64) operator ++() {}
+                }
+            */
+            var ilSource = @"
+.class public auto ansi beforefieldinit C1
+    extends System.Object
+{
+    .method public hidebysig specialname newslot virtual 
+        instance void modopt(int64) op_Increment () cil managed 
+    {
+        // Method begins at RVA 0x2069
+        // Code size 2 (0x2)
+        .maxstack 8
+
+        IL_0000: nop
+        IL_0001: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+";
+
+            var source1 =
+@"
+public class C2 : C1
+{
+    public override void operator ++()
+    {
+        System.Console.Write(""C2"");
+    }
+
+    static void Main()
+    {
+        C1 c1 = new C2();
+        c1++;
+    }
+}
+";
+            var compilation1 = CreateCompilationWithIL([source1, CompilerFeatureRequiredAttribute], ilSource, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation1, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "C2").VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                AssertEx.Equal("void modopt(System.Int64) C2.op_Increment()", m.GlobalNamespace.GetMember("C2.op_Increment").ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void Increment_148_Consumption_InCatchFilter()
+        {
+            var source = @"
+public struct C1
+{
+    public int _F;
+    public void operator ++()
+    {
+        System.Console.Write(""++"");
+        _F++;
+    } 
+    public void operator --()
+    {
+        System.Console.Write(""--"");
+        _F--;
+    } 
+
+    public static implicit operator bool (C1 x) => x._F % 2 == 0;
+}
+
+public class Program
+{
+    static void Main()
+    {
+        C1 x = new C1();
+        
+        try 
+        {
+            try 
+            {
+                throw null;
+            }
+            catch when (++x)
+            {
+                System.Console.Write(""!"");
+            }
+        }
+        catch when (--x)
+        {
+            System.Console.Write(x._F);
+        }
+    } 
+}
+";
+
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "++--0").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Main",
+@"
+{
+  // Code size      102 (0x66)
+  .maxstack  2
+  .locals init (C1 V_0, //x
+                bool V_1,
+                C1 V_2,
+                bool V_3)
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    ""C1""
+  .try
+  {
+    IL_0009:  nop
+    .try
+    {
+      IL_000a:  nop
+      IL_000b:  ldnull
+      IL_000c:  throw
+    }
+    filter
+    {
+      IL_000d:  pop
+      IL_000e:  ldloc.0
+      IL_000f:  stloc.2
+      IL_0010:  ldloca.s   V_2
+      IL_0012:  call       ""void C1.op_Increment()""
+      IL_0017:  nop
+      IL_0018:  ldloc.2
+      IL_0019:  stloc.0
+      IL_001a:  ldloc.2
+      IL_001b:  call       ""bool C1.op_Implicit(C1)""
+      IL_0020:  stloc.1
+      IL_0021:  ldloc.1
+      IL_0022:  ldc.i4.0
+      IL_0023:  cgt.un
+      IL_0025:  endfilter
+    }  // end filter
+    {  // handler
+      IL_0027:  pop
+      IL_0028:  nop
+      IL_0029:  ldstr      ""!""
+      IL_002e:  call       ""void System.Console.Write(string)""
+      IL_0033:  nop
+      IL_0034:  nop
+      IL_0035:  leave.s    IL_0037
+    }
+    IL_0037:  nop
+    IL_0038:  leave.s    IL_0065
+  }
+  filter
+  {
+    IL_003a:  pop
+    IL_003b:  ldloc.0
+    IL_003c:  stloc.2
+    IL_003d:  ldloca.s   V_2
+    IL_003f:  call       ""void C1.op_Decrement()""
+    IL_0044:  nop
+    IL_0045:  ldloc.2
+    IL_0046:  stloc.0
+    IL_0047:  ldloc.2
+    IL_0048:  call       ""bool C1.op_Implicit(C1)""
+    IL_004d:  stloc.3
+    IL_004e:  ldloc.3
+    IL_004f:  ldc.i4.0
+    IL_0050:  cgt.un
+    IL_0052:  endfilter
+  }  // end filter
+  {  // handler
+    IL_0054:  pop
+    IL_0055:  nop
+    IL_0056:  ldloc.0
+    IL_0057:  ldfld      ""int C1._F""
+    IL_005c:  call       ""void System.Console.Write(int)""
+    IL_0061:  nop
+    IL_0062:  nop
+    IL_0063:  leave.s    IL_0065
+  }
+  IL_0065:  ret
+}
+");
+        }
+
+        [Fact]
+        public void Increment_149_Consumption_ConditionalAccessTarget()
+        {
+            var source = @"
+class C1
+{
+    public int _F;
+    public void operator ++()
+    {
+        System.Console.Write(""++"");
+        _F++;
+    } 
+}
+
+class C2
+{
+    public C1 _F;
+}
+
+class Program
+{
+    static void Test(C2 x)
+    {
+        x._F++; 
+        ++x._F;
+        x?._F++; 
+        ++x?._F; 
+    } 
+}
+";
+
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
+            comp.VerifyDiagnostics(
+                // (23,9): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
+                //         x?._F++; 
+                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "x?._F").WithLocation(23, 9),
+                // (24,11): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
+                //         ++x?._F; 
+                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "x?._F").WithLocation(24, 11)
+                );
+        }
+
         private static string CompoundAssignmentOperatorName(string op, bool isChecked = false)
         {
-            var kind = op switch
+            SyntaxKind kind = CompoundAssignmentOperatorTokenKind(op);
+
+            return OperatorFacts.CompoundAssignmentOperatorNameFromSyntaxKind(kind, isChecked: isChecked);
+        }
+
+        private static SyntaxKind CompoundAssignmentOperatorTokenKind(string op)
+        {
+            return op switch
             {
                 ">>=" => SyntaxKind.GreaterThanGreaterThanEqualsToken,
                 ">>>=" => SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken,
                 _ => SyntaxFactory.ParseToken(op).Kind(),
             };
-
-            return OperatorFacts.CompoundAssignmentOperatorNameFromSyntaxKind(kind, isChecked: isChecked);
         }
 
         private static bool CompoundAssignmentOperatorHasCheckedForm(string op) => op is "+=" or "-=" or "*=" or "/=";
@@ -19197,6 +19501,667 @@ internal ref struct DummyHandler
                 //         this-=$"log:{0}";
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, @"$""log:{0}""").WithArguments("3", "out").WithLocation(21, 15)
                 );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01480_GetOperatorKind([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            SyntaxKind kind = CompoundAssignmentOperatorTokenKind(op);
+
+            string name = OperatorFacts.CompoundAssignmentOperatorNameFromSyntaxKind(kind, isChecked: false);
+            Assert.Equal(kind, SyntaxFacts.GetOperatorKind(name));
+
+            if (CompoundAssignmentOperatorHasCheckedForm(op))
+            {
+                name = OperatorFacts.CompoundAssignmentOperatorNameFromSyntaxKind(kind, isChecked: true);
+                Assert.Equal(kind, SyntaxFacts.GetOperatorKind(name));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01490_ExpressionTree([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+using System.Linq.Expressions;
+
+public class C1
+{
+    public void operator" + op + @"(int x)
+    {
+    } 
+}
+
+public class Program
+{
+    static void Main()
+    {
+        Expression<System.Action<C1>> x = (c1) => c1 " + op + @" 1;
+    } 
+}
+";
+
+            var comp2 = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
+            comp2.VerifyDiagnostics(
+                // (15,51): error CS0832: An expression tree may not contain an assignment operator
+                //         Expression<System.Action<C1>> x = (c1) => c1 += 1;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "c1 " + op + " 1").WithLocation(15, 51)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_01500_Partial([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var source = @"
+partial class C1
+{
+    public partial void operator" + op + @"(int x);
+
+    public partial void M(int x)
+    {
+    } 
+
+    public partial void M(int x);
+}
+";
+
+            var comp2 = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
+            comp2.VerifyDiagnostics(
+                // (4,20): error CS1519: Invalid token 'void' in a member declaration
+                //     public partial void operator+=(int x);
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "void").WithArguments("void").WithLocation(4, 20),
+                // (4,33): error CS9501: User-defined operator 'C1.operator +=(int)' must be declared public
+                //     public partial void operator+=(int x);
+                Diagnostic(ErrorCode.ERR_OperatorsMustBePublic, op).WithArguments("C1.operator " + op + "(int)").WithLocation(4, 33),
+                // (4,33): error CS0501: 'C1.operator +=(int)' must declare a body because it is not marked abstract, extern, or partial
+                //     public partial void operator+=(int x);
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, op).WithArguments("C1.operator " + op + "(int)").WithLocation(4, 33)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_01510_CopyModifiers()
+        {
+            /*
+                public class C1
+                {
+                    public virtual void modopt(int64) operator +=(int x) {}
+                }
+            */
+            var ilSource = @"
+.class public auto ansi beforefieldinit C1
+    extends System.Object
+{
+    .method public hidebysig specialname newslot virtual 
+        instance void modopt(int64) op_AdditionAssignment (int32 x) cil managed 
+    {
+        // Method begins at RVA 0x2069
+        // Code size 2 (0x2)
+        .maxstack 8
+
+        IL_0000: nop
+        IL_0001: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+";
+
+            var source1 =
+@"
+public class C2 : C1
+{
+    public override void operator +=(int y)
+    {
+        System.Console.Write(""C2"");
+    }
+
+    static void Main()
+    {
+        C1 c1 = new C2();
+        c1 += 1;
+    }
+}
+";
+            var compilation1 = CreateCompilationWithIL([source1, CompilerFeatureRequiredAttribute], ilSource, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation1, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "C2").VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                AssertEx.Equal("void modopt(System.Int64) C2.op_AdditionAssignment(System.Int32 y)", m.GlobalNamespace.GetMember("C2.op_AdditionAssignment").ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void CompoundAssignment_01520_CopyModifiers()
+        {
+            /*
+                public class C1
+                {
+                    public virtual void operator +=(int modopt(int64) x) {}
+                }
+            */
+            var ilSource = @"
+.class public auto ansi beforefieldinit C1
+    extends System.Object
+{
+    .method public hidebysig specialname newslot virtual 
+        instance void op_AdditionAssignment (int32 modopt(int64) x) cil managed 
+    {
+        // Method begins at RVA 0x2069
+        // Code size 2 (0x2)
+        .maxstack 8
+
+        IL_0000: nop
+        IL_0001: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+";
+
+            var source1 =
+@"
+public class C2 : C1
+{
+    public override void operator +=(int y)
+    {
+        System.Console.Write(""C2"");
+    }
+
+    static void Main()
+    {
+        C1 c1 = new C2();
+        c1 += 1;
+    }
+}
+";
+            var compilation1 = CreateCompilationWithIL([source1, CompilerFeatureRequiredAttribute], ilSource, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation1, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "C2").VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                AssertEx.Equal("void C2.op_AdditionAssignment(System.Int32 modopt(System.Int64) y)", m.GlobalNamespace.GetMember("C2.op_AdditionAssignment").ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void CompoundAssignment_01530_NullableMismatchOnOverride()
+        {
+            var source = @"
+#nullable enable
+
+abstract class C1
+{
+    public abstract void operator +=(string? x);
+    public abstract void operator -=(string x);
+}
+
+class C2 : C1
+{
+    public override void operator +=(string x) {}
+    public override void operator -=(string? x) {}
+}
+";
+
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
+            comp.VerifyDiagnostics(
+                // (12,35): warning CS8765: Nullability of type of parameter 'x' doesn't match overridden member (possibly because of nullability attributes).
+                //     public override void operator +=(string x) {}
+                Diagnostic(ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride, "+=").WithArguments("x").WithLocation(12, 35)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_01540_Consumption_InCatchFilter()
+        {
+            var source = @"
+public struct C1
+{
+    public int _F;
+    public void operator +=(int x)
+    {
+        System.Console.Write(""+="");
+        _F += x;
+    } 
+    public void operator -=(int x)
+    {
+        System.Console.Write(""-="");
+        _F -= x;
+    } 
+
+    public static implicit operator bool (C1 x) => x._F % 2 == 0;
+}
+
+public class Program
+{
+    static void Main()
+    {
+        C1 x = new C1();
+        
+        try 
+        {
+            try 
+            {
+                throw null;
+            }
+            catch when (x += 3)
+            {
+                System.Console.Write(""!"");
+            }
+        }
+        catch when (x -= 1)
+        {
+            System.Console.Write(x._F);
+        }
+    } 
+}
+";
+
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "+=-=2").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Main",
+@"
+{
+  // Code size      104 (0x68)
+  .maxstack  2
+  .locals init (C1 V_0, //x
+                bool V_1,
+                C1 V_2,
+                bool V_3)
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    ""C1""
+  .try
+  {
+    IL_0009:  nop
+    .try
+    {
+      IL_000a:  nop
+      IL_000b:  ldnull
+      IL_000c:  throw
+    }
+    filter
+    {
+      IL_000d:  pop
+      IL_000e:  ldloc.0
+      IL_000f:  stloc.2
+      IL_0010:  ldloca.s   V_2
+      IL_0012:  ldc.i4.3
+      IL_0013:  call       ""void C1.op_AdditionAssignment(int)""
+      IL_0018:  nop
+      IL_0019:  ldloc.2
+      IL_001a:  stloc.0
+      IL_001b:  ldloc.2
+      IL_001c:  call       ""bool C1.op_Implicit(C1)""
+      IL_0021:  stloc.1
+      IL_0022:  ldloc.1
+      IL_0023:  ldc.i4.0
+      IL_0024:  cgt.un
+      IL_0026:  endfilter
+    }  // end filter
+    {  // handler
+      IL_0028:  pop
+      IL_0029:  nop
+      IL_002a:  ldstr      ""!""
+      IL_002f:  call       ""void System.Console.Write(string)""
+      IL_0034:  nop
+      IL_0035:  nop
+      IL_0036:  leave.s    IL_0038
+    }
+    IL_0038:  nop
+    IL_0039:  leave.s    IL_0067
+  }
+  filter
+  {
+    IL_003b:  pop
+    IL_003c:  ldloc.0
+    IL_003d:  stloc.2
+    IL_003e:  ldloca.s   V_2
+    IL_0040:  ldc.i4.1
+    IL_0041:  call       ""void C1.op_SubtractionAssignment(int)""
+    IL_0046:  nop
+    IL_0047:  ldloc.2
+    IL_0048:  stloc.0
+    IL_0049:  ldloc.2
+    IL_004a:  call       ""bool C1.op_Implicit(C1)""
+    IL_004f:  stloc.3
+    IL_0050:  ldloc.3
+    IL_0051:  ldc.i4.0
+    IL_0052:  cgt.un
+    IL_0054:  endfilter
+  }  // end filter
+  {  // handler
+    IL_0056:  pop
+    IL_0057:  nop
+    IL_0058:  ldloc.0
+    IL_0059:  ldfld      ""int C1._F""
+    IL_005e:  call       ""void System.Console.Write(int)""
+    IL_0063:  nop
+    IL_0064:  nop
+    IL_0065:  leave.s    IL_0067
+  }
+  IL_0067:  ret
+}
+");
+        }
+
+        [Fact]
+        public void CompoundAssignment_01550_Consumption_ConditionalAccessTarget()
+        {
+            var source = @"
+class C1
+{
+    public int _F;
+    public void operator +=(int x)
+    {
+        System.Console.Write(""+="");
+        _F += x;
+    } 
+}
+
+class C2
+{
+    public C1 _F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        C2 x = new C2() { _F = new C1()};
+        
+        x?._F += 3; 
+        System.Console.Write(x._F._F);
+
+        var result = x?._F += 2;
+        System.Console.Write(result._F);
+        System.Console.Write(x._F._F);
+
+        x = null;
+        x?._F += 1; 
+        result = x?._F += 2;
+        System.Console.Write(result is null ? ""null"" : ""!"");
+    } 
+}
+";
+
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "+=3+=55null").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CompoundAssignment_01560_Consumption_ConditionalAccessTarget()
+        {
+            var source = @"
+struct S1
+{
+    public int _F;
+    public void operator +=(int x)
+    {
+        System.Console.Write(""+="");
+        _F += x;
+    } 
+}
+
+class C2
+{
+    public S1 _F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        C2 x = new C2();
+        
+        x?._F += 3; 
+        System.Console.Write(x._F._F);
+
+        var result = x?._F += 2;
+        System.Console.Write(result.GetValueOrDefault()._F);
+        System.Console.Write(x._F._F);
+
+        x = null;
+        x?._F += 1; 
+        result = x?._F += 2;
+        System.Console.Write(result is null ? ""null"" : ""!"");
+    } 
+}
+";
+
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "+=3+=55null").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CompoundAssignment_01570_Consumption_ConditionalAccessTarget()
+        {
+            var source = @"
+interface I1
+{
+    public int F {get;}
+    public void operator +=(int x);
+}
+
+struct S1 : I1
+{
+    public int _F;
+    public void operator +=(int x)
+    {
+        System.Console.Write(""+="");
+        _F += x;
+    } 
+
+    public int F => _F;
+}
+
+struct C1 : I1
+{
+    public int _F;
+    public void operator +=(int x)
+    {
+        System.Console.Write(""+="");
+        _F += x;
+    } 
+
+    public int F => _F;
+}
+
+class C2<T> where T : I1, new()
+{
+    public T _F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test<S1>();
+        Test<C1>();
+    }
+
+    static void Test<T>() where T : I1, new()
+    {
+        C2<T> x = new C2<T>() { _F = new T() };
+        
+        x?._F += 3; 
+        System.Console.Write(x._F.F);
+
+        x = null;
+        x?._F += 1; 
+    } 
+}
+";
+
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "+=3+=3").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CompoundAssignment_01580_Consumption_ConditionalAccessTarget()
+        {
+            var source = @"
+interface I1
+{
+    public void operator +=(int x);
+}
+
+class C2<T> where T : I1
+{
+    public T _F;
+}
+
+class Program
+{
+    static void Test<T>(C2<T> x) where T : I1
+    {
+        var result = x?._F += 2;
+    } 
+}
+";
+
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
+            comp.VerifyDiagnostics(
+                // (16,24): error CS8978: 'T' cannot be made nullable.
+                //         var result = x?._F += 2;
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, "._F += 2").WithArguments("T").WithLocation(16, 24)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_01590_Consumption_ConditionalAccessTarget()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+struct S1
+{
+    public int _F;
+    public void operator +=(int x)
+    {
+        System.Console.Write(""+="");
+        _F += x;
+    } 
+}
+
+class C2
+{
+    public S1 _F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        C2 x = new C2();
+        
+        x?._F += await GetInt(3); 
+        System.Console.Write(x._F._F);
+
+        var result = x?._F += await GetInt(2);
+        System.Console.Write(result.GetValueOrDefault()._F);
+        System.Console.Write(x._F._F);
+
+        x = null;
+        x?._F += await GetInt(1); 
+        result = x?._F += await GetInt(2);
+        System.Console.Write(result is null ? ""null"" : ""!"");
+    } 
+
+    static async Task<int> GetInt(int x)
+    {
+        await Task.Yield();
+        return x;
+    }
+}
+";
+
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "+=3+=55null").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CompoundAssignment_01600_Consumption_ConditionalAccessTarget()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+struct S1
+{
+    public int _F;
+    public void operator +=(int x)
+    {
+        System.Console.Write(""+="");
+        _F += x;
+    } 
+}
+
+class C2
+{
+    public S1 _F;
+}
+
+class C3
+{
+    public C2 _F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        C3 x = new C3() { _F = new C2() };
+        
+        x?._F?._F += await GetInt(3); 
+        System.Console.Write(x._F._F._F);
+
+        var result = x?._F?._F += await GetInt(2);
+        System.Console.Write(result.GetValueOrDefault()._F);
+        System.Console.Write(x._F._F._F);
+
+        x._F = null;
+        x?._F?._F += await GetInt(1); 
+        result = x?._F?._F += await GetInt(2);
+        System.Console.Write(result is null ? ""null"" : ""!"");
+
+        x = null;
+        x?._F?._F += await GetInt(1); 
+        result = x?._F?._F += await GetInt(2);
+        System.Console.Write(result is null ? ""null"" : ""!"");
+    } 
+
+    static async Task<int> GetInt(int x)
+    {
+        await Task.Yield();
+        return x;
+    }
+}
+";
+
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "+=3+=55nullnull").VerifyDiagnostics();
         }
     }
 }
