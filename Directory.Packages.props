@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <!-- https://learn.microsoft.com/nuget/consume-packages/central-package-management -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+
+    <MicroBuildVersion>2.0.187</MicroBuildVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Put repo-specific PackageVersion items in this group. -->
+    <!-- DO NOT put any versioned Visual Studio SDK packages in here, since each project uses its own versions -->
+    <PackageVersion Include="Microsoft.CodeAnalysis" Version="4.0.1" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.0.1" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.XUnit" Version="1.1.2-beta1.23163.2" />
+    <PackageVersion Include="Microsoft.VisualStudio.Extensibility.Testing.SupportFiles" Version="1.1.0" />
+    <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.1.619-beta" />
+    <PackageVersion Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageVersion Include="Roslyn.Diagnostics.Analyzers" Version="3.3.3" />
+    <PackageVersion Include="VSSDK.Settings.11" Version="11.0.4" />
+    <PackageVersion Include="VSSDK.Settings.12" Version="12.0.4" />
+    <PackageVersion Include="VSSDK.Shell.11" Version="11.0.4" />
+    <PackageVersion Include="xunit" Version="2.4.1" />
+    <PackageVersion Include="xunit.assert" Version="2.4.1" />
+    <PackageVersion Include="xunit.extensibility.core" Version="2.4.1" />
+    <PackageVersion Include="xunit.extensibility.execution" Version="2.4.1" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.4.3" />
+  </ItemGroup>
+  <ItemGroup Label="Library.Template">
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
+    <PackageVersion Include="Microsoft.VisualStudio.Internal.MicroBuild.NonShipping" Version="$(MicroBuildVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Put repo-specific GlobalPackageReference items in this group. -->
+  </ItemGroup>
+  <ItemGroup Label="Library.Template">
+    <GlobalPackageReference Include="CSharpIsNullAnalyzer" Version="0.1.593" PrivateAssets="all" />
+    <GlobalPackageReference Include="DotNetAnalyzers.DocumentationAnalyzers" Version="1.0.0-beta.59" PrivateAssets="all" />
+    <GlobalPackageReference Include="Microsoft.VisualStudio.Internal.MicroBuild.VisualStudio" Version="$(MicroBuildVersion)" />
+    <!-- The condition works around https://github.com/dotnet/sdk/issues/44951 -->
+    <GlobalPackageReference Include="Nerdbank.GitVersioning" Version="3.7.115" Condition="!('$(TF_BUILD)'=='true' and '$(dotnetformat)'=='true')" />
+    <GlobalPackageReference Include="PolySharp" Version="1.15.0" />
+    <GlobalPackageReference Include="StyleCop.Analyzers.Unstable" Version="1.2.0.556" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

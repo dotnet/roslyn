@@ -16,17 +16,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.0.0-previews-3-31605-261" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="1.16.30" PrivateAssets="compile" />
-    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.1.619-beta" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.SDK" VersionOverride="17.0.0-previews-3-31605-261" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" VersionOverride="1.16.30" PrivateAssets="compile" />
+    <PackageReference Include="Microsoft.Windows.CsWin32" PrivateAssets="all" />
     <!--
       A Newtonsoft.Json package reference with insecure defaults is inherited, but not needed by this project.
       Override the reference to a secure version, but exclude it from the build and packaging.
     -->
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" ExcludeAssets="all" PrivateAssets="all" />
-    <PackageReference Include="xunit.assert" Version="2.4.1" />
-    <PackageReference Include="xunit.extensibility.core" Version="2.4.1" />
-    <PackageReference Include="xunit.extensibility.execution" Version="2.4.1" />
+    <PackageReference Include="Newtonsoft.Json" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="xunit.assert" />
+    <PackageReference Include="xunit.extensibility.core" />
+    <PackageReference Include="xunit.extensibility.execution" />
   </ItemGroup>
 
   <ItemGroup>

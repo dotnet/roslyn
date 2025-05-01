@@ -14,10 +14,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.Xunit" Version="$(GITBUILDVERSIONSIMPLE)-*" />
-    <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.0.31902.203" />
-    <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.Xunit" VersionOverride="$(GITBUILDVERSIONSIMPLE)-*" />
+    <PackageReference Include="Microsoft.VisualStudio.SDK" VersionOverride="17.0.31902.203" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
