@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Assert that binding layer agrees with lowering layer about whether this collection-expr will allocate.
                     Debug.Assert(!IsAllocatingRefStructCollectionExpression(node, collectionTypeKind, elementType.Type, _compilation));
                     var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array)).AsMember(spanType);
-                    var rewrittenElements = elements.SelectAsArray(static (element, rewriter) => rewriter.RewriteCollectionExpressionElementExpression(element, allowSpreadElement: false), this);
+                    var rewrittenElements = elements.SelectAsArray(static (element, rewriter) => rewriter.VisitAndRewriteCollectionElementExpression(element, allowSpreadElement: false), this);
                     return _factory.New(constructor, _factory.Array(elementType.Type, rewrittenElements));
                 }
 
@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression fieldValue = kind switch
                     {
                         // fieldValue = e1;
-                        SynthesizedReadOnlyListKind.SingleElement => RewriteCollectionExpressionElementExpression(elements.Single(), allowSpreadElement: false),
+                        SynthesizedReadOnlyListKind.SingleElement => VisitAndRewriteCollectionElementExpression(elements.Single(), allowSpreadElement: false),
                         // fieldValue = new ElementType[] { e1, ..., eN };
                         SynthesizedReadOnlyListKind.Array => createArray(node, ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType)),
                         // fieldValue = new List<ElementType> { e1, ..., eN };
@@ -585,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     .WellKnownType(asReadOnlySpan ? WellKnownType.System_ReadOnlySpan_T : WellKnownType.System_Span_T)
                     .Construct([elementType]);
                 var constructor = spanRefConstructor.AsMember(spanType);
-                var element = RewriteCollectionExpressionElementExpression(elements[0], allowSpreadElement: false);
+                var element = VisitAndRewriteCollectionElementExpression(elements[0], allowSpreadElement: false);
                 var temp = _factory.StoreToTemp(element, out var assignment);
                 _additionalLocals.Add(temp.LocalSymbol);
                 var call = _factory.New(constructor, arguments: [temp], argumentRefKinds: [asReadOnlySpan ? RefKindExtensions.StrictIn : RefKind.Ref]);
@@ -613,7 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // ...
             for (int i = 0; i < arrayLength; i++)
             {
-                var element = RewriteCollectionExpressionElementExpression(elements[i], allowSpreadElement: false);
+                var element = VisitAndRewriteCollectionElementExpression(elements[i], allowSpreadElement: false);
                 var call = _factory.Call(null, elementRef, inlineArrayLocal, _factory.Literal(i), useStrictArgumentRefKinds: true);
                 var assignment = new BoundAssignmentOperator(syntax, call, element, type: call.Type) { WasCompilerGenerated = true };
                 sideEffects.Add(assignment);
@@ -766,7 +766,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var initialization = new BoundArrayInitialization(
                     syntax,
                     isInferred: false,
-                    elements.SelectAsArray(static (element, rewriter) => rewriter.RewriteCollectionExpressionElementExpression(element, allowSpreadElement: false), this));
+                    elements.SelectAsArray(static (element, rewriter) => rewriter.VisitAndRewriteCollectionElementExpression(element, allowSpreadElement: false), this));
                 return new BoundArrayCreation(
                     syntax,
                     ImmutableArray.Create<BoundExpression>(
@@ -783,7 +783,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var localsBuilder = ArrayBuilder<BoundLocal>.GetInstance();
             var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
 
-            RewriteCollectionExpressionElementsIntoTemporaries(elements, numberIncludingLastSpread, localsBuilder, sideEffects);
+            VisitAndRewriteCollectionElementsIntoTemporaries(elements, numberIncludingLastSpread, localsBuilder, sideEffects);
 
             // int index = 0;
             BoundLocal indexTemp = _factory.StoreToTemp(
@@ -1054,7 +1054,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             int numberIncludingLastSpread;
             bool useKnownLength = ShouldUseKnownLength(node, out numberIncludingLastSpread);
-            RewriteCollectionExpressionElementsIntoTemporaries(elements, numberIncludingLastSpread, localsBuilder, sideEffects);
+            VisitAndRewriteCollectionElementsIntoTemporaries(elements, numberIncludingLastSpread, localsBuilder, sideEffects);
 
             bool useOptimizations = false;
             MethodSymbol? setCount = null;
@@ -1265,7 +1265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKeyValuePairElement keyValuePairElement:
                         {
                             // dictionary[key] = value;
-                            RewriteKeyValuePairElement(keyValuePairElement, out var rewrittenKey, out var rewrittenValue);
+                            VisitAndRewriteKeyValuePairElement(keyValuePairElement, out var rewrittenKey, out var rewrittenValue);
                             sideEffects.Add(
                                 _factory.Call(
                                     dictionaryTemp,
@@ -1340,7 +1340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArrayBuilder<BoundLocal> localsBuilder,
                 ArrayBuilder<BoundExpression> sideEffects)
             {
-                RewriteKeyValuePairConversion(keyValuePairConversion, out var rewrittenKeyConversion, out var rewrittenValueConversion, localsBuilder, sideEffects);
+                VisitAndRewriteKeyValuePairConversion(keyValuePairConversion, out var rewrittenKeyConversion, out var rewrittenValueConversion, localsBuilder, sideEffects);
                 var assignment = _factory.Call(
                     dictionaryTemp,
                     setMethod,
@@ -1375,7 +1375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void RewriteKeyValuePairElement(
+        private void VisitAndRewriteKeyValuePairElement(
             BoundKeyValuePairElement keyValuePairElement,
             out BoundExpression rewrittenKey,
             out BoundExpression rewrittenValue)
@@ -1384,7 +1384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             rewrittenValue = VisitExpression(keyValuePairElement.Value);
         }
 
-        private void RewriteKeyValuePairConversion(
+        private void VisitAndRewriteKeyValuePairConversion(
             BoundKeyValuePairConversion keyValuePairConversion,
             out BoundExpression rewrittenKeyConversion,
             out BoundExpression rewrittenValueConversion,
@@ -1436,13 +1436,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _factory.New(constructor, key, value);
         }
 
-        private BoundExpression RewriteCollectionExpressionElementExpression(BoundNode element, bool allowSpreadElement)
+        private BoundExpression VisitAndRewriteCollectionElementExpression(BoundNode element, bool allowSpreadElement)
         {
             switch (element)
             {
                 case BoundKeyValuePairElement keyValuePairElement:
                     {
-                        RewriteKeyValuePairElement(keyValuePairElement, out var rewrittenKey, out var rewrittenValue);
+                        VisitAndRewriteKeyValuePairElement(keyValuePairElement, out var rewrittenKey, out var rewrittenValue);
                         return CreateKeyValuePair(rewrittenKey, rewrittenValue);
                     }
                 case BoundExpression expression:
@@ -1458,7 +1458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var localsBuilder = ArrayBuilder<BoundLocal>.GetInstance();
             var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
-            RewriteKeyValuePairConversion(node, out var rewrittenKeyConversion, out var rewrittenValueConversion, localsBuilder, sideEffects);
+            VisitAndRewriteKeyValuePairConversion(node, out var rewrittenKeyConversion, out var rewrittenValueConversion, localsBuilder, sideEffects);
             var value = CreateKeyValuePair(rewrittenKeyConversion, rewrittenValueConversion);
             Debug.Assert(value.Type is { });
             var locals = localsBuilder.SelectAsArray(local => local.LocalSymbol);
@@ -1471,7 +1471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 value.Type);
         }
 
-        private void RewriteCollectionExpressionElementsIntoTemporaries(
+        private void VisitAndRewriteCollectionElementsIntoTemporaries(
             ImmutableArray<BoundNode> elements,
             int numberIncludingLastSpread,
             ArrayBuilder<BoundLocal> locals,
@@ -1479,7 +1479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             for (int i = 0; i < numberIncludingLastSpread; i++)
             {
-                var rewrittenExpression = RewriteCollectionExpressionElementExpression(elements[i], allowSpreadElement: true);
+                var rewrittenExpression = VisitAndRewriteCollectionElementExpression(elements[i], allowSpreadElement: true);
                 BoundAssignmentOperator assignmentToTemp;
                 BoundLocal temp = _factory.StoreToTemp(rewrittenExpression, out assignmentToTemp);
                 locals.Add(temp);
@@ -1501,7 +1501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var element = elements[i];
                 var rewrittenExpression = i < numberIncludingLastSpread ?
                     rewrittenExpressions[i] :
-                    RewriteCollectionExpressionElementExpression(element, allowSpreadElement: true);
+                    VisitAndRewriteCollectionElementExpression(element, allowSpreadElement: true);
 
                 if (element is BoundCollectionExpressionSpreadElement spreadElement)
                 {
@@ -1513,7 +1513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         rewrittenExpression,
                         iteratorBody =>
                         {
-                            var rewrittenValue = RewriteCollectionExpressionElementExpression(((BoundExpressionStatement)iteratorBody).Expression, allowSpreadElement: false);
+                            var rewrittenValue = VisitAndRewriteCollectionElementExpression(((BoundExpressionStatement)iteratorBody).Expression, allowSpreadElement: false);
                             var builder = ArrayBuilder<BoundExpression>.GetInstance();
                             addElement(builder, rewrittenReceiver, rewrittenValue, false);
                             var statements = builder.SelectAsArray(expr => (BoundStatement)new BoundExpressionStatement(expr.Syntax, expr));
