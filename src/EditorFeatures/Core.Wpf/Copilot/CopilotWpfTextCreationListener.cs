@@ -36,7 +36,7 @@ internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationL
     private readonly Lazy<SuggestionServiceBase> _suggestionServiceBase;
     private readonly IAsynchronousOperationListener _listener;
 
-    private readonly AsyncBatchingWorkQueue<(bool accepted, ProposalBase proposal)> _workQueue;
+    private readonly AsyncBatchingWorkQueue<(bool accepted, ProposalBase proposal)> _completionWorkQueue;
 
     private int _started;
 
@@ -53,9 +53,9 @@ internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationL
         _suggestionServiceBase = suggestionServiceBase;
         _listener = listenerProvider.GetListener(FeatureAttribute.CopilotChangeAnalysis);
 
-        _workQueue = new AsyncBatchingWorkQueue<(bool accepted, ProposalBase proposal)>(
+        _completionWorkQueue = new AsyncBatchingWorkQueue<(bool accepted, ProposalBase proposal)>(
             DelayTimeSpan.Idle,
-            ProcessEventsAsync,
+            ProcessCompletionEventsAsync,
             _listener,
             _threadingContext.DisposalToken);
     }
@@ -70,27 +70,27 @@ internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationL
             Task.Run(() =>
             {
                 var suggestionService = _suggestionServiceBase.Value;
-                suggestionService.SuggestionAccepted += OnSuggestionAccepted;
-                suggestionService.SuggestionDismissed += OnSuggestionDismissed;
+                suggestionService.SuggestionAccepted += OnCompletionSuggestionAccepted;
+                suggestionService.SuggestionDismissed += OnCompletionSuggestionDismissed;
             }).CompletesAsyncOperation(token);
         }
     }
 
-    private void OnSuggestionAccepted(object sender, SuggestionAcceptedEventArgs e)
-        => OnSuggestionEvent(accepted: true, e.FinalProposal);
+    private void OnCompletionSuggestionAccepted(object sender, SuggestionAcceptedEventArgs e)
+        => OnCompletionSuggestionEvent(accepted: true, e.FinalProposal);
 
-    private void OnSuggestionDismissed(object sender, SuggestionDismissedEventArgs e)
-        => OnSuggestionEvent(accepted: false, e.FinalProposal);
+    private void OnCompletionSuggestionDismissed(object sender, SuggestionDismissedEventArgs e)
+        => OnCompletionSuggestionEvent(accepted: false, e.FinalProposal);
 
-    private void OnSuggestionEvent(bool accepted, ProposalBase? proposal)
+    private void OnCompletionSuggestionEvent(bool accepted, ProposalBase? proposal)
     {
         if (proposal is not { Edits.Count: 0 })
             return;
 
-        _workQueue.AddWork((accepted, proposal));
+        _completionWorkQueue.AddWork((accepted, proposal));
     }
 
-    private async ValueTask ProcessEventsAsync(
+    private async ValueTask ProcessCompletionEventsAsync(
         ImmutableSegmentedList<(bool accepted, ProposalBase proposal)> list, CancellationToken cancellationToken)
     {
         // Ignore if analyzing changes is disabled for this user.
@@ -98,10 +98,10 @@ internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationL
             return;
 
         foreach (var (accepted, proposal) in list)
-            await ProcessEventAsync(accepted, proposal, cancellationToken).ConfigureAwait(false);
+            await ProcessCompletionEventAsync(accepted, proposal, cancellationToken).ConfigureAwait(false);
     }
 
-    private static async ValueTask ProcessEventAsync(
+    private static async ValueTask ProcessCompletionEventAsync(
         bool accepted, ProposalBase proposal, CancellationToken cancellationToken)
     {
         const string featureId = "Completion";
@@ -131,46 +131,10 @@ internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationL
             var analysisResult = await changeAnalysisService.AnalyzeChangeAsync(
                 document, normalizedEdits, cancellationToken).ConfigureAwait(false);
 
-            Logger.LogBlock(FunctionId.Copilot_AnalyzeChange, KeyValueLogMessage.Create(static (d, args) =>
-            {
-                var (accepted, proposalId, analysisResult) = args;
-                d["Accepted"] = accepted;
-                d["FeatureId"] = featureId;
-                d["ProposalId"] = proposalId;
-
-                d["Succeeded"] = analysisResult.Succeeded;
-
-                d["OldDocumentLength"] = analysisResult.OldDocumentLength;
-                d["NewDocumentLength"] = analysisResult.NewDocumentLength;
-                d["TextChangeDelta"] = analysisResult.TextChangeDelta;
-
-                d["ProjectDocumentCount"] = analysisResult.ProjectDocumentCount;
-                d["ProjectSourceGeneratedDocumentCount"] = analysisResult.ProjectSourceGeneratedDocumentCount;
-                d["ProjectConeCount"] = analysisResult.ProjectConeCount;
-
-                foreach (var diagnosticAnalysis in analysisResult.DiagnosticAnalyses)
-                {
-                    var keyPrefix = $"DiagnosticAnalysis_{diagnosticAnalysis.Kind}";
-
-                    d[$"{keyPrefix}_ComputationTime"] = diagnosticAnalysis.ComputationTime;
-                    d[$"{keyPrefix}_IdToCount"] = GetOrderedElements(diagnosticAnalysis.IdToCount);
-                    d[$"{keyPrefix}_CategoryToCount"] = GetOrderedElements(diagnosticAnalysis.CategoryToCount);
-                    d[$"{keyPrefix}_SeverityToCount"] = GetOrderedElements(diagnosticAnalysis.SeverityToCount);
-                }
-
-                d["CodeFixAnalysis_TotalComputationTime"] = analysisResult.CodeFixAnalysis.TotalComputationTime;
-                d["CodeFixAnalysis_TotalApplicationTime"] = analysisResult.CodeFixAnalysis.TotalApplicationTime;
-                d["CodeFixAnalysis_DiagnosticIdToCount"] = GetOrderedElements(analysisResult.CodeFixAnalysis.DiagnosticIdToCount);
-                d["CodeFixAnalysis_DiagnosticIdToApplicationTime"] = GetOrderedElements(analysisResult.CodeFixAnalysis.DiagnosticIdToApplicationTime);
-                d["CodeFixAnalysis_DiagnosticIdToProviderName"] = GetOrderedElements(analysisResult.CodeFixAnalysis.DiagnosticIdToProviderName);
-                d["CodeFixAnalysis_ProviderNameToApplicationTime"] = GetOrderedElements(analysisResult.CodeFixAnalysis.ProviderNameToApplicationTime);
-            }, args: (accepted, proposalId, analysisResult)),
-            cancellationToken);
+            CopilotChangeAnalysisUtilities.LogCopilotChangeAnalysis(
+                featureId, accepted, proposalId, analysisResult, cancellationToken);
         }
     }
-
-    private static List<string> GetOrderedElements<TKey, TValue>(Dictionary<TKey, TValue> dictionary)
-        => [.. dictionary.Select(kvp => $"{kvp.Key}_{kvp.Value}").OrderBy(v => v)];
 
     private static ImmutableArray<TextChange> Normalize(IEnumerable<ProposedEdit> editGroup)
     {
