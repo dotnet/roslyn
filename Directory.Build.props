@@ -57,7 +57,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <LangVersion Condition="'$(MSBuildProjectExtension)'=='.csproj'">13</LangVersion>
+    <LangVersion Condition="'$(MSBuildProjectExtension)'=='.csproj'">10</LangVersion>
     <LangVersion Condition="'$(MSBuildProjectExtension)'=='.vbproj'">16.9</LangVersion>
   </PropertyGroup>
 

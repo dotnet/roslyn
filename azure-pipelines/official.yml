@@ -42,7 +42,7 @@ extends:
   template: azure-pipelines/MicroBuild.1ES.Official.yml@MicroBuildTemplate
   parameters:
     sdl:
-      sourceAnalysisPool: VSEngSS-MicroBuild2019-1ES
+      sourceAnalysisPool: VSEngSS-MicroBuild2022-1ES
       codeSignValidation:
         enabled: true
         break: true
@@ -65,9 +65,10 @@ extends:
           RealSign: true
           # ShouldSkipOptimize: ${{ parameters.ShouldSkipOptimize }}
           EnableAPIScan: ${{ parameters.EnableAPIScan }}
-          windowsPool: VSEngSS-MicroBuild2019-1ES
+          windowsPool: VSEngSS-MicroBuild2022-1ES
           RunTests: ${{ parameters.RunTests }}
           PublishCodeCoverage: ${{ parameters.PublishCodeCoverage }}
+          EnableDotNetFormatCheck: false
     - template: /azure-pipelines/prepare-insertion-stages.yml@self
       parameters:
         RealSign: true
@@ -76,7 +77,8 @@ extends:
       displayName: azure-public/vssdk feed
       condition: and(succeeded(), eq(dependencies.Build.outputs['Windows.SetPipelineVariables.SignType'], 'Real'))
       jobs:
-      - deployment: push
+      - job: azure-public/vssdk feed
+        deployment: push
         pool:
           vmImage: ubuntu-latest
         environment: No-Approval

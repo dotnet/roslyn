@@ -27,3 +27,4 @@ jobs:
   parameters:
     Is1ESPT: false
     RunTests: ${{ parameters.RunTests }}
+    EnableDotNetFormatCheck: false
