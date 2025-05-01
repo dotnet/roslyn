@@ -6,9 +6,6 @@
     <RootNamespace></RootNamespace>
     <UseWpf>true</UseWpf>
     <TargetFramework>net472</TargetFramework>
-    <!--Temporarily bypass ibcmerge due to an error
-      https://github.com/dotnet/roslyn/issues/57863 -->
-    <ApplyNgenOptimization></ApplyNgenOptimization>
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
     <PackageDescription>

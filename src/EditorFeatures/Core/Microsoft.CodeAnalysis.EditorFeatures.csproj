@@ -7,9 +7,6 @@
     <TargetFramework>net472</TargetFramework>
     <UseWpf>true</UseWpf>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <!--Temporarily bypass ibcmerge due to an error
-      https://github.com/dotnet/roslyn/issues/57863 -->
-    <ApplyNgenOptimization></ApplyNgenOptimization>
     <DefineConstants>$(DefineConstants);EDITOR_FEATURES</DefineConstants>
 
     <!-- NuGet -->
