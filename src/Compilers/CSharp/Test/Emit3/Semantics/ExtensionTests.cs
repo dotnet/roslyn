@@ -36601,4 +36601,725 @@ static unsafe class E
         Assert.False(verifier.HasLocalsInit("E.M"));
         Assert.True(verifier.HasLocalsInit("E.M2"));
     }
+
+    [Fact]
+    public void XmlDoc_01()
+    {
+        // Instance members
+        var src = """
+/// <summary>Summary for E</summary>
+static class E
+{
+    /// <summary>Summary for extension block</summary>
+    /// <typeparam name="T">Description for T</typeparam>
+    /// <param name="t">Description for t</param>
+    extension<T>(T t)
+    {
+        /// <summary>Summary for M</summary>
+        /// <typeparam name="U">Description for U</typeparam>
+        /// <param name="u">Description for u</param>
+        public void M<U>(U u) => throw null!;
+
+        /// <summary>Summary for P</summary>
+        public int P => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments, assemblyName: "Test");
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <summary>Summary for E</summary>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var extension = e.GetTypeMembers().Single();
+        Assert.Equal("T:E.<>E__0`1", extension.GetDocumentationCommentId());
+        AssertEx.Equal("""
+<member name="T:E.<>E__0`1">
+    <summary>Summary for extension block</summary>
+    <typeparam name="T">Description for T</typeparam>
+    <param name="t">Description for t</param>
+</member>
+
+""", extension.GetDocumentationCommentXml());
+
+        var mSkeleton = extension.GetMember<MethodSymbol>("M");
+        AssertEx.Equal("""
+<member name="M:E.<>E__0`1.M``1(``0)">
+    <summary>Summary for M</summary>
+    <typeparam name="U">Description for U</typeparam>
+    <param name="u">Description for u</param>
+</member>
+
+""", mSkeleton.GetDocumentationCommentXml());
+
+        var mImplementation = e.GetMember<MethodSymbol>("M");
+        AssertEx.Equal("""
+<member name="M:E.M``2(``0,``1)">
+    <inheritdoc cref="M:E.<>E__0`1.M``1(``0)"/>
+</member>
+
+""", mImplementation.GetDocumentationCommentXml());
+
+        var p = extension.GetMember<PropertySymbol>("P");
+        AssertEx.Equal("""
+<member name="P:E.<>E__0`1.P">
+    <summary>Summary for P</summary>
+</member>
+
+""", p.GetDocumentationCommentXml());
+
+        var pGetImplementation = e.GetMember<MethodSymbol>("get_P");
+        AssertEx.Equal("""
+<member name="M:E.get_P``1(``0)">
+    <inheritdoc cref="P:E.<>E__0`1.P"/>
+</member>
+
+""", pGetImplementation.GetDocumentationCommentXml());
+
+        var expected = """
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name="T:E">
+            <summary>Summary for E</summary>
+        </member>
+        <member name="T:E.<>E__0`1">
+            <summary>Summary for extension block</summary>
+            <typeparam name="T">Description for T</typeparam>
+            <param name="t">Description for t</param>
+        </member>
+        <member name="M:E.<>E__0`1.M``1(``0)">
+            <summary>Summary for M</summary>
+            <typeparam name="U">Description for U</typeparam>
+            <param name="u">Description for u</param>
+        </member>
+        <member name="P:E.<>E__0`1.P">
+            <summary>Summary for P</summary>
+        </member>
+        <member name="M:E.M``2(``0,``1)">
+            <inheritdoc cref="M:E.<>E__0`1.M``1(``0)"/>
+        </member>
+        <member name="M:E.get_P``1(``0)">
+            <inheritdoc cref="P:E.<>E__0`1.P"/>
+        </member>
+    </members>
+</doc>
+""";
+        AssertEx.Equal(expected, GetDocumentationCommentText(comp));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        Assert.Equal(["(T, T)", "(t, T t)", "(U, U)", "(u, U u)"], PrintXmlNameSymbols(tree, model));
+    }
+
+    private static IEnumerable<string> PrintXmlNameSymbols(SyntaxTree tree, SemanticModel model)
+    {
+        var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+        var xmlNames = docComments.SelectMany(doc => doc.DescendantNodes().OfType<XmlNameAttributeSyntax>());
+        var result = xmlNames.Select(name => print(name));
+        return result;
+
+        string print(XmlNameAttributeSyntax name)
+        {
+            IdentifierNameSyntax identifier = name.Identifier;
+            var symbol = model.GetSymbolInfo(identifier).Symbol;
+            var symbolDisplay = symbol is null ? "null" : symbol.ToTestDisplayString();
+            return (identifier, symbolDisplay).ToString();
+        }
+    }
+
+    [Fact]
+    public void XmlDoc_02()
+    {
+        // Static members
+        var src = """
+/// <summary>Summary for E</summary>
+static class E
+{
+    /// <summary>Summary for extension block</summary>
+    /// <typeparam name="T">Description for T</typeparam>
+    /// <param name="t">Description for t</param>
+    extension<T>(T t)
+    {
+        /// <summary>Summary for M</summary>
+        /// <typeparam name="U">Description for U</typeparam>
+        /// <param name="u">Description for u</param>
+        public static void M<U>(U u) => throw null!;
+
+        /// <summary>Summary for P</summary>
+        public static int P => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        Assert.Equal("""
+<member name="T:E">
+    <summary>Summary for E</summary>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var extension = e.GetTypeMembers().Single();
+        AssertEx.Equal("""
+<member name="T:E.<>E__0`1">
+    <summary>Summary for extension block</summary>
+    <typeparam name="T">Description for T</typeparam>
+    <param name="t">Description for t</param>
+</member>
+
+""", extension.GetDocumentationCommentXml());
+
+        var mSkeleton = extension.GetMember<MethodSymbol>("M");
+        AssertEx.Equal("""
+<member name="M:E.<>E__0`1.M``1(``0)">
+    <summary>Summary for M</summary>
+    <typeparam name="U">Description for U</typeparam>
+    <param name="u">Description for u</param>
+</member>
+
+""", mSkeleton.GetDocumentationCommentXml());
+
+        var mImplementation = e.GetMember<MethodSymbol>("M");
+        AssertEx.Equal("""
+<member name="M:E.M``2(``1)">
+    <inheritdoc cref="M:E.<>E__0`1.M``1(``0)"/>
+</member>
+
+""", mImplementation.GetDocumentationCommentXml());
+
+        var p = extension.GetMember<PropertySymbol>("P");
+        AssertEx.Equal("""
+<member name="P:E.<>E__0`1.P">
+    <summary>Summary for P</summary>
+</member>
+
+""", p.GetDocumentationCommentXml());
+
+        var pGetImplementation = e.GetMember<MethodSymbol>("get_P");
+        AssertEx.Equal("""
+<member name="M:E.get_P``1">
+    <inheritdoc cref="P:E.<>E__0`1.P"/>
+</member>
+
+""", pGetImplementation.GetDocumentationCommentXml());
+    }
+
+    [Fact]
+    public void XmlDoc_03()
+    {
+        // No docs
+        var src = """
+static class E
+{
+    extension<T>(T t)
+    {
+        // comment
+        public static void M<U>(U u) => throw null!;
+
+        // comment
+        public static int P => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        Assert.Empty(e.GetDocumentationCommentXml());
+
+        var extension = e.GetTypeMembers().Single();
+        Assert.Empty(extension.GetDocumentationCommentXml());
+
+        var mSkeleton = extension.GetMember<MethodSymbol>("M");
+        Assert.Empty(mSkeleton.GetDocumentationCommentXml());
+
+        var mImplementation = e.GetMember<MethodSymbol>("M");
+        Assert.Empty(mImplementation.GetDocumentationCommentXml());
+
+        var p = extension.GetMember<PropertySymbol>("P");
+        Assert.Empty(p.GetDocumentationCommentXml());
+
+        var pGetImplementation = e.GetMember<MethodSymbol>("get_P");
+        Assert.Empty(pGetImplementation.GetDocumentationCommentXml());
+    }
+
+    [Fact]
+    public void XmlDoc_04()
+    {
+        // Error docs
+        var src = """
+static class E
+{
+    extension<T>(T t)
+    {
+        /// <summary></error>
+        public static void M<U>(U u) => throw null!;
+
+        /// <summary></error>
+        public static int P => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (5,24): warning CS1570: XML comment has badly formed XML -- 'End tag 'error' does not match the start tag 'summary'.'
+            //         /// <summary></error>
+            Diagnostic(ErrorCode.WRN_XMLParseError, "error").WithArguments("error", "summary").WithLocation(5, 24),
+            // (8,24): warning CS1570: XML comment has badly formed XML -- 'End tag 'error' does not match the start tag 'summary'.'
+            //         /// <summary></error>
+            Diagnostic(ErrorCode.WRN_XMLParseError, "error").WithArguments("error", "summary").WithLocation(8, 24));
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        var extension = e.GetTypeMembers().Single();
+
+        var mSkeleton = extension.GetMember<MethodSymbol>("M");
+        AssertEx.Equal("""
+<!-- Badly formed XML comment ignored for member "M:E.<>E__0`1.M``1(``0)" -->
+
+""", mSkeleton.GetDocumentationCommentXml());
+
+        var mImplementation = e.GetMember<MethodSymbol>("M");
+        AssertEx.Equal("""
+<member name="M:E.M``2(``1)">
+    <inheritdoc cref="M:E.<>E__0`1.M``1(``0)"/>
+</member>
+
+""", mImplementation.GetDocumentationCommentXml());
+
+        var p = extension.GetMember<PropertySymbol>("P");
+        AssertEx.Equal("""
+<!-- Badly formed XML comment ignored for member "P:E.<>E__0`1.P" -->
+
+""", p.GetDocumentationCommentXml());
+
+        var pGetImplementation = e.GetMember<MethodSymbol>("get_P");
+        AssertEx.Equal("""
+<member name="M:E.get_P``1">
+    <inheritdoc cref="P:E.<>E__0`1.P"/>
+</member>
+
+""", pGetImplementation.GetDocumentationCommentXml());
+    }
+
+    [Fact]
+    public void XmlDoc_Param_01()
+    {
+        // Unnamed extension parameter, with an attempted corresponding param
+        var src = """
+/// <summary>Summary for E</summary>
+static class E
+{
+    /// <summary>Summary for extension block</summary>
+    /// <param name="">Description for extension parameter</param>
+    extension(object)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (5,22): warning CS1572: XML comment has a param tag for '', but there is no parameter by that name
+            //     /// <param name="">Description for extension parameter</param>
+            Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "").WithArguments("").WithLocation(5, 22));
+    }
+
+    [Fact]
+    public void XmlDoc_Param_02()
+    {
+        // Unnamed and undocumented extension parameter
+        var src = """
+static class E
+{
+    /// <summary>Summary for extension block</summary>
+    extension(object)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void XmlDoc_Param_03()
+    {
+        // param on member instead of extension block
+        var src = """
+/// <summary>Summary for E</summary>
+static class E
+{
+    /// <summary>Summary for extension block</summary>
+    extension(object o)
+    {
+        /// <summary>Summary for M</summary>
+        /// <param name="o">Description for o</param>
+        public void M(object o2) => throw null!;
+    }
+}
+""";
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider warning (WRN_MissingParamTag) about missing documentation for extension parameter
+        //   since one of the instance members has a <param> tag
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (8,26): warning CS1572: XML comment has a param tag for 'o', but there is no parameter by that name
+            //         /// <param name="o">Description for o</param>
+            Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "o").WithArguments("o").WithLocation(8, 26),
+            // (9,30): warning CS1573: Parameter 'o2' has no matching param tag in the XML comment for 'E.extension(object).M(object)' (but other parameters do)
+            //         public void M(object o2) => throw null!;
+            Diagnostic(ErrorCode.WRN_MissingParamTag, "o2").WithArguments("o2", "E.extension(object).M(object)").WithLocation(9, 30));
+    }
+
+    [Fact]
+    public void XmlDoc_Param_04()
+    {
+        var src = """
+/// <summary>Summary for E</summary>
+static class E
+{
+    /// <summary>Summary for extension block</summary>
+    /// <param name="o">Description for o</param>
+    extension(object o)
+    {
+        /// <summary>Summary for M</summary>
+        public void M(object o2) => throw null!;
+    }
+}
+""";
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider warning (WRN_MissingParamTag) about missing documentation for member parameter
+        //   since the extension parameter is documented
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void XmlDoc_Param_05()
+    {
+        // multiple parameters in extension block, one is covered by param
+        var src = """
+static class E
+{
+    /// <summary>Summary for extension block</summary>
+    /// <param name="o">Description for o</param>
+    extension(object o, object o2)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (5,25): error CS9285: An extension container can have only one receiver parameter
+            //     extension(object o, object o2)
+            Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "object o2").WithLocation(5, 25));
+    }
+
+    [Fact]
+    public void XmlDoc_Param_06()
+    {
+        var src = """
+static class E
+{
+    /// <summary>Summary for extension block</summary>
+    /// <param name="o">First description for o</param>
+    /// <param name="o">Second description for o</param>
+    extension(object o)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (5,16): warning CS1571: XML comment has a duplicate param tag for 'o'
+            //     /// <param name="o">Second description for o</param>
+            Diagnostic(ErrorCode.WRN_DuplicateParamTag, @"name=""o""").WithArguments("o").WithLocation(5, 16));
+    }
+
+    [Fact]
+    public void XmlDoc_Param_07()
+    {
+        var src = """
+static class E
+{
+    /// <summary>Summary for extension block</summary>
+    /// <param name="other">Description for other</param>
+    extension(object o)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (4,22): warning CS1572: XML comment has a param tag for 'other', but there is no parameter by that name
+            //     /// <param name="other">Description for other</param>
+            Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "other").WithArguments("other").WithLocation(4, 22));
+    }
+
+    [Fact]
+    public void XmlDoc_TypeParam_01()
+    {
+        var src = """
+static class E
+{
+    /// <summary>Summary for extension block</summary>
+    /// <typeparam name="T">First description for T</typeparam>
+    /// <typeparam name="T">Second description for T</typeparam>
+    extension<T>(T t)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (5,20): warning CS1710: XML comment has a duplicate typeparam tag for 'T'
+            //     /// <typeparam name="T">Second description for T</typeparam>
+            Diagnostic(ErrorCode.WRN_DuplicateTypeParamTag, @"name=""T""").WithArguments("T").WithLocation(5, 20));
+    }
+
+    [Fact]
+    public void XmlDoc_TypeParam_02()
+    {
+        // only one type parameter documented
+        var src = """
+static class E
+{
+    /// <summary>Summary for extension block</summary>
+    /// <typeparam name="T">Description for T</typeparam>
+    extension<T, U>(C<T, U> c)
+    {
+    }
+}
+class C<T, U> { }
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (5,18): warning CS1712: Type parameter 'U' has no matching typeparam tag in the XML comment on 'E.extension<T, U>(C<T, U>)' (but other type parameters do)
+            //     extension<T, U>(C<T, U> c)
+            Diagnostic(ErrorCode.WRN_MissingTypeParamTag, "U").WithArguments("U", "E.extension<T, U>(C<T, U>)").WithLocation(5, 18));
+    }
+
+    [Fact]
+    public void XmlDoc_TypeParam_03()
+    {
+        // typeparam on member instead of extension block
+        var src = """
+/// <summary>Summary for E</summary>
+static class E
+{
+    /// <summary>Summary for extension block</summary>
+    extension<T>(T t)
+    {
+        /// <summary>Summary for M</summary>
+        /// <typeparam name="T">Description for T</typeparam>
+        public static void M<U>(U u) => throw null!;
+    }
+}
+""";
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider warning (WRN_MissingTypeParamTag) about missing documentation for extension type parameter
+        //   since one of the members has a <typeparam> tag
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (8,30): warning CS1711: XML comment has a typeparam tag for 'T', but there is no type parameter by that name
+            //         /// <typeparam name="T">Description for T</typeparam>
+            Diagnostic(ErrorCode.WRN_UnmatchedTypeParamTag, "T").WithArguments("T").WithLocation(8, 30),
+            // (9,30): warning CS1712: Type parameter 'U' has no matching typeparam tag in the XML comment on 'E.extension<T>(T).M<U>(U)' (but other type parameters do)
+            //         public static void M<U>(U u) => throw null!;
+            Diagnostic(ErrorCode.WRN_MissingTypeParamTag, "U").WithArguments("U", "E.extension<T>(T).M<U>(U)").WithLocation(9, 30));
+    }
+
+    [Fact]
+    public void XmlDoc_TypeParam_04()
+    {
+        var src = """
+/// <summary>Summary for E</summary>
+static class E
+{
+    /// <summary>Summary for extension block</summary>
+    /// <typeparam name="T">Description for T</typeparam>
+    extension<T>(T t)
+    {
+        /// <summary>Summary for M</summary>
+        public static void M<U>(U u) => throw null!;
+    }
+}
+""";
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider warning (WRN_MissingTypeParamTag) about missing documentation for member type parameter
+        //   since the extension type parameter is documented
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void XmlDoc_TypeParam_05()
+    {
+        var src = """
+static class E
+{
+    /// <summary>Summary for extension block</summary>
+    /// <typeparam name="TOther">Description for TOther</typeparam>
+    extension<T>(T t)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (4,26): warning CS1711: XML comment has a typeparam tag for 'TOther', but there is no type parameter by that name
+            //     /// <typeparam name="TOther">Description for TOther</typeparam>
+            Diagnostic(ErrorCode.WRN_UnmatchedTypeParamTag, "TOther").WithArguments("TOther").WithLocation(4, 26),
+            // (5,15): warning CS1712: Type parameter 'T' has no matching typeparam tag in the XML comment on 'E.extension<T>(T)' (but other type parameters do)
+            //     extension<T>(T t)
+            Diagnostic(ErrorCode.WRN_MissingTypeParamTag, "T").WithArguments("T", "E.extension<T>(T)").WithLocation(5, 15));
+    }
+
+    [Fact]
+    public void XmlDoc_ParamRef_01()
+    {
+        // paramref to extension parameter
+        var src = """
+/// <summary>Summary for E</summary>
+static class E
+{
+    /// <summary>Good paramref <paramref name="o"/></summary>
+    extension(object o)
+    {
+        /// <summary>Good paramref <paramref name="o"/></summary>
+        public void M(object o2) => throw null!;
+
+        /// <summary>Error paramref <paramref name="o"/></summary>
+        public static void M2(object o2) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (10,53): warning CS1734: XML comment on 'E.extension(object).M2(object)' has a paramref tag for 'o', but there is no parameter by that name
+            //         /// <summary>Error paramref <paramref name="o"/></summary>
+            Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "o").WithArguments("o", "E.extension(object).M2(object)").WithLocation(10, 53));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        Assert.Equal(["(o, System.Object o)", "(o, System.Object o)", "(o, null)"], PrintXmlNameSymbols(tree, model));
+    }
+
+    [Fact]
+    public void XmlDoc_ParamRef_02()
+    {
+        // paramref to extension parameter on properties
+        var src = """
+static class E
+{
+    extension(object o)
+    {
+        /// <summary>Good paramref <paramref name="o"/></summary>
+        public int P => 42;
+
+        /// <summary>Error paramref <paramref name="o"/></summary>
+        public static int P2 => 42;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (8,53): warning CS1734: XML comment on 'E.extension(object).P2' has a paramref tag for 'o', but there is no parameter by that name
+            //         /// <summary>Error paramref <paramref name="o"/></summary>
+            Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "o").WithArguments("o", "E.extension(object).P2").WithLocation(8, 53));
+    }
+
+    [Fact]
+    public void XmlDoc_ParamRef_03()
+    {
+        var src = """
+static class E
+{
+    extension(object o)
+    {
+        /// <summary>Error paramref <paramref name="value"/></summary>
+        public int P => 42;
+
+        /// <summary>Error paramref <paramref name="value"/></summary>
+        public static int P2 => 42;
+
+        /// <summary>Good paramref <paramref name="value"/></summary>
+        public int P3 { set { } }
+
+        /// <summary>Good paramref <paramref name="value"/></summary>
+        public static int P4 { set { } }
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (5,53): warning CS1734: XML comment on 'E.extension(object).P' has a paramref tag for 'value', but there is no parameter by that name
+            //         /// <summary>Error paramref <paramref name="value"/></summary>
+            Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "value").WithArguments("value", "E.extension(object).P").WithLocation(5, 53),
+            // (8,53): warning CS1734: XML comment on 'E.extension(object).P2' has a paramref tag for 'value', but there is no parameter by that name
+            //         /// <summary>Error paramref <paramref name="value"/></summary>
+            Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "value").WithArguments("value", "E.extension(object).P2").WithLocation(8, 53));
+    }
+
+    [Fact]
+    public void XmlDoc_TypeParamRef_01()
+    {
+        var src = """
+static class E
+{
+    /// <summary>Summary for extension block with typeparamref <typeparamref name="T"/></summary>
+    extension<T>(T t)
+    {
+        /// <summary>Summary for M with typeparamref <typeparamref name="T"/></summary>
+        public void M() => throw null!;
+
+        /// <summary>Summary for M with typeparamref <typeparamref name="T"/></summary>
+        public static void M2() => throw null!;
+
+        /// <summary>Summary for M with typeparamref <typeparamref name="T"/></summary>
+        public int P => 42;
+
+        /// <summary>Summary for M with typeparamref <typeparamref name="T"/></summary>
+        public static int P2 => 42;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        Assert.Equal(["(T, T)", "(T, T)", "(T, T)", "(T, T)", "(T, T)"], PrintXmlNameSymbols(tree, model));
+    }
+
+    [Fact]
+    public void XmlDoc_TypeParamRef_02()
+    {
+        var src = """
+static class E
+{
+    /// <summary>Error typeparamref <typeparamref name="T"/></summary>
+    extension(int)
+    {
+        /// <summary>Good typeparamref <typeparamref name="T"/></summary>
+        public static void M<T>(T t) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (3,57): warning CS1735: XML comment on 'E.extension(int)' has a typeparamref tag for 'T', but there is no type parameter by that name
+            //     /// <summary>Error typeparamref <typeparamref name="T"/></summary>
+            Diagnostic(ErrorCode.WRN_UnmatchedTypeParamRefTag, "T").WithArguments("T", "E.extension(int)").WithLocation(3, 57));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        Assert.Equal(["(T, null)", "(T, T)"], PrintXmlNameSymbols(tree, model));
+    }
 }
