@@ -19,27 +19,6 @@ namespace Microsoft.CodeAnalysis
     {
         internal static bool IsDesktopRuntime => !IsCoreClrRuntime;
 
-        /// <summary>
-        /// This gets information about invoking a tool on the current runtime. This will attempt to 
-        /// execute a tool as an EXE when on desktop and using dotnet when on CoreClr.
-        /// </summary>
-        internal static (string processFilePath, string commandLineArguments, string toolFilePath) GetProcessInfo2(string toolFilePathWithoutExtension, string commandLineArguments)
-        {
-            // First check for an app host file and return that if it's available.
-            var appHostSuffix = PlatformInformation.IsWindows ? ".exe" : "";
-            var appFilePath = $"{toolFilePathWithoutExtension}{appHostSuffix}";
-            if (File.Exists(appFilePath))
-            {
-                return (appFilePath, commandLineArguments, appFilePath);
-            }
-
-            // Fallback to the dotnet exec path if there is no apphost
-            var toolFilePath = $"{toolFilePathWithoutExtension}.dll";
-            var dotnetFilePath = GetDotNetPathOrDefault();
-            commandLineArguments = $@"exec ""{toolFilePath}"" {commandLineArguments}";
-            return (dotnetFilePath, commandLineArguments, toolFilePath);
-        }
-
         internal static string GetDotNetExecCommandLine(string toolFilePath, string commandLineArguments) =>
             $@"exec ""{toolFilePath}"" {commandLineArguments}";
 
