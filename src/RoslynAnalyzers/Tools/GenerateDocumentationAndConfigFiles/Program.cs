@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.CommandLine;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -14,6 +15,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Analyzer.Utilities;
 using Analyzer.Utilities.PooledObjects;
@@ -30,68 +32,261 @@ namespace GenerateDocumentationAndConfigFiles
     {
         private static readonly HttpClient httpClient = new();
 
-        public static async Task<int> Main(string[] args)
+        private record CommandLineArgs(
+            bool ValidateOnly,
+            string AnalyzerRulesetsDir,
+            string AnalyzerEditorconfigsDir,
+            string AnalyzerGlobalconfigsDir,
+            string BinDirectory,
+            string Configuration,
+            string Tfm,
+            List<string> AssemblyList,
+            string PropsFileDir,
+            string PropsFileName,
+            string TargetsFileDir,
+            string TargetsFileName,
+            string PropsFileToDisableNetAnalyzersInNuGetPackageName,
+            string AnalyzerDocumentationFileDir,
+            string AnalyzerDocumentationFileName,
+            string AnalyzerSarifFileDir,
+            string AnalyzerSarifFileName,
+            string AnalyzerVersion,
+            string AnalyzerPackageName,
+            bool ContainsPortedFxCopRules,
+            bool GenerateAnalyzerRulesMissingDocumentationFile,
+            bool ReleaseTrackingOptOut,
+            bool ValidateOffline);
+
+        public static Task<int> Main(string[] args)
         {
-            const int expectedArguments = 23;
-            const string validateOnlyPrefix = "-validateOnly:";
+            var rootCommand = new RootCommand("Generate documentation and configuration files for analyzers");
 
-            if (args.Length != expectedArguments)
+            var validateOnlyOption = new Option<bool>("--validateOnly")
             {
-                await Console.Error.WriteLineAsync($"Expected {expectedArguments} arguments, found {args.Length}: {string.Join(';', args)}").ConfigureAwait(false);
-                return 1;
-            }
-
-            if (!args[0].StartsWith("-validateOnly:", StringComparison.OrdinalIgnoreCase))
+                Description = "Validate files instead of generating them",
+                Required = true
+            };
+            var analyzerRulesetsDirOption = new Option<string>("--analyzerRulesetsDir")
             {
-                await Console.Error.WriteLineAsync($"Expected the first argument to start with `{validateOnlyPrefix}`. found `{args[0]}`.").ConfigureAwait(false);
-                return 1;
-            }
-
-            if (!bool.TryParse(args[0][validateOnlyPrefix.Length..], out var validateOnly))
+                Description = "Directory for analyzer rulesets",
+                Required = true
+            };
+            var analyzerEditorConfigsDirOption = new Option<string>("--analyzerEditorconfigsDir")
             {
-                validateOnly = false;
-            }
+                Description = "Directory for analyzer editorconfigs",
+                Required = true
+            };
+            var analyzerGlobalConfigsDirOption = new Option<string>("--analyzerGlobalconfigsDir")
+            {
+                Description = "Directory for analyzer global configs",
+                Required = true
+            };
+            var binDirectoryOption = new Option<string>("--binDirectory")
+            {
+                Description = "Binary directory path",
+                Required = true
+            };
+            var configurationOption = new Option<string>("--configuration")
+            {
+                Description = "Build configuration",
+                Required = true
+            };
+            var tfmOption = new Option<string>("--tfm")
+            {
+                Description = "Target framework moniker",
+                Required = true
+            };
+            var assembliesOption = new Option<string>("--assemblies")
+            {
+                Description = "Semicolon-separated list of assemblies",
+                Required = true
+            };
+            var propsFileDirOption = new Option<string>("--propsFileDir")
+            {
+                Description = "Props file directory",
+                Required = true
+            };
+            var propsFileNameOption = new Option<string>("--propsFileName")
+            {
+                Description = "Props file name",
+                Required = true
+            };
+            var targetsFileDirOption = new Option<string>("--targetsFileDir")
+            {
+                Description = "Targets file directory",
+                Required = true
+            };
+            var targetsFileNameOption = new Option<string>("--targetsFileName")
+            {
+                Description = "Targets file name",
+                Required = true
+            };
+            var propsFileToDisableNetAnalyzersInNuGetPackageNameOption = new Option<string>("--propsFileToDisableNetAnalyzers")
+            {
+                Description = "Props file name to disable .NET analyzers",
+                Required = true
+            };
+            var analyzerDocumentationFileDirOption = new Option<string>("--analyzerDocumentationFileDir")
+            {
+                Description = "Documentation file directory",
+                Required = true
+            };
+            var analyzerDocumentationFileNameOption = new Option<string>("--analyzerDocumentationFileName")
+            {
+                Description = "Documentation file name",
+                Required = true
+            };
+            var analyzerSarifFileDirOption = new Option<string>("--analyzerSarifFileDir")
+            {
+                Description = "SARIF file directory",
+                Required = true
+            };
+            var analyzerSarifFileNameOption = new Option<string>("--analyzerSarifFileName")
+            {
+                Description = "SARIF file name",
+                Required = true
+            };
+            var analyzerVersionOption = new Option<string>("--analyzerVersion")
+            {
+                Description = "Analyzer version",
+                Required = true
+            };
+            var analyzerPackageNameOption = new Option<string>("--analyzerPackageName")
+            {
+                Description = "Analyzer package name",
+                Required = true
+            };
+            var containsPortedFxCopRulesOption = new Option<bool>("--containsPortedFxcopRules")
+            {
+                Description = "Indicates if contains ported FxCop rules",
+                Required = true
+            };
+            var generateAnalyzerRulesMissingDocumentationFileOption = new Option<bool>("--generateAnalyzerRulesMissingDocumentationFile")
+            {
+                Description = "Generate a file listing rules with missing documentation",
+                Required = true
+            };
+            var releaseTrackingOptOutOption = new Option<bool>("--releaseTrackingOptOut")
+            {
+                Description = "Opt out of release tracking",
+                Required = true
+            };
+            var validateOfflineOption = new Option<bool>("--validateOffline")
+            {
+                Description = "Validate files without checking external links",
+                Required = true
+            };
 
+            // Add options to command
+            rootCommand.Add(validateOnlyOption);
+            rootCommand.Add(analyzerRulesetsDirOption);
+            rootCommand.Add(analyzerEditorConfigsDirOption);
+            rootCommand.Add(analyzerGlobalConfigsDirOption);
+            rootCommand.Add(binDirectoryOption);
+            rootCommand.Add(configurationOption);
+            rootCommand.Add(tfmOption);
+            rootCommand.Add(assembliesOption);
+            rootCommand.Add(propsFileDirOption);
+            rootCommand.Add(propsFileNameOption);
+            rootCommand.Add(targetsFileDirOption);
+            rootCommand.Add(targetsFileNameOption);
+            rootCommand.Add(propsFileToDisableNetAnalyzersInNuGetPackageNameOption);
+            rootCommand.Add(analyzerDocumentationFileDirOption);
+            rootCommand.Add(analyzerDocumentationFileNameOption);
+            rootCommand.Add(analyzerSarifFileDirOption);
+            rootCommand.Add(analyzerSarifFileNameOption);
+            rootCommand.Add(analyzerVersionOption);
+            rootCommand.Add(analyzerPackageNameOption);
+            rootCommand.Add(containsPortedFxCopRulesOption);
+            rootCommand.Add(generateAnalyzerRulesMissingDocumentationFileOption);
+            rootCommand.Add(releaseTrackingOptOutOption);
+            rootCommand.Add(validateOfflineOption);
+
+            rootCommand.SetAction((parseResult, cancellationToken) =>
+            {
+                var validateOnly = parseResult.GetValue(validateOnlyOption);
+                var analyzerRulesetsDir = parseResult.GetValue(analyzerRulesetsDirOption) ?? string.Empty;
+                var analyzerEditorconfigsDir = parseResult.GetValue(analyzerEditorConfigsDirOption) ?? string.Empty;
+                var analyzerGlobalconfigsDir = parseResult.GetValue(analyzerGlobalConfigsDirOption) ?? string.Empty;
+                var binDirectory = parseResult.GetValue(binDirectoryOption) ?? string.Empty;
+                var configuration = parseResult.GetValue(configurationOption) ?? string.Empty;
+                var tfm = parseResult.GetValue(tfmOption) ?? string.Empty;
+                var assembliesString = parseResult.GetValue(assembliesOption) ?? string.Empty;
+                var assemblyList = assembliesString.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                var propsFileDir = parseResult.GetValue(propsFileDirOption) ?? string.Empty;
+                var propsFileName = parseResult.GetValue(propsFileNameOption) ?? string.Empty;
+                var targetsFileDir = parseResult.GetValue(targetsFileDirOption) ?? string.Empty;
+                var targetsFileName = parseResult.GetValue(targetsFileNameOption) ?? string.Empty;
+                var propsFileToDisableNetAnalyzersInNuGetPackageName = parseResult.GetValue(propsFileToDisableNetAnalyzersInNuGetPackageNameOption) ?? string.Empty;
+                var analyzerDocumentationFileDir = parseResult.GetValue(analyzerDocumentationFileDirOption) ?? string.Empty;
+                var analyzerDocumentationFileName = parseResult.GetValue(analyzerDocumentationFileNameOption) ?? string.Empty;
+                var analyzerSarifFileDir = parseResult.GetValue(analyzerSarifFileDirOption) ?? string.Empty;
+                var analyzerSarifFileName = parseResult.GetValue(analyzerSarifFileNameOption) ?? string.Empty;
+                var analyzerVersion = parseResult.GetValue(analyzerVersionOption) ?? string.Empty;
+                var analyzerPackageName = parseResult.GetValue(analyzerPackageNameOption) ?? string.Empty;
+                var containsPortedFxCopRules = parseResult.GetValue(containsPortedFxCopRulesOption);
+                var generateAnalyzerRulesMissingDocumentationFile = parseResult.GetValue(generateAnalyzerRulesMissingDocumentationFileOption);
+                var releaseTrackingOptOut = parseResult.GetValue(releaseTrackingOptOutOption);
+                var validateOffline = parseResult.GetValue(validateOfflineOption);
+
+                var commandLineArgs = new CommandLineArgs(
+                    validateOnly,
+                    analyzerRulesetsDir,
+                    analyzerEditorconfigsDir,
+                    analyzerGlobalconfigsDir,
+                    binDirectory,
+                    configuration,
+                    tfm,
+                    assemblyList,
+                    propsFileDir,
+                    propsFileName,
+                    targetsFileDir,
+                    targetsFileName,
+                    propsFileToDisableNetAnalyzersInNuGetPackageName,
+                    analyzerDocumentationFileDir,
+                    analyzerDocumentationFileName,
+                    analyzerSarifFileDir,
+                    analyzerSarifFileName,
+                    analyzerVersion,
+                    analyzerPackageName,
+                    containsPortedFxCopRules,
+                    generateAnalyzerRulesMissingDocumentationFile,
+                    releaseTrackingOptOut,
+                    validateOffline);
+
+                return HandleAsync(commandLineArgs, cancellationToken);
+            });
+
+            return rootCommand.Parse(args).InvokeAsync(CancellationToken.None);
+        }
+
+        private static async Task<int> HandleAsync(CommandLineArgs args, CancellationToken cancellationToken)
+        {
             var fileNamesWithValidationFailures = new List<string>();
 
-            string analyzerRulesetsDir = args[1];
-            string analyzerEditorconfigsDir = args[2];
-            string analyzerGlobalconfigsDir = args[3];
-            string binDirectory = args[4];
-            string configuration = args[5];
-            string tfm = args[6];
-            var assemblyList = args[7].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-            string propsFileDir = args[8];
-            string propsFileName = args[9];
-            string targetsFileDir = args[10];
-            string targetsFileName = args[11];
-            string propsFileToDisableNetAnalyzersInNuGetPackageName = args[12];
-            string analyzerDocumentationFileDir = args[13];
-            string analyzerDocumentationFileName = args[14];
-            string analyzerSarifFileDir = args[15];
-            string analyzerSarifFileName = args[16];
-            var analyzerVersion = args[17];
-            var analyzerPackageName = args[18];
-            if (!bool.TryParse(args[19], out var containsPortedFxCopRules))
-            {
-                containsPortedFxCopRules = false;
-            }
-
-            if (!bool.TryParse(args[20], out var generateAnalyzerRulesMissingDocumentationFile))
-            {
-                generateAnalyzerRulesMissingDocumentationFile = false;
-            }
-
-            var releaseTrackingOptOutString = args[21];
-            if (!bool.TryParse(releaseTrackingOptOutString, out bool releaseTrackingOptOut))
-            {
-                releaseTrackingOptOut = false;
-            }
-
-            if (!bool.TryParse(args[22], out var validateOffline))
-            {
-                validateOffline = false;
-            }
+            var validateOnly = args.ValidateOnly;
+            string analyzerRulesetsDir = args.AnalyzerRulesetsDir;
+            string analyzerEditorconfigsDir = args.AnalyzerEditorconfigsDir;
+            string analyzerGlobalconfigsDir = args.AnalyzerGlobalconfigsDir;
+            string binDirectory = args.BinDirectory;
+            string configuration = args.Configuration;
+            string tfm = args.Tfm;
+            var assemblyList = args.AssemblyList;  // Already a List<string> from the record
+            string propsFileDir = args.PropsFileDir;
+            string propsFileName = args.PropsFileName;
+            string targetsFileDir = args.TargetsFileDir;
+            string targetsFileName = args.TargetsFileName;
+            string propsFileToDisableNetAnalyzersInNuGetPackageName = args.PropsFileToDisableNetAnalyzersInNuGetPackageName;
+            string analyzerDocumentationFileDir = args.AnalyzerDocumentationFileDir;
+            string analyzerDocumentationFileName = args.AnalyzerDocumentationFileName;
+            string analyzerSarifFileDir = args.AnalyzerSarifFileDir;
+            string analyzerSarifFileName = args.AnalyzerSarifFileName;
+            var analyzerVersion = args.AnalyzerVersion;
+            var analyzerPackageName = args.AnalyzerPackageName;
+            var containsPortedFxCopRules = args.ContainsPortedFxCopRules;
+            var generateAnalyzerRulesMissingDocumentationFile = args.GenerateAnalyzerRulesMissingDocumentationFile;
+            var releaseTrackingOptOut = args.ReleaseTrackingOptOut;
+            var validateOffline = args.ValidateOffline;
 
             var allRulesById = new SortedList<string, DiagnosticDescriptor>();
             var fixableDiagnosticIds = new HashSet<string>();
