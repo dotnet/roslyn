@@ -559,16 +559,16 @@ class C
             </Workspace>
             """;
 
-        var expectedMarkdown = """
+        var expectedMarkdown = $"""
             ```csharp
-            (constant) string WithConstant.Target = "Target in net472"
+            ({FeaturesResources.constant}) string WithConstant.Target = "Target in net472"
             ```
               
               
-            &nbsp;&nbsp;&nbsp;&nbsp;Net472 \- Available  
-            &nbsp;&nbsp;&nbsp;&nbsp;NetCoreApp3 \- Not Available ⚠  
+            &nbsp;&nbsp;&nbsp;&nbsp;{string.Format(FeaturesResources._0_1, "Net472", FeaturesResources.Available).Replace("-", "\\-")}  
+            &nbsp;&nbsp;&nbsp;&nbsp;{string.Format(FeaturesResources._0_1, "NetCoreApp3", FeaturesResources.Not_Available).Replace("-", "\\-")}  
               
-            You can use the navigation bar to switch contexts\.  
+            {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts.Replace(".", "\\.")}  
             
             """;
 
