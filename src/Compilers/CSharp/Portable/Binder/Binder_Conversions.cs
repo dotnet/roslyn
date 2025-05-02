@@ -1133,12 +1133,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 LookupResultKind.Empty,
                                 symbols: [],
                                 childBoundNodes: [],
-                                elementType) { WasCompilerGenerated = true } :
+                                elementType)
+                            { WasCompilerGenerated = true } :
                             new BoundObjectCreationExpression(
                                 keyValuePairSyntax,
                                 keyValuePairConstructor.AsMember((NamedTypeSymbol)elementType),
                                 key,
-                                value) { WasCompilerGenerated = true };
+                                value)
+                            { WasCompilerGenerated = true };
                         return binder.BindCollectionInitializerElementAddMethod(
                             keyValuePairSyntax,
                             [keyValuePair],
