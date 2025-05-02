@@ -2,8 +2,6 @@ name: "Labeler: Collecting Feedback"
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 13 * * *' # Runs daily at 13:00 UTC
 
 permissions:
   issues: write
@@ -37,9 +35,13 @@ jobs:
             });
 
             for (const issue of issues) {
+              // Skip pull requests
+              if (issue.pull_request) continue;
+
               const upvotes = issue.reactions['+1'];
               const createdAt = new Date(issue.created_at);
-              const ageInDays = (now - createdAt) / (1000 * 60 * 60 * 24);
+              const millisecondsInADay = 1000 * 60 * 60 * 24;
+              const ageInDays = (now - createdAt) / millisecondsInADay;
 
               console.log(`Processing Issue #${issue.number} - Upvotes: ${upvotes}, Age: ${Math.floor(ageInDays)} days`);
 
