@@ -627,10 +627,7 @@ namespace GenerateDocumentationAndConfigFiles
 
                     // The angle brackets around helpLinkUri are added to follow MD034 rule:
                     // https://github.com/DavidAnson/markdownlint/blob/82cf68023f7dbd2948a65c53fc30482432195de4/doc/Rules.md#md034---bare-url-used
-                    if (!string.IsNullOrWhiteSpace(helpLinkUri))
-                    {
-                        helpLinkUri = $"<{helpLinkUri}>";
-                    }
+                    helpLinkUri = $"<{helpLinkUri}>";
 
                     var escapedTitle = descriptor.Title.ToString(CultureInfo.InvariantCulture).Replace("<", "\\<");
                     var line = $"{ruleId} | {helpLinkUri} | {escapedTitle} |";
