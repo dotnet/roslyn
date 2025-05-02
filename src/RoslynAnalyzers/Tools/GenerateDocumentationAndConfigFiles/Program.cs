@@ -640,6 +640,8 @@ namespace GenerateDocumentationAndConfigFiles
                         {
                             await Console.Error.WriteLineAsync($"Missing entry in {fileWithPath}").ConfigureAwait(false);
                             await Console.Error.WriteLineAsync(line).ConfigureAwait(false);
+                            await Console.Error.WriteLineAsync("Actual:").ConfigureAwait(false);
+                            await Console.Error.WriteLineAsync(string.Join(Environment.NewLine, actualContent)).ConfigureAwait(false);
                             // The file is missing an entry. Mark it as invalid and break the loop as there is no need to continue validating.
                             fileNamesWithValidationFailures.Add(fileWithPath);
                             break;
@@ -664,6 +666,7 @@ namespace GenerateDocumentationAndConfigFiles
                     {
                         if (!Uri.TryCreate(helpLink, UriKind.Absolute, out var uri))
                         {
+                            await Console.Error.WriteLineAsync($"Failed to create URI for {helpLink}:").ConfigureAwait(false);
                             return false;
                         }
 
@@ -674,10 +677,15 @@ namespace GenerateDocumentationAndConfigFiles
 
                         var request = new HttpRequestMessage(HttpMethod.Head, uri);
                         using var response = await httpClient.SendAsync(request).ConfigureAwait(false);
+                        await Console.Error.WriteLineAsync("Response: " + response).ConfigureAwait(false);
+                        await Console.Error.WriteLineAsync("Status code: " + response?.StatusCode).ConfigureAwait(false);
+                        await Console.Error.WriteLineAsync("content: " + response?.Content).ConfigureAwait(false);
                         return response?.StatusCode == HttpStatusCode.OK;
                     }
-                    catch (WebException)
+                    catch (WebException ex)
                     {
+                        await Console.Error.WriteLineAsync($"Exception checking {helpLink}:").ConfigureAwait(false);
+                        await Console.Error.WriteLineAsync(ex.ToString()).ConfigureAwait(false);
                         return false;
                     }
                 }
@@ -1185,6 +1193,10 @@ namespace GenerateDocumentationAndConfigFiles
             string actual = File.ReadAllText(fileWithPath);
             if (actual != fileContents)
             {
+                Console.Error.WriteLine($"{fileWithPath} is different.  We built:");
+                Console.Error.WriteLine(fileContents);
+                Console.Error.WriteLine($"But actually had:");
+                Console.Error.WriteLine(actual);
                 fileNamesWithValidationFailures.Add(fileWithPath);
             }
         }

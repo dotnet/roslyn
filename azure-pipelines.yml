@@ -408,9 +408,6 @@ stages:
 
       - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -build -pack -publish -sign -binaryLogName Build.binlog /p:DotnetPublishUsingPipelines=true /p:ContinuousIntegrationBuildCorrectness=true
         displayName: Build
-        continueOnError: true
-
-      - powershell: git diff
 
       # While this task is not executed in the official build, this serves as a PR check for whether symbol exclusions
       # are properly set up.
