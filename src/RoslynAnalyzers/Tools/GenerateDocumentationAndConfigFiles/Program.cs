@@ -52,7 +52,7 @@ namespace GenerateDocumentationAndConfigFiles
                 validateOnly = false;
             }
 
-            var fileNamesWithValidationFailures = new List<string>();
+            var fileNamesWithValidationFailures = new HashSet<string>();
 
             string analyzerRulesetsDir = args[1];
             string analyzerEditorconfigsDir = args[2];
@@ -211,7 +211,9 @@ namespace GenerateDocumentationAndConfigFiles
             if (fileNamesWithValidationFailures.Count > 0)
             {
                 await Console.Error.WriteLineAsync("One or more auto-generated documentation files were either edited manually, or not updated. Please revert changes made to the following files (if manually edited) and run `dotnet msbuild /t:pack` at the root of the repo to automatically update them:").ConfigureAwait(false);
-                fileNamesWithValidationFailures.ForEach(fileName => Console.Error.WriteLine($"    {fileName}"));
+                foreach (var fileName in fileNamesWithValidationFailures)
+                    Console.Error.WriteLine($"    {fileName}");
+
                 return 1;
             }
 
@@ -639,13 +641,12 @@ namespace GenerateDocumentationAndConfigFiles
                         // However, we consider "missing" entries as invalid. This is to force updating the file when new rules are added.
                         if (!actualContent.Contains(line))
                         {
-                            // The file is missing an entry. Mark it as invalid and break the loop as there is no need to continue validating.
+                            // The file is missing an entry.
                             await Console.Error.WriteLineAsync($"Missing entry in {fileWithPath}").ConfigureAwait(false);
                             await Console.Error.WriteLineAsync("    " + line).ConfigureAwait(false);
                             await Console.Error.WriteLineAsync("HTTP result while checking the URI: " + statusCode + " " + responseContent ?? "(no error content from HTTP response)").ConfigureAwait(false);
 
                             fileNamesWithValidationFailures.Add(fileWithPath);
-                            break;
                         }
                     }
                     else
@@ -1185,7 +1186,7 @@ namespace GenerateDocumentationAndConfigFiles
         /// <remarks>
         /// Don't call this method with auto-generated files that are part of the artifacts because it's expected that they don't initially exist.
         /// </remarks>
-        private static void Validate(string fileWithPath, string fileContents, List<string> fileNamesWithValidationFailures)
+        private static void Validate(string fileWithPath, string fileContents, HashSet<string> fileNamesWithValidationFailures)
         {
             string actual = File.ReadAllText(fileWithPath);
             if (actual != fileContents)
