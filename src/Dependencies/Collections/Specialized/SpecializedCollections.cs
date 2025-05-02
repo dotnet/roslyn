@@ -6,7 +6,7 @@
 
 using System.Collections.Generic;
 
-namespace Roslyn.Utilities
+namespace Microsoft.CodeAnalysis.Collections
 {
     internal static partial class SpecializedCollections
     {
