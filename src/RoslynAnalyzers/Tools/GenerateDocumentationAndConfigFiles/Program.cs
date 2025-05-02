@@ -649,113 +649,120 @@ namespace GenerateDocumentationAndConfigFiles
                 }
 
                 var culture = new CultureInfo("en-us");
-                string tempAnalyzerSarifFileName = analyzerSarifFileName;
-                if (validateOnly)
-                {
-                    // In validate only mode, we write the sarif file in a temp file and compare it with
-                    // the existing content in `analyzerSarifFileName`.
-                    tempAnalyzerSarifFileName = $"temp-{analyzerSarifFileName}";
-                }
-
                 var directory = Directory.CreateDirectory(analyzerSarifFileDir);
-                var fileWithPath = Path.Combine(directory.FullName, tempAnalyzerSarifFileName);
-                using var textWriter = new StreamWriter(fileWithPath, false, Encoding.UTF8);
-                using var writer = new Roslyn.Utilities.JsonWriter(textWriter);
-                writer.WriteObjectStart(); // root
-                writer.Write("$schema", "http://json.schemastore.org/sarif-1.0.0");
-                writer.Write("version", "1.0.0");
-                writer.WriteArrayStart("runs");
-
-                foreach (var assemblymetadata in rulesMetadata)
-                {
-                    writer.WriteObjectStart(); // run
-
-                    writer.WriteObjectStart("tool");
-                    writer.Write("name", assemblymetadata.Key);
-
-                    if (!string.IsNullOrWhiteSpace(analyzerVersion))
-                    {
-                        writer.Write("version", analyzerVersion);
-                    }
-
-                    writer.Write("language", culture.Name);
-                    writer.WriteObjectEnd(); // tool
-
-                    writer.WriteObjectStart("rules"); // rules
-
-                    foreach (var rule in assemblymetadata.Value.rules)
-                    {
-                        var ruleId = rule.Key;
-                        var descriptor = rule.Value.rule;
-
-                        writer.WriteObjectStart(descriptor.Id); // rule
-                        writer.Write("id", descriptor.Id);
-
-                        writer.Write("shortDescription", descriptor.Title.ToString(CultureInfo.InvariantCulture));
-
-                        string fullDescription = descriptor.Description.ToString(CultureInfo.InvariantCulture);
-                        writer.Write("fullDescription", !string.IsNullOrEmpty(fullDescription) ? fullDescription.Replace("\r\n", "\n") : descriptor.MessageFormat.ToString(CultureInfo.InvariantCulture));
-
-                        writer.Write("defaultLevel", getLevel(descriptor.DefaultSeverity));
-
-                        if (!string.IsNullOrEmpty(descriptor.HelpLinkUri))
-                        {
-                            writer.Write("helpUri", descriptor.HelpLinkUri);
-                        }
-
-                        writer.WriteObjectStart("properties");
-
-                        writer.Write("category", descriptor.Category);
-
-                        writer.Write("isEnabledByDefault", descriptor.IsEnabledByDefault);
-
-                        writer.Write("typeName", rule.Value.typeName);
-
-                        if (rule.Value.languages?.Length > 0)
-                        {
-                            writer.WriteArrayStart("languages");
-
-                            foreach (var language in rule.Value.languages.OrderBy(l => l, StringComparer.InvariantCultureIgnoreCase))
-                            {
-                                writer.Write(language);
-                            }
-
-                            writer.WriteArrayEnd(); // languages
-                        }
-
-                        if (descriptor.CustomTags.Any())
-                        {
-                            writer.WriteArrayStart("tags");
-
-                            foreach (string tag in descriptor.CustomTags)
-                            {
-                                writer.Write(tag);
-                            }
-
-                            writer.WriteArrayEnd(); // tags
-                        }
-
-                        writer.WriteObjectEnd(); // properties
-                        writer.WriteObjectEnd(); // rule
-                    }
-
-                    writer.WriteObjectEnd(); // rules
-                    writer.WriteObjectEnd(); // run
-                }
-
-                writer.WriteArrayEnd(); // runs
-                writer.WriteObjectEnd(); // root
-
+                TextWriter textWriter;
                 if (validateOnly)
                 {
-                    // Close is needed to be able to read the file. Dispose() should do the same job.
-                    // Note: Although a using statement exists for the textWriter, its scope is the whole method.
-                    // So Dispose isn't called before the whole method returns.
-                    textWriter.Close();
-                    Validate(Path.Combine(directory.FullName, analyzerSarifFileName), File.ReadAllText(fileWithPath), fileNamesWithValidationFailures);
+                    // In validate mode we just write to an in memory version and compare with the existing
+                    // content in `analyzerSarifFileName`.
+                    textWriter = new StringWriter();
+                }
+                else
+                {
+                    var fileWithPath = Path.Combine(directory.FullName, analyzerSarifFileName);
+                    textWriter = new StreamWriter(fileWithPath, false, Encoding.UTF8);
+                }
+                try
+                {
+                    using var writer = new Roslyn.Utilities.JsonWriter(textWriter);
+                    writer.WriteObjectStart(); // root
+                    writer.Write("$schema", "http://json.schemastore.org/sarif-1.0.0");
+                    writer.Write("version", "1.0.0");
+                    writer.WriteArrayStart("runs");
+
+                    foreach (var assemblymetadata in rulesMetadata)
+                    {
+                        writer.WriteObjectStart(); // run
+
+                        writer.WriteObjectStart("tool");
+                        writer.Write("name", assemblymetadata.Key);
+
+                        if (!string.IsNullOrWhiteSpace(analyzerVersion))
+                        {
+                            writer.Write("version", analyzerVersion);
+                        }
+
+                        writer.Write("language", culture.Name);
+                        writer.WriteObjectEnd(); // tool
+
+                        writer.WriteObjectStart("rules"); // rules
+
+                        foreach (var rule in assemblymetadata.Value.rules)
+                        {
+                            var ruleId = rule.Key;
+                            var descriptor = rule.Value.rule;
+
+                            writer.WriteObjectStart(descriptor.Id); // rule
+                            writer.Write("id", descriptor.Id);
+
+                            writer.Write("shortDescription", descriptor.Title.ToString(CultureInfo.InvariantCulture));
+
+                            string fullDescription = descriptor.Description.ToString(CultureInfo.InvariantCulture);
+                            writer.Write("fullDescription", !string.IsNullOrEmpty(fullDescription) ? fullDescription.Replace("\r\n", "\n") : descriptor.MessageFormat.ToString(CultureInfo.InvariantCulture));
+
+                            writer.Write("defaultLevel", getLevel(descriptor.DefaultSeverity));
+
+                            if (!string.IsNullOrEmpty(descriptor.HelpLinkUri))
+                            {
+                                writer.Write("helpUri", descriptor.HelpLinkUri);
+                            }
+
+                            writer.WriteObjectStart("properties");
+
+                            writer.Write("category", descriptor.Category);
+
+                            writer.Write("isEnabledByDefault", descriptor.IsEnabledByDefault);
+
+                            writer.Write("typeName", rule.Value.typeName);
+
+                            if (rule.Value.languages?.Length > 0)
+                            {
+                                writer.WriteArrayStart("languages");
+
+                                foreach (var language in rule.Value.languages.OrderBy(l => l, StringComparer.InvariantCultureIgnoreCase))
+                                {
+                                    writer.Write(language);
+                                }
+
+                                writer.WriteArrayEnd(); // languages
+                            }
+
+                            if (descriptor.CustomTags.Any())
+                            {
+                                writer.WriteArrayStart("tags");
+
+                                foreach (string tag in descriptor.CustomTags)
+                                {
+                                    writer.Write(tag);
+                                }
+
+                                writer.WriteArrayEnd(); // tags
+                            }
+
+                            writer.WriteObjectEnd(); // properties
+                            writer.WriteObjectEnd(); // rule
+                        }
+
+                        writer.WriteObjectEnd(); // rules
+                        writer.WriteObjectEnd(); // run
+                    }
+
+                    writer.WriteArrayEnd(); // runs
+                    writer.WriteObjectEnd(); // root
+
+                    if (validateOnly)
+                    {
+                        var stringWriter = (StringWriter)textWriter;
+                        Validate(Path.Combine(directory.FullName, analyzerSarifFileName), stringWriter.ToString(), fileNamesWithValidationFailures);
+                    }
+
+                    return;
+                }
+                finally
+                {
+                    textWriter.Dispose();
                 }
 
-                return;
                 static string getLevel(DiagnosticSeverity severity)
                 {
                     switch (severity)
@@ -1380,6 +1387,11 @@ namespace GenerateDocumentationAndConfigFiles
             string actual = File.ReadAllText(fileWithPath);
             if (actual != fileContents)
             {
+                Console.Error.WriteLine($"'{fileWithPath}' does not match the expected contents.");
+                Console.Error.WriteLine("Expected contents:");
+                Console.Error.WriteLine(fileContents);
+                Console.Error.WriteLine("Actual contents:");
+                Console.Error.WriteLine(actual);
                 fileNamesWithValidationFailures.Add(fileWithPath);
             }
         }
