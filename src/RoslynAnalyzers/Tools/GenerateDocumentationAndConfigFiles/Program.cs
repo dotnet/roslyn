@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -19,6 +20,7 @@ using Analyzer.Utilities;
 using Analyzer.Utilities.PooledObjects;
 using Analyzer.Utilities.PooledObjects.Extensions;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ReleaseTracking;
 using Microsoft.CodeAnalysis.Text;
@@ -620,9 +622,9 @@ namespace GenerateDocumentationAndConfigFiles
                     if (string.IsNullOrWhiteSpace(helpLinkUri))
                         continue;
 
-                    (HttpStatusCode statusCode, string? responseContent) = await checkHelpLinkAsync(helpLinkUri).ConfigureAwait(false);
+                    string? checkError = await checkHelpLinkAsync(helpLinkUri).ConfigureAwait(false);
 
-                    if (statusCode == HttpStatusCode.OK)
+                    if (checkError is null)
                         continue;
 
                     // The angle brackets around helpLinkUri are added to follow MD034 rule:
@@ -641,7 +643,8 @@ namespace GenerateDocumentationAndConfigFiles
                             // The file is missing an entry.
                             await Console.Error.WriteLineAsync($"Missing entry in {fileWithPath}").ConfigureAwait(false);
                             await Console.Error.WriteLineAsync("    " + line).ConfigureAwait(false);
-                            await Console.Error.WriteLineAsync("HTTP result while checking the URI: " + statusCode + " " + responseContent ?? "(no error content from HTTP response)").ConfigureAwait(false);
+                            await Console.Error.WriteLineAsync("HTTP error while checking the URI: ").ConfigureAwait(false);
+                            await Console.Error.WriteLineAsync(checkError).ConfigureAwait(false);
 
                             fileNamesWithValidationFailures.Add(fileWithPath);
                         }
@@ -659,29 +662,41 @@ namespace GenerateDocumentationAndConfigFiles
 
                 return;
 
-                async Task<(HttpStatusCode, string? responseContent)> checkHelpLinkAsync(string helpLink)
+                // Returns null if the URI is valid, or an error otherwise
+                async Task<string?> checkHelpLinkAsync(string helpLink)
                 {
                     try
                     {
                         if (!Uri.TryCreate(helpLink, UriKind.Absolute, out var uri))
                         {
-                            // TODO: why would we not fail this if the URI is invalid?
-                            return (HttpStatusCode.OK, null);
+                            return null;
                         }
 
                         if (validateOffline)
                         {
-                            // Just pretend the request worked fine.
-                            return (HttpStatusCode.OK, null);
+                            return null;
                         }
 
                         var request = new HttpRequestMessage(HttpMethod.Head, uri);
                         using var response = await httpClient.SendAsync(request).ConfigureAwait(false);
-                        return (response.StatusCode, await response.Content.ReadAsStringAsync().ConfigureAwait(false));
+
+                        // If it succeeded, we're good
+                        if (response.StatusCode == HttpStatusCode.OK)
+                            return null;
+
+                        var errorMessage = new StringBuilder();
+                        errorMessage.AppendLine("StatusCode: " + response.StatusCode);
+                        errorMessage.AppendLine("Content: " + await response.Content.ReadAsStringAsync().ConfigureAwait(false));
+
+                        foreach (var header in response.Headers)
+                            foreach (var headerValue in header.Value)
+                                errorMessage.AppendLine(header.Key + ": " + headerValue);
+
+                        return errorMessage.ToString();
                     }
                     catch (HttpRequestException exception)
                     {
-                        return (exception.StatusCode!.Value, exception.Message);
+                        return exception.ToString();
                     }
                 }
             }
