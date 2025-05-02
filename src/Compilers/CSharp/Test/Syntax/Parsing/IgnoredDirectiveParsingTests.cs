@@ -25,11 +25,25 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
             #:name value
             """;
 
+        var expectedDiagnostics = script
+            ? new[]
+            {
+                // (2,2): error CS9282: '#:' directives can be only used in file-based programs ('-features:FileBasedProgram')
+                // #:name value
+                Diagnostic(ErrorCode.ERR_PPIgnoredNeedsFileBasedProgram, ":").WithLocation(2, 2)
+            }
+            : new[]
+            {
+                // (1,2): error CS9308: '#!' directives can be only used in scripts or file-based programs
+                // #!xyz
+                Diagnostic(ErrorCode.ERR_PPShebangInProjectBasedProgram, "!").WithLocation(1, 2),
+                // (2,2): error CS9282: '#:' directives can be only used in file-based programs ('-features:FileBasedProgram')
+                // #:name value
+                Diagnostic(ErrorCode.ERR_PPIgnoredNeedsFileBasedProgram, ":").WithLocation(2, 2)
+            };
+
         VerifyTrivia();
-        UsingTree(source, options,
-            // (2,2): error CS9282: '#:' directives can be only used in file-based programs ('-features:FileBasedProgram')
-            // #:name value
-            Diagnostic(ErrorCode.ERR_PPIgnoredNeedsFileBasedProgram, ":").WithLocation(2, 2));
+        UsingTree(source, options, expectedDiagnostics);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -169,11 +183,25 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
              #!xyz
             """;
 
+        var expectedDiagnostics = script || featureFlag
+            ? new[]
+            {
+                // (1,2): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                //  #!xyz
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 2)
+            }
+            : new[]
+            {
+                // (1,2): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                //  #!xyz
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 2),
+                // (1,3): error CS9308: '#!' directives can be only used in scripts or file-based programs
+                //  #!xyz
+                Diagnostic(ErrorCode.ERR_PPShebangInProjectBasedProgram, "!").WithLocation(1, 3)
+            };
+
         VerifyTrivia();
-        UsingTree(source, options,
-            // (1,2): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
-            //  #!xyz
-            Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 2));
+        UsingTree(source, options, expectedDiagnostics);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -562,7 +590,7 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
             """;
 
         VerifyTrivia();
-        UsingTree(source, TestOptions.Regular);
+        UsingTree(source, TestOptions.Script);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -625,7 +653,7 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
             """;
 
         VerifyTrivia();
-        UsingTree(source, TestOptions.Regular,
+        UsingTree(source, TestOptions.Script,
             // (1,1): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
             // # !xyz
             Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 1));
@@ -660,7 +688,7 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
             """;
 
         VerifyTrivia();
-        UsingTree(source, TestOptions.Regular,
+        UsingTree(source, TestOptions.Script,
             // (2,1): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
             // #!xyz
             Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(2, 1));

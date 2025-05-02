@@ -8161,4 +8161,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExtensionTypeNameDisallowed" xml:space="preserve">
     <value>Types and aliases cannot be named 'extension'.</value>
   </data>
+  <data name="ERR_PPShebangInProjectBasedProgram" xml:space="preserve">
+    <value>'#!' directives can be only used in scripts or file-based programs</value>
+  </data>
 </root>
