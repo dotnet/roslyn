@@ -1398,7 +1398,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             localsBuilder.Add(exprTemp);
             sideEffects.Add(assignmentToTemp);
 
-            // PROTOTYPE: Test with element that has side effects.
             AddPlaceholderReplacement(keyValuePairConversion.KeyPlaceholder, GetKeyValuePairKeyOrValue(exprTemp, WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key));
             rewrittenKeyConversion = VisitExpression(keyValuePairConversion.KeyConversion);
             RemovePlaceholderReplacement(keyValuePairConversion.KeyPlaceholder);
