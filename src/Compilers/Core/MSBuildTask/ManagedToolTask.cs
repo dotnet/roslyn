@@ -38,17 +38,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <remarks>
         /// This is mutable to facilitate testing
         /// </remarks>
-        internal bool IsSdkFrameworkToCoreBridgeTask { get; set; } = CalculateIsSdkFrameworkToCoreBridgeTask();
+        internal bool IsSdkFrameworkToCoreBridgeTask { get; init; } = CalculateIsSdkFrameworkToCoreBridgeTask();
 
         /// <summary>
         /// Is the managed tool executed by this task running on .NET Core?
         /// </summary>
-        internal bool IsManagedToolRunningOnCoreClr => (RuntimeHostInfo.IsCoreClrRuntime, IsSdkFrameworkToCoreBridgeTask) switch
-        {
-            (true, _) => true,
-            (false, true) => true,
-            (false, false) => false,
-        };
+        internal bool IsManagedToolRunningOnCoreClr => RuntimeHostInfo.IsCoreClrRuntime || IsSdkFrameworkToCoreBridgeTask;
 
         internal string PathToManagedTool => Path.Combine(GetToolDirectory(), ToolName);
 
@@ -199,7 +194,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         /// <remarks>
         /// Using the file system as a way to differentiate between the two tasks is not ideal, but it is effective
-        /// and allows us to avoid significantly complicating the build process.
+        /// and allows us to avoid significantly complicating the build process. The alternative is another parameter
+        /// to the Csc / Vbc / etc ... tasks that all invocations would need to pass along.
         /// </remarks>
         internal static bool CalculateIsSdkFrameworkToCoreBridgeTask()
         {
@@ -214,8 +210,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             var buildTask = typeof(ManagedToolTask).Assembly;
             var buildTaskDirectory = Path.GetDirectoryName(buildTask.Location)!;
             var buildTaskDrectoryName = Path.GetFileName(buildTaskDirectory);
-            var isCscPresent = File.Exists(Path.Combine(buildTaskDirectory, "csc.exe"));
-            return !isCscPresent && string.Equals(buildTaskDrectoryName, "binfx", StringComparison.OrdinalIgnoreCase);
+            return
+                string.Equals(buildTaskDrectoryName, "binfx", StringComparison.OrdinalIgnoreCase) &&
+                File.Exists(Path.Combine(buildTaskDirectory, "csc.exe"));
 #endif
         }
     }
