@@ -16688,7 +16688,7 @@ class C
                 }
                 """;
 
-            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, parseOptions: parseOptions)
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.FailsPEVerify, parseOptions: parseOptions)
                 .AddBaseline(
                     source: exceptionSource + """
                         class C
@@ -20060,8 +20060,6 @@ file class C
         {
             // The longest string that can fit in the #US heap. The next string would overflow the heap.
             var baseString = new string('x', (1 << 23) - 3);
-
-            var size = MetadataHelpers.GetUserStringBlobSize(baseString);
 
             using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.Skipped)
                 .AddBaseline(

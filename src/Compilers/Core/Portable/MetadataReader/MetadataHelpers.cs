@@ -1091,7 +1091,7 @@ DoneWithSequence:
         /// <summary>
         /// See https://github.com/dotnet/runtime/blob/5bfc0bec9d627c946f154dd99103a393d278f841/src/libraries/System.Reflection.Metadata/src/System/Reflection/Metadata/BlobWriterImpl.cs#L16
         /// </summary>
-        internal static int GetCompressedIntegerSize(int value)
+        private static int GetCompressedIntegerSize(int value)
         {
             Debug.Assert(value <= 0x1fffffff);
 

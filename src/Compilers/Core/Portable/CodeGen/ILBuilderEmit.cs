@@ -743,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             // Otherwise, try emit ldstr and fall back to ldsfld if emitting EnC delta and the heap is already full.
             bool success = (value.Length > module.CommonCompilation.DataSectionStringLiteralThreshold)
                 ? tryEmitLoadField() || tryEmitLoadString()
-                : tryEmitLoadString() || module.PreviousGeneration != null && tryEmitLoadField();
+                : tryEmitLoadString() || (module.PreviousGeneration != null && tryEmitLoadField());
 
             if (!success)
             {
