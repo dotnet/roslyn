@@ -615,12 +615,13 @@ namespace GenerateDocumentationAndConfigFiles
                     DiagnosticDescriptor descriptor = ruleById.Value;
 
                     var helpLinkUri = descriptor.HelpLinkUri;
-                    if (!string.IsNullOrWhiteSpace(helpLinkUri) &&
-                        await checkHelpLinkAsync(helpLinkUri).ConfigureAwait(false))
-                    {
-                        // Rule with valid documentation link
+                    if (string.IsNullOrWhiteSpace(helpLinkUri))
                         continue;
-                    }
+
+                    (HttpStatusCode statusCode, string? responseContent) = await checkHelpLinkAsync(helpLinkUri).ConfigureAwait(false);
+
+                    if (statusCode == HttpStatusCode.OK)
+                        continue;
 
                     // The angle brackets around helpLinkUri are added to follow MD034 rule:
                     // https://github.com/DavidAnson/markdownlint/blob/82cf68023f7dbd2948a65c53fc30482432195de4/doc/Rules.md#md034---bare-url-used
@@ -638,9 +639,11 @@ namespace GenerateDocumentationAndConfigFiles
                         // However, we consider "missing" entries as invalid. This is to force updating the file when new rules are added.
                         if (!actualContent.Contains(line))
                         {
-                            await Console.Error.WriteLineAsync($"Missing entry in {fileWithPath}").ConfigureAwait(false);
-                            await Console.Error.WriteLineAsync(line).ConfigureAwait(false);
                             // The file is missing an entry. Mark it as invalid and break the loop as there is no need to continue validating.
+                            await Console.Error.WriteLineAsync($"Missing entry in {fileWithPath}").ConfigureAwait(false);
+                            await Console.Error.WriteLineAsync("    " + line).ConfigureAwait(false);
+                            await Console.Error.WriteLineAsync("HTTP result while checking the URI: " + statusCode + " " + responseContent ?? "(no error content from HTTP response)").ConfigureAwait(false);
+
                             fileNamesWithValidationFailures.Add(fileWithPath);
                             break;
                         }
@@ -658,27 +661,29 @@ namespace GenerateDocumentationAndConfigFiles
 
                 return;
 
-                async Task<bool> checkHelpLinkAsync(string helpLink)
+                async Task<(HttpStatusCode, string? responseContent)> checkHelpLinkAsync(string helpLink)
                 {
                     try
                     {
                         if (!Uri.TryCreate(helpLink, UriKind.Absolute, out var uri))
                         {
-                            return false;
+                            // TODO: why would we not fail this if the URI is invalid?
+                            return (HttpStatusCode.OK, null);
                         }
 
                         if (validateOffline)
                         {
-                            return true;
+                            // Just pretend the request worked fine.
+                            return (HttpStatusCode.OK, null);
                         }
 
                         var request = new HttpRequestMessage(HttpMethod.Head, uri);
                         using var response = await httpClient.SendAsync(request).ConfigureAwait(false);
-                        return response?.StatusCode == HttpStatusCode.OK;
+                        return (response.StatusCode, await response.Content.ReadAsStringAsync().ConfigureAwait(false));
                     }
-                    catch (WebException)
+                    catch (HttpRequestException exception)
                     {
-                        return false;
+                        return (exception.StatusCode!.Value, exception.Message);
                     }
                 }
             }
