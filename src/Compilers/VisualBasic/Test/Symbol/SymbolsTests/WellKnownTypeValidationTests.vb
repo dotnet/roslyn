@@ -498,7 +498,12 @@ End Namespace
                    special = SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor OrElse
                    special = SpecialMember.System_ReadOnlySpan_T__ctor_Reference OrElse
-                   special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__Async Then
+                   special = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter OrElse
+                   special = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter OrElse
+                   special = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitTask OrElse
+                   special = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitTaskT_T OrElse
+                   special = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTask OrElse
+                   special = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTaskT_T Then
                     Assert.Null(symbol) ' Not available
                 Else
                     Assert.NotNull(symbol)
@@ -759,13 +764,7 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle,
                          WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitTask,
-                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitTaskT_T,
-                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitValueTask,
-                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitValueTaskT_T,
-                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitAwaiterFromRuntimeAsync_TAwaiter,
-                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TAwaiter
+                         WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
@@ -976,13 +975,7 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle,
                          WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitTask,
-                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitTaskT_T,
-                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitValueTask,
-                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitValueTaskT_T,
-                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitAwaiterFromRuntimeAsync_TAwaiter,
-                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TAwaiter
+                         WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,

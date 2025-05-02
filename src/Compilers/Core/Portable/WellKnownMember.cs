@@ -150,12 +150,6 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_RuntimeHelpers__get_OffsetToStringData,
         System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T,
         System_Runtime_CompilerServices_RuntimeHelpers__EnsureSufficientExecutionStack,
-        System_Runtime_CompilerServices_RuntimeHelpers__AwaitTask,
-        System_Runtime_CompilerServices_RuntimeHelpers__AwaitTaskT_T,
-        System_Runtime_CompilerServices_RuntimeHelpers__AwaitValueTask,
-        System_Runtime_CompilerServices_RuntimeHelpers__AwaitValueTaskT_T,
-        System_Runtime_CompilerServices_RuntimeHelpers__AwaitAwaiterFromRuntimeAsync_TAwaiter,
-        System_Runtime_CompilerServices_RuntimeHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TAwaiter,
 
         System_Runtime_CompilerServices_Unsafe__Add_T,
         System_Runtime_CompilerServices_Unsafe__As_T,

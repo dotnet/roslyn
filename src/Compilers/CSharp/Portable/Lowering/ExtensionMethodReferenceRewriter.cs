@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                              { Name: nameof(VisitUnaryOperator) } => !method.IsExtensionMethod, // Expression tree context. At the moment an operator cannot be an extension method
                              { Name: nameof(VisitUserDefinedConditionalLogicalOperator) } => !method.IsExtensionMethod, // Expression tree context. At the moment an operator cannot be an extension method
                              { Name: nameof(VisitCollectionElementInitializer) } => !method.IsExtensionMethod, // Expression tree context. At the moment an extension method cannot be used in expression tree here.
-                             { Name: nameof(VisitAwaitableInfo) } => method is { Name: "GetResult", IsExtensionMethod: false }, // Cannot be an extension method
+                             { Name: nameof(VisitAwaitableInfo) } => method is { Name: "GetResult" or "Await" or "AwaitAwaiter" or "UnsafeAwaitAwaiter", IsExtensionMethod: false }, // Cannot be an extension method
                              { Name: nameof(VisitMethodSymbolWithExtensionRewrite), DeclaringType: { } declaringType } => declaringType == typeof(ExtensionMethodReferenceRewriter),
                              _ => false
                          });

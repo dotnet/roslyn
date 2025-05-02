@@ -686,13 +686,18 @@
     <Field Name="Expression" Type="BoundExpression"/>
   </Node>
 
-  <Node Name="BoundAwaitableInfo" Base="BoundNode">
+  <Node Name="BoundAwaitableInfo" Base="BoundNode" HasValidate="true">
     <!-- Used to refer to the awaitable expression in GetAwaiter -->
     <Field Name="AwaitableInstancePlaceholder" Type="BoundAwaitableValuePlaceholder?" Null="allow" />
     <Field Name="IsDynamic" Type="bool"/>
     <Field Name="GetAwaiter" Type="BoundExpression?" Null="allow"/>
     <Field Name="IsCompleted" Type="PropertySymbol?" Null="allow"/>
     <Field Name="GetResult" Type="MethodSymbol?" Null="allow"/>
+    <!-- Refers to the runtime async helper method we use for awaiting. Either this is an instance of an AsyncHelpers.Await method symbol, and 
+         GetAwaiter, IsCompleted, and GetResult are null, or this is AsyncHelpers.AwaitAwaiter/UnsafeAwaitAwaiter, and the other
+         fields are not null. -->
+    <!-- PROTOTYPE: Look at consumers of this API and see if we can assert that this is null when it should be -->
+    <Field Name="RuntimeAsyncAwaitMethod" Type="MethodSymbol?" Null="allow"/>
   </Node>
 
   <Node Name="BoundAwaitExpression" Base="BoundExpression">

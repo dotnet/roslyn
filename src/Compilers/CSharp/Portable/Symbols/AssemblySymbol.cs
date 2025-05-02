@@ -497,17 +497,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        // PROTOTYPE: Remove when we have a runtime with support
-        private bool _overrideRuntimeSupportsAsyncMethods;
-        internal void SetOverrideRuntimeSupportsAsyncMethods()
-        {
-            _overrideRuntimeSupportsAsyncMethods = true;
-        }
-
         // Keep in sync with VB's AssemblySymbol.RuntimeSupportsAsyncMethods
         internal bool RuntimeSupportsAsyncMethods
-            => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__Async)
-               || _overrideRuntimeSupportsAsyncMethods;
+            => GetSpecialType(InternalSpecialType.System_Runtime_CompilerServices_AsyncHelpers) is { TypeKind: TypeKind.Class, IsStatic: true };
 #nullable disable
 
         protected bool RuntimeSupportsFeature(SpecialMember feature)
