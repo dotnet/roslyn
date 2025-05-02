@@ -1017,8 +1017,6 @@ internal sealed partial class SolutionCompilationState
                 }
                 else if (TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(doc.documentId) is { Identity: var identity })
                 {
-                    // Source generated documents always do a full parse, and source generator authors are only allowed to provide
-                    // strings, so we follow suit here and just take the text from the root.
                     sourceGeneratedDocuments.Add((identity, DateTime.UtcNow, null, doc.root));
                 }
             }
