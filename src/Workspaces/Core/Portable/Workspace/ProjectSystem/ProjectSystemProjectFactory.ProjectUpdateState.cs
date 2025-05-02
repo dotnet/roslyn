@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
@@ -54,8 +54,8 @@ internal sealed partial class ProjectSystemProjectFactory
         ImmutableDictionary<ProjectId, ProjectReferenceInformation> ProjectReferenceInfos,
         ImmutableArray<PortableExecutableReference> RemovedMetadataReferences,
         ImmutableArray<PortableExecutableReference> AddedMetadataReferences,
-        ImmutableArray<AnalyzerReference> RemovedAnalyzerReferences,
-        ImmutableArray<AnalyzerReference> AddedAnalyzerReferences)
+        ImmutableArray<string> RemovedAnalyzerReferences,
+        ImmutableArray<string> AddedAnalyzerReferences)
     {
         public static ProjectUpdateState Empty = new(
             ImmutableDictionary<string, ImmutableArray<ProjectId>>.Empty.WithComparers(StringComparer.OrdinalIgnoreCase),
@@ -127,16 +127,16 @@ internal sealed partial class ProjectSystemProjectFactory
         public ProjectUpdateState WithIncrementalMetadataReferencesAdded(ArrayBuilder<PortableExecutableReference> references)
             => this with { AddedMetadataReferences = AddedMetadataReferences.AddRange(references) };
 
-        public ProjectUpdateState WithIncrementalAnalyzerReferenceRemoved(AnalyzerReference reference)
+        public ProjectUpdateState WithIncrementalAnalyzerReferenceRemoved(string reference)
             => this with { RemovedAnalyzerReferences = RemovedAnalyzerReferences.Add(reference) };
 
-        public ProjectUpdateState WithIncrementalAnalyzerReferencesRemoved(ArrayBuilder<AnalyzerReference> references)
+        public ProjectUpdateState WithIncrementalAnalyzerReferencesRemoved(List<string> references)
             => this with { RemovedAnalyzerReferences = RemovedAnalyzerReferences.AddRange(references) };
 
-        public ProjectUpdateState WithIncrementalAnalyzerReferenceAdded(AnalyzerReference reference)
+        public ProjectUpdateState WithIncrementalAnalyzerReferenceAdded(string reference)
             => this with { AddedAnalyzerReferences = AddedAnalyzerReferences.Add(reference) };
 
-        public ProjectUpdateState WithIncrementalAnalyzerReferencesAdded(ArrayBuilder<AnalyzerReference> references)
+        public ProjectUpdateState WithIncrementalAnalyzerReferencesAdded(List<string> references)
             => this with { AddedAnalyzerReferences = AddedAnalyzerReferences.AddRange(references) };
 
         /// <summary>
