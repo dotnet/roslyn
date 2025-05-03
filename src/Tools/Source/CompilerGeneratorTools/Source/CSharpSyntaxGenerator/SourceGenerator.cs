@@ -123,7 +123,8 @@ namespace CSharpSyntaxGenerator
                 }
 
                 // And create a SourceText from the StringBuilder, once again avoiding allocating a single massive string
-                var sourceText = new StringBuilderText(stringBuilder, encoding: Encoding.UTF8);
+                var sourceText = SourceText.From(new StringBuilderReader(stringBuilder), stringBuilder.Length, encoding: Encoding.UTF8);
+                _ = new StringBuilderText(stringBuilder, encoding: Encoding.UTF8);
                 context.AddSource(hintName, sourceText);
             }
         }
@@ -163,6 +164,46 @@ namespace CSharpSyntaxGenerator
             {
                 var charsToCopy = Math.Min(count, _sourceText.Length - _position);
                 _sourceText.CopyTo(_position, buffer, index, charsToCopy);
+                _position += charsToCopy;
+                return charsToCopy;
+            }
+        }
+
+        private sealed class StringBuilderReader : TextReader
+        {
+            private readonly StringBuilder _stringBuilder;
+            private int _position;
+
+            public StringBuilderReader(StringBuilder stringBuilder)
+            {
+                _stringBuilder = stringBuilder;
+                _position = 0;
+            }
+
+            public override int Peek()
+            {
+                if (_position == _stringBuilder.Length)
+                {
+                    return -1;
+                }
+
+                return _stringBuilder[_position];
+            }
+
+            public override int Read()
+            {
+                if (_position == _stringBuilder.Length)
+                {
+                    return -1;
+                }
+
+                return _stringBuilder[_position++];
+            }
+
+            public override int Read(char[] buffer, int index, int count)
+            {
+                var charsToCopy = Math.Min(count, _stringBuilder.Length - _position);
+                _stringBuilder.CopyTo(_position, buffer, index, charsToCopy);
                 _position += charsToCopy;
                 return charsToCopy;
             }
