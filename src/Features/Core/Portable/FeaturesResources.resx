@@ -566,7 +566,7 @@ Do you want to continue?</value>
     <value>Not Available ⚠</value>
   </data>
   <data name="_0_1" xml:space="preserve">
-    <value>    {0} - {1}</value>
+    <value>{0} - {1}</value>
   </data>
   <data name="You_can_use_the_navigation_bar_to_switch_contexts" xml:space="preserve">
     <value>You can use the navigation bar to switch contexts.</value>
