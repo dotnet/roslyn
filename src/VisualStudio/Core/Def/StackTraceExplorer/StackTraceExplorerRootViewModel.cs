@@ -30,12 +30,10 @@ internal sealed class StackTraceExplorerRootViewModel : ViewModelBase
     }
 
     public ObservableCollection<StackTraceExplorerTab> Tabs { get; } = [];
-
-    private StackTraceExplorerTab? _selectedTab;
     public StackTraceExplorerTab? SelectedTab
     {
-        get => _selectedTab;
-        set => SetProperty(ref _selectedTab, value);
+        get;
+        set => SetProperty(ref field, value);
     }
 
     /// <summary>
