@@ -1,0 +1,8 @@
+<Project>
+
+  <!-- RestoreUseStaticGraphEvaluation will cause prebuilts when building source-only. -->
+  <PropertyGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
+    <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
+  </PropertyGroup>
+
+</Project>

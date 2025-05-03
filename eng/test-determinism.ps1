@@ -73,7 +73,6 @@ function Run-Build([string]$rootDir, [string]$logFileName) {
      /p:DeterministicSourcePaths=true `
      /p:RunAnalyzers=false `
      /p:RunAnalyzersDuringBuild=false `
-     /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation `
      /bl:$logFilePath
 
   Stop-Processes
