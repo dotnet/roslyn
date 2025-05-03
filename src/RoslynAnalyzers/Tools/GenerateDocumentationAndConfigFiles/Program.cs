@@ -264,38 +264,14 @@ namespace GenerateDocumentationAndConfigFiles
         {
             var fileNamesWithValidationFailures = new List<string>();
 
-            var validateOnly = args.ValidateOnly;
-            string analyzerRulesetsDir = args.AnalyzerRulesetsDir;
-            string analyzerEditorconfigsDir = args.AnalyzerEditorconfigsDir;
-            string analyzerGlobalconfigsDir = args.AnalyzerGlobalconfigsDir;
-            string binDirectory = args.BinDirectory;
-            string configuration = args.Configuration;
-            string tfm = args.Tfm;
-            var assemblyList = args.AssemblyList;  // Already a List<string> from the record
-            string propsFileDir = args.PropsFileDir;
-            string propsFileName = args.PropsFileName;
-            string targetsFileDir = args.TargetsFileDir;
-            string targetsFileName = args.TargetsFileName;
-            string propsFileToDisableNetAnalyzersInNuGetPackageName = args.PropsFileToDisableNetAnalyzersInNuGetPackageName;
-            string analyzerDocumentationFileDir = args.AnalyzerDocumentationFileDir;
-            string analyzerDocumentationFileName = args.AnalyzerDocumentationFileName;
-            string analyzerSarifFileDir = args.AnalyzerSarifFileDir;
-            string analyzerSarifFileName = args.AnalyzerSarifFileName;
-            var analyzerVersion = args.AnalyzerVersion;
-            var analyzerPackageName = args.AnalyzerPackageName;
-            var containsPortedFxCopRules = args.ContainsPortedFxCopRules;
-            var generateAnalyzerRulesMissingDocumentationFile = args.GenerateAnalyzerRulesMissingDocumentationFile;
-            var releaseTrackingOptOut = args.ReleaseTrackingOptOut;
-            var validateOffline = args.ValidateOffline;
-
             var allRulesById = new SortedList<string, DiagnosticDescriptor>();
             var fixableDiagnosticIds = new HashSet<string>();
             var categories = new HashSet<string>();
             var rulesMetadata = new SortedList<string, (string path, SortedList<string, (DiagnosticDescriptor rule, string typeName, string[]? languages)> rules)>();
-            foreach (string assembly in assemblyList)
+            foreach (string assembly in args.AssemblyList)
             {
                 var assemblyName = Path.GetFileNameWithoutExtension(assembly);
-                string path = Path.Combine(binDirectory, assemblyName, configuration, tfm, assembly);
+                string path = Path.Combine(args.BinDirectory, assemblyName, args.Configuration, args.Tfm, assembly);
                 if (!File.Exists(path))
                 {
                     await Console.Error.WriteLineAsync($"'{path}' does not exist").ConfigureAwait(false);
@@ -391,7 +367,7 @@ namespace GenerateDocumentationAndConfigFiles
 
             createAnalyzerSarifFile();
 
-            if (generateAnalyzerRulesMissingDocumentationFile)
+            if (args.GenerateAnalyzerRulesMissingDocumentationFile)
             {
                 try
                 {
@@ -415,7 +391,7 @@ namespace GenerateDocumentationAndConfigFiles
                 return 2;
             }
 
-            CreateTargetsFile(targetsFileDir, targetsFileName, analyzerPackageName, categories.OrderBy(c => c));
+            CreateTargetsFile(args.TargetsFileDir, args.TargetsFileName, args.AnalyzerPackageName, categories.OrderBy(c => c));
 
             return 0;
 
@@ -431,17 +407,17 @@ namespace GenerateDocumentationAndConfigFiles
                 string? category = null,
                 string? customTag = null)
             {
-                CreateRuleset(analyzerRulesetsDir, fileName + ".ruleset", title, description, rulesetKind, category, customTag, allRulesById, analyzerPackageName);
-                CreateEditorconfig(analyzerEditorconfigsDir, fileName, title, description, rulesetKind, category, customTag, allRulesById);
+                CreateRuleset(args.AnalyzerRulesetsDir, fileName + ".ruleset", title, description, rulesetKind, category, customTag, allRulesById, args.AnalyzerPackageName);
+                CreateEditorconfig(args.AnalyzerEditorconfigsDir, fileName, title, description, rulesetKind, category, customTag, allRulesById);
                 return;
             }
 
             void createPropsFiles()
             {
-                if (string.IsNullOrEmpty(propsFileDir) || string.IsNullOrEmpty(propsFileName))
+                if (string.IsNullOrEmpty(args.PropsFileDir) || string.IsNullOrEmpty(args.PropsFileName))
                 {
-                    Debug.Assert(!containsPortedFxCopRules);
-                    Debug.Assert(string.IsNullOrEmpty(propsFileToDisableNetAnalyzersInNuGetPackageName));
+                    Debug.Assert(!args.ContainsPortedFxCopRules);
+                    Debug.Assert(string.IsNullOrEmpty(args.PropsFileToDisableNetAnalyzersInNuGetPackageName));
                     return;
                 }
 
@@ -453,17 +429,17 @@ namespace GenerateDocumentationAndConfigFiles
                       {disableNetAnalyzersImport}{getCodeAnalysisTreatWarningsAsErrors()}{getCompilerVisibleProperties()}
                     </Project>
                     """;
-                var directory = Directory.CreateDirectory(propsFileDir);
-                var fileWithPath = Path.Combine(directory.FullName, propsFileName);
+                var directory = Directory.CreateDirectory(args.PropsFileDir);
+                var fileWithPath = Path.Combine(directory.FullName, args.PropsFileName);
 
                 // This doesn't need validation as the generated file is part of artifacts.
                 File.WriteAllText(fileWithPath, fileContents);
 
                 if (!string.IsNullOrEmpty(disableNetAnalyzersImport))
                 {
-                    Debug.Assert(Version.TryParse(analyzerVersion, out _));
+                    Debug.Assert(Version.TryParse(args.AnalyzerVersion, out _));
 
-                    fileWithPath = Path.Combine(directory.FullName, propsFileToDisableNetAnalyzersInNuGetPackageName);
+                    fileWithPath = Path.Combine(directory.FullName, args.PropsFileToDisableNetAnalyzersInNuGetPackageName);
                     fileContents =
                         $"""
                         <Project>
@@ -473,7 +449,7 @@ namespace GenerateDocumentationAndConfigFiles
                           -->
                           <PropertyGroup>
                             <EnableNETAnalyzers>false</EnableNETAnalyzers>
-                            <{NetAnalyzersNugetAssemblyVersionPropertyName}>{analyzerVersion}</{NetAnalyzersNugetAssemblyVersionPropertyName}>
+                            <{NetAnalyzersNugetAssemblyVersionPropertyName}>{args.AnalyzerVersion}</{NetAnalyzersNugetAssemblyVersionPropertyName}>
                           </PropertyGroup>
                         </Project>
                         """;
@@ -485,9 +461,9 @@ namespace GenerateDocumentationAndConfigFiles
 
                 string getDisableNetAnalyzersImport()
                 {
-                    if (!string.IsNullOrEmpty(propsFileToDisableNetAnalyzersInNuGetPackageName))
+                    if (!string.IsNullOrEmpty(args.PropsFileToDisableNetAnalyzersInNuGetPackageName))
                     {
-                        Debug.Assert(analyzerPackageName is NetAnalyzersPackageName or TextAnalyzersPackageName);
+                        Debug.Assert(args.AnalyzerPackageName is NetAnalyzersPackageName or TextAnalyzersPackageName);
 
                         return $"""
 
@@ -495,20 +471,20 @@ namespace GenerateDocumentationAndConfigFiles
                                 This import includes an additional props file that disables built-in analyzers from .NET SDK that have the identical CA rules to those implemented in this package.
                                 This additional props file should only be present in the analyzer NuGet package, it should **not** be inserted into the .NET SDK.
                               -->
-                              <Import Project="{propsFileToDisableNetAnalyzersInNuGetPackageName}" Condition="Exists('{propsFileToDisableNetAnalyzersInNuGetPackageName}')" />
+                              <Import Project="{args.PropsFileToDisableNetAnalyzersInNuGetPackageName}" Condition="Exists('{args.PropsFileToDisableNetAnalyzersInNuGetPackageName}')" />
 
                               <!--
                                 PropertyGroup to set the NetAnalyzers version installed in the SDK.
-                                We rely on the additional props file '{propsFileToDisableNetAnalyzersInNuGetPackageName}' not being present in the SDK.
+                                We rely on the additional props file '{args.PropsFileToDisableNetAnalyzersInNuGetPackageName}' not being present in the SDK.
                               -->
-                              <PropertyGroup Condition="!Exists('{propsFileToDisableNetAnalyzersInNuGetPackageName}')">
-                                <{NetAnalyzersSDKAssemblyVersionPropertyName}>{analyzerVersion}</{NetAnalyzersSDKAssemblyVersionPropertyName}>
+                              <PropertyGroup Condition="!Exists('{args.PropsFileToDisableNetAnalyzersInNuGetPackageName}')">
+                                <{NetAnalyzersSDKAssemblyVersionPropertyName}>{args.AnalyzerVersion}</{NetAnalyzersSDKAssemblyVersionPropertyName}>
                               </PropertyGroup>
 
                             """;
                     }
 
-                    Debug.Assert(!containsPortedFxCopRules);
+                    Debug.Assert(!args.ContainsPortedFxCopRules);
                     return string.Empty;
                 }
             }
@@ -531,7 +507,7 @@ namespace GenerateDocumentationAndConfigFiles
 
             string getCompilerVisibleProperties()
             {
-                return analyzerPackageName switch
+                return args.AnalyzerPackageName switch
                 {
                     ResxSourceGeneratorPackageName => """
 
@@ -556,18 +532,18 @@ namespace GenerateDocumentationAndConfigFiles
 
             void createAnalyzerDocumentationFile()
             {
-                if (string.IsNullOrEmpty(analyzerDocumentationFileDir) || string.IsNullOrEmpty(analyzerDocumentationFileName) || allRulesById.Count == 0)
+                if (string.IsNullOrEmpty(args.AnalyzerDocumentationFileDir) || string.IsNullOrEmpty(args.AnalyzerDocumentationFileName) || allRulesById.Count == 0)
                 {
-                    Debug.Assert(!containsPortedFxCopRules);
+                    Debug.Assert(!args.ContainsPortedFxCopRules);
                     return;
                 }
 
-                var directory = Directory.CreateDirectory(analyzerDocumentationFileDir);
-                var fileWithPath = Path.Combine(directory.FullName, analyzerDocumentationFileName);
+                var directory = Directory.CreateDirectory(args.AnalyzerDocumentationFileDir);
+                var fileWithPath = Path.Combine(directory.FullName, args.AnalyzerDocumentationFileName);
 
                 var builder = new StringBuilder();
 
-                var fileTitle = Path.GetFileNameWithoutExtension(analyzerDocumentationFileName);
+                var fileTitle = Path.GetFileNameWithoutExtension(args.AnalyzerDocumentationFileName);
                 builder.AppendLine($"# {fileTitle}");
                 builder.AppendLine();
 
@@ -625,7 +601,7 @@ namespace GenerateDocumentationAndConfigFiles
                     builder.AppendLine("---");
                 }
 
-                if (validateOnly)
+                if (args.ValidateOnly)
                 {
                     Validate(fileWithPath, builder.ToString(), fileNamesWithValidationFailures);
                 }
@@ -642,16 +618,16 @@ namespace GenerateDocumentationAndConfigFiles
             // based on https://github.com/dotnet/roslyn/blob/main/src/Compilers/Core/Portable/CommandLine/ErrorLogger.cs
             void createAnalyzerSarifFile()
             {
-                if (string.IsNullOrEmpty(analyzerSarifFileDir) || string.IsNullOrEmpty(analyzerSarifFileName) || allRulesById.Count == 0)
+                if (string.IsNullOrEmpty(args.AnalyzerSarifFileDir) || string.IsNullOrEmpty(args.AnalyzerSarifFileName) || allRulesById.Count == 0)
                 {
-                    Debug.Assert(!containsPortedFxCopRules);
+                    Debug.Assert(!args.ContainsPortedFxCopRules);
                     return;
                 }
 
                 var culture = new CultureInfo("en-us");
-                var directory = Directory.CreateDirectory(analyzerSarifFileDir);
+                var directory = Directory.CreateDirectory(args.AnalyzerSarifFileDir);
                 TextWriter textWriter;
-                if (validateOnly)
+                if (args.ValidateOnly)
                 {
                     // In validate mode we just write to an in memory version and compare with the existing
                     // content in `analyzerSarifFileName`.
@@ -659,7 +635,7 @@ namespace GenerateDocumentationAndConfigFiles
                 }
                 else
                 {
-                    var fileWithPath = Path.Combine(directory.FullName, analyzerSarifFileName);
+                    var fileWithPath = Path.Combine(directory.FullName, args.AnalyzerSarifFileName);
                     textWriter = new StreamWriter(fileWithPath, false, Encoding.UTF8);
                 }
                 try
@@ -677,9 +653,9 @@ namespace GenerateDocumentationAndConfigFiles
                         writer.WriteObjectStart("tool");
                         writer.Write("name", assemblymetadata.Key);
 
-                        if (!string.IsNullOrWhiteSpace(analyzerVersion))
+                        if (!string.IsNullOrWhiteSpace(args.AnalyzerVersion))
                         {
-                            writer.Write("version", analyzerVersion);
+                            writer.Write("version", args.AnalyzerVersion);
                         }
 
                         writer.Write("language", culture.Name);
@@ -750,10 +726,10 @@ namespace GenerateDocumentationAndConfigFiles
                     writer.WriteArrayEnd(); // runs
                     writer.WriteObjectEnd(); // root
 
-                    if (validateOnly)
+                    if (args.ValidateOnly)
                     {
                         var stringWriter = (StringWriter)textWriter;
-                        Validate(Path.Combine(directory.FullName, analyzerSarifFileName), stringWriter.ToString(), fileNamesWithValidationFailures);
+                        Validate(Path.Combine(directory.FullName, args.AnalyzerSarifFileName), stringWriter.ToString(), fileNamesWithValidationFailures);
                     }
 
                     return;
@@ -788,13 +764,13 @@ namespace GenerateDocumentationAndConfigFiles
 
             async ValueTask createAnalyzerRulesMissingDocumentationFileAsync()
             {
-                if (string.IsNullOrEmpty(analyzerDocumentationFileDir) || allRulesById.Count == 0)
+                if (string.IsNullOrEmpty(args.AnalyzerDocumentationFileDir) || allRulesById.Count == 0)
                 {
-                    Debug.Assert(!containsPortedFxCopRules);
+                    Debug.Assert(!args.ContainsPortedFxCopRules);
                     return;
                 }
 
-                var directory = Directory.CreateDirectory(analyzerDocumentationFileDir);
+                var directory = Directory.CreateDirectory(args.AnalyzerDocumentationFileDir);
                 var fileWithPath = Path.Combine(directory.FullName, "RulesMissingDocumentation.md");
 
                 var builder = new StringBuilder();
@@ -806,7 +782,7 @@ namespace GenerateDocumentationAndConfigFiles
 
                     """);
                 var actualContent = Array.Empty<string>();
-                if (validateOnly)
+                if (args.ValidateOnly)
                 {
                     actualContent = File.ReadAllLines(fileWithPath);
                 }
@@ -833,7 +809,7 @@ namespace GenerateDocumentationAndConfigFiles
 
                     var escapedTitle = descriptor.Title.ToString(CultureInfo.InvariantCulture).Replace("<", "\\<");
                     var line = $"{ruleId} | {helpLinkUri} | {escapedTitle} |";
-                    if (validateOnly)
+                    if (args.ValidateOnly)
                     {
                         // The validation for RulesMissingDocumentation.md is different than others.
                         // We consider having "extra" entries as valid. This is to prevent CI failures due to rules being documented.
@@ -853,7 +829,7 @@ namespace GenerateDocumentationAndConfigFiles
                     }
                 }
 
-                if (!validateOnly)
+                if (!args.ValidateOnly)
                 {
                     File.WriteAllText(fileWithPath, builder.ToString());
                 }
@@ -869,13 +845,13 @@ namespace GenerateDocumentationAndConfigFiles
                             return false;
                         }
 
-                        if (validateOffline)
+                        if (args.ValidateOffline)
                         {
                             return true;
                         }
 
                         var request = new HttpRequestMessage(HttpMethod.Head, uri);
-                        using var response = await httpClient.SendAsync(request).ConfigureAwait(false);
+                        using var response = await httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
                         return response?.StatusCode == HttpStatusCode.OK;
                     }
                     catch (WebException)
@@ -891,7 +867,7 @@ namespace GenerateDocumentationAndConfigFiles
                 using var versionsBuilder = PooledHashSet<Version>.GetInstance();
 
                 // Validate all assemblies exist on disk and can be loaded.
-                foreach (string assembly in assemblyList)
+                foreach (string assembly in args.AssemblyList)
                 {
                     var assemblyPath = GetAssemblyPath(assembly);
                     if (!File.Exists(assemblyPath))
@@ -915,7 +891,7 @@ namespace GenerateDocumentationAndConfigFiles
 
                 // Compute descriptors by rule ID and shipped analyzer release versions and shipped data.
                 var sawShippedFile = false;
-                foreach (string assembly in assemblyList)
+                foreach (string assembly in args.AssemblyList)
                 {
                     var assemblyPath = GetAssemblyPath(assembly);
                     var assemblyDir = Path.GetDirectoryName(assemblyPath);
@@ -942,7 +918,7 @@ namespace GenerateDocumentationAndConfigFiles
                     {
                         sawShippedFile = true;
 
-                        if (releaseTrackingOptOut)
+                        if (args.ReleaseTrackingOptOut)
                         {
                             await Console.Error.WriteLineAsync($"'{shippedFile}' exists but was not expected").ConfigureAwait(false);
                             return false;
@@ -979,7 +955,7 @@ namespace GenerateDocumentationAndConfigFiles
                     }
                 }
 
-                if (!releaseTrackingOptOut && !sawShippedFile)
+                if (!args.ReleaseTrackingOptOut && !sawShippedFile)
                 {
                     await Console.Error.WriteLineAsync($"Could not find any 'AnalyzerReleases.Shipped.md' file").ConfigureAwait(false);
                     return false;
@@ -1059,7 +1035,7 @@ namespace GenerateDocumentationAndConfigFiles
                     }
 
                     CreateGlobalconfig(
-                        analyzerGlobalconfigsDir,
+                        args.AnalyzerGlobalconfigsDir,
                         $"{globalconfigFileName}.globalconfig",
                         title,
                         description,
@@ -1099,7 +1075,7 @@ namespace GenerateDocumentationAndConfigFiles
                 string GetAssemblyPath(string assembly)
                 {
                     var assemblyName = Path.GetFileNameWithoutExtension(assembly);
-                    var assemblyDir = Path.Combine(binDirectory, assemblyName, configuration, tfm);
+                    var assemblyDir = Path.Combine(args.BinDirectory, assemblyName, args.Configuration, args.Tfm);
                     return Path.Combine(assemblyDir, assembly);
                 }
             }
