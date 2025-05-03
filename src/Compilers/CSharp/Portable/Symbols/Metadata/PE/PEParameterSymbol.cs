@@ -898,6 +898,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             builder.Add(param.Ordinal);
                             break;
                         }
+                        else if (ContainingSymbol.ContainingSymbol is TypeSymbol { IsExtension: true, ExtensionParameter.Name: var extensionParameterName }
+                                 && string.Equals(extensionParameterName, name, StringComparison.Ordinal))
+                        {
+                            builder.Add(BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver);
+                            break;
+                        }
                         else
                         {
                             builder.Free();

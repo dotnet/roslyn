@@ -19099,6 +19099,810 @@ static class E
             Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnMalformed, "{f2()}").WithArguments("?.()").WithLocation(1, 21));
     }
 
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    [CombinatorialData]
+    public void InterpolationHandler_ReceiverParameter_Identity(bool useMetadataRef)
+    {
+        var src = """
+            [System.Runtime.CompilerServices.InterpolatedStringHandler]
+            public struct InterpolationHandler
+            {
+
+                public InterpolationHandler(int literalLength, int formattedCount, string s)
+                {
+                    System.Console.Write(s);
+                }
+                public void AppendLiteral(string value) { }
+                public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+            }
+
+            public static class E
+            {
+                extension(string s)
+                {
+                    public void M([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("s")] InterpolationHandler h) {}
+                }
+            }
+            """;
+
+        var exeSource = """
+            "1".M($"");
+            E.M("2", $"");
+            """;
+
+        var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "12" : null;
+        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+
+        var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+
+        var verifier = CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+
+        var comp = (CSharpCompilation)verifier.Compilation;
+        var tree = comp.SyntaxTrees[0];
+        var compRoot = tree.GetCompilationUnitRoot();
+        var model = comp.GetSemanticModel(tree);
+        var opRoot = model.GetOperation(compRoot);
+        VerifyOperationTree(comp, opRoot, expectedOperationTree: """
+            IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: '"1".M($""); ... ("2", $"");')
+              BlockBody:
+                IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: '"1".M($""); ... ("2", $"");')
+                  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '"1".M($"");')
+                    Expression:
+                      IInvocationOperation ( void E.<>E__0.M(InterpolationHandler h)) (OperationKind.Invocation, Type: System.Void) (Syntax: '"1".M($"")')
+                        Instance Receiver:
+                          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "1") (Syntax: '"1"')
+                        Arguments(1):
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: h) (OperationKind.Argument, Type: null) (Syntax: '$""')
+                              IInterpolatedStringHandlerCreationOperation (HandlerAppendCallsReturnBool: False, HandlerCreationHasSuccessParameter: False) (OperationKind.InterpolatedStringHandlerCreation, Type: InterpolationHandler, IsImplicit) (Syntax: '$""')
+                                Creation:
+                                  IObjectCreationOperation (Constructor: InterpolationHandler..ctor(System.Int32 literalLength, System.Int32 formattedCount, System.String s)) (OperationKind.ObjectCreation, Type: InterpolationHandler, IsImplicit) (Syntax: '$""')
+                                    Arguments(3):
+                                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: literalLength) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '$""')
+                                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '$""')
+                                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: formattedCount) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '$""')
+                                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '$""')
+                                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '"1"')
+                                          IInterpolatedStringHandlerArgumentPlaceholderOperation (CallsiteReceiver) (OperationKind.InterpolatedStringHandlerArgumentPlaceholder, Type: null, IsImplicit) (Syntax: '"1"')
+                                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    Initializer:
+                                      null
+                                Content:
+                                  IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, Constant: "") (Syntax: '$""')
+                                    Parts(0)
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'E.M("2", $"");')
+                    Expression:
+                      IInvocationOperation (void E.M(this System.String s, InterpolationHandler h)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'E.M("2", $"")')
+                        Instance Receiver:
+                          null
+                        Arguments(2):
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: s) (OperationKind.Argument, Type: null) (Syntax: '"2"')
+                              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "2") (Syntax: '"2"')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: h) (OperationKind.Argument, Type: null) (Syntax: '$""')
+                              IInterpolatedStringHandlerCreationOperation (HandlerAppendCallsReturnBool: False, HandlerCreationHasSuccessParameter: False) (OperationKind.InterpolatedStringHandlerCreation, Type: InterpolationHandler, IsImplicit) (Syntax: '$""')
+                                Creation:
+                                  IObjectCreationOperation (Constructor: InterpolationHandler..ctor(System.Int32 literalLength, System.Int32 formattedCount, System.String s)) (OperationKind.ObjectCreation, Type: InterpolationHandler, IsImplicit) (Syntax: '$""')
+                                    Arguments(3):
+                                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: literalLength) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '$""')
+                                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '$""')
+                                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: formattedCount) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '$""')
+                                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '$""')
+                                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '"2"')
+                                          IInterpolatedStringHandlerArgumentPlaceholderOperation (ArgumentIndex: 0) (OperationKind.InterpolatedStringHandlerArgumentPlaceholder, Type: null, IsImplicit) (Syntax: '"2"')
+                                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    Initializer:
+                                      null
+                                Content:
+                                  IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, Constant: "") (Syntax: '$""')
+                                    Parts(0)
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              ExpressionBody:
+                null
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    [CombinatorialData]
+    public void InterpolationHandler_ReceiverParameter_MultipleEvaluation(bool useMetadataRef)
+    {
+        var src = """
+            [System.Runtime.CompilerServices.InterpolatedStringHandler]
+            public struct InterpolationHandler
+            {
+
+                public InterpolationHandler(int literalLength, int formattedCount, string s)
+                {
+                    System.Console.Write(s);
+                }
+                public void AppendLiteral(string value) { }
+                public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+            }
+
+            public static class E
+            {
+                extension(string s)
+                {
+                    public void M([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("s")] InterpolationHandler h) {}
+                }
+            }
+            """;
+
+        var exeSource = """
+            Get("1").M($"");
+            E.M(Get("2"), $"");
+
+            static T Get<T>(T t)
+            {
+                System.Console.Write("Get");
+                return t;
+            }
+            """;
+
+        var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "Get1Get2" : null;
+        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+
+        var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+
+        CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    [CombinatorialData]
+    public void InterpolationHandler_ReceiverParameter_WithOtherParameters(bool useMetadataRef)
+    {
+        var src = """
+            [System.Runtime.CompilerServices.InterpolatedStringHandler]
+            public struct InterpolationHandler
+            {
+
+                public InterpolationHandler(int literalLength, int formattedCount, string s1, string s2)
+                {
+                    System.Console.Write(s1);
+                    System.Console.Write(s2);
+                }
+                public void AppendLiteral(string value) { }
+                public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+            }
+
+            public static class E
+            {
+                extension(string s1)
+                {
+                    public void M(string s2, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("s1", "s2")] InterpolationHandler h) {}
+                }
+            }
+            """;
+
+        var exeSource = """
+            "1".M("2", $"");
+            E.M("3", "4", $"");
+            """;
+
+        var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "1234" : null;
+        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+
+        var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+
+        var verifier = CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+        var comp = (CSharpCompilation)verifier.Compilation;
+        var tree = comp.SyntaxTrees[0];
+        var compRoot = tree.GetCompilationUnitRoot();
+        var model = comp.GetSemanticModel(tree);
+        var opRoot = model.GetOperation(compRoot);
+        VerifyOperationTree(comp, opRoot, expectedOperationTree: """
+            IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: '"1".M("2",  ...  "4", $"");')
+              BlockBody:
+                IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: '"1".M("2",  ...  "4", $"");')
+                  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '"1".M("2", $"");')
+                    Expression:
+                      IInvocationOperation ( void E.<>E__0.M(System.String s2, InterpolationHandler h)) (OperationKind.Invocation, Type: System.Void) (Syntax: '"1".M("2", $"")')
+                        Instance Receiver:
+                          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "1") (Syntax: '"1"')
+                        Arguments(2):
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: s2) (OperationKind.Argument, Type: null) (Syntax: '"2"')
+                              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "2") (Syntax: '"2"')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: h) (OperationKind.Argument, Type: null) (Syntax: '$""')
+                              IInterpolatedStringHandlerCreationOperation (HandlerAppendCallsReturnBool: False, HandlerCreationHasSuccessParameter: False) (OperationKind.InterpolatedStringHandlerCreation, Type: InterpolationHandler, IsImplicit) (Syntax: '$""')
+                                Creation:
+                                  IObjectCreationOperation (Constructor: InterpolationHandler..ctor(System.Int32 literalLength, System.Int32 formattedCount, System.String s1, System.String s2)) (OperationKind.ObjectCreation, Type: InterpolationHandler, IsImplicit) (Syntax: '$""')
+                                    Arguments(4):
+                                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: literalLength) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '$""')
+                                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '$""')
+                                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: formattedCount) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '$""')
+                                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '$""')
+                                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: s1) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '"1"')
+                                          IInterpolatedStringHandlerArgumentPlaceholderOperation (CallsiteReceiver) (OperationKind.InterpolatedStringHandlerArgumentPlaceholder, Type: null, IsImplicit) (Syntax: '"1"')
+                                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: s2) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '"2"')
+                                          IInterpolatedStringHandlerArgumentPlaceholderOperation (ArgumentIndex: 0) (OperationKind.InterpolatedStringHandlerArgumentPlaceholder, Type: null, IsImplicit) (Syntax: '"2"')
+                                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    Initializer:
+                                      null
+                                Content:
+                                  IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, Constant: "") (Syntax: '$""')
+                                    Parts(0)
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'E.M("3", "4", $"");')
+                    Expression:
+                      IInvocationOperation (void E.M(this System.String s1, System.String s2, InterpolationHandler h)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'E.M("3", "4", $"")')
+                        Instance Receiver:
+                          null
+                        Arguments(3):
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: s1) (OperationKind.Argument, Type: null) (Syntax: '"3"')
+                              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "3") (Syntax: '"3"')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: s2) (OperationKind.Argument, Type: null) (Syntax: '"4"')
+                              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "4") (Syntax: '"4"')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: h) (OperationKind.Argument, Type: null) (Syntax: '$""')
+                              IInterpolatedStringHandlerCreationOperation (HandlerAppendCallsReturnBool: False, HandlerCreationHasSuccessParameter: False) (OperationKind.InterpolatedStringHandlerCreation, Type: InterpolationHandler, IsImplicit) (Syntax: '$""')
+                                Creation:
+                                  IObjectCreationOperation (Constructor: InterpolationHandler..ctor(System.Int32 literalLength, System.Int32 formattedCount, System.String s1, System.String s2)) (OperationKind.ObjectCreation, Type: InterpolationHandler, IsImplicit) (Syntax: '$""')
+                                    Arguments(4):
+                                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: literalLength) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '$""')
+                                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '$""')
+                                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: formattedCount) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '$""')
+                                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '$""')
+                                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: s1) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '"3"')
+                                          IInterpolatedStringHandlerArgumentPlaceholderOperation (ArgumentIndex: 0) (OperationKind.InterpolatedStringHandlerArgumentPlaceholder, Type: null, IsImplicit) (Syntax: '"3"')
+                                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: s2) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '"4"')
+                                          IInterpolatedStringHandlerArgumentPlaceholderOperation (ArgumentIndex: 1) (OperationKind.InterpolatedStringHandlerArgumentPlaceholder, Type: null, IsImplicit) (Syntax: '"4"')
+                                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    Initializer:
+                                      null
+                                Content:
+                                  IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, Constant: "") (Syntax: '$""')
+                                    Parts(0)
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              ExpressionBody:
+                null
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    [CombinatorialData]
+    public void InterpolationHandler_ReceiverParameter_WithConversion(bool useMetadataRef)
+    {
+        var src = """
+            [System.Runtime.CompilerServices.InterpolatedStringHandler]
+            public struct InterpolationHandler
+            {
+
+                public InterpolationHandler(int literalLength, int formattedCount, object o)
+                {
+                    System.Console.Write(o);
+                }
+                public void AppendLiteral(string value) { }
+                public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+            }
+
+            public static class E
+            {
+                extension(object o)
+                {
+                    public void M([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("o")] InterpolationHandler h) {}
+                }
+            }
+            """;
+
+        var exeSource = """
+            "1".M($"");
+            E.M("2", $"");
+            """;
+
+        var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "12" : null;
+        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+
+        var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+
+        CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    [CombinatorialData]
+    public void InterpolationHandler_ReceiverParameter_WithConversion_ExtensionParameterNarrowerThanConstructor(bool useMetadataRef)
+    {
+        var src = """
+            [System.Runtime.CompilerServices.InterpolatedStringHandler]
+            public struct InterpolationHandler
+            {
+
+                public InterpolationHandler(int literalLength, int formattedCount, object o)
+                {
+                    System.Console.Write(o);
+                }
+                public void AppendLiteral(string value) { }
+                public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+            }
+
+            public static class E
+            {
+                extension(string o)
+                {
+                    public void M([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("o")] InterpolationHandler h) {}
+                }
+            }
+            """;
+
+        var exeSource = """
+            "1".M($"");
+            E.M("2", $"");
+            """;
+
+        var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "12" : null;
+        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+
+        var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+
+        CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    [CombinatorialData]
+    public void InterpolationHandler_ReceiverParameter_WithConversion_ExtensionParameterWiderThanConstructor(bool useMetadataRef)
+    {
+        var src = """
+            [System.Runtime.CompilerServices.InterpolatedStringHandler]
+            public struct InterpolationHandler
+            {
+
+                public InterpolationHandler(int literalLength, int formattedCount, string s)
+                {
+                    System.Console.WriteLine(s);
+                }
+                public void AppendLiteral(string value) { }
+                public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+            }
+
+            public static class E
+            {
+                extension(object o)
+                {
+                    public void M([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("o")] InterpolationHandler h) {}
+                }
+            }
+            """;
+
+        var exeSource = """
+            "1".M($"");
+            E.M("2", $"");
+            """;
+
+        var expectedDiagnostics = new[] {
+            // (1,1): error CS1503: Argument 3: cannot convert from 'object' to 'string'
+            // "1".M($"");
+            Diagnostic(ErrorCode.ERR_BadArgType, @"""1""").WithArguments("3", "object", "string").WithLocation(1, 1),
+            // (2,5): error CS1503: Argument 3: cannot convert from 'object' to 'string'
+            // E.M("2", $"");
+            Diagnostic(ErrorCode.ERR_BadArgType, @"""2""").WithArguments("3", "object", "string").WithLocation(2, 5)
+        };
+        CreateCompilation([exeSource, src], targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
+
+        var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+
+        CreateCompilation(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    [CombinatorialData]
+    public void InterpolationHandler_ReceiverParameter_ByRef(bool useMetadataRef)
+    {
+        var src = """
+            [System.Runtime.CompilerServices.InterpolatedStringHandler]
+            public struct InterpolationHandler
+            {
+
+                public InterpolationHandler(int literalLength, int formattedCount, ref int i)
+                {
+                    System.Console.Write(i);
+                    i = 2;
+                }
+                public void AppendLiteral(string value) { }
+                public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+            }
+
+            public static class E
+            {
+                extension(ref int i)
+                {
+                    public void M([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("i")] InterpolationHandler h)
+                    {
+                        System.Console.Write(i);
+                        i = 3;
+                    }
+                }
+            }
+            """;
+
+        var exeSource = """
+            int i = 1;
+            i.M($"");
+            System.Console.Write(i);
+            i = 4;
+            E.M(ref i, $"");
+            System.Console.Write(i);
+            """;
+
+        var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "123423" : null;
+        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+
+        var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+
+        CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    [CombinatorialData]
+    public void InterpolationHandler_ReceiverParameter_ByIn(bool useMetadataRef)
+    {
+        var src = """
+            [System.Runtime.CompilerServices.InterpolatedStringHandler]
+            public struct InterpolationHandler
+            {
+
+                public InterpolationHandler(int literalLength, int formattedCount, in int i)
+                {
+                    System.Console.Write(i);
+                }
+                public void AppendLiteral(string value) { }
+                public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+            }
+
+            public static class E
+            {
+                extension(in int i)
+                {
+                    public void M([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("i")] InterpolationHandler h) {}
+                }
+            }
+            """;
+
+        var exeSource = """
+            1.M($"");
+            E.M(2, $"");
+            """;
+
+        var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "12" : null;
+        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+
+        var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+
+        CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    [CombinatorialData]
+    public void InterpolationHandler_ReceiverParameter_ByRefMismatch_01(bool useMetadataRef, [CombinatorialValues("ref readonly", "in", "")] string refkind)
+    {
+        var src = $$"""
+            [System.Runtime.CompilerServices.InterpolatedStringHandler]
+            public struct InterpolationHandler
+            {
+
+                public InterpolationHandler(int literalLength, int formattedCount, ref int i)
+                {
+                    System.Console.Write(i);
+                }
+                public void AppendLiteral(string value) { }
+                public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+            }
+
+            public static class E
+            {
+                extension({{refkind}} int i)
+                {
+                    public void M([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("i")] InterpolationHandler h) {}
+                }
+            }
+            """;
+
+        var exeSource = $$"""
+            int i = 1;
+            i.M($"");
+            E.M({{(refkind == "" ? "" : "in ")}}i, $"");
+            """;
+
+        var expectedDiagnostic = new[] {
+            // (2,1): error CS1620: Argument 3 must be passed with the 'ref' keyword
+            // i.M($"");
+            Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("3", "ref").WithLocation(2, 1),
+            // (3,5): error CS1620: Argument 3 must be passed with the 'ref' keyword
+            // E.M(i, $"");
+            Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("3", "ref").WithLocation(3, 5 + (refkind == "" ? 0 : 3))
+
+        };
+        CreateCompilation([exeSource, src], targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostic);
+
+        var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+
+        CreateCompilation(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostic);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    [CombinatorialData]
+    public void InterpolationHandler_ReceiverParameter_ByRefMismatch_02(bool useMetadataRef, [CombinatorialValues("ref readonly", "in")] string refkind)
+    {
+        var src = $$"""
+            [System.Runtime.CompilerServices.InterpolatedStringHandler]
+            public struct InterpolationHandler
+            {
+
+                public InterpolationHandler(int literalLength, int formattedCount, {{refkind}} int i)
+                {
+                    System.Console.Write(i);
+                }
+                public void AppendLiteral(string value) { }
+                public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+            }
+
+            public static class E
+            {
+                extension(ref int i)
+                {
+                    public void M([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("i")] InterpolationHandler h) {}
+                }
+            }
+            """;
+
+        var exeSource = """
+            int i = 1;
+            i.M($"");
+            i = 2;
+            E.M(ref i, $"");
+            """;
+
+        var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "12" : null;
+        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+
+        var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+
+        CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    [CombinatorialData]
+    public void InterpolationHandler_ReceiverParameter_ByRefMismatch_03(bool useMetadataRef)
+    {
+        var src = $$"""
+            [System.Runtime.CompilerServices.InterpolatedStringHandler]
+            public struct InterpolationHandler
+            {
+
+                public InterpolationHandler(int literalLength, int formattedCount, int i)
+                {
+                    System.Console.WriteLine(i);
+                }
+                public void AppendLiteral(string value) { }
+                public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+            }
+
+            public static class E
+            {
+                extension(ref int i)
+                {
+                    public void M([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("i")] InterpolationHandler h) {}
+                }
+            }
+            """;
+
+        var exeSource = """
+            int i = 1;
+            i.M($"");
+            E.M(ref i, $"");
+            """;
+
+        var expectedDiagnostics = new[] {
+            // (2,1): error CS1615: Argument 3 may not be passed with the 'ref' keyword
+            // i.M($"");
+            Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("3", "ref").WithLocation(2, 1),
+            // (3,9): error CS1615: Argument 3 may not be passed with the 'ref' keyword
+            // E.M(ref i, $"");
+            Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("3", "ref").WithLocation(3, 9)
+         };
+
+        CreateCompilation([exeSource, src], targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
+
+        var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+
+        CreateCompilation(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    [CombinatorialData]
+    public void InterpolationHandler_ReceiverParameter_NullableMismatch(bool useMetadataRef, bool useOut)
+    {
+        string outParam = (useOut ? ", out bool valid" : "");
+        var src = $$"""
+            #nullable enable
+            [System.Runtime.CompilerServices.InterpolatedStringHandler]
+            public struct InterpolationHandler
+            {
+
+                public InterpolationHandler(int literalLength, int formattedCount, string s1, string s2{{outParam}})
+                {
+                    System.Console.Write(s1);
+                    System.Console.Write(s2);
+                    {{(useOut ? "valid = true;" : "")}}
+                }
+                public void AppendLiteral(string value) { }
+                public void AppendFormatted<T>(T hole, int alignment = 0, string? format = null) => throw null!;
+            }
+
+            public static class E
+            {
+                extension(string? s1)
+                {
+                    public void M(string? s2, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("s1", "s2")] InterpolationHandler h) {}
+                }
+            }
+            """;
+
+        var exeSource = """
+            #nullable enable
+            ((string?)null).M(null, $"");
+            ((string?)null).M("", $"");
+            "".M(null, $"");
+            "".M("", $"");
+            E.M(null, null, $"");
+            E.M("", null, $"");
+            E.M(null, "", $"");
+            E.M("", "", $"");
+            """;
+
+        var expectedDiagnostics = new[] {
+            // (2,2): warning CS8604: Possible null reference argument for parameter 's1' in 'InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2)'.
+            // ((string?)null).M(null, $"");
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "(string?)null").WithArguments("s1", $"InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2{outParam})").WithLocation(2, 2),
+            // (2,19): warning CS8604: Possible null reference argument for parameter 's2' in 'InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2)'.
+            // ((string?)null).M(null, $"");
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null").WithArguments("s2", $"InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2{outParam})").WithLocation(2, 19),
+            // (3,2): warning CS8604: Possible null reference argument for parameter 's1' in 'InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2)'.
+            // ((string?)null).M("", $"");
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "(string?)null").WithArguments("s1", $"InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2{outParam})").WithLocation(3, 2),
+            // (4,6): warning CS8604: Possible null reference argument for parameter 's2' in 'InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2)'.
+            // "".M(null, $"");
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null").WithArguments("s2", $"InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2{outParam})").WithLocation(4, 6),
+            // (6,5): warning CS8604: Possible null reference argument for parameter 's1' in 'InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2)'.
+            // E.M(null, null, $"");
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null").WithArguments("s1", $"InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2{outParam})").WithLocation(6, 5),
+            // (6,11): warning CS8604: Possible null reference argument for parameter 's2' in 'InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2)'.
+            // E.M(null, null, $"");
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null").WithArguments("s2", $"InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2{outParam})").WithLocation(6, 11),
+            // (7,9): warning CS8604: Possible null reference argument for parameter 's2' in 'InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2)'.
+            // E.M("", null, $"");
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null").WithArguments("s2", $"InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2{outParam})").WithLocation(7, 9),
+            // (8,5): warning CS8604: Possible null reference argument for parameter 's1' in 'InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2)'.
+            // E.M(null, "", $"");
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null").WithArguments("s1", $"InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2{outParam})").WithLocation(8, 5)
+        };
+        CreateCompilation([exeSource, src], targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
+
+        var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+
+        CreateCompilation(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    public void InterpolationHandler_ParameterErrors_MappedCorrectly_01()
+    {
+        var src = """
+            [System.Runtime.CompilerServices.InterpolatedStringHandler]
+            public struct InterpolationHandler
+            {
+
+                public InterpolationHandler(int literalLength, int formattedCount, int i)
+                {
+                    System.Console.WriteLine(i);
+                }
+                public void AppendLiteral(string value) { }
+                public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+            }
+
+            public static class E
+            {
+                extension(int i)
+                {
+                    public void M([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("nonexistent")] InterpolationHandler h) {}
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+
+        var symbol = model.GetDeclaredSymbol(extension);
+        AssertExtensionDeclaration(symbol);
+        var underlying = symbol.GetSymbol<NamedTypeSymbol>();
+        var m = underlying.GetMember<MethodSymbol>("M");
+        Assert.False(underlying.ExtensionParameter.HasInterpolatedStringHandlerArgumentError);
+        Assert.True(underlying.ExtensionParameter.InterpolatedStringHandlerArgumentIndexes.IsEmpty);
+        Assert.True(m.Parameters[0].HasInterpolatedStringHandlerArgumentError);
+        Assert.True(m.Parameters[0].InterpolatedStringHandlerArgumentIndexes.IsEmpty);
+        var implM = underlying.ContainingType.GetMember<MethodSymbol>("M");
+        Assert.False(implM.Parameters[0].HasInterpolatedStringHandlerArgumentError);
+        Assert.True(implM.Parameters[0].InterpolatedStringHandlerArgumentIndexes.IsEmpty);
+        Assert.True(implM.Parameters[1].HasInterpolatedStringHandlerArgumentError);
+        Assert.True(implM.Parameters[1].InterpolatedStringHandlerArgumentIndexes.IsEmpty);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    public void InterpolationHandler_ParameterErrors_MappedCorrectly_02()
+    {
+        var src = """
+            [System.Runtime.CompilerServices.InterpolatedStringHandler]
+            public struct InterpolationHandler
+            {
+
+                public InterpolationHandler(int literalLength, int formattedCount, int i)
+                {
+                    System.Console.WriteLine(i);
+                }
+                public void AppendLiteral(string value) { }
+                public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+            }
+
+            public static class E
+            {
+                extension([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("nonexistent")] InterpolationHandler i)
+                {
+                    public void M() {}
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+
+        var symbol = model.GetDeclaredSymbol(extension);
+        AssertExtensionDeclaration(symbol);
+        var underlying = symbol.GetSymbol<NamedTypeSymbol>();
+        var m = underlying.GetMember<MethodSymbol>("M");
+        Assert.True(underlying.ExtensionParameter.HasInterpolatedStringHandlerArgumentError);
+        Assert.True(underlying.ExtensionParameter.InterpolatedStringHandlerArgumentIndexes.IsEmpty);
+        var implM = underlying.ContainingType.GetMember<MethodSymbol>("M");
+        Assert.True(implM.Parameters[0].HasInterpolatedStringHandlerArgumentError);
+        Assert.True(implM.Parameters[0].InterpolatedStringHandlerArgumentIndexes.IsEmpty);
+    }
+
     [Fact]
     public void LiteralReceiver_Property_Enum_Set()
     {
