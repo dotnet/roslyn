@@ -729,7 +729,8 @@ public sealed partial class MetadataAsSourceTests
         public async Task InstanceIncrementOperators(bool signaturesOnly, [CombinatorialValues("++", "--")] string op)
         {
             var metadataSource = "public class C { public void operator " + op + "() {} }" + CompilerFeatureRequiredAttribute;
-            var symbolName = "C." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName);
+            var opName = (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName);
+            var symbolName = "C." + opName;
 
             var expected = signaturesOnly switch
             {
@@ -755,8 +756,9 @@ public sealed partial class MetadataAsSourceTests
                 
                     public class C
                     {
+                        [SpecialName]
                         [CompilerFeatureRequired("UserDefinedCompoundAssignmentOperators")]
-                        public void operator [|{{op}}|]()
+                        public void [|{{opName}}|]()
                         {
                         }
                     }
@@ -778,7 +780,9 @@ public sealed partial class MetadataAsSourceTests
         public async Task InstanceIncrementOperators_Checked(bool signaturesOnly, [CombinatorialValues("++", "--")] string op)
         {
             var metadataSource = "public class C { public void operator " + op + "() {} public void operator checked " + op + "() {} }" + CompilerFeatureRequiredAttribute;
-            var symbolName = "C." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName);
+            var opName = (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName);
+            var opCheckedName = (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName);
+            var symbolName = "C." + opCheckedName;
 
             var expected = signaturesOnly switch
             {
@@ -805,13 +809,15 @@ public sealed partial class MetadataAsSourceTests
                 
                     public class C
                     {
+                        [SpecialName]
                         [CompilerFeatureRequired("UserDefinedCompoundAssignmentOperators")]
-                        public void operator {{op}}()
+                        public void {{opName}}()
                         {
                         }
 
+                        [SpecialName]
                         [CompilerFeatureRequired("UserDefinedCompoundAssignmentOperators")]
-                        public void operator checked [|{{op}}|]()
+                        public void [|{{opCheckedName}}|]()
                         {
                         }
                     }

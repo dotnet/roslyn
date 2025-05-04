@@ -247,11 +247,6 @@
         <target state="translated">'{0}' não pode ser usado como um modificador em um parâmetro de ponteiro de função.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadIncrementOpArgs">
-        <source>Overloaded instance increment operator '{0}' must take no parameters</source>
-        <target state="new">Overloaded instance increment operator '{0}' must take no parameters</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadInheritanceFromRecord">
         <source>Only records may inherit from records.</source>
         <target state="translated">Somente os registros podem ser herdados de registros.</target>

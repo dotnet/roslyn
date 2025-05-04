@@ -206,7 +206,7 @@ Block[B0] - Entry
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '(x ?? y).i++;')
               Expression:
-                IIncrementOrDecrementOperation (Postfix) (OperatorMethod: void S1.op_Increment()) (OperationKind.Increment, Type: System.Void) (Syntax: '(x ?? y).i++')
+                IIncrementOrDecrementOperation (Postfix) (OperatorMethod: void S1.op_IncrementAssignment()) (OperationKind.Increment, Type: System.Void) (Syntax: '(x ?? y).i++')
                   Target:
                     IFieldReferenceOperation: S1 C.D.i (OperationKind.FieldReference, Type: S1) (Syntax: '(x ?? y).i')
                       Instance Receiver:

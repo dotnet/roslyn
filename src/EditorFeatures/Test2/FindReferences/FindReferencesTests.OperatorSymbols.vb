@@ -108,7 +108,7 @@ class A
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/78375"), CombinatorialData>
         Public Async Function TestCSharpFindReferencesOnInstanceIncrementOperators(kind As TestKind, host As TestHost, <CombinatorialValues("++", "--")> op As String) As Task
             Dim input =
 <Workspace>
@@ -129,7 +129,7 @@ class A
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/78375"), CombinatorialData>
         Public Async Function TestCSharpFindReferencesOnInstanceIncrementOperators_Checked(kind As TestKind, host As TestHost, <CombinatorialValues("++", "--")> op As String) As Task
             Dim input =
 <Workspace>
@@ -154,7 +154,7 @@ class A
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/78375"), CombinatorialData>
         Public Async Function TestCSharpFindReferencesOnInstanceCompoundAssignmentOperators(kind As TestKind, host As TestHost, <CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")> op As String) As Task
             Dim input =
 <Workspace>
@@ -175,7 +175,7 @@ class A
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/78375"), CombinatorialData>
         Public Async Function TestCSharpFindReferencesOnInstanceCompoundAssignmentOperators_Checked(kind As TestKind, host As TestHost, <CombinatorialValues("+=", "-=", "*=", "/=")> op As String) As Task
             Dim input =
 <Workspace>
@@ -240,7 +240,7 @@ class A
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/78375"), CombinatorialData>
         Public Async Function TestCSharpFindReferencesOnInstanceIncrementOperators_FromDefinition(kind As TestKind, host As TestHost, <CombinatorialValues("++", "--")> op As String) As Task
             Dim input =
 <Workspace>
@@ -261,7 +261,7 @@ class A
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/78375"), CombinatorialData>
         Public Async Function TestCSharpFindReferencesOnInstanceIncrementOperators_FromDefinition_Checked(kind As TestKind, host As TestHost, <CombinatorialValues("++", "--")> op As String) As Task
             Dim input =
 <Workspace>
@@ -286,7 +286,7 @@ class A
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/78375"), CombinatorialData>
         Public Async Function TestCSharpFindReferencesOnInstanceCompoundAssignmentOperators_FromDefinition(kind As TestKind, host As TestHost, <CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")> op As String) As Task
             Dim input =
 <Workspace>
@@ -307,7 +307,7 @@ class A
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/78375"), CombinatorialData>
         Public Async Function TestCSharpFindReferencesOnInstanceCompoundAssignmentOperators_FromDefinition_Checked(kind As TestKind, host As TestHost, <CombinatorialValues("+=", "-=", "*=", "/=")> op As String) As Task
             Dim input =
 <Workspace>
@@ -920,7 +920,7 @@ class C4_2 : I4<C4_2>
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/78375"), CombinatorialData>
         Public Async Function TestCSharpAbstractStaticIncrementOperatorsInInterface(kind As TestKind, host As TestHost, <CombinatorialValues("++", "--")> op As String) As Task
             Dim input =
 <Workspace>
@@ -947,7 +947,7 @@ class C4_2 : I4<C4_2>
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/78375"), CombinatorialData>
         Public Async Function TestCSharpAbstractInstanceIncrementOperatorsInInterface(kind As TestKind, host As TestHost, <CombinatorialValues("++", "--")> op As String) As Task
             Dim input =
 <Workspace>
@@ -974,7 +974,7 @@ class C4_2 : I4<C4_2>
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/78375"), CombinatorialData>
         Public Async Function TestCSharpAbstractInstanceCompoundAssignmentOperatorsInInterface(kind As TestKind, host As TestHost, <CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")> op As String) As Task
             Dim input =
 <Workspace>
@@ -1082,7 +1082,7 @@ class C4_2 : I4<C4_2>
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/78375"), CombinatorialData>
         Public Async Function TestCSharpAbstractStaticIncrementOperatorsInInterface_ViaApi(host As TestHost, <CombinatorialValues("++", "--")> op As String) As Task
             Dim input =
 <Workspace>
@@ -1109,7 +1109,7 @@ class C4_2 : I4<C4_2>
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/78375"), CombinatorialData>
         Public Async Function TestCSharpAbstractInstanceIncrementOperatorsInInterface_ViaApi(host As TestHost, <CombinatorialValues("++", "--")> op As String) As Task
             Dim input =
 <Workspace>
@@ -1136,7 +1136,7 @@ class C4_2 : I4<C4_2>
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/78375"), CombinatorialData>
         Public Async Function TestCSharpAbstractInstanceCompoundAssignmentOperatorsInInterface_ViaApi(host As TestHost, <CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")> op As String) As Task
             Dim input =
 <Workspace>
@@ -1217,7 +1217,7 @@ class C4_2 : I4<C4_2>
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/78375"), CombinatorialData>
         Public Async Function TestCSharpAbstractStaticIncrementOperatorsInInterface_ViaFeature_1(host As TestHost, <CombinatorialValues("++", "--")> op As String) As Task
             Dim input =
 <Workspace>
@@ -1244,7 +1244,7 @@ class C4_2 : I4<C4_2>
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/78375"), CombinatorialData>
         Public Async Function TestCSharpAbstractInstanceIncrementOperatorsInInterface_ViaFeature_1(host As TestHost, <CombinatorialValues("++", "--")> op As String) As Task
             Dim input =
 <Workspace>
@@ -1271,7 +1271,7 @@ class C4_2 : I4<C4_2>
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/78375"), CombinatorialData>
         Public Async Function TestCSharpAbstractInstanceCompoundAssignmentOperatorsInInterface_ViaFeature_1(host As TestHost, <CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")> op As String) As Task
             Dim input =
 <Workspace>
@@ -1523,7 +1523,7 @@ class C4_2 : I4<C4_2>
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/78375"), CombinatorialData>
         Public Async Function TestCSharpAbstractStaticIncrementOperatorsInInterface_ViaFeature_2(host As TestHost, <CombinatorialValues("++", "--")> op As String) As Task
             Dim input =
 <Workspace>
@@ -1550,7 +1550,7 @@ class C4_2 : I4<C4_2>
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/78375"), CombinatorialData>
         Public Async Function TestCSharpAbstractInstanceIncrementOperatorsInInterface_ViaFeature_2(host As TestHost, <CombinatorialValues("++", "--")> op As String) As Task
             Dim input =
 <Workspace>
@@ -1577,7 +1577,7 @@ class C4_2 : I4<C4_2>
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory(Skip:="Yes"), CombinatorialData>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/78375"), CombinatorialData>
         Public Async Function TestCSharpAbstractInstanceCompoundAssignmentOperatorsInInterface_ViaFeature_2(host As TestHost, <CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")> op As String) As Task
             Dim input =
 <Workspace>
