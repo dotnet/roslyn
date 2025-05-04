@@ -122,9 +122,9 @@ namespace CSharpSyntaxGenerator
                     writeFunction(textWriter);
                 }
 
+                // Test comment
                 // And create a SourceText from the StringBuilder, once again avoiding allocating a single massive string
                 var sourceText = SourceText.From(new StringBuilderReader(stringBuilder), stringBuilder.Length, encoding: Encoding.UTF8);
-                _ = new StringBuilderText(stringBuilder, encoding: Encoding.UTF8);
                 context.AddSource(hintName, sourceText);
             }
         }
@@ -207,29 +207,6 @@ namespace CSharpSyntaxGenerator
                 _position += charsToCopy;
                 return charsToCopy;
             }
-        }
-
-        private sealed class StringBuilderText : SourceText
-        {
-            private readonly StringBuilder _builder;
-            private readonly Encoding? _encoding;
-
-            public StringBuilderText(StringBuilder builder, Encoding? encoding, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
-                 : base(checksumAlgorithm: checksumAlgorithm)
-            {
-                _builder = builder;
-                _encoding = encoding;
-            }
-
-            public override Encoding? Encoding => _encoding;
-            public override int Length => _builder.Length;
-            public override char this[int position] => _builder[position];
-
-            public override string ToString(TextSpan span)
-                => _builder.ToString(span.Start, span.Length);
-
-            public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
-                => _builder.CopyTo(sourceIndex, destination, destinationIndex, count);
         }
     }
 }
