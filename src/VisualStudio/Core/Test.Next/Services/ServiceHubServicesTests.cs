@@ -1664,6 +1664,7 @@ public sealed partial class ServiceHubServicesTests
         Assert.Equal("", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_analyzersemantic_categorytocount"]);
         Assert.Equal("", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_analyzersemantic_severitytocount"]);
 
+        // CS1002_1 means we got one CS1002 diagnostic. Whereas CS1525_3 means we got 3 CS1525 diagnostics.
         Assert.Equal("CS1002_1,CS1513_1,CS1525_3,CS8300_1", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersyntax_idtocount"]);
         Assert.Equal("Compiler_6", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersyntax_categorytocount"]);
         Assert.Equal("Error_6", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersyntax_severitytocount"]);
