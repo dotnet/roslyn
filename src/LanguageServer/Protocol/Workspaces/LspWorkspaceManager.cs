@@ -153,7 +153,8 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         _cachedLspSolutions.Clear();
 
         // Also remove it from our loose files or metadata workspace if it is still there.
-        _lspMiscellaneousFilesWorkspaceProvider?.TryRemoveMiscellaneousDocument(uri, removeFromMetadataWorkspace: true);
+        if (_lspMiscellaneousFilesWorkspaceProvider is not null)
+            await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri, removeFromMetadataWorkspace: true).ConfigureAwait(false);
 
         LspTextChanged?.Invoke(this, EventArgs.Empty);
 
@@ -254,7 +255,8 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 if (workspace != _lspMiscellaneousFilesWorkspaceProvider?.Workspace)
                 {
                     // Do not attempt to remove the file from the metadata workspace (the document is still open).
-                    _lspMiscellaneousFilesWorkspaceProvider?.TryRemoveMiscellaneousDocument(uri, removeFromMetadataWorkspace: false);
+                    if (_lspMiscellaneousFilesWorkspaceProvider is not null)
+                        await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri, removeFromMetadataWorkspace: false).ConfigureAwait(false);
                 }
 
                 return (workspace, document.Project.Solution, document);

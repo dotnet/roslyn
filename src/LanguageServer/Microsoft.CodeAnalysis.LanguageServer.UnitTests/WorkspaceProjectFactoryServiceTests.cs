@@ -48,7 +48,7 @@ public sealed class WorkspaceProjectFactoryServiceTests(ITestOutputHelper testOu
         await batch.ApplyAsync(CancellationToken.None);
 
         // Verify it actually did something; we won't exclusively test each method since those are tested at lower layers
-        var project = workspaceFactory.Workspace.CurrentSolution.Projects.Single();
+        var project = workspaceFactory.HostWorkspace.CurrentSolution.Projects.Single();
 
         var document = Assert.Single(project.Documents);
         Assert.Equal(sourceFilePath, document.FilePath);

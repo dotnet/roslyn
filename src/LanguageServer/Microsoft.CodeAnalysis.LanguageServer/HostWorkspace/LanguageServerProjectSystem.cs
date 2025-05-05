@@ -2,27 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Threading;
-using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.MSBuild.BuildHostProcessManager;
-using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
@@ -31,6 +23,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
 {
     private readonly ILogger _logger;
     private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
+    private readonly ProjectFileExtensionRegistry _projectFileExtensionRegistry;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -44,7 +37,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         ServerConfigurationFactory serverConfigurationFactory,
         BinlogNamer binlogNamer)
             : base(
-                workspaceFactory.ProjectSystemProjectFactory,
+                workspaceFactory.HostProjectFactory,
                 workspaceFactory.TargetFrameworkManager,
                 workspaceFactory.ProjectSystemHostInfo,
                 fileChangeWatcher,
@@ -56,6 +49,8 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
                 binlogNamer)
     {
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectSystem));
+        var workspace = ProjectFactory.Workspace;
+        _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(workspace.CurrentSolution.Services, new DiagnosticReporter(workspace));
     }
 
     public async Task OpenSolutionAsync(string solutionFilePath)
@@ -79,6 +74,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
 
             foreach (var project in await buildHost.GetProjectsInSolutionAsync(solutionFilePath, CancellationToken.None))
             {
+                _ = AddLoadedProjectSet(project.ProjectPath);
                 ProjectsToLoadAndReload.AddWork(new ProjectToLoad(project.ProjectPath, project.ProjectGuid, ReportTelemetry: true));
             }
 
@@ -95,11 +91,28 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
 
         using (await _gate.DisposableWaitAsync())
         {
-            ProjectsToLoadAndReload.AddWork(projectFilePaths.Select(p => new ProjectToLoad(p, ProjectGuid: null, ReportTelemetry: true)));
+            foreach (var projectPath in projectFilePaths)
+            {
+                _ = AddLoadedProjectSet(projectPath);
+                ProjectsToLoadAndReload.AddWork(new ProjectToLoad(projectPath, ProjectGuid: null, ReportTelemetry: true));
+            }
 
             // Wait for the in progress batch to complete and send a project initialized notification to the client.
             await ProjectsToLoadAndReload.WaitUntilCurrentBatchCompletesAsync();
             await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync();
         }
+    }
+
+    protected override async Task<(RemoteProjectFile? projectFile, bool hasAllInformation, BuildHostProcessKind preferred, BuildHostProcessKind actual)> TryLoadProjectAsync(
+            BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken)
+    {
+        var preferredBuildHostKind = GetKindForProject(projectPath);
+        var (buildHost, actualBuildHostKind) = await buildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, projectPath, cancellationToken);
+
+        if (!_projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out var languageName))
+            return (null, false, preferredBuildHostKind, actualBuildHostKind);
+
+        var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken);
+        return (loadedFile, hasAllInformation: true, preferredBuildHostKind, actualBuildHostKind);
     }
 }

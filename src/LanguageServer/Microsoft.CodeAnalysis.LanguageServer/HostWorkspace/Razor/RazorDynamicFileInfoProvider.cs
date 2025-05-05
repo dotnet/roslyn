@@ -37,7 +37,7 @@ internal sealed partial class RazorDynamicFileInfoProvider(Lazy<LanguageServerWo
 
         _razorWorkspaceService.NotifyDynamicFile(projectId);
 
-        var dynamicInfo = await _dynamicFileInfoProvider.GetDynamicFileInfoAsync(workspaceFactory.Value.Workspace, projectId, projectFilePath, filePath, cancellationToken).ConfigureAwait(false);
+        var dynamicInfo = await _dynamicFileInfoProvider.GetDynamicFileInfoAsync(workspaceFactory.Value.HostWorkspace, projectId, projectFilePath, filePath, cancellationToken).ConfigureAwait(false);
         if (dynamicInfo is null)
         {
             return null;
@@ -78,6 +78,6 @@ internal sealed partial class RazorDynamicFileInfoProvider(Lazy<LanguageServerWo
             return;
         }
 
-        await _dynamicFileInfoProvider.RemoveDynamicFileInfoAsync(workspaceFactory.Value.Workspace, projectId, projectFilePath, filePath, cancellationToken).ConfigureAwait(false);
+        await _dynamicFileInfoProvider.RemoveDynamicFileInfoAsync(workspaceFactory.Value.HostWorkspace, projectId, projectFilePath, filePath, cancellationToken).ConfigureAwait(false);
     }
 }

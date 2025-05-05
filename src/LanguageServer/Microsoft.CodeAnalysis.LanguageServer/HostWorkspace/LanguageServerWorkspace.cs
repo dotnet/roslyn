@@ -5,6 +5,7 @@
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
+using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
@@ -44,8 +45,8 @@ internal sealed class LanguageServerWorkspace : Workspace, ILspWorkspace
     /// </summary>
     public ProjectSystemProjectFactory ProjectSystemProjectFactory { private get; set; } = null!;
 
-    public LanguageServerWorkspace(HostServices host)
-        : base(host, WorkspaceKind.Host)
+    public LanguageServerWorkspace(HostServices host, string workspaceKind)
+        : base(host, workspaceKind)
     {
     }
 
@@ -106,7 +107,7 @@ internal sealed class LanguageServerWorkspace : Workspace, ILspWorkspace
                 {
                     TextLoader loader;
                     var document = textDocument as Document;
-                    if (document?.DocumentState.Attributes.DesignTimeOnly == true)
+                    if (document is not null && (document.DocumentState.Attributes.DesignTimeOnly == true || !PathUtilities.IsAbsolute(filePath)))
                     {
                         // Dynamic files don't exist on disk so if we were to use the FileTextLoader we'd effectively be emptying out the document.
                         // We also assume they're not user editable, and hence can't have "unsaved" changes that are expected to go away on close.
