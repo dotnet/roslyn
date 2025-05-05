@@ -50,18 +50,21 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             }
 
             // load the complete closure of razor assemblies if we're asked to load any of them. Subsequent requests for the others will just return the ones loaded here
-            LoadAssemblyWithOverriddenName(compilerLoadContext, assemblyName, RazorCompilerAssemblyName, directory);
-            LoadAssemblyWithOverriddenName(compilerLoadContext, assemblyName, RazorUtilsAssemblyName, directory);
-            LoadAssemblyWithOverriddenName(compilerLoadContext, assemblyName, ObjectPoolAssemblyName, directory);
+            LoadAssemblyByFileName(compilerLoadContext, RazorCompilerAssemblyName, directory);
+            LoadAssemblyByFileName(compilerLoadContext, RazorUtilsAssemblyName, directory);
+            LoadAssemblyByFileName(compilerLoadContext, ObjectPoolAssemblyName, directory);
 
             // return the actual assembly that we were asked to load.
             return LoadAssembly(compilerLoadContext, assemblyName, directory);
 
-            static Assembly? LoadAssemblyWithOverriddenName(AssemblyLoadContext compilerLoadContext, AssemblyName assemblyName, string overriddenName, string directory)
+            static Assembly? LoadAssemblyByFileName(AssemblyLoadContext compilerLoadContext, string fileName, string directory)
             {
-                var overriddenAssemblyName = (AssemblyName)assemblyName.Clone();
-                overriddenAssemblyName.Name = overriddenName;
-                return LoadAssembly(compilerLoadContext, overriddenAssemblyName, directory);
+                var onDiskName = Path.Combine(directory, $"{fileName}.dll");
+                if (File.Exists(onDiskName))
+                {
+                    return LoadAssembly(compilerLoadContext, AssemblyName.GetAssemblyName(onDiskName), directory);
+                }
+                return null;
             }
 
             static Assembly? LoadAssembly(AssemblyLoadContext compilerLoadContext, AssemblyName assemblyName, string directory)
