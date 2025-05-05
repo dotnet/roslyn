@@ -697,12 +697,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 #if NETFRAMEWORK && DEBUG
 
         [Theory]
-        [InlineData("binfx", true)]
-        [InlineData("other", false)]
-        public void CalculateIsSdkFrameworkToCoreBridgeTask_DirectoryName(string dirName, bool expected)
+        [InlineData("binfx", true, true)]
+        [InlineData("binfx", false, false)]
+        [InlineData("other", true, false)]
+        [InlineData("other", false, false)]
+        public void CalculateIsSdkFrameworkToCoreBridgeTask_DirectoryName(string dirName, bool makeBincore, bool expected)
         {
-            LoadInAppDomain(dirName, (appDomain, taskAssemblyName, _) =>
+            LoadInAppDomain(dirName, (appDomain, taskAssemblyName, dirPath) =>
             {
+                if (makeBincore)
+                {
+                    _ = Directory.CreateDirectory(Path.Combine(Path.GetDirectoryName(dirPath), "bincore"));
+                }
+
                 var testHost = (TaskTestHost)appDomain.CreateInstanceAndUnwrap(taskAssemblyName, typeof(TaskTestHost).FullName);
                 Assert.Equal(expected, testHost.IsSdkFrameworkToCoreBridgeTask);
             });

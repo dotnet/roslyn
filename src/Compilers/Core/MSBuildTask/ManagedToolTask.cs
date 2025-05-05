@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 {
     public abstract class ManagedToolTask : ToolTask
     {
+        private static bool DefaultIsSdkFrameworkToCoreBridgeTask { get; } = CalculateIsSdkFrameworkToCoreBridgeTask();
+
         /// <summary>
         /// Is the builtin tool being used here? When false the developer has specified a custom tool
         /// to be run by this task
@@ -38,7 +40,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <remarks>
         /// This is mutable to facilitate testing
         /// </remarks>
-        internal bool IsSdkFrameworkToCoreBridgeTask { get; init; } = CalculateIsSdkFrameworkToCoreBridgeTask();
+        internal bool IsSdkFrameworkToCoreBridgeTask { get; init; } = DefaultIsSdkFrameworkToCoreBridgeTask;
 
         /// <summary>
         /// Is the builtin tool executed by this task running on .NET Core?
@@ -210,7 +212,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             var buildTaskDrectoryName = Path.GetFileName(buildTaskDirectory);
             return
                 string.Equals(buildTaskDrectoryName, "binfx", StringComparison.OrdinalIgnoreCase) &&
-                !File.Exists(Path.Combine(buildTaskDirectory, "csc.exe"));
+                !File.Exists(Path.Combine(buildTaskDirectory, "csc.exe")) &&
+                Directory.Exists(Path.Combine(buildTaskDirectory, "..", "bincore"));
 #endif
         }
     }
