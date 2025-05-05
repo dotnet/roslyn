@@ -19131,11 +19131,11 @@ static class E
             """;
 
         var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "12" : null;
-        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify);
 
         var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
 
-        var verifier = CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+        var verifier = CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify);
 
         var comp = (CSharpCompilation)verifier.Compilation;
         var tree = comp.SyntaxTrees[0];
@@ -19253,11 +19253,11 @@ static class E
             """;
 
         var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "Get1Get2" : null;
-        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify);
 
         var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
 
-        CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+        CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
@@ -19293,11 +19293,11 @@ static class E
             """;
 
         var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "1234" : null;
-        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify);
 
         var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
 
-        var verifier = CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+        var verifier = CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify);
         var comp = (CSharpCompilation)verifier.Compilation;
         var tree = comp.SyntaxTrees[0];
         var compRoot = tree.GetCompilationUnitRoot();
@@ -19424,11 +19424,11 @@ static class E
             """;
 
         var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "12" : null;
-        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify);
 
         var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
 
-        CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+        CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
@@ -19463,11 +19463,11 @@ static class E
             """;
 
         var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "12" : null;
-        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify);
 
         var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
 
-        CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+        CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
@@ -19557,11 +19557,11 @@ static class E
             """;
 
         var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "123423" : null;
-        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify);
 
         var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
 
-        CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+        CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
@@ -19596,11 +19596,11 @@ static class E
             """;
 
         var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "12" : null;
-        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify);
 
         var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
 
-        CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+        CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
@@ -19685,11 +19685,11 @@ static class E
             """;
 
         var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "12" : null;
-        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify);
 
         var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
 
-        CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput);
+        CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
