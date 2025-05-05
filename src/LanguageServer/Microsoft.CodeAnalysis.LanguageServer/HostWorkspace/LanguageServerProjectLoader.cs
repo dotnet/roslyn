@@ -186,6 +186,7 @@ internal abstract class LanguageServerProjectLoader
             Dictionary<ProjectFileInfo, ProjectLoadTelemetryReporter.TelemetryInfo> telemetryInfos = [];
             var needsRestore = false;
 
+            HashSet<LoadedProject> projectsToRemove = [.. existingProjects];
             foreach (var loadedProjectInfo in loadedProjectInfos)
             {
                 // If we already have the project with this same target framework, just update it
@@ -195,6 +196,7 @@ internal abstract class LanguageServerProjectLoader
 
                 if (existingProject != null)
                 {
+                    projectsToRemove.Remove(existingProject);
                     (targetTelemetryInfo, targetNeedsRestore) = await existingProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo, _logger);
                 }
                 else
@@ -222,6 +224,12 @@ internal abstract class LanguageServerProjectLoader
                     needsRestore |= targetNeedsRestore;
                     telemetryInfos[loadedProjectInfo] = targetTelemetryInfo with { IsSdkStyle = preferredBuildHostKind == BuildHostProcessKind.NetCore };
                 }
+            }
+
+            foreach (var project in projectsToRemove)
+            {
+                project.Dispose();
+                _loadedProjects.AddOrUpdate(projectPath, addValueFactory: _ => throw new InvalidOperationException(), updateValueFactory: (_, arr) => arr.Remove(project));
             }
 
             if (projectToLoad.ReportTelemetry)
