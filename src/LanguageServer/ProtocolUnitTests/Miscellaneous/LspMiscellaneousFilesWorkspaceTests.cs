@@ -192,7 +192,7 @@ public sealed class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServer
         Assert.Null(GetMiscellaneousAdditionalDocument(testLspServer));
 
         // Open an empty loose file and make a request to verify it gets added to the misc workspace.
-        var looseFileUri = ProtocolConversions.CreateAbsoluteUri(@"C:\SomeFile.razor");
+        var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\SomeFile.razor");
         await testLspServer.OpenDocumentAsync(looseFileUri, source).ConfigureAwait(false);
 
         // Trigger a request and assert we got a file in the misc workspace.
