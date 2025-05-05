@@ -1543,6 +1543,44 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     }
 
     [Theory, CombinatorialData]
+    public async Task IgnoredDirective_01(TestHost testHost)
+    {
+        await TestAsync("""
+            #:unknown // comment
+            Console.Write();
+            """,
+            testHost,
+            PPKeyword("#"),
+            PPKeyword(":"),
+            String("unknown // comment"),
+            Identifier("Console"),
+            Operators.Dot,
+            Identifier("Write"),
+            Punctuation.OpenParen,
+            Punctuation.CloseParen,
+            Punctuation.Semicolon);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task IgnoredDirective_02(TestHost testHost)
+    {
+        await TestAsync("""
+            #:sdk Test 2.1.0
+            Console.Write();
+            """,
+            testHost,
+            PPKeyword("#"),
+            PPKeyword(":"),
+            String("sdk Test 2.1.0"),
+            Identifier("Console"),
+            Operators.Dot,
+            Identifier("Write"),
+            Punctuation.OpenParen,
+            Punctuation.CloseParen,
+            Punctuation.Semicolon);
+    }
+
+    [Theory, CombinatorialData]
     public async Task CommentAsMethodBodyContent(TestHost testHost)
     {
         var code = """
