@@ -49,63 +49,81 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 return null;
             }
 
-            var assembly = compilerLoadContext.Assemblies.FirstOrDefault(a => a.GetName().Name == assemblyName.Name);
-            if (assembly is not null)
+            // load the complete closure of razor assemblies if we're asked to load any of them. Subsequent requests for the others will just return the ones loaded here
+            LoadAssemblyWithOverriddenName(compilerLoadContext, assemblyName, RazorCompilerAssemblyName, directory);
+            LoadAssemblyWithOverriddenName(compilerLoadContext, assemblyName, RazorUtilsAssemblyName, directory);
+            LoadAssemblyWithOverriddenName(compilerLoadContext, assemblyName, ObjectPoolAssemblyName, directory);
+
+            // return the actual assembly that we were asked to load.
+            return LoadAssembly(compilerLoadContext, assemblyName, directory);
+
+            static Assembly? LoadAssemblyWithOverriddenName(AssemblyLoadContext compilerLoadContext, AssemblyName assemblyName, string overriddenName, string directory)
             {
+                var overriddenAssemblyName = (AssemblyName)assemblyName.Clone();
+                overriddenAssemblyName.Name = overriddenName;
+                return LoadAssembly(compilerLoadContext, overriddenAssemblyName, directory);
+            }
+
+            static Assembly? LoadAssembly(AssemblyLoadContext compilerLoadContext, AssemblyName assemblyName, string directory)
+            {
+                var assembly = compilerLoadContext.Assemblies.FirstOrDefault(a => a.GetName().Name == assemblyName.Name);
+                if (assembly is not null)
+                {
+                    return assembly;
+                }
+
+                var assemblyFileName = $"{assemblyName.Name}.dll";
+
+                // Depending on who wins the race to load these assemblies, the base directory will either be the tooling root (if Roslyn wins)
+                // or the ServiceHubCore subfolder (razor). In the root directory these are netstandard2.0 targeted, in ServiceHubCore they are 
+                // .net targeted. We need to always pick the same set of assemblies regardless of who causes us to load. Because this code only
+                // runs in a .net based host, it's safe to always choose the .net targeted ServiceHubCore versions.
+                if (!Path.GetFileName(directory.AsSpan().TrimEnd(Path.DirectorySeparatorChar)).Equals(ServiceHubCoreFolderName, StringComparison.OrdinalIgnoreCase))
+                {
+                    var serviceHubCoreDirectory = Path.Combine(directory, ServiceHubCoreFolderName);
+
+                    // The logic above only applies to VS. In VS Code there is no service hub, so appending the folder would be silly.
+                    if (Directory.Exists(serviceHubCoreDirectory))
+                    {
+                        directory = serviceHubCoreDirectory;
+                    }
+                }
+
+                var assemblyPath = Path.Combine(directory, assemblyFileName);
+                if (File.Exists(assemblyPath))
+                {
+                    // https://github.com/dotnet/roslyn/issues/76868
+                    //
+                    // There is a subtle race condition in this logic as another thread could load the assembly in between 
+                    // the above calls and this one. Short term will just catch and grab the loaded assembly but longer 
+                    // term need to think about creating a dedicated AssemblyLoadContext for the razor assemblies 
+                    // which avoids this race condition.
+                    try
+                    {
+                        assembly = compilerLoadContext.LoadFromAssemblyPath(assemblyPath);
+                    }
+                    catch
+                    {
+                        assembly = compilerLoadContext.Assemblies.Single(a => a.GetName().Name == assemblyName.Name);
+                    }
+                }
+                else
+                {
+                    // There are assemblies in the razor sdk generator directory that do not exist in the VS installation. That
+                    // means when the paths are redirected, it's possible that the assembly is not found. In that case, we should
+                    // load the assembly from the VS installation by querying through the compiler context.
+                    try
+                    {
+                        assembly = compilerLoadContext.LoadFromAssemblyName(assemblyName);
+                    }
+                    catch (FileNotFoundException)
+                    {
+                        assembly = null;
+                    }
+                }
+
                 return assembly;
             }
-
-            var assemblyFileName = $"{assemblyName.Name}.dll";
-
-            // Depending on who wins the race to load these assemblies, the base directory will either be the tooling root (if Roslyn wins)
-            // or the ServiceHubCore subfolder (razor). In the root directory these are netstandard2.0 targeted, in ServiceHubCore they are 
-            // .net targeted. We need to always pick the same set of assemblies regardless of who causes us to load. Because this code only
-            // runs in a .net based host, it's safe to always choose the .net targeted ServiceHubCore versions.
-            if (!Path.GetFileName(directory.AsSpan().TrimEnd(Path.DirectorySeparatorChar)).Equals(ServiceHubCoreFolderName, StringComparison.OrdinalIgnoreCase))
-            {
-                var serviceHubCoreDirectory = Path.Combine(directory, ServiceHubCoreFolderName);
-
-                // The logic above only applies to VS. In VS Code there is no service hub, so appending the folder would be silly.
-                if (Directory.Exists(serviceHubCoreDirectory))
-                {
-                    directory = serviceHubCoreDirectory;
-                }
-            }
-
-            var assemblyPath = Path.Combine(directory, assemblyFileName);
-            if (File.Exists(assemblyPath))
-            {
-                // https://github.com/dotnet/roslyn/issues/76868
-                //
-                // There is a subtle race condition in this logic as another thread could load the assembly in between 
-                // the above calls and this one. Short term will just catch and grab the loaded assembly but longer 
-                // term need to think about creating a dedicated AssemblyLoadContext for the razor assemblies 
-                // which avoids this race condition.
-                try
-                {
-                    assembly = compilerLoadContext.LoadFromAssemblyPath(assemblyPath);
-                }
-                catch
-                {
-                    assembly = compilerLoadContext.Assemblies.Single(a => a.GetName().Name == assemblyName.Name);
-                }
-            }
-            else
-            {
-                // There are assemblies in the razor sdk generator directory that do not exist in the VS installation. That
-                // means when the paths are redirected, it's possible that the assembly is not found. In that case, we should
-                // load the assembly from the VS installation by querying through the compiler context.
-                try
-                {
-                    assembly = compilerLoadContext.LoadFromAssemblyName(assemblyName);
-                }
-                catch (FileNotFoundException)
-                {
-                    assembly = null;
-                }
-            }
-
-            return assembly;
         }
     }
 }
