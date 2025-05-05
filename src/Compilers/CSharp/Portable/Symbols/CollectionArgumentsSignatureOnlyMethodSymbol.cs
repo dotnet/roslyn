@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             MethodSymbol wellKnownConstructor,
             string name,
             Symbol containingSymbol,
-            Func<CollectionArgumentsSignatureOnlyMethodSymbol, ImmutableArray<ParameterSymbol>> getParameters,
+            ImmutableArray<(string Name, TypeWithAnnotations Type)> parameters,
             TypeWithAnnotations returnType)
         {
             Debug.Assert(wellKnownConstructor is { });
@@ -30,7 +30,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             WellKnownConstructor = wellKnownConstructor;
             Name = name;
             ContainingSymbol = containingSymbol;
-            Parameters = getParameters(this);
+            var parameterBuilder = ArrayBuilder<ParameterSymbol>.GetInstance(parameters.Length);
+            foreach ((var parameterName, var parameterType) in parameters)
+            {
+                parameterBuilder.Add(SynthesizedParameterSymbol.Create(this, parameterType, parameterBuilder.Count, RefKind.None, parameterName));
+            }
+            Parameters = parameterBuilder.ToImmutableAndFree();
             ReturnTypeWithAnnotations = returnType;
         }
 

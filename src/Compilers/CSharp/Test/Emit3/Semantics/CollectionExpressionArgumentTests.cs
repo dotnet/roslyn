@@ -611,15 +611,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             verifier.VerifyIL("Program.EmptyArgs<K, V>", expectedIL);
         }
 
-        // PROTOTYPE: Test with unrecognized signature. BindMemberAccessReportError() expects a boundLeft that is non-null, that is, an explicit type if the method is static.
-        // PROTOTYPE: Include nullability of signatures in proposal, and test here. For instance, null should be allowed for IEqualityComparer<T>.
+        // PROTOTYPE: Test nullability of signatures. Specifically, null should be allowed for IEqualityComparer<T>.
         // PROTOTYPE: Test with named parameter capacity: value.
         // PROTOTYPE: Test the full shape of the synthesized methods, including 'params', optional values, accessibility, etc.?
         // PROTOTYPE: Test with implementation method that differs from the expected parameter name when the argument was explicitly named.
         // PROTOTYPE: Semantic model for collection creation: what method is returned if any?
         // PROTOTYPE: Test dynamic arguments. Shouldn't result in a BoundDynamicInvocation.
         // PROTOTYPE: Test success cases for all interface types.
-        // PROTOTYPE: Test other constructors from List<T> and Dictionary<K, V> are not available.
+        // PROTOTYPE: Test that other constructors from List<T> and Dictionary<K, V> are not considered.
 
         [Theory]
         [InlineData("IDictionary")]
@@ -4297,6 +4296,109 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     comp.VerifyEmitDiagnostics();
                     break;
             }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void InterfaceTarget_GenericMethod(
+            [CombinatorialValues("IDictionary", "IReadOnlyDictionary")] string typeName)
+        {
+            string source = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static {{typeName}}<K, V> Create<K, V>(IEqualityComparer<K> e)
+                    {
+                        return [with(e)];
+                    }
+                    static void Main()
+                    {
+                        Create<int, string>(null).Report();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensions],
+                expectedOutput: "[], ");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Create<K, V>",
+                typeName == "IDictionary" ?
+                """
+                {
+                    // Code size        7 (0x7)
+                    .maxstack  1
+                    IL_0000:  ldarg.0
+                    IL_0001:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(System.Collections.Generic.IEqualityComparer<K>)"
+                    IL_0006:  ret
+                }
+                """ :
+                """
+                {
+                    // Code size       12 (0xc)
+                    .maxstack  1
+                    IL_0000:  ldarg.0
+                    IL_0001:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(System.Collections.Generic.IEqualityComparer<K>)"
+                    IL_0006:  newobj     "System.Collections.ObjectModel.ReadOnlyDictionary<K, V>..ctor(System.Collections.Generic.IDictionary<K, V>)"
+                    IL_000b:  ret
+                }
+                """);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void InterfaceTarget_FieldInitializer(
+            [CombinatorialValues("IDictionary", "IReadOnlyDictionary")] string typeName)
+        {
+            string source = $$"""
+                using System.Collections.Generic;
+                class C<K, V>
+                {
+                    public {{typeName}}<K, V> F =
+                        [with(GetComparer())];
+                    static IEqualityComparer<K> GetComparer() => null;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var c = new C<int, string>();
+                        c.F.Report();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensions],
+                expectedOutput: "[], ");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C<K, V>..ctor",
+                typeName == "IDictionary" ?
+                """
+                {
+                  // Code size       23 (0x17)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "System.Collections.Generic.IEqualityComparer<K> C<K, V>.GetComparer()"
+                  IL_0006:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(System.Collections.Generic.IEqualityComparer<K>)"
+                  IL_000b:  stfld      "System.Collections.Generic.IDictionary<K, V> C<K, V>.F"
+                  IL_0010:  ldarg.0
+                  IL_0011:  call       "object..ctor()"
+                  IL_0016:  ret
+                }
+                """ :
+                """
+                {
+                  // Code size       28 (0x1c)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "System.Collections.Generic.IEqualityComparer<K> C<K, V>.GetComparer()"
+                  IL_0006:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(System.Collections.Generic.IEqualityComparer<K>)"
+                  IL_000b:  newobj     "System.Collections.ObjectModel.ReadOnlyDictionary<K, V>..ctor(System.Collections.Generic.IDictionary<K, V>)"
+                  IL_0010:  stfld      "System.Collections.Generic.IReadOnlyDictionary<K, V> C<K, V>.F"
+                  IL_0015:  ldarg.0
+                  IL_0016:  call       "object..ctor()"
+                  IL_001b:  ret
+                }
+                """);
         }
 
         [Fact]

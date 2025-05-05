@@ -1340,8 +1340,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol targetType,
             BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(ContainingType is { }); // PROTOTYPE: When is this false?
-            const string methodName = "<signature>"; // PROTOTYPE: What name should we use?
+            Debug.Assert(ContainingType is { });
+            const string methodName = "<signature>"; // Arbitrary name.
             var builder = ArrayBuilder<MethodSymbol>.GetInstance();
             addSignatures(builder, syntax, ContainingType, methodName, targetType, diagnostics);
             if (builder.IsEmpty)
@@ -1368,6 +1368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamedTypeSymbol targetType,
                 BindingDiagnosticBag diagnostics)
             {
+                var returnType = TypeWithAnnotations.Create(targetType);
                 switch (collectionTypeKind)
                 {
                     case CollectionExpressionTypeKind.ArrayInterface:
@@ -1375,14 +1376,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     case CollectionExpressionTypeKind.DictionaryInterface:
                         {
-                            // PROTOTYPE: Lambda expressions should be static.
                             var intType = TypeWithAnnotations.Create(GetSpecialType(SpecialType.System_Int32, diagnostics, syntax));
-                            // PROTOTYPE: What if targetType or targetType.TypeArugments[0] are type parameters declared
-                            // on the containing method? In that case, presumably the signature should be a generic method
-                            // where type arguments are supplied at this call site.
-                            var comparerTypeArgument = targetType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+                            // PROTOTYPE: What if target type has type arguments that are type parameters from the current method?
+                            // If so, the signature method will reference type parameters that are not in scope. If that breaks a compiler
+                            // guarantee, perhaps we should create a synthesized generic type for the signature methods where the
+                            // synthesized type has type parameters for the type arguments of List<T> or Dictionary<K, V>?
                             var comparerType = TypeWithAnnotations.Create(
-                                GetWellKnownType(WellKnownType.System_Collections_Generic_IEqualityComparer_T, diagnostics, node: syntax).Construct([comparerTypeArgument]),
+                                GetWellKnownType(WellKnownType.System_Collections_Generic_IEqualityComparer_T, diagnostics, node: syntax).Construct([targetType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0]]),
                                 NullableAnnotation.Annotated);
                             addSignature(
                                 builder,
@@ -1391,8 +1391,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor,
                                 containingType,
                                 methodName,
-                                getParameters: _ => [],
-                                targetType,
+                                parameters: [],
+                                returnType,
                                 diagnostics);
                             addSignature(
                                 builder,
@@ -1401,8 +1401,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_IEqualityComparer_K,
                                 containingType,
                                 methodName,
-                                getParameters: method => [SynthesizedParameterSymbol.Create(method, comparerType, ordinal: 1, refKind: RefKind.None, name: "comparer")],
-                                targetType,
+                                parameters: [("comparer", comparerType)],
+                                returnType,
                                 diagnostics);
                             addSignature(
                                 builder,
@@ -1411,8 +1411,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32,
                                 containingType,
                                 methodName,
-                                getParameters: method => [SynthesizedParameterSymbol.Create(method, intType, ordinal: 1, refKind: RefKind.None, name: "capacity")],
-                                targetType,
+                                parameters: [("capacity", intType)],
+                                returnType,
                                 diagnostics);
                             addSignature(
                                 builder,
@@ -1421,12 +1421,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32_IEqualityComparer_K,
                                 containingType,
                                 methodName,
-                                getParameters: method =>
-                                    [
-                                        SynthesizedParameterSymbol.Create(method, intType, ordinal: 1, refKind: RefKind.None, name: "capacity"),
-                                        SynthesizedParameterSymbol.Create(method, comparerType, ordinal: 2, refKind: RefKind.None, name: "comparer")
-                                    ],
-                                targetType,
+                                parameters: [("capacity", intType), ("comparer", comparerType)],
+                                returnType,
                                 diagnostics);
                         }
                         break;
@@ -1442,19 +1438,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WellKnownMember wellKnownConstructor,
                 NamedTypeSymbol containingType,
                 string methodName,
-                Func<CollectionArgumentsSignatureOnlyMethodSymbol, ImmutableArray<ParameterSymbol>> getParameters,
-                NamedTypeSymbol resultType,
+                ImmutableArray<(string Name, TypeWithAnnotations Type)> parameters,
+                TypeWithAnnotations returnType,
                 BindingDiagnosticBag diagnostics)
             {
                 var constructor = (MethodSymbol?)GetWellKnownTypeMember(compilation, wellKnownConstructor, diagnostics, syntax: syntax);
                 if (constructor is { })
                 {
-                    var method = new CollectionArgumentsSignatureOnlyMethodSymbol(
-                        constructor,
-                        methodName,
-                        containingType,
-                        getParameters,
-                        returnType: TypeWithAnnotations.Create(resultType));
+                    var method = new CollectionArgumentsSignatureOnlyMethodSymbol(constructor, methodName, containingType, parameters, returnType);
                     builder.Add(method);
                 }
             }
