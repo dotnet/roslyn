@@ -777,6 +777,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             localToUse = local;
                         }
+                        else
+                        {
+                            Debug.Assert(false);
+                        }
 
                         value = new BoundLocal(syntax, localToUse, null, localToUse.Type);
                         break;
