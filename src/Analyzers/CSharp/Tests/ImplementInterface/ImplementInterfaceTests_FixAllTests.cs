@@ -158,7 +158,6 @@ public sealed class ImplementInterfaceTests_FixAllTests
             },
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipFixAllInProjectCheck | CodeFixTestBehaviors.SkipFixAllInSolutionCheck,
             CodeActionEquivalenceKey = "False;False;True:global::I1;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
-            CodeActionIndex = 0,
         }.RunAsync();
     }
 
@@ -310,7 +309,6 @@ public sealed class ImplementInterfaceTests_FixAllTests
             },
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipFixAllInDocumentCheck | CodeFixTestBehaviors.SkipFixAllInSolutionCheck,
             CodeActionEquivalenceKey = "False;False;True:global::I1;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
-            CodeActionIndex = 0,
         }.RunAsync();
     }
 

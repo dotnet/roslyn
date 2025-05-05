@@ -4764,7 +4764,7 @@ class Program
                 {
                   // Code size       24 (0x18)
                   .maxstack  2
-                  .locals init (nint? V_0,
+                  .locals init (System.IntPtr? V_0,
                                 System.IntPtr V_1)
                   IL_0000:  ldarg.0
                   IL_0001:  stloc.0
@@ -4772,11 +4772,11 @@ class Program
                   IL_0003:  conv.i
                   IL_0004:  stloc.1
                   IL_0005:  ldloca.s   V_0
-                  IL_0007:  call       "nint nint?.GetValueOrDefault()"
+                  IL_0007:  call       "System.IntPtr System.IntPtr?.GetValueOrDefault()"
                   IL_000c:  ldloc.1
                   IL_000d:  ceq
                   IL_000f:  ldloca.s   V_0
-                  IL_0011:  call       "bool nint?.HasValue.get"
+                  IL_0011:  call       "bool System.IntPtr?.HasValue.get"
                   IL_0016:  and
                   IL_0017:  ret
                 }
@@ -4813,7 +4813,7 @@ class Program
                   // Code size       12 (0xc)
                   .maxstack  2
                   IL_0000:  ldarga.s   V_0
-                  IL_0002:  call       "nint nint?.GetValueOrDefault()"
+                  IL_0002:  call       "System.IntPtr System.IntPtr?.GetValueOrDefault()"
                   IL_0007:  ldc.i4.1
                   IL_0008:  conv.i
                   IL_0009:  ceq
@@ -4851,7 +4851,7 @@ class Program
                 {
                   // Code size       24 (0x18)
                   .maxstack  2
-                  .locals init (nuint? V_0,
+                  .locals init (System.UIntPtr? V_0,
                                 System.UIntPtr V_1)
                   IL_0000:  ldarg.0
                   IL_0001:  stloc.0
@@ -4859,11 +4859,11 @@ class Program
                   IL_0003:  conv.i
                   IL_0004:  stloc.1
                   IL_0005:  ldloca.s   V_0
-                  IL_0007:  call       "nuint nuint?.GetValueOrDefault()"
+                  IL_0007:  call       "System.UIntPtr System.UIntPtr?.GetValueOrDefault()"
                   IL_000c:  ldloc.1
                   IL_000d:  ceq
                   IL_000f:  ldloca.s   V_0
-                  IL_0011:  call       "bool nuint?.HasValue.get"
+                  IL_0011:  call       "bool System.UIntPtr?.HasValue.get"
                   IL_0016:  and
                   IL_0017:  ret
                 }
@@ -4900,7 +4900,7 @@ class Program
                   // Code size       12 (0xc)
                   .maxstack  2
                   IL_0000:  ldarga.s   V_0
-                  IL_0002:  call       "nuint nuint?.GetValueOrDefault()"
+                  IL_0002:  call       "System.UIntPtr System.UIntPtr?.GetValueOrDefault()"
                   IL_0007:  ldc.i4.1
                   IL_0008:  conv.i
                   IL_0009:  ceq

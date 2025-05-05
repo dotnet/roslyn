@@ -62,6 +62,8 @@ internal partial class SyntacticClassificationTaggerProvider
         private readonly TimeSpan _diffTimeout;
 
         private Workspace? _workspace;
+        private WorkspaceEventRegistration? _workspaceChangedDisposer;
+        private WorkspaceEventRegistration? _workspaceDocumentActiveContextChangedDisposer;
 
         /// <summary>
         /// Cached values for the last services we computed for a particular <see cref="Workspace"/> and <see
@@ -224,8 +226,8 @@ internal partial class SyntacticClassificationTaggerProvider
             _taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
 
             _workspace = workspace;
-            _workspace.WorkspaceChanged += this.OnWorkspaceChanged;
-            _workspace.DocumentActiveContextChanged += this.OnDocumentActiveContextChanged;
+            _workspaceChangedDisposer = _workspace.RegisterWorkspaceChangedHandler(this.OnWorkspaceChanged);
+            _workspaceDocumentActiveContextChangedDisposer = _workspace.RegisterDocumentActiveContextChangedHandler(this.OnDocumentActiveContextChanged);
 
             // Now that we've connected to the workspace, kick off work to reclassify this buffer.
             _workQueue.AddWork(_subjectBuffer.CurrentSnapshot);
@@ -243,8 +245,11 @@ internal partial class SyntacticClassificationTaggerProvider
 
             if (_workspace != null)
             {
-                _workspace.WorkspaceChanged -= this.OnWorkspaceChanged;
-                _workspace.DocumentActiveContextChanged -= this.OnDocumentActiveContextChanged;
+                _workspaceChangedDisposer?.Dispose();
+                _workspaceChangedDisposer = null;
+
+                _workspaceDocumentActiveContextChangedDisposer?.Dispose();
+                _workspaceDocumentActiveContextChangedDisposer = null;
 
                 _workspace = null;
 
@@ -264,7 +269,7 @@ internal partial class SyntacticClassificationTaggerProvider
             _workQueue.AddWork(args.After);
         }
 
-        private void OnDocumentActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs args)
+        private void OnDocumentActiveContextChanged(DocumentActiveContextChangedEventArgs args)
         {
             if (_workspace == null)
                 return;
@@ -277,18 +282,19 @@ internal partial class SyntacticClassificationTaggerProvider
             _workQueue.AddWork(_subjectBuffer.CurrentSnapshot);
         }
 
-        private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs args)
+        private void OnWorkspaceChanged(WorkspaceChangeEventArgs args)
         {
             // We may be getting an event for a workspace we already disconnected from.  If so,
             // ignore them.  We won't be able to find the Document corresponding to our text buffer,
             // so we can't reasonably classify this anyways.
-            if (args.NewSolution.Workspace != _workspace)
+            var workspace = _workspace;
+            if (args.NewSolution.Workspace != workspace)
                 return;
 
             if (args.Kind != WorkspaceChangeKind.ProjectChanged)
                 return;
 
-            var documentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
+            var documentId = workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
             if (args.ProjectId != documentId?.ProjectId)
                 return;
 

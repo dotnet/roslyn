@@ -37,7 +37,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 : base(analysisContext)
             {
                 _taintedDataAnalysisDomain = taintedDataAnalysisDomain;
-                this.TaintedSourcesBySink = new Dictionary<SymbolAccess, (ImmutableHashSet<SinkKind>.Builder SinkKinds, ImmutableHashSet<SymbolAccess>.Builder SourceOrigins)>();
+                this.TaintedSourcesBySink = [];
             }
 
             public ImmutableArray<TaintedDataSourceSink> GetTaintedDataSourceSinkEntries()
@@ -186,7 +186,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     TaintedDataAbstractValue childValue = Visit(childOperation, argument);
                     if (childValue.Kind == TaintedDataAbstractValueKind.Tainted)
                     {
-                        taintedValues ??= new List<TaintedDataAbstractValue>();
+                        taintedValues ??= [];
 
                         taintedValues.Add(childValue);
                     }
@@ -482,7 +482,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 TaintedDataAbstractValue baseAbstractValue = base.VisitArrayInitializer(operation, argument);
                 if (baseAbstractValue.Kind == TaintedDataAbstractValueKind.Tainted)
                 {
-                    sourceOrigins = new HashSet<SymbolAccess>(baseAbstractValue.SourceOrigins);
+                    sourceOrigins = [.. baseAbstractValue.SourceOrigins];
                 }
 
                 IEnumerable<TaintedDataAbstractValue> taintedAbstractValues =
@@ -682,7 +682,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             private static bool IsMethodArgumentASink(IMethodSymbol method, IEnumerable<SinkInfo> infosForType, IArgumentOperation taintedArgument, [NotNullWhen(returnValue: true)] out HashSet<SinkKind>? sinkKinds)
             {
                 sinkKinds = null;
-                Lazy<HashSet<SinkKind>> lazySinkKinds = new Lazy<HashSet<SinkKind>>(() => new HashSet<SinkKind>());
+                Lazy<HashSet<SinkKind>> lazySinkKinds = new Lazy<HashSet<SinkKind>>(() => []);
                 foreach (SinkInfo sinkInfo in infosForType)
                 {
                     if (lazySinkKinds.IsValueCreated && lazySinkKinds.Value.IsSupersetOf(sinkInfo.SinkKinds) ||
@@ -723,7 +723,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             /// <returns>True if the property is a sink, false otherwise.</returns>
             private bool IsPropertyASink(IPropertyReferenceOperation propertyReferenceOperation, [NotNullWhen(returnValue: true)] out HashSet<SinkKind>? sinkKinds)
             {
-                Lazy<HashSet<SinkKind>> lazySinkKinds = new Lazy<HashSet<SinkKind>>(() => new HashSet<SinkKind>());
+                Lazy<HashSet<SinkKind>> lazySinkKinds = new Lazy<HashSet<SinkKind>>(() => []);
                 foreach (SinkInfo sinkInfo in this.DataFlowAnalysisContext.SinkInfos.GetInfosForType(propertyReferenceOperation.Member.ContainingType))
                 {
                     if (lazySinkKinds.IsValueCreated && lazySinkKinds.Value.IsSupersetOf(sinkInfo.SinkKinds))

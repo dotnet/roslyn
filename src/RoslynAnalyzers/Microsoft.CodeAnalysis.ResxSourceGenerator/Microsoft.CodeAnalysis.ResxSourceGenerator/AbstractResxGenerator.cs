@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                         new ResourceInformation(
                             CompilationInformation: compilationInfo,
                             ResourceFile: resourceFile,
-                            ResourceName: string.Join(".", rootNamespace, resourceName),
+                            ResourceName: string.IsNullOrEmpty(rootNamespace) ? resourceName : string.Join(".", rootNamespace, resourceName),
                             ResourceHintName: resourceHintName,
                             ResourceClassName: resourceClassName,
                             OmitGetResourceString: omitGetResourceString,

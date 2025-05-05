@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
         }
 
         protected sealed override GlobalFlowStateAnalysisData GetExitBlockOutputData(GlobalFlowStateAnalysisResult analysisResult)
-            => new(analysisResult.ExitBlockOutput.Data);
+            => [.. analysisResult.ExitBlockOutput.Data];
 
         protected sealed override bool Equals(GlobalFlowStateAnalysisData value1, GlobalFlowStateAnalysisData value2)
             => GlobalFlowStateAnalysisDomainInstance.Equals(value1, value2);

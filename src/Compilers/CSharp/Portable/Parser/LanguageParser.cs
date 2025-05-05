@@ -11477,7 +11477,13 @@ done:
 
         /// <summary>Check if we're currently at a .. sequence that can then be parsed out as a <see cref="SyntaxKind.DotDotToken"/>.</summary>
         public bool IsAtDotDotToken()
-            => IsAtDotDotToken(this.CurrentToken, this.PeekToken(1));
+        {
+            if (this.CurrentToken.Kind != SyntaxKind.DotToken)
+                return false;
+
+            var nextToken = this.PeekToken(1);
+            return nextToken.Kind == SyntaxKind.DotToken && NoTriviaBetween(this.CurrentToken, nextToken);
+        }
 
         public static bool IsAtDotDotToken(SyntaxToken token1, SyntaxToken token2)
             => token1.Kind == SyntaxKind.DotToken &&

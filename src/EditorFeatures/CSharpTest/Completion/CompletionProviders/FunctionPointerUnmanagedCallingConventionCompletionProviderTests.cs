@@ -72,6 +72,6 @@ public sealed class FunctionPointerUnmanagedCallingConventionCompletionProviderT
                 </Project>
             </Workspace>
             """;
-        await VerifyItemExistsAsync(markup, callingConvention, glyph: (int)Glyph.Keyword);
+        await VerifyItemExistsAsync(markup, callingConvention, glyph: Glyph.Keyword);
     }
 }

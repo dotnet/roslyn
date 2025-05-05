@@ -11,20 +11,21 @@ internal partial class TaggerEventSources
 {
     private sealed class DocumentActiveContextChangedEventSource(ITextBuffer subjectBuffer) : AbstractWorkspaceTrackingTaggerEventSource(subjectBuffer)
     {
+        private WorkspaceEventRegistration? _documentActiveContextChangedDisposer;
+
+        // Require main thread on the callback as RaiseChanged implementors may have main thread dependencies.
         protected override void ConnectToWorkspace(Workspace workspace)
-            => workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
+            => _documentActiveContextChangedDisposer = workspace.RegisterDocumentActiveContextChangedHandler(OnDocumentActiveContextChanged, WorkspaceEventOptions.RequiresMainThreadOptions);
 
         protected override void DisconnectFromWorkspace(Workspace workspace)
-            => workspace.DocumentActiveContextChanged -= OnDocumentActiveContextChanged;
+            => _documentActiveContextChangedDisposer?.Dispose();
 
-        private void OnDocumentActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs e)
+        private void OnDocumentActiveContextChanged(DocumentActiveContextChangedEventArgs e)
         {
             var document = SubjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
 
             if (document != null && document.Id == e.NewActiveContextDocumentId)
-            {
                 this.RaiseChanged();
-            }
         }
     }
 }
