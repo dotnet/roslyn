@@ -263,22 +263,38 @@ internal static class ProducerConsumer<TItem>
     /// Version of <see cref="RunChannelAsync"/> when caller the prefers to just push all the results into a channel
     /// that it receives in the return value to process asynchronously.
     /// </summary>
-    public static async IAsyncEnumerable<TItem> RunAsync<TArgs>(
+    public static IAsyncEnumerable<TItem> RunAsync<TArgs>(
         Func<Action<TItem>, TArgs, CancellationToken, Task> produceItems,
         TArgs args,
-        [EnumeratorCancellation] CancellationToken cancellationToken)
+        CancellationToken cancellationToken)
     {
-        var channelReader = await RunChannelAsync(
-            // We're the only reader (in the foreach loop below).  So we can use the single reader options.
-            ProducerConsumerOptions.SingleReaderOptions,
-            produceItems,
-            // Trivially grab the reader and return it.  We don't need to do any processing of the values, as the
-            // callers just wants them as is.
-            consumeItems: static (reader, _, _) => Task.FromResult(reader),
-            args, cancellationToken).ConfigureAwait(false);
+        var channel = Channel.CreateUnbounded<TItem>();
 
-        await foreach (var item in channelReader.ReadAllAsync(cancellationToken))
-            yield return item;
+        // Intentionally do not await.  We kick this work off concurrently and return the channel
+        // reader the consumer will read from.  PerformActionAndCloseWriterAsync ensures the writer
+        // always completes
+        _ = PerformActionAndCloseWriterAsync(
+            action: static (outerArgs, cancellationToken) =>
+            {
+                return RunChannelAsync(
+                    // We're the only reader (in the foreach loop in consumeItems).  So we can use the single reader options.
+                    ProducerConsumerOptions.SingleReaderOptions,
+                    produceItems: static (callback, outerArgs, cancellationToken) =>
+                        outerArgs.produceItems(callback, outerArgs.args, cancellationToken),
+                    consumeItems: async static (reader, args, cancellationToken) =>
+                    {
+                        await foreach (var item in reader.ReadAllAsync(cancellationToken))
+                            args.channel.Writer.TryWrite(item);
+
+                        return default(VoidResult);
+                    },
+                    args: outerArgs, cancellationToken);
+            },
+            args: (produceItems, args, channel),
+            channel.Writer,
+            cancellationToken);
+
+        return channel.Reader.ReadAllAsync(cancellationToken);
     }
 
     /// <summary>
@@ -353,29 +369,52 @@ internal static class ProducerConsumer<TItem>
             return await consumeItems(channel.Reader, args, cancellationToken).ConfigureAwait(false);
         }
 
-        async Task ProduceItemsAndWriteToChannelAsync()
+        Task ProduceItemsAndWriteToChannelAsync()
         {
-            Exception? exception = null;
-            try
-            {
-                await Task.Yield().ConfigureAwait(false);
+            return PerformActionAndCloseWriterAsync(
+                action: async static (outerArgs, cancellationToken) =>
+                {
+                    await Task.Yield().ConfigureAwait(false);
 
-                // It's ok to use TryWrite here.  TryWrite always succeeds unless the channel is completed. And the
-                // channel is only ever completed by us (after produceItems completes or throws an exception) or if the
-                // cancellationToken is triggered above in RunAsync. In that latter case, it's ok for writing to the
-                // channel to do nothing as we no longer need to write out those assets to the pipe.
-                await produceItems(item => channel.Writer.TryWrite(item), args, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex) when ((exception = ex) == null)
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
-            finally
-            {
-                // No matter what path we take (exceptional or non-exceptional), always complete the channel so the
-                // writing task knows it's done.
-                channel.Writer.TryComplete(exception);
-            }
+                    var (produceItems, channel, args) = outerArgs;
+                    // It's ok to use TryWrite here.  TryWrite always succeeds unless the channel is completed. And the
+                    // channel is only ever completed by us (after produceItems completes or throws an exception) or if the
+                    // cancellationToken is triggered above in RunAsync. In that latter case, it's ok for writing to the
+                    // channel to do nothing as we no longer need to write out those assets to the pipe.
+                    await produceItems(item => channel.Writer.TryWrite(item), args, cancellationToken).ConfigureAwait(false);
+                },
+                args: (produceItems, channel, args),
+                channel.Writer,
+                cancellationToken);
+        }
+    }
+
+    private static async Task PerformActionAndCloseWriterAsync<TArgs>(
+        Func<TArgs, CancellationToken, Task> action,
+        TArgs args,
+        ChannelWriter<TItem> writer,
+        CancellationToken cancellationToken)
+    {
+        Exception? exception = null;
+        try
+        {
+            await Task.Yield().ConfigureAwait(false);
+
+            // It's ok to use TryWrite here.  TryWrite always succeeds unless the channel is completed. And the
+            // channel is only ever completed by us (after produceItems completes or throws an exception) or if the
+            // cancellationToken is triggered above in RunAsync. In that latter case, it's ok for writing to the
+            // channel to do nothing as we no longer need to write out those assets to the pipe.
+            await action(args, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when ((exception = ex) == null)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+        finally
+        {
+            // No matter what path we take (exceptional or non-exceptional), always complete the channel so the
+            // writing task knows it's done.
+            writer.TryComplete(exception);
         }
     }
 
