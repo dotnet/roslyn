@@ -9488,6 +9488,7 @@ public unsafe class AA
             End Using
         End Function
 
+        <WorkItem("https://github.com/dotnet/roslyn/issues/78447")>
         <WpfTheory, CombinatorialData>
         Public Async Function CompletionInPreprocessorWithDefinedElements(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
@@ -9512,12 +9513,14 @@ public unsafe class AA
             End Using
         End Function
 
+        <WorkItem("https://github.com/dotnet/roslyn/issues/78447")>
         <WpfTheory, CombinatorialData>
         Public Async Function CompletionInPreprocessorWithStatementsUsingUndefinedSymbols(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" PreprocessorSymbols="GOO,BAR,BAZ">
                             <Document>
+#define BLE
 #undef FOO
 
 #if UNDEFINED_1
@@ -9531,7 +9534,7 @@ public unsafe class AA
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionItemsContainAll({"GOO", "BAR", "BAZ", "true", "false"})
+                Await state.AssertCompletionItemsContainAll({"GOO", "BAR", "BAZ", "BLE", "true", "false"})
                 state.SendTypeChars("GO")
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
@@ -9539,12 +9542,14 @@ public unsafe class AA
             End Using
         End Function
 
+        <WorkItem("https://github.com/dotnet/roslyn/issues/78447")>
         <WpfTheory, CombinatorialData>
         Public Async Function CompletionInPreprocessorWithStatementsUsingUndefinedSymbolsInsideElse(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" PreprocessorSymbols="GOO,BAR,BAZ">
                             <Document>
+#define BLE
 #undef FOO
 
 #if UNDEFINED_1
@@ -9557,7 +9562,7 @@ public unsafe class AA
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionItemsContainAll({"GOO", "BAR", "BAZ", "true", "false"})
+                Await state.AssertCompletionItemsContainAll({"GOO", "BAR", "BAZ", "BLE", "true", "false"})
                 state.SendTypeChars("GO")
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
@@ -9565,12 +9570,14 @@ public unsafe class AA
             End Using
         End Function
 
+        <WorkItem("https://github.com/dotnet/roslyn/issues/78447")>
         <WpfTheory, CombinatorialData>
         Public Async Function CompletionInPreprocessorWithStatementsUsingUndefinedSymbolsInsideElseAfterOr(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" PreprocessorSymbols="GOO,BAR,BAZ">
                             <Document>
+#define BLE
 #undef FOO
 
 #if UNDEFINED_1
@@ -9583,7 +9590,7 @@ public unsafe class AA
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionItemsContainAll({"GOO", "BAR", "BAZ", "true", "false"})
+                Await state.AssertCompletionItemsContainAll({"GOO", "BAR", "BAZ", "BLE", "true", "false"})
                 state.SendTypeChars("GO")
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
