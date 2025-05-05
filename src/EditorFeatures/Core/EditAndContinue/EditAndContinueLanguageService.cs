@@ -175,7 +175,7 @@ internal sealed class EditAndContinueLanguageService(
                 // We start the operation but do not wait for it to complete.
                 // The tracking session is cancelled when we exit the break state.
 
-                Debug.Assert(solution != null);
+                Contract.ThrowIfNull(solution);
                 GetActiveStatementTrackingService().StartTracking(solution, session);
             }
         }

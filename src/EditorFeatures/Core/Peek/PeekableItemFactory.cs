@@ -10,7 +10,6 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Peek;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -24,8 +23,8 @@ using Microsoft.VisualStudio.Language.Intellisense;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek;
 
-[Export(typeof(IPeekableItemFactory))]
-internal sealed class PeekableItemFactory : IPeekableItemFactory
+[Export]
+internal class PeekableItemFactory
 {
     private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
     private readonly IGlobalOptionService _globalOptions;

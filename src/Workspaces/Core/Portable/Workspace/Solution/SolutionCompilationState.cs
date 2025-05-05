@@ -796,13 +796,13 @@ internal sealed partial class SolutionCompilationState
                 SourceTextIsUnchanged(oldDocumentState, text) ? oldDocumentState : oldDocumentState.UpdateText(text, mode));
 
         (ImmutableArray<(DocumentId, SourceText)>,
-         ImmutableArray<(SourceGeneratedDocumentIdentity, DateTime, SourceText, SyntaxNode?)>) GetOrdinaryAndSourceGeneratedDocuments()
+         ImmutableArray<(SourceGeneratedDocumentIdentity, DateTime, SourceText?, SyntaxNode?)>) GetOrdinaryAndSourceGeneratedDocuments()
         {
             if (!texts.Any(static t => t.documentId.IsSourceGenerated))
                 return (texts, []);
 
             using var _1 = ArrayBuilder<(DocumentId, SourceText)>.GetInstance(capacity: texts.Length, out var ordinaryDocuments);
-            using var _2 = ArrayBuilder<(SourceGeneratedDocumentIdentity, DateTime, SourceText, SyntaxNode?)>.GetInstance(out var sourceGeneratedDocuments);
+            using var _2 = ArrayBuilder<(SourceGeneratedDocumentIdentity, DateTime, SourceText?, SyntaxNode?)>.GetInstance(out var sourceGeneratedDocuments);
             foreach (var doc in texts)
             {
                 if (!doc.documentId.IsSourceGenerated)
@@ -828,7 +828,7 @@ internal sealed partial class SolutionCompilationState
     /// </summary>
     private SolutionCompilationState UpdateDocumentsInMultipleProjects<TDocumentState, TDocumentData, TArg>(
         ImmutableArray<(DocumentId documentId, TDocumentData documentData)> documentsToUpdate,
-        ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText sourceText, SyntaxNode? syntaxNode)> sourceGeneratedDocuments,
+        ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText? sourceText, SyntaxNode? syntaxNode)> sourceGeneratedDocuments,
         TArg arg,
         Func<TDocumentState, TDocumentData, TArg, TDocumentState> updateDocument)
         where TDocumentState : TextDocumentState
@@ -1001,13 +1001,13 @@ internal sealed partial class SolutionCompilationState
                     : oldDocumentState.UpdateTree(root, mode));
 
         (ImmutableArray<(DocumentId, SyntaxNode)>,
-         ImmutableArray<(SourceGeneratedDocumentIdentity, DateTime, SourceText, SyntaxNode?)>) GetOrdinaryAndSourceGeneratedDocuments()
+         ImmutableArray<(SourceGeneratedDocumentIdentity, DateTime, SourceText?, SyntaxNode?)>) GetOrdinaryAndSourceGeneratedDocuments()
         {
             if (!syntaxRoots.Any(static t => t.documentId.IsSourceGenerated))
                 return (syntaxRoots, []);
 
             using var _1 = ArrayBuilder<(DocumentId, SyntaxNode)>.GetInstance(capacity: syntaxRoots.Length, out var ordinaryDocuments);
-            using var _2 = ArrayBuilder<(SourceGeneratedDocumentIdentity, DateTime, SourceText, SyntaxNode?)>.GetInstance(out var sourceGeneratedDocuments);
+            using var _2 = ArrayBuilder<(SourceGeneratedDocumentIdentity, DateTime, SourceText?, SyntaxNode?)>.GetInstance(out var sourceGeneratedDocuments);
             foreach (var doc in syntaxRoots)
             {
                 if (!doc.documentId.IsSourceGenerated)
@@ -1016,9 +1016,7 @@ internal sealed partial class SolutionCompilationState
                 }
                 else if (TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(doc.documentId) is { Identity: var identity })
                 {
-                    // Source generated documents always do a full parse, and source generator authors are only allowed to provide
-                    // strings, so we follow suit here and just take the text from the root.
-                    sourceGeneratedDocuments.Add((identity, DateTime.UtcNow, doc.root.GetText(), doc.root));
+                    sourceGeneratedDocuments.Add((identity, DateTime.UtcNow, null, doc.root));
                 }
             }
 
@@ -1385,7 +1383,7 @@ internal sealed partial class SolutionCompilationState
     /// generated file open, we need to make sure everything lines up.
     /// </summary>
     public SolutionCompilationState WithFrozenSourceGeneratedDocuments(
-        ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText sourceText, SyntaxNode? syntaxNode)> documents)
+        ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText? sourceText, SyntaxNode? syntaxNode)> documents)
     {
         if (documents.IsEmpty)
             return this;
@@ -1394,16 +1392,23 @@ internal sealed partial class SolutionCompilationState
         using var _ = PooledDictionary<DocumentId, SourceGeneratedDocumentState>.GetInstance(out var documentStates);
         foreach (var (documentIdentity, generationDateTime, sourceText, syntaxNode) in documents)
         {
+            Contract.ThrowIfTrue(sourceText is null && syntaxNode is null);
+            Contract.ThrowIfTrue(sourceText is not null && syntaxNode is not null);
+
             var existingGeneratedState = TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentIdentity.DocumentId);
             if (existingGeneratedState != null)
             {
                 var newGeneratedState = existingGeneratedState
-                    .WithText(sourceText)
                     .WithParseOptions(existingGeneratedState.ParseOptions)
                     .WithGenerationDateTime(generationDateTime);
 
-                if (syntaxNode != null)
+                if (sourceText != null)
                 {
+                    newGeneratedState = newGeneratedState.WithText(sourceText);
+                }
+                else
+                {
+                    Contract.ThrowIfNull(syntaxNode);
                     newGeneratedState = newGeneratedState.WithSyntaxRoot(syntaxNode);
                 }
 
@@ -1420,16 +1425,12 @@ internal sealed partial class SolutionCompilationState
                 var newGeneratedState = SourceGeneratedDocumentState.Create(
                     documentIdentity,
                     sourceText,
+                    syntaxNode,
                     projectState.ParseOptions!,
                     projectState.LanguageServices,
                     // Just compute the checksum from the source text passed in.
                     originalSourceTextChecksum: null,
                     generationDateTime);
-
-                if (syntaxNode != null)
-                {
-                    newGeneratedState = newGeneratedState.WithSyntaxRoot(syntaxNode);
-                }
 
                 documentStates.Add(newGeneratedState.Id, newGeneratedState);
             }

@@ -7,6 +7,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Build.Evaluation;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Test.Utilities;
 using Roslyn.Text.Adornments;
@@ -525,6 +526,64 @@ class C
             testLspServer,
             expectedLocation).ConfigureAwait(false);
         Assert.Equal(expectedMarkdown, results.Contents.Fourth.Value);
+    }
+    [Theory, CombinatorialData]
+    public async Task TestGetHoverAsync_UsesNonBreakingSpaceForSupportedPlatforms(bool mutatingLspWorkspace)
+    {
+        var source = """
+            using System;
+            class WithConstant
+            {
+            #if NET472
+                public const string Target = "Target in net472";
+            #endif
+            }
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Console.WriteLine(WithConstant.{|caret:Target|});
+                }
+            }
+            """;
+
+        var workspaceXml =
+            $"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Net472" PreprocessorSymbols="NET472">
+                    <Document FilePath="C:\C.cs"><![CDATA[${source}]]></Document>
+                </Project>
+                <Project Language="C#" CommonReferences="true" AssemblyName="NetCoreApp3" PreprocessorSymbols="NETCOREAPP3.1">
+                    <Document IsLinkFile="true" LinkFilePath="C:\C.cs" LinkAssemblyName="Net472"></Document>
+                </Project>
+            </Workspace>
+            """;
+
+        var expectedMarkdown = $"""
+            ```csharp
+            ({FeaturesResources.constant}) string WithConstant.Target = "Target in net472"
+            ```
+              
+              
+            &nbsp;&nbsp;&nbsp;&nbsp;{string.Format(FeaturesResources._0_1, "Net472", FeaturesResources.Available).Replace("-", "\\-")}  
+            &nbsp;&nbsp;&nbsp;&nbsp;{string.Format(FeaturesResources._0_1, "NetCoreApp3", FeaturesResources.Not_Available).Replace("-", "\\-")}  
+              
+            {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts.Replace(".", "\\.")}  
+            
+            """;
+
+        var clientCapabilities = new LSP.ClientCapabilities
+        {
+            TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new LSP.HoverSetting { ContentFormat = [LSP.MarkupKind.Markdown] } }
+        };
+        await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace, initializationOptions: new InitializationOptions { ClientCapabilities = clientCapabilities });
+        var location = testLspServer.GetLocations("caret").Single();
+
+        var project = testLspServer.GetCurrentSolution().Projects.Single(p => p.AssemblyName == "Net472");
+        var result = await RunGetHoverAsync(testLspServer, location, project.Id);
+
+        AssertEx.NotNull(result);
+        Assert.Equal(expectedMarkdown, result.Contents.Fourth.Value);
     }
 
     private static async Task<LSP.Hover> RunGetHoverAsync(
