@@ -9565,6 +9565,32 @@ public unsafe class AA
             End Using
         End Function
 
+        <WpfTheory, CombinatorialData>
+        Public Async Function CompletionInPreprocessorWithStatementsUsingUndefinedSymbolsInsideElseAfterOr(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" PreprocessorSymbols="GOO,BAR,BAZ">
+                            <Document>
+#undef FOO
+
+#if UNDEFINED_1
+#else
+    #if UNDEFINED_2 || $$
+#endif
+                            </Document>
+                        </Project>
+                    </Workspace>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll({"GOO", "BAR", "BAZ", "true", "false"})
+                state.SendTypeChars("GO")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("#if UNDEFINED_2 || GOO", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
         <WpfFact>
         <WorkItem("https://github.com/dotnet/roslyn/issues/63922")>
         <WorkItem("https://github.com/dotnet/roslyn/issues/55546")>
