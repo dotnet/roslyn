@@ -22,11 +22,10 @@
     <VersionPrefix>$(AnalyzerUtilitiesVersionPrefix)</VersionPrefix>
 
     <NoWarn>$(NoWarn);NU5128</NoWarn>
-    <MicrosoftCodeAnalysisVersion Condition="'$(MicrosoftCodeAnalysisVersion)' == ''">$(MicrosoftCodeAnalysisVersionForCodeAnalysisAnalyzers)</MicrosoftCodeAnalysisVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzer)" />
   </ItemGroup>
 
   <ItemGroup>
