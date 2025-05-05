@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -19,6 +20,7 @@ using Analyzer.Utilities;
 using Analyzer.Utilities.PooledObjects;
 using Analyzer.Utilities.PooledObjects.Extensions;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ReleaseTracking;
 using Microsoft.CodeAnalysis.Text;
@@ -52,7 +54,7 @@ namespace GenerateDocumentationAndConfigFiles
                 validateOnly = false;
             }
 
-            var fileNamesWithValidationFailures = new List<string>();
+            var fileNamesWithValidationFailures = new HashSet<string>();
 
             string analyzerRulesetsDir = args[1];
             string analyzerEditorconfigsDir = args[2];
@@ -211,7 +213,9 @@ namespace GenerateDocumentationAndConfigFiles
             if (fileNamesWithValidationFailures.Count > 0)
             {
                 await Console.Error.WriteLineAsync("One or more auto-generated documentation files were either edited manually, or not updated. Please revert changes made to the following files (if manually edited) and run `dotnet msbuild /t:pack` at the root of the repo to automatically update them:").ConfigureAwait(false);
-                fileNamesWithValidationFailures.ForEach(fileName => Console.Error.WriteLine($"    {fileName}"));
+                foreach (var fileName in fileNamesWithValidationFailures)
+                    Console.Error.WriteLine($"    {fileName}");
+
                 return 1;
             }
 
@@ -615,19 +619,17 @@ namespace GenerateDocumentationAndConfigFiles
                     DiagnosticDescriptor descriptor = ruleById.Value;
 
                     var helpLinkUri = descriptor.HelpLinkUri;
-                    if (!string.IsNullOrWhiteSpace(helpLinkUri) &&
-                        await checkHelpLinkAsync(helpLinkUri).ConfigureAwait(false))
-                    {
-                        // Rule with valid documentation link
+                    if (string.IsNullOrWhiteSpace(helpLinkUri))
                         continue;
-                    }
+
+                    string? checkError = await checkHelpLinkAsync(helpLinkUri).ConfigureAwait(false);
+
+                    if (checkError is null)
+                        continue;
 
                     // The angle brackets around helpLinkUri are added to follow MD034 rule:
                     // https://github.com/DavidAnson/markdownlint/blob/82cf68023f7dbd2948a65c53fc30482432195de4/doc/Rules.md#md034---bare-url-used
-                    if (!string.IsNullOrWhiteSpace(helpLinkUri))
-                    {
-                        helpLinkUri = $"<{helpLinkUri}>";
-                    }
+                    helpLinkUri = $"<{helpLinkUri}>";
 
                     var escapedTitle = descriptor.Title.ToString(CultureInfo.InvariantCulture).Replace("<", "\\<");
                     var line = $"{ruleId} | {helpLinkUri} | {escapedTitle} |";
@@ -638,11 +640,13 @@ namespace GenerateDocumentationAndConfigFiles
                         // However, we consider "missing" entries as invalid. This is to force updating the file when new rules are added.
                         if (!actualContent.Contains(line))
                         {
+                            // The file is missing an entry.
                             await Console.Error.WriteLineAsync($"Missing entry in {fileWithPath}").ConfigureAwait(false);
-                            await Console.Error.WriteLineAsync(line).ConfigureAwait(false);
-                            // The file is missing an entry. Mark it as invalid and break the loop as there is no need to continue validating.
+                            await Console.Error.WriteLineAsync("    " + line).ConfigureAwait(false);
+                            await Console.Error.WriteLineAsync("HTTP error while checking the URI: ").ConfigureAwait(false);
+                            await Console.Error.WriteLineAsync(checkError).ConfigureAwait(false);
+
                             fileNamesWithValidationFailures.Add(fileWithPath);
-                            break;
                         }
                     }
                     else
@@ -658,27 +662,41 @@ namespace GenerateDocumentationAndConfigFiles
 
                 return;
 
-                async Task<bool> checkHelpLinkAsync(string helpLink)
+                // Returns null if the URI is valid, or an error otherwise
+                async Task<string?> checkHelpLinkAsync(string helpLink)
                 {
                     try
                     {
                         if (!Uri.TryCreate(helpLink, UriKind.Absolute, out var uri))
                         {
-                            return false;
+                            return null;
                         }
 
                         if (validateOffline)
                         {
-                            return true;
+                            return null;
                         }
 
                         var request = new HttpRequestMessage(HttpMethod.Head, uri);
                         using var response = await httpClient.SendAsync(request).ConfigureAwait(false);
-                        return response?.StatusCode == HttpStatusCode.OK;
+
+                        // If it succeeded, we're good
+                        if (response.StatusCode == HttpStatusCode.OK)
+                            return null;
+
+                        var errorMessage = new StringBuilder();
+                        errorMessage.AppendLine("StatusCode: " + response.StatusCode);
+                        errorMessage.AppendLine("Content: " + await response.Content.ReadAsStringAsync().ConfigureAwait(false));
+
+                        foreach (var header in response.Headers)
+                            foreach (var headerValue in header.Value)
+                                errorMessage.AppendLine(header.Key + ": " + headerValue);
+
+                        return errorMessage.ToString();
                     }
-                    catch (WebException)
+                    catch (HttpRequestException exception)
                     {
-                        return false;
+                        return exception.ToString();
                     }
                 }
             }
@@ -1180,7 +1198,7 @@ namespace GenerateDocumentationAndConfigFiles
         /// <remarks>
         /// Don't call this method with auto-generated files that are part of the artifacts because it's expected that they don't initially exist.
         /// </remarks>
-        private static void Validate(string fileWithPath, string fileContents, List<string> fileNamesWithValidationFailures)
+        private static void Validate(string fileWithPath, string fileContents, HashSet<string> fileNamesWithValidationFailures)
         {
             string actual = File.ReadAllText(fileWithPath);
             if (actual != fileContents)
