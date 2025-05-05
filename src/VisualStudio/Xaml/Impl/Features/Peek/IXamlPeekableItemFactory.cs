@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Implementation.Peek;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -16,20 +17,17 @@ using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Language.Intellisense;
 
-namespace Microsoft.CodeAnalysis.Editor.Peek;
+namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Peek;
 
-public interface IPeekableItemFactory
+internal interface IXamlPeekableItemFactory
 {
     Task<IEnumerable<IPeekableItem>> GetPeekableItemsAsync(ISymbol symbol, Project project, IPeekResultFactory peekResultFactory, CancellationToken cancellationToken);
 }
 
-/// <summary>
-/// Legacy export for xaml.  They should move to IXamlPeekableItemFactory once this is inserted.
-/// </summary>
-[Export(typeof(IPeekableItemFactory)), Shared]
+[Export(typeof(IXamlPeekableItemFactory)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class EditorPeekableItemFactory(
+internal sealed class XamlPeekableItemFactory(
     IMetadataAsSourceFileService metadataAsSourceFileService,
     IGlobalOptionService globalOptions,
     IThreadingContext threadingContext) : PeekableItemFactory(metadataAsSourceFileService, globalOptions, threadingContext);

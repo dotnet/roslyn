@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     SourcePropertyAccessorSymbol { MethodKind: MethodKind.PropertySet } setter => getSetterParameters(setter),
                     MethodSymbol methodSymbol => methodSymbol.Parameters,
-                    ParameterSymbol parameter => getAllParameters(parameter),
+                    ParameterSymbol parameter when parameter.ContainingSymbol is not NamedTypeSymbol => getAllParameters(parameter),
                     TypeParameterSymbol typeParameter => getMethodParametersFromTypeParameter(typeParameter),
                     PropertySymbol property => property.Parameters,
                     NamedTypeSymbol namedType when namedType.IsDelegateType() => getDelegateParameters(namedType),

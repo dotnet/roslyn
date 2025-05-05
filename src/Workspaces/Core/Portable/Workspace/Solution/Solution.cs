@@ -1643,7 +1643,7 @@ public partial class Solution
     }
 
     internal Solution WithFrozenSourceGeneratedDocuments(ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText text)> documents)
-        => WithCompilationState(CompilationState.WithFrozenSourceGeneratedDocuments(documents.SelectAsArray(d => (d.documentIdentity, d.generationDateTime, d.text, (SyntaxNode?)null))));
+        => WithCompilationState(CompilationState.WithFrozenSourceGeneratedDocuments(documents.SelectAsArray(d => (d.documentIdentity, d.generationDateTime, (SourceText?)d.text, (SyntaxNode?)null))));
 
     /// <inheritdoc cref="SolutionCompilationState.UpdateSpecificSourceGeneratorExecutionVersions"/>
     internal Solution UpdateSpecificSourceGeneratorExecutionVersions(SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersionMap)
