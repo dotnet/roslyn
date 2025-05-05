@@ -320,12 +320,14 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
             }
 
             if (method.ReturnType != typeof(IEnumerable<ISymbol>) &&
-                method.ReturnType != typeof(IAsyncEnumerable<ISymbol>))
+                method.ReturnType != typeof(IAsyncEnumerable<ISymbol>) &&
+                method.ReturnType != typeof(IEnumerable<Location>) &&
+                method.ReturnType != typeof(IAsyncEnumerable<Location>))
             {
                 error = string.Format(
                     FeaturesResources.Return_type_0_is_not_among_supported_types_1,
                     method.ReturnType,
-                    "'IEnumerable<ISymbol>', 'IAsyncEnumerable<ISymbol>'");
+                    "'IEnumerable<ISymbol>', 'IAsyncEnumerable<ISymbol>', 'IEnumerable<Location>', 'IAsyncEnumerable<Location>'");
 
                 return false;
             }
