@@ -8,8 +8,6 @@
     <UseWpf>true</UseWpf>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>$(DefineConstants);EDITOR_FEATURES</DefineConstants>
-    <!-- For whatever reason doesn't work in this project. -->
-    <RestoreUseStaticGraphEvaluation>false</RestoreUseStaticGraphEvaluation>
 
     <!-- NuGet -->
     <PackageId>Microsoft.CodeAnalysis.EditorFeatures.Common</PackageId>
