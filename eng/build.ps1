@@ -269,6 +269,7 @@ function BuildSolution() {
   try {
     MSBuild $toolsetBuildProj `
       $bl `
+      /check `
       /p:Configuration=$configuration `
       /p:Projects=$projects `
       /p:RepoRoot=$RepoRoot `
