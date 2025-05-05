@@ -658,7 +658,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 ? Path.Combine("bincore", "csc.dll")
                 : "csc.exe";
             var task = new Csc();
-            Assert.Equal(Path.Combine(taskPath, relativePath), task.PathToManagedTool);
+            Assert.Equal(Path.Combine(taskPath, relativePath), task.PathToBuiltInTool);
         }
 
 #if NETFRAMEWORK
@@ -671,7 +671,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             {
                 IsSdkFrameworkToCoreBridgeTask = true
             };
-            Assert.Equal(Path.Combine(taskPath, "..", "bincore", "csc.dll"), task.PathToManagedTool);
+            Assert.Equal(Path.Combine(taskPath, "..", "bincore", "csc.dll"), task.PathToBuiltInTool);
         }
 
 #endif
@@ -680,7 +680,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         public void IsManagedToolRunningOnCoreClr_Normal()
         {
             var task = new Csc();
-            Assert.Equal(RuntimeHostInfo.IsCoreClrRuntime, task.IsManagedToolRunningOnCoreClr);
+            Assert.Equal(RuntimeHostInfo.IsCoreClrRuntime, task.IsBuiltinToolRunningOnCoreClr);
         }
 
         [Fact]
@@ -690,7 +690,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.False(ManagedToolTask.CalculateIsSdkFrameworkToCoreBridgeTask());
 #else
             var task = new Csc();
-            Assert.False(task.IsManagedToolRunningOnCoreClr);
+            Assert.False(task.IsBuiltinToolRunningOnCoreClr);
 #endif
         }
 

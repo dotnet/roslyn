@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     public abstract class ManagedToolTask : ToolTask
     {
         /// <summary>
-        /// Is the standard tool being used here? When false the developer has specified a custom tool
+        /// Is the builtin tool being used here? When false the developer has specified a custom tool
         /// to be run by this task
         /// </summary>
         /// <remarks>
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// ToolExe == ToolName, we know nothing is overridden, and
         /// we can use our own csc.
         /// </remarks>
-        protected bool UsingManagedTool => string.IsNullOrEmpty(ToolPath) && ToolExe == ToolName;
+        protected bool UsingBuiltinTool => string.IsNullOrEmpty(ToolPath) && ToolExe == ToolName;
 
         /// <summary>
         /// A copy of this task, compiled for .NET Framework, is deployed into the .NET SDK. It is a bridge task
@@ -41,11 +41,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         internal bool IsSdkFrameworkToCoreBridgeTask { get; init; } = CalculateIsSdkFrameworkToCoreBridgeTask();
 
         /// <summary>
-        /// Is the managed tool executed by this task running on .NET Core?
+        /// Is the builtin tool executed by this task running on .NET Core?
         /// </summary>
-        internal bool IsManagedToolRunningOnCoreClr => RuntimeHostInfo.IsCoreClrRuntime || IsSdkFrameworkToCoreBridgeTask;
+        internal bool IsBuiltinToolRunningOnCoreClr => RuntimeHostInfo.IsCoreClrRuntime || IsSdkFrameworkToCoreBridgeTask;
 
-        internal string PathToManagedTool => Path.Combine(GetToolDirectory(), ToolName);
+        internal string PathToBuiltInTool => Path.Combine(GetToolDirectory(), ToolName);
 
         protected ManagedToolTask(ResourceManager resourceManager)
             : base(resourceManager)
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         /// <summary>
-        /// Generate the arguments to pass directly to the managed tool. These do not include
+        /// Generate the arguments to pass directly to the buitin tool. These do not include
         /// arguments in the response file.
         /// </summary>
         /// <remarks>
@@ -72,9 +72,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         protected sealed override string GenerateCommandLineCommands()
         {
             var commandLineArguments = GenerateToolArguments();
-            if (UsingManagedTool && IsManagedToolRunningOnCoreClr)
+            if (UsingBuiltinTool && IsBuiltinToolRunningOnCoreClr)
             {
-                commandLineArguments = RuntimeHostInfo.GetDotNetExecCommandLine(PathToManagedTool, commandLineArguments);
+                commandLineArguments = RuntimeHostInfo.GetDotNetExecCommandLine(PathToBuiltInTool, commandLineArguments);
             }
 
             return commandLineArguments;
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         /// <summary>
-        /// Generate the arguments to pass directly to the managed tool. These do not include
+        /// Generate the arguments to pass directly to the buitin tool. These do not include
         /// arguments in the response file.
         /// </summary>
         /// <remarks>
@@ -112,10 +112,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// This could be the managed assembly itself (on desktop .NET on Windows),
         /// or a runtime such as dotnet.
         /// </summary>
-        protected sealed override string GenerateFullPathToTool() => (UsingManagedTool, IsManagedToolRunningOnCoreClr) switch
+        protected sealed override string GenerateFullPathToTool() => (UsingBuiltinTool, IsBuiltinToolRunningOnCoreClr) switch
         {
             (true, true) => RuntimeHostInfo.GetDotNetPathOrDefault(),
-            (true, false) => PathToManagedTool,
+            (true, false) => PathToBuiltInTool,
             (false, _) => Path.Combine(ToolPath ?? "", ToolExe)
         };
 
@@ -126,17 +126,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         protected abstract void AddResponseFileCommands(CommandLineBuilderExtension commandLine);
 
         /// <summary>
-        /// ToolName is only used in cases where <see cref="UsingManagedTool"/> returns true.
-        /// It returns the name of the managed assembly, which might not be the path returned by
-        /// GenerateFullPathToTool, which can return the path to e.g. the dotnet executable.
+        /// Thise is the file name the builtin tool that will be executed.
         /// </summary>
         /// <remarks>
-        /// We *cannot* actually call IsManagedTool in the implementation of this method,
-        /// as the implementation of IsManagedTool calls this property. See the comment in
-        /// <see cref="ManagedToolTask.UsingManagedTool"/>.
+        /// ToolName is only used in cases where <see cref="UsingBuiltinTool"/> returns true.
+        /// It returns the name of the managed assembly, which might not be the path returned by
+        /// GenerateFullPathToTool, which can return the path to e.g. the dotnet executable.
         /// </remarks>
         protected sealed override string ToolName =>
-            IsManagedToolRunningOnCoreClr
+            IsBuiltinToolRunningOnCoreClr
                 ? $"{ToolNameWithoutExtension}.dll"
                 : $"{ToolNameWithoutExtension}.exe";
 
@@ -212,7 +210,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             var buildTaskDrectoryName = Path.GetFileName(buildTaskDirectory);
             return
                 string.Equals(buildTaskDrectoryName, "binfx", StringComparison.OrdinalIgnoreCase) &&
-                File.Exists(Path.Combine(buildTaskDirectory, "csc.exe"));
+                !File.Exists(Path.Combine(buildTaskDirectory, "csc.exe"));
 #endif
         }
     }
