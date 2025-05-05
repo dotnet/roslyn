@@ -277,6 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                       // no arguments per se we cons up some fake arguments.
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             Extensions extensions = null,
+            // Map of TypeParameterSymbol to ordinal for new extension methods
             Dictionary<TypeParameterSymbol, int> ordinals = null)
         {
             Debug.Assert(!methodTypeParameters.IsDefault);

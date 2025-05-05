@@ -111,8 +111,12 @@
       <AnalyzerRulesetAssembly Update="@(AnalyzerRulesetAssembly)" Condition="'%(AnalyzerRulesetAssembly.TargetFramework)' == ''" TargetFramework="$(TargetFramework)" />
     </ItemGroup>
 
+    <PropertyGroup>
+      <SkipDocumentationValidation>true</SkipDocumentationValidation>
+    </PropertyGroup>
+
     <!-- Only run validate only in CI builds. Running them in local builds will prevent refreshing auto-generated files. -->
-    <Exec Condition="'$(ContinuousIntegrationBuild)' == 'true'"
+    <Exec Condition="'$(ContinuousIntegrationBuild)' == 'true' and '$(SkipDocumentationValidation)' != 'true'"
           Command='"$(DotNetExecutable)" --roll-forward major "$(_GenerateDocumentationAndConfigFilesPath)" "-validateOnly:true" "$(_GeneratedRulesetsDir)" "$(_GeneratedEditorconfigsDir)" "$(_GeneratedGlobalAnalyzerConfigsDir)" "$(ArtifactsBinDir)$(EscapeDirectorySuffix)" "$(Configuration)" "%(AnalyzerRulesetAssembly.TargetFramework)" "@(AnalyzerRulesetAssembly)" "$(PackagePropsFileDir)" "$(PackagePropsFileName)" "$(PackageTargetsFileDir)" "$(PackageTargetsFileName)" "$(DisableNETAnalyzersPackagePropsFileName)" "$(AnalyzerSarifFileDir)" "$(AnalyzerDocumentationFileName)" "$(AnalyzerSarifFileDir)" "$(AnalyzerSarifFileName)" "$(VersionPrefix)" $(NuspecPackageId) $(ContainsPortedFxCopRules) $(GenerateAnalyzerRulesMissingDocumentationFile) $(ReleaseTrackingOptOut) $(_ValidateOffline)' />
 
     <Exec Command='"$(DotNetExecutable)" --roll-forward major "$(_GenerateDocumentationAndConfigFilesPath)" "-validateOnly:false" "$(_GeneratedRulesetsDir)" "$(_GeneratedEditorconfigsDir)" "$(_GeneratedGlobalAnalyzerConfigsDir)" "$(ArtifactsBinDir)$(EscapeDirectorySuffix)" "$(Configuration)" "%(AnalyzerRulesetAssembly.TargetFramework)" "@(AnalyzerRulesetAssembly)" "$(PackagePropsFileDir)" "$(PackagePropsFileName)" "$(PackageTargetsFileDir)" "$(PackageTargetsFileName)" "$(DisableNETAnalyzersPackagePropsFileName)" "$(AnalyzerSarifFileDir)" "$(AnalyzerDocumentationFileName)" "$(AnalyzerSarifFileDir)" "$(AnalyzerSarifFileName)" "$(VersionPrefix)" $(NuspecPackageId) $(ContainsPortedFxCopRules) $(GenerateAnalyzerRulesMissingDocumentationFile) $(ReleaseTrackingOptOut) $(_ValidateOffline)' />

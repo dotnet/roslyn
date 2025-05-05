@@ -478,7 +478,7 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                             referencedCode: referencedCode,
-                                            expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
+                                            expectedOrderedItemsMetadataReference: [],
                                             expectedOrderedItemsSameSolution: expectedOrderedItems,
                                             sourceLanguage: LanguageNames.CSharp,
                                             referencedLanguage: LanguageNames.CSharp);
@@ -509,7 +509,7 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                             referencedCode: referencedCode,
-                                            expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
+                                            expectedOrderedItemsMetadataReference: [],
                                             expectedOrderedItemsSameSolution: expectedOrderedItems,
                                             sourceLanguage: LanguageNames.CSharp,
                                             referencedLanguage: LanguageNames.CSharp,
@@ -597,7 +597,14 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
                 </Project>
             </Workspace>
             """;
-        var expectedDescription = new SignatureHelpTestItem($"Secret(int secret)\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}", currentParameterIndex: 0);
+        var expectedDescription = new SignatureHelpTestItem($"""
+            Secret(int secret)
+
+                {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
+                {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
+
+            {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
+            """, currentParameterIndex: 0);
         await VerifyItemWithReferenceWorkerAsync(markup, [expectedDescription], false);
     }
 
@@ -638,7 +645,14 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
             </Workspace>
             """;
 
-        var expectedDescription = new SignatureHelpTestItem($"Secret(int secret)\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}", currentParameterIndex: 0);
+        var expectedDescription = new SignatureHelpTestItem($"""
+            Secret(int secret)
+
+                {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
+                {string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}
+
+            {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
+            """, currentParameterIndex: 0);
         await VerifyItemWithReferenceWorkerAsync(markup, [expectedDescription], false);
     }
 

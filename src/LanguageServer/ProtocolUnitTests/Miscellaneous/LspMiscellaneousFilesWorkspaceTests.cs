@@ -182,6 +182,34 @@ public sealed class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServer
     }
 
     [Theory, CombinatorialData]
+    public async Task TestLooseFile_RazorFile(bool mutatingLspWorkspace)
+    {
+        var source = "<div></div>";
+
+        // Create a server that supports LSP misc files and verify no misc files present.
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+        Assert.Null(GetMiscellaneousDocument(testLspServer));
+        Assert.Null(GetMiscellaneousAdditionalDocument(testLspServer));
+
+        // Open an empty loose file and make a request to verify it gets added to the misc workspace.
+        var looseFileUri = ProtocolConversions.CreateAbsoluteUri(@"C:\SomeFile.razor");
+        await testLspServer.OpenDocumentAsync(looseFileUri, source).ConfigureAwait(false);
+
+        // Trigger a request and assert we got a file in the misc workspace.
+        await AssertFileInMiscWorkspaceAsync(testLspServer, looseFileUri).ConfigureAwait(false);
+        Assert.Null(GetMiscellaneousDocument(testLspServer));
+        Assert.NotNull(GetMiscellaneousAdditionalDocument(testLspServer));
+
+        // Trigger another request and assert we got a file in the misc workspace.
+        await AssertFileInMiscWorkspaceAsync(testLspServer, looseFileUri).ConfigureAwait(false);
+        Assert.NotNull(GetMiscellaneousAdditionalDocument(testLspServer));
+
+        await testLspServer.CloseDocumentAsync(looseFileUri).ConfigureAwait(false);
+        Assert.Null(GetMiscellaneousDocument(testLspServer));
+        Assert.Null(GetMiscellaneousAdditionalDocument(testLspServer));
+    }
+
+    [Theory, CombinatorialData]
     public async Task TestLooseFile_RequestedTwiceAndClosed(bool mutatingLspWorkspace)
     {
         var source =
@@ -303,7 +331,12 @@ public sealed class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServer
 
     private static Document? GetMiscellaneousDocument(TestLspServer testLspServer)
     {
-        return testLspServer.GetManagerAccessor().GetLspMiscellaneousFilesWorkspace()!.CurrentSolution.Projects.SingleOrDefault()?.Documents.Single();
+        return testLspServer.GetManagerAccessor().GetLspMiscellaneousFilesWorkspace()!.CurrentSolution.Projects.SingleOrDefault()?.Documents.SingleOrDefault();
+    }
+
+    private static TextDocument? GetMiscellaneousAdditionalDocument(TestLspServer testLspServer)
+    {
+        return testLspServer.GetManagerAccessor().GetLspMiscellaneousFilesWorkspace()!.CurrentSolution.Projects.SingleOrDefault()?.AdditionalDocuments.SingleOrDefault();
     }
 
     private static async Task<LSP.Hover> RunGetHoverAsync(TestLspServer testLspServer, LSP.Location caret)

@@ -32,7 +32,7 @@ internal sealed partial class SettingsAggregator : ISettingsAggregator
         IAsynchronousOperationListener listener)
     {
         _workspace = workspace;
-        _workspace.WorkspaceChanged += UpdateProviders;
+        _ = workspace.RegisterWorkspaceChangedHandler(UpdateProviders);
 
         var currentSolution = _workspace.CurrentSolution.SolutionState;
         UpdateProviders(currentSolution);
@@ -48,7 +48,7 @@ internal sealed partial class SettingsAggregator : ISettingsAggregator
             threadingContext.DisposalToken);
     }
 
-    private void UpdateProviders(object? sender, WorkspaceChangeEventArgs e)
+    private void UpdateProviders(WorkspaceChangeEventArgs e)
     {
         switch (e.Kind)
         {

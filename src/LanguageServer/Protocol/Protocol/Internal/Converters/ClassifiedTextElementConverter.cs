@@ -15,7 +15,7 @@ internal sealed class ClassifiedTextElementConverter : JsonConverter<ClassifiedT
 
     public override ClassifiedTextElement Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        List<ClassifiedTextRun> objects = new();
+        List<ClassifiedTextRun> objects = [];
 
         while (reader.Read())
         {

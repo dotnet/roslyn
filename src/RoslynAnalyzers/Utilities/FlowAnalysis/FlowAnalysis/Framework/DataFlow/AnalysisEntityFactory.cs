@@ -63,12 +63,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             _interproceduralGetAnalysisEntityForFlowCapture = interproceduralGetAnalysisEntityForFlowCapture;
             _getInterproceduralCallStackForOwningSymbol = getInterproceduralCallStackForOwningSymbol;
 
-            _analysisEntityMap = new Dictionary<IOperation, AnalysisEntity?>();
-            _tupleElementEntitiesMap = new Dictionary<ITupleOperation, ImmutableArray<AnalysisEntity>>();
-            _captureIdEntityMap = new Dictionary<CaptureId, AnalysisEntity>();
-            _captureIdCopyValueMap = new Dictionary<CaptureId, CopyAbstractValue>();
+            _analysisEntityMap = [];
+            _tupleElementEntitiesMap = [];
+            _captureIdEntityMap = [];
+            _captureIdCopyValueMap = [];
 
-            _instanceLocationsForSymbols = new Dictionary<ISymbol, PointsToAbstractValue>();
+            _instanceLocationsForSymbols = [];
             if (interproceduralCapturedVariablesMap != null)
             {
                 _instanceLocationsForSymbols.AddRange(interproceduralCapturedVariablesMap);

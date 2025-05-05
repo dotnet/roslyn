@@ -543,11 +543,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
             bool isAdmin = false;
             if (PlatformInformation.IsWindows)
             {
-#pragma warning disable CA1416 // Validate platform compatibility
                 var currentIdentity = WindowsIdentity.GetCurrent();
                 var principal = new WindowsPrincipal(currentIdentity);
                 isAdmin = principal.IsInRole(WindowsBuiltInRole.Administrator);
-#pragma warning restore CA1416
             }
 
             var userName = Environment.UserName;

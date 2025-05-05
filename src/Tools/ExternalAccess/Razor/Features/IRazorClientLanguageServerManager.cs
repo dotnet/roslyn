@@ -16,7 +16,3 @@ internal interface IRazorClientLanguageServerManager : ILspService
     Task<TResponse> SendRequestAsync<TParams, TResponse>(string methodName, TParams @params, CancellationToken cancellationToken);
     ValueTask SendRequestAsync<TParams>(string methodName, TParams @params, CancellationToken cancellationToken);
 }
-
-// TODO: Remove this interface once razor inserts and moves off of it.
-internal interface IRazorCohostClientLanguageServerManager : IRazorClientLanguageServerManager
-{ }

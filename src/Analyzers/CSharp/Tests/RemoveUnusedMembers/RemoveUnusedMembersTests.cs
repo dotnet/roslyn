@@ -3530,4 +3530,33 @@ public sealed class RemoveUnusedMembersTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77251")]
+    public async Task TestRefFieldWrittenNotRead()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                public readonly ref struct RefScope<T>
+                {
+                    public RefScope(ref T originalvalue, T newvalue)
+                    {
+                        _OriginalValue = originalvalue;
+                        _Reference = ref originalvalue;
+                        originalvalue = newvalue;
+                    }
+
+                    readonly ref T _Reference; // Should get no diagnostic here.
+                    readonly T _OriginalValue;
+
+                    public void Dispose()
+                    {
+                        _Reference = _OriginalValue;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
+    }
 }

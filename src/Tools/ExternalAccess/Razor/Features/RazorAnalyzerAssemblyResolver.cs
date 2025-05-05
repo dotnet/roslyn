@@ -63,7 +63,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             // runs in a .net based host, it's safe to always choose the .net targeted ServiceHubCore versions.
             if (!Path.GetFileName(directory.AsSpan().TrimEnd(Path.DirectorySeparatorChar)).Equals(ServiceHubCoreFolderName, StringComparison.OrdinalIgnoreCase))
             {
-                directory = Path.Combine(directory, ServiceHubCoreFolderName);
+                var serviceHubCoreDirectory = Path.Combine(directory, ServiceHubCoreFolderName);
+
+                // The logic above only applies to VS. In VS Code there is no service hub, so appending the folder would be silly.
+                if (Directory.Exists(serviceHubCoreDirectory))
+                {
+                    directory = serviceHubCoreDirectory;
+                }
             }
 
             var assemblyPath = Path.Combine(directory, assemblyFileName);

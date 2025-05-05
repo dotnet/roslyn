@@ -2552,6 +2552,11 @@
         <target state="translated">invalidación del generador de métodos asincrónicos</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_CollectionExpression">
+        <source>collection expression</source>
+        <target state="new">collection expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureAllowsRefStructConstraint">
         <source>allows ref struct constraint</source>
         <target state="translated">permite la restricción ref struct</target>

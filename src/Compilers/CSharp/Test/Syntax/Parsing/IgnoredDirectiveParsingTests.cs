@@ -171,26 +171,22 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
 
         VerifyTrivia();
         UsingTree(source, options,
-            // (1,2): error CS1024: Preprocessor directive expected
+            // (1,2): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
             //  #!xyz
-            Diagnostic(ErrorCode.ERR_PPDirectiveExpected, "#").WithLocation(1, 2));
+            Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 2));
 
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.EndOfFileToken);
             {
                 L(SyntaxKind.WhitespaceTrivia, " ");
-                L(SyntaxKind.BadDirectiveTrivia);
+                L(SyntaxKind.ShebangDirectiveTrivia);
                 {
                     N(SyntaxKind.HashToken);
-                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.ExclamationToken);
                     N(SyntaxKind.EndOfDirectiveToken);
                     {
-                        L(SyntaxKind.SkippedTokensTrivia);
-                        {
-                            N(SyntaxKind.ExclamationToken);
-                            N(SyntaxKind.IdentifierToken, "xyz");
-                        }
+                        L(SyntaxKind.PreprocessingMessageTrivia, "xyz");
                     }
                 }
             }
@@ -551,6 +547,138 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
                     N(SyntaxKind.HashToken);
                     M(SyntaxKind.IdentifierToken);
                     N(SyntaxKind.EndOfDirectiveToken);
+                }
+            }
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78054")]
+    public void ShebangCorrectlyPlaced()
+    {
+        var source = """
+            #!/usr/bin/env dotnet
+            Console.WriteLine("Hello");
+            """;
+
+        VerifyTrivia();
+        UsingTree(source, TestOptions.Regular);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.SimpleMemberAccessExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Console");
+                                {
+                                    L(SyntaxKind.ShebangDirectiveTrivia);
+                                    {
+                                        N(SyntaxKind.HashToken);
+                                        N(SyntaxKind.ExclamationToken);
+                                        N(SyntaxKind.EndOfDirectiveToken);
+                                        {
+                                            L(SyntaxKind.PreprocessingMessageTrivia, "/usr/bin/env dotnet");
+                                            T(SyntaxKind.EndOfLineTrivia, "\n");
+                                        }
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "WriteLine");
+                            }
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.StringLiteralExpression);
+                                {
+                                    N(SyntaxKind.StringLiteralToken, "\"Hello\"");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78054")]
+    public void ShebangWithTriviaInBetween()
+    {
+        var source = """
+            # !xyz
+            """;
+
+        VerifyTrivia();
+        UsingTree(source, TestOptions.Regular,
+            // (1,1): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+            // # !xyz
+            Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 1));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.EndOfFileToken);
+            {
+                L(SyntaxKind.ShebangDirectiveTrivia);
+                {
+                    N(SyntaxKind.HashToken);
+                    {
+                        T(SyntaxKind.WhitespaceTrivia, " ");
+                    }
+                    N(SyntaxKind.ExclamationToken);
+                    N(SyntaxKind.EndOfDirectiveToken);
+                    {
+                        L(SyntaxKind.PreprocessingMessageTrivia, "xyz");
+                    }
+                }
+            }
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78054")]
+    public void ShebangIncorrectlyPlaced()
+    {
+        var source = """
+            // Comment
+            #!xyz
+            """;
+
+        VerifyTrivia();
+        UsingTree(source, TestOptions.Regular,
+            // (2,1): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+            // #!xyz
+            Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(2, 1));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.EndOfFileToken);
+            {
+                L(SyntaxKind.SingleLineCommentTrivia, "// Comment");
+                L(SyntaxKind.EndOfLineTrivia, "\n");
+                L(SyntaxKind.ShebangDirectiveTrivia);
+                {
+                    N(SyntaxKind.HashToken);
+                    N(SyntaxKind.ExclamationToken);
+                    N(SyntaxKind.EndOfDirectiveToken);
+                    {
+                        L(SyntaxKind.PreprocessingMessageTrivia, "xyz");
+                    }
                 }
             }
         }

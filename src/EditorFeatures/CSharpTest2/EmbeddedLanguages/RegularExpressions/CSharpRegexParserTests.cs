@@ -300,7 +300,7 @@ public sealed partial class CSharpRegexParserTests
         position += virtualChars.Length;
     }
 
-    private static string And(params string[] regexes)
+    private static string And(params ReadOnlySpan<string> regexes)
     {
         var conj = $"({regexes[^1]})";
         for (var i = regexes.Length - 2; i >= 0; i--)

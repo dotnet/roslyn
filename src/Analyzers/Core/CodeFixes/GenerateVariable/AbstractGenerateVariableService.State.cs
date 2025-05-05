@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -69,14 +70,14 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
             _document = document;
         }
 
-        public static State Generate(
+        public static async ValueTask<State> GenerateAsync(
             TService service,
             SemanticDocument document,
             SyntaxNode interfaceNode,
             CancellationToken cancellationToken)
         {
             var state = new State(service, document);
-            return state.TryInitialize(interfaceNode, cancellationToken) ? state : null;
+            return await state.TryInitializeAsync(interfaceNode, cancellationToken).ConfigureAwait(false) ? state : null;
         }
 
         public Accessibility DetermineMaximalAccessibility()
@@ -102,7 +103,7 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
             return accessibility;
         }
 
-        private bool TryInitialize(
+        private async ValueTask<bool> TryInitializeAsync(
             SyntaxNode node, CancellationToken cancellationToken)
         {
             if (_service.IsIdentifierNameGeneration(node))
@@ -148,8 +149,8 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
                 return false;
             }
 
-            TypeToGenerateIn = SymbolFinderInternal.FindSourceDefinition(
-                TypeToGenerateIn, _document.Project.Solution, cancellationToken) as INamedTypeSymbol;
+            TypeToGenerateIn = await SymbolFinder.FindSourceDefinitionAsync(
+                TypeToGenerateIn, _document.Project.Solution, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
 
             if (!ValidateTypeToGenerateIn(TypeToGenerateIn, IsStatic, ClassInterfaceModuleStructTypes))
             {

@@ -134,5 +134,5 @@ internal sealed class HandlerProvider(ILspServices lspServices, AbstractTypeRefR
         }
     }
 
-    private static readonly IReadOnlyList<string> RequiredMethods = new List<string> { "initialize", "initialized", "shutdown", "exit" };
+    private static readonly IReadOnlyList<string> RequiredMethods = ["initialize", "initialized", "shutdown", "exit"];
 }

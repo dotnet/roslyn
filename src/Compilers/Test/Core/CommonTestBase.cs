@@ -62,8 +62,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             => this with { ILVerifyMessage = message };
     }
 
-#nullable disable
-
     /// <summary>
     /// Base class for all language specific tests.
     /// </summary>
@@ -73,17 +71,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal CompilationVerifier CompileAndVerifyCommon(
             Compilation compilation,
-            IEnumerable<ResourceDescription> manifestResources = null,
-            IEnumerable<ModuleData> dependencies = null,
-            Action<IModuleSymbol> sourceSymbolValidator = null,
-            Action<PEAssembly> assemblyValidator = null,
-            Action<IModuleSymbol> symbolValidator = null,
-            SignatureDescription[] expectedSignatures = null,
-            string expectedOutput = null,
+            IEnumerable<ResourceDescription>? manifestResources = null,
+            IEnumerable<ModuleData>? dependencies = null,
+            Action<IModuleSymbol>? sourceSymbolValidator = null,
+            Action<PEAssembly>? assemblyValidator = null,
+            Action<IModuleSymbol>? symbolValidator = null,
+            SignatureDescription[]? expectedSignatures = null,
+            string? expectedOutput = null,
             bool trimOutput = true,
             int? expectedReturnCode = null,
-            string[] args = null,
-            EmitOptions emitOptions = null,
+            string[]? args = null,
+            EmitOptions? emitOptions = null,
             Verification verify = default)
         {
             Assert.NotNull(compilation);
@@ -98,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 sourceSymbolValidator(module);
             }
 
-            CompilationVerifier result = null;
+            CompilationVerifier? result = null;
 
             var verifier = Emit(compilation,
                                 dependencies,
@@ -107,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 expectedOutput,
                                 trimOutput,
                                 expectedReturnCode,
-                                args ?? Array.Empty<string>(),
+                                args,
                                 assemblyValidator,
                                 symbolValidator,
                                 emitOptions,
@@ -147,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return CompileAndVerifyCommon(compilation, assemblyValidator: (assembly) => MetadataValidation.MarshalAsMetadataValidator(assembly, getExpectedBlob, isField));
         }
 
-        internal static void RunValidators(CompilationVerifier verifier, Action<PEAssembly> assemblyValidator, Action<IModuleSymbol> symbolValidator)
+        internal static void RunValidators(CompilationVerifier verifier, Action<PEAssembly>? assemblyValidator, Action<IModuleSymbol>? symbolValidator)
         {
             Assert.True(assemblyValidator != null || symbolValidator != null);
 
@@ -158,6 +156,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 Assert.Equal(MetadataImageKind.Assembly, emittedMetadata.Kind);
 
                 var assembly = ((AssemblyMetadata)emittedMetadata).GetAssembly();
+                Assert.NotNull(assembly);
                 assemblyValidator(assembly);
             }
 
@@ -174,21 +173,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal CompilationVerifier Emit(
             Compilation compilation,
-            IEnumerable<ModuleData> dependencies,
-            IEnumerable<ResourceDescription> manifestResources,
-            SignatureDescription[] expectedSignatures,
-            string expectedOutput,
+            IEnumerable<ModuleData>? dependencies,
+            IEnumerable<ResourceDescription>? manifestResources,
+            SignatureDescription[]? expectedSignatures,
+            string? expectedOutput,
             bool trimOutput,
             int? expectedReturnCode,
-            string[] args,
-            Action<PEAssembly> assemblyValidator,
-            Action<IModuleSymbol> symbolValidator,
-            EmitOptions emitOptions,
+            string[]? args,
+            Action<PEAssembly>? assemblyValidator,
+            Action<IModuleSymbol>? symbolValidator,
+            EmitOptions? emitOptions,
             Verification verify)
         {
             var verifier = new CompilationVerifier(compilation, VisualizeRealIL, dependencies);
 
-            verifier.Emit(expectedOutput, trimOutput, expectedReturnCode, args, manifestResources, emitOptions, verify, expectedSignatures);
+            verifier.EmitAndVerify(expectedOutput, trimOutput, expectedReturnCode, args, manifestResources, emitOptions, verify, expectedSignatures);
 
             if (assemblyValidator != null || symbolValidator != null)
             {
@@ -259,21 +258,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         protected CSharp.CSharpCompilation CreateCSharpCompilation(
             XCData code,
-            CSharp.CSharpParseOptions parseOptions = null,
-            CSharp.CSharpCompilationOptions compilationOptions = null,
-            string assemblyName = null,
-            IEnumerable<MetadataReference> referencedAssemblies = null)
+            CSharp.CSharpParseOptions? parseOptions = null,
+            CSharp.CSharpCompilationOptions? compilationOptions = null,
+            string? assemblyName = null,
+            IEnumerable<MetadataReference>? referencedAssemblies = null)
         {
             return CreateCSharpCompilation(assemblyName, code, parseOptions, compilationOptions, referencedAssemblies, referencedCompilations: null);
         }
 
         protected CSharp.CSharpCompilation CreateCSharpCompilation(
-            string assemblyName,
+            string? assemblyName,
             XCData code,
-            CSharp.CSharpParseOptions parseOptions = null,
-            CSharp.CSharpCompilationOptions compilationOptions = null,
-            IEnumerable<MetadataReference> referencedAssemblies = null,
-            IEnumerable<Compilation> referencedCompilations = null)
+            CSharp.CSharpParseOptions? parseOptions = null,
+            CSharp.CSharpCompilationOptions? compilationOptions = null,
+            IEnumerable<MetadataReference>? referencedAssemblies = null,
+            IEnumerable<Compilation>? referencedCompilations = null)
         {
             return CreateCSharpCompilation(
                 assemblyName,
@@ -286,21 +285,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         protected VisualBasic.VisualBasicCompilation CreateVisualBasicCompilation(
             XCData code,
-            VisualBasic.VisualBasicParseOptions parseOptions = null,
-            VisualBasic.VisualBasicCompilationOptions compilationOptions = null,
-            string assemblyName = null,
-            IEnumerable<MetadataReference> referencedAssemblies = null)
+            VisualBasic.VisualBasicParseOptions? parseOptions = null,
+            VisualBasic.VisualBasicCompilationOptions? compilationOptions = null,
+            string? assemblyName = null,
+            IEnumerable<MetadataReference>? referencedAssemblies = null)
         {
             return CreateVisualBasicCompilation(assemblyName, code, parseOptions, compilationOptions, referencedAssemblies, referencedCompilations: null);
         }
 
         protected VisualBasic.VisualBasicCompilation CreateVisualBasicCompilation(
-            string assemblyName,
+            string? assemblyName,
             XCData code,
-            VisualBasic.VisualBasicParseOptions parseOptions = null,
-            VisualBasic.VisualBasicCompilationOptions compilationOptions = null,
-            IEnumerable<MetadataReference> referencedAssemblies = null,
-            IEnumerable<Compilation> referencedCompilations = null)
+            VisualBasic.VisualBasicParseOptions? parseOptions = null,
+            VisualBasic.VisualBasicCompilationOptions? compilationOptions = null,
+            IEnumerable<MetadataReference>? referencedAssemblies = null,
+            IEnumerable<Compilation>? referencedCompilations = null)
         {
             return CreateVisualBasicCompilation(
                 assemblyName,
@@ -313,21 +312,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         protected CSharp.CSharpCompilation CreateCSharpCompilation(
             string code,
-            CSharp.CSharpParseOptions parseOptions = null,
-            CSharp.CSharpCompilationOptions compilationOptions = null,
-            string assemblyName = null,
-            IEnumerable<MetadataReference> referencedAssemblies = null)
+            CSharp.CSharpParseOptions? parseOptions = null,
+            CSharp.CSharpCompilationOptions? compilationOptions = null,
+            string? assemblyName = null,
+            IEnumerable<MetadataReference>? referencedAssemblies = null)
         {
             return CreateCSharpCompilation(assemblyName, code, parseOptions, compilationOptions, referencedAssemblies, referencedCompilations: null);
         }
 
         protected CSharp.CSharpCompilation CreateCSharpCompilation(
-            string assemblyName,
+            string? assemblyName,
             string code,
-            CSharp.CSharpParseOptions parseOptions = null,
-            CSharp.CSharpCompilationOptions compilationOptions = null,
-            IEnumerable<MetadataReference> referencedAssemblies = null,
-            IEnumerable<Compilation> referencedCompilations = null)
+            CSharp.CSharpParseOptions? parseOptions = null,
+            CSharp.CSharpCompilationOptions? compilationOptions = null,
+            IEnumerable<MetadataReference>? referencedAssemblies = null,
+            IEnumerable<Compilation>? referencedCompilations = null)
         {
             return CreateCSharpCompilation(assemblyName, assemblyIdentity: null, code, parseOptions, compilationOptions, referencedAssemblies, referencedCompilations);
         }
@@ -335,22 +334,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         protected CSharp.CSharpCompilation CreateCSharpCompilation(
             AssemblyIdentity assemblyIdentity,
             string code,
-            CSharp.CSharpParseOptions parseOptions = null,
-            CSharp.CSharpCompilationOptions compilationOptions = null,
-            IEnumerable<MetadataReference> referencedAssemblies = null,
-            IEnumerable<Compilation> referencedCompilations = null)
+            CSharp.CSharpParseOptions? parseOptions = null,
+            CSharp.CSharpCompilationOptions? compilationOptions = null,
+            IEnumerable<MetadataReference>? referencedAssemblies = null,
+            IEnumerable<Compilation>? referencedCompilations = null)
         {
             return CreateCSharpCompilation(assemblyName: null, assemblyIdentity, code, parseOptions, compilationOptions, referencedAssemblies, referencedCompilations);
         }
 
         private CSharp.CSharpCompilation CreateCSharpCompilation(
-            string assemblyName,
-            AssemblyIdentity assemblyIdentity,
+            string? assemblyName,
+            AssemblyIdentity? assemblyIdentity,
             string code,
-            CSharp.CSharpParseOptions parseOptions = null,
-            CSharp.CSharpCompilationOptions compilationOptions = null,
-            IEnumerable<MetadataReference> referencedAssemblies = null,
-            IEnumerable<Compilation> referencedCompilations = null)
+            CSharp.CSharpParseOptions? parseOptions,
+            CSharp.CSharpCompilationOptions? compilationOptions,
+            IEnumerable<MetadataReference>? referencedAssemblies,
+            IEnumerable<Compilation>? referencedCompilations)
         {
             Debug.Assert(assemblyName == null || assemblyIdentity == null || assemblyIdentity.Name == assemblyName);
             if (assemblyName == null)
@@ -399,44 +398,44 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         protected VisualBasic.VisualBasicCompilation CreateVisualBasicCompilation(
             string code,
-            VisualBasic.VisualBasicParseOptions parseOptions = null,
-            VisualBasic.VisualBasicCompilationOptions compilationOptions = null,
-            string assemblyName = null,
-            IEnumerable<MetadataReference> referencedAssemblies = null)
+            VisualBasic.VisualBasicParseOptions? parseOptions = null,
+            VisualBasic.VisualBasicCompilationOptions? compilationOptions = null,
+            string? assemblyName = null,
+            IEnumerable<MetadataReference>? referencedAssemblies = null)
         {
             return CreateVisualBasicCompilation(assemblyName, code, parseOptions, compilationOptions, referencedAssemblies, referencedCompilations: null);
         }
 
         protected VisualBasic.VisualBasicCompilation CreateVisualBasicCompilation(
             string[] files,
-            VisualBasic.VisualBasicParseOptions parseOptions = null,
-            VisualBasic.VisualBasicCompilationOptions compilationOptions = null,
-            string assemblyName = null,
-            IEnumerable<MetadataReference> referencedAssemblies = null)
+            VisualBasic.VisualBasicParseOptions? parseOptions = null,
+            VisualBasic.VisualBasicCompilationOptions? compilationOptions = null,
+            string? assemblyName = null,
+            IEnumerable<MetadataReference>? referencedAssemblies = null)
         {
             return CreateVisualBasicCompilation(assemblyName, files, parseOptions, compilationOptions, referencedAssemblies, referencedCompilations: null);
         }
 
         protected VisualBasic.VisualBasicCompilation CreateVisualBasicCompilation(
-            string assemblyName,
+            string? assemblyName,
             string code,
-            VisualBasic.VisualBasicParseOptions parseOptions = null,
-            VisualBasic.VisualBasicCompilationOptions compilationOptions = null,
-            IEnumerable<MetadataReference> referencedAssemblies = null,
-            IEnumerable<Compilation> referencedCompilations = null,
-            Encoding encoding = null,
-            string sourceFileName = null)
-            => CreateVisualBasicCompilation(assemblyName, new[] { code }, parseOptions, compilationOptions, referencedAssemblies, referencedCompilations, encoding, new[] { sourceFileName });
+            VisualBasic.VisualBasicParseOptions? parseOptions = null,
+            VisualBasic.VisualBasicCompilationOptions? compilationOptions = null,
+            IEnumerable<MetadataReference>? referencedAssemblies = null,
+            IEnumerable<Compilation>? referencedCompilations = null,
+            Encoding? encoding = null,
+            string? sourceFileName = null)
+            => CreateVisualBasicCompilation(assemblyName, [code], parseOptions, compilationOptions, referencedAssemblies, referencedCompilations, encoding, sourceFileName is not null ? [sourceFileName] : null);
 
         protected VisualBasic.VisualBasicCompilation CreateVisualBasicCompilation(
-            string assemblyName,
+            string? assemblyName,
             string[] files,
-            VisualBasic.VisualBasicParseOptions parseOptions = null,
-            VisualBasic.VisualBasicCompilationOptions compilationOptions = null,
-            IEnumerable<MetadataReference> referencedAssemblies = null,
-            IEnumerable<Compilation> referencedCompilations = null,
-            Encoding encoding = null,
-            string[] sourceFileNames = null)
+            VisualBasic.VisualBasicParseOptions? parseOptions = null,
+            VisualBasic.VisualBasicCompilationOptions? compilationOptions = null,
+            IEnumerable<MetadataReference>? referencedAssemblies = null,
+            IEnumerable<Compilation>? referencedCompilations = null,
+            Encoding? encoding = null,
+            string[]? sourceFileNames = null)
         {
             Debug.Assert(sourceFileNames == null || sourceFileNames.Length == files.Length);
             if (assemblyName == null)
@@ -481,7 +480,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return VisualBasic.VisualBasicCompilation.Create(assemblyName, trees, references, compilationOptions);
         }
 
-        private void AddReferencedCompilations(IEnumerable<Compilation> referencedCompilations, List<MetadataReference> references)
+        private void AddReferencedCompilations(IEnumerable<Compilation>? referencedCompilations, List<MetadataReference> references)
         {
             if (referencedCompilations != null)
             {
@@ -504,7 +503,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         #region IL Verification
 
-        internal abstract string VisualizeRealIL(IModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers, bool areLocalsZeroed);
+        internal abstract string VisualizeRealIL(IModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string>? markers, bool areLocalsZeroed);
 
         #endregion
 
@@ -536,7 +535,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         internal void AssertDeclaresType(PEModuleSymbol peModule, WellKnownType type, Accessibility expectedAccessibility)
         {
             var name = MetadataTypeName.FromFullName(type.GetMetadataName());
-            Assert.Equal(expectedAccessibility, peModule.LookupTopLevelMetadataType(ref name).DeclaredAccessibility);
+            Assert.Equal(expectedAccessibility, peModule.LookupTopLevelMetadataType(ref name)!.DeclaredAccessibility);
         }
 
         #endregion
@@ -592,7 +591,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        private static Dictionary<IOperation, IOperation> GetParentOperationsMap(SemanticModel model)
+        private static Dictionary<IOperation, IOperation?> GetParentOperationsMap(SemanticModel model)
         {
             // get top operations first
             var topOperations = new HashSet<IOperation>();
@@ -601,7 +600,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             CollectTopOperations(model, root, topOperations);
 
             // dig down the each operation tree to create the parent operation map
-            var map = new Dictionary<IOperation, IOperation>();
+            var map = new Dictionary<IOperation, IOperation?>();
             foreach (var topOperation in topOperations)
             {
                 // this is top of the operation tree
@@ -613,7 +612,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return map;
         }
 
-        private static void CollectParentOperations(IOperation operation, Dictionary<IOperation, IOperation> map)
+        private static void CollectParentOperations(IOperation operation, Dictionary<IOperation, IOperation?> map)
         {
             // walk down to collect all parent operation map for this tree
             foreach (var child in operation.ChildOperations)
@@ -678,6 +677,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private static void VerifyOperationTreeContracts(IOperation root)
         {
             var semanticModel = ((Operation)root).OwningSemanticModel;
+            Debug.Assert(semanticModel != null);
             var set = new HashSet<IOperation>(root.DescendantsAndSelf());
 
             foreach (var child in root.DescendantsAndSelf())
@@ -702,6 +702,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     Assert.True(set.Contains(operation));
                 }
 
+                Debug.Assert(node.Parent is not null);
                 node = node.Parent;
             }
         }

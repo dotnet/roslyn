@@ -308,11 +308,12 @@ public partial class D
             Dim textBuffer = document.GetTextBuffer()
             Dim textView = document.GetTextView()
 
-            Dim peekableItemSource As New PeekableItemSource(textBuffer,
-                                                             workspace.GetService(Of IPeekableItemFactory),
-                                                             New MockPeekResultFactory(workspace.GetService(Of IPersistentSpanFactory)),
-                                                             workspace.GetService(Of IThreadingContext),
-                                                             workspace.GetService(Of IUIThreadOperationExecutor))
+            Dim peekableItemSource As New PeekableItemSource(
+                textBuffer,
+                workspace.GetService(Of PeekableItemFactory),
+                New MockPeekResultFactory(workspace.GetService(Of IPersistentSpanFactory)),
+                workspace.GetService(Of IThreadingContext),
+                workspace.GetService(Of IUIThreadOperationExecutor))
 
             Dim peekableSession As New Mock(Of IPeekSession)(MockBehavior.Strict)
             Dim triggerPoint = New SnapshotPoint(document.GetTextBuffer().CurrentSnapshot, document.CursorPosition.Value)

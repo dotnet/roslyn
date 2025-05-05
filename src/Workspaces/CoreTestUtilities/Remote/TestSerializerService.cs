@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
-using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 #pragma warning disable CA1416 // Validate platform compatibility
 

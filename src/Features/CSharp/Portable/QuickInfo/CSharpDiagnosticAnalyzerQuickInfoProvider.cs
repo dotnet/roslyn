@@ -144,7 +144,7 @@ internal sealed class CSharpDiagnosticAnalyzerQuickInfoProvider(DiagnosticAnalyz
     }
 
     private static QuickInfoItem CreateQuickInfo(TextSpan location, DiagnosticDescriptor descriptor,
-        params TextSpan[] relatedSpans)
+        params ReadOnlySpan<TextSpan> relatedSpans)
     {
         var description =
             descriptor.Title.ToStringOrNull() ??

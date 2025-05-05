@@ -5544,6 +5544,31 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78171")]
+    public async Task TestPreprocessingSymbol()
+    {
+        var markup = """
+            using System.Threading;
+            using System.Threading.Tasks;
+
+            class Program
+            {
+                async Task Process(CancellationToken cancellationToken = default)
+                {
+            #if N$$ET
+                    // .NET requires 100ms delay in this fictional example
+                    await Task.Delay(100, cancellationToken);
+            #else
+                    // .NET Framework requires 200ms delay in this fictional example, and we can't pass a CT on it
+                    await Task.Delay(200);
+            #endif
+                }
+            }
+            """;
+
+        await TestAsync(markup, MainDescription("NET"));
+    }
+
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546849")]
     public async Task TestIndexedProperty()
     {
@@ -6270,8 +6295,8 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             """;
         var expectedDescription = Usage($"""
 
-            {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
-            {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
+                {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
+                {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
 
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
             """, expectsWarningGlyph: true);
@@ -6306,8 +6331,8 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             """;
         var expectedDescription = Usage($"""
 
-            {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Not_Available)}
-            {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Available)}
+                {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Not_Available)}
+                {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Available)}
 
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
             """, expectsWarningGlyph: true);
@@ -6346,9 +6371,9 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
         var expectedDescription = Usage(
             $"""
 
-            {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
-            {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
-            {string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}
+                {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
+                {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
+                {string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}
 
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
             """,
@@ -6390,8 +6415,8 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             """;
         var expectedDescription = Usage($"""
 
-            {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
-            {string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}
+                {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
+                {string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}
 
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
             """, expectsWarningGlyph: true);
@@ -6482,8 +6507,8 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
 
         await VerifyWithReferenceWorkerAsync(markup, [MainDescription($"({FeaturesResources.local_variable}) int x"), Usage($"""
 
-            {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
-            {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
+                {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
+                {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
 
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
             """, expectsWarningGlyph: true)]);

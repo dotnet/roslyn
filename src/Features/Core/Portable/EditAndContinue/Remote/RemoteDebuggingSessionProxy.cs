@@ -56,7 +56,7 @@ internal sealed class RemoteDebuggingSessionProxy(SolutionServices services, IDi
 
     public async ValueTask<EmitSolutionUpdateResults.Data> EmitSolutionUpdateAsync(
         Solution solution,
-        IImmutableSet<ProjectId> runningProjects,
+        ImmutableDictionary<ProjectId, RunningProjectInfo> runningProjects,
         ActiveStatementSpanProvider activeStatementSpanProvider,
         CancellationToken cancellationToken)
     {
@@ -81,7 +81,7 @@ internal sealed class RemoteDebuggingSessionProxy(SolutionServices services, IDi
                 RudeEdits = [],
                 SyntaxError = null,
                 ProjectsToRebuild = [],
-                ProjectsToRestart = [],
+                ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty,
             };
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
@@ -93,7 +93,7 @@ internal sealed class RemoteDebuggingSessionProxy(SolutionServices services, IDi
                 RudeEdits = [],
                 SyntaxError = null,
                 ProjectsToRebuild = [],
-                ProjectsToRestart = [],
+                ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty,
             };
         }
 
@@ -101,7 +101,7 @@ internal sealed class RemoteDebuggingSessionProxy(SolutionServices services, IDi
         {
             var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(RudeEditKind.InternalError);
 
-            var firstProject = solution.GetProject(runningProjects.FirstOrDefault()) ?? solution.Projects.First();
+            var firstProject = solution.GetProject(runningProjects.FirstOrDefault().Key) ?? solution.Projects.First();
             var diagnostic = Diagnostic.Create(
                 descriptor,
                 Location.None,

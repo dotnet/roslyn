@@ -689,10 +689,10 @@ public sealed partial class CodeGenerationTests
             : compilation.CreateArrayTypeSymbol(compilation.GetTypeByMetadataName(typeFullName), arrayRank);
     }
 
-    internal static ImmutableArray<Func<SemanticModel, IParameterSymbol>> Parameters(params Func<SemanticModel, IParameterSymbol>[] p)
+    internal static ImmutableArray<Func<SemanticModel, IParameterSymbol>> Parameters(params ReadOnlySpan<Func<SemanticModel, IParameterSymbol>> p)
         => [.. p];
 
-    internal static ImmutableArray<Func<SemanticModel, ISymbol>> Members(params Func<SemanticModel, ISymbol>[] m)
+    internal static ImmutableArray<Func<SemanticModel, ISymbol>> Members(params ReadOnlySpan<Func<SemanticModel, ISymbol>> m)
         => [.. m];
 
     internal static Func<SemanticModel, ITypeSymbol> CreateArrayType(Type type, int rank = 1)

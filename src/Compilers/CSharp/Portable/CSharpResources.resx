@@ -6850,6 +6850,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureCollectionExpressions" xml:space="preserve">
     <value>collection expressions</value>
   </data>
+  <data name="IDS_CollectionExpression" xml:space="preserve">
+    <value>collection expression</value>
+  </data>
   <data name="ERR_CollectionExpressionTargetTypeNotConstructible" xml:space="preserve">
     <value>Cannot initialize type '{0}' with a collection expression because the type is not constructible.</value>
   </data>

@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeFixes.FullyQualify;
 using Microsoft.CodeAnalysis.CodeLens;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.ConvertTupleToStruct;
+using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
@@ -58,6 +59,7 @@ internal sealed class ServiceDescriptors
         (typeof(IRemoteAsynchronousOperationListenerService), null),
         (typeof(IRemoteCodeLensReferencesService), null),
         (typeof(IRemoteConvertTupleToStructCodeRefactoringService), null),
+        (typeof(IRemoteCopilotChangeAnalysisService), null),
         (typeof(IRemoteDependentTypeFinderService), null),
         (typeof(IRemoteDesignerAttributeDiscoveryService), typeof(IRemoteDesignerAttributeDiscoveryService.ICallback)),
         (typeof(IRemoteDiagnosticAnalyzerService), null),
@@ -75,6 +77,7 @@ internal sealed class ServiceDescriptors
         (typeof(IRemoteNavigateToSearchService), typeof(IRemoteNavigateToSearchService.ICallback)),
         (typeof(IRemoteNavigationBarItemService), null),
         (typeof(IRemoteProcessTelemetryService), null),
+        (typeof(IRemoteInitializationService), null),
         (typeof(IRemoteRelatedDocumentsService), typeof(IRemoteRelatedDocumentsService.ICallback)),
         (typeof(IRemoteRenamerService), null),
         (typeof(IRemoteSemanticClassificationService), null),

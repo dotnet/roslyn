@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.GraphModel;
 using Microsoft.VisualStudio.GraphModel.Schemas;
 
@@ -16,6 +17,8 @@ internal sealed class InheritsGraphQuery : IGraphQuery
 {
     public async Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
     {
+        using var _ = Logger.LogBlock(FunctionId.GraphQuery_Inherits, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken);
+
         var graphBuilder = await GraphBuilder.CreateForInputNodesAsync(solution, context.InputNodes, cancellationToken).ConfigureAwait(false);
         var nodesToProcess = context.InputNodes;
 

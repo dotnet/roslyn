@@ -11,10 +11,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
@@ -44,17 +46,22 @@ public sealed class EmitSolutionUpdateResultsTests
             activeStatements: [],
             exceptionRegions: []);
 
-    private static EmitSolutionUpdateResults CreateMockResults(Solution solution, IEnumerable<ProjectId> updates, IEnumerable<ProjectId> rudeEdits)
-    => new()
-    {
-        Solution = solution,
-        ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Blocked, [.. updates.Select(CreateMockUpdate)]),
-        RudeEdits = [.. rudeEdits.Select(id => new ProjectDiagnostics(id, [Diagnostic.Create(EditAndContinueDiagnosticDescriptors.GetDescriptor(RudeEditKind.InternalError), location: null)]))],
-        Diagnostics = [],
-        SyntaxError = null,
-        ProjectsToRebuild = [],
-        ProjectsToRestart = [],
-    };
+    private static ModuleUpdates CreateValidUpdates(params IEnumerable<ProjectId> projectIds)
+        => new(ModuleUpdateStatus.Blocked, [.. projectIds.Select(CreateMockUpdate)]);
+
+    private static ArrayBuilder<ProjectDiagnostics> CreateProjectRudeEdits(IEnumerable<ProjectId> blocking, IEnumerable<ProjectId> noEffect)
+        => [.. blocking.Select(id => (id, kind: RudeEditKind.InternalError)).Concat(noEffect.Select(id => (id, kind: RudeEditKind.UpdateMightNotHaveAnyEffect)))
+            .GroupBy(e => e.id)
+            .OrderBy(g => g.Key)
+            .Select(g => new ProjectDiagnostics(g.Key, [.. g.Select(e => Diagnostic.Create(EditAndContinueDiagnosticDescriptors.GetDescriptor(e.kind), Location.None))]))];
+
+    private static ImmutableDictionary<ProjectId, RunningProjectInfo> CreateRunningProjects(IEnumerable<(ProjectId id, bool noEffectRestarts)> projectIds, bool allowPartialUpdate = true)
+        => projectIds.ToImmutableDictionary(keySelector: e => e.id, elementSelector: e => new RunningProjectInfo() { RestartWhenChangesHaveNoEffect = e.noEffectRestarts, AllowPartialUpdate = allowPartialUpdate });
+
+    private static IEnumerable<string> Inspect(ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>> projectsToRestart)
+        => projectsToRestart
+            .OrderBy(kvp => kvp.Key.DebugName)
+            .Select(kvp => $"{kvp.Key.DebugName}: [{string.Join(",", kvp.Value.Select(id => id.DebugName).Order())}]");
 
     [Fact]
     public async Task GetHotReloadDiagnostics()
@@ -137,7 +144,7 @@ public sealed class EmitSolutionUpdateResultsTests
             SyntaxError = syntaxError,
             ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Blocked, Updates: []),
             ProjectsToRebuild = [],
-            ProjectsToRestart = [],
+            ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty,
         };
 
         var actual = data.GetAllDiagnostics();
@@ -163,14 +170,11 @@ public sealed class EmitSolutionUpdateResultsTests
             .AddTestProject("A", out var a).AddProjectReferences([new(c)]).Solution
             .AddTestProject("B", out var b).AddProjectReferences([new(c), new(d)]).Solution;
 
-        var runningProjects = new[] { a, b }.ToImmutableHashSet();
-        var results = CreateMockResults(solution, updates: [c, d], rudeEdits: []);
-
         EmitSolutionUpdateResults.GetProjectsToRebuildAndRestart(
             solution,
-            results.ModuleUpdates,
-            results.RudeEdits,
-            runningProjects,
+            CreateValidUpdates(c, d),
+            CreateProjectRudeEdits(blocking: [], noEffect: []),
+            CreateRunningProjects([(a, noEffectRestarts: false), (b, noEffectRestarts: false)]),
             out var projectsToRestart,
             out var projectsToRebuild);
 
@@ -179,7 +183,7 @@ public sealed class EmitSolutionUpdateResultsTests
     }
 
     [Fact]
-    public void RunningProjects_RudeEdits()
+    public void RunningProjects_RudeEdits_SingleImpactedRunningProject()
     {
         using var _ = CreateWorkspace(out var solution);
 
@@ -189,22 +193,48 @@ public sealed class EmitSolutionUpdateResultsTests
             .AddTestProject("A", out var a).AddProjectReferences([new(c)]).Solution
             .AddTestProject("B", out var b).AddProjectReferences([new(c), new(d)]).Solution;
 
-        var runningProjects = new[] { a, b }.ToImmutableHashSet();
-        var results = CreateMockResults(solution, updates: [], rudeEdits: [d]);
-
         EmitSolutionUpdateResults.GetProjectsToRebuildAndRestart(
             solution,
-            results.ModuleUpdates,
-            results.RudeEdits,
-            runningProjects,
+            CreateValidUpdates(),
+            CreateProjectRudeEdits(blocking: [d], noEffect: []),
+            CreateRunningProjects([(a, noEffectRestarts: false), (b, noEffectRestarts: false)]),
             out var projectsToRestart,
             out var projectsToRebuild);
 
         // D has rude edit ==> B has to restart
-        AssertEx.SetEqual([b], projectsToRestart);
+        AssertEx.Equal(["B: [D]"], Inspect(projectsToRestart));
 
-        // D has rude edit:
-        AssertEx.SetEqual([d], projectsToRebuild);
+        AssertEx.SetEqual([b], projectsToRebuild);
+    }
+
+    [Fact]
+    public void RunningProjects_RudeEdits_MultipleImpactedRunningProjects()
+    {
+        using var _ = CreateWorkspace(out var solution);
+
+        solution = solution
+            .AddTestProject("C", out var c).Solution
+            .AddTestProject("D", out var d).Solution
+            .AddTestProject("A", out var a).AddProjectReferences([new(c)]).Solution
+            .AddTestProject("B", out var b).AddProjectReferences([new(c), new(d)]).Solution;
+
+        EmitSolutionUpdateResults.GetProjectsToRebuildAndRestart(
+            solution,
+            CreateValidUpdates(),
+            CreateProjectRudeEdits(blocking: [c], noEffect: []),
+            CreateRunningProjects([(a, noEffectRestarts: true), (b, noEffectRestarts: false)]),
+            out var projectsToRestart,
+            out var projectsToRebuild);
+
+        // C has rude edit
+        // ==> A, B have to restart:
+        AssertEx.Equal(
+        [
+            "A: [C]",
+            "B: [C]",
+        ], Inspect(projectsToRestart));
+
+        AssertEx.SetEqual([a, b], projectsToRebuild);
     }
 
     [Fact]
@@ -218,19 +248,184 @@ public sealed class EmitSolutionUpdateResultsTests
             .AddTestProject("A", out var a).AddProjectReferences([new(c)]).Solution
             .AddTestProject("B", out var b).AddProjectReferences([new(c), new(d)]).Solution;
 
-        var runningProjects = new[] { a }.ToImmutableHashSet();
-        var results = CreateMockResults(solution, updates: [], rudeEdits: [d]);
+        EmitSolutionUpdateResults.GetProjectsToRebuildAndRestart(
+            solution,
+            CreateValidUpdates(),
+            CreateProjectRudeEdits(blocking: [d], noEffect: []),
+            CreateRunningProjects([(a, noEffectRestarts: false)]),
+            out var projectsToRestart,
+            out var projectsToRebuild);
+
+        Assert.Empty(projectsToRestart);
+
+        // Rude edit in projects that doesn't affect running project still causes the updated project to be rebuilt,
+        // so that the change takes effect if it is loaded in future.
+        AssertEx.SetEqual([d], projectsToRebuild);
+    }
+
+    [Fact]
+    public void RunningProjects_NoEffectEdits_NoEffectRestarts()
+    {
+        using var _ = CreateWorkspace(out var solution);
+
+        solution = solution
+            .AddTestProject("C", out var c).Solution
+            .AddTestProject("D", out var d).Solution
+            .AddTestProject("A", out var a).AddProjectReferences([new(c)]).Solution
+            .AddTestProject("B", out var b).AddProjectReferences([new(c), new(d)]).Solution;
 
         EmitSolutionUpdateResults.GetProjectsToRebuildAndRestart(
             solution,
-            results.ModuleUpdates,
-            results.RudeEdits,
-            runningProjects,
+            CreateValidUpdates(c),
+            CreateProjectRudeEdits(blocking: [], noEffect: [c]),
+            CreateRunningProjects([(a, noEffectRestarts: false), (b, noEffectRestarts: true)]),
+            out var projectsToRestart,
+            out var projectsToRebuild);
+
+        // C has no-effect edit
+        // B restarts on no effect changes
+        // A restarts on blocking changes
+        // ==> B has to restart
+        // ==> A has to restart as well since B is restarting and C has an update
+        AssertEx.Equal(
+        [
+            "A: [C]",
+            "B: [C]",
+        ], Inspect(projectsToRestart));
+
+        AssertEx.SetEqual([a, b], projectsToRebuild);
+    }
+
+    [Fact]
+    public void RunningProjects_NoEffectEdits_BlockingRestartsOnly()
+    {
+        using var _ = CreateWorkspace(out var solution);
+
+        solution = solution
+            .AddTestProject("C", out var c).Solution
+            .AddTestProject("D", out var d).Solution
+            .AddTestProject("A", out var a).AddProjectReferences([new(c)]).Solution
+            .AddTestProject("B", out var b).AddProjectReferences([new(c), new(d)]).Solution;
+
+        EmitSolutionUpdateResults.GetProjectsToRebuildAndRestart(
+            solution,
+            CreateValidUpdates(c),
+            CreateProjectRudeEdits(blocking: [], noEffect: [c]),
+            CreateRunningProjects([(a, noEffectRestarts: false), (b, noEffectRestarts: false)]),
+            out var projectsToRestart,
+            out var projectsToRebuild);
+
+        // C has no-effect edit
+        // B restarts on blocking changes
+        // A restarts on blocking changes
+        // ==> no restarts/rebuild
+        Assert.Empty(projectsToRestart);
+        Assert.Empty(projectsToRebuild);
+    }
+
+    [Fact]
+    public void RunningProjects_NoEffectEdits_NoImpactedRunningProject()
+    {
+        using var _ = CreateWorkspace(out var solution);
+
+        solution = solution
+            .AddTestProject("C", out var c).Solution
+            .AddTestProject("D", out var d).Solution
+            .AddTestProject("A", out var a).AddProjectReferences([new(c)]).Solution
+            .AddTestProject("B", out var b).AddProjectReferences([new(c), new(d)]).Solution;
+
+        EmitSolutionUpdateResults.GetProjectsToRebuildAndRestart(
+            solution,
+            CreateValidUpdates(d),
+            CreateProjectRudeEdits(blocking: [], noEffect: [d]),
+            CreateRunningProjects([(a, noEffectRestarts: false)]),
             out var projectsToRestart,
             out var projectsToRebuild);
 
         Assert.Empty(projectsToRestart);
         Assert.Empty(projectsToRebuild);
+    }
+
+    [Fact]
+    public void RunningProjects_NoEffectEditAndRudeEdit_SameProject()
+    {
+        using var _ = CreateWorkspace(out var solution);
+
+        solution = solution
+            .AddTestProject("C", out var c).Solution
+            .AddTestProject("D", out var d).Solution
+            .AddTestProject("A", out var a).AddProjectReferences([new(c)]).Solution
+            .AddTestProject("B", out var b).AddProjectReferences([new(c), new(d)]).Solution;
+
+        EmitSolutionUpdateResults.GetProjectsToRebuildAndRestart(
+            solution,
+            CreateValidUpdates(),
+            CreateProjectRudeEdits(blocking: [c], noEffect: [c]),
+            CreateRunningProjects([(a, noEffectRestarts: false), (b, noEffectRestarts: false)]),
+            out var projectsToRestart,
+            out var projectsToRebuild);
+
+        // C has rude edit
+        // ==> A, B have to restart
+        AssertEx.Equal(
+        [
+            "A: [C]",
+            "B: [C]",
+        ], Inspect(projectsToRestart));
+
+        AssertEx.SetEqual([a, b], projectsToRebuild);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void RunningProjects_NoEffectEditAndRudeEdit_DifferentProjects(bool allowPartialUpdate)
+    {
+        using var _ = CreateWorkspace(out var solution);
+
+        solution = solution
+            .AddTestProject("Q", out var q).Solution
+            .AddTestProject("P0", out var p0).AddProjectReferences([new(q)]).Solution
+            .AddTestProject("P1", out var p1).AddProjectReferences([new(q)]).Solution
+            .AddTestProject("P2", out var p2).Solution
+            .AddTestProject("R0", out var r0).AddProjectReferences([new(p0)]).Solution
+            .AddTestProject("R1", out var r1).AddProjectReferences([new(p1), new(p0)]).Solution
+            .AddTestProject("R2", out var r2).AddProjectReferences([new(p2), new(p0)]).Solution;
+
+        EmitSolutionUpdateResults.GetProjectsToRebuildAndRestart(
+            solution,
+            CreateValidUpdates(p0, q),
+            CreateProjectRudeEdits(blocking: [p1, p2], noEffect: [q]),
+            CreateRunningProjects([(r0, noEffectRestarts: false), (r1, noEffectRestarts: false), (r2, noEffectRestarts: false)], allowPartialUpdate),
+            out var projectsToRestart,
+            out var projectsToRebuild);
+
+        // P1, P2 have rude edits
+        // ==> R1, R2 have to restart
+        // P0 has no-effect edit, but R0, R1, R2 do not restart on no-effect edits
+        // P0 has update, R1 -> P0, R2 -> P0, R1 and R2 are restarting due to rude edits in P1 and P2
+        // ==> R0 has to restart due to rude edits in P1 and P2
+        // Q has update
+        // ==> R0 has to restart due to rude edits in P1 and P2
+        if (allowPartialUpdate)
+        {
+            AssertEx.Equal(
+            [
+                "R0: [P1,P2]",
+                "R1: [P1]",
+                "R2: [P2]",
+            ], Inspect(projectsToRestart));
+        }
+        else
+        {
+            AssertEx.Equal(
+            [
+                "R0: []",
+                "R1: [P1]",
+                "R2: [P2]",
+            ], Inspect(projectsToRestart));
+        }
+
+        AssertEx.SetEqual([r0, r1, r2], projectsToRebuild);
     }
 
     [Fact]
@@ -244,27 +439,28 @@ public sealed class EmitSolutionUpdateResultsTests
             .AddTestProject("A", out var a).AddProjectReferences([new(c)]).Solution
             .AddTestProject("B", out var b).AddProjectReferences([new(c), new(d)]).Solution;
 
-        var runningProjects = new[] { a, b }.ToImmutableHashSet();
-        var results = CreateMockResults(solution, updates: [c], rudeEdits: [d]);
-
         EmitSolutionUpdateResults.GetProjectsToRebuildAndRestart(
             solution,
-            results.ModuleUpdates,
-            results.RudeEdits,
-            runningProjects,
+            CreateValidUpdates(c),
+            CreateProjectRudeEdits(blocking: [d], noEffect: []),
+            CreateRunningProjects([(a, noEffectRestarts: false), (b, noEffectRestarts: false)]),
             out var projectsToRestart,
             out var projectsToRebuild);
 
         // D has rude edit => B has to restart
         // C has update, B -> C and A -> C ==> A has to restart
-        AssertEx.SetEqual([a, b], projectsToRestart);
+        AssertEx.Equal(
+        [
+            "A: [D]",
+            "B: [D]",
+        ], Inspect(projectsToRestart));
 
-        // D has rude edit, C has update that impacts restart set:
-        AssertEx.SetEqual([c, d], projectsToRebuild);
+        AssertEx.SetEqual([a, b], projectsToRebuild);
     }
 
-    [Fact]
-    public void RunningProjects_RudeEditAndUpdate_Independent()
+    [Theory]
+    [CombinatorialData]
+    public void RunningProjects_RudeEditAndUpdate_Independent(bool allowPartialUpdate)
     {
         using var _ = CreateWorkspace(out var solution);
 
@@ -274,22 +470,74 @@ public sealed class EmitSolutionUpdateResultsTests
             .AddTestProject("A", out var a).AddProjectReferences([new(c)]).Solution
             .AddTestProject("B", out var b).AddProjectReferences([new(d)]).Solution;
 
-        var runningProjects = new[] { a, b }.ToImmutableHashSet();
-        var results = CreateMockResults(solution, updates: [c], rudeEdits: [d]);
-
         EmitSolutionUpdateResults.GetProjectsToRebuildAndRestart(
             solution,
-            results.ModuleUpdates,
-            results.RudeEdits,
-            runningProjects,
+            CreateValidUpdates(c),
+            CreateProjectRudeEdits(blocking: [d], noEffect: []),
+            CreateRunningProjects([(a, noEffectRestarts: false), (b, noEffectRestarts: false)], allowPartialUpdate),
             out var projectsToRestart,
             out var projectsToRebuild);
 
-        // D has rude edit => B has to restart
-        AssertEx.SetEqual([b], projectsToRestart);
+        if (allowPartialUpdate)
+        {
+            // D has rude edit => B has to restart
+            AssertEx.Equal(["B: [D]"], Inspect(projectsToRestart));
+            AssertEx.SetEqual([b], projectsToRebuild);
+        }
+        else
+        {
+            AssertEx.Equal(
+            [
+                "A: []",
+                "B: [D]",
+            ], Inspect(projectsToRestart));
 
-        // D has rude edit, C has update that does not impacts restart set:
-        AssertEx.SetEqual([d], projectsToRebuild);
+            AssertEx.SetEqual([a, b], projectsToRebuild);
+        }
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void RunningProjects_NoEffectEditAndUpdate(bool allowPartialUpdate)
+    {
+        using var _ = CreateWorkspace(out var solution);
+
+        solution = solution
+            .AddTestProject("C", out var c).Solution
+            .AddTestProject("D", out var d).Solution
+            .AddTestProject("A", out var a).AddProjectReferences([new(c)]).Solution
+            .AddTestProject("B", out var b).AddProjectReferences([new(c), new(d)]).Solution;
+
+        EmitSolutionUpdateResults.GetProjectsToRebuildAndRestart(
+            solution,
+            CreateValidUpdates(c, d),
+            CreateProjectRudeEdits(blocking: [], noEffect: [d]),
+            CreateRunningProjects([(a, noEffectRestarts: false), (b, noEffectRestarts: true)], allowPartialUpdate),
+            out var projectsToRestart,
+            out var projectsToRebuild);
+
+        // D has no-effect edit
+        // ==> B has to restart
+        // C has update, A -> C, B -> C, B restarting
+        // ==> A has to restart even though it does not restart on no-effect edits
+        if (allowPartialUpdate)
+        {
+            AssertEx.Equal(
+            [
+                "A: [D]",
+                "B: [D]",
+            ], Inspect(projectsToRestart));
+        }
+        else
+        {
+            AssertEx.Equal(
+            [
+                "A: []",
+                "B: [D]",
+            ], Inspect(projectsToRestart));
+        }
+
+        AssertEx.SetEqual([a, b], projectsToRebuild);
     }
 
     [Theory]
@@ -308,18 +556,22 @@ public sealed class EmitSolutionUpdateResultsTests
             .AddTestProject("R3", out var r3).AddProjectReferences([new(p3), new(p4)]).Solution
             .AddTestProject("R4", out var r4).AddProjectReferences([new(p4)]).Solution;
 
-        var runningProjects = new[] { r1, r2, r3, r4 }.ToImmutableHashSet();
-        var results = CreateMockResults(solution, updates: reverse ? [p4, p3, p2] : [p2, p3, p4], rudeEdits: [p1]);
-
         EmitSolutionUpdateResults.GetProjectsToRebuildAndRestart(
             solution,
-            results.ModuleUpdates,
-            results.RudeEdits,
-            runningProjects,
+            CreateValidUpdates(reverse ? [p4, p3, p2] : [p2, p3, p4]),
+            CreateProjectRudeEdits(blocking: [p1], noEffect: []),
+            CreateRunningProjects([(r1, noEffectRestarts: false), (r2, noEffectRestarts: false), (r3, noEffectRestarts: false), (r4, noEffectRestarts: false)]),
             out var projectsToRestart,
             out var projectsToRebuild);
 
-        AssertEx.SetEqual([r1, r2, r3, r4], projectsToRestart);
-        AssertEx.SetEqual([p1, p2, p3, p4], projectsToRebuild);
+        AssertEx.Equal(
+        [
+            "R1: [P1]",
+            "R2: [P1]",
+            "R3: [P1]",
+            "R4: [P1]",
+        ], Inspect(projectsToRestart));
+
+        AssertEx.SetEqual([r1, r2, r3, r4], projectsToRebuild);
     }
 }
