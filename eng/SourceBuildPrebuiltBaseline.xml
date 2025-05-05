@@ -40,7 +40,8 @@
     <UsagePattern IdentityGlob="System.Diagnostics.DiagnosticSource/9.0*" />
     <UsagePattern IdentityGlob="System.Diagnostics.EventLog/9.0*" />
     <UsagePattern IdentityGlob="System.Formats.Nrbf/9.0*" />
-    <UsagePattern IdentityGlob="System.IO.Pipelines/9.0*" />
+    <UsagePattern IdentityGlob="System.IO.Pipelines/9.0*" />    
+    <UsagePattern IdentityGlob="System.IO.Hashing/9.0*" />
     <UsagePattern IdentityGlob="System.Reflection.Metadata/9.0*" />
     <UsagePattern IdentityGlob="System.Resources.Extensions/9.0*" />
     <UsagePattern IdentityGlob="System.Security.Cryptography.ProtectedData/9.0*" />
