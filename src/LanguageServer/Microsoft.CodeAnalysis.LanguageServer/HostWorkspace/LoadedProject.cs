@@ -60,6 +60,8 @@ internal sealed class LoadedProject : IDisposable
         _fileChangeContext.EnqueueWatchingFile(_projectFilePath);
     }
 
+    public ProjectId ProjectId => _projectSystemProject.Id;
+
     private void FileChangedContext_FileChanged(object? sender, string filePath)
     {
         // If the project file itself changed, we almost certainly need to reload the project.

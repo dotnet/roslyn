@@ -4,23 +4,24 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
+using System.IO;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
+using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.MSBuild.BuildHostProcessManager;
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -40,7 +41,6 @@ internal abstract class LanguageServerProjectLoader
     private readonly ILogger _logger;
     private readonly ProjectLoadTelemetryReporter _projectLoadTelemetryReporter;
     private readonly BinlogNamer _binlogNamer;
-    private readonly ProjectFileExtensionRegistry _projectFileExtensionRegistry;
     protected readonly ImmutableDictionary<string, string> AdditionalProperties;
 
     /// <summary>
@@ -49,7 +49,7 @@ internal abstract class LanguageServerProjectLoader
     /// in <see cref="LoadOrReloadProjectsAsync" /> and downstream calls; any other updating of this (like unloading projects) should be achieved by adding
     /// things to the <see cref="ProjectsToLoadAndReload" />.
     /// </summary>
-    private readonly ConcurrentDictionary<string, List<LoadedProject>> _loadedProjects = [];
+    private readonly ConcurrentDictionary<string, ImmutableArray<LoadedProject>> _loadedProjects = [];
 
     protected LanguageServerProjectLoader(
         ProjectSystemProjectFactory projectFactory,
@@ -73,7 +73,6 @@ internal abstract class LanguageServerProjectLoader
         _projectLoadTelemetryReporter = projectLoadTelemetry;
         _binlogNamer = binlogNamer;
         var workspace = projectFactory.Workspace;
-        _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(workspace.CurrentSolution.Services, new DiagnosticReporter(workspace));
         var razorDesignTimePath = serverConfigurationFactory.ServerConfiguration?.RazorDesignTimePath;
 
         AdditionalProperties = razorDesignTimePath is null
@@ -146,6 +145,9 @@ internal abstract class LanguageServerProjectLoader
         }
     }
 
+    protected abstract Task<(RemoteProjectFile? projectFile, BuildHostProcessKind preferred, BuildHostProcessKind actual)> TryLoadProjectAsync(
+        BuildHostProcessManager buildHostProcessManager, ProjectToLoad projectToLoad, CancellationToken cancellationToken);
+
     /// <returns>True if the project needs a NuGet restore, false otherwise.</returns>
     private async Task<bool> LoadOrReloadProjectAsync(ProjectToLoad projectToLoad, ToastErrorReporter toastErrorReporter, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
     {
@@ -154,15 +156,16 @@ internal abstract class LanguageServerProjectLoader
 
         try
         {
-            var preferredBuildHostKind = GetKindForProject(projectPath);
-            var (buildHost, actualBuildHostKind) = await buildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, projectPath, cancellationToken);
+            var (loadedFile, preferredBuildHostKind, actualBuildHostKind) = await TryLoadProjectAsync(buildHostProcessManager, projectToLoad, cancellationToken);
             if (preferredBuildHostKind != actualBuildHostKind)
                 preferredBuildHostKindThatWeDidNotGet = preferredBuildHostKind;
 
-            if (!_projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out var languageName))
+            if (loadedFile is null)
+            {
+                _logger.LogWarning($"Unable to load project '{projectPath}'.");
                 return false;
+            }
 
-            var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken);
             var diagnosticLogItems = await loadedFile.GetDiagnosticLogItemsAsync(cancellationToken);
             if (diagnosticLogItems.Any(item => item.Kind is DiagnosticLogItemKind.Error))
             {
@@ -181,7 +184,8 @@ internal abstract class LanguageServerProjectLoader
                 return false;
             }
 
-            var existingProjects = _loadedProjects.GetOrAdd(projectPath, static _ => []);
+            if (!_loadedProjects.TryGetValue(projectPath, out var existingProjects))
+                existingProjects = [];
 
             Dictionary<ProjectFileInfo, ProjectLoadTelemetryReporter.TelemetryInfo> telemetryInfos = [];
             var needsRestore = false;
@@ -189,8 +193,7 @@ internal abstract class LanguageServerProjectLoader
             HashSet<LoadedProject> projectsToRemove = [.. existingProjects];
             foreach (var loadedProjectInfo in loadedProjectInfos)
             {
-                // If we already have the project with this same target framework, just update it
-                var existingProject = existingProjects.Find(p => p.GetTargetFramework() == loadedProjectInfo.TargetFramework);
+                var existingProject = existingProjects.FirstOrDefault(p => p.GetTargetFramework() == loadedProjectInfo.TargetFramework);
                 bool targetNeedsRestore;
                 ProjectLoadTelemetryReporter.TelemetryInfo targetTelemetryInfo;
 
@@ -201,23 +204,12 @@ internal abstract class LanguageServerProjectLoader
                 }
                 else
                 {
-                    var projectSystemName = $"{projectPath} (${loadedProjectInfo.TargetFramework})";
-                    var projectCreationInfo = new ProjectSystemProjectCreationInfo
-                    {
-                        AssemblyName = projectSystemName,
-                        FilePath = projectPath,
-                        CompilationOutputAssemblyFilePath = loadedProjectInfo.IntermediateOutputFilePath
-                    };
-
-                    var projectSystemProject = await ProjectFactory.CreateAndAddToWorkspaceAsync(
-                        projectSystemName,
+                    var loadedProject = await CreateAndTrackInitialProjectAsync(
+                        projectPath,
                         loadedProjectInfo.Language,
-                        projectCreationInfo,
-                        _projectSystemHostInfo);
-
-                    var loadedProject = new LoadedProject(projectSystemProject, ProjectFactory.Workspace.Services.SolutionServices, _fileChangeWatcher, _targetFrameworkManager);
+                        loadedProjectInfo.TargetFramework,
+                        loadedProjectInfo.IntermediateOutputFilePath);
                     loadedProject.NeedsReload += (_, _) => ProjectsToLoadAndReload.AddWork(projectToLoad with { ReportTelemetry = false });
-                    existingProjects.Add(loadedProject);
 
                     (targetTelemetryInfo, targetNeedsRestore) = await loadedProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo, _logger);
 
@@ -226,11 +218,24 @@ internal abstract class LanguageServerProjectLoader
                 }
             }
 
-            foreach (var project in projectsToRemove)
+            using var newProjects = TemporaryArray<LoadedProject>.Empty;
+            foreach (var project in existingProjects)
             {
-                project.Dispose();
-                _loadedProjects.AddOrUpdate(projectPath, addValueFactory: _ => throw new InvalidOperationException(), updateValueFactory: (_, arr) => arr.Remove(project));
+                if (projectsToRemove.Contains(project))
+                {
+                    project.Dispose();
+                }
+                else
+                {
+                    newProjects.Add(project);
+                }
             }
+
+            _loadedProjects.AddOrUpdate(projectPath,
+                // We expect the key always continues to be present in the dictionary during this operation.
+                addValueFactory: (_, _) => throw new InvalidOperationException(),
+                updateValueFactory: static (_, _, newProjects) => newProjects,
+                factoryArgument: newProjects.ToImmutableAndClear());
 
             if (projectToLoad.ReportTelemetry)
             {
@@ -280,5 +285,34 @@ internal abstract class LanguageServerProjectLoader
 
             await toastErrorReporter.ReportErrorAsync(worstLspMessageKind, message, cancellationToken);
         }
+    }
+
+    /// <summary>
+    /// Creates a <see cref="LoadedProject"/> which has bare minimum information, but, which documents can be added to and obtained from.
+    /// </summary>
+    protected async Task<LoadedProject> CreateAndTrackInitialProjectAsync(
+        string projectPath,
+        string language,
+        string? targetFramework = null,
+        string? intermediateOutputFilePath = null)
+    {
+        var projectSystemName = targetFramework is null ? projectPath : $"{projectPath} (${targetFramework})";
+
+        var projectCreationInfo = new ProjectSystemProjectCreationInfo
+        {
+            AssemblyName = projectSystemName,
+            FilePath = projectPath,
+            CompilationOutputAssemblyFilePath = intermediateOutputFilePath,
+        };
+
+        var projectSystemProject = await ProjectFactory.CreateAndAddToWorkspaceAsync(
+            projectSystemName,
+            language,
+            projectCreationInfo,
+            _projectSystemHostInfo);
+
+        var loadedProject = new LoadedProject(projectSystemProject, ProjectFactory.Workspace.Services.SolutionServices, _fileChangeWatcher, _targetFrameworkManager);
+        _loadedProjects.AddOrUpdate(projectPath, addValue: [loadedProject], updateValueFactory: (_, arr) => arr.Add(loadedProject));
+        return loadedProject;
     }
 }

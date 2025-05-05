@@ -44,8 +44,8 @@ internal sealed class LanguageServerWorkspace : Workspace, ILspWorkspace
     /// </summary>
     public ProjectSystemProjectFactory ProjectSystemProjectFactory { private get; set; } = null!;
 
-    public LanguageServerWorkspace(HostServices host)
-        : base(host, WorkspaceKind.Host)
+    public LanguageServerWorkspace(HostServices host, string workspaceKind)
+        : base(host, workspaceKind)
     {
     }
 
