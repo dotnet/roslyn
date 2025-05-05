@@ -102,6 +102,7 @@ internal sealed class LoadedProject : IDisposable
 
     public void Dispose()
     {
+        _fileChangeContext.Dispose();
         _optionsProcessor.Dispose();
         _projectSystemProject.RemoveFromWorkspace();
     }
