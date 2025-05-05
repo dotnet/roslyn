@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -11,10 +12,10 @@ namespace Microsoft.CodeAnalysis.Copilot;
 
 internal static class CopilotChangeAnalysisUtilities
 {
-    public static void LogCopilotChangeAnalysis(
+    public static IDisposable LogCopilotChangeAnalysis(
         string featureId, bool accepted, string proposalId, CopilotChangeAnalysis analysisResult, CancellationToken cancellationToken)
     {
-        Logger.LogBlock(FunctionId.Copilot_AnalyzeChange, KeyValueLogMessage.Create(static (d, args) =>
+        return Logger.LogBlock(FunctionId.Copilot_AnalyzeChange, KeyValueLogMessage.Create(static (d, args) =>
         {
             var (featureId, accepted, proposalId, analysisResult) = args;
             d["Accepted"] = accepted;
@@ -52,5 +53,13 @@ internal static class CopilotChangeAnalysisUtilities
     }
 
     private static List<string> GetOrderedElements<TKey, TValue>(Dictionary<TKey, TValue> dictionary) where TKey : notnull
-        => [.. dictionary.Select(kvp => $"{kvp.Key}_{kvp.Value}").OrderBy(v => v)];
+        => [.. dictionary.Select(kvp => $"{kvp.Key}_{GetOrdered(kvp.Value)}").OrderBy(v => v)];
+
+    private static object? GetOrdered<TValue>(TValue value)
+    {
+        if (value is IEnumerable<string> strings)
+            return string.Join(":", strings.OrderBy(v => v));
+
+        return value;
+    }
 }

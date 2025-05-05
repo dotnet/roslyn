@@ -132,7 +132,7 @@ internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationL
                 document, normalizedEdits, cancellationToken).ConfigureAwait(false);
 
             CopilotChangeAnalysisUtilities.LogCopilotChangeAnalysis(
-                featureId, accepted, proposalId, analysisResult, cancellationToken);
+                featureId, accepted, proposalId, analysisResult, cancellationToken).Dispose();
         }
     }
 

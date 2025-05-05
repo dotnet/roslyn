@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -19,6 +20,7 @@ using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
@@ -29,6 +31,8 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
+using Microsoft.CodeAnalysis.UnitTests.Logging;
+using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
@@ -1624,7 +1628,59 @@ public sealed partial class ServiceHubServicesTests
         Assert.Equal(1, result.CodeFixAnalysis.DiagnosticIdToCount["CS8300"]);
         Assert.Equal("CSharp.ConflictMarkerResolution.CSharpResolveConflictMarkerCodeFixProvider", result.CodeFixAnalysis.DiagnosticIdToProviderName["CS8300"].Single());
 
-        CopilotChangeAnalysisUtilities.LogCopilotChangeAnalysis("TestCode", accepted: true, "TestProposalId", result, CancellationToken.None);
+        var logger = new TestTelemetryLogger();
+        Logger.SetLogger(logger);
+        TestTelemetryLogger.TestScope scope;
+        using (CopilotChangeAnalysisUtilities.LogCopilotChangeAnalysis("TestCode", accepted: true, "TestProposalId", result, CancellationToken.None))
+        {
+            scope = logger.OpenedScopes.Single();
+        }
+        Logger.SetLogger(null);
+
+        var endEvent = scope.EndEvent;
+        Assert.Equal("vs/ide/vbcs/copilot/analyzechange", endEvent.Name);
+
+        var properties = endEvent.Properties;
+
+        Assert.Equal(true, properties["vs.ide.vbcs.copilot.analyzechange.succeeded"]);
+        Assert.Equal(true, properties["vs.ide.vbcs.copilot.analyzechange.accepted"]);
+        Assert.Equal("TestProposalId", properties["vs.ide.vbcs.copilot.analyzechange.proposalid"]);
+
+        Assert.Equal(44, properties["vs.ide.vbcs.copilot.analyzechange.olddocumentlength"]);
+        Assert.Equal(78, properties["vs.ide.vbcs.copilot.analyzechange.newdocumentlength"]);
+        Assert.Equal(34, properties["vs.ide.vbcs.copilot.analyzechange.textchangedelta"]);
+
+        Assert.Equal(1, properties["vs.ide.vbcs.copilot.analyzechange.projectdocumentcount"]);
+        Assert.Equal(0, properties["vs.ide.vbcs.copilot.analyzechange.projectsourcegenerateddocumentcount"]);
+        Assert.Equal(1, properties["vs.ide.vbcs.copilot.analyzechange.projectconecount"]);
+
+        // No analyzer diagnostics in this scenario.
+
+        Assert.Empty(GetStrings(properties, "vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_analyzersyntax_idtocount"));
+        Assert.Empty(GetStrings(properties, "vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_analyzersyntax_categorytocount"));
+        Assert.Empty(GetStrings(properties, "vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_analyzersyntax_severitytocount"));
+
+        Assert.Empty(GetStrings(properties, "vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_analyzersemantic_idtocount"));
+        Assert.Empty(GetStrings(properties, "vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_analyzersemantic_categorytocount"));
+        Assert.Empty(GetStrings(properties, "vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_analyzersemantic_severitytocount"));
+
+        Assert.Equal(["CS1002_1", "CS1513_1", "CS1525_3", "CS8300_1"], GetStrings(properties, "vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersyntax_idtocount"));
+        Assert.Equal(["Compiler_6"], GetStrings(properties, "vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersyntax_categorytocount"));
+        Assert.Equal(["Error_6"], GetStrings(properties, "vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersyntax_severitytocount"));
+
+        Assert.Equal(["CS0103_1"], GetStrings(properties, "vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersemantic_idtocount"));
+        Assert.Equal(["Compiler_1"], GetStrings(properties, "vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersemantic_categorytocount"));
+        Assert.Equal(["Error_1"], GetStrings(properties, "vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersemantic_severitytocount"));
+
+        Assert.Equal(["CS0103_1", "CS8300_1"], GetStrings(properties, "vs.ide.vbcs.copilot.analyzechange.codefixanalysis_diagnosticidtocount"));
+        Assert.Equal(["CS0103_CSharp.GenerateVariable.CSharpGenerateVariableCodeFixProvider", "CS8300_CSharp.ConflictMarkerResolution.CSharpResolveConflictMarkerCodeFixProvider"],
+            GetStrings(properties, "vs.ide.vbcs.copilot.analyzechange.codefixanalysis_diagnosticidtoprovidername"));
+    }
+
+    private static IEnumerable<string> GetStrings(IDictionary<string, object> properties, string key)
+    {
+        var complexProperty = (TelemetryComplexProperty)properties[key];
+        return ((IEnumerable)complexProperty.Value).Cast<string>();
     }
 
     private static void VerifyStates(Solution solution1, Solution solution2, string projectName, ImmutableArray<string> documentNames)
