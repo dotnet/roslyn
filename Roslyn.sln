@@ -729,6 +729,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestReferenceAssembly", "sr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.Extensions", "src\Tools\ExternalAccess\Extensions\Microsoft.CodeAnalysis.ExternalAccess.Extensions.csproj", "{6C816C16-D563-884A-D65B-5E68C6FB6659}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.ExternalAccess.Copilot.UnitTests", "src\Features\ExternalAccess\CopilotTest\Microsoft.CodeAnalysis.ExternalAccess.Copilot.UnitTests.csproj", "{482E78FD-DD3C-272B-E285-9B9B4D2A81CE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1799,6 +1801,10 @@ Global
 		{6C816C16-D563-884A-D65B-5E68C6FB6659}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6C816C16-D563-884A-D65B-5E68C6FB6659}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6C816C16-D563-884A-D65B-5E68C6FB6659}.Release|Any CPU.Build.0 = Release|Any CPU
+		{482E78FD-DD3C-272B-E285-9B9B4D2A81CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{482E78FD-DD3C-272B-E285-9B9B4D2A81CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{482E78FD-DD3C-272B-E285-9B9B4D2A81CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{482E78FD-DD3C-272B-E285-9B9B4D2A81CE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -2140,6 +2146,7 @@ Global
 		{29080628-23A6-1DCB-F15E-93F1D1682CC1} = {482C1FC7-4FD6-4381-8078-73BEBFAF4349}
 		{31EB654C-B562-73B4-2456-78FA875515D2} = {0DDCFE67-7D4E-4709-9882-EC032A031789}
 		{6C816C16-D563-884A-D65B-5E68C6FB6659} = {8977A560-45C2-4EC2-A849-97335B382C74}
+		{482E78FD-DD3C-272B-E285-9B9B4D2A81CE} = {58A2876A-618D-4AE6-A136-E44B42BBDE11}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}
