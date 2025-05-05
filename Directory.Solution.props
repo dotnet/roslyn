@@ -1,7 +1,7 @@
 <Project>
 
-  <PropertyGroup>
-    <!-- For solution restore, msbuild doesn't honor the property set in Directory.Build.props. -->
+  <PropertyGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
+    <!-- For solution restore, msbuild doesn't honor the property set in Settings.props. -->
     <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
   </PropertyGroup>
 
