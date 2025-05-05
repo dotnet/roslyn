@@ -9535,6 +9535,7 @@ public unsafe class AA
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContainAll({"GOO", "BAR", "BAZ", "BLE", "true", "false"})
+                Await state.AssertCompletionItemsDoNotContainAny({"FOO", "UNDEFINED_1", "UNDEFINED_2", "UNDEFINED_3"})
                 state.SendTypeChars("GO")
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
@@ -9563,6 +9564,7 @@ public unsafe class AA
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContainAll({"GOO", "BAR", "BAZ", "BLE", "true", "false"})
+                Await state.AssertCompletionItemsDoNotContainAny({"FOO", "UNDEFINED_1"})
                 state.SendTypeChars("GO")
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
@@ -9591,6 +9593,7 @@ public unsafe class AA
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContainAll({"GOO", "BAR", "BAZ", "BLE", "true", "false"})
+                Await state.AssertCompletionItemsDoNotContainAny({"FOO", "UNDEFINED_1", "UNDEFINED_2"})
                 state.SendTypeChars("GO")
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
