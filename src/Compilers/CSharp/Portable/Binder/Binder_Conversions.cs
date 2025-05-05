@@ -1002,7 +1002,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (element is BoundCollectionExpressionWithElement withElement)
                     {
-                        var collectionWithArguments = BindInterfaceTargetCollectionArguments(syntax, candidateMethodGroup, withElement, diagnostics);
+                        var collectionWithArguments = BindInterfaceTargetCollectionArguments(syntax, candidateMethodGroup, withElement, targetType, diagnostics);
                         collectionCreation ??= collectionWithArguments;
                     }
                 }
@@ -1010,7 +1010,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Bind collection creation with no arguments.
                 if (collectionCreation is null)
                 {
-                    collectionCreation = BindInterfaceTargetCollectionArguments(syntax, candidateMethodGroup, withElement: null, diagnostics);
+                    collectionCreation = BindInterfaceTargetCollectionArguments(syntax, candidateMethodGroup, withElement: null, targetType, diagnostics);
                 }
             }
 
@@ -1334,7 +1334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return collectionCreation;
         }
 
-        private BoundMethodGroup BindInterfaceTargetCollectionMethodGroup(
+        private BoundExpression BindInterfaceTargetCollectionMethodGroup(
             SyntaxNode syntax,
             CollectionExpressionTypeKind collectionTypeKind,
             NamedTypeSymbol targetType,
@@ -1344,7 +1344,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             const string methodName = "<signature>"; // PROTOTYPE: What name should we use?
             var builder = ArrayBuilder<MethodSymbol>.GetInstance();
             addSignatures(builder, syntax, ContainingType, methodName, targetType, diagnostics);
-            // PROTOTYPE: Test case where all methods are missing.
+            if (builder.IsEmpty)
+            {
+                return new BoundBadExpression(syntax, LookupResultKind.Empty, symbols: [], childBoundNodes: [], type: CreateErrorType());
+            }
             return new BoundMethodGroup(
                 syntax,
                 typeArgumentsOpt: default,
@@ -1459,26 +1462,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindInterfaceTargetCollectionArguments(
             SyntaxNode syntax,
-            BoundMethodGroup methodGroup,
+            BoundExpression methodGroup,
             BoundCollectionExpressionWithElement? withElement,
+            TypeSymbol targetType,
             BindingDiagnosticBag diagnostics)
         {
-            var analyzedArguments = AnalyzedArguments.GetInstance();
-            withElement?.GetArguments(analyzedArguments);
-            var result = BindMethodGroupInvocation(
-                syntax,
-                expression: syntax,
-                methodGroup.Name,
-                methodGroup,
-                analyzedArguments,
-                diagnostics,
-                queryClause: null,
-                ignoreNormalFormIfHasValidParamsParameter: false,
-                out _,
-                disallowExpandedNonArrayParams: true,
-                acceptOnlyMethods: true).MakeCompilerGenerated();
-            analyzedArguments.Free();
-            return result;
+            Debug.Assert(methodGroup.Kind is BoundKind.MethodGroup or BoundKind.BadExpression);
+            if (methodGroup is BoundMethodGroup group)
+            {
+                var analyzedArguments = AnalyzedArguments.GetInstance();
+                withElement?.GetArguments(analyzedArguments);
+                var result = BindMethodGroupInvocation(
+                    syntax,
+                    expression: syntax,
+                    group.Name,
+                    group,
+                    analyzedArguments,
+                    diagnostics,
+                    queryClause: null,
+                    ignoreNormalFormIfHasValidParamsParameter: false,
+                    out _,
+                    disallowExpandedNonArrayParams: true,
+                    acceptOnlyMethods: true).MakeCompilerGenerated();
+                analyzedArguments.Free();
+                Debug.Assert(targetType.Equals(result.Type, TypeCompareKind.AllIgnoreOptions));
+                return result;
+            }
+            else
+            {
+                return new BoundBadExpression(syntax, LookupResultKind.Empty, symbols: [], childBoundNodes: [methodGroup], targetType);
+            }
         }
 
         private bool HasCollectionInitializerTypeInProgress(SyntaxNode syntax, TypeSymbol targetType)

@@ -4092,7 +4092,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(7, 34));
         }
 
-        // PROTOTYPE: Test missing types.
         [Theory]
         [CombinatorialData]
         public void InterfaceTarget_MissingMember_01(
@@ -4129,14 +4128,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(source);
             comp.MakeMemberMissing((WellKnownMember)missingMember);
             // PROTOTYPE: Support collection arguments for non-dictionary interfaces.
-            // PROTOTYPE: Should report errors for missing List<T> members.
-            comp.VerifyEmitDiagnostics(
-                // (9,14): error CS9502: Collection arguments are not supported for type 'IEnumerable<int>'.
-                //         c = [with(i)];
-                Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments($"System.Collections.Generic.{typeName}").WithLocation(9, 14));
+            switch ((WellKnownMember)missingMember)
+            {
+                case WellKnownMember.System_Collections_Generic_List_T__ctor:
+                case WellKnownMember.System_Collections_Generic_List_T__ctorInt32:
+                    comp.VerifyEmitDiagnostics(
+                        // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                        //         c = [];
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(7, 13),
+                        // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                        //         c = [with()];
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with()]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(8, 13),
+                        // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                        //         c = [with(i)];
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i)]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(9, 13),
+                        // (9,14): error CS9502: Collection arguments are not supported for type 'IEnumerable<int>'.
+                        //         c = [with(i)];
+                        Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments($"System.Collections.Generic.{typeName}").WithLocation(9, 14));
+                    break;
+                default:
+                    comp.VerifyEmitDiagnostics(
+                        // (9,14): error CS9502: Collection arguments are not supported for type 'IEnumerable<int>'.
+                        //         c = [with(i)];
+                        Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments($"System.Collections.Generic.{typeName}").WithLocation(9, 14));
+                    break;
+            }
         }
 
-        // PROTOTYPE: Test missing types.
         [Theory]
         [CombinatorialData]
         public void InterfaceTarget_MissingMember_02(
@@ -4171,8 +4189,114 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.MakeMemberMissing((WellKnownMember)missingMember);
-            // PROTOTYPE: Should report errors for missing Dictionary<K, V> members.
-            comp.VerifyEmitDiagnostics();
+            switch ((WellKnownMember)missingMember)
+            {
+                case WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor:
+                    comp.VerifyEmitDiagnostics(
+                        // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                        //         c = [];
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(7, 13),
+                        // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                        //         c = [];
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(7, 13),
+                        // (7,13): error CS1501: No overload for method '<signature>' takes 0 arguments
+                        //         c = [];
+                        Diagnostic(ErrorCode.ERR_BadArgCount, "[]").WithArguments("<signature>", "0").WithLocation(7, 13),
+                        // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                        //         c = [with()];
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with()]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(8, 13),
+                        // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                        //         c = [with()];
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with()]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(8, 13),
+                        // (8,13): error CS1501: No overload for method '<signature>' takes 0 arguments
+                        //         c = [with()];
+                        Diagnostic(ErrorCode.ERR_BadArgCount, "[with()]").WithArguments("<signature>", "0").WithLocation(8, 13),
+                        // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                        //         c = [with(i)];
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(9, 13),
+                        // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                        //         c = [with(i)];
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(9, 13),
+                        // (10,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                        //         c = [with(e)];
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(10, 13),
+                        // (10,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                        //         c = [with(e)];
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(10, 13),
+                        // (11,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                        //         c = [with(i, e)];
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i, e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(11, 13),
+                        // (11,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                        //         c = [with(i, e)];
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i, e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(11, 13));
+                    break;
+                case WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_IEqualityComparer_K:
+                    comp.VerifyEmitDiagnostics(
+                        // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                        //         c = [];
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(7, 13),
+                        // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                        //         c = [with()];
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with()]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(8, 13),
+                        // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                        //         c = [with(i)];
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(9, 13),
+                        // (10,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                        //         c = [with(e)];
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(10, 13),
+                        // (10,19): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.IEqualityComparer<int>' to 'int'
+                        //         c = [with(e)];
+                        Diagnostic(ErrorCode.ERR_BadArgType, "e").WithArguments("1", "System.Collections.Generic.IEqualityComparer<int>", "int").WithLocation(10, 19),
+                        // (11,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                        //         c = [with(i, e)];
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i, e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(11, 13));
+                    break;
+                case WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32:
+                    comp.VerifyEmitDiagnostics(
+                        // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                        //         c = [];
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(7, 13),
+                        // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                        //         c = [with()];
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with()]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(8, 13),
+                        // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                        //         c = [with(i)];
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(9, 13),
+                        // (9,19): error CS1503: Argument 1: cannot convert from 'int' to 'System.Collections.Generic.IEqualityComparer<int>?'
+                        //         c = [with(i)];
+                        Diagnostic(ErrorCode.ERR_BadArgType, "i").WithArguments("1", "int", "System.Collections.Generic.IEqualityComparer<int>?").WithLocation(9, 19),
+                        // (10,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                        //         c = [with(e)];
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(10, 13),
+                        // (11,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                        //         c = [with(i, e)];
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i, e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(11, 13));
+                    break;
+                case WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32_IEqualityComparer_K:
+                    comp.VerifyEmitDiagnostics(
+                        // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                        //         c = [];
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(7, 13),
+                        // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                        //         c = [with()];
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with()]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(8, 13),
+                        // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                        //         c = [with(i)];
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(9, 13),
+                        // (10,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                        //         c = [with(e)];
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(10, 13),
+                        // (11,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                        //         c = [with(i, e)];
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i, e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(11, 13),
+                        // (11,13): error CS1501: No overload for method '<signature>' takes 2 arguments
+                        //         c = [with(i, e)];
+                        Diagnostic(ErrorCode.ERR_BadArgCount, "[with(i, e)]").WithArguments("<signature>", "2").WithLocation(11, 13));
+                    break;
+                default:
+                    comp.VerifyEmitDiagnostics();
+                    break;
+            }
         }
 
         [Fact]
@@ -4190,7 +4314,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+            // PROTOTYPE: Handle collection arguments in flow analysis.
+            comp.VerifyEmitDiagnostics(
+                // (6,30): warning CS0219: The variable 'e' is assigned but its value is never used
+                //         IEqualityComparer<T> e = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "e").WithArguments("e").WithLocation(6, 30));
         }
 
         [Fact]
@@ -4209,7 +4337,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+            // PROTOTYPE: Handle collection arguments in flow analysis.
+            comp.VerifyEmitDiagnostics(
+                // (8,16): error CS0165: Use of unassigned local variable 'e'
+                //         return e;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "e").WithArguments("e").WithLocation(8, 16));
         }
 
         [Fact]
@@ -4229,7 +4361,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+            // PROTOTYPE: Handle collection arguments in flow analysis.
+            comp.VerifyEmitDiagnostics(
+                // (9,16): warning CS8603: Possible null reference return.
+                //         return e;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "e").WithLocation(9, 16));
         }
 
         [Fact]
