@@ -795,6 +795,82 @@ public sealed class UsePrimaryConstructorTests
     }
 
     [Fact]
+    public async Task DoNotRemoveComments()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    // Comment before field
+
+                    private readonly string _field;
+
+                    // Comment before property
+
+                    public string Property { get; }
+
+                    // Comment before constructor
+
+                    public [|C|](string field, string property)
+                    {
+                        _field = field;
+                        Property = property;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(string field, string property)
+                {
+                    // Comment before field
+
+                    // Comment before property
+                
+                    public string Property { get; } = property;
+
+                    // Comment before constructor
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task DoNotRemoveCommentsButMoveXmlDocumentation()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    /// <summary>
+                    /// Field summary
+                    /// </summary>
+                    // Comment after
+                    private readonly string _field;
+
+                    public [|C|](string field)
+                    {
+                        _field = field;
+                    }
+                }
+                """,
+            FixedCode = """
+                /// <param name="field">
+                /// Field summary
+                /// </param>
+                class C(string field)
+                {
+                    // Comment after
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestRemoveMembersUpdateReferences1()
     {
         await new VerifyCS.Test
