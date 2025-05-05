@@ -7,10 +7,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -119,6 +122,14 @@ internal sealed class QueryExecutionContext(
         }
     }
 
+    private static async IAsyncEnumerable<TResult> SelectAsync<TSource, TResult>(IAsyncEnumerable<TSource> sequence, Func<TSource, TResult> selector, [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        await foreach (var item in sequence.WithCancellation(cancellationToken).ConfigureAwait(false))
+        {
+            yield return selector(item);
+        }
+    }
+
     private async ValueTask InvokeAsync(Project project, Compilation compilation, object entity, CancellationTokenSource symbolEnumerationCancellationSource, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -131,31 +142,73 @@ internal sealed class QueryExecutionContext(
 
             try
             {
-                var symbols = method.Invoke(null, [entity]) switch
+                var results = method.Invoke(null, [entity]) switch
                 {
-                    IAsyncEnumerable<ISymbol> asyncEnumerableSymbols => asyncEnumerableSymbols,
-                    IEnumerable<ISymbol> enumerableSymbols => enumerableSymbols.AsAsyncEnumerable(),
-                    null => Array.Empty<ISymbol>().AsAsyncEnumerable(),
+                    IAsyncEnumerable<ISymbol> asyncEnumerableSymbols => SelectAsync<ISymbol, (ISymbol?, Location?)>(asyncEnumerableSymbols, static symbol => (symbol, null), cancellationToken),
+                    IEnumerable<ISymbol> enumerableSymbols => enumerableSymbols.Select<ISymbol, (ISymbol?, Location?)>(static symbol => (symbol, null)).AsAsyncEnumerable(),
+                    IAsyncEnumerable<Location> asyncEnumerableLocations => SelectAsync<Location, (ISymbol?, Location?)>(asyncEnumerableLocations, static location => (null, location), cancellationToken),
+                    IEnumerable<Location> enumerableLocations => enumerableLocations.Select<Location, (ISymbol?, Location?)>(static location => (null, location)).AsAsyncEnumerable(),
+                    null => Array.Empty<(ISymbol?, Location?)>().AsAsyncEnumerable(),
 
                     // we shouldn't have compiled the query:
                     var other => throw ExceptionUtilities.UnexpectedValue(other)
                 };
 
-                await foreach (var symbol in symbols.WithCancellation(cancellationToken).ConfigureAwait(false))
+                await foreach (var (symbol, location) in results.WithCancellation(cancellationToken).ConfigureAwait(false))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (symbol == null)
+                    if (symbol == null && location == null)
                     {
-                        return;
+                        continue;
                     }
 
                     executionTime += Stopwatch.GetElapsedTime(executionStart);
 
                     try
                     {
-                        var definitionItem = await symbol.ToClassifiedDefinitionItemAsync(
-                            classificationOptions, project.Solution, s_findReferencesSearchOptions, isPrimary: true, includeHiddenLocations: false, cancellationToken).ConfigureAwait(false);
+                        DefinitionItem definitionItem;
+
+                        if (symbol != null)
+                        {
+                            definitionItem = await symbol.ToClassifiedDefinitionItemAsync(
+                                classificationOptions, project.Solution, s_findReferencesSearchOptions, isPrimary: true, includeHiddenLocations: false, cancellationToken).ConfigureAwait(false);
+                        }
+                        else if (location!.Kind == LocationKind.None)
+                        {
+                            continue;
+                        }
+                        else if (location.MetadataModule is { } module)
+                        {
+                            var metadataLocation = DefinitionItemFactory.GetMetadataLocation(module.ContainingAssembly, project.Solution, out var originatingProjectId);
+
+                            definitionItem = DefinitionItem.Create(
+                                tags: [],
+                                displayParts: [],
+                                sourceSpans: [],
+                                classifiedSpans: [],
+                                metadataLocations: [metadataLocation],
+                                properties: ImmutableDictionary<string, string>.Empty.WithMetadataSymbolProperties(module.ContainingAssembly, originatingProjectId));
+                        }
+                        else if (project.Solution.GetDocument(location.SourceTree) is { } document)
+                        {
+                            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                            var displaySpan = Clip(location.SourceSpan, maxLength: 100);
+                            var displayText = new TaggedText(TextTags.Text, text.ToString(displaySpan));
+
+                            definitionItem = DefinitionItem.Create(
+                                tags: [],
+                                displayParts: displaySpan.Length == location.SourceSpan.Length ? [displayText] : [displayText, new TaggedText(TextTags.Punctuation, "…")],
+                                sourceSpans: [new DocumentSpan(document, location.SourceSpan)],
+                                classifiedSpans: [],
+                                metadataLocations: []);
+                        }
+                        else
+                        {
+                            definitionItem = DefinitionItem.CreateNonNavigableItem(
+                                tags: [],
+                                displayParts: [new TaggedText(TextTags.Text, location.ToString())]);
+                        }
 
                         await resultsObserver.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
                     }
@@ -201,6 +254,9 @@ internal sealed class QueryExecutionContext(
 
         Interlocked.Add(ref _executionTime, executionTime.Ticks);
     }
+
+    private static TextSpan Clip(TextSpan span, int maxLength)
+        => new(span.Start, Math.Min(span.Length, maxLength));
 
     private static SymbolKind GetSymbolKind(QueryKind targetEntity)
         => targetEntity switch
