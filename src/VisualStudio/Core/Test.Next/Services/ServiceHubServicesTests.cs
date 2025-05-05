@@ -1656,31 +1656,25 @@ public sealed partial class ServiceHubServicesTests
 
         // No analyzer diagnostics in this scenario.
 
-        Assert.Empty(GetStrings(properties, "vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_analyzersyntax_idtocount"));
-        Assert.Empty(GetStrings(properties, "vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_analyzersyntax_categorytocount"));
-        Assert.Empty(GetStrings(properties, "vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_analyzersyntax_severitytocount"));
+        Assert.Equal("", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_analyzersyntax_idtocount"]);
+        Assert.Equal("", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_analyzersyntax_categorytocount"]);
+        Assert.Equal("", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_analyzersyntax_severitytocount"]);
 
-        Assert.Empty(GetStrings(properties, "vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_analyzersemantic_idtocount"));
-        Assert.Empty(GetStrings(properties, "vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_analyzersemantic_categorytocount"));
-        Assert.Empty(GetStrings(properties, "vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_analyzersemantic_severitytocount"));
+        Assert.Equal("", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_analyzersemantic_idtocount"]);
+        Assert.Equal("", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_analyzersemantic_categorytocount"]);
+        Assert.Equal("", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_analyzersemantic_severitytocount"]);
 
-        Assert.Equal(["CS1002_1", "CS1513_1", "CS1525_3", "CS8300_1"], GetStrings(properties, "vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersyntax_idtocount"));
-        Assert.Equal(["Compiler_6"], GetStrings(properties, "vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersyntax_categorytocount"));
-        Assert.Equal(["Error_6"], GetStrings(properties, "vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersyntax_severitytocount"));
+        Assert.Equal("CS1002_1,CS1513_1,CS1525_3,CS8300_1", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersyntax_idtocount"]);
+        Assert.Equal("Compiler_6", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersyntax_categorytocount"]);
+        Assert.Equal("Error_6", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersyntax_severitytocount"]);
 
-        Assert.Equal(["CS0103_1"], GetStrings(properties, "vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersemantic_idtocount"));
-        Assert.Equal(["Compiler_1"], GetStrings(properties, "vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersemantic_categorytocount"));
-        Assert.Equal(["Error_1"], GetStrings(properties, "vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersemantic_severitytocount"));
+        Assert.Equal("CS0103_1", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersemantic_idtocount"]);
+        Assert.Equal("Compiler_1", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersemantic_categorytocount"]);
+        Assert.Equal("Error_1", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersemantic_severitytocount"]);
 
-        Assert.Equal(["CS0103_1", "CS8300_1"], GetStrings(properties, "vs.ide.vbcs.copilot.analyzechange.codefixanalysis_diagnosticidtocount"));
-        Assert.Equal(["CS0103_CSharp.GenerateVariable.CSharpGenerateVariableCodeFixProvider", "CS8300_CSharp.ConflictMarkerResolution.CSharpResolveConflictMarkerCodeFixProvider"],
-            GetStrings(properties, "vs.ide.vbcs.copilot.analyzechange.codefixanalysis_diagnosticidtoprovidername"));
-    }
-
-    private static IEnumerable<string> GetStrings(IDictionary<string, object> properties, string key)
-    {
-        var complexProperty = (TelemetryComplexProperty)properties[key];
-        return ((IEnumerable)complexProperty.Value).Cast<string>();
+        Assert.Equal("CS0103_1,CS8300_1", properties["vs.ide.vbcs.copilot.analyzechange.codefixanalysis_diagnosticidtocount"]);
+        Assert.Equal("CS0103_CSharp.GenerateVariable.CSharpGenerateVariableCodeFixProvider,CS8300_CSharp.ConflictMarkerResolution.CSharpResolveConflictMarkerCodeFixProvider",
+            properties["vs.ide.vbcs.copilot.analyzechange.codefixanalysis_diagnosticidtoprovidername"]);
     }
 
     private static void VerifyStates(Solution solution1, Solution solution2, string projectName, ImmutableArray<string> documentNames)

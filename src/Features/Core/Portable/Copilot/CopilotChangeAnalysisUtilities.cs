@@ -52,8 +52,8 @@ internal static class CopilotChangeAnalysisUtilities
         cancellationToken);
     }
 
-    private static List<string> GetOrderedElements<TKey, TValue>(Dictionary<TKey, TValue> dictionary) where TKey : notnull
-        => [.. dictionary.Select(kvp => $"{kvp.Key}_{GetOrdered(kvp.Value)}").OrderBy(v => v)];
+    private static string GetOrderedElements<TKey, TValue>(Dictionary<TKey, TValue> dictionary) where TKey : notnull
+        => string.Join(",", dictionary.Select(kvp => $"{kvp.Key}_{GetOrdered(kvp.Value)}").OrderBy(v => v));
 
     private static object? GetOrdered<TValue>(TValue value)
     {
