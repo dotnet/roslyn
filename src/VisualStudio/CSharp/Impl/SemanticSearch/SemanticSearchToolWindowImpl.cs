@@ -13,6 +13,7 @@ using System.Windows.Data;
 using System.Windows.Markup;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -57,7 +58,8 @@ internal sealed partial class SemanticSearchToolWindowImpl(
     VisualStudioWorkspace workspace,
     IStreamingFindUsagesPresenter resultsPresenter,
     ITextUndoHistoryRegistry undoHistoryRegistry,
-    IVsService<SVsUIShell, IVsUIShell> vsUIShellProvider) : IDisposable
+    IVsService<SVsUIShell, IVsUIShell> vsUIShellProvider,
+    IPreviewFactoryService previewFactory) : IDisposable
 {
     private const int ToolBarHeight = 26;
     private const int ToolBarButtonSize = 20;
@@ -397,7 +399,44 @@ internal sealed partial class SemanticSearchToolWindowImpl(
             try
             {
                 var executor = new SemanticSearchQueryExecutor(presenterContext, globalOptions);
-                await executor.ExecuteAsync(query: null, queryDocument, workspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
+                var oldSolution = workspace.CurrentSolution;
+                var newSolution = await executor.ExecuteAsync(query: null, queryDocument, oldSolution, cancellationToken).ConfigureAwait(false);
+
+                if (newSolution != oldSolution)
+                {
+                    var changedSolution = newSolution;
+
+                    var previewDialogService = workspace.Services.GetService<IPreviewDialogService>();
+                    if (previewDialogService != null &&
+                        previewFactory.GetSolutionPreviews(oldSolution, newSolution, cancellationToken)?.ChangeSummary is { } changeSummary)
+                    {
+                        await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
+
+                        changedSolution = previewDialogService.PreviewChanges(
+                            EditorFeaturesResources.Preview_Changes,
+                            "vs.codefix.previewchanges",
+                            "Updates",
+                            EditorFeaturesResources.Changes,
+                            Glyph.OpenFolder,
+                            changeSummary.NewSolution,
+                            changeSummary.OldSolution,
+                            showCheckBoxes: false);
+
+                        if (changedSolution != null && !workspace.TryApplyChanges(changedSolution))
+                        {
+                            // report error
+                        }
+                    }
+                    else
+                    {
+                        await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
+
+                        if (!workspace.TryApplyChanges(changedSolution))
+                        {
+                            // report error
+                        }
+                    }
+                }
             }
             finally
             {

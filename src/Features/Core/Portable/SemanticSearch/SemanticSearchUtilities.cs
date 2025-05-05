@@ -23,6 +23,7 @@ internal static class SemanticSearchUtilities
 
     // tools:
     public const string FindMethodName = "Find";
+    public const string UpdateMethodName = "Update";
     public const string FindReferencingSyntaxNodesImplName = "s_referencingSyntaxNodes";
     public const string GetSemanticModelImplName = "s_getSemanticModelAsync";
 

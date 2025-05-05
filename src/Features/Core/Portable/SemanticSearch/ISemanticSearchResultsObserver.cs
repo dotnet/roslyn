@@ -17,6 +17,11 @@ internal interface ISemanticSearchResultsObserver
     ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken);
     ValueTask AddItemsAsync(int itemCount, CancellationToken cancellationToken);
     ValueTask ItemsCompletedAsync(int itemCount, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Invoked on each updated document (at most once).
+    /// </summary>
+    ValueTask OnDocumentUpdatedAsync(DocumentId documentId, ImmutableArray<TextChange> changes, CancellationToken cancellationToken);
 }
 
 [DataContract]

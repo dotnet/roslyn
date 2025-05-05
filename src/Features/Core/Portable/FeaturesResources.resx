@@ -3153,17 +3153,20 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Method_0_must_be_static_and_non_generic" xml:space="preserve">
     <value>Method '{0}' must be static and non-generic</value>
   </data>
-  <data name="The_query_specifies_multiple_top_level_functions_1" xml:space="preserve">
-    <value>The query specifies multiple top-level functions '{1}'</value>
+  <data name="The_query_specifies_multiple_top_level_functions_with_prefix_1" xml:space="preserve">
+    <value>The query specifies multiple top-level functions with prefix '{1}'</value>
   </data>
   <data name="Top_level_function_0_must_have_a_single_parameter" xml:space="preserve">
     <value>Top-level function '{0}' must have a single parameter</value>
   </data>
+  <data name="Top_level_function_0_must_have_1_parameters_of_types_2" xml:space="preserve">
+    <value>Top-level function '{0}' must have {1} parameters of types {2}</value>
+  </data>
   <data name="Parameter_type_0_is_not_among_supported_types_1" xml:space="preserve">
     <value>Parameter type '{0}' is not among supported types: {1}</value>
   </data>
-  <data name="Return_type_0_is_not_among_supported_types_1" xml:space="preserve">
-    <value>Return type '{0}' is not among supported types: {1}</value>
+  <data name="Return_type_0_of_function_1_is_not_among_supported_types_2" xml:space="preserve">
+    <value>Return type '{0}' of function '{1}' is not among supported types: {2}</value>
   </data>
   <data name="Unable_to_load_type_0_1" xml:space="preserve">
     <value>Unable to load type '{0}': '{1}'</value>
