@@ -3,6 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -14,6 +18,9 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SemanticSearch;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp;
 
@@ -23,6 +30,8 @@ internal sealed class SemanticSearchQueryExecutor(
 {
     private sealed class ResultsObserver(IFindUsagesContext presenterContext, Document? queryDocument) : ISemanticSearchResultsObserver
     {
+        private readonly Lazy<ConcurrentStack<(DocumentId documentId, ImmutableArray<TextChange> changes)>> _lazyDocumentUpdates = new();
+
         public ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
             => presenterContext.OnDefinitionFoundAsync(definition, cancellationToken);
 
@@ -35,12 +44,42 @@ internal sealed class SemanticSearchQueryExecutor(
         public ValueTask OnUserCodeExceptionAsync(UserCodeExceptionInfo exception, CancellationToken cancellationToken)
             => presenterContext.OnDefinitionFoundAsync(
                 new SearchExceptionDefinitionItem(exception.Message, exception.TypeName, exception.StackTrace, (queryDocument != null) ? new DocumentSpan(queryDocument, exception.Span) : default), cancellationToken);
+
+        public ValueTask OnDocumentUpdatedAsync(DocumentId documentId, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
+        {
+            _lazyDocumentUpdates.Value.Push((documentId, changes));
+            return ValueTaskFactory.CompletedTask;
+        }
+
+        private ImmutableArray<(DocumentId documentId, ImmutableArray<TextChange> changes)> GetDocumentUpdates()
+            => _lazyDocumentUpdates.IsValueCreated ? [.. _lazyDocumentUpdates.Value] : [];
+
+        public async ValueTask<Solution> GetUpdatedSolutionAsync(Solution oldSolution, CancellationToken cancellationToken)
+        {
+            var newSolution = oldSolution;
+
+            foreach (var (documentId, changes) in GetDocumentUpdates())
+            {
+                var oldText = await newSolution.GetRequiredDocument(documentId).GetTextAsync(cancellationToken).ConfigureAwait(false);
+                if (changes.IsEmpty)
+                {
+                    newSolution = newSolution.RemoveDocument(documentId);
+                }
+                else
+                {
+                    
+                    newSolution = newSolution.WithDocumentText(documentId, oldText.WithChanges(changes), PreservationMode.PreserveValue);
+                }
+            }
+
+            return newSolution;
+        }
     }
 
     private readonly OptionsProvider<ClassificationOptions> _classificationOptionsProvider =
         OptionsProvider.GetProvider(options, static (reader, language) => reader.GetClassificationOptions(language));
 
-    public async Task ExecuteAsync(string? query, Document? queryDocument, Solution solution, CancellationToken cancellationToken)
+    public async Task<Solution> ExecuteAsync(string? query, Document? queryDocument, Solution solution, CancellationToken cancellationToken)
     {
         Contract.ThrowIfFalse(query is null ^ queryDocument is null);
 
@@ -56,7 +95,7 @@ internal sealed class SemanticSearchQueryExecutor(
                 await presenterContext.OnCompletedAsync(CancellationToken.None).ConfigureAwait(false);
             }
 
-            return;
+            return solution;
         }
 
         var resultsObserver = new ResultsObserver(presenterContext, queryDocument);
@@ -78,7 +117,7 @@ internal sealed class SemanticSearchQueryExecutor(
             if (compileResult == null)
             {
                 result = new ExecuteQueryResult(FeaturesResources.Semantic_search_only_supported_on_net_core);
-                return;
+                return solution;
             }
 
             emitTime = compileResult.Value.EmitTime;
@@ -90,7 +129,7 @@ internal sealed class SemanticSearchQueryExecutor(
                     await presenterContext.OnDefinitionFoundAsync(new SearchCompilationFailureDefinitionItem(error, queryDocument), cancellationToken).ConfigureAwait(false);
                 }
 
-                return;
+                return solution;
             }
 
             result = await RemoteSemanticSearchServiceProxy.ExecuteQueryAsync(
@@ -99,6 +138,9 @@ internal sealed class SemanticSearchQueryExecutor(
                 resultsObserver,
                 _classificationOptionsProvider,
                 cancellationToken).ConfigureAwait(false);
+
+            // apply document changes:
+            return await resultsObserver.GetUpdatedSolutionAsync(solution, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
         {
@@ -132,6 +174,8 @@ internal sealed class SemanticSearchQueryExecutor(
 
             ReportTelemetry(query, result, emitTime, canceled);
         }
+
+        return solution;
     }
 
     private static void ReportTelemetry(string queryString, ExecuteQueryResult result, TimeSpan emitTime, bool canceled)

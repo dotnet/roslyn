@@ -2590,9 +2590,9 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="translated">Resolver el módulo: "{0}" de "{1}"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Return_type_0_is_not_among_supported_types_1">
-        <source>Return type '{0}' is not among supported types: {1}</source>
-        <target state="new">Return type '{0}' is not among supported types: {1}</target>
+      <trans-unit id="Return_type_0_of_function_1_is_not_among_supported_types_2">
+        <source>Return type '{0}' of function '{1}' is not among supported types: {2}</source>
+        <target state="new">Return type '{0}' of function '{1}' is not among supported types: {2}</target>
         <note />
       </trans-unit>
       <trans-unit id="RudeEdit">
@@ -2740,9 +2740,9 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="new">The query does not specify '{0}' top-level function</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_query_specifies_multiple_top_level_functions_1">
-        <source>The query specifies multiple top-level functions '{1}'</source>
-        <target state="new">The query specifies multiple top-level functions '{1}'</target>
+      <trans-unit id="The_query_specifies_multiple_top_level_functions_with_prefix_1">
+        <source>The query specifies multiple top-level functions with prefix '{1}'</source>
+        <target state="new">The query specifies multiple top-level functions with prefix '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -2784,6 +2784,11 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <source>Too many )'s</source>
         <target state="translated">Demasiados )</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
+      </trans-unit>
+      <trans-unit id="Top_level_function_0_must_have_1_parameters_of_types_2">
+        <source>Top-level function '{0}' must have {1} parameters of types {2}</source>
+        <target state="new">Top-level function '{0}' must have {1} parameters of types {2}</target>
+        <note />
       </trans-unit>
       <trans-unit id="Top_level_function_0_must_have_a_single_parameter">
         <source>Top-level function '{0}' must have a single parameter</source>
