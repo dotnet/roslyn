@@ -51,7 +51,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
 
         // Verify file is added to the misc file workspace.
         var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = looseFileUri }, CancellationToken.None);
-        Assert.True(workspace is LspMiscellaneousFilesWorkspace);
+        Assert.Equal(testLspServer.GetManager().GetTestAccessor().GetLspMiscellaneousFilesWorkspace(), workspace);
         AssertEx.NotNull(document);
         Assert.Equal(looseFileUri, document.GetURI());
         Assert.Equal(filePath, document.FilePath);
@@ -77,7 +77,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
 
         // Verify file is added to the misc file workspace.
         var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = looseFileUri }, CancellationToken.None);
-        Assert.True(workspace is LspMiscellaneousFilesWorkspace);
+        Assert.Equal(testLspServer.GetManager().GetTestAccessor().GetLspMiscellaneousFilesWorkspace(), workspace);
         AssertEx.NotNull(document);
         Assert.Equal(looseFileUri, document.GetURI());
         Assert.Equal(looseFileUri.UriString, document.FilePath);
@@ -109,7 +109,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
         // Verify file is not added to the misc file workspace.
         {
             var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = expectedDocumentUri }, CancellationToken.None);
-            Assert.False(workspace is LspMiscellaneousFilesWorkspace);
+            Assert.NotEqual(testLspServer.GetManager().GetTestAccessor().GetLspMiscellaneousFilesWorkspace(), workspace);
             AssertEx.NotNull(document);
             Assert.Equal(expectedDocumentUri, document.GetURI());
             Assert.Equal(documentFilePath, document.FilePath);
@@ -120,7 +120,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
             var lowercaseUri = ProtocolConversions.CreateAbsoluteDocumentUri(documentFilePath.ToLowerInvariant());
             Assert.NotEqual(expectedDocumentUri.GetRequiredParsedUri().AbsolutePath, lowercaseUri.GetRequiredParsedUri().AbsolutePath);
             var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = lowercaseUri }, CancellationToken.None);
-            Assert.False(workspace is LspMiscellaneousFilesWorkspace);
+            Assert.NotEqual(testLspServer.GetManager().GetTestAccessor().GetLspMiscellaneousFilesWorkspace(), workspace);
             AssertEx.NotNull(document);
             Assert.Equal(expectedDocumentUri, document.GetURI());
             Assert.Equal(documentFilePath, document.FilePath);
@@ -301,7 +301,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
 
         // Verify file is added to the misc file workspace.
         var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = looseFileUri }, CancellationToken.None);
-        Assert.True(workspace is LspMiscellaneousFilesWorkspace);
+        Assert.Equal(testLspServer.GetManager().GetTestAccessor().GetLspMiscellaneousFilesWorkspace(), workspace);
         AssertEx.NotNull(document);
         Assert.Equal(looseFileUri, document.GetURI());
         Assert.Equal(looseFileUri.UriString, document.FilePath);
