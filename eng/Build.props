@@ -1,3 +1,4 @@
+<!-- Build.props is imported by Arcade SDK's Build.proj and controls how the repository gets built. -->
 <Project>
 
   <!-- RestoreUseStaticGraphEvaluation will cause prebuilts when building source-only. -->
