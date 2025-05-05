@@ -34,12 +34,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     internal sealed class DocumentationCommentParser : SyntaxParser
     {
-        private readonly SyntaxListPool _pool = new SyntaxListPool();
+        private readonly SyntaxListPool _pool = SyntaxListPool.GetInstance();
         private bool _isDelimited;
 
         internal DocumentationCommentParser(Lexer lexer)
             : base(lexer, LexerMode.None, oldTree: null, changes: null, allowModeReset: true)
         {
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+
+            _pool.Free();
         }
 
         internal void ReInitialize(LexerMode modeflags)
