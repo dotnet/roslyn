@@ -969,10 +969,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private AnalysisScope? GetPendingAnalysisScope(AnalysisScope analysisScope)
         {
-            (SourceOrAdditionalFile file, bool syntax)? filterScope = analysisScope.FilterFileOpt.HasValue ?
-                (analysisScope.FilterFileOpt.Value, analysisScope.IsSyntacticSingleFileAnalysis) :
-                null;
-            var pendingAnalyzers = _analysisResultBuilder.GetPendingAnalyzers(analysisScope.Analyzers, filterScope);
+            var pendingAnalyzers = _analysisResultBuilder.GetPendingAnalyzers(analysisScope);
             if (pendingAnalyzers.IsEmpty)
             {
                 // All analyzers have already executed on the requested scope.
