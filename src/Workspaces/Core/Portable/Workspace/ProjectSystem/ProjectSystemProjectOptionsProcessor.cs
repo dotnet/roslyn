@@ -70,11 +70,15 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
 
         _commandLineChecksum = checksum;
 
+        ReparseCommandLine_NoLock(arguments);
+
         // Dispose the existing stored command-line and then persist the new one so we can
-        // recover it later.  Only bother persisting things if we have a non-empty string.
+        // recover it later.  Only bother persisting things if we have a non-empty string
+        // and there is an effective ruleset (as that ends up adding RuleSetFile_UpdatedOnDisk
+        // as an event handler which is the only consumer of _commandLineStorageHandle)
 
         _commandLineStorageHandle = null;
-        if (!arguments.IsEmpty)
+        if (!arguments.IsEmpty && GetEffectiveRulesetFilePath() != null)
         {
             using var stream = SerializableBytes.CreateWritableStream();
             using var writer = new StreamWriter(stream);
@@ -86,7 +90,6 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
             _commandLineStorageHandle = _temporaryStorageService.WriteToTemporaryStorage(stream, CancellationToken.None);
         }
 
-        ReparseCommandLine_NoLock(arguments);
         return true;
     }
 
@@ -173,9 +176,12 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
         return _commandLineArgumentsForCommandLine;
     }
 
+    private string? GetEffectiveRulesetFilePath()
+        => ExplicitRuleSetFilePath ?? _commandLineArgumentsForCommandLine.RuleSetPath;
+
     private void UpdateProjectOptions_NoLock()
     {
-        var effectiveRuleSetPath = ExplicitRuleSetFilePath ?? _commandLineArgumentsForCommandLine.RuleSetPath;
+        var effectiveRuleSetPath = GetEffectiveRulesetFilePath();
 
         if (_ruleSetFile?.Target.Value.FilePath != effectiveRuleSetPath)
         {
