@@ -74,7 +74,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
                     _description = value;
                 }
 
-                _scope.Description = value; 
+                _scope.Description = value;
             }
         }
 
