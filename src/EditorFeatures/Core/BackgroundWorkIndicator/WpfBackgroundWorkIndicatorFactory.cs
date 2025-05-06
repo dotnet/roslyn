@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed partial class WpfBackgroundWorkIndicatorFactory(
     IThreadingContext threadingContext,
-    IBackgroundWorkIndicatorService backgroundWorkIndicatorService,
-    IAsynchronousOperationListenerProvider listenerProvider) : IBackgroundWorkIndicatorFactory
+    IBackgroundWorkIndicatorService backgroundWorkIndicatorService) : IBackgroundWorkIndicatorFactory
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly IBackgroundWorkIndicatorService _backgroundWorkIndicatorService = backgroundWorkIndicatorService;
