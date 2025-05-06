@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         private string GetToolDirectory()
         {
             var buildTask = typeof(ManagedToolTask).Assembly;
-            var buildTaskDirectory = Path.GetDirectoryName(buildTask.Location)!;
+            var buildTaskDirectory = GetBuildTaskDirectory();
 #if NET
             return Path.Combine(buildTaskDirectory, "bincore");
 #else
@@ -207,14 +207,28 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             //
             // https://github.com/dotnet/roslyn/issues/78001
 
-            var buildTask = typeof(ManagedToolTask).Assembly;
-            var buildTaskDirectory = Path.GetDirectoryName(buildTask.Location)!;
+            var buildTaskDirectory = GetBuildTaskDirectory();
             var buildTaskDrectoryName = Path.GetFileName(buildTaskDirectory);
             return
                 string.Equals(buildTaskDrectoryName, "binfx", StringComparison.OrdinalIgnoreCase) &&
                 !File.Exists(Path.Combine(buildTaskDirectory, "csc.exe")) &&
                 Directory.Exists(Path.Combine(buildTaskDirectory, "..", "bincore"));
 #endif
+        }
+
+        internal static string GetBuildTaskDirectory()
+        {
+            var buildTask = typeof(ManagedToolTask).Assembly;
+            var buildTaskDirectory = Path.GetDirectoryName(buildTask.Location);
+            if (buildTaskDirectory is null)
+            {
+                // This should not happen in supported product scenarios but could happen if 
+                // a non-supported scenario tried to load our task (like AOT) and call
+                // through these members.
+                throw new InvalidOperationException("Unable to determine the location of the build task assembly.");
+            }
+
+            return buildTaskDirectory;
         }
     }
 }
