@@ -16,19 +16,29 @@ internal partial class WpfBackgroundWorkIndicatorFactory
         /// features to create nested work with descriptions/progress that will update the all-up indicator tool-tip
         /// shown to the user.
         /// </summary>
-        private sealed class BackgroundWorkIndicatorScope(
-            BackgroundWorkIndicatorContext indicator,
-            BackgroundWorkOperationScope scope,
-            string initialDescription) : IUIThreadOperationScope, IProgress<ProgressInfo>
+        private sealed class BackgroundWorkIndicatorScope : IUIThreadOperationScope, IProgress<ProgressInfo>
         {
-            private readonly BackgroundWorkIndicatorContext _context = indicator;
-            private readonly BackgroundWorkOperationScope _scope = scope;
+            private readonly BackgroundWorkIndicatorContext _context;
+            private readonly BackgroundWorkOperationScope _underlyingScope;
 
             // Mutable state of this scope.  Can be mutated by a client, at which point we'll ask our owning context to
-            // update the tooltip accordingly.
+            // update the tooltip accordingly. Must hold 
 
-            private string _currentDescription = initialDescription;
+            private string _currentDescription = null!;
+
             public ProgressInfo ProgressInfo_OnlyAccessUnderLock;
+
+            public BackgroundWorkIndicatorScope(
+                BackgroundWorkIndicatorContext context,
+                BackgroundWorkOperationScope scope,
+                string initialDescription)
+            {
+                _context = context;
+                _underlyingScope = scope;
+
+                // Ensure we push through the initial description.
+                this.Description = initialDescription;
+            }
 
             public IUIThreadOperationContext Context => _context;
             public IProgress<ProgressInfo> Progress => this;
@@ -36,7 +46,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
             void IDisposable.Dispose()
             {
                 // Clear out the underlying platform scope.
-                _scope.Dispose();
+                _underlyingScope.Dispose();
 
                 // Remove ourselves from our parent context as well. And ensure that any progress showing is updated accordingly.
                 _context.RemoveScopeAndReportTotalProgress(this);
@@ -55,6 +65,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
                     lock (_context.ContextAndScopeDataMutationGate)
                         return _currentDescription;
                 }
+
                 set
                 {
                     lock (_context.ContextAndScopeDataMutationGate)
@@ -67,7 +78,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
                     }
 
                     // Pass through the description to the underlying scope to update the UI.
-                    _scope.Description = value;
+                    _underlyingScope.Description = value;
                 }
             }
 
