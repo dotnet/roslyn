@@ -25,7 +25,6 @@ internal sealed partial class WpfBackgroundWorkIndicatorFactory(
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly IBackgroundWorkIndicatorService _backgroundWorkIndicatorService = backgroundWorkIndicatorService;
-    private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.QuickInfo);
 
     private BackgroundWorkIndicatorContext? _currentContext;
 

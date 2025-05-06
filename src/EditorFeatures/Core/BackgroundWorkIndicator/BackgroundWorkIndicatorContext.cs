@@ -26,8 +26,10 @@ internal partial class WpfBackgroundWorkIndicatorFactory
         /// </summary>
         public readonly object ContextAndScopeDataMutationGate = new();
 
-        private readonly IBackgroundWorkIndicator _backgroundWorkIndicator;
+        private readonly WpfBackgroundWorkIndicatorFactory _factory;
         private readonly string _firstDescription;
+
+        private readonly IBackgroundWorkIndicator _backgroundWorkIndicator;
 
         /// <summary>
         /// Set of scopes we have.  We always start with one (the one created by the initial call to create the work
@@ -48,6 +50,9 @@ internal partial class WpfBackgroundWorkIndicatorFactory
             bool cancelOnEdit,
             bool cancelOnFocusLost)
         {
+            _factory = factory;
+            _firstDescription = firstDescription;
+
             _backgroundWorkIndicator = factory._backgroundWorkIndicatorService.Create(
                 textView, applicableToSpan, firstDescription, new()
                 {
@@ -55,14 +60,15 @@ internal partial class WpfBackgroundWorkIndicatorFactory
                     CancelOnFocusLost = cancelOnFocusLost,
                 });
 
-            _firstDescription = firstDescription;
-
             // Add a single scope representing the how the UI should look initially.
             AddScope(allowCancellation: true, firstDescription);
         }
 
         public void Dispose()
-            => _backgroundWorkIndicator.Dispose();
+        {
+            _backgroundWorkIndicator.Dispose();
+            _factory.OnContextDisposed(this);
+        }
 
         /// <summary>
         /// The same as Dispose.  Anyone taking ownership of this context wants to show their own UI, so we can just
