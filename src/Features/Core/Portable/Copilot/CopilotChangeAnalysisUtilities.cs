@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -37,29 +38,32 @@ internal static class CopilotChangeAnalysisUtilities
                 var keyPrefix = $"DiagnosticAnalysis_{diagnosticAnalysis.Kind}";
 
                 d[$"{keyPrefix}_ComputationTime"] = diagnosticAnalysis.ComputationTime;
-                d[$"{keyPrefix}_IdToCount"] = GetOrderedElements(diagnosticAnalysis.IdToCount);
-                d[$"{keyPrefix}_CategoryToCount"] = GetOrderedElements(diagnosticAnalysis.CategoryToCount);
-                d[$"{keyPrefix}_SeverityToCount"] = GetOrderedElements(diagnosticAnalysis.SeverityToCount);
+                d[$"{keyPrefix}_IdToCount"] = StringifyDictionary(diagnosticAnalysis.IdToCount);
+                d[$"{keyPrefix}_CategoryToCount"] = StringifyDictionary(diagnosticAnalysis.CategoryToCount);
+                d[$"{keyPrefix}_SeverityToCount"] = StringifyDictionary(diagnosticAnalysis.SeverityToCount);
             }
 
             d["CodeFixAnalysis_TotalComputationTime"] = analysisResult.CodeFixAnalysis.TotalComputationTime;
             d["CodeFixAnalysis_TotalApplicationTime"] = analysisResult.CodeFixAnalysis.TotalApplicationTime;
-            d["CodeFixAnalysis_DiagnosticIdToCount"] = GetOrderedElements(analysisResult.CodeFixAnalysis.DiagnosticIdToCount);
-            d["CodeFixAnalysis_DiagnosticIdToApplicationTime"] = GetOrderedElements(analysisResult.CodeFixAnalysis.DiagnosticIdToApplicationTime);
-            d["CodeFixAnalysis_DiagnosticIdToProviderName"] = GetOrderedElements(analysisResult.CodeFixAnalysis.DiagnosticIdToProviderName);
-            d["CodeFixAnalysis_ProviderNameToApplicationTime"] = GetOrderedElements(analysisResult.CodeFixAnalysis.ProviderNameToApplicationTime);
+            d["CodeFixAnalysis_DiagnosticIdToCount"] = StringifyDictionary(analysisResult.CodeFixAnalysis.DiagnosticIdToCount);
+            d["CodeFixAnalysis_DiagnosticIdToApplicationTime"] = StringifyDictionary(analysisResult.CodeFixAnalysis.DiagnosticIdToApplicationTime);
+            d["CodeFixAnalysis_DiagnosticIdToProviderName"] = StringifyDictionary(analysisResult.CodeFixAnalysis.DiagnosticIdToProviderName);
+            d["CodeFixAnalysis_ProviderNameToApplicationTime"] = StringifyDictionary(analysisResult.CodeFixAnalysis.ProviderNameToApplicationTime);
         }, args: (featureId, accepted, proposalId, analysisResult)),
         cancellationToken);
     }
 
-    private static string GetOrderedElements<TKey, TValue>(Dictionary<TKey, TValue> dictionary) where TKey : notnull
-        => string.Join(",", dictionary.Select(kvp => FormattableString.Invariant($"{kvp.Key}_{GetOrdered(kvp.Value)}")).OrderBy(v => v));
+    private static string StringifyDictionary<TKey, TValue>(Dictionary<TKey, TValue> dictionary) where TKey : notnull where TValue : notnull
+        => string.Join(",", dictionary.Select(kvp => FormattableString.Invariant($"{kvp.Key}_{Stringify(kvp.Value)}")).OrderBy(v => v));
 
-    private static object? GetOrdered<TValue>(TValue value)
+    private static string Stringify<TValue>(TValue value) where TValue : notnull
     {
         if (value is IEnumerable<string> strings)
             return string.Join(":", strings.OrderBy(v => v));
 
-        return value;
+        if (value is TimeSpan timeSpan)
+            return timeSpan.TotalMilliseconds.ToString("G17");
+
+        return value.ToString() ?? "";
     }
 }
