@@ -429,8 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SpecialType.System_Collections_Generic_IReadOnlyCollection_T or
                 SpecialType.System_Collections_Generic_IReadOnlyList_T)
             {
-                // PROTOTYPE: Enable assert.
-                //Debug.Assert((object)constructor.OriginalDefinition == _compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor));
+                Debug.Assert((object)constructor.OriginalDefinition == _compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor));
 
                 int numberIncludingLastSpread;
                 bool useKnownLength = ShouldUseKnownLength(node, out numberIncludingLastSpread);

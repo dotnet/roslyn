@@ -1376,7 +1376,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case CollectionExpressionTypeKind.ArrayInterface:
                         {
-                            var intType = TypeWithAnnotations.Create(GetSpecialType(SpecialType.System_Int32, diagnostics, syntax));
                             addSignature(
                                 builder,
                                 Compilation,
@@ -1387,21 +1386,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 parameters: [],
                                 returnType,
                                 diagnostics);
-                            addSignature(
-                                builder,
-                                Compilation,
-                                syntax,
-                                WellKnownMember.System_Collections_Generic_List_T__ctorInt32,
-                                containingType,
-                                methodName,
-                                parameters: [("capacity", intType)],
-                                returnType,
-                                diagnostics);
+                            if (targetType.OriginalDefinition.SpecialType is SpecialType.System_Collections_Generic_ICollection_T or SpecialType.System_Collections_Generic_IList_T)
+                            {
+                                var intType = TypeWithAnnotations.Create(GetSpecialType(SpecialType.System_Int32, diagnostics, syntax));
+                                addSignature(
+                                    builder,
+                                    Compilation,
+                                    syntax,
+                                    WellKnownMember.System_Collections_Generic_List_T__ctorInt32,
+                                    containingType,
+                                    methodName,
+                                    parameters: [("capacity", intType)],
+                                    returnType,
+                                    diagnostics);
+                            }
                         }
                         break;
                     case CollectionExpressionTypeKind.DictionaryInterface:
                         {
-                            var intType = TypeWithAnnotations.Create(GetSpecialType(SpecialType.System_Int32, diagnostics, syntax));
                             // PROTOTYPE: What if target type has type arguments that are type parameters from the current method?
                             // If so, the signature method will reference type parameters that are not in scope. If that breaks a compiler
                             // guarantee, perhaps we should create a synthesized generic type for the signature methods where the
@@ -1429,26 +1431,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 parameters: [("comparer", comparerType)],
                                 returnType,
                                 diagnostics);
-                            addSignature(
-                                builder,
-                                Compilation,
-                                syntax,
-                                WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32,
-                                containingType,
-                                methodName,
-                                parameters: [("capacity", intType)],
-                                returnType,
-                                diagnostics);
-                            addSignature(
-                                builder,
-                                Compilation,
-                                syntax,
-                                WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32_IEqualityComparer_K,
-                                containingType,
-                                methodName,
-                                parameters: [("capacity", intType), ("comparer", comparerType)],
-                                returnType,
-                                diagnostics);
+                            if ((object)targetType.OriginalDefinition == Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IDictionary_KV))
+                            {
+                                var intType = TypeWithAnnotations.Create(GetSpecialType(SpecialType.System_Int32, diagnostics, syntax));
+                                addSignature(
+                                    builder,
+                                    Compilation,
+                                    syntax,
+                                    WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32,
+                                    containingType,
+                                    methodName,
+                                    parameters: [("capacity", intType)],
+                                    returnType,
+                                    diagnostics);
+                                addSignature(
+                                    builder,
+                                    Compilation,
+                                    syntax,
+                                    WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32_IEqualityComparer_K,
+                                    containingType,
+                                    methodName,
+                                    parameters: [("capacity", intType), ("comparer", comparerType)],
+                                    returnType,
+                                    diagnostics);
+                            }
                         }
                         break;
                     default:
