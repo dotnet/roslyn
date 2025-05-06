@@ -1065,60 +1065,78 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sideEffects = ArrayBuilder<BoundExpression>.GetInstance(elements.Length + 1);
 
             int numberIncludingLastSpread;
-            bool useKnownLength = ShouldUseKnownLength(node, out numberIncludingLastSpread);
-            RewriteCollectionExpressionElementsIntoTemporaries(elements, numberIncludingLastSpread, localsBuilder, sideEffects);
-
             bool useOptimizations = false;
             MethodSymbol? setCount = null;
             MethodSymbol? asSpan = null;
-
-            // PROTOTYPE: Use node.CollectionCreation if it's not WellKnownMember.System_Collections_Generic_List_T__ctor.
-
-            // Do not use optimizations in async method since the optimizations require Span<T>.
-            if (useKnownLength && elements.Length > 0 && _factory.CurrentFunction?.IsAsync == false)
-            {
-                setCount = ((MethodSymbol?)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__SetCount_T))?.Construct(typeArguments);
-                asSpan = ((MethodSymbol?)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T))?.Construct(typeArguments);
-
-                if (setCount is { } && asSpan is { })
-                {
-                    useOptimizations = true;
-                }
-            }
+            BoundAssignmentOperator assignmentToTemp;
+            BoundObjectCreationExpression rewrittenReceiver;
 
             // Create a temp for the knownLength
-            BoundAssignmentOperator assignmentToTemp;
             BoundLocal? knownLengthTemp = null;
 
-            BoundObjectCreationExpression rewrittenReceiver;
-            if (useKnownLength && elements.Length > 0)
+            // If explicit collection creation was generated in initial binding, and collection
+            // creation does not use the parameterless List<T> constructor, use the collection
+            // creation as is. Otherwise, consider optimizations.
+            // PROTOTYPE: If an empty 'with()' was used in the collection expression. should we skip optimizations for that case?
+            // PROTOTYPE: The methods are constructors. We should be generating a BoundObjectCreationExpression,
+            // not a BoundCall. And then we could use usesParameterlessListConstructor() here.
+            if (node.CollectionCreation is BoundCall { Method: CollectionArgumentsSignatureOnlyMethodSymbol { WellKnownConstructor: var wellKnownConstructor }, Arguments: var constructorArguments } &&
+                (object)wellKnownConstructor.OriginalDefinition != _compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor))
             {
-                var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32)).AsMember(collectionType);
-                var knownLengthExpression = GetKnownLengthExpression(elements, numberIncludingLastSpread, localsBuilder);
+                // PROTOTYPE: Test that we generate code using this constructor from initial binding rather than using an optimization.
 
-                if (useOptimizations)
-                {
-                    // If we use optimizations, we know the length of the resulting list, and we store it in a temp so we can pass it to List.ctor(int32) and to CollectionsMarshal.SetCount
+                numberIncludingLastSpread = 0;
 
-                    // int knownLengthTemp = N + s1.Length + ...;
-                    knownLengthTemp = _factory.StoreToTemp(knownLengthExpression, out assignmentToTemp);
-                    localsBuilder.Add(knownLengthTemp);
-                    sideEffects.Add(assignmentToTemp);
-
-                    // List<ElementType> list = new(knownLengthTemp);
-                    rewrittenReceiver = _factory.New(constructor, ImmutableArray.Create<BoundExpression>(knownLengthTemp));
-                }
-                else
-                {
-                    // List<ElementType> list = new(N + s1.Length + ...)
-                    rewrittenReceiver = _factory.New(constructor, ImmutableArray.Create(knownLengthExpression));
-                }
+                // List<ElementType> list = new(args);
+                var constructor = wellKnownConstructor.AsMember(collectionType);
+                rewrittenReceiver = _factory.New(constructor, constructorArguments);
             }
             else
             {
-                // List<ElementType> list = new();
-                var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__ctor)).AsMember(collectionType);
-                rewrittenReceiver = _factory.New(constructor, ImmutableArray<BoundExpression>.Empty);
+                bool useKnownLength = ShouldUseKnownLength(node, out numberIncludingLastSpread);
+                RewriteCollectionExpressionElementsIntoTemporaries(elements, numberIncludingLastSpread, localsBuilder, sideEffects);
+
+                // Do not use optimizations in async method since the optimizations require Span<T>.
+                if (useKnownLength && elements.Length > 0 && _factory.CurrentFunction?.IsAsync == false)
+                {
+                    setCount = ((MethodSymbol?)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__SetCount_T))?.Construct(typeArguments);
+                    asSpan = ((MethodSymbol?)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T))?.Construct(typeArguments);
+
+                    if (setCount is { } && asSpan is { })
+                    {
+                        useOptimizations = true;
+                    }
+                }
+
+                if (useKnownLength && elements.Length > 0)
+                {
+                    var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32)).AsMember(collectionType);
+                    var knownLengthExpression = GetKnownLengthExpression(elements, numberIncludingLastSpread, localsBuilder);
+
+                    if (useOptimizations)
+                    {
+                        // If we use optimizations, we know the length of the resulting list, and we store it in a temp so we can pass it to List.ctor(int32) and to CollectionsMarshal.SetCount
+
+                        // int knownLengthTemp = N + s1.Length + ...;
+                        knownLengthTemp = _factory.StoreToTemp(knownLengthExpression, out assignmentToTemp);
+                        localsBuilder.Add(knownLengthTemp);
+                        sideEffects.Add(assignmentToTemp);
+
+                        // List<ElementType> list = new(knownLengthTemp);
+                        rewrittenReceiver = _factory.New(constructor, ImmutableArray.Create<BoundExpression>(knownLengthTemp));
+                    }
+                    else
+                    {
+                        // List<ElementType> list = new(N + s1.Length + ...)
+                        rewrittenReceiver = _factory.New(constructor, ImmutableArray.Create(knownLengthExpression));
+                    }
+                }
+                else
+                {
+                    // List<ElementType> list = new();
+                    var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__ctor)).AsMember(collectionType);
+                    rewrittenReceiver = _factory.New(constructor, ImmutableArray<BoundExpression>.Empty);
+                }
             }
 
             // Create a temp for the list.
@@ -1129,7 +1147,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Use Span<T> if CollectionsMarshal methods are available, otherwise use List<T>.Add().
             if (useOptimizations)
             {
-                Debug.Assert(useKnownLength);
                 Debug.Assert(setCount is { });
                 Debug.Assert(asSpan is { });
                 Debug.Assert(knownLengthTemp is { });
