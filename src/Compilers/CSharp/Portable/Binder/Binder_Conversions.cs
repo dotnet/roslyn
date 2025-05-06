@@ -956,8 +956,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if ((collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface) ||
                 node.HasSpreadElements(out _, out _))
             {
-                _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor, diagnostics, syntax: syntax);
-                _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32, diagnostics, syntax: syntax);
+                if (collectionTypeKind is not CollectionExpressionTypeKind.ArrayInterface)
+                {
+                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor, diagnostics, syntax: syntax);
+                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32, diagnostics, syntax: syntax);
+                }
                 _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__Add, diagnostics, syntax: syntax);
                 _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray, diagnostics, syntax: syntax);
             }
@@ -993,7 +996,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 collectionCreation = CreateConversion(collectionCreation, targetType, diagnostics);
             }
-            else if (collectionTypeKind is CollectionExpressionTypeKind.DictionaryInterface)
+            else if (collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface or CollectionExpressionTypeKind.DictionaryInterface)
             {
                 var candidateMethodGroup = BindInterfaceTargetCollectionMethodGroup(syntax, collectionTypeKind, (NamedTypeSymbol)targetType, diagnostics);
 
@@ -1015,7 +1018,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (collectionTypeKind is not
-                (CollectionExpressionTypeKind.ImplementsIEnumerable or CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer or CollectionExpressionTypeKind.DictionaryInterface))
+                (CollectionExpressionTypeKind.ImplementsIEnumerable or CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer or CollectionExpressionTypeKind.ArrayInterface or CollectionExpressionTypeKind.DictionaryInterface))
             {
                 var withElement = elements.FirstOrDefault(e => e is BoundCollectionExpressionWithElement { Arguments.Length: > 0 });
                 if (withElement is { })
@@ -1372,7 +1375,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (collectionTypeKind)
                 {
                     case CollectionExpressionTypeKind.ArrayInterface:
-                        // PROTOTYPE: Add signatures.
+                        {
+                            var intType = TypeWithAnnotations.Create(GetSpecialType(SpecialType.System_Int32, diagnostics, syntax));
+                            addSignature(
+                                builder,
+                                Compilation,
+                                syntax,
+                                WellKnownMember.System_Collections_Generic_List_T__ctor,
+                                containingType,
+                                methodName,
+                                parameters: [],
+                                returnType,
+                                diagnostics);
+                            addSignature(
+                                builder,
+                                Compilation,
+                                syntax,
+                                WellKnownMember.System_Collections_Generic_List_T__ctorInt32,
+                                containingType,
+                                methodName,
+                                parameters: [("capacity", intType)],
+                                returnType,
+                                diagnostics);
+                        }
                         break;
                     case CollectionExpressionTypeKind.DictionaryInterface:
                         {

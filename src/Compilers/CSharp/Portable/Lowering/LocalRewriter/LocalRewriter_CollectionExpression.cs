@@ -410,8 +410,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(_factory.ModuleBuilderOpt is { });
             Debug.Assert(_diagnostics.DiagnosticBag is { });
             Debug.Assert(node.Type is NamedTypeSymbol);
-            Debug.Assert(node.CollectionCreation is null);
+            Debug.Assert(node.CollectionCreation is BoundCall { Method: CollectionArgumentsSignatureOnlyMethodSymbol });
             Debug.Assert(node.Placeholder is null);
+
+            if (node.CollectionCreation is not BoundCall { Method: CollectionArgumentsSignatureOnlyMethodSymbol { WellKnownConstructor: var constructor }, Arguments: var constructorArguments })
+            {
+                throw ExceptionUtilities.UnexpectedValue(node.CollectionCreation);
+            }
 
             var syntax = node.Syntax;
             var collectionType = (NamedTypeSymbol)node.Type;
@@ -424,6 +429,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SpecialType.System_Collections_Generic_IReadOnlyCollection_T or
                 SpecialType.System_Collections_Generic_IReadOnlyList_T)
             {
+                // PROTOTYPE: Enable assert.
+                //Debug.Assert((object)constructor.OriginalDefinition == _compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor));
+
                 int numberIncludingLastSpread;
                 bool useKnownLength = ShouldUseKnownLength(node, out numberIncludingLastSpread);
 
@@ -1064,6 +1072,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool useOptimizations = false;
             MethodSymbol? setCount = null;
             MethodSymbol? asSpan = null;
+
+            // PROTOTYPE: Use node.CollectionCreation if it's not WellKnownMember.System_Collections_Generic_List_T__ctor.
 
             // Do not use optimizations in async method since the optimizations require Span<T>.
             if (useKnownLength && elements.Length > 0 && _factory.CurrentFunction?.IsAsync == false)

@@ -547,15 +547,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (7,14): error CS9502: Collection arguments are not supported for type 'IEnumerable<T>'.
-                //         i = [with(default), t];
-                Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments($"System.Collections.Generic.{interfaceType}<T>").WithLocation(7, 14),
                 // (8,17): error CS9501: Collection argument element must be the first element.
                 //         i = [t, with(default)];
-                Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(8, 17),
-                // (8,17): error CS9502: Collection arguments are not supported for type 'IEnumerable<T>'.
-                //         i = [t, with(default)];
-                Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments($"System.Collections.Generic.{interfaceType}<T>").WithLocation(8, 17));
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(8, 17));
 
             // Collection arguments do not affect convertibility.
             var tree = comp.SyntaxTrees[0];
@@ -4126,10 +4120,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.MakeMemberMissing((WellKnownMember)missingMember);
-            // PROTOTYPE: Support collection arguments for non-dictionary interfaces.
             switch ((WellKnownMember)missingMember)
             {
                 case WellKnownMember.System_Collections_Generic_List_T__ctor:
+                    comp.VerifyEmitDiagnostics(
+                        // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                        //         c = [];
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(7, 13),
+                        // (7,13): error CS7036: There is no argument given that corresponds to the required parameter 'capacity' of 'Program.<signature>(int)'
+                        //         c = [];
+                        Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[]").WithArguments("capacity", "Program.<signature>(int)").WithLocation(7, 13),
+                        // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                        //         c = [with()];
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with()]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(8, 13),
+                        // (8,13): error CS7036: There is no argument given that corresponds to the required parameter 'capacity' of 'Program.<signature>(int)'
+                        //         c = [with()];
+                        Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[with()]").WithArguments("capacity", "Program.<signature>(int)").WithLocation(8, 13),
+                        // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                        //         c = [with(i)];
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i)]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(9, 13));
+                    break;
                 case WellKnownMember.System_Collections_Generic_List_T__ctorInt32:
                     comp.VerifyEmitDiagnostics(
                         // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
@@ -4141,15 +4151,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
                         //         c = [with(i)];
                         Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i)]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(9, 13),
-                        // (9,14): error CS9502: Collection arguments are not supported for type 'IEnumerable<int>'.
+                        // (9,13): error CS1501: No overload for method '<signature>' takes 1 arguments
                         //         c = [with(i)];
-                        Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments($"System.Collections.Generic.{typeName}").WithLocation(9, 14));
+                        Diagnostic(ErrorCode.ERR_BadArgCount, "[with(i)]").WithArguments("<signature>", "1").WithLocation(9, 13));
                     break;
                 default:
-                    comp.VerifyEmitDiagnostics(
-                        // (9,14): error CS9502: Collection arguments are not supported for type 'IEnumerable<int>'.
-                        //         c = [with(i)];
-                        Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments($"System.Collections.Generic.{typeName}").WithLocation(9, 14));
+                    comp.VerifyEmitDiagnostics();
                     break;
             }
         }

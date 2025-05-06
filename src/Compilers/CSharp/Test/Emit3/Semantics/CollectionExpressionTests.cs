@@ -5089,12 +5089,15 @@ static class Program
                 // 1.cs(7,23): error CS9174: Cannot initialize type 'List<int>' with a collection expression because the type is not constructible.
                 //         List<int> l = [1];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1]").WithArguments("System.Collections.Generic.List<int>").WithLocation(7, 23),
+                // 1.cs(8,30): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
+                //         IEnumerable<int> e = [2];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[2]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(8, 30),
                 // 1.cs(8,30): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
                 //         IEnumerable<int> e = [2];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[2]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(8, 30),
-                // 1.cs(8,30): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
+                // 1.cs(8,30): error CS7036: There is no argument given that corresponds to the required parameter 'capacity' of 'Program.<signature>(int)'
                 //         IEnumerable<int> e = [2];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[2]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(8, 30));
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[2]").WithArguments("capacity", "Program.<signature>(int)").WithLocation(8, 30));
 
             var listType = comp.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
             Assert.Equal(CollectionExpressionTypeKind.None, ConversionsBase.GetCollectionExpressionTypeKind(comp, listType, out var elementType));
