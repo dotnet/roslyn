@@ -2398,7 +2398,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ModifierOnUnnamedReceiverParameter = 9305,
         ERR_ExtensionTypeNameDisallowed = 9306,
         ERR_ExpressionTreeContainsNamedArgumentOutOfPosition = 9307,
-        ERR_TooManyUserStrings_RestartRequired = 9308,
 
         ERR_OperatorsMustBePublic = 9308,
         // available 9309,
@@ -2408,6 +2407,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadCompoundAssignmentOpArgs = 9313,
 
         ERR_PPShebangInProjectBasedProgram = 9314,
+
+        ERR_TooManyUserStrings_RestartRequired = 9315,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
