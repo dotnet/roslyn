@@ -23,7 +23,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
 {
     private readonly ILogger _logger;
     private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
-    private ProjectFileExtensionRegistry _projectFileExtensionRegistry;
+    private readonly ProjectFileExtensionRegistry _projectFileExtensionRegistry;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
