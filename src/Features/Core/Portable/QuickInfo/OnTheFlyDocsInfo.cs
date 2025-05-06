@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.QuickInfo;
 /// <param name="declarationCode">the symbol's declaration code</param>
 /// <param name="language">the language of the symbol</param>
 /// <param name="hasComments">whether the symbol has comments</param>
-internal sealed class OnTheFlyDocsInfo(string symbolSignature, ImmutableArray<OnTheFlyDocsRelevantFileInfo?> declarationCode, string language, bool isContentExcluded, ImmutableArray<OnTheFlyDocsRelevantFileInfo?> additionalContext, bool hasComments = false)
+internal sealed class OnTheFlyDocsInfo(string symbolSignature, ImmutableArray<OnTheFlyDocsRelevantFileInfo> declarationCode, string language, bool isContentExcluded, ImmutableArray<OnTheFlyDocsRelevantFileInfo> additionalContext, bool hasComments = false)
 {
     public string SymbolSignature { get; } = symbolSignature;
-    public ImmutableArray<OnTheFlyDocsRelevantFileInfo?> DeclarationCode { get; } = declarationCode;
+    public ImmutableArray<OnTheFlyDocsRelevantFileInfo> DeclarationCode { get; } = declarationCode;
     public string Language { get; } = language;
     public bool IsContentExcluded { get; set; } = isContentExcluded;
-    public ImmutableArray<OnTheFlyDocsRelevantFileInfo?> AdditionalContext { get; } = additionalContext;
+    public ImmutableArray<OnTheFlyDocsRelevantFileInfo> AdditionalContext { get; } = additionalContext;
 
     // Added for telemetry collection purposes.
     public bool HasComments { get; set; } = hasComments;
