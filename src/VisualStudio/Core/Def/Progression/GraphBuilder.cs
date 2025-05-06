@@ -31,7 +31,7 @@ internal sealed partial class GraphBuilder
 #pragma warning restore RS0030 // Do not use banned APIs
 
     private readonly ISet<GraphNode> _createdNodes = new HashSet<GraphNode>();
-    private readonly IList<Tuple<GraphNode, GraphProperty, object>> _deferredPropertySets = new List<Tuple<GraphNode, GraphProperty, object>>();
+    private readonly IList<Tuple<GraphNode, GraphProperty, object>> _deferredPropertySets = [];
 
     private readonly Dictionary<GraphNode, Project> _nodeToContextProjectMap = [];
     private readonly Dictionary<GraphNode, Document> _nodeToContextDocumentMap = [];

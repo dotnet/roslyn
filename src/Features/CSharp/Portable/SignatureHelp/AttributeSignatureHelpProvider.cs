@@ -91,7 +91,7 @@ internal sealed partial class AttributeSignatureHelpProvider : AbstractCSharpSig
 
         var accessibleConstructors = attributeType.InstanceConstructors
                                                   .WhereAsArray(c => c.IsAccessibleWithin(within))
-                                                  .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation)
+                                                  .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation, inclusionFilter: static s => true)
                                                   .Sort(semanticModel, attribute.SpanStart);
 
         if (!accessibleConstructors.Any())

@@ -120,6 +120,122 @@ class C
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/76999")]
+        public void TestAwaitHoistedRef()
+        {
+            var src = """
+                using System.Threading.Tasks;
+
+                public sealed class RefHolder<T>
+                {
+                    private T _t;
+                    public ref T Get() => ref _t;
+                }
+
+                public static class App
+                {
+                    public static void Do<T>()
+                    {
+                        var res = new RefHolder<T>();
+                        M().Wait();
+                        async Task M()
+                        {
+                            res.Get() = await Task.FromResult(default(T));
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (17,13): error CS8178: A reference returned by a call to 'RefHolder<T>.Get()' cannot be preserved across 'await' or 'yield' boundary.
+                //             res.Get() = await Task.FromResult(default(T));
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "res.Get()").WithArguments("RefHolder<T>.Get()").WithLocation(17, 13)
+            );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/76999")]
+        public void TestAwaitHoistedRef_InNewExtensionContainer()
+        {
+            var src = """
+                using System.Threading.Tasks;
+
+                public sealed class RefHolder<T>
+                {
+                    private T _t;
+                    public ref T Get() => ref _t;
+                }
+
+                public static class App
+                {
+                    extension(int)
+                    {
+                        public static void Do<T>()
+                        {
+                            var res = new RefHolder<T>();
+                            M().Wait();
+                            async Task M()
+                            {
+                                res.Get() = await Task.FromResult(default(T));
+                            }
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (19,17): error CS8178: A reference returned by a call to 'RefHolder<T>.Get()' cannot be preserved across 'await' or 'yield' boundary.
+                //                 res.Get() = await Task.FromResult(default(T));
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "res.Get()").WithArguments("RefHolder<T>.Get()").WithLocation(19, 17)
+            );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/76999")]
+        public void TestAwaitHoistedRef2()
+        {
+            var src = """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+                using System.Threading.Tasks;
+
+                public sealed class ValuesHolder<T>
+                {
+                	private readonly T[] _values = new T[10];
+
+                	public ref T this[int type] => ref _values[type];
+                }
+
+                public static class App
+                {
+                	public static async Task<ValuesHolder<TResult>> Do<TResult>()
+                	{
+                		var res = new ValuesHolder<TResult>();
+
+                		var taskGroup = new List<KeyValuePair<int, Task<TResult>>>();
+
+                		await Task.WhenAll(taskGroup.Select(async kv =>
+                		{
+                			res[0] = await kv.Value;
+                		}));
+
+                		return res;
+                	}
+                }
+                """;
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (23,4): error CS8178: A reference returned by a call to 'ValuesHolder<TResult>.this[int].get' cannot be preserved across 'await' or 'yield' boundary.
+                // 			res[0] = await kv.Value;
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "res[0]").WithArguments("ValuesHolder<TResult>.this[int].get").WithLocation(23, 4)
+            );
+        }
+
+        [Fact]
         [WorkItem(1084696, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084696")]
         public void TestAwaitInfo2()
         {

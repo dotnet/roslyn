@@ -253,7 +253,7 @@ partial class A : Object {}
         [InlineData("int*", "System.Int32*")]
         [InlineData("delegate*<int,int>", "delegate*<System.Int32, System.Int32>")]
         [InlineData("dynamic", "dynamic")]
-        [InlineData("nint", "nint")]
+        [InlineData("nint", "System.IntPtr")]
         public void GetAliasTypeInfo(string aliasType, string expected)
         {
             // Should get the same results in the semantic model regardless of whether the using has the 'unsafe'

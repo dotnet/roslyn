@@ -870,8 +870,7 @@ public partial class TestWorkspace<TDocument, TProject, TSolution>
             ((bool?)winRT).HasValue &&
             ((bool?)winRT).Value)
         {
-            references = new List<MetadataReference>(TestBase.WinRtRefs.Length);
-            references.AddRange(TestBase.WinRtRefs);
+            references = [.. TestBase.WinRtRefs];
             if (GetLanguage(element) == LanguageNames.VisualBasic)
             {
                 references.Add(TestBase.MsvbRef_v4_0_30319_17929);
@@ -885,8 +884,7 @@ public partial class TestWorkspace<TDocument, TProject, TSolution>
             ((bool?)portable).HasValue &&
             ((bool?)portable).Value)
         {
-            references = new List<MetadataReference>(TestBase.PortableRefsMinimal.Length);
-            references.AddRange(TestBase.PortableRefsMinimal);
+            references = [.. TestBase.PortableRefsMinimal];
         }
 
         var netcore30 = element.Attribute(CommonReferencesNetCoreAppName);

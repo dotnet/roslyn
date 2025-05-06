@@ -21,32 +21,15 @@ using Roslyn.Utilities;
 namespace Roslyn.Test.Utilities
 {
     /// <summary>
-    /// This a factory type for creating <see cref="IRuntimeEnvironment" /> instances for the current runtime.
-    /// </summary>
-    public static class RuntimeEnvironmentFactory
-    {
-        private static IRuntimeEnvironmentFactory Instance { get; } = RuntimeUtilities.GetRuntimeEnvironmentFactory();
-
-        internal static IRuntimeEnvironment Create(ModuleData mainModule, ImmutableArray<ModuleData> modules = default) =>
-            Instance.Create(mainModule, modules);
-
-        public static (string Output, string ErrorOutput) CaptureOutput(Action action, int? maxOutputLength) =>
-            Instance.CaptureOutput(action, maxOutputLength);
-    }
-
-    public interface IRuntimeEnvironmentFactory
-    {
-        IRuntimeEnvironment Create(ModuleData mainModule, ImmutableArray<ModuleData> modules);
-        (string Output, string ErrorOutput) CaptureOutput(Action action, int? maxOutputLength);
-    }
-
-    /// <summary>
     /// This is used for executing a set of modules in an isolated runtime environment for the current .NET
     /// runtime.
     /// </summary>
+    /// <remarks>
+    /// Obtain instances of this interface from <see cref="RuntimeUtilities.CreateRuntimeEnvironment(ModuleData, ImmutableArray{ModuleData})"/> 
+    /// </remarks>
     public interface IRuntimeEnvironment : IDisposable
     {
-        (int ExitCode, string Output, string ErrorOutput) Execute(string[] args, int? maxOutputLength);
+        (int ExitCode, string Output, string ErrorOutput) Execute(string[] args);
         SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName);
         void Verify(Verification verification);
         string[] VerifyModules(string[] modulesToVerify);

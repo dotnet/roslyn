@@ -543,7 +543,7 @@ class Program
                 }
             }
             """;
-        await VerifyItemExistsAsync(markup, "string", glyph: (int)Glyph.ClassPublic);
+        await VerifyItemExistsAsync(markup, "string", glyph: Glyph.ClassPublic);
     }
 
     [Fact]

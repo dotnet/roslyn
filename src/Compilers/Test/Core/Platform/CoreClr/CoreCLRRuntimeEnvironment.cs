@@ -22,8 +22,8 @@ namespace Roslyn.Test.Utilities.CoreClr
         public ImmutableArray<ModuleData> Modules { get; } = modules;
         internal TestExecutionLoadContext LoadContext { get; } = new TestExecutionLoadContext(modules);
 
-        public (int ExitCode, string Output, string ErrorOutput) Execute(string[] args, int? expectedLength) =>
-            LoadContext.Execute(MainModule, args, expectedLength);
+        public (int ExitCode, string Output, string ErrorOutput) Execute(string[] args) =>
+            LoadContext.Execute(MainModule, args);
 
         public SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName) =>
             LoadContext.GetMemberSignaturesFromMetadata(fullyQualifiedTypeName, memberName, Modules.Select(x => x.Id));

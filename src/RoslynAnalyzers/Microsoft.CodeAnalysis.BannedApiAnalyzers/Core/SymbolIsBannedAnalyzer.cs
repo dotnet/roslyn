@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 
                 if (!result.TryGetValue(parsed.Value, out var existing))
                 {
-                    existing = new();
+                    existing = [];
                     result.Add(parsed.Value, existing);
                 }
 

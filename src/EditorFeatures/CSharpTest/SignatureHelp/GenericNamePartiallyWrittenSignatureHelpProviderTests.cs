@@ -209,7 +209,7 @@ public sealed class GenericNamePartiallyWrittenSignatureHelpProviderTests : Abst
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                    referencedCode: referencedCode,
-                                                   expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
+                                                   expectedOrderedItemsMetadataReference: [],
                                                    expectedOrderedItemsSameSolution: expectedOrderedItems,
                                                    sourceLanguage: LanguageNames.CSharp,
                                                    referencedLanguage: LanguageNames.CSharp);
@@ -252,7 +252,7 @@ public sealed class GenericNamePartiallyWrittenSignatureHelpProviderTests : Abst
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                    referencedCode: referencedCode,
-                                                   expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
+                                                   expectedOrderedItemsMetadataReference: [],
                                                    expectedOrderedItemsSameSolution: expectedOrderedItems,
                                                    sourceLanguage: LanguageNames.CSharp,
                                                    referencedLanguage: LanguageNames.CSharp,

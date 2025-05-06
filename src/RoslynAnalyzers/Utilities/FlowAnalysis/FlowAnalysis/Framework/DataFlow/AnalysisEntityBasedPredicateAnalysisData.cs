@@ -20,18 +20,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     {
         protected AnalysisEntityBasedPredicateAnalysisData()
         {
-            CoreAnalysisData = new DictionaryAnalysisData<AnalysisEntity, TValue>();
+            CoreAnalysisData = [];
         }
 
         protected AnalysisEntityBasedPredicateAnalysisData(IDictionary<AnalysisEntity, TValue> fromData)
         {
-            CoreAnalysisData = new DictionaryAnalysisData<AnalysisEntity, TValue>(fromData);
+            CoreAnalysisData = [.. fromData];
         }
 
         protected AnalysisEntityBasedPredicateAnalysisData(AnalysisEntityBasedPredicateAnalysisData<TValue> fromData)
             : base(fromData)
         {
-            CoreAnalysisData = new DictionaryAnalysisData<AnalysisEntity, TValue>(fromData.CoreAnalysisData);
+            CoreAnalysisData = [.. fromData.CoreAnalysisData];
         }
 
         protected AnalysisEntityBasedPredicateAnalysisData(

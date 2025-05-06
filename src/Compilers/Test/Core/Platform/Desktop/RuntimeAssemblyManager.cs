@@ -369,7 +369,7 @@ namespace Roslyn.Test.Utilities.Desktop
             }
         }
 
-        public int Execute(string moduleName, string[] mainArgs, int? expectedOutputLength, out string output, out string errorOutput)
+        public int Execute(string moduleName, string[] mainArgs, out string output, out string errorOutput)
         {
             ImmutableArray<byte> bytes = GetModuleBytesByName(moduleName);
             Assembly assembly = DesktopRuntimeUtil.LoadAsAssembly(moduleName, bytes);
@@ -377,7 +377,7 @@ namespace Roslyn.Test.Utilities.Desktop
             Debug.Assert(entryPoint != null, "Attempting to execute an assembly that has no entrypoint; is your test trying to execute a DLL?");
 
             object result = null;
-            DesktopRuntimeEnvironment.Capture(() =>
+            (output, errorOutput) = RuntimeUtilities.CaptureOutput(() =>
             {
                 var count = entryPoint.GetParameters().Length;
                 object[] args;
@@ -395,10 +395,8 @@ namespace Roslyn.Test.Utilities.Desktop
                 }
 
                 result = entryPoint.Invoke(null, args);
-            }, expectedOutputLength ?? 0, out var stdOut, out var stdErr);
+            });
 
-            output = stdOut;
-            errorOutput = stdErr;
             return result is int i ? i : 0;
         }
 

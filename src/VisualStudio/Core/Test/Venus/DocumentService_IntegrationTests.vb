@@ -229,7 +229,7 @@ class { }
                 ' confirm there are errors
                 Assert.True(model.GetDiagnostics().Any())
 
-                Dim diagnosticService = workspace.GetService(Of IDiagnosticAnalyzerService)()
+                Dim diagnosticService = workspace.Services.GetRequiredService(Of IDiagnosticAnalyzerService)()
 
                 ' confirm diagnostic support is off for the document
                 Assert.False(document.SupportsDiagnostics())

@@ -16,7 +16,7 @@ internal interface ISemanticSearchService : ILanguageService
     /// Compiles a query. The query has to be executed or discarded.
     /// </summary>
     /// <param name="query">Query (top-level code).</param>
-    /// <param name="referenceAssembliesDir">Directory that contains refernece assemblies to be used for compilation of the query.</param>
+    /// <param name="referenceAssembliesDir">Directory that contains reference assemblies to be used for compilation of the query.</param>
     CompileQueryResult CompileQuery(
         SolutionServices services,
         string query,
