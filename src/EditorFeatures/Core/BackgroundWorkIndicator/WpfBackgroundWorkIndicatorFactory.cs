@@ -9,8 +9,8 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 
@@ -20,11 +20,11 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed partial class WpfBackgroundWorkIndicatorFactory(
     IThreadingContext threadingContext,
-    IToolTipPresenterFactory toolTipPresenterFactory,
+    IBackgroundWorkIndicatorService backgroundWorkIndicatorService,
     IAsynchronousOperationListenerProvider listenerProvider) : IBackgroundWorkIndicatorFactory
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
-    private readonly IToolTipPresenterFactory _toolTipPresenterFactory = toolTipPresenterFactory;
+    private readonly IBackgroundWorkIndicatorService _backgroundWorkIndicatorService = backgroundWorkIndicatorService;
     private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.QuickInfo);
 
     private BackgroundWorkIndicatorContext? _currentContext;
@@ -39,15 +39,19 @@ internal sealed partial class WpfBackgroundWorkIndicatorFactory(
         _threadingContext.ThrowIfNotOnUIThread();
 
         // If we have an outstanding context in flight, cancel it and create a new one to show the user.
-        _currentContext?.CancelAndDispose();
+        _currentContext?.Dispose();
 
         // Create the indicator in its default/empty state.
-        _currentContext = new BackgroundWorkIndicatorContext(
-            this, textView, applicableToSpan, description,
-            cancelOnEdit, cancelOnFocusLost);
+        var indicator = _backgroundWorkIndicatorService.Create(
+            textView, applicableToSpan, description, new()
+            {
+                CancelOnEdit = cancelOnEdit,
+                CancelOnFocusLost = cancelOnFocusLost
+            });
 
         // Then add a single scope representing the how the UI should look initially.
-        _currentContext.AddScope(allowCancellation: true, description);
+        indicator.AddScope(description);
+        _currentContext = new BackgroundWorkIndicatorContext(indicator);
         return _currentContext;
     }
 
