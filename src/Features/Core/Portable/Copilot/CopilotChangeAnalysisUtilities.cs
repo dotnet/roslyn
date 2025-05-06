@@ -37,14 +37,14 @@ internal static class CopilotChangeAnalysisUtilities
             {
                 var keyPrefix = $"DiagnosticAnalysis_{diagnosticAnalysis.Kind}";
 
-                d[$"{keyPrefix}_ComputationTime"] = diagnosticAnalysis.ComputationTime;
+                d[$"{keyPrefix}_ComputationTime"] = Stringify(diagnosticAnalysis.ComputationTime);
                 d[$"{keyPrefix}_IdToCount"] = StringifyDictionary(diagnosticAnalysis.IdToCount);
                 d[$"{keyPrefix}_CategoryToCount"] = StringifyDictionary(diagnosticAnalysis.CategoryToCount);
                 d[$"{keyPrefix}_SeverityToCount"] = StringifyDictionary(diagnosticAnalysis.SeverityToCount);
             }
 
-            d["CodeFixAnalysis_TotalComputationTime"] = analysisResult.CodeFixAnalysis.TotalComputationTime;
-            d["CodeFixAnalysis_TotalApplicationTime"] = analysisResult.CodeFixAnalysis.TotalApplicationTime;
+            d["CodeFixAnalysis_TotalComputationTime"] = Stringify(analysisResult.CodeFixAnalysis.TotalComputationTime);
+            d["CodeFixAnalysis_TotalApplicationTime"] = Stringify(analysisResult.CodeFixAnalysis.TotalApplicationTime);
             d["CodeFixAnalysis_DiagnosticIdToCount"] = StringifyDictionary(analysisResult.CodeFixAnalysis.DiagnosticIdToCount);
             d["CodeFixAnalysis_DiagnosticIdToApplicationTime"] = StringifyDictionary(analysisResult.CodeFixAnalysis.DiagnosticIdToApplicationTime);
             d["CodeFixAnalysis_DiagnosticIdToProviderName"] = StringifyDictionary(analysisResult.CodeFixAnalysis.DiagnosticIdToProviderName);
