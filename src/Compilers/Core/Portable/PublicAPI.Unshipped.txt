@@ -23,3 +23,7 @@ const Microsoft.CodeAnalysis.WellKnownMemberNames.MultiplicationAssignmentOperat
 const Microsoft.CodeAnalysis.WellKnownMemberNames.RightShiftAssignmentOperatorName = "op_RightShiftAssignment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.SubtractionAssignmentOperatorName = "op_SubtractionAssignment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.UnsignedRightShiftAssignmentOperatorName = "op_UnsignedRightShiftAssignment" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedDecrementAssignmentOperatorName = "op_CheckedDecrementAssignment" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedIncrementAssignmentOperatorName = "op_CheckedIncrementAssignment" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.DecrementAssignmentOperatorName = "op_DecrementAssignment" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.IncrementAssignmentOperatorName = "op_IncrementAssignment" -> string!

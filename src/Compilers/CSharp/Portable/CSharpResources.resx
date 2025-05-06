@@ -8167,9 +8167,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_OperatorsMustBePublic" xml:space="preserve">
     <value>User-defined operator '{0}' must be declared public</value>
   </data>
-  <data name="ERR_BadIncrementOpArgs" xml:space="preserve">
-    <value>Overloaded instance increment operator '{0}' must take no parameters</value>
-  </data>
   <data name="ERR_OperatorMustReturnVoid" xml:space="preserve">
     <value>The return type for this operator must be void</value>
   </data>
@@ -8181,6 +8178,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_BadCompoundAssignmentOpArgs" xml:space="preserve">
     <value>Overloaded compound assignment operator '{0}' takes one parameter</value>
+  </data>
+  <data name="ERR_PPShebangInProjectBasedProgram" xml:space="preserve">
+    <value>'#!' directives can be only used in scripts or file-based programs</value>
   </data>
   <data name="ERR_BadExtensionUnaryOperatorSignature" xml:space="preserve">
     <value>The parameter of a unary operator must be the extended type.</value>

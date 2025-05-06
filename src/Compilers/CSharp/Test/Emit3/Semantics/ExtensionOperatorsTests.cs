@@ -157,9 +157,9 @@ static class C1
                 // (23,28): error CS0558: User-defined operator 'Extensions3.extension(S1).operator ++(S1)' must be declared static and public
                 //         static S1 operator ++(S1 x) => default;
                 Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("Extensions3.extension(S1).operator " + op + "(S1)").WithLocation(23, 28),
-                // (28,28): error CS9502: Overloaded instance increment operator '++' must take no parameters
+                // (28,28): error CS0558: User-defined operator 'Extensions3.extension(S2).operator ++(S2)' must be declared static and public
                 //         public S2 operator ++(S2 x) => default;
-                Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(28, 28),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("Extensions3.extension(S2).operator " + op + "(S2)").WithLocation(28, 28),
                 // (33,23): error CS0722: 'C1': static types cannot be used as return types
                 //         public static C1 operator ++(C1 x) => default;
                 Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "C1").WithArguments("C1").WithLocation(33, 23),
@@ -608,7 +608,7 @@ struct S1
 
             void verify(ModuleSymbol m)
             {
-                var name = UnaryOperatorName(op);
+                var name = CompoundAssignmentOperatorName(op);
                 var method = m.GlobalNamespace.GetMember<MethodSymbol>("Extensions1." + name);
 
                 AssertEx.Equal("Extensions1." + name + "(S1)", method.ToDisplayString());
@@ -640,12 +640,8 @@ struct S1
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
 
-            // PROTOTYPE: We probably should enable this scenario
-            comp.VerifyDiagnostics(
-                // (6,35): error CS0111: Type 'Extensions1' already defines a member called 'op_Increment' with the same parameter types
-                //         public static S1 operator ++(S1 x) => default;
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, op).WithArguments(UnaryOperatorName(op), "Extensions1").WithLocation(6, 35)
-                );
+            // PROTOTYPE: Check implementation symbols like in the test above
+            comp.VerifyDiagnostics();
         }
 
         [Theory]

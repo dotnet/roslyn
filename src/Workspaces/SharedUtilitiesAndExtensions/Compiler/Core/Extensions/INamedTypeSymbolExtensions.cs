@@ -635,6 +635,7 @@ internal static partial class INamedTypeSymbolExtensions
         {
             IEventSymbol => true,
             IMethodSymbol { MethodKind: MethodKind.Ordinary, CanBeReferencedByName: true } => true,
+            IMethodSymbol { MethodKind: MethodKind.UserDefinedOperator } => true,
             IPropertySymbol { IsWithEvents: false } => true,
             _ => false,
         };

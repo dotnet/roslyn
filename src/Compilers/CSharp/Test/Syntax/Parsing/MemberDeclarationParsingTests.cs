@@ -13549,7 +13549,7 @@ public class Class
             foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator " + op + "(C x1, C x2, C x3) => x;", options,
-                    // (1,12): error CS9506: Overloaded compound assignment operator '+=' takes one parameter
+                    // (1,12): error CS9313: Overloaded compound assignment operator '+=' takes one parameter
                     // C operator +=(C x1, C x2, C x3) => x;
                     Diagnostic(ErrorCode.ERR_BadCompoundAssignmentOpArgs, op).WithArguments(op).WithLocation(1, 12)
                     );
@@ -13624,7 +13624,7 @@ public class Class
             foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator " + op + "() => x;", options,
-                    // (1,12): error CS9506: Overloaded compound assignment operator '+=' takes one parameter
+                    // (1,12): error CS9313: Overloaded compound assignment operator '+=' takes one parameter
                     // C operator +=() => x;
                     Diagnostic(ErrorCode.ERR_BadCompoundAssignmentOpArgs, op).WithArguments(op).WithLocation(1, 12)
                     );
@@ -13708,6 +13708,171 @@ public class Class
                         }
                     }
                     N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Theory]
+        [InlineData("+=", SyntaxKind.PlusEqualsToken)]
+        [InlineData("-=", SyntaxKind.MinusEqualsToken)]
+        [InlineData("*=", SyntaxKind.AsteriskEqualsToken)]
+        [InlineData("/=", SyntaxKind.SlashEqualsToken)]
+        [InlineData("%=", SyntaxKind.PercentEqualsToken)]
+        [InlineData("&=", SyntaxKind.AmpersandEqualsToken)]
+        [InlineData("|=", SyntaxKind.BarEqualsToken)]
+        [InlineData("^=", SyntaxKind.CaretEqualsToken)]
+        [InlineData("<<=", SyntaxKind.LessThanLessThanEqualsToken)]
+        [InlineData(">>=", SyntaxKind.GreaterThanGreaterThanEqualsToken)]
+        [InlineData(">>>=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
+        public void CompoundAssignmentDeclaration_19_Partial(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingDeclaration("partial C operator " + op + "(C x) => x;", options,
+                    // (1,11): error CS1003: Syntax error, '.' expected
+                    // partial C operator %=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 11)
+                    );
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "partial");
+                    }
+                    N(SyntaxKind.ExplicitInterfaceSpecifier);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "C");
+                        }
+                        M(SyntaxKind.DotToken);
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(opToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignmentDeclaration_20_Partial([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingDeclaration("partial void operator " + op + "(C x) {}", options,
+                    // (1,1): error CS1073: Unexpected token 'void'
+                    // partial void operator +=(C x) {}
+                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "partial").WithArguments("void").WithLocation(1, 1),
+                    // (1,9): error CS1519: Invalid token 'void' in a member declaration
+                    // partial void operator +=(C x) {}
+                    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "void").WithArguments("void").WithLocation(1, 9)
+                    );
+
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "partial");
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Theory]
+        [InlineData("++", SyntaxKind.PlusPlusToken)]
+        [InlineData("--", SyntaxKind.MinusMinusToken)]
+        public void IncrementDeclaration_01_Partial(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingDeclaration("partial C operator " + op + "() => x;", options,
+                    // (1,11): error CS1003: Syntax error, '.' expected
+                    // partial C operator ++() => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 11)
+                    );
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "partial");
+                    }
+                    N(SyntaxKind.ExplicitInterfaceSpecifier);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "C");
+                        }
+                        M(SyntaxKind.DotToken);
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(opToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void IncrementDeclaration_02_Partial([CombinatorialValues("++", "--")] string op)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingDeclaration("partial void operator " + op + "() {}", options,
+                    // (1,1): error CS1073: Unexpected token 'void'
+                    // partial void operator ++() {}
+                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "partial").WithArguments("void").WithLocation(1, 1),
+                    // (1,9): error CS1519: Invalid token 'void' in a member declaration
+                    // partial void operator ++() {}
+                    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "void").WithArguments("void").WithLocation(1, 9)
+                    );
+
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "partial");
+                    }
                 }
                 EOF();
             }

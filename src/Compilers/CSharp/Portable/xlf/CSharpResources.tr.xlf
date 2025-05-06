@@ -267,11 +267,6 @@
         <target state="translated">'{0}', işlev işaretçisi parametresinde değiştirici olarak kullanılamaz.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadIncrementOpArgs">
-        <source>Overloaded instance increment operator '{0}' must take no parameters</source>
-        <target state="new">Overloaded instance increment operator '{0}' must take no parameters</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadInheritanceFromRecord">
         <source>Only records may inherit from records.</source>
         <target state="translated">Kayıtlardan yalnızca kayıtlar devralabilir.</target>
@@ -1785,6 +1780,11 @@
       <trans-unit id="ERR_PPIgnoredNeedsFileBasedProgram">
         <source>'#:' directives can be only used in file-based programs ('-features:FileBasedProgram')</source>
         <target state="new">'#:' directives can be only used in file-based programs ('-features:FileBasedProgram')</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PPShebangInProjectBasedProgram">
+        <source>'#!' directives can be only used in scripts or file-based programs</source>
+        <target state="new">'#!' directives can be only used in scripts or file-based programs</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">

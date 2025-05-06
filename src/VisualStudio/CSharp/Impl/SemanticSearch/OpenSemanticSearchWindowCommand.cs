@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Extensibility;
@@ -20,7 +19,7 @@ internal sealed class OpenSemanticSearchWindowCommand : Command
     {
         Icon = new(ImageMoniker.KnownValues.FindSymbol, IconSettings.IconAndText),
         Placements = [CommandPlacement.KnownPlacements.ViewOtherWindowsMenu.WithPriority(0x8010)],
-        VisibleWhen = ActivationConstraint.UIContext(Guid.Parse(SemanticSearchFeatureFlag.UIContextId))
+        VisibleWhen = ActivationConstraint.FeatureFlag("Roslyn.SemanticSearchEnabled")
     };
 
     public override Task ExecuteCommandAsync(IClientContext context, CancellationToken cancellationToken)
