@@ -208,9 +208,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             // https://github.com/dotnet/roslyn/issues/78001
 
             var buildTaskDirectory = GetBuildTaskDirectory();
-            var buildTaskDrectoryName = Path.GetFileName(buildTaskDirectory);
+            var buildTaskDirectoryName = Path.GetFileName(buildTaskDirectory);
             return
-                string.Equals(buildTaskDrectoryName, "binfx", StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(buildTaskDirectoryName, "binfx", StringComparison.OrdinalIgnoreCase) &&
                 !File.Exists(Path.Combine(buildTaskDirectory, "csc.exe")) &&
                 Directory.Exists(Path.Combine(buildTaskDirectory, "..", "bincore"));
 #endif
