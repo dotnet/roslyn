@@ -15,27 +15,22 @@ internal partial class WpfBackgroundWorkIndicatorFactory
     /// features to create nested work with descriptions/progress that will update the all-up indicator tool-tip
     /// shown to the user.
     /// </summary>
-    private sealed class BackgroundWorkIndicatorScope : IUIThreadOperationScope, IProgress<ProgressInfo>
+    private sealed class BackgroundWorkIndicatorScope(
+        BackgroundWorkIndicatorContext indicator,
+        BackgroundWorkOperationScope scope,
+        string initialDescription) : IUIThreadOperationScope, IProgress<ProgressInfo>
     {
-        private readonly BackgroundWorkIndicatorContext _context;
-        private readonly BackgroundWorkOperationScope _scope;
+        private readonly BackgroundWorkIndicatorContext _context = indicator;
+        private readonly BackgroundWorkOperationScope _scope = scope;
 
         // Mutable state of this scope.  Can be mutated by a client, at which point we'll ask our owning context to
         // update the tooltip accordingly.
 
-        private string _description;
+        private string _currentDescription = initialDescription;
         private ProgressInfo _progressInfo;
 
         public IUIThreadOperationContext Context => _context;
         public IProgress<ProgressInfo> Progress => this;
-
-        public BackgroundWorkIndicatorScope(
-            BackgroundWorkIndicatorContext indicator, BackgroundWorkOperationScope scope, string description)
-        {
-            _context = indicator;
-            _scope = scope;
-            _description = description;
-        }
 
         /// <summary>
         /// Retrieves a threadsafe snapshot of our data for our owning context to use to build the tooltip ui.
@@ -43,7 +38,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
         public (string description, ProgressInfo progressInfo) ReadData_MustBeCalledUnderLock()
         {
             Contract.ThrowIfFalse(Monitor.IsEntered(_context.Gate));
-            return (_description, _progressInfo);
+            return (_currentDescription, _progressInfo);
         }
 
         /// <summary>
@@ -52,6 +47,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
         void IDisposable.Dispose()
         {
             _context.RemoveScope(this);
+            _scope.Dispose();
         }
 
         bool IUIThreadOperationScope.AllowCancellation
@@ -65,13 +61,13 @@ internal partial class WpfBackgroundWorkIndicatorFactory
             get
             {
                 lock (_context.Gate)
-                    return _description;
+                    return _currentDescription;
             }
             set
             {
                 lock (_context.Gate)
                 {
-                    _description = value;
+                    _currentDescription = value;
                 }
 
                 _scope.Description = value;
@@ -85,9 +81,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
                 _progressInfo = value;
             }
 
-            //// We changed.  Enqueue work to make sure the UI reflects this.
-            //_context.EnqueueUIUpdate();
-
+            // Lightup the UI if it supports IProgress
             if (_scope is IProgress<ProgressInfo> underlyingProgress)
                 underlyingProgress.Report(value);
         }
