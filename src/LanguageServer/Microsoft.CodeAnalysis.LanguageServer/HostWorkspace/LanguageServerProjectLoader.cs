@@ -153,6 +153,7 @@ internal abstract class LanguageServerProjectLoader
     {
         BuildHostProcessKind? preferredBuildHostKindThatWeDidNotGet = null;
         var projectPath = projectToLoad.Path;
+        Contract.ThrowIfFalse(PathUtilities.IsAbsolute(projectPath));
 
         try
         {

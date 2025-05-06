@@ -4,6 +4,8 @@
 
 using System.Collections.Immutable;
 using System.Security;
+using Microsoft.CodeAnalysis.Features.Workspaces;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.MSBuild;
@@ -77,7 +79,27 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             return null;
         }
 
-        // For Razor files we need to override the language name to C# as thats what code is generated
+        if (!uri.IsFile)
+        {
+            // For now, we cannot provide intellisense etc on files which are not on disk or are not C#.
+            var sourceTextLoader = new SourceTextLoader(documentText, documentPath);
+            var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
+                Workspace, documentPath, sourceTextLoader, languageInformation, documentText.ChecksumAlgorithm, Workspace.CurrentSolution.Services, []);
+            await ProjectFactory.ApplyChangeToWorkspaceAsync(ws => ws.OnProjectAdded(projectInfo), cancellationToken: default);
+
+            var newSolution = Workspace.CurrentSolution;
+            if (languageInformation.LanguageName == "Razor")
+            {
+                var docId = projectInfo.AdditionalDocuments.Single().Id;
+                return newSolution.GetRequiredAdditionalDocument(docId);
+            }
+
+            var id = projectInfo.Documents.Single().Id;
+            return newSolution.GetRequiredDocument(id);
+        }
+
+        // We have a file on disk. Light up the file-based program experience.
+        // For Razor files we need to override the language name to C# as that's what code is generated
         var isRazor = languageInformation.LanguageName == "Razor";
         var languageName = isRazor ? LanguageNames.CSharp : languageInformation.LanguageName;
         var loadedProject = await CreateAndTrackInitialProjectAsync(documentPath, language: languageName);
@@ -85,8 +107,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         var projectFileInfo = new ProjectFileInfo()
         {
             Language = languageName,
-            FilePath = uri.IsFile ? VirtualProject.GetVirtualProjectPath(documentPath) : documentPath,
-            CommandLineArgs = uri.IsFile ? ["/langversion:preview", "/features:FileBasedProgram=true"] : ["/langversion:preview"],
+            FilePath = VirtualProject.GetVirtualProjectPath(documentPath),
+            CommandLineArgs = ["/langversion:preview", "/features:FileBasedProgram=true"],
             Documents = isRazor ? [] : [documentFileInfo],
             AdditionalDocuments = isRazor ? [documentFileInfo] : [],
             AnalyzerConfigDocuments = [],
@@ -100,18 +122,14 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         var workspaceProject = ProjectFactory.Workspace.CurrentSolution.GetRequiredProject(loadedProject.ProjectId);
         var document = isRazor ? workspaceProject.AdditionalDocuments.Single() : workspaceProject.Documents.Single();
 
-        if (uri.IsFile && languageInformation.LanguageName == LanguageNames.CSharp)
-        {
-            // light up the proper file-based program experience.
-            ProjectsToLoadAndReload.AddWork(new ProjectToLoad(documentPath, ProjectGuid: null, ReportTelemetry: true));
-            loadedProject.NeedsReload += (_, _) => ProjectsToLoadAndReload.AddWork(new ProjectToLoad(documentPath, ProjectGuid: null, ReportTelemetry: false));
+        ProjectsToLoadAndReload.AddWork(new ProjectToLoad(documentPath, ProjectGuid: null, ReportTelemetry: true));
+        loadedProject.NeedsReload += (_, _) => ProjectsToLoadAndReload.AddWork(new ProjectToLoad(documentPath, ProjectGuid: null, ReportTelemetry: false));
 
-            _ = Task.Run(async () =>
-            {
-                await ProjectsToLoadAndReload.WaitUntilCurrentBatchCompletesAsync();
-                await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync();
-            });
-        }
+        _ = Task.Run(async () =>
+        {
+            await ProjectsToLoadAndReload.WaitUntilCurrentBatchCompletesAsync();
+            await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync();
+        });
 
         Contract.ThrowIfFalse(document.FilePath == documentPath);
         return document;
