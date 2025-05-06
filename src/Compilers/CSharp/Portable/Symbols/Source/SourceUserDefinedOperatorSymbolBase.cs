@@ -443,6 +443,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected sealed override void ExtensionMethodChecks(BindingDiagnosticBag diagnostics)
         {
+            if (ContainingType is { IsExtension: true, ExtensionParameter: { Type.IsStatic: false } extensionParameter } && !IsStatic)
+            {
+                (bool isIncrementDecrement, bool isCompoundAssignment) = IsAssignmentOperatorDeclaration(SyntaxNode); // PROTOTYPE: Switch to OperatorFacts.IsCompoundAssignmentOperatorName(Name) instead once it is available
+
+                if (isCompoundAssignment || (isIncrementDecrement && ParameterCount == 0))
+                {
+                    if (extensionParameter.Name == "")
+                    {
+                        diagnostics.Add(ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter, _location, Name);
+                    }
+
+                    // PROTOTYPE: confirm the following rule
+
+                    // Require receiver type to be known as a class or as a struct, and
+                    // require:
+                    //     - struct receiver to be a 'ref' 
+                    //     - class receiver to be 'by val' (not 'ref', not 'in', not 'ref readonly')
+
+                    // We don't report every invalid combination here in order to avoid producing too much noise.
+                    switch (extensionParameter.RefKind)
+                    {
+                        case RefKind.Out: // 'out' is disallowed in general
+                        case RefKind.Ref: // 'ref' receivers are disallowed for types not known to be a struct
+                            break;
+
+                        case RefKind.In:
+                        case RefKind.RefReadOnlyParameter:
+                            // 'in' and 'ref readonly' receivers are disallowed for anything that is not a concrete struct (class or a type parameter)
+                            if (extensionParameter.Type is { TypeKind: not TypeKind.TypeParameter, IsValueType: true })
+                            {
+                                diagnostics.Add(ErrorCode.ERR_InstanceOperatorStructExtensionWrongReceiverRefKind, _location);
+                            }
+
+                            break;
+
+                        case RefKind.None:
+                            switch (extensionParameter.Type)
+                            {
+                                case { IsValueType: true }:
+                                    diagnostics.Add(ErrorCode.ERR_InstanceOperatorStructExtensionWrongReceiverRefKind, _location);
+                                    break;
+
+                                case { TypeKind: TypeKind.TypeParameter, IsReferenceType: false }:
+                                    diagnostics.Add(ErrorCode.ERR_InstanceOperatorExtensionWrongReceiverType, _location);
+                                    break;
+                            }
+
+                            break;
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(extensionParameter.RefKind);
+                    }
+                }
+            }
         }
 
         protected sealed override MethodSymbol FindExplicitlyImplementedMethod(BindingDiagnosticBag diagnostics)
@@ -656,11 +710,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // SPEC: Either S0 or T0 is the class or struct type in which the operator
             // SPEC: declaration takes place.
 
-            if (!MatchesContainingType(source0) &&
-                !MatchesContainingType(target0) &&
+            if (!MatchesContainingType(source0, checkStrippedType: false) &&
+                !MatchesContainingType(target0, checkStrippedType: false) &&
                 // allow conversion between T and Nullable<T> in declaration of Nullable<T>
-                !MatchesContainingType(source) &&
-                !MatchesContainingType(target))
+                !MatchesContainingType(source, checkStrippedType: false) &&
+                !MatchesContainingType(target, checkStrippedType: false))
             {
                 // CS0556: User-defined conversion must convert to or from the enclosing type
                 diagnostics.Add(IsInInterfaceAndAbstractOrVirtual() ? ErrorCode.ERR_AbstractConversionNotInvolvingContainedType : ErrorCode.ERR_ConversionNotInvolvingContainedType, this.GetFirstLocation());
@@ -749,7 +803,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol same;
             TypeSymbol different;
 
-            if (MatchesContainingType(source0))
+            if (MatchesContainingType(source0, checkStrippedType: false))
             {
                 same = source;
                 different = target;
@@ -802,7 +856,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckUnaryParameterType(BindingDiagnosticBag diagnostics)
         {
-            if (!MatchesContainingType(this.GetParameterType(0).StrippedType()))
+            if (!MatchesContainingType(this.GetParameterType(0), checkStrippedType: true))
             {
                 // The parameter of a unary operator must be the containing type
                 diagnostics.Add(IsInInterfaceAndAbstractOrVirtual() ?
@@ -881,7 +935,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var parameterType = this.GetParameterType(0);
             var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
 
-            if (!MatchesContainingType(parameterType.StrippedType()))
+            if (!MatchesContainingType(parameterType, checkStrippedType: true))
             {
                 // CS0559: The parameter type for ++ or -- operator must be the containing type
                 diagnostics.Add(IsInInterfaceAndAbstractOrVirtual() ?
@@ -904,11 +958,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             diagnostics.Add(this.GetFirstLocation(), useSiteInfo);
         }
 
-        private bool MatchesContainingType(TypeSymbol type)
+        private bool MatchesContainingType(TypeSymbol type, bool checkStrippedType)
         {
+            if (ContainingType is { IsExtension: true, ExtensionParameter.Type: var extendedType })
+            {
+                if (extendedType is null)
+                {
+                    return true; // An error scenario
+                }
+
+                if (checkStrippedType && type.IsNullableType())
+                {
+                    if (type.Equals(extendedType, ComparisonForUserDefinedOperators))
+                    {
+                        return true;
+                    }
+
+                    type = type.GetNullableUnderlyingType();
+                }
+
+                return type.Equals(extendedType, ComparisonForUserDefinedOperators);
+            }
+
+            if (checkStrippedType)
+            {
+                type = type.StrippedType();
+            }
+
             return IsContainingType(type) ||
-                   (IsInInterfaceAndAbstractOrVirtual() && IsSelfConstrainedTypeParameter(type)) ||
-                   (ContainingType is { IsExtension: true, ExtensionParameter.Type: { } extendedType } && type.Equals(extendedType, ComparisonForUserDefinedOperators));
+                   (IsInInterfaceAndAbstractOrVirtual() && IsSelfConstrainedTypeParameter(type));
         }
 
         private bool IsContainingType(TypeSymbol type)
@@ -936,7 +1014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // SPEC: of which must have type T or T?, the second of which can
             // SPEC: have any type. The operator can return any type.
 
-            if (!MatchesContainingType(this.GetParameterType(0).StrippedType()))
+            if (!MatchesContainingType(this.GetParameterType(0), checkStrippedType: true))
             {
                 // CS0546: The first operand of an overloaded shift operator must have the 
                 //         same type as the containing type
@@ -958,8 +1036,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // SPEC: A binary nonshift operator must take two parameters, at least
             // SPEC: one of which must have the type T or T?, and can return any type.
-            if (!MatchesContainingType(this.GetParameterType(0).StrippedType()) &&
-                !MatchesContainingType(this.GetParameterType(1).StrippedType()))
+            if (!MatchesContainingType(this.GetParameterType(0), checkStrippedType: true) &&
+                !MatchesContainingType(this.GetParameterType(1), checkStrippedType: true))
             {
                 // CS0563: One of the parameters of a binary operator must be the containing type
                 diagnostics.Add(IsInInterfaceAndAbstractOrVirtual() ?

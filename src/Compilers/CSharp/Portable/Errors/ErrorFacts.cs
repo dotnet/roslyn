@@ -2525,6 +2525,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_BadExtensionBinaryOperatorSignature
                 or ErrorCode.ERR_BadExtensionShiftOperatorSignature
                 or ErrorCode.ERR_OperatorInExtensionOfStaticClass
+                or ErrorCode.ERR_InstanceOperatorStructExtensionWrongReceiverRefKind
+                or ErrorCode.ERR_InstanceOperatorExtensionWrongReceiverType
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.
