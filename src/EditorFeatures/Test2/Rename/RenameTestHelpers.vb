@@ -109,7 +109,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Dim tracker = New RenameTrackingTaggerProvider(
                 workspace.GetService(Of IThreadingContext),
                 workspace.GetService(Of IInlineRenameService)(),
-                workspace.GetService(Of IDiagnosticAnalyzerService)(),
                 workspace.GetService(Of IGlobalOptionService)(),
                 workspace.GetService(Of IAsynchronousOperationListenerProvider))
 

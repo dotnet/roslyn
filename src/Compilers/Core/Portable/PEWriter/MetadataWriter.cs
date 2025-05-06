@@ -32,7 +32,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
-using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.Cci
 {
@@ -111,7 +110,7 @@ namespace Microsoft.Cci
 
             // EDMAURER provide some reasonable size estimates for these that will avoid
             // much of the reallocation that would occur when growing these from empty.
-            _signatureIndex = new Dictionary<ISignature, KeyValuePair<BlobHandle, ImmutableArray<byte>>>(module.HintNumberOfMethodDefinitions, ReferenceEqualityComparer.Instance); //ignores field signatures
+            _signatureIndex = new SegmentedDictionary<ISignature, KeyValuePair<BlobHandle, ImmutableArray<byte>>>(module.HintNumberOfMethodDefinitions, ReferenceEqualityComparer.Instance); //ignores field signatures
 
             this.Context = context;
             this.messageProvider = messageProvider;
@@ -443,7 +442,7 @@ namespace Microsoft.Cci
         private readonly Dictionary<IFieldReference, BlobHandle> _fieldSignatureIndex = new Dictionary<IFieldReference, BlobHandle>(ReferenceEqualityComparer.Instance);
 
         // We need to keep track of both the index of the signature and the actual blob to support VB static local naming scheme.
-        private readonly Dictionary<ISignature, KeyValuePair<BlobHandle, ImmutableArray<byte>>> _signatureIndex;
+        private readonly SegmentedDictionary<ISignature, KeyValuePair<BlobHandle, ImmutableArray<byte>>> _signatureIndex;
 
         private readonly Dictionary<IMarshallingInformation, BlobHandle> _marshallingDescriptorIndex = new Dictionary<IMarshallingInformation, BlobHandle>();
         protected readonly List<MethodImplementation> methodImplList = new List<MethodImplementation>();

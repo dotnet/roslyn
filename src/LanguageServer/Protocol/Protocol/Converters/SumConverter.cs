@@ -68,17 +68,17 @@ internal sealed class SumConverter : JsonConverterFactory
                     parameterTypeInfo == typeof(Uri) ||
                     typeof(IStringEnum).IsAssignableFrom(parameterTypeInfo))
                 {
-                    primitiveUnionTypeInfosSet ??= new List<UnionTypeInfo>();
+                    primitiveUnionTypeInfosSet ??= [];
                     primitiveUnionTypeInfosSet.Add(unionTypeInfo);
                 }
                 else if (parameterTypeInfo.IsArray)
                 {
-                    arrayUnionTypeInfosSet ??= new List<UnionTypeInfo>();
+                    arrayUnionTypeInfosSet ??= [];
                     arrayUnionTypeInfosSet.Add(unionTypeInfo);
                 }
                 else
                 {
-                    objectUnionTypeInfosSet ??= new List<UnionTypeInfo>();
+                    objectUnionTypeInfosSet ??= [];
                     objectUnionTypeInfosSet.Add(unionTypeInfo);
                 }
             }

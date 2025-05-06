@@ -687,6 +687,8 @@ internal sealed partial class ProjectSystemProject
             List<(string path, MetadataReferenceProperties properties)> metadataReferencesAddedInBatch)
         {
             var projectId = projectBeforeMutation.Id;
+            using var _1 = ArrayBuilder<PortableExecutableReference>.GetInstance(out var peReferencesRemoved);
+            using var _2 = ArrayBuilder<PortableExecutableReference>.GetInstance(out var peReferencesAdded);
 
             // Metadata reference removing. Do this before adding in case this removes a project reference that we are also
             // going to add in the same batch. This could happen if case is changing, or we're targeting a different output
@@ -706,12 +708,15 @@ internal sealed partial class ProjectSystemProject
                         .OfType<PortableExecutableReference>()
                         .Single(m => m.FilePath == path && m.Properties == properties);
 
-                    projectUpdateState = projectUpdateState.WithIncrementalMetadataReferenceRemoved(metadataReference);
+                    peReferencesRemoved.Add(metadataReference);
 
                     solutionChanges.UpdateSolutionForProjectAction(
                         projectId, solutionChanges.Solution.RemoveMetadataReference(projectId, metadataReference));
                 }
             }
+
+            if (peReferencesRemoved.Count > 0)
+                projectUpdateState = projectUpdateState.WithIncrementalMetadataReferencesRemoved(peReferencesRemoved);
 
             // Metadata reference adding...
             if (metadataReferencesAddedInBatch.Count > 0)
@@ -730,9 +735,12 @@ internal sealed partial class ProjectSystemProject
                     else
                     {
                         var metadataReference = CreateMetadataReference_NoLock(path, properties, solutionChanges.Solution.Services);
-                        projectUpdateState = projectUpdateState.WithIncrementalMetadataReferenceAdded(metadataReference);
+                        peReferencesAdded.Add(metadataReference);
                     }
                 }
+
+                if (peReferencesAdded.Count > 0)
+                    projectUpdateState = projectUpdateState.WithIncrementalMetadataReferencesAdded(peReferencesAdded);
 
                 solutionChanges.UpdateSolutionForProjectAction(
                     projectId,
@@ -1208,9 +1216,9 @@ internal sealed partial class ProjectSystemProject
 
     private OneOrMany<string> GetMappedRazorSourceGenerator(string fullPath)
     {
-        var vsixRazorAnalyzers = _hostInfo.HostDiagnosticAnalyzerProvider.GetAnalyzerReferencesInExtensions().SelectAsArray(
+        var vsixRazorAnalyzers = _hostInfo.HostDiagnosticAnalyzerProvider.GetRazorAssembliesInExtensions().SelectAsArray(
             predicate: item => item.extensionId == RazorVsixExtensionId,
-            selector: item => item.reference.FullPath);
+            selector: item => item.path);
 
         if (!vsixRazorAnalyzers.IsEmpty)
         {

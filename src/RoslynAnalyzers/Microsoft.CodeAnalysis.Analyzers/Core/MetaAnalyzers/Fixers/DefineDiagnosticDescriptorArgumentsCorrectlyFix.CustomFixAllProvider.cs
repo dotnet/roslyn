@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                                 RoslynDebug.Assert(additionalDocument != null);
                                 if (!fixInfoMap.TryGetValue(additionalDocument, out var fixInfos))
                                 {
-                                    fixInfos = new List<FixInfo>();
+                                    fixInfos = [];
                                     fixInfoMap.Add(additionalDocument, fixInfos);
                                 }
 

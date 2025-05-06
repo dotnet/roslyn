@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (expectedOutput != null || expectedReturnCode != null)
             {
-                var (exitCode, output, errorOutput) = testEnvironment.Execute(args ?? [], expectedOutput?.Length);
+                var (exitCode, output, errorOutput) = testEnvironment.Execute(args ?? []);
                 if (expectedReturnCode.HasValue)
                 {
                     Assert.Equal(expectedReturnCode.Value, exitCode);
@@ -627,11 +627,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 modules = [.. modules, .. _dependencies];
             }
 
-            return RuntimeEnvironmentFactory.Create(mainModule, modules);
+            return RuntimeUtilities.CreateRuntimeEnvironment(mainModule, modules);
         }
 
         /// <summary>
-        /// Obsolete. Use <see cref="VerifyMethodBody(string, string, bool, string, int)"/> instead.
+        /// Obsolete. Use <see cref="VerifyMethodBody(string, string, bool, string, int, SymbolDisplayFormat?)"/> instead.
         /// </summary>
         public CompilationVerifier VerifyIL(
             string qualifiedMethodName,
@@ -641,11 +641,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             [CallerFilePath] string? callerPath = null,
             [CallerLineNumber] int callerLine = 0)
         {
-            return VerifyILImpl(qualifiedMethodName, expectedIL.Value, realIL, sequencePoints: sequencePoints != null, sequencePointsSource: false, callerPath, callerLine, escapeQuotes: false);
+            return VerifyILImpl(qualifiedMethodName, expectedIL.Value, realIL, sequencePoints: sequencePoints != null, sequencePointsSource: false, callerPath, callerLine, escapeQuotes: false, ilFormat: null);
         }
 
         /// <summary>
-        /// Obsolete. Use <see cref="VerifyMethodBody(string, string, bool, string, int)"/> instead.
+        /// Obsolete. Use <see cref="VerifyMethodBody(string, string, bool, string, int, SymbolDisplayFormat?)"/> instead.
         /// </summary>
         public CompilationVerifier VerifyIL(
             string qualifiedMethodName,
@@ -654,9 +654,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string? sequencePoints = null,
             [CallerFilePath] string? callerPath = null,
             [CallerLineNumber] int callerLine = 0,
-            string? source = null)
+            string? source = null,
+            SymbolDisplayFormat? ilFormat = null)
         {
-            return VerifyILImpl(qualifiedMethodName, expectedIL, realIL, sequencePoints: sequencePoints != null, sequencePointsSource: source != null, callerPath, callerLine, escapeQuotes: false);
+            return VerifyILImpl(qualifiedMethodName, expectedIL, realIL, sequencePoints: sequencePoints != null, sequencePointsSource: source != null, callerPath, callerLine, escapeQuotes: false, ilFormat);
         }
 
         public CompilationVerifier VerifyMethodBody(
@@ -664,9 +665,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string expectedILWithSequencePoints,
             bool realIL = false,
             [CallerFilePath] string? callerPath = null,
-            [CallerLineNumber] int callerLine = 0)
+            [CallerLineNumber] int callerLine = 0,
+            SymbolDisplayFormat? ilFormat = null)
         {
-            return VerifyILImpl(qualifiedMethodName, expectedILWithSequencePoints, realIL, sequencePoints: true, sequencePointsSource: true, callerPath, callerLine, escapeQuotes: false);
+            return VerifyILImpl(qualifiedMethodName, expectedILWithSequencePoints, realIL, sequencePoints: true, sequencePointsSource: true, callerPath, callerLine, escapeQuotes: false, ilFormat);
         }
 
         public void VerifyILMultiple(params string[] qualifiedMethodNamesAndExpectedIL)
@@ -725,17 +727,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             bool sequencePointsSource,
             string? callerPath,
             int callerLine,
-            bool escapeQuotes)
+            bool escapeQuotes,
+            SymbolDisplayFormat? ilFormat)
         {
-            string? actualIL = VisualizeIL(qualifiedMethodName, realIL, sequencePoints, sequencePointsSource);
+            string? actualIL = VisualizeIL(qualifiedMethodName, realIL, sequencePoints, sequencePointsSource, ilFormat);
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, message: null, escapeQuotes, callerPath, callerLine);
             return this;
         }
 
-        public string VisualizeIL(string qualifiedMethodName, bool realIL = false, bool sequencePoints = false, bool sequencePointsSource = true)
-            => VisualizeIL(GetEmitData().TestData.GetMethodData(qualifiedMethodName), realIL, sequencePoints, sequencePointsSource);
+        public string VisualizeIL(string qualifiedMethodName, bool realIL = false, bool sequencePoints = false, bool sequencePointsSource = true, SymbolDisplayFormat? ilFormat = null)
+            => VisualizeIL(GetEmitData().TestData.GetMethodData(qualifiedMethodName), realIL, sequencePoints, sequencePointsSource, ilFormat);
 
-        internal string VisualizeIL(CompilationTestData.MethodData methodData, bool realIL = false, bool sequencePoints = false, bool sequencePointsSource = true)
+        internal string VisualizeIL(CompilationTestData.MethodData methodData, bool realIL = false, bool sequencePoints = false, bool sequencePointsSource = true, SymbolDisplayFormat? ilFormat = null)
         {
             Dictionary<int, string>? markers = null;
 
@@ -775,7 +778,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (!realIL)
             {
-                return ILBuilderVisualizer.ILBuilderToString(methodData.ILBuilder, markers: markers);
+                return ILBuilderVisualizer.ILBuilderToString(methodData.ILBuilder, markers: markers, ilFormat: ilFormat);
             }
 
             if (_lazyModuleSymbol == null)

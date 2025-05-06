@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         {
             if (sourceText == null)
             {
-                return new List<string>();
+                return [];
             }
 
             var lines = new List<string>();
