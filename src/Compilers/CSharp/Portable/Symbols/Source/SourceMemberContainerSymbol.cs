@@ -2746,6 +2746,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckForUnmatchedOperator(membersByName, diagnostics, WellKnownMemberNames.CheckedDivisionAssignmentOperatorName, WellKnownMemberNames.DivisionAssignmentOperatorName, symmetricCheck: false);
             CheckForUnmatchedOperator(membersByName, diagnostics, WellKnownMemberNames.CheckedMultiplicationAssignmentOperatorName, WellKnownMemberNames.MultiplicationAssignmentOperatorName, symmetricCheck: false);
             CheckForUnmatchedOperator(membersByName, diagnostics, WellKnownMemberNames.CheckedSubtractionAssignmentOperatorName, WellKnownMemberNames.SubtractionAssignmentOperatorName, symmetricCheck: false);
+            CheckForUnmatchedOperator(membersByName, diagnostics, WellKnownMemberNames.CheckedDecrementAssignmentOperatorName, WellKnownMemberNames.DecrementAssignmentOperatorName, symmetricCheck: false);
+            CheckForUnmatchedOperator(membersByName, diagnostics, WellKnownMemberNames.CheckedIncrementAssignmentOperatorName, WellKnownMemberNames.IncrementAssignmentOperatorName, symmetricCheck: false);
         }
 
         private static void CheckForUnmatchedOperator(

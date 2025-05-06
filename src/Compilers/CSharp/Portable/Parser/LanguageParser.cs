@@ -3994,7 +3994,7 @@ parse_member_name:;
                     }
                     else if (SyntaxFacts.IsOverloadableUnaryOperator(opKind))
                     {
-                        if (opKind is not (SyntaxKind.PlusPlusToken or SyntaxKind.MinusMinusToken))
+                        if (opKind is not (SyntaxKind.PlusPlusToken or SyntaxKind.MinusMinusToken) || paramList.Parameters.Count != 0)
                         {
                             opToken = this.AddError(opToken, ErrorCode.ERR_BadUnOpArgs, SyntaxFacts.GetText(opKind));
                         }

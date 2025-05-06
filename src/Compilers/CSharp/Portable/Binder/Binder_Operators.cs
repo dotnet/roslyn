@@ -2559,12 +2559,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     operandType,
                     checkedName: checkOverflowAtRuntime ?
                                      (kind is UnaryOperatorKind.PrefixIncrement or UnaryOperatorKind.PostfixIncrement ?
-                                          WellKnownMemberNames.CheckedIncrementOperatorName :
-                                          WellKnownMemberNames.CheckedDecrementOperatorName) :
+                                          WellKnownMemberNames.CheckedIncrementAssignmentOperatorName :
+                                          WellKnownMemberNames.CheckedDecrementAssignmentOperatorName) :
                                     null,
                     ordinaryName: kind is UnaryOperatorKind.PrefixIncrement or UnaryOperatorKind.PostfixIncrement ?
-                                      WellKnownMemberNames.IncrementOperatorName :
-                                      WellKnownMemberNames.DecrementOperatorName,
+                                      WellKnownMemberNames.IncrementAssignmentOperatorName :
+                                      WellKnownMemberNames.DecrementAssignmentOperatorName,
                     parameterCount: 0,
                     ref useSiteInfo);
 

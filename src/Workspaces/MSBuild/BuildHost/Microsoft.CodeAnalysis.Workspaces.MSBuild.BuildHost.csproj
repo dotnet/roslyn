@@ -59,8 +59,6 @@
     <Compile Remove="..\..\..\Compilers\Core\Portable\InternalUtilities\IncrementalHashExtensions.cs" />
 
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ArrayBuilderExtensions.cs" Link="Collections\ArrayBuilderExtensions.cs" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ImmutableArrayExtensions.cs" Link="Collections\ImmutableArrayExtensions.cs" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\TemporaryArray`1.cs" Link="Collections\TemporaryArray`1.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\IOrderedReadOnlySet.cs" Link="Collections\IOrderedReadOnlySet.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\PathKind.cs" Link="FileSystem\PathKind.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\PathUtilities.cs" Link="FileSystem\PathUtilities.cs" />

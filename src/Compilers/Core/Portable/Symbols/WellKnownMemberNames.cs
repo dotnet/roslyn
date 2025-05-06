@@ -346,6 +346,16 @@ namespace Microsoft.CodeAnalysis
         public const string UnsignedRightShiftAssignmentOperatorName = "op_UnsignedRightShiftAssignment";
 
         /// <summary>
+        /// The name assigned to the instance '++' operator.
+        /// </summary>
+        public const string IncrementAssignmentOperatorName = "op_IncrementAssignment";
+
+        /// <summary>
+        /// The name assigned to the instance '--' operator.
+        /// </summary>
+        public const string DecrementAssignmentOperatorName = "op_DecrementAssignment";
+
+        /// <summary>
         /// The name assigned to the checked '+=' operator.
         /// </summary>
         public const string CheckedAdditionAssignmentOperatorName = "op_CheckedAdditionAssignment";
@@ -364,6 +374,16 @@ namespace Microsoft.CodeAnalysis
         /// The name assigned to the checked '/=' operator.
         /// </summary>
         public const string CheckedDivisionAssignmentOperatorName = "op_CheckedDivisionAssignment";
+
+        /// <summary>
+        /// The name assigned to the checked instance '++' operator.
+        /// </summary>
+        public const string CheckedIncrementAssignmentOperatorName = "op_CheckedIncrementAssignment";
+
+        /// <summary>
+        /// The name assigned to the checked instance '--' operator.
+        /// </summary>
+        public const string CheckedDecrementAssignmentOperatorName = "op_CheckedDecrementAssignment";
 
         /// <summary>
         /// The required name for the <c>GetEnumerator</c> method used in a ForEach statement.

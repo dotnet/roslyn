@@ -267,11 +267,6 @@
         <target state="translated">Elementu „{0}” nie można użyć jako modyfikatora w parametrze wskaźnika funkcji.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadIncrementOpArgs">
-        <source>Overloaded instance increment operator '{0}' must take no parameters</source>
-        <target state="new">Overloaded instance increment operator '{0}' must take no parameters</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadInheritanceFromRecord">
         <source>Only records may inherit from records.</source>
         <target state="translated">Tylko rekordy mogą dziedziczyć po rekordach.</target>
@@ -1795,6 +1790,11 @@
       <trans-unit id="ERR_PPIgnoredNeedsFileBasedProgram">
         <source>'#:' directives can be only used in file-based programs ('-features:FileBasedProgram')</source>
         <target state="new">'#:' directives can be only used in file-based programs ('-features:FileBasedProgram')</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PPShebangInProjectBasedProgram">
+        <source>'#!' directives can be only used in scripts or file-based programs</source>
+        <target state="new">'#!' directives can be only used in scripts or file-based programs</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">

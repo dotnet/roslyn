@@ -8785,8 +8785,8 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         var expectedDescription = $"""
             ({FeaturesResources.field}) int C.x
 
-            {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
-            {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
+                {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
+                {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
 
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
             """;
@@ -8825,9 +8825,9 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         var expectedDescription = $"""
             ({FeaturesResources.field}) int C.x
 
-            {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
-            {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
-            {string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}
+                {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
+                {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
+                {string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}
 
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
             """;
@@ -8869,8 +8869,8 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         var expectedDescription = $"""
             ({FeaturesResources.field}) int C.x
 
-            {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
-            {string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}
+                {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
+                {string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}
 
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
             """;
@@ -8916,9 +8916,9 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         var expectedDescription = $"""
             void G.DoGStuff()
 
-            {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Not_Available)}
-            {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Available)}
-            {string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}
+                {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Not_Available)}
+                {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Available)}
+                {string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}
 
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
             """;
@@ -8981,8 +8981,8 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         var expectedDescription = $"""
             ({FeaturesResources.local_variable}) int xyz
 
-            {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
-            {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
+                {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
+                {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
 
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
             """;

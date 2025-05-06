@@ -267,11 +267,6 @@
         <target state="translated">'{0}'은(는) 함수 포인터 매개 변수에 대한 한정자로 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadIncrementOpArgs">
-        <source>Overloaded instance increment operator '{0}' must take no parameters</source>
-        <target state="new">Overloaded instance increment operator '{0}' must take no parameters</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadInheritanceFromRecord">
         <source>Only records may inherit from records.</source>
         <target state="translated">레코드만 레코드에서 상속할 수 있습니다.</target>
@@ -1795,6 +1790,11 @@
       <trans-unit id="ERR_PPIgnoredNeedsFileBasedProgram">
         <source>'#:' directives can be only used in file-based programs ('-features:FileBasedProgram')</source>
         <target state="new">'#:' directives can be only used in file-based programs ('-features:FileBasedProgram')</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PPShebangInProjectBasedProgram">
+        <source>'#!' directives can be only used in scripts or file-based programs</source>
+        <target state="new">'#!' directives can be only used in scripts or file-based programs</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
