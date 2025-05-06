@@ -3,6 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Security;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
@@ -18,9 +21,16 @@ internal static class VirtualProject
     internal static string GetVirtualProjectPath(string documentFilePath)
         => Path.ChangeExtension(documentFilePath, ".csproj");
 
-    internal static string MakeVirtualProjectContent(string documentFilePath)
+    internal static (string virtualProjectXml, bool isFileBasedProgram) MakeVirtualProjectContent(string documentFilePath, SourceText text)
     {
-        return $"""
+        Contract.ThrowIfFalse(PathUtilities.IsAbsolute(documentFilePath));
+        // NB: this is a temporary solution for running our heuristic.
+        // When we adopt the dotnet run-api, we need to get rid of this or adjust it to be more sustainable (e.g. using the appropriate document to get a syntax tree)
+        var tree = CSharpSyntaxTree.ParseText(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), path: documentFilePath);
+        var root = tree.GetRoot();
+        var isFileBasedProgram = root.GetLeadingTrivia().Any(SyntaxKind.IgnoredDirectiveTrivia) || root.ChildNodes().Any(node => node.IsKind(SyntaxKind.GlobalStatement));
+
+        var virtualProjectXml = $"""
             <Project Sdk="Microsoft.NET.Sdk">
 
                 <PropertyGroup>
@@ -64,5 +74,7 @@ internal static class VirtualProject
                 </Target>
             </Project>
             """;
+
+        return (virtualProjectXml, isFileBasedProgram);
     }
 }

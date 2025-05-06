@@ -58,11 +58,10 @@ The following outline is for "single-file" scenarios. We are interested in expan
 
 ### Heuristic
 The IDE considers a file to be a file-based program, if:
-- It has a `#!` directive such as `#!/usr/bin/env dotnet run`, or,
 - It has any `#:` directives which configure the file-based program project, or,
 - It has any top-level statements.
 - Any of the above is met, and, the file is not included in an ordinary `.csproj` project (i.e. it is not part of any ordinary project's list of `Compile` items).
 
 ### Opt-out
 
-Before we ship this feature in any stable release, we want to ensure an opt-out flag is in place. Keeping the existing `LspMiscellaneousFilesWorkspace` may be a convenient point of control for this--if user has enabled the opt-out flag, just use the old workspace. Otherwise, use the new one.
+We added an opt-out flag with option name `dotnet_enable_file_based_programs`. If issues arise with the file-based program experience, then VS Code users should set the corresponding setting `"dotnet.projects.enableFileBasedPrograms" : false` to revert back to the old miscellaneous files experience.

@@ -145,7 +145,7 @@ internal abstract class LanguageServerProjectLoader
         }
     }
 
-    protected abstract Task<(RemoteProjectFile? projectFile, BuildHostProcessKind preferred, BuildHostProcessKind actual)> TryLoadProjectAsync(
+    protected abstract Task<(RemoteProjectFile? projectFile, bool hasAllInformation, BuildHostProcessKind preferred, BuildHostProcessKind actual)> TryLoadProjectAsync(
         BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken);
 
     /// <returns>True if the project needs a NuGet restore, false otherwise.</returns>
@@ -157,7 +157,7 @@ internal abstract class LanguageServerProjectLoader
 
         try
         {
-            var (loadedFile, preferredBuildHostKind, actualBuildHostKind) = await TryLoadProjectAsync(buildHostProcessManager, projectPath, cancellationToken);
+            var (loadedFile, hasAllInformation, preferredBuildHostKind, actualBuildHostKind) = await TryLoadProjectAsync(buildHostProcessManager, projectPath, cancellationToken);
             if (preferredBuildHostKind != actualBuildHostKind)
                 preferredBuildHostKindThatWeDidNotGet = preferredBuildHostKind;
 
@@ -203,7 +203,7 @@ internal abstract class LanguageServerProjectLoader
                 if (existingProject != null)
                 {
                     projectsToRemove.Remove(existingProject);
-                    (targetTelemetryInfo, targetNeedsRestore) = await existingProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo, _logger);
+                    (targetTelemetryInfo, targetNeedsRestore) = await existingProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo, hasAllInformation, _logger);
                 }
                 else
                 {
@@ -214,7 +214,7 @@ internal abstract class LanguageServerProjectLoader
                         loadedProjectInfo.IntermediateOutputFilePath);
                     loadedProject.NeedsReload += (_, _) => ProjectsToLoadAndReload.AddWork(projectToLoad with { ReportTelemetry = false });
 
-                    (targetTelemetryInfo, targetNeedsRestore) = await loadedProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo, _logger);
+                    (targetTelemetryInfo, targetNeedsRestore) = await loadedProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo, hasAllInformation, _logger);
 
                     needsRestore |= targetNeedsRestore;
                     telemetryInfos[loadedProjectInfo] = targetTelemetryInfo with { IsSdkStyle = preferredBuildHostKind == BuildHostProcessKind.NetCore };

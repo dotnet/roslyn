@@ -98,16 +98,16 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         }
     }
 
-    protected override async Task<(RemoteProjectFile? projectFile, BuildHostProcessKind preferred, BuildHostProcessKind actual)> TryLoadProjectAsync(
+    protected override async Task<(RemoteProjectFile? projectFile, bool hasAllInformation, BuildHostProcessKind preferred, BuildHostProcessKind actual)> TryLoadProjectAsync(
             BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken)
     {
         var preferredBuildHostKind = GetKindForProject(projectPath);
         var (buildHost, actualBuildHostKind) = await buildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, projectPath, cancellationToken);
 
         if (!_projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out var languageName))
-            return (null, preferredBuildHostKind, actualBuildHostKind);
+            return (null, false, preferredBuildHostKind, actualBuildHostKind);
 
         var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken);
-        return (loadedFile, preferredBuildHostKind, actualBuildHostKind);
+        return (loadedFile, hasAllInformation: true, preferredBuildHostKind, actualBuildHostKind);
     }
 }

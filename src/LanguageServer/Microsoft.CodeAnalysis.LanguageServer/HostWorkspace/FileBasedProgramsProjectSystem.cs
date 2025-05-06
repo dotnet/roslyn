@@ -118,7 +118,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             ContentFilePaths = [],
             FileGlobs = []
         };
-        await loadedProject.UpdateWithNewProjectInfoAsync(projectFileInfo, _logger);
+        await loadedProject.UpdateWithNewProjectInfoAsync(projectFileInfo, hasAllInformation: false, _logger);
         var workspaceProject = ProjectFactory.Workspace.CurrentSolution.GetRequiredProject(loadedProject.ProjectId);
         var document = isRazor ? workspaceProject.AdditionalDocuments.Single() : workspaceProject.Documents.Single();
 
@@ -140,7 +140,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         // support unloading
     }
 
-    protected override async Task<(RemoteProjectFile? projectFile, BuildHostProcessKind preferred, BuildHostProcessKind actual)> TryLoadProjectAsync(
+    protected override async Task<(RemoteProjectFile? projectFile, bool hasAllInformation, BuildHostProcessKind preferred, BuildHostProcessKind actual)> TryLoadProjectAsync(
         BuildHostProcessManager buildHostProcessManager, string documentPath, CancellationToken cancellationToken)
     {
         const BuildHostProcessKind buildHostKind = BuildHostProcessKind.NetCore;
@@ -148,9 +148,11 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         Contract.ThrowIfFalse(Path.GetExtension(documentPath) == ".cs");
 
         var fakeProjectPath = VirtualProject.GetVirtualProjectPath(documentPath);
-        var contentToLoad = VirtualProject.MakeVirtualProjectContent(documentPath);
+        var loader = ProjectFactory.CreateFileTextLoader(documentPath);
+        var textAndVersion = await loader.LoadTextAsync(new LoadTextOptions(SourceHashAlgorithms.Default), cancellationToken: default);
+        var (contentToLoad, isFileBasedProgram) = VirtualProject.MakeVirtualProjectContent(documentPath, textAndVersion.Text);
 
         var loadedFile = await buildHost.LoadProjectAsync(fakeProjectPath, contentToLoad, languageName: LanguageNames.CSharp, cancellationToken);
-        return (loadedFile, preferred: buildHostKind, actual: buildHostKind);
+        return (loadedFile, hasAllInformation: isFileBasedProgram, preferred: buildHostKind, actual: buildHostKind);
     }
 }
