@@ -14,7 +14,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -49,7 +48,7 @@ internal sealed class QueryExecutionContext(
     public long ExecutionTime => _executionTime;
     public int ProcessedProjectCount => _processedProjectCount;
 
-    private readonly ConcurrentDictionary<SyntaxTree, ArrayBuilder<Location>>? _updateInputs
+    private readonly ConcurrentDictionary<SyntaxTree, ArrayBuilder<TextSpan>>? _updateInputs
         = functions.UpdateCSharp != null || functions.UpdateVisualBasic != null ? new() : null;
 
     public async Task InvokeAsync(Solution solution, QueryKind queryKind, CancellationToken cancellationToken)
@@ -132,16 +131,16 @@ internal sealed class QueryExecutionContext(
 
             Contract.ThrowIfNull(_updateInputs);
 
-            await Parallel.ForEachAsync(_updateInputs, symbolEnumerationCancellationSource.Token, async (treeAndLocations, cancellationToken) =>
+            await Parallel.ForEachAsync(_updateInputs, symbolEnumerationCancellationSource.Token, async (treeAndSpans, cancellationToken) =>
             {
-                var (syntaxTree, locations) = treeAndLocations;
+                var (syntaxTree, spans) = treeAndSpans;
                 try
                 {
-                    await InvokeUpdateAsync(syntaxTree, locations, symbolEnumerationCancellationSource, cancellationToken).ConfigureAwait(false);
+                    await InvokeUpdateAsync(syntaxTree, spans, symbolEnumerationCancellationSource, cancellationToken).ConfigureAwait(false);
                 }
                 finally
                 {
-                    locations.Free();
+                    spans.Free();
 
                     // TODO: report progress
                 }
@@ -278,15 +277,15 @@ internal sealed class QueryExecutionContext(
                 return;
             }
 
-            var locations = _updateInputs.GetOrAdd(tree, static _ => ArrayBuilder<Location>.GetInstance());
-            lock (locations)
+            var spans = _updateInputs.GetOrAdd(tree, static _ => ArrayBuilder<TextSpan>.GetInstance());
+            lock (spans)
             {
-                locations.Add(location);
+                spans.Add(location.SourceSpan);
             }
         }
     }
 
-    private async ValueTask InvokeUpdateAsync(SyntaxTree oldSyntaxTree, IEnumerable<Location> locations, CancellationTokenSource symbolEnumerationCancellationSource, CancellationToken cancellationToken)
+    private async ValueTask InvokeUpdateAsync(SyntaxTree oldSyntaxTree, IEnumerable<Span> spans, CancellationTokenSource symbolEnumerationCancellationSource, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -305,7 +304,7 @@ internal sealed class QueryExecutionContext(
                 }
 
                 var oldRoot = await oldSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                var newRoot = (SyntaxNode?)updateFunction.Invoke(null, [oldRoot, locations]);
+                var newRoot = (SyntaxNode?)updateFunction.Invoke(null, [oldRoot, spans]);
 
                 var oldDocument = solution.GetRequiredDocument(oldSyntaxTree);
 
