@@ -24,7 +24,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
         /// Lock controlling mutation of all data in this indicator, or in any sub-scopes. Any read/write of mutable
         /// data must be protected by this.
         /// </summary>
-        public readonly object ContextAndScopeMutationGate = new();
+        public readonly object ContextAndScopeDataMutationGate = new();
 
         private readonly IBackgroundWorkIndicator _backgroundWorkIndicator;
         private readonly string _firstDescription;
@@ -73,7 +73,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
 
         public IUIThreadOperationScope AddScope(bool allowCancellation, string description)
         {
-            lock (this.ContextAndScopeMutationGate)
+            lock (this.ContextAndScopeDataMutationGate)
             {
                 var scope = new BackgroundWorkIndicatorScope(this, _backgroundWorkIndicator.AddScope(description), description);
                 _scopes = _scopes.Add(scope);
@@ -83,7 +83,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
 
         private void RemoveScopeAndReportTotalProgress(BackgroundWorkIndicatorScope scope)
         {
-            lock (this.ContextAndScopeMutationGate)
+            lock (this.ContextAndScopeDataMutationGate)
             {
                 Contract.ThrowIfFalse(_scopes.Contains(scope));
                 _scopes = _scopes.Remove(scope);
@@ -100,7 +100,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
 
             ProgressInfo GetTotalProgress()
             {
-                lock (ContextAndScopeMutationGate)
+                lock (ContextAndScopeDataMutationGate)
                 {
                     var progressInfo = new ProgressInfo();
 
@@ -123,7 +123,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
             {
                 // use the description of the last scope if we have one.  We don't have enough room to show all
                 // the descriptions at once.
-                lock (this.ContextAndScopeMutationGate)
+                lock (this.ContextAndScopeDataMutationGate)
                     return _scopes.LastOrDefault()?.Description ?? _firstDescription;
             }
         }

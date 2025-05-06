@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Runtime.Remoting.Contexts;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
@@ -53,12 +52,12 @@ internal partial class WpfBackgroundWorkIndicatorFactory
             {
                 get
                 {
-                    lock (_context.ContextAndScopeMutationGate)
+                    lock (_context.ContextAndScopeDataMutationGate)
                         return _currentDescription;
                 }
                 set
                 {
-                    lock (_context.ContextAndScopeMutationGate)
+                    lock (_context.ContextAndScopeDataMutationGate)
                     {
                         // Nothing to do if the actual value didn't change.
                         if (value == _currentDescription)
@@ -74,7 +73,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
 
             void IProgress<ProgressInfo>.Report(ProgressInfo value)
             {
-                lock (_context.ContextAndScopeMutationGate)
+                lock (_context.ContextAndScopeDataMutationGate)
                 {
                     // Nothing to do if the actual value didn't change.
                     if (value.TotalItems == ProgressInfo_OnlyAccessUnderLock.TotalItems &&
