@@ -3,19 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Resources;
-using System.Text;
-using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
 #if NETFRAMEWORK && DEBUG
 
+    /// <summary>
+    /// This class is used in <see cref="AppDomain"/> to allow us to test custom
+    /// disk layouts and its behavior in the context of the managed tool task.
+    /// </summary>
     internal sealed class TaskTestHost : MarshalByRefObject
     {
         internal bool IsSdkFrameworkToCoreBridgeTask => ManagedToolTask.CalculateIsSdkFrameworkToCoreBridgeTask();
