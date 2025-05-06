@@ -1056,6 +1056,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case WellKnownMemberNames.CheckedDecrementOperatorName:
                 case WellKnownMemberNames.DecrementOperatorName:
+                case WellKnownMemberNames.CheckedDecrementAssignmentOperatorName:
+                case WellKnownMemberNames.DecrementAssignmentOperatorName:
                     return SyntaxKind.MinusMinusToken;
 
                 case WellKnownMemberNames.CheckedDivisionOperatorName:
@@ -1077,6 +1079,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case WellKnownMemberNames.CheckedIncrementOperatorName:
                 case WellKnownMemberNames.IncrementOperatorName:
+                case WellKnownMemberNames.CheckedIncrementAssignmentOperatorName:
+                case WellKnownMemberNames.IncrementAssignmentOperatorName:
                     return SyntaxKind.PlusPlusToken;
 
                 case WellKnownMemberNames.InequalityOperatorName: return SyntaxKind.ExclamationEqualsToken;
@@ -1159,6 +1163,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case WellKnownMemberNames.CheckedDivisionAssignmentOperatorName:
                 case WellKnownMemberNames.CheckedMultiplicationAssignmentOperatorName:
                 case WellKnownMemberNames.CheckedSubtractionAssignmentOperatorName:
+                case WellKnownMemberNames.CheckedDecrementAssignmentOperatorName:
+                case WellKnownMemberNames.CheckedIncrementAssignmentOperatorName:
                     return true;
 
                 default:

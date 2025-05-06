@@ -65,8 +65,8 @@ typeKeyword + @" C1
 
             void validate(ModuleSymbol m)
             {
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName)));
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName)));
             }
 
             void validateOp(MethodSymbol m)
@@ -203,15 +203,24 @@ public " + typeKeyword + @" C1
 ";
             var comp1 = CreateCompilation(source1, targetFramework: TargetFramework.Net90);
             comp1.VerifyDiagnostics(
-                // (3,25): error CS9309: Overloaded instance increment operator '++' must take no parameters
+                // (3,25): error CS0558: User-defined operator 'C1.operator ++(C1)' must be declared static and public
                 //     public void operator++(C1 x) {} 
-                Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(3, 25),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("C1.operator " + op + "(C1)").WithLocation(3, 25),
+                // (3,25): error CS0448: The return type for ++ or -- operator must match the parameter type or be derived from the parameter type
+                //     public void operator++(C1 x) {} 
+                Diagnostic(ErrorCode.ERR_BadIncDecRetType, op).WithLocation(3, 25),
                 // (4,25): error CS1020: Overloadable binary operator expected
                 //     public void operator++(C1 x, C1 y) {} 
                 Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, op).WithLocation(4, 25),
-                // (5,25): error CS9309: Overloaded instance increment operator '++' must take no parameters
+                // (4,25): error CS0558: User-defined operator 'C1.operator ++(C1, C1)' must be declared static and public
+                //     public void operator++(C1 x, C1 y) {} 
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("C1.operator " + op + "(C1, C1)").WithLocation(4, 25),
+                // (5,25): error CS1535: Overloaded unary operator '++' takes one parameter
                 //     public void operator++(C1 x, C1 y, C1 z) {} 
-                Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(5, 25)
+                Diagnostic(ErrorCode.ERR_BadUnOpArgs, op).WithArguments(op).WithLocation(5, 25),
+                // (5,25): error CS0558: User-defined operator 'C1.operator ++(C1, C1, C1)' must be declared static and public
+                //     public void operator++(C1 x, C1 y, C1 z) {} 
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("C1.operator " + op + "(C1, C1, C1)").WithLocation(5, 25)
                 );
 
             if (typeKeyword == "interface")
@@ -226,15 +235,30 @@ class C2 : C1
 ";
                 var comp2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net90);
                 comp2.VerifyDiagnostics(
-                    // (4,21): error CS9309: Overloaded instance increment operator '++' must take no parameters
+                    // (4,21): error CS8930: Explicit implementation of a user-defined operator 'C2.operator ++(C1)' must be declared static
                     //     void C1.operator++(C1 x) {} 
-                    Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(4, 21),
+                    Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("C2.operator " + op + "(C1)").WithLocation(4, 21),
+                    // (4,21): error CS0539: 'C2.operator ++(C1)' in explicit interface declaration is not found among members of the interface that can be implemented
+                    //     void C1.operator++(C1 x) {} 
+                    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C2.operator " + op + "(C1)").WithLocation(4, 21),
                     // (5,21): error CS1020: Overloadable binary operator expected
                     //     void C1.operator++(C1 x, C1 y) {} 
                     Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, op).WithLocation(5, 21),
-                    // (6,21): error CS9309: Overloaded instance increment operator '++' must take no parameters
+                    // (5,21): error CS8930: Explicit implementation of a user-defined operator 'C2.operator ++(C1, C1)' must be declared static
+                    //     void C1.operator++(C1 x, C1 y) {} 
+                    Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("C2.operator " + op + "(C1, C1)").WithLocation(5, 21),
+                    // (5,21): error CS0539: 'C2.operator ++(C1, C1)' in explicit interface declaration is not found among members of the interface that can be implemented
+                    //     void C1.operator++(C1 x, C1 y) {} 
+                    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C2.operator " + op + "(C1, C1)").WithLocation(5, 21),
+                    // (6,21): error CS1535: Overloaded unary operator '++' takes one parameter
                     //     void C1.operator++(C1 x, C1 y, C1 z) {} 
-                    Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(6, 21)
+                    Diagnostic(ErrorCode.ERR_BadUnOpArgs, op).WithArguments(op).WithLocation(6, 21),
+                    // (6,21): error CS8930: Explicit implementation of a user-defined operator 'C2.operator ++(C1, C1, C1)' must be declared static
+                    //     void C1.operator++(C1 x, C1 y, C1 z) {} 
+                    Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("C2.operator " + op + "(C1, C1, C1)").WithLocation(6, 21),
+                    // (6,21): error CS0539: 'C2.operator ++(C1, C1, C1)' in explicit interface declaration is not found among members of the interface that can be implemented
+                    //     void C1.operator++(C1 x, C1 y, C1 z) {} 
+                    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C2.operator " + op + "(C1, C1, C1)").WithLocation(6, 21)
                     );
             }
         }
@@ -253,21 +277,30 @@ typeKeyword + @" C1
 ";
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
-                // (3,34): error CS9309: Overloaded instance increment operator '++' must take no parameters
+                // (3,34): error CS0558: User-defined operator 'C1.operator checked ++(C1)' must be declared static and public
                 //     public void operator checked ++(C1 x) {} 
-                Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(3, 34),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("C1.operator checked " + op + "(C1)").WithLocation(3, 34),
+                // (3,34): error CS0448: The return type for ++ or -- operator must match the parameter type or be derived from the parameter type
+                //     public void operator checked ++(C1 x) {} 
+                Diagnostic(ErrorCode.ERR_BadIncDecRetType, op).WithLocation(3, 34),
                 // (3,34): error CS9025: The operator 'C1.operator checked ++(C1)' requires a matching non-checked version of the operator to also be defined
                 //     public void operator checked ++(C1 x) {} 
                 Diagnostic(ErrorCode.ERR_CheckedOperatorNeedsMatch, op).WithArguments("C1.operator checked " + op + "(C1)").WithLocation(3, 34),
                 // (4,34): error CS1020: Overloadable binary operator expected
                 //     public void operator checked ++(C1 x, C1 y) {} 
                 Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, op).WithLocation(4, 34),
+                // (4,34): error CS0558: User-defined operator 'C1.operator checked ++(C1, C1)' must be declared static and public
+                //     public void operator checked ++(C1 x, C1 y) {} 
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("C1.operator checked " + op + "(C1, C1)").WithLocation(4, 34),
                 // (4,34): error CS9025: The operator 'C1.operator checked ++(C1, C1)' requires a matching non-checked version of the operator to also be defined
                 //     public void operator checked ++(C1 x, C1 y) {} 
                 Diagnostic(ErrorCode.ERR_CheckedOperatorNeedsMatch, op).WithArguments("C1.operator checked " + op + "(C1, C1)").WithLocation(4, 34),
-                // (5,34): error CS9309: Overloaded instance increment operator '++' must take no parameters
+                // (5,34): error CS1535: Overloaded unary operator '++' takes one parameter
                 //     public void operator checked ++(C1 x, C1 y, C1 z) {} 
-                Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(5, 34),
+                Diagnostic(ErrorCode.ERR_BadUnOpArgs, op).WithArguments(op).WithLocation(5, 34),
+                // (5,34): error CS0558: User-defined operator 'C1.operator checked ++(C1, C1, C1)' must be declared static and public
+                //     public void operator checked ++(C1 x, C1 y, C1 z) {} 
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("C1.operator checked " + op + "(C1, C1, C1)").WithLocation(5, 34),
                 // (5,34): error CS9025: The operator 'C1.operator checked ++(C1, C1, C1)' requires a matching non-checked version of the operator to also be defined
                 //     public void operator checked ++(C1 x, C1 y, C1 z) {} 
                 Diagnostic(ErrorCode.ERR_CheckedOperatorNeedsMatch, op).WithArguments("C1.operator checked " + op + "(C1, C1, C1)").WithLocation(5, 34)
@@ -289,9 +322,12 @@ typeKeyword + @" C1
 ";
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
-                // (3,30): error CS1535: Overloaded unary operator '++' takes one parameter
+                // (3,30): error CS0106: The modifier 'static' is not valid for this item
                 //     public static C1 operator++() => throw null;
-                Diagnostic(ErrorCode.ERR_BadUnOpArgs, op).WithArguments(op).WithLocation(3, 30),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("static").WithLocation(3, 30),
+                // (3,30): error CS9310: The return type for this operator must be void
+                //     public static C1 operator++() => throw null;
+                Diagnostic(ErrorCode.ERR_OperatorMustReturnVoid, op).WithLocation(3, 30),
                 // (5,30): error CS1020: Overloadable binary operator expected
                 //     public static C1 operator++(C1 x, C1 y) => throw null;
                 Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, op).WithLocation(5, 30),
@@ -317,9 +353,12 @@ typeKeyword + @" C1
 ";
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
-                // (3,39): error CS1535: Overloaded unary operator '++' takes one parameter
+                // (3,39): error CS0106: The modifier 'static' is not valid for this item
                 //     public static C1 operator checked ++() => throw null;
-                Diagnostic(ErrorCode.ERR_BadUnOpArgs, op).WithArguments(op).WithLocation(3, 39),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("static").WithLocation(3, 39),
+                // (3,39): error CS9310: The return type for this operator must be void
+                //     public static C1 operator checked ++() => throw null;
+                Diagnostic(ErrorCode.ERR_OperatorMustReturnVoid, op).WithLocation(3, 39),
                 // (3,39): error CS9025: The operator 'C1.operator checked ++()' requires a matching non-checked version of the operator to also be defined
                 //     public static C1 operator checked ++() => throw null;
                 Diagnostic(ErrorCode.ERR_CheckedOperatorNeedsMatch, op).WithArguments("C1.operator checked " + op + "()").WithLocation(3, 39),
@@ -354,8 +393,8 @@ typeKeyword + @" C1
 
             void validate(ModuleSymbol m)
             {
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName)));
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName)));
             }
 
             static void validateOp(MethodSymbol m)
@@ -412,8 +451,8 @@ interface C1
 
             void validate(ModuleSymbol m)
             {
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName)));
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName)));
             }
 
             static void validateOp(MethodSymbol m)
@@ -466,10 +505,10 @@ class C : I3, I4
             {
                 validateOp(
                     m.GlobalNamespace.GetTypeMember("I3").GetMembers().OfType<MethodSymbol>().Single(),
-                    "void I1." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName) + "()");
+                    "void I1." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName) + "()");
                 validateOp(
                     m.GlobalNamespace.GetTypeMember("I4").GetMembers().OfType<MethodSymbol>().Single(),
-                    "void I2." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName) + "()");
+                    "void I2." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName) + "()");
             }
 
             static void validateOp(MethodSymbol m, string implements)
@@ -533,10 +572,10 @@ typeKeyword + @" C3 : I1
             {
                 validateOp(
                     m.GlobalNamespace.GetTypeMember("C3").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Single(),
-                    "void I1." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName) + "()");
+                    "void I1." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName) + "()");
                 validateOp(
                     m.GlobalNamespace.GetTypeMember("C4").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Single(),
-                    "void I2." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName) + "()");
+                    "void I2." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName) + "()");
             }
 
             static void validateOp(MethodSymbol m, string implements)
@@ -587,9 +626,9 @@ interface I2
             void validate(ModuleSymbol m)
             {
                 validateOp(m.GlobalNamespace.GetTypeMember("C3").GetMembers().OfType<MethodSymbol>().
-                    Where(m => m.Name == (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName)).Single());
+                    Where(m => m.Name == (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName)).Single());
                 validateOp(m.GlobalNamespace.GetTypeMember("C4").GetMembers().OfType<MethodSymbol>().
-                    Where(m => m.Name == (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)).Single());
+                    Where(m => m.Name == (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName)).Single());
             }
 
             static void validateOp(MethodSymbol m)
@@ -645,10 +684,10 @@ interface I4 : I2
             {
                 validateOp(
                     m.GlobalNamespace.GetTypeMember("I3").GetMembers().OfType<MethodSymbol>().Single(),
-                    "void I1." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName) + "()");
+                    "void I1." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName) + "()");
                 validateOp(
                     m.GlobalNamespace.GetTypeMember("I4").GetMembers().OfType<MethodSymbol>().Single(),
-                    "void I2." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName) + "()");
+                    "void I2." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName) + "()");
             }
 
             static void validateOp(MethodSymbol m, string implements)
@@ -771,12 +810,12 @@ abstract class C2
 ";
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
-                // (4,39): error CS0112: A static member cannot be marked as 'abstract'
+                // (4,39): error CS0106: The modifier 'abstract' is not valid for this item
                 //     public static abstract C1 operator++(C1 x) => throw null;
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, op).WithArguments("abstract").WithLocation(4, 39),
-                // (9,48): error CS0112: A static member cannot be marked as 'abstract'
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(4, 39),
+                // (9,48): error CS0106: The modifier 'abstract' is not valid for this item
                 //     public static abstract C2 operator checked ++(C2 x) => throw null;
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, op).WithArguments("abstract").WithLocation(9, 48)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(9, 48)
                 );
         }
 
@@ -877,8 +916,8 @@ typeKeyword + @" C1
 
             void validate(ModuleSymbol m)
             {
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName)));
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName)));
             }
 
             static void validateOp(MethodSymbol m)
@@ -911,8 +950,8 @@ interface C1
 
             void validate(ModuleSymbol m)
             {
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName)));
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName)));
             }
 
             static void validateOp(MethodSymbol m)
@@ -965,10 +1004,10 @@ class C : I3, I4
             {
                 validateOp(
                     m.GlobalNamespace.GetTypeMember("I3").GetMembers().OfType<MethodSymbol>().Single(),
-                    "void I1." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName) + "()");
+                    "void I1." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName) + "()");
                 validateOp(
                     m.GlobalNamespace.GetTypeMember("I4").GetMembers().OfType<MethodSymbol>().Single(),
-                    "void I2." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName) + "()");
+                    "void I2." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName) + "()");
             }
 
             static void validateOp(MethodSymbol m, string implements)
@@ -1019,10 +1058,10 @@ interface I2
             {
                 validateOp(
                     m.GlobalNamespace.GetTypeMember("C3").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Single(),
-                    "void I1." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName) + "()");
+                    "void I1." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName) + "()");
                 validateOp(
                     m.GlobalNamespace.GetTypeMember("C4").GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Single(),
-                    "void I2." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName) + "()");
+                    "void I2." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName) + "()");
             }
 
             static void validateOp(MethodSymbol m, string implements)
@@ -1073,9 +1112,9 @@ interface I2
             void validate(ModuleSymbol m)
             {
                 validateOp(m.GlobalNamespace.GetTypeMember("C3").GetMembers().OfType<MethodSymbol>().
-                    Where(m => m.Name == (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName)).Single());
+                    Where(m => m.Name == (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName)).Single());
                 validateOp(m.GlobalNamespace.GetTypeMember("C4").GetMembers().OfType<MethodSymbol>().
-                    Where(m => m.Name == (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)).Single());
+                    Where(m => m.Name == (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName)).Single());
             }
 
             static void validateOp(MethodSymbol m)
@@ -1165,12 +1204,12 @@ class C2
 ";
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
             comp.VerifyDiagnostics(
-                // (4,38): error CS0112: A static member cannot be marked as 'virtual'
+                // (4,38): error CS0106: The modifier 'virtual' is not valid for this item
                 //     public static virtual C1 operator++(C1 x) => throw null;
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, op).WithArguments("virtual").WithLocation(4, 38),
-                // (9,47): error CS0112: A static member cannot be marked as 'virtual'
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("virtual").WithLocation(4, 38),
+                // (9,47): error CS0106: The modifier 'virtual' is not valid for this item
                 //     public static virtual C2 operator checked ++(C2 x) => throw null;
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, op).WithArguments("virtual").WithLocation(9, 47)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("virtual").WithLocation(9, 47)
                 );
         }
 
@@ -1359,25 +1398,25 @@ class C2 : C1
             void validate1(ModuleSymbol m)
             {
                 validateOp(
-                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName)),
-                    m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName)));
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName)),
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName)));
                 validateOp(
-                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)),
-                    m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)));
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName)),
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName)));
 
                 validateOp(
-                    m.GlobalNamespace.GetMember<MethodSymbol>("C3." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName)),
-                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName)));
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C3." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName)),
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName)));
                 validateOp(
-                    m.GlobalNamespace.GetMember<MethodSymbol>("C3." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)),
-                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)));
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C3." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName)),
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName)));
             }
 
             void validate2(ModuleSymbol m)
             {
                 validateOp(
-                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)),
-                    m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)));
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName)),
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName)));
             }
 
             static void validateOp(MethodSymbol m, MethodSymbol overridden)
@@ -1424,18 +1463,18 @@ class C3 : C2
             void validate(ModuleSymbol m)
             {
                 validateOp(
-                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName)),
-                    m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName)));
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName)),
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName)));
                 validateOp(
-                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)),
-                    m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)));
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName)),
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName)));
 
                 validateOp(
-                    m.GlobalNamespace.GetMember<MethodSymbol>("C3." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName)),
-                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName)));
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C3." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName)),
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName)));
                 validateOp(
-                    m.GlobalNamespace.GetMember<MethodSymbol>("C3." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)),
-                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)));
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C3." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName)),
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName)));
             }
 
             static void validateOp(MethodSymbol m, MethodSymbol overridden)
@@ -1476,8 +1515,8 @@ struct S1
 ";
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
 
-            validateOp(comp.GetMember<MethodSymbol>("S1." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName)));
-            validateOp(comp.GetMember<MethodSymbol>("S1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)));
+            validateOp(comp.GetMember<MethodSymbol>("S1." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName)));
+            validateOp(comp.GetMember<MethodSymbol>("S1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName)));
 
             comp.VerifyDiagnostics(
                 // (4,34): error CS0115: 'S1.operator ++()': no suitable method found to override
@@ -1521,12 +1560,12 @@ typeKeyword + @" C1
 ";
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
-                // (3,39): error CS0112: A static member cannot be marked as 'override'
+                // (3,39): error CS0106: The modifier 'override' is not valid for this item
                 //     public static override C1 operator++(C1 x) => throw null;
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, op).WithArguments("override").WithLocation(3, 39),
-                // (8,48): error CS0112: A static member cannot be marked as 'override'
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("override").WithLocation(3, 39),
+                // (8,48): error CS0106: The modifier 'override' is not valid for this item
                 //     public static override C2 operator checked ++(C2 x) => throw null;
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, op).WithArguments("override").WithLocation(8, 48)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("override").WithLocation(8, 48)
                 );
         }
 
@@ -1692,8 +1731,8 @@ interface C1
 
             void validate(ModuleSymbol m)
             {
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName)));
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName)));
             }
 
             static void validateOp(MethodSymbol m)
@@ -1750,11 +1789,11 @@ abstract class C2 : C1
             void validate(ModuleSymbol m)
             {
                 validateOp(
-                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName)),
-                    m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName)));
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName)),
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName)));
                 validateOp(
-                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)),
-                    m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)));
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName)),
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName)));
             }
 
             static void validateOp(MethodSymbol m, MethodSymbol overridden)
@@ -1824,12 +1863,12 @@ class C4
                 // (9,41): error CS0238: 'C2.operator checked ++()' cannot be sealed because it is not an override
                 //     public sealed void operator checked ++() {}
                 Diagnostic(ErrorCode.ERR_SealedNonOverride, op).WithArguments("C2.operator checked " + op + @"()").WithLocation(9, 41),
-                // (15,37): error CS0238: 'C3.operator ++(C3)' cannot be sealed because it is not an override
+                // (15,37): error CS0106: The modifier 'sealed' is not valid for this item
                 //     public static sealed C3 operator++(C3 x) => throw null;
-                Diagnostic(ErrorCode.ERR_SealedNonOverride, op).WithArguments("C3.operator " + op + @"(C3)").WithLocation(15, 37),
-                // (20,46): error CS0238: 'C4.operator checked ++(C4)' cannot be sealed because it is not an override
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("sealed").WithLocation(15, 37),
+                // (20,46): error CS0106: The modifier 'sealed' is not valid for this item
                 //     public static sealed C4 operator checked ++(C4 x) => throw null;
-                Diagnostic(ErrorCode.ERR_SealedNonOverride, op).WithArguments("C4.operator checked " + op + @"(C4)").WithLocation(20, 46)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("sealed").WithLocation(20, 46)
                 );
         }
 
@@ -1921,15 +1960,15 @@ struct C4
                 // (15,46): error CS0106: The modifier 'sealed' is not valid for this item
                 //     public static sealed override C3 operator++(C3 x) => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("sealed").WithLocation(15, 46),
-                // (15,46): error CS0112: A static member cannot be marked as 'override'
+                // (15,46): error CS0106: The modifier 'override' is not valid for this item
                 //     public static sealed override C3 operator++(C3 x) => throw null;
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, op).WithArguments("override").WithLocation(15, 46),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("override").WithLocation(15, 46),
                 // (20,55): error CS0106: The modifier 'sealed' is not valid for this item
                 //     public static sealed override C4 operator checked ++(C4 x) => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("sealed").WithLocation(20, 55),
-                // (20,55): error CS0112: A static member cannot be marked as 'override'
+                // (20,55): error CS0106: The modifier 'override' is not valid for this item
                 //     public static sealed override C4 operator checked ++(C4 x) => throw null;
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, op).WithArguments("override").WithLocation(20, 55)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("override").WithLocation(20, 55)
                 );
         }
 
@@ -1986,18 +2025,18 @@ struct C4
                 // (15,55): error CS0106: The modifier 'sealed' is not valid for this item
                 //     public static sealed abstract override C3 operator++(C3 x) => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("sealed").WithLocation(15, 55),
-                // (15,55): error CS0112: A static member cannot be marked as 'override'
+                // (15,55): error CS0106: The modifier 'override' is not valid for this item
                 //     public static sealed abstract override C3 operator++(C3 x) => throw null;
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, op).WithArguments("override").WithLocation(15, 55),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("override").WithLocation(15, 55),
                 // (20,64): error CS0106: The modifier 'abstract' is not valid for this item
                 //     public static sealed abstract override C4 operator checked ++(C4 x) => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(20, 64),
                 // (20,64): error CS0106: The modifier 'sealed' is not valid for this item
                 //     public static sealed abstract override C4 operator checked ++(C4 x) => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("sealed").WithLocation(20, 64),
-                // (20,64): error CS0112: A static member cannot be marked as 'override'
+                // (20,64): error CS0106: The modifier 'override' is not valid for this item
                 //     public static sealed abstract override C4 operator checked ++(C4 x) => throw null;
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, op).WithArguments("override").WithLocation(20, 64)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("override").WithLocation(20, 64)
                 );
         }
 
@@ -2284,10 +2323,10 @@ interface C3 : C1
 
             void validate(ModuleSymbol m)
             {
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName)));
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)));
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C3." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName)));
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C3." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C3." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C3." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName)));
             }
 
             void validateOp(MethodSymbol m)
@@ -2338,10 +2377,10 @@ class C3 : C1
 
             void validate(ModuleSymbol m)
             {
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName)));
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)));
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C3." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName)));
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C3." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C3." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C3." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName)));
             }
 
             void validateOp(MethodSymbol m)
@@ -2392,10 +2431,10 @@ class C3 : C1
 
             void validate(ModuleSymbol m)
             {
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName)));
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)));
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C3." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName)));
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C3." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C3." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C3." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName)));
             }
 
             void validateOp(MethodSymbol m)
@@ -2480,8 +2519,8 @@ typeKeyword + @" C1
 
             void validate(ModuleSymbol m)
             {
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName)));
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName)));
             }
 
             void validateOp(MethodSymbol m)
@@ -2520,8 +2559,8 @@ typeKeyword + @" C1
 
             void validate(ModuleSymbol m)
             {
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName)));
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName)));
             }
 
             static void validateOp(MethodSymbol m)
@@ -2561,8 +2600,8 @@ typeKeyword + @" C1
 
             void validate(ModuleSymbol m)
             {
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName)));
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName)));
             }
 
             static void validateOp(MethodSymbol m)
@@ -2602,8 +2641,8 @@ interface C1
 
             void validate(ModuleSymbol m)
             {
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName)));
-                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName)));
+                validateOp(m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName)));
             }
 
             static void validateOp(MethodSymbol m)
@@ -2804,24 +2843,12 @@ interface I2
 ";
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
-                // (14,7): error CS0535: 'C3' does not implement interface member 'I1.operator ++()'
-                //     : I1
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C3", "I1.operator " + op + @"()").WithLocation(14, 7),
-                // (16,29): error CS1535: Overloaded unary operator '++' takes one parameter
+                // (16,29): error CS0106: The modifier 'static' is not valid for this item
                 //     static void I1.operator ++() {}
-                Diagnostic(ErrorCode.ERR_BadUnOpArgs, op).WithArguments(op).WithLocation(16, 29),
-                // (16,29): error CS0539: 'C3.operator ++()' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static void I1.operator ++() {}
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C3.operator " + op + @"()").WithLocation(16, 29),
-                // (20,7): error CS0535: 'C4' does not implement interface member 'I2.operator checked ++()'
-                //     : I2
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("C4", "I2.operator checked " + op + @"()").WithLocation(20, 7),
-                // (22,37): error CS1535: Overloaded unary operator '++' takes one parameter
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("static").WithLocation(16, 29),
+                // (22,37): error CS0106: The modifier 'static' is not valid for this item
                 //     static void I2.operator checked ++() {}
-                Diagnostic(ErrorCode.ERR_BadUnOpArgs, op).WithArguments(op).WithLocation(22, 37),
-                // (22,37): error CS0539: 'C4.operator checked ++()' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static void I2.operator checked ++() {}
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C4.operator checked " + op + @"()").WithLocation(22, 37)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("static").WithLocation(22, 37)
                 );
         }
 
@@ -2853,18 +2880,12 @@ interface I4 : I2
 ";
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
-                // (15,29): error CS1535: Overloaded unary operator '++' takes one parameter
+                // (15,29): error CS0106: The modifier 'static' is not valid for this item
                 //     static void I1.operator ++() {}
-                Diagnostic(ErrorCode.ERR_BadUnOpArgs, op).WithArguments(op).WithLocation(15, 29),
-                // (15,29): error CS0539: 'I3.operator ++()' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static void I1.operator ++() {}
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I3.operator " + op + @"()").WithLocation(15, 29),
-                // (20,37): error CS1535: Overloaded unary operator '++' takes one parameter
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("static").WithLocation(15, 29),
+                // (20,37): error CS0106: The modifier 'static' is not valid for this item
                 //     static void I2.operator checked ++() {}
-                Diagnostic(ErrorCode.ERR_BadUnOpArgs, op).WithArguments(op).WithLocation(20, 37),
-                // (20,37): error CS0539: 'I4.operator checked ++()' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static void I2.operator checked ++() {}
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I4.operator checked " + op + @"()").WithLocation(20, 37)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("static").WithLocation(20, 37)
                 );
         }
 
@@ -3055,7 +3076,7 @@ public class Program
 ";
             var verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            var methodName = (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName);
+            var methodName = (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName);
 
             verifier.VerifyIL("Program.Test1",
 @"
@@ -3142,7 +3163,7 @@ IIncrementOrDecrementOperation (Prefix) (OperatorMethod: void C1." + methodName 
             Arguments(0)
 ");
 
-            methodName = (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName);
+            methodName = (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName);
 
             verifier.VerifyIL("Program.Test2",
 @"
@@ -3380,7 +3401,7 @@ public class Program
 [GetA][Get0][operator checked]6
 ").VerifyDiagnostics();
 
-            var methodName = (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName);
+            var methodName = (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName);
 
             verifier.VerifyIL("Program.Test1",
 @"
@@ -3416,7 +3437,7 @@ public class Program
 }
 ");
 
-            methodName = (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName);
+            methodName = (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName);
 
             verifier.VerifyIL("Program.Test2",
 @"
@@ -3584,7 +3605,7 @@ public class Program
 [GetA][Get0][operator checked]6True
 ").VerifyDiagnostics();
 
-            var methodName = (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName);
+            var methodName = (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName);
 
             verifier.VerifyIL("Program.Test1",
 @"
@@ -3690,7 +3711,7 @@ IIncrementOrDecrementOperation (Prefix) (OperatorMethod: void C1." + methodName 
             Arguments(0)
 ");
 
-            methodName = (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName);
+            methodName = (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName);
 
             verifier.VerifyIL("Program.Test2",
 @"
@@ -3921,7 +3942,7 @@ public class Program
 [GetA][Get0][operator checked]66
 ").VerifyDiagnostics();
 
-            var methodName = (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName);
+            var methodName = (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName);
 
             verifier.VerifyIL("Program.Test1",
 @"
@@ -3971,7 +3992,7 @@ public class Program
 }
 ");
 
-            methodName = (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName);
+            methodName = (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName);
 
             verifier.VerifyIL("Program.Test2",
 @"
@@ -4143,7 +4164,7 @@ public class Program
 ";
             var verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            var methodName = (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName);
+            var methodName = (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName);
 
             verifier.VerifyIL("Program.Test1",
 @"
@@ -4224,7 +4245,7 @@ IIncrementOrDecrementOperation (Postfix) (OperatorMethod: void C1." + methodName
             Arguments(0)
 ");
 
-            methodName = (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName);
+            methodName = (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName);
 
             verifier.VerifyIL("Program.Test2",
 @"
@@ -4449,7 +4470,7 @@ public class Program
 [GetA][Get0][operator checked]6
 ").VerifyDiagnostics();
 
-            var methodName = (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName);
+            var methodName = (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName);
 
             verifier.VerifyIL("Program.Test1",
 @"
@@ -4481,7 +4502,7 @@ public class Program
 }
 ");
 
-            methodName = (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName);
+            methodName = (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName);
 
             verifier.VerifyIL("Program.Test2",
 @"
@@ -4690,7 +4711,7 @@ public class Program
             var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp2, expectedOutput: @"[GetA][Get0][operator]1").VerifyDiagnostics();
 
-            var methodName = (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName);
+            var methodName = (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName);
 
             verifier.VerifyIL("Program.Test2",
 @"
@@ -5004,8 +5025,8 @@ public class Program
             Assert.Null(symbolInfo.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
             Assert.Equal(2, symbolInfo.CandidateSymbols.Length);
-            Assert.Equal("void I1.op_Increment()", symbolInfo.CandidateSymbols[0].ToTestDisplayString());
-            Assert.Equal("void I2<T>.op_Increment()", symbolInfo.CandidateSymbols[1].ToTestDisplayString());
+            Assert.Equal("void I1.op_IncrementAssignment()", symbolInfo.CandidateSymbols[0].ToTestDisplayString());
+            Assert.Equal("void I2<T>.op_IncrementAssignment()", symbolInfo.CandidateSymbols[1].ToTestDisplayString());
 
             var group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
@@ -5276,9 +5297,12 @@ public class Program
 
             CSharpCompilation comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
             comp1.VerifyDiagnostics(
-                // (4,26): error CS9309: Overloaded instance increment operator '++' must take no parameters
+                // (4,26): error CS0558: User-defined operator 'C1.operator ++(int)' must be declared static and public
                 //     public void operator ++(int x = 0) {}
-                Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, "++").WithArguments("++").WithLocation(4, 26),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, "++").WithArguments("C1.operator ++(int)").WithLocation(4, 26),
+                // (4,26): error CS0559: The parameter type for ++ or -- operator must be the containing type
+                //     public void operator ++(int x = 0) {}
+                Diagnostic(ErrorCode.ERR_BadIncDecSignature, "++").WithLocation(4, 26),
                 // (4,33): warning CS1066: The default value specified for parameter 'x' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
                 //     public void operator ++(int x = 0) {}
                 Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "x").WithArguments("x").WithLocation(4, 33),
@@ -5322,12 +5346,18 @@ public class Program
 
             CSharpCompilation comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
             comp1.VerifyDiagnostics(
-                // (4,26): error CS9309: Overloaded instance increment operator '++' must take no parameters
+                // (4,26): error CS0558: User-defined operator 'C1.operator ++(params int[])' must be declared static and public
                 //     public void operator ++(params int[] x) {}
-                Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, "++").WithArguments("++").WithLocation(4, 26),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, "++").WithArguments("C1.operator ++(params int[])").WithLocation(4, 26),
+                // (4,26): error CS0559: The parameter type for ++ or -- operator must be the containing type
+                //     public void operator ++(params int[] x) {}
+                Diagnostic(ErrorCode.ERR_BadIncDecSignature, "++").WithLocation(4, 26),
                 // (4,29): error CS1670: params is not valid in this context
                 //     public void operator ++(params int[] x) {}
                 Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(4, 29),
+                // (5,26): error CS0558: User-defined operator 'C1.operator --()' must be declared static and public
+                //     public void operator --(__arglist) {}
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, "--").WithArguments("C1.operator --()").WithLocation(5, 26),
                 // (5,29): error CS1669: __arglist is not valid in this context
                 //     public void operator --(__arglist) {}
                 Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(5, 29)
@@ -5337,7 +5367,10 @@ public class Program
             comp2.VerifyDiagnostics(
                 // (7,9): error CS0023: Operator '++' cannot be applied to operand of type 'C1'
                 //         ++x;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++x").WithArguments("++", "C1").WithLocation(7, 9)
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++x").WithArguments("++", "C1").WithLocation(7, 9),
+                // (8,9): error CS0023: Operator '--' cannot be applied to operand of type 'C1'
+                //         --x;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "--x").WithArguments("--", "C1").WithLocation(8, 9)
                 );
 
             var decrement = comp2.GetMember<MethodSymbol>("C1.op_Decrement");
@@ -5353,7 +5386,7 @@ public class C1
 {
     public void operator ++() {}
 
-    public void op_Increment() {}
+    public void op_IncrementAssignment() {}
 }
 
 public class C2
@@ -5365,7 +5398,7 @@ public class C2
 
 public class C3
 {
-    public void op_Increment() {}
+    public void op_IncrementAssignment() {}
 
     public void operator ++() {}
 }
@@ -5380,15 +5413,15 @@ public class C4
 
             CSharpCompilation comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
             comp1.VerifyDiagnostics(
-                // (6,17): error CS0111: Type 'C1' already defines a member called 'op_Increment' with the same parameter types
-                //     public void op_Increment() {}
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "op_Increment").WithArguments("op_Increment", "C1").WithLocation(6, 17),
+                // (6,17): error CS0111: Type 'C1' already defines a member called 'op_IncrementAssignment' with the same parameter types
+                //     public void op_IncrementAssignment() {}
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "op_IncrementAssignment").WithArguments("op_IncrementAssignment", "C1").WithLocation(6, 17),
                 // (13,22): error CS0111: Type 'C2' already defines a member called 'op_Increment' with the same parameter types
                 //     public static C2 op_Increment(C2 x) => x;
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "op_Increment").WithArguments("op_Increment", "C2").WithLocation(13, 22),
-                // (20,26): error CS0111: Type 'C3' already defines a member called 'op_Increment' with the same parameter types
+                // (20,26): error CS0111: Type 'C3' already defines a member called 'op_IncrementAssignment' with the same parameter types
                 //     public void operator ++() {}
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "++").WithArguments("op_Increment", "C3").WithLocation(20, 26),
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "++").WithArguments("op_IncrementAssignment", "C3").WithLocation(20, 26),
                 // (27,31): error CS0111: Type 'C4' already defines a member called 'op_Increment' with the same parameter types
                 //     public static C4 operator ++(C4 x) => x;
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "++").WithArguments("op_Increment", "C4").WithLocation(27, 31)
@@ -5402,7 +5435,7 @@ public class C4
             var source1 = @"
 public class C1
 {
-    public void op_Increment() {}
+    public void op_IncrementAssignment() {}
 }
 
 public class C2
@@ -5420,7 +5453,7 @@ public class Program
         C1 x = new C1();
         ++x;
         C2 y = new C2();
-        y.op_Increment();
+        y.op_IncrementAssignment();
     } 
 }
 ";
@@ -5431,8 +5464,8 @@ public class Program
                 //         ++x;
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "++x").WithArguments("++", "C1").WithLocation(7, 9),
                 // (9,11): error CS0571: 'C2.operator ++()': cannot explicitly call operator or accessor
-                //         y.op_Increment();
-                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "op_Increment").WithArguments("C2.operator ++()").WithLocation(9, 11)
+                //         y.op_IncrementAssignment();
+                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "op_IncrementAssignment").WithArguments("C2.operator ++()").WithLocation(9, 11)
                 );
         }
 
@@ -5443,7 +5476,7 @@ public class Program
             var source1 = @"
 abstract public class C1
 {
-    public abstract void op_Increment();
+    public abstract void op_IncrementAssignment();
 }
 
 abstract public class C3
@@ -5461,19 +5494,19 @@ public class C2 : C1
 
 public class C4 : C3
 {
-    public override void op_Increment() {}
+    public override void op_IncrementAssignment() {}
 }
 ";
 
             var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()]);
 
             comp2.VerifyDiagnostics(
-                // (4,35): error CS9312: 'C2.operator ++()': cannot override inherited member 'C1.op_Increment()' because one of them is not an operator.
+                // (4,35): error CS9312: 'C2.operator ++()': cannot override inherited member 'C1.op_IncrementAssignment()' because one of them is not an operator.
                 //     public override void operator ++() {}
-                Diagnostic(ErrorCode.ERR_OperatorMismatchOnOverride, "++").WithArguments("C2.operator ++()", "C1.op_Increment()").WithLocation(4, 35),
-                // (9,26): error CS9312: 'C4.op_Increment()': cannot override inherited member 'C3.operator ++()' because one of them is not an operator.
-                //     public override void op_Increment() {}
-                Diagnostic(ErrorCode.ERR_OperatorMismatchOnOverride, "op_Increment").WithArguments("C4.op_Increment()", "C3.operator ++()").WithLocation(9, 26)
+                Diagnostic(ErrorCode.ERR_OperatorMismatchOnOverride, "++").WithArguments("C2.operator ++()", "C1.op_IncrementAssignment()").WithLocation(4, 35),
+                // (9,26): error CS9312: 'C4.op_IncrementAssignment()': cannot override inherited member 'C3.operator ++()' because one of them is not an operator.
+                //     public override void op_IncrementAssignment() {}
+                Diagnostic(ErrorCode.ERR_OperatorMismatchOnOverride, "op_IncrementAssignment").WithArguments("C4.op_IncrementAssignment()", "C3.operator ++()").WithLocation(9, 26)
                 );
         }
 
@@ -5484,7 +5517,7 @@ public class C4 : C3
             var source1 = @"
 public interface I1
 {
-    void op_Increment();
+    void op_IncrementAssignment();
 }
 
 public interface I2
@@ -5502,7 +5535,7 @@ public class C1 : I1
 
 public class C2 : I2
 {
-    public void op_Increment() {}
+    public void op_IncrementAssignment() {}
 }
 
 public class C3 : I1
@@ -5512,30 +5545,30 @@ public class C3 : I1
 
 public class C4 : I2
 {
-    void I2.op_Increment() {}
+    void I2.op_IncrementAssignment() {}
 }
 ";
 
             var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()]);
             comp2.VerifyDiagnostics(
-                // (2,19): error CS9311: 'C1' does not implement interface member 'I1.op_Increment()'. 'C1.operator ++()' cannot implement 'I1.op_Increment()' because one of them is not an operator.
+                // (2,19): error CS9311: 'C1' does not implement interface member 'I1.op_IncrementAssignment()'. 'C1.operator ++()' cannot implement 'I1.op_IncrementAssignment()' because one of them is not an operator.
                 // public class C1 : I1
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C1", "I1.op_Increment()", "C1.operator ++()").WithLocation(2, 19),
-                // (7,19): error CS9311: 'C2' does not implement interface member 'I2.operator ++()'. 'C2.op_Increment()' cannot implement 'I2.operator ++()' because one of them is not an operator.
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C1", "I1.op_IncrementAssignment()", "C1.operator ++()").WithLocation(2, 19),
+                // (7,19): error CS9311: 'C2' does not implement interface member 'I2.operator ++()'. 'C2.op_IncrementAssignment()' cannot implement 'I2.operator ++()' because one of them is not an operator.
                 // public class C2 : I2
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I2").WithArguments("C2", "I2.operator ++()", "C2.op_Increment()").WithLocation(7, 19),
-                // (12,19): error CS0535: 'C3' does not implement interface member 'I1.op_Increment()'
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I2").WithArguments("C2", "I2.operator ++()", "C2.op_IncrementAssignment()").WithLocation(7, 19),
+                // (12,19): error CS0535: 'C3' does not implement interface member 'I1.op_IncrementAssignment()'
                 // public class C3 : I1
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C3", "I1.op_Increment()").WithLocation(12, 19),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C3", "I1.op_IncrementAssignment()").WithLocation(12, 19),
                 // (14,22): error CS0539: 'C3.operator ++()' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     void I1.operator ++() {}
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "++").WithArguments("C3.operator ++()").WithLocation(14, 22),
                 // (17,19): error CS0535: 'C4' does not implement interface member 'I2.operator ++()'
                 // public class C4 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("C4", "I2.operator ++()").WithLocation(17, 19),
-                // (19,13): error CS0539: 'C4.op_Increment()' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     void I2.op_Increment() {}
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "op_Increment").WithArguments("C4.op_Increment()").WithLocation(19, 13)
+                // (19,13): error CS0539: 'C4.op_IncrementAssignment()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I2.op_IncrementAssignment() {}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "op_IncrementAssignment").WithArguments("C4.op_IncrementAssignment()").WithLocation(19, 13)
                 );
         }
 
@@ -5546,7 +5579,7 @@ public class C4 : I2
             var source1 = @"
 public interface I1
 {
-    void op_Increment();
+    void op_IncrementAssignment();
 }
 
 public interface I2
@@ -5568,7 +5601,7 @@ public class C12 : C11, I1
 
 public class C21
 {
-    public void op_Increment() {}
+    public void op_IncrementAssignment() {}
 }
 
 public class C22 : C21, I2
@@ -5578,12 +5611,12 @@ public class C22 : C21, I2
 
             var comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()]);
             comp2.VerifyDiagnostics(
-                // (7,25): error CS9311: 'C12' does not implement interface member 'I1.op_Increment()'. 'C11.operator ++()' cannot implement 'I1.op_Increment()' because one of them is not an operator.
+                // (7,25): error CS9311: 'C12' does not implement interface member 'I1.op_IncrementAssignment()'. 'C11.operator ++()' cannot implement 'I1.op_IncrementAssignment()' because one of them is not an operator.
                 // public class C12 : C11, I1
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C12", "I1.op_Increment()", "C11.operator ++()").WithLocation(7, 25),
-                // (16,25): error CS9311: 'C22' does not implement interface member 'I2.operator ++()'. 'C21.op_Increment()' cannot implement 'I2.operator ++()' because one of them is not an operator.
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C12", "I1.op_IncrementAssignment()", "C11.operator ++()").WithLocation(7, 25),
+                // (16,25): error CS9311: 'C22' does not implement interface member 'I2.operator ++()'. 'C21.op_IncrementAssignment()' cannot implement 'I2.operator ++()' because one of them is not an operator.
                 // public class C22 : C21, I2
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I2").WithArguments("C22", "I2.operator ++()", "C21.op_Increment()").WithLocation(16, 25)
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I2").WithArguments("C22", "I2.operator ++()", "C21.op_IncrementAssignment()").WithLocation(16, 25)
                 );
         }
 
@@ -5601,17 +5634,17 @@ public interface I1
 
 public class C1 : I1
 {
-    public virtual void op_Increment()
+    public virtual void op_IncrementAssignment()
     {
-        System.Console.Write(""[C1.op_Increment]"");
+        System.Console.Write(""[C1.op_IncrementAssignment]"");
     } 
 }
 
 public class C2
 {
-    public virtual void op_Increment()
+    public virtual void op_IncrementAssignment()
     {
-        System.Console.Write(""[C2.op_Increment]"");
+        System.Console.Write(""[C2.op_IncrementAssignment]"");
     } 
 }
 
@@ -5633,12 +5666,12 @@ public class Program
 
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (10,19): error CS9311: 'C1' does not implement interface member 'I1.operator ++()'. 'C1.op_Increment()' cannot implement 'I1.operator ++()' because one of them is not an operator.
+                // (10,19): error CS9311: 'C1' does not implement interface member 'I1.operator ++()'. 'C1.op_IncrementAssignment()' cannot implement 'I1.operator ++()' because one of them is not an operator.
                 // public class C1 : I1
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C1", "I1.operator ++()", "C1.op_Increment()").WithLocation(10, 19),
-                // (26,23): error CS9311: 'C3' does not implement interface member 'I1.operator ++()'. 'C2.op_Increment()' cannot implement 'I1.operator ++()' because one of them is not an operator.
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C1", "I1.operator ++()", "C1.op_IncrementAssignment()").WithLocation(10, 19),
+                // (26,23): error CS9311: 'C3' does not implement interface member 'I1.operator ++()'. 'C2.op_IncrementAssignment()' cannot implement 'I1.operator ++()' because one of them is not an operator.
                 // public class C3 : C2, I1
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C3", "I1.operator ++()", "C2.op_Increment()").WithLocation(26, 23)
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C3", "I1.operator ++()", "C2.op_IncrementAssignment()").WithLocation(26, 23)
                 );
         }
 
@@ -5648,7 +5681,7 @@ public class Program
             var source = @"
 public interface I1
 {
-    public void op_Increment()
+    public void op_IncrementAssignment()
     {
         System.Console.Write(""[I1.operator]"");
     } 
@@ -5679,21 +5712,21 @@ public class Program
     static void Main()
     {
         I1 x = new C1();
-        x.op_Increment();
+        x.op_IncrementAssignment();
         x = new C3();
-        x.op_Increment();
+        x.op_IncrementAssignment();
     } 
 }
 ";
 
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net90, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (10,19): error CS9311: 'C1' does not implement interface member 'I1.op_Increment()'. 'C1.operator ++()' cannot implement 'I1.op_Increment()' because one of them is not an operator.
+                // (10,19): error CS9311: 'C1' does not implement interface member 'I1.op_IncrementAssignment()'. 'C1.operator ++()' cannot implement 'I1.op_IncrementAssignment()' because one of them is not an operator.
                 // public class C1 : I1
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C1", "I1.op_Increment()", "C1.operator ++()").WithLocation(10, 19),
-                // (26,23): error CS9311: 'C3' does not implement interface member 'I1.op_Increment()'. 'C2.operator ++()' cannot implement 'I1.op_Increment()' because one of them is not an operator.
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C1", "I1.op_IncrementAssignment()", "C1.operator ++()").WithLocation(10, 19),
+                // (26,23): error CS9311: 'C3' does not implement interface member 'I1.op_IncrementAssignment()'. 'C2.operator ++()' cannot implement 'I1.op_IncrementAssignment()' because one of them is not an operator.
                 // public class C3 : C2, I1
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C3", "I1.op_Increment()", "C2.operator ++()").WithLocation(26, 23)
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C3", "I1.op_IncrementAssignment()", "C2.operator ++()").WithLocation(26, 23)
                 );
         }
 
@@ -5716,9 +5749,9 @@ public class C2 : I1
 
 public class C3 : C2, I1
 {
-    public virtual void op_Increment()
+    public virtual void op_IncrementAssignment()
     {
-        System.Console.Write(""[C3.op_Increment]"");
+        System.Console.Write(""[C3.op_IncrementAssignment]"");
     } 
 }
 
@@ -5734,9 +5767,9 @@ public class Program
 
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (15,23): error CS9311: 'C3' does not implement interface member 'I1.operator ++()'. 'C3.op_Increment()' cannot implement 'I1.operator ++()' because one of them is not an operator.
+                // (15,23): error CS9311: 'C3' does not implement interface member 'I1.operator ++()'. 'C3.op_IncrementAssignment()' cannot implement 'I1.operator ++()' because one of them is not an operator.
                 // public class C3 : C2, I1
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C3", "I1.operator ++()", "C3.op_Increment()").WithLocation(15, 23)
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C3", "I1.operator ++()", "C3.op_IncrementAssignment()").WithLocation(15, 23)
                 );
         }
 
@@ -5746,14 +5779,14 @@ public class Program
             var source = @"
 public interface I1
 {
-    public void op_Increment();
+    public void op_IncrementAssignment();
 }
 
 public class C2 : I1
 {
-    void I1.op_Increment()
+    void I1.op_IncrementAssignment()
     {
-        System.Console.Write(""[C2.op_Increment]"");
+        System.Console.Write(""[C2.op_IncrementAssignment]"");
     } 
 }
 
@@ -5770,16 +5803,16 @@ public class Program
     static void Main()
     {
         I1 x = new C3();
-        x.op_Increment();
+        x.op_IncrementAssignment();
     } 
 }
 ";
 
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (15,23): error CS9311: 'C3' does not implement interface member 'I1.op_Increment()'. 'C3.operator ++()' cannot implement 'I1.op_Increment()' because one of them is not an operator.
+                // (15,23): error CS9311: 'C3' does not implement interface member 'I1.op_IncrementAssignment()'. 'C3.operator ++()' cannot implement 'I1.op_IncrementAssignment()' because one of them is not an operator.
                 // public class C3 : C2, I1
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C3", "I1.op_Increment()", "C3.operator ++()").WithLocation(15, 23)
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C3", "I1.op_IncrementAssignment()", "C3.operator ++()").WithLocation(15, 23)
                 );
         }
 
@@ -5794,7 +5827,7 @@ public class Program
 
                 public class C1 : I1
                 {
-                    public virtual void op_Increment()
+                    public virtual void op_IncrementAssignment()
                     {
                         System.Console.Write(1);
                     }
@@ -5804,7 +5837,7 @@ public class Program
 .class interface public auto ansi abstract beforefieldinit I1
 {
     .method public hidebysig newslot abstract virtual specialname
-        instance void op_Increment () cil managed 
+        instance void op_IncrementAssignment () cil managed 
     {
     }
 }
@@ -5814,7 +5847,7 @@ public class Program
     implements I1
 {
     .method public hidebysig newslot virtual 
-        instance void op_Increment () cil managed 
+        instance void op_IncrementAssignment () cil managed 
     {
         .maxstack 8
 
@@ -5842,9 +5875,9 @@ public class C2 : C1, I1
             var compilation1 = CreateCompilationWithIL(source1, ilSource);
 
             compilation1.VerifyDiagnostics(
-                // (2,23): error CS9311: 'C2' does not implement interface member 'I1.operator ++()'. 'C1.op_Increment()' cannot implement 'I1.operator ++()' because one of them is not an operator.
+                // (2,23): error CS9311: 'C2' does not implement interface member 'I1.operator ++()'. 'C1.op_IncrementAssignment()' cannot implement 'I1.operator ++()' because one of them is not an operator.
                 // public class C2 : C1, I1
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C2", "I1.operator ++()", "C1.op_Increment()").WithLocation(2, 23)
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C2", "I1.operator ++()", "C1.op_IncrementAssignment()").WithLocation(2, 23)
                 );
 
             var source2 =
@@ -5854,7 +5887,7 @@ class Program
     static void Main()
     {
         var c1 = new C1();
-        c1.op_Increment();
+        c1.op_IncrementAssignment();
         I1 x = c1;
         ++x;
     }
@@ -5867,7 +5900,7 @@ class Program
             var i1M1 = compilation1.GetTypeByMetadataName("I1").GetMembers().Single();
             var c1 = compilation1.GetTypeByMetadataName("C1");
 
-            AssertEx.Equal("C1.op_Increment()", c1.FindImplementationForInterfaceMember(i1M1).ToDisplayString());
+            AssertEx.Equal("C1.op_IncrementAssignment()", c1.FindImplementationForInterfaceMember(i1M1).ToDisplayString());
         }
 
         [Fact]
@@ -5876,7 +5909,7 @@ class Program
             /*
                 public interface I1
                 {
-                    public void op_Increment();
+                    public void op_IncrementAssignment();
                 }
 
                 public class C1 : I1
@@ -5891,7 +5924,7 @@ class Program
 .class interface public auto ansi abstract beforefieldinit I1
 {
     .method public hidebysig newslot abstract virtual 
-        instance void op_Increment () cil managed 
+        instance void op_IncrementAssignment () cil managed 
     {
     }
 }
@@ -5901,7 +5934,7 @@ class Program
     implements I1
 {
     .method public hidebysig newslot virtual specialname
-        instance void op_Increment () cil managed 
+        instance void op_IncrementAssignment () cil managed 
     {
         .maxstack 8
 
@@ -5929,9 +5962,9 @@ public class C2 : C1, I1
             var compilation1 = CreateCompilationWithIL(source1, ilSource);
 
             compilation1.VerifyDiagnostics(
-                // (2,23): error CS9311: 'C2' does not implement interface member 'I1.op_Increment()'. 'C1.operator ++()' cannot implement 'I1.op_Increment()' because one of them is not an operator.
+                // (2,23): error CS9311: 'C2' does not implement interface member 'I1.op_IncrementAssignment()'. 'C1.operator ++()' cannot implement 'I1.op_IncrementAssignment()' because one of them is not an operator.
                 // public class C2 : C1, I1
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C2", "I1.op_Increment()", "C1.operator ++()").WithLocation(2, 23)
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C2", "I1.op_IncrementAssignment()", "C1.operator ++()").WithLocation(2, 23)
                 );
 
             var source2 =
@@ -5943,7 +5976,7 @@ class Program
         var c1 = new C1();
         ++c1;
         I1 x = c1;
-        x.op_Increment();
+        x.op_IncrementAssignment();
     }
 }
 ";
@@ -6041,7 +6074,7 @@ public class C1
 
 public class C2 : C1
 {
-    public void op_Increment(){}
+    public void op_IncrementAssignment(){}
     public static C1 op_Increment(C1 x) => x;
 }
 ";
@@ -6056,7 +6089,7 @@ public class C2 : C1
             var source = @"
 public class C2
 {
-    public void op_Increment(){}
+    public void op_IncrementAssignment(){}
     public static C1 op_Increment(C1 x) => x;
 }
 
@@ -6125,13 +6158,22 @@ class C2
 {}
 ";
             var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.VerifyDiagnostics();
+            var expected = new[] {
+                // (3,20): warning CS1574: XML comment has cref attribute 'operator ++' that could not be resolved
+                // /// See <see cref="operator ++"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "operator " + op).WithArguments("operator " + op).WithLocation(3, 20),
+                // (11,20): warning CS1574: XML comment has cref attribute 'operator ++' that could not be resolved
+                // /// See <see cref="C1.operator ++"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "C1.operator " + op).WithArguments("operator " + op).WithLocation(11, 20)
+                };
+
+            compilation.VerifyDiagnostics(expected);
 
             int count = 0;
             foreach (var crefSyntax in GetCrefSyntaxes(compilation))
             {
-                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
-                AssertEx.Equal("C1.operator " + op + @"()", actualSymbol.ToDisplayString());
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation, expected[count]);
+                Assert.Null(actualSymbol);
                 count++;
             }
 
@@ -6192,26 +6234,13 @@ class C2
 {}
 ";
             var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
-
-            var expected = new[] {
-                // (3,20): warning CS0419: Ambiguous reference in cref attribute: 'operator --'. Assuming 'C1.operator --(C1)', but could have also matched other overloads including 'C1.operator --()'.
-                // /// See <see cref="operator --"/>.
-                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "operator " + op).WithArguments("operator " + op, "C1.operator " + op + @"(C1)", "C1.operator " + op + @"()").WithLocation(3, 20),
-                // (12,20): warning CS0419: Ambiguous reference in cref attribute: 'C1.operator --'. Assuming 'C1.operator --(C1)', but could have also matched other overloads including 'C1.operator --()'.
-                // /// See <see cref="C1.operator --"/>.
-                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "C1.operator " + op).WithArguments("C1.operator " + op, "C1.operator " + op + @"(C1)", "C1.operator " + op + @"()").WithLocation(12, 20)
-                };
-
-            compilation.VerifyDiagnostics(expected);
+            compilation.VerifyDiagnostics();
 
             int count = 0;
             foreach (var crefSyntax in GetCrefSyntaxes(compilation))
             {
-                var actualSymbols = GetReferencedSymbols(crefSyntax, compilation, out var ambiguityWinner, expected[count]);
-                AssertEx.Equal("C1.operator " + op + @"(C1)", ambiguityWinner.ToDisplayString());
-                Assert.Equal(2, actualSymbols.Length);
-                AssertEx.Equal("C1.operator " + op + @"(C1)", actualSymbols[0].ToDisplayString());
-                AssertEx.Equal("C1.operator " + op + @"()", actualSymbols[1].ToDisplayString());
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
+                AssertEx.Equal("C1.operator " + op + @"(C1)", actualSymbol.ToDisplayString());
                 count++;
             }
 
@@ -6239,26 +6268,13 @@ class C2
 {}
 ";
             var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
-
-            var expected = new[] {
-                // (3,20): warning CS0419: Ambiguous reference in cref attribute: 'operator ++'. Assuming 'C1.operator ++()', but could have also matched other overloads including 'C1.operator ++(C1)'.
-                // /// See <see cref="operator ++"/>.
-                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "operator " + op).WithArguments("operator " + op, "C1.operator " + op + @"()", "C1.operator " + op + @"(C1)").WithLocation(3, 20),
-                // (12,20): warning CS0419: Ambiguous reference in cref attribute: 'C1.operator ++'. Assuming 'C1.operator ++()', but could have also matched other overloads including 'C1.operator ++(C1)'.
-                // /// See <see cref="C1.operator ++"/>.
-                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "C1.operator " + op).WithArguments("C1.operator " + op, "C1.operator " + op + @"()", "C1.operator " + op + @"(C1)").WithLocation(12, 20)
-                };
-
-            compilation.VerifyDiagnostics(expected);
+            compilation.VerifyDiagnostics();
 
             int count = 0;
             foreach (var crefSyntax in GetCrefSyntaxes(compilation))
             {
-                var actualSymbols = GetReferencedSymbols(crefSyntax, compilation, out var ambiguityWinner, expected[count]);
-                AssertEx.Equal("C1.operator " + op + @"()", ambiguityWinner.ToDisplayString());
-                Assert.Equal(2, actualSymbols.Length);
-                AssertEx.Equal("C1.operator " + op + @"()", actualSymbols[0].ToDisplayString());
-                AssertEx.Equal("C1.operator " + op + @"(C1)", actualSymbols[1].ToDisplayString());
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
+                AssertEx.Equal("C1.operator " + op + @"(C1)", actualSymbol.ToDisplayString());
                 count++;
             }
 
@@ -6352,7 +6368,7 @@ class C2
 /// </summary>
 class C1
 {
-    public static C1 " + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName) + @"() => null;
+    public static C1 " + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName) + @"() => null;
 }
 
 /// <summary>
@@ -6362,13 +6378,22 @@ class C2
 {}
 ";
             var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.VerifyDiagnostics();
+            var expected = new[] {
+                // (3,20): warning CS1574: XML comment has cref attribute 'operator ++' that could not be resolved
+                // /// See <see cref="operator ++"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "operator " + op).WithArguments("operator " + op).WithLocation(3, 20),
+                // (11,20): warning CS1574: XML comment has cref attribute 'operator ++' that could not be resolved
+                // /// See <see cref="C1.operator ++"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "C1.operator " + op).WithArguments("operator " + op).WithLocation(11, 20)
+                };
+
+            compilation.VerifyDiagnostics(expected);
 
             int count = 0;
             foreach (var crefSyntax in GetCrefSyntaxes(compilation))
             {
-                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
-                AssertEx.Equal("C1." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName) + @"()", actualSymbol.ToDisplayString());
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation, expected[count]);
+                Assert.Null(actualSymbol);
                 count++;
             }
 
@@ -6380,9 +6405,11 @@ class C2
         [WorkItem("https://github.com/dotnet/roslyn/issues/78103")]
         public void Increment_115_CRef([CombinatorialValues("++", "--")] string op)
         {
+            string name = (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName);
+
             var source = @"
 /// <summary>
-/// See <see cref=""" + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName) + @"""/>.
+/// See <see cref=""" + name + @"""/>.
 /// </summary>
 class C1
 {
@@ -6390,19 +6417,28 @@ class C1
 }
 
 /// <summary>
-/// See <see cref=""C1." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName) + @"""/>.
+/// See <see cref=""C1." + name + @"""/>.
 /// </summary>
 class C2
 {}
 ";
             var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.VerifyDiagnostics();
+            var expected = new[] {
+                // (3,20): warning CS1574: XML comment has cref attribute 'op_IncrementAssignment' that could not be resolved
+                // /// See <see cref="op_IncrementAssignment"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, name).WithArguments(name).WithLocation(3, 20),
+                // (11,20): warning CS1574: XML comment has cref attribute 'op_IncrementAssignment' that could not be resolved
+                // /// See <see cref="C1.op_IncrementAssignment"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "C1." + name).WithArguments(name).WithLocation(11, 20)
+                };
+
+            compilation.VerifyDiagnostics(expected);
 
             int count = 0;
             foreach (var crefSyntax in GetCrefSyntaxes(compilation))
             {
-                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
-                AssertEx.Equal("C1.operator " + op + @"(C1)", actualSymbol.ToDisplayString());
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation, expected[count]);
+                Assert.Null(actualSymbol);
                 count++;
             }
 
@@ -6416,7 +6452,7 @@ class C2
         {
             var source = @"
 /// <summary>
-/// See <see cref=""" + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName) + @"""/>.
+/// See <see cref=""" + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName) + @"""/>.
 /// </summary>
 class C1
 {
@@ -6424,7 +6460,7 @@ class C1
 }
 
 /// <summary>
-/// See <see cref=""C1." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName) + @"""/>.
+/// See <see cref=""C1." + (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName) + @"""/>.
 /// </summary>
 class C2
 {}
@@ -6500,13 +6536,22 @@ class C2
 {}
 ";
             var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.VerifyDiagnostics();
+            var expected = new[] {
+                    // (3,20): warning CS1574: XML comment has cref attribute 'operator checked ++' that could not be resolved
+                // /// See <see cref="operator checked ++"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "operator checked " + op).WithArguments("operator checked " + op).WithLocation(3, 20),
+                // (12,20): warning CS1574: XML comment has cref attribute 'operator checked ++' that could not be resolved
+                // /// See <see cref="C1.operator checked ++"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "C1.operator checked " + op).WithArguments("operator checked " + op).WithLocation(12, 20)
+                };
+
+            compilation.VerifyDiagnostics(expected);
 
             int count = 0;
             foreach (var crefSyntax in GetCrefSyntaxes(compilation))
             {
-                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
-                AssertEx.Equal("C1.operator checked " + op + @"()", actualSymbol.ToDisplayString());
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation, expected[count]);
+                Assert.Null(actualSymbol);
                 count++;
             }
 
@@ -6571,26 +6616,13 @@ class C2
 {}
 ";
             var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
-
-            var expected = new[] {
-                // (3,20): warning CS0419: Ambiguous reference in cref attribute: 'operator checked --'. Assuming 'C1.operator checked --(C1)', but could have also matched other overloads including 'C1.operator checked --()'.
-                // /// See <see cref="operator checked --"/>.
-                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "operator checked " + op).WithArguments("operator checked " + op, "C1.operator checked " + op + @"(C1)", "C1.operator checked " + op + @"()").WithLocation(3, 20),
-                // (12,20): warning CS0419: Ambiguous reference in cref attribute: 'C1.operator checked --'. Assuming 'C1.operator checked --(C1)', but could have also matched other overloads including 'C1.operator checked --()'.
-                // /// See <see cref="C1.operator checked --"/>.
-                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "C1.operator checked " + op).WithArguments("C1.operator checked " + op, "C1.operator checked " + op + @"(C1)", "C1.operator checked " + op + @"()").WithLocation(12, 20)
-                };
-
-            compilation.VerifyDiagnostics(expected);
+            compilation.VerifyDiagnostics();
 
             int count = 0;
             foreach (var crefSyntax in GetCrefSyntaxes(compilation))
             {
-                var actualSymbols = GetReferencedSymbols(crefSyntax, compilation, out var ambiguityWinner, expected[count]);
-                AssertEx.Equal("C1.operator checked " + op + @"(C1)", ambiguityWinner.ToDisplayString());
-                Assert.Equal(2, actualSymbols.Length);
-                AssertEx.Equal("C1.operator checked " + op + @"(C1)", actualSymbols[0].ToDisplayString());
-                AssertEx.Equal("C1.operator checked " + op + @"()", actualSymbols[1].ToDisplayString());
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
+                AssertEx.Equal("C1.operator checked " + op + @"(C1)", actualSymbol.ToDisplayString());
                 count++;
             }
 
@@ -6621,26 +6653,13 @@ class C2
 {}
 ";
             var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
-
-            var expected = new[] {
-                // (3,20): warning CS0419: Ambiguous reference in cref attribute: 'operator checked ++'. Assuming 'C1.operator checked ++()', but could have also matched other overloads including 'C1.operator checked ++(C1)'.
-                // /// See <see cref="operator checked ++"/>.
-                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "operator checked " + op).WithArguments("operator checked " + op, "C1.operator checked " + op + @"()", "C1.operator checked " + op + @"(C1)").WithLocation(3, 20),
-                // (12,20): warning CS0419: Ambiguous reference in cref attribute: 'C1.operator ++'. Assuming 'C1.operator ++()', but could have also matched other overloads including 'C1.operator ++(C1)'.
-                // /// See <see cref="C1.operator checked ++"/>.
-                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "C1.operator checked " + op).WithArguments("C1.operator checked " + op, "C1.operator checked " + op + @"()", "C1.operator checked " + op + @"(C1)").WithLocation(12, 20)
-                };
-
-            compilation.VerifyDiagnostics(expected);
+            compilation.VerifyDiagnostics();
 
             int count = 0;
             foreach (var crefSyntax in GetCrefSyntaxes(compilation))
             {
-                var actualSymbols = GetReferencedSymbols(crefSyntax, compilation, out var ambiguityWinner, expected[count]);
-                AssertEx.Equal("C1.operator checked " + op + @"()", ambiguityWinner.ToDisplayString());
-                Assert.Equal(2, actualSymbols.Length);
-                AssertEx.Equal("C1.operator checked " + op + @"()", actualSymbols[0].ToDisplayString());
-                AssertEx.Equal("C1.operator checked " + op + @"(C1)", actualSymbols[1].ToDisplayString());
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
+                AssertEx.Equal("C1.operator checked " + op + @"(C1)", actualSymbol.ToDisplayString());
                 count++;
             }
 
@@ -6738,7 +6757,7 @@ class C2
 /// </summary>
 class C1
 {
-    public static C1 " + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName) + @"() => null;
+    public static C1 " + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName) + @"() => null;
 }
 
 /// <summary>
@@ -6748,13 +6767,22 @@ class C2
 {}
 ";
             var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.VerifyDiagnostics();
+            var expected = new[] {
+                    // (3,20): warning CS1574: XML comment has cref attribute 'operator checked ++' that could not be resolved
+                // /// See <see cref="operator checked ++"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "operator checked " + op).WithArguments("operator checked " + op).WithLocation(3, 20),
+                // (11,20): warning CS1574: XML comment has cref attribute 'operator checked ++' that could not be resolved
+                // /// See <see cref="C1.operator checked ++"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "C1.operator checked " + op).WithArguments("operator checked " + op).WithLocation(11, 20)
+                };
+
+            compilation.VerifyDiagnostics(expected);
 
             int count = 0;
             foreach (var crefSyntax in GetCrefSyntaxes(compilation))
             {
-                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
-                AssertEx.Equal("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName) + @"()", actualSymbol.ToDisplayString());
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation, expected[count]);
+                Assert.Null(actualSymbol);
                 count++;
             }
 
@@ -6766,9 +6794,11 @@ class C2
         [WorkItem("https://github.com/dotnet/roslyn/issues/78103")]
         public void Increment_125_CRef_Checked([CombinatorialValues("++", "--")] string op)
         {
+            string name = (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName);
+
             var source = @"
 /// <summary>
-/// See <see cref=""" + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName) + @"""/>.
+/// See <see cref=""" + name + @"""/>.
 /// </summary>
 class C1
 {
@@ -6777,19 +6807,29 @@ class C1
 }
 
 /// <summary>
-/// See <see cref=""C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName) + @"""/>.
+/// See <see cref=""C1." + name + @"""/>.
 /// </summary>
 class C2
 {}
 ";
             var compilation = CreateCompilation([source, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.VerifyDiagnostics();
+
+            var expected = new[] {
+                // (3,20): warning CS1574: XML comment has cref attribute 'op_CheckedIncrementAssignment' that could not be resolved
+                // /// See <see cref="op_CheckedIncrementAssignment"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, name).WithArguments(name).WithLocation(3, 20),
+                // (12,20): warning CS1574: XML comment has cref attribute 'op_CheckedIncrementAssignment' that could not be resolved
+                // /// See <see cref="C1.op_CheckedIncrementAssignment"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "C1." + name).WithArguments(name).WithLocation(12, 20)
+                };
+
+            compilation.VerifyDiagnostics(expected);
 
             int count = 0;
             foreach (var crefSyntax in GetCrefSyntaxes(compilation))
             {
-                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
-                AssertEx.Equal("C1.operator checked " + op + @"(C1)", actualSymbol.ToDisplayString());
+                var actualSymbol = GetReferencedSymbol(crefSyntax, compilation, expected[count]);
+                Assert.Null(actualSymbol);
                 count++;
             }
 
@@ -6803,7 +6843,7 @@ class C2
         {
             var source = @"
 /// <summary>
-/// See <see cref=""" + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName) + @"""/>.
+/// See <see cref=""" + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName) + @"""/>.
 /// </summary>
 class C1
 {
@@ -6812,7 +6852,7 @@ class C1
 }
 
 /// <summary>
-/// See <see cref=""C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName) + @"""/>.
+/// See <see cref=""C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName) + @"""/>.
 /// </summary>
 class C2
 {}
@@ -7260,7 +7300,7 @@ End Module
                 Diagnostic(30454 /*ERRID.ERR_ExpectedProcedure*/, "c1").WithLocation(5, 9)
                 );
 
-            string opName = (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName);
+            string opName = (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName);
 
             var source3 = @"
 Public Module Program
@@ -7271,7 +7311,7 @@ Public Module Program
 End Module
 ";
             CreateVisualBasicCompilation("Program", source3, referencedCompilations: new[] { comp1 }, referencedAssemblies: comp1.References).VerifyDiagnostics(
-                // BC37319: 'Public Overloads Sub op_Increment()' requires compiler feature 'UserDefinedCompoundAssignmentOperators', which is not supported by this version of the Visual Basic compiler.
+                // BC37319: 'Public Overloads Sub op_IncrementAssignment()' requires compiler feature 'UserDefinedCompoundAssignmentOperators', which is not supported by this version of the Visual Basic compiler.
                 Diagnostic(37319 /*ERRID.ERR_UnsupportedCompilerFeature*/, opName).WithArguments("Public Overloads Sub " + opName + @"()", "UserDefinedCompoundAssignmentOperators").WithLocation(5, 12)
                 );
         }
@@ -7288,7 +7328,7 @@ public interface I1
 ";
             var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics();
 
-            string opName = (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName);
+            string opName = (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName);
 
             var source3 = @"
 Public Class Program
@@ -7299,7 +7339,7 @@ Public Class Program
 End Class
 ";
             CreateVisualBasicCompilation("Program", source3, referencedCompilations: new[] { comp1 }, referencedAssemblies: comp1.References).VerifyDiagnostics(
-                // BC37319: 'Sub op_Increment()' requires compiler feature 'UserDefinedCompoundAssignmentOperators', which is not supported by this version of the Visual Basic compiler.
+                // BC37319: 'Sub op_IncrementAssignment()' requires compiler feature 'UserDefinedCompoundAssignmentOperators', which is not supported by this version of the Visual Basic compiler.
                 Diagnostic(37319 /*ERRID.ERR_UnsupportedCompilerFeature*/, opName).WithArguments("Sub " + opName + @"()", "UserDefinedCompoundAssignmentOperators").WithLocation(5, 16)
                 );
         }
@@ -7317,7 +7357,7 @@ public interface I1
 ";
             var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics();
 
-            string opName = (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName);
+            string opName = (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName);
 
             var source3 = @"
 Public Class Program
@@ -7328,7 +7368,7 @@ Public Class Program
 End Class
 ";
             CreateVisualBasicCompilation("Program", source3, referencedCompilations: new[] { comp1 }, referencedAssemblies: comp1.References).VerifyDiagnostics(
-                // BC37319: 'Sub op_Increment()' requires compiler feature 'UserDefinedCompoundAssignmentOperators', which is not supported by this version of the Visual Basic compiler.
+                // BC37319: 'Sub op_IncrementAssignment()' requires compiler feature 'UserDefinedCompoundAssignmentOperators', which is not supported by this version of the Visual Basic compiler.
                 Diagnostic(37319 /*ERRID.ERR_UnsupportedCompilerFeature*/, opName).WithArguments("Sub " + opName + @"()", "UserDefinedCompoundAssignmentOperators").WithLocation(5, 16)
                 );
         }
@@ -7345,7 +7385,7 @@ abstract public class C1
 ";
             var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics();
 
-            string opName = (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName);
+            string opName = (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName);
 
             var source3 = @"
 Public Class Program
@@ -7356,7 +7396,7 @@ Public Class Program
 End Class
 ";
             CreateVisualBasicCompilation("Program", source3, referencedCompilations: new[] { comp1 }, referencedAssemblies: comp1.References).VerifyDiagnostics(
-                // BC37319: 'Public MustOverride Overloads Sub op_Increment()' requires compiler feature 'UserDefinedCompoundAssignmentOperators', which is not supported by this version of the Visual Basic compiler.
+                // BC37319: 'Public MustOverride Overloads Sub op_IncrementAssignment()' requires compiler feature 'UserDefinedCompoundAssignmentOperators', which is not supported by this version of the Visual Basic compiler.
                 Diagnostic(37319 /*ERRID.ERR_UnsupportedCompilerFeature*/, opName).WithArguments("Public MustOverride Overloads Sub " + opName + @"()", "UserDefinedCompoundAssignmentOperators").WithLocation(5, 26)
                 );
         }
@@ -7374,7 +7414,7 @@ abstract public class C1
 ";
             var comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute], targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics();
 
-            string opName = (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName);
+            string opName = (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName);
 
             var source3 = @"
 Public Class Program
@@ -7385,7 +7425,7 @@ Public Class Program
 End Class
 ";
             CreateVisualBasicCompilation("Program", source3, referencedCompilations: new[] { comp1 }, referencedAssemblies: comp1.References).VerifyDiagnostics(
-                // BC37319: 'Public MustOverride Overloads Sub op_Increment()' requires compiler feature 'UserDefinedCompoundAssignmentOperators', which is not supported by this version of the Visual Basic compiler.
+                // BC37319: 'Public MustOverride Overloads Sub op_IncrementAssignment()' requires compiler feature 'UserDefinedCompoundAssignmentOperators', which is not supported by this version of the Visual Basic compiler.
                 Diagnostic(37319 /*ERRID.ERR_UnsupportedCompilerFeature*/, opName).WithArguments("Public MustOverride Overloads Sub " + opName + @"()", "UserDefinedCompoundAssignmentOperators").WithLocation(5, 26)
                 );
         }
@@ -7403,6 +7443,10 @@ End Class
         public void Increment_143_MetadataValidation([CombinatorialValues("++", "--")] string op, bool isChecked)
         {
             string name = isChecked ?
+                (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName) :
+                (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName);
+
+            string staticName = isChecked ?
                 (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName) :
                 (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName);
 
@@ -7444,6 +7488,12 @@ public class C6
     [SpecialName]
     public void " + name + @"<T>() {} // Generic
 }
+
+public class C7
+{
+    [SpecialName]
+    public void " + staticName + @"() {}
+}
 ";
             var comp1 = CreateCompilation(source1);
             var comp1Ref = comp1.EmitToImageReference();
@@ -7473,6 +7523,10 @@ public class C6
             AssertMetadataSymbol(comp2.GetMember<MethodSymbol>("C6." + name),
                                  MethodKind.Ordinary,
                                  "C6." + name + "<T>()");
+
+            AssertMetadataSymbol(comp2.GetMember<MethodSymbol>("C7." + staticName),
+                                 MethodKind.Ordinary,
+                                 "C7." + staticName + "()");
         }
 
         [Theory]
@@ -7483,8 +7537,8 @@ public class C6
             bool isChecked)
         {
             string name = isChecked ?
-                (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName) :
-                (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName);
+                (op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName) :
+                (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName);
 
             var source1 = @"
 using System.Runtime.CompilerServices;
@@ -7580,7 +7634,7 @@ partial class C1
     extends System.Object
 {
     .method public hidebysig specialname newslot virtual 
-        instance void modopt(int64) op_Increment () cil managed 
+        instance void modopt(int64) op_IncrementAssignment () cil managed 
     {
         // Method begins at RVA 0x2069
         // Code size 2 (0x2)
@@ -7624,7 +7678,7 @@ public class C2 : C1
 
             void verify(ModuleSymbol m)
             {
-                AssertEx.Equal("void modopt(System.Int64) C2.op_Increment()", m.GlobalNamespace.GetMember("C2.op_Increment").ToTestDisplayString());
+                AssertEx.Equal("void modopt(System.Int64) C2.op_IncrementAssignment()", m.GlobalNamespace.GetMember("C2.op_IncrementAssignment").ToTestDisplayString());
             }
         }
 
@@ -7704,7 +7758,7 @@ public class Program
       IL_000e:  ldloc.0
       IL_000f:  stloc.2
       IL_0010:  ldloca.s   V_2
-      IL_0012:  call       ""void C1.op_Increment()""
+      IL_0012:  call       ""void C1.op_IncrementAssignment()""
       IL_0017:  nop
       IL_0018:  ldloc.2
       IL_0019:  stloc.0
@@ -7734,7 +7788,7 @@ public class Program
     IL_003b:  ldloc.0
     IL_003c:  stloc.2
     IL_003d:  ldloca.s   V_2
-    IL_003f:  call       ""void C1.op_Decrement()""
+    IL_003f:  call       ""void C1.op_DecrementAssignment()""
     IL_0044:  nop
     IL_0045:  ldloc.2
     IL_0046:  stloc.0
@@ -7801,6 +7855,21 @@ class Program
                 //         ++x?._F; 
                 Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "x?._F").WithLocation(24, 11)
                 );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_150_GetOperatorKind([CombinatorialValues("++", "--")] string op)
+        {
+            SyntaxKind kind = SyntaxFactory.ParseToken(op).Kind();
+
+            string name = OperatorFacts.CompoundAssignmentOperatorNameFromSyntaxKind(kind, isChecked: false);
+            Assert.Equal(op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName, name);
+            Assert.Equal(kind, SyntaxFacts.GetOperatorKind(name));
+
+            name = OperatorFacts.CompoundAssignmentOperatorNameFromSyntaxKind(kind, isChecked: true);
+            Assert.Equal(op == "++" ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.CheckedDecrementAssignmentOperatorName, name);
+            Assert.Equal(kind, SyntaxFacts.GetOperatorKind(name));
         }
 
         private static string CompoundAssignmentOperatorName(string op, bool isChecked = false)
@@ -17273,7 +17342,7 @@ public class C3 : C2, I1
 {
     public virtual void op_AdditionAssignment(int x)
     {
-        System.Console.Write(""[C3.op_Increment]"");
+        System.Console.Write(""[C3.op_IncrementAssignment]"");
     } 
 }
 
@@ -17308,7 +17377,7 @@ public class C2 : I1
 {
     void I1.op_AdditionAssignment(int x)
     {
-        System.Console.Write(""[C2.op_Increment]"");
+        System.Console.Write(""[C2.op_IncrementAssignment]"");
     } 
 }
 

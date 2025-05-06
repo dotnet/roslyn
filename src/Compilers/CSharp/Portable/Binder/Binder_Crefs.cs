@@ -241,7 +241,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ? null
                     : OperatorFacts.BinaryOperatorNameFromSyntaxKindIfAny(operatorTokenKind, isChecked);
 
-                memberName = memberName ?? OperatorFacts.UnaryOperatorNameFromSyntaxKindIfAny(operatorTokenKind, isChecked: isChecked);
+                if (memberName is null)
+                {
+                    if (operatorTokenKind is SyntaxKind.PlusPlusToken or SyntaxKind.MinusMinusToken && parameterListSyntax?.Parameters.Count == 0)
+                    {
+                        memberName = OperatorFacts.CompoundAssignmentOperatorNameFromSyntaxKind(operatorTokenKind, isChecked);
+                    }
+                    else
+                    {
+                        memberName = OperatorFacts.UnaryOperatorNameFromSyntaxKindIfAny(operatorTokenKind, isChecked: isChecked);
+                    }
+                }
             }
 
             if (memberName == null ||

@@ -268,15 +268,9 @@ class C
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
 
             compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
-                // (4,23): error CS9309: Overloaded instance increment operator '--' must take no parameters
-                //     C operator checked--(C x) => default;
-                Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(4, 23),
-                // (4,23): error CS9308: User-defined operator 'C.operator checked --(C)' must be declared public
-                //     C operator checked--(C x) => default;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBePublic, op).WithArguments("C.operator checked " + op + "(C)").WithLocation(4, 23),
-                // (4,23): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute..ctor'
-                //     C operator checked--(C x) => default;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, op).WithArguments("System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute", ".ctor").WithLocation(4, 23)
+                // (4,23): error CS0558: User-defined operator 'C.operator checked ++(C)' must be declared static and public
+                //     C operator checked++(C x) => default;
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("C.operator checked " + op + "(C)").WithLocation(4, 23)
                 );
         }
 
@@ -397,9 +391,15 @@ class C
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
 
             compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
-                // (4,38): error CS1535: Overloaded unary operator '--' takes one parameter
+                // (4,38): error CS0106: The modifier 'static' is not valid for this item
                 //     public static C operator checked --() => default;
-                Diagnostic(ErrorCode.ERR_BadUnOpArgs, op).WithArguments(op).WithLocation(4, 38)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("static").WithLocation(4, 38),
+                // (4,38): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute..ctor'
+                //     public static C operator checked --() => default;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, op).WithArguments("System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute", ".ctor").WithLocation(4, 38),
+                // (4,38): error CS9310: The return type for this operator must be void
+                //     public static C operator checked --() => default;
+                Diagnostic(ErrorCode.ERR_OperatorMustReturnVoid, op).WithLocation(4, 38)
                 );
 
             var c = compilation1.SourceModule.GlobalNamespace.GetTypeMember("C");

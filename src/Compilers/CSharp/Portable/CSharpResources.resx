@@ -8167,9 +8167,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_OperatorsMustBePublic" xml:space="preserve">
     <value>User-defined operator '{0}' must be declared public</value>
   </data>
-  <data name="ERR_BadIncrementOpArgs" xml:space="preserve">
-    <value>Overloaded instance increment operator '{0}' must take no parameters</value>
-  </data>
   <data name="ERR_OperatorMustReturnVoid" xml:space="preserve">
     <value>The return type for this operator must be void</value>
   </data>
