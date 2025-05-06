@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (extensionParameter.Name == "")
                 {
-                    diagnostics.Add(ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter, _location, Name);
+                    diagnostics.Add(ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter, _location, new FormattedSymbol(this, SymbolDisplayFormat.ShortFormat));
                 }
 
                 // PROTOTYPE: confirm the following rule
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case RefKind.In:
                     case RefKind.RefReadOnlyParameter:
                         // 'in' and 'ref readonly' receivers are disallowed for anything that is not a concrete struct (class or a type parameter)
-                        if (extensionParameter.Type is { TypeKind: not TypeKind.TypeParameter, IsValueType: true })
+                        if (extensionParameter.Type.IsStructType())
                         {
                             diagnostics.Add(ErrorCode.ERR_InstanceOperatorStructExtensionWrongReceiverRefKind, _location);
                         }

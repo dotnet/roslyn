@@ -769,6 +769,15 @@ static class Extensions20
     }
 }
 
+static class Extensions21
+{
+    extension(C2)
+    {
+#line 2200
+        public void operator {{{op}}}() {}
+    }
+}
+
 struct S1
 {}
 
@@ -836,7 +845,10 @@ class C2
                 Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(2000, 31),
                 // (2100,31): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
                 //     extension<T>(ref readonly T t)
-                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(2100, 31)
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(2100, 31),
+                // (2200,30): error CS9303: 'operator ++': cannot declare instance members in an extension block with an unnamed receiver parameter
+                //         public void operator ++() {}
+                Diagnostic(ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter, op).WithArguments("operator " + op).WithLocation(2200, 30)
                 );
         }
 
@@ -2054,6 +2066,15 @@ static class Extensions20
     }
 }
 
+static class Extensions21
+{
+    extension(C2)
+    {
+#line 2200
+        public void operator {{{op}}}(int x) {}
+    }
+}
+
 struct S1
 {}
 
@@ -2121,7 +2142,10 @@ class C2
                 Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(2000, 31),
                 // (2100,31): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
                 //     extension<T>(ref readonly T t)
-                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(2100, 31)
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(2100, 31),
+                // (2200,30): error CS9303: 'operator +=': cannot declare instance members in an extension block with an unnamed receiver parameter
+                //         public void operator +=(int x) {}
+                Diagnostic(ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter, op).WithArguments("operator " + op).WithLocation(2200, 30)
                 );
         }
 
