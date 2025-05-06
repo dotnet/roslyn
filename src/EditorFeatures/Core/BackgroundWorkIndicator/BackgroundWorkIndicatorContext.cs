@@ -21,11 +21,8 @@ internal partial class WpfBackgroundWorkIndicatorFactory
     private sealed partial class BackgroundWorkIndicatorContext : IBackgroundWorkIndicatorContext
     {
         /// <summary>
-        /// Lock controlling mutation of all data in this indicator, or in any sub-scopes. Any read/write of mutable
-        /// data must be protected by this.
+        /// Cancellation token exposed to clients through <see cref="UserCancellationToken"/>.
         /// </summary>
-        public readonly object ContextAndScopeDataMutationGate = new();
-
         private readonly CancellationTokenSource _cancellationTokenSource;
 
         private readonly WpfBackgroundWorkIndicatorFactory _factory;
@@ -34,15 +31,16 @@ internal partial class WpfBackgroundWorkIndicatorFactory
         private readonly IBackgroundWorkIndicator _backgroundWorkIndicator;
 
         /// <summary>
+        /// Lock controlling mutation of all data in this indicator, or in any sub-scopes. Any read/write of mutable
+        /// data must be protected by this.
+        /// </summary>
+        public readonly object ContextAndScopeDataMutationGate = new();
+
+        /// <summary>
         /// Set of scopes we have.  We always start with one (the one created by the initial call to create the work
         /// indicator). However, the client of the background indicator can add more.
         /// </summary>
-        private ImmutableArray<BackgroundWorkIndicatorScope> _scopes;
-
-        public PropertyCollection Properties { get; } = new();
-
-        public CancellationToken UserCancellationToken => _cancellationTokenSource.Token;
-        public IEnumerable<IUIThreadOperationScope> Scopes => _scopes;
+        private ImmutableArray<BackgroundWorkIndicatorScope> _scopes_onlyAccessUnderLock;
 
         public BackgroundWorkIndicatorContext(
             WpfBackgroundWorkIndicatorFactory factory,
@@ -71,6 +69,19 @@ internal partial class WpfBackgroundWorkIndicatorFactory
             AddScope(allowCancellation: true, firstDescription);
         }
 
+        public PropertyCollection Properties { get; } = new();
+
+        public CancellationToken UserCancellationToken => _cancellationTokenSource.Token;
+
+        public IEnumerable<IUIThreadOperationScope> Scopes
+        {
+            get
+            {
+                lock (ContextAndScopeDataMutationGate)
+                    return _scopes_onlyAccessUnderLock;
+            }
+        }
+
         public void CancelAndDispose()
         {
             _cancellationTokenSource.Cancel();
@@ -95,7 +106,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
             lock (this.ContextAndScopeDataMutationGate)
             {
                 var scope = new BackgroundWorkIndicatorScope(this, _backgroundWorkIndicator.AddScope(description), description);
-                _scopes = _scopes.Add(scope);
+                _scopes_onlyAccessUnderLock = _scopes_onlyAccessUnderLock.Add(scope);
                 return scope;
             }
         }
@@ -104,8 +115,8 @@ internal partial class WpfBackgroundWorkIndicatorFactory
         {
             lock (this.ContextAndScopeDataMutationGate)
             {
-                Contract.ThrowIfFalse(_scopes.Contains(scope));
-                _scopes = _scopes.Remove(scope);
+                Contract.ThrowIfFalse(_scopes_onlyAccessUnderLock.Contains(scope));
+                _scopes_onlyAccessUnderLock = _scopes_onlyAccessUnderLock.Remove(scope);
             }
 
             ReportTotalProgress();
@@ -123,7 +134,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
                 {
                     var progressInfo = new ProgressInfo();
 
-                    foreach (var scope in _scopes)
+                    foreach (var scope in _scopes_onlyAccessUnderLock)
                     {
                         var scopeProgressInfo = scope.ProgressInfo_OnlyAccessUnderLock;
                         progressInfo = new ProgressInfo(
@@ -143,7 +154,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
                 // use the description of the last scope if we have one.  We don't have enough room to show all
                 // the descriptions at once.
                 lock (this.ContextAndScopeDataMutationGate)
-                    return _scopes.LastOrDefault()?.Description ?? _firstDescription;
+                    return _scopes_onlyAccessUnderLock.LastOrDefault()?.Description ?? _firstDescription;
             }
         }
 

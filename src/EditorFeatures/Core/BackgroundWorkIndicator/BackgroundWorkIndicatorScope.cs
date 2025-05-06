@@ -24,7 +24,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
             // Mutable state of this scope.  Can be mutated by a client, at which point we'll ask our owning context to
             // update the tooltip accordingly. Must hold 
 
-            private string _currentDescription = null!;
+            private string _currentDescription_OnlyAccessUnderLock = null!;
 
             public ProgressInfo ProgressInfo_OnlyAccessUnderLock;
 
@@ -63,7 +63,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
                 get
                 {
                     lock (_owner.ContextAndScopeDataMutationGate)
-                        return _currentDescription;
+                        return _currentDescription_OnlyAccessUnderLock;
                 }
 
                 set
@@ -71,10 +71,10 @@ internal partial class WpfBackgroundWorkIndicatorFactory
                     lock (_owner.ContextAndScopeDataMutationGate)
                     {
                         // Nothing to do if the actual value didn't change.
-                        if (value == _currentDescription)
+                        if (value == _currentDescription_OnlyAccessUnderLock)
                             return;
 
-                        _currentDescription = value;
+                        _currentDescription_OnlyAccessUnderLock = value;
                     }
 
                     // Pass through the description to the underlying scope to update the UI.
