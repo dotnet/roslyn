@@ -22,7 +22,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
             private readonly BackgroundWorkOperationScope _underlyingScope;
 
             // Mutable state of this scope.  Can be mutated by a client, at which point we'll ask our owning context to
-            // update the tooltip accordingly. Must hold 
+            // update the tooltip accordingly. Must hold _owner.ContextAndScopeDataMutationGate while reading/writing these.
 
             private string _currentDescription_OnlyAccessUnderLock = null!;
 
