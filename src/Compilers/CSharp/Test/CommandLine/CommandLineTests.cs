@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.IO.MemoryMappedFiles;
@@ -20,7 +21,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -35,10 +38,8 @@ using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using TestResources.Analyzers;
 using Xunit;
-using Basic.Reference.Assemblies;
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {

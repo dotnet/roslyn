@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using Microsoft.Cci;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;

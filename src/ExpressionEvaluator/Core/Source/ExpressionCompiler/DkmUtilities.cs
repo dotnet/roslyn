@@ -9,6 +9,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
