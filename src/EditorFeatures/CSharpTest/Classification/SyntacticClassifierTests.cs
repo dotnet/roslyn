@@ -1552,7 +1552,8 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             testHost,
             PPKeyword("#"),
             PPKeyword(":"),
-            String("unknown // comment"),
+            PPKeyword("unknown"),
+            String("// comment"),
             Identifier("Console"),
             Operators.Dot,
             Identifier("Write"),
@@ -1571,7 +1572,27 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             testHost,
             PPKeyword("#"),
             PPKeyword(":"),
-            String("sdk Test 2.1.0"),
+            PPKeyword("sdk"),
+            String("Test 2.1.0"),
+            Identifier("Console"),
+            Operators.Dot,
+            Identifier("Write"),
+            Punctuation.OpenParen,
+            Punctuation.CloseParen,
+            Punctuation.Semicolon);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task IgnoredDirective_03(TestHost testHost)
+    {
+        await TestAsync("""
+            #:no-space
+            Console.Write();
+            """,
+            testHost,
+            PPKeyword("#"),
+            PPKeyword(":"),
+            PPKeyword("no-space"),
             Identifier("Console"),
             Operators.Dot,
             Identifier("Write"),

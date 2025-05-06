@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification;
 
@@ -331,7 +332,21 @@ internal ref partial struct Worker
     {
         AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
         AddClassification(node.ColonToken, ClassificationTypeNames.PreprocessorKeyword);
-        AddClassification(node.Content, ClassificationTypeNames.StringLiteral);
+
+        // The first part (separated by whitespace) of content is a "keyword", e.g., 'sdk' in '#:sdk Test'.
+        if (node.Content.ValueText.IndexOf(' ') is > 0 and var firstSpaceIndex)
+        {
+            var keywordSpan = new TextSpan(node.Content.SpanStart, firstSpaceIndex);
+            var stringLiteralSpan = new TextSpan(node.Content.SpanStart + firstSpaceIndex + 1, node.Content.Span.Length - firstSpaceIndex - 1);
+
+            AddClassification(keywordSpan, ClassificationTypeNames.PreprocessorKeyword);
+            AddClassification(stringLiteralSpan, ClassificationTypeNames.StringLiteral);
+        }
+        else
+        {
+            AddClassification(node.Content, ClassificationTypeNames.PreprocessorKeyword);
+        }
+
         ClassifyDirectiveTrivia(node);
     }
 
