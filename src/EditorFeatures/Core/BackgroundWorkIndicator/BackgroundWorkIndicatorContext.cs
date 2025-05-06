@@ -20,43 +20,10 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 
 internal partial class WpfBackgroundWorkIndicatorFactory
 {
-    private sealed class BackgroundWorkIndicatorContext(IBackgroundWorkIndicator backgroundWorkIndicator) : IBackgroundWorkIndicatorContext
-    {
-        private readonly IBackgroundWorkIndicator _backgroundWorkIndicator = backgroundWorkIndicator;
-
-        public IDisposable SuppressAutoCancel()
-            => _backgroundWorkIndicator.SuppressAutoCancel();
-
-        public IUIThreadOperationScope AddScope(bool allowCancellation, string description)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void TakeOwnership()
-        {
-
-        }
-
-        public CancellationToken UserCancellationToken => throw new NotImplementedException();
-
-        public bool AllowCancellation => throw new NotImplementedException();
-
-        public string Description => throw new NotImplementedException();
-
-        public IEnumerable<IUIThreadOperationScope> Scopes => throw new NotImplementedException();
-
-        public PropertyCollection Properties => throw new NotImplementedException();
-
-        public void Dispose()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
     /// <summary>
     /// Implementation of an <see cref="IUIThreadOperationContext"/> for the background work indicator.
     /// </summary>
-    private sealed class BackgroundWorkIndicatorContext1 : IBackgroundWorkIndicatorContext
+    private sealed class BackgroundWorkIndicatorContext : IBackgroundWorkIndicatorContext
     {
         /// <summary>
         /// What sort of UI update request we've enqueued to <see cref="_uiUpdateQueue"/>.  This effectively is just a
@@ -80,10 +47,10 @@ internal partial class WpfBackgroundWorkIndicatorFactory
         public readonly object Gate = new();
 
         private readonly WpfBackgroundWorkIndicatorFactory _factory;
-        private readonly ITextView _textView;
-        private readonly ITextBuffer _subjectBuffer;
-        private readonly IToolTipPresenter _toolTipPresenter;
-        private readonly ITrackingSpan _trackingSpan;
+        //private readonly ITextView _textView;
+        //private readonly ITextBuffer _subjectBuffer;
+        //private readonly IToolTipPresenter _toolTipPresenter;
+        // private readonly ITrackingSpan _trackingSpan;
         private readonly string _firstDescription;
 
         /// <summary>

@@ -42,16 +42,11 @@ internal sealed partial class WpfBackgroundWorkIndicatorFactory(
         _currentContext?.Dispose();
 
         // Create the indicator in its default/empty state.
-        var indicator = _backgroundWorkIndicatorService.Create(
-            textView, applicableToSpan, description, new()
-            {
-                CancelOnEdit = cancelOnEdit,
-                CancelOnFocusLost = cancelOnFocusLost
-            });
+        _currentContext = new BackgroundWorkIndicatorContext(this, textView, applicableToSpan, description, cancelOnEdit, cancelOnFocusLost);
 
         // Then add a single scope representing the how the UI should look initially.
-        indicator.AddScope(description);
-        _currentContext = new BackgroundWorkIndicatorContext(indicator);
+        _currentContext.AddScope(allowCancellation: true, description);
+
         return _currentContext;
     }
 
