@@ -334,7 +334,7 @@ internal ref partial struct Worker
         AddClassification(node.ColonToken, ClassificationTypeNames.PreprocessorKeyword);
 
         // The first part (separated by whitespace) of content is a "keyword", e.g., 'sdk' in '#:sdk Test'.
-        if (node.Content.ValueText.IndexOf(' ') is > 0 and var firstSpaceIndex)
+        if (TryFindWhitespace(node.Content.ValueText, out var firstSpaceIndex))
         {
             var keywordSpan = new TextSpan(node.Content.SpanStart, firstSpaceIndex);
             var stringLiteralSpan = new TextSpan(node.Content.SpanStart + firstSpaceIndex + 1, node.Content.Span.Length - firstSpaceIndex - 1);
@@ -348,6 +348,21 @@ internal ref partial struct Worker
         }
 
         ClassifyDirectiveTrivia(node);
+
+        static bool TryFindWhitespace(string text, out int index)
+        {
+            for (var i = 0; i < text.Length; i++)
+            {
+                if (SyntaxFacts.IsWhitespace(text[i]))
+                {
+                    index = i;
+                    return true;
+                }
+            }
+
+            index = -1;
+            return false;
+        }
     }
 
     private void ClassifyNullableDirective(NullableDirectiveTriviaSyntax node)
