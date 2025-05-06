@@ -1274,10 +1274,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         switch (_name)
                         {
-                            case WellKnownMemberNames.CheckedDecrementOperatorName:
-                            case WellKnownMemberNames.DecrementOperatorName:
-                            case WellKnownMemberNames.CheckedIncrementOperatorName:
-                            case WellKnownMemberNames.IncrementOperatorName:
+                            case WellKnownMemberNames.CheckedDecrementAssignmentOperatorName:
+                            case WellKnownMemberNames.DecrementAssignmentOperatorName:
+                            case WellKnownMemberNames.CheckedIncrementAssignmentOperatorName:
+                            case WellKnownMemberNames.IncrementAssignmentOperatorName:
                                 return IsValidInstanceUserDefinedOperatorSignature(0) ? MethodKind.UserDefinedOperator : MethodKind.Ordinary;
 
                             case WellKnownMemberNames.AdditionAssignmentOperatorName:

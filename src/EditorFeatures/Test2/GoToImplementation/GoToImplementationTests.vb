@@ -456,7 +456,7 @@ class D : C
             Await TestAsync(workspace, host)
         End Function
 
-        <Theory(Skip:="Yes"), CombinatorialData> ' PROTOTYPE: Something doesn't work. Test checked version as well.
+        <Theory(Skip:="Yes"), CombinatorialData>
         Public Async Function TestWithOverridableInstanceIncrementOperatorsOnBase(host As TestHost, <CombinatorialValues("++", "--")> op As String) As Task
             Dim workspace =
 <Workspace>
@@ -478,7 +478,7 @@ class D : C
             Await TestAsync(workspace, host)
         End Function
 
-        <Theory(Skip:="Yes"), CombinatorialData> ' PROTOTYPE: Something doesn't work. Test checked version as well.
+        <Theory(Skip:="Yes"), CombinatorialData>
         Public Async Function TestWithOverridableInstanceCompoundAssignmentOperatorsOnBase(host As TestHost, <CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")> op As String) As Task
             Dim workspace =
 <Workspace>
@@ -524,7 +524,7 @@ class D : C
             Await TestAsync(workspace, host)
         End Function
 
-        <Theory(Skip:="Yes"), CombinatorialData> ' PROTOTYPE: Something doesn't work. Test checked version as well.
+        <Theory(Skip:="Yes"), CombinatorialData>
         Public Async Function TestWithOverridableInstanceIncrementOperatorsOnImplementation(host As TestHost, <CombinatorialValues("++", "--")> op As String) As Task
             ' Our philosophy is to only show derived in this case
             Dim workspace =
@@ -547,7 +547,7 @@ class D : C
             Await TestAsync(workspace, host)
         End Function
 
-        <Theory(Skip:="Yes"), CombinatorialData> ' PROTOTYPE: Something doesn't work. Test checked version as well.
+        <Theory(Skip:="Yes"), CombinatorialData>
         Public Async Function TestWithOverridableInstanceCompoundAssignmentOperatorsOnImplementation(host As TestHost, <CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")> op As String) As Task
             ' Our philosophy is to only show derived in this case
             Dim workspace =
@@ -595,8 +595,6 @@ class D : C
 </Workspace>
 
             Await TestAsync(workspace, host)
-
-            ' PROTOTYPE: Test similar scenarios for instance operators
         End Function
 
         <Theory, CombinatorialData>
@@ -850,7 +848,7 @@ interface I&lt;T&gt; { abstract void operator checked $$<%= op %>(); }
             Await TestAsync(workspace, host)
         End Function
 
-        <Theory(Skip:="Yes"), CombinatorialData> ' PROTOTYPE: Something doesn't work. Test checked version as well.
+        <Theory(Skip:="Yes"), CombinatorialData>
         Public Async Function TestInstanceCompoundAssignmentOperatorsImplementation_01(host As TestHost, <CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")> op As String) As Task
             Dim workspace =
 <Workspace>
@@ -910,7 +908,7 @@ interface I&lt;T&gt; { abstract void operator checked $$<%= op %>(); }
             Await TestAsync(workspace, host)
         End Function
 
-        <Theory(Skip:="Yes"), CombinatorialData> ' PROTOTYPE: Something doesn't work. Test checked version as well.
+        <Theory(Skip:="Yes"), CombinatorialData>
         Public Async Function TestInstanceCompoundAssignmentOperatorsImplementation_02(host As TestHost, <CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")> op As String) As Task
             Dim workspace =
 <Workspace>

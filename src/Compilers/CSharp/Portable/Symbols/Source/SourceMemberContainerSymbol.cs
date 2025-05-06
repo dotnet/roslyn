@@ -2738,6 +2738,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedDivisionAssignmentOperatorName, WellKnownMemberNames.DivisionAssignmentOperatorName, symmetricCheck: false);
             CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedMultiplicationAssignmentOperatorName, WellKnownMemberNames.MultiplicationAssignmentOperatorName, symmetricCheck: false);
             CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedSubtractionAssignmentOperatorName, WellKnownMemberNames.SubtractionAssignmentOperatorName, symmetricCheck: false);
+            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedDecrementAssignmentOperatorName, WellKnownMemberNames.DecrementAssignmentOperatorName, symmetricCheck: false);
+            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedIncrementAssignmentOperatorName, WellKnownMemberNames.IncrementAssignmentOperatorName, symmetricCheck: false);
 
             // We also produce a warning if == / != is overridden without also overriding
             // Equals and GetHashCode, or if Equals is overridden without GetHashCode.

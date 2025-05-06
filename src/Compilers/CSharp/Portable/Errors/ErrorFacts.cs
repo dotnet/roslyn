@@ -2515,11 +2515,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_ExtensionTypeNameDisallowed
                 or ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition
                 or ErrorCode.ERR_OperatorsMustBePublic
-                or ErrorCode.ERR_BadIncrementOpArgs
                 or ErrorCode.ERR_OperatorMustReturnVoid
                 or ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch
                 or ErrorCode.ERR_OperatorMismatchOnOverride
                 or ErrorCode.ERR_BadCompoundAssignmentOpArgs
+                or ErrorCode.ERR_PPShebangInProjectBasedProgram
                 or ErrorCode.ERR_BadExtensionUnaryOperatorSignature
                 or ErrorCode.ERR_BadExtensionIncDecSignature
                 or ErrorCode.ERR_BadExtensionBinaryOperatorSignature

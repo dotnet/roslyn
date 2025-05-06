@@ -324,11 +324,23 @@ internal sealed partial class SolutionState
     /// Searches for the project state with the specified project id in the given project states.
     /// </summary>
     /// <remarks>Requires the input array to be sorted by Id</remarks>
-    private static ProjectState? GetProjectState(ImmutableArray<ProjectState> sortedPojectStates, ProjectId projectId)
+    private static ProjectState? GetProjectState(ImmutableArray<ProjectState> sortedProjectStates, ProjectId projectId)
     {
-        var index = sortedPojectStates.BinarySearch(projectId, static (projectState, projectId) => projectState.Id.CompareTo(projectId));
+        var index = GetProjectStateIndex(sortedProjectStates, projectId);
 
-        return index >= 0 ? sortedPojectStates[index] : null;
+        return index >= 0 ? sortedProjectStates[index] : null;
+    }
+
+    /// <summary>
+    /// Searches for the project state with the specified project id in the given project states and
+    /// returns it's index if found, otherwise -1.
+    /// </summary>
+    /// <remarks>Requires the input array to be sorted by Id</remarks>
+    private static int GetProjectStateIndex(ImmutableArray<ProjectState> sortedProjectStates, ProjectId projectId)
+    {
+        var index = sortedProjectStates.BinarySearch(projectId, static (projectState, projectId) => projectState.Id.CompareTo(projectId));
+
+        return index >= 0 ? index : -1;
     }
 
     public ProjectState GetRequiredProjectState(ProjectId projectId)
@@ -1170,8 +1182,9 @@ internal sealed partial class SolutionState
     {
         var projectId = newProjectState.Id;
 
-        Contract.ThrowIfFalse(ContainsProject(projectId));
-        var newProjectStates = SortedProjectStates.Replace(oldProjectState, newProjectState);
+        var projectStateIndex = GetProjectStateIndex(SortedProjectStates, projectId);
+        Contract.ThrowIfFalse(projectStateIndex >= 0);
+        var newProjectStates = SortedProjectStates.SetItem(projectStateIndex, newProjectState);
 
         newDependencyGraph ??= _dependencyGraph;
 
