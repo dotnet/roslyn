@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Collections
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
                 public bool IsProperSubsetOf(IEnumerable<T> other)
                 {
-                    return !other.IsEmpty();
+                    return other.Any();
                 }
 
                 public bool IsProperSupersetOf(IEnumerable<T> other)
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
                 public bool IsSupersetOf(IEnumerable<T> other)
                 {
-                    return other.IsEmpty();
+                    return !other.Any();
                 }
 
                 public bool Overlaps(IEnumerable<T> other)
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
                 public bool SetEquals(IEnumerable<T> other)
                 {
-                    return other.IsEmpty();
+                    return !other.Any();
                 }
 
                 public void SymmetricExceptWith(IEnumerable<T> other)
