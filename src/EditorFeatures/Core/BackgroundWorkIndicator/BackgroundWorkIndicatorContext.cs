@@ -165,11 +165,11 @@ internal partial class WpfBackgroundWorkIndicatorFactory
                     return _cancelOnEdit_DoNotAccessDirectly;
             }
 
-            set
-            {
-                lock (Gate)
-                    _cancelOnEdit_DoNotAccessDirectly = value;
-            }
+            //set
+            //{
+            //    lock (Gate)
+            //        _cancelOnEdit_DoNotAccessDirectly = value;
+            //}
         }
 
         public bool CancelOnFocusLost
@@ -180,11 +180,11 @@ internal partial class WpfBackgroundWorkIndicatorFactory
                     return _cancelOnFocusLost_DoNotAccessDirectly;
             }
 
-            set
-            {
-                lock (Gate)
-                    _cancelOnFocusLost_DoNotAccessDirectly = value;
-            }
+            //set
+            //{
+            //    lock (Gate)
+            //        _cancelOnFocusLost_DoNotAccessDirectly = value;
+            //}
         }
 
         private ValueTask UpdateUIAsync(ImmutableSegmentedList<UIUpdateRequest> requests, CancellationToken cancellationToken)
@@ -296,5 +296,10 @@ internal partial class WpfBackgroundWorkIndicatorFactory
         string IUIThreadOperationContext.Description => BuildData().description;
 
         bool IUIThreadOperationContext.AllowCancellation => true;
+
+        public IDisposable SuppressAutoCancel()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

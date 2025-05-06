@@ -36,9 +36,6 @@ internal sealed class DefaultBackgroundWorkIndicatorFactory(
     {
         private readonly IUIThreadOperationContext _context = context;
 
-        public bool CancelOnEdit { get; set; }
-        public bool CancelOnFocusLost { get; set; }
-
         public IUIThreadOperationScope AddScope(bool allowCancellation, string description)
             => _context.AddScope(allowCancellation, description);
 
@@ -62,5 +59,10 @@ internal sealed class DefaultBackgroundWorkIndicatorFactory(
 
         public void Dispose()
             => _context.Dispose();
+
+        public IDisposable SuppressAutoCancel()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
