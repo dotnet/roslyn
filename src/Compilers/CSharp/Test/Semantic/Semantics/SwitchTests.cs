@@ -362,7 +362,7 @@ public class TestClass
         }
     }
 }";
-            CreateCompilation(text, parseOptions: TestOptions.Regular7_1).VerifyDiagnostics(
+            CreateCompilationWithNetStandard(text, parseOptions: TestOptions.Regular7_1).VerifyDiagnostics(
                 // (11,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //             case (default):
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(11, 19),

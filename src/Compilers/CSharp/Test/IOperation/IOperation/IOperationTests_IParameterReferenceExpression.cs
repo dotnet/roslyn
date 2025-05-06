@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class IOperationTests_IParameterReferenceExpression : SemanticModelTestBase
+    public class IOperationTests_IParameterReferenceExpression() : SemanticModelTestBase(TargetFramework.NetStandard20)
     {
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]

@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class IOperationTests_IObjectCreationExpression : SemanticModelTestBase
+    public class IOperationTests_IObjectCreationExpression() : SemanticModelTestBase(TargetFramework.NetStandard20)
     {
         private static readonly CSharpParseOptions ImplicitObjectCreationOptions = TestOptions.Regular9;
 

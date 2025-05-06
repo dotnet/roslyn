@@ -19,7 +19,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class CodeGen_DynamicTests : CSharpTestBase
+    public class CodeGen_DynamicTests() : CSharpTestBase(TargetFramework.StandardAndCSharp)
     {
         #region Helpers
 
@@ -581,7 +581,7 @@ public class C
         d.m(1,2,3);
     }
 }";
-            var verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
                 var c = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var containers = c.GetMembers().OfType<NamedTypeSymbol>().ToArray();
@@ -637,7 +637,7 @@ public class C
         var x = new System.Action(() => d.m());
     }
 }";
-            var verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
                 var c = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 Assert.Equal(2, c.GetMembers().OfType<NamedTypeSymbol>().Count());
@@ -672,7 +672,7 @@ public class C
         yield return d;        
     }
 }";
-            var verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
                 var c = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var iteratorClass = c.GetMember<NamedTypeSymbol>("<M1>d__0");
@@ -798,7 +798,7 @@ public class C
         return d(a, b);
     }
 }";
-            var verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
                 var container = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<NamedTypeSymbol>("<>o__0");
                 Assert.Equal(0, container.GetMembers().Single().GetAttributes().Length);
@@ -818,7 +818,7 @@ public class C
         return d(ref d);
     }
 }";
-            var verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
                 var d = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("<>F{00000040}");
 
@@ -1011,7 +1011,7 @@ class C
     }
 }
 ";
-            CompileAndVerifyWithCSharp(source);
+            CompileAndVerify(source);
         }
 
         [Fact]
@@ -1542,7 +1542,7 @@ public class C
         l3(d);
     }
 }";
-            CompileAndVerifyWithCSharp(src,
+            CompileAndVerify(src,
                 expectedOutput: "2024",
                 parseOptions: _localFunctionParseOptions).VerifyDiagnostics();
             CompileAndVerifyIL(src, "C.Main",
@@ -2278,7 +2278,7 @@ public class C
     }
 }";
             // TODO: Why does RefEmit use fat header with maxstack = 2?
-            var verifier = CompileAndVerifyWithCSharp(source, symbolValidator: module =>
+            var verifier = CompileAndVerify(source, symbolValidator: module =>
             {
                 var pe = (PEModuleSymbol)module;
 
@@ -2393,7 +2393,7 @@ class C
     }
 }
 ";
-            CompileAndVerifyWithCSharp(source, expectedOutput:
+            CompileAndVerify(source, expectedOutput:
 @"NullReferenceException
 Exception
 ArgumentException
@@ -5055,7 +5055,7 @@ class C
 1:t
 1:t";
 
-            CompileAndVerifyWithCSharp(source: source, expectedOutput: output);
+            CompileAndVerify(source: source, expectedOutput: output);
         }
 
         [Fact]
@@ -5157,7 +5157,7 @@ class C
 00011111-
 01111111";
 
-            CompileAndVerifyWithCSharp(source: source, expectedOutput: output);
+            CompileAndVerify(source: source, expectedOutput: output);
         }
 
         [Fact]
@@ -5187,7 +5187,7 @@ public class C
     }
 }
 ";
-            CompileAndVerifyWithCSharp(source, expectedOutput: "");
+            CompileAndVerify(source, expectedOutput: "");
         }
 
         [Fact]
@@ -6627,7 +6627,7 @@ public class A
   IL_0067:  ret
 }");
 
-            CompileAndVerifyWithCSharp(source,
+            CompileAndVerify(source,
                 expectedOutput: "The call is ambiguous between the following methods or properties: 'A.M(A)' and 'A.M(string)'");
         }
 
@@ -8119,7 +8119,7 @@ partial class C
     }
 }
 ";
-            CompileAndVerifyWithCSharp(source, expectedOutput: "2");
+            CompileAndVerify(source, expectedOutput: "2");
         }
 
         [Fact]
@@ -8783,7 +8783,7 @@ public class C
     public void m(ref object a, out object b) { b = null; }
 }
 ";
-            CompileAndVerifyWithCSharp(source, expectedOutput: "");
+            CompileAndVerify(source, expectedOutput: "");
         }
 
         /// <summary>
@@ -15336,11 +15336,11 @@ class Program
             return Task.FromResult(1);
     }
 }";
-            var comp = CreateCompilationWithCSharp(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"System.Threading.Tasks.Task`1[System.Int32]");
 
-            comp = CreateCompilationWithCSharp(source, options: TestOptions.DebugExe);
+            comp = CreateCompilation(source, options: TestOptions.DebugExe);
 
             CompileAndVerify(comp, expectedOutput: @"System.Threading.Tasks.Task`1[System.Int32]");
         }
@@ -15381,11 +15381,11 @@ class Program
             return Task.FromResult(1);
     }
 }";
-            var comp = CreateCompilationWithCSharp(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"System.Threading.Tasks.Task`1[System.Int32]");
 
-            comp = CreateCompilationWithCSharp(source, options: TestOptions.DebugExe);
+            comp = CreateCompilation(source, options: TestOptions.DebugExe);
 
             CompileAndVerify(comp, expectedOutput: @"System.Threading.Tasks.Task`1[System.Int32]");
         }
@@ -15876,7 +15876,7 @@ class Program
     }
 }";
             VerifyTypeIL(
-                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True", references: new[] { CSharpRef }),
+                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True"),
                 "Program",
                 @"
 .class private auto ansi beforefieldinit Program
@@ -15979,7 +15979,7 @@ class Program
     }
 }";
             VerifyTypeIL(
-                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True", references: new[] { CSharpRef }),
+                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True"),
                 "Program",
                 @"
 .class private auto ansi beforefieldinit Program
@@ -16105,7 +16105,7 @@ class Program
     }
 }";
             VerifyTypeIL(
-                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True", references: new[] { CSharpRef }),
+                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True"),
                 "Program",
                 @"
 .class private auto ansi beforefieldinit Program
@@ -16216,7 +16216,7 @@ class Program
     }
 }";
             VerifyTypeIL(
-                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True", references: new[] { CSharpRef }),
+                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True"),
                 "Program",
                 @"
 .class private auto ansi beforefieldinit Program
@@ -16333,7 +16333,7 @@ class Class<T1>
     }
 }";
             VerifyTypeIL(
-                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True", references: new[] { CSharpRef }),
+                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True"),
                 "Class`1",
                 @"
 .class private auto ansi beforefieldinit Class`1<T1>

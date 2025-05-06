@@ -978,7 +978,7 @@ struct S : IEnumerable
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "1").VerifyIL("Program.Main", @"
+            CompileAndVerifyWithNetStandard(source, expectedOutput: "1").VerifyIL("Program.Main", @"
 {
   // Code size       90 (0x5a)
   .maxstack  2

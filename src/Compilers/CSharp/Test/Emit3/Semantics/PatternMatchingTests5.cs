@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class PatternMatchingTests5 : PatternMatchingTestBase
+    public class PatternMatchingTests5() : PatternMatchingTestBase(TargetFramework.NetStandard20)
     {
         [Fact]
         public void ExtendedPropertyPatterns_01()

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void WinRtCompilationReferences()
         {
-            var ifaceDef = CreateCompilation(
+            var ifaceDef = CreateCompilationWithNetStandard(
 @"
 public interface ITest
 {
@@ -40,7 +40,7 @@ public interface ITest
 
             var wimpl = AssemblyMetadata.CreateFromImage(TestResources.WinRt.WImpl).GetReference(display: "WImpl");
 
-            var implDef2 = CreateCompilation(
+            var implDef2 = CreateCompilationWithNetStandard(
 @"
 public class C
 {
@@ -230,7 +230,7 @@ public delegate void D();
 public interface I {}
 ";
 
-            var libV1 = CreateCompilation(
+            var libV1 = CreateCompilationWithNetStandard(
                 sourceLibV1,
                 assemblyName: "Lib",
                 options: s_signedDll);
@@ -242,7 +242,7 @@ public delegate void D();
 public interface I {}
 ";
 
-            var libV2 = CreateCompilation(
+            var libV2 = CreateCompilationWithNetStandard(
                 sourceLibV2,
                 assemblyName: "Lib",
                 options: s_signedDll);
@@ -291,7 +291,7 @@ public class GenericClass<T>
 }
 ";
 
-            var refLibV1 = CreateCompilation(
+            var refLibV1 = CreateCompilationWithNetStandard(
                sourceRefLibV1,
                assemblyName: "RefLibV1",
                references: new[] { new CSharpCompilationReference(libV1) },
@@ -304,7 +304,7 @@ public class P : Q {}
 public class Q : S2 {} 
 ";
 
-            var x = CreateCompilation(
+            var x = CreateCompilationWithNetStandard(
                sourceX,
                assemblyName: "X",
                references: new[] { new CSharpCompilationReference(refLibV1), new CSharpCompilationReference(libV1) },
@@ -340,7 +340,7 @@ public class OKImpl : I
 {
 }
 ";
-            var main = CreateCompilation(
+            var main = CreateCompilationWithNetStandard(
                sourceMain,
                assemblyName: "Main",
                references: new[] { new CSharpCompilationReference(refLibV1), new CSharpCompilationReference(libV2), new CSharpCompilationReference(x) });

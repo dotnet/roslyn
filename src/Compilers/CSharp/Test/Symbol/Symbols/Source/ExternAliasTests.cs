@@ -34,7 +34,7 @@ namespace NS
     }
 }
 ";
-                    var comp = CreateCompilation(src, assemblyName: "Goo1", options: TestOptions.ReleaseDll);
+                    var comp = CreateCompilationWithNetLatest(src, assemblyName: "Goo1", options: TestOptions.ReleaseDll);
                     s_goo1 = comp.EmitToImageReference(aliases: ImmutableArray.Create("Bar"));
                 }
 
@@ -59,7 +59,7 @@ namespace NS
     }
 }
 ";
-                    var comp = CreateCompilation(src, assemblyName: "Goo2", options: TestOptions.ReleaseDll);
+                    var comp = CreateCompilationWithNetLatest(src, assemblyName: "Goo2", options: TestOptions.ReleaseDll);
                     s_goo2 = comp.EmitToImageReference(aliases: ImmutableArray.Create("Bar"));
                 }
 

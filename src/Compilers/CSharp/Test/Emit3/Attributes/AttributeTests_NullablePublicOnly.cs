@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class AttributeTests_NullablePublicOnly : CSharpTestBase
+    public class AttributeTests_NullablePublicOnly() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         [Fact]
         public void ExplicitAttribute_FromSource()

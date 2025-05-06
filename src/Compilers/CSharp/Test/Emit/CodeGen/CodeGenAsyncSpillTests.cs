@@ -14,12 +14,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class CodeGenAsyncSpillTests : EmitMetadataTestBase
+    public class CodeGenAsyncSpillTests() : EmitMetadataTestBase(TargetFramework.NetStandard20)
     {
-        public CodeGenAsyncSpillTests()
-        {
-        }
-
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
         {
             return base.CompileAndVerify(source, expectedOutput: expectedOutput, references: references, options: options);

@@ -1270,7 +1270,7 @@ Z";
 ";
             string expectedOutput = @"abc
 xyz";
-            CompileAndVerify(text, new[] { CSharpRef }, expectedOutput: expectedOutput);
+            CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
         [Fact]

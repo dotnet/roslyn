@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     [CompilerTrait(CompilerFeature.TupleEquality)]
-    public class CodeGenTupleEqualityTests : CSharpTestBase
+    public class CodeGenTupleEqualityTests() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         [Fact]
         public void TestCSharp7_2()

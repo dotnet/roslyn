@@ -877,7 +877,7 @@ class Test
     }
 }
 ";
-            var comp = CreateCompilationWithILAndMscorlib40(source, il,
+            var comp = CreateCompilationWithIL(source, il,
                 options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
                 targetFramework: TargetFramework.Standard,
                 references: new[] { CSharpRef });
@@ -911,7 +911,7 @@ class C : I
     void I.M(dynamic x) { }
 }
 ";
-            var comp = CreateCompilationWithILAndMscorlib40(source, il, targetFramework: TargetFramework.Standard);
+            var comp = CreateCompilationWithIL(source, il, targetFramework: TargetFramework.Standard);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;

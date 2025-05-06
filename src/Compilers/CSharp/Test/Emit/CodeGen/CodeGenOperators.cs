@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class CodeGenOperators : CSharpTestBase
+    public class CodeGenOperators() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         [Fact]
         public void TestIsNullPattern()

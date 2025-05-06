@@ -19,7 +19,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
 
-public class EditAndContinueDelegateCacheTests : EditAndContinueTestBase
+public class EditAndContinueDelegateCacheTests() : EditAndContinueTestBase(TargetFramework.NetStandard20)
 {
     [Fact]
     public void TargetChanged0()

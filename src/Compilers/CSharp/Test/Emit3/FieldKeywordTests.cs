@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class FieldKeywordTests : CSharpTestBase
+    public class FieldKeywordTests() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         private static TargetFramework GetTargetFramework(bool useInit) => useInit ? TargetFramework.Net80 : TargetFramework.Standard;
 

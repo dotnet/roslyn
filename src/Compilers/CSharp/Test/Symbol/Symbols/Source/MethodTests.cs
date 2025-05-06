@@ -354,7 +354,7 @@ public interface A {
   void M(ref A refp, out long outp) { }
 }
 ";
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilationWithNetStandard(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var m = a.GetMembers("M").Single() as MethodSymbol;

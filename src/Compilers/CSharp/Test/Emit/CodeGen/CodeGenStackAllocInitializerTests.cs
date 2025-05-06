@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.StackAllocInitializer)]
-    public class CodeGenStackAllocInitializerTests : CompilingTestBase
+    public class CodeGenStackAllocInitializerTests() : CompilingTestBase(TargetFramework.NetStandard20)
     {
         [Fact]
         [WorkItem(29092, "https://github.com/dotnet/roslyn/issues/29092")]
@@ -1695,7 +1695,7 @@ static unsafe class C
 ";
 
         private void Test(string pointerType, string il)
-            => CompileAndVerify(GetSource(pointerType),
+            => CompileAndVerifyWithNetStandard(GetSource(pointerType),
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3),
                 options: TestOptions.UnsafeReleaseExe,
                 verify: Verification.Fails,

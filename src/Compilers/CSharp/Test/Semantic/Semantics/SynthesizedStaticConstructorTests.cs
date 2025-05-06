@@ -285,7 +285,7 @@ class C
             Assert.True(IsBeforeFieldInit(typeSymbol));
         }
 
-        private static SourceNamedTypeSymbol CompileAndExtractTypeSymbol(string source)
+        private SourceNamedTypeSymbol CompileAndExtractTypeSymbol(string source)
         {
             var compilation = CreateCompilation(source);
             var typeSymbol = (SourceNamedTypeSymbol)compilation.GlobalNamespace.GetMembers("C").Single();

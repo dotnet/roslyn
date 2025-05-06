@@ -379,7 +379,7 @@ class Test
 }";
 
             // Child method is bad, so it binds to the parent
-            CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
+            CompileAndVerifyWithNetStandard(code, references: new[] { reference }, expectedOutput: @"
 Parent
 Parent",
                 symbolValidator: module =>
@@ -532,7 +532,7 @@ class Test
 }";
 
             // Child method is bad, so it binds to the parent
-            CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
+            CompileAndVerifyWithNetStandard(code, references: new[] { reference }, expectedOutput: @"
 Parent
 Parent",
                 symbolValidator: module =>

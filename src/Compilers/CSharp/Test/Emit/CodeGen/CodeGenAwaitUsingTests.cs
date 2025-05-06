@@ -3650,7 +3650,7 @@ namespace System.Threading.Tasks
     }
 }
 """;
-            var comp = CreateCompilationWithIL(source, ilSrc);
+            var comp = CreateCompilationWithILAndNetStandard(source, ilSrc);
             comp.VerifyEmitDiagnostics(
                 // (5,16): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
                 // internal class Class1 : IAsyncDisposable

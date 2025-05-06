@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class CodeGenAsyncMethodBuilderOverrideTests : EmitMetadataTestBase
+    public class CodeGenAsyncMethodBuilderOverrideTests() : EmitMetadataTestBase(TargetFramework.NetStandard20)
     {
         private const string AsyncMethodBuilderAttribute =
             "namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } } ";

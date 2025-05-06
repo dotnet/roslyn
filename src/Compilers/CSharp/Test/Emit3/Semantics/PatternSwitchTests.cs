@@ -1685,7 +1685,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilationWithNetStandard(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
                 // (21,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             case (int, int):

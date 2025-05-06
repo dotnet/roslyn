@@ -10,7 +10,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.IOperation)]
-    public class IOperationTests_IAttributeOperation : SemanticModelTestBase
+    public class IOperationTests_IAttributeOperation() : SemanticModelTestBase(TargetFramework.NetStandard20)
     {
         [Fact]
         public void TestCallerInfoImplicitCall()

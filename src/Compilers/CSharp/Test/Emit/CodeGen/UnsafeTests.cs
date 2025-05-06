@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class UnsafeTests : EmitMetadataTestBase
+    public class UnsafeTests() : EmitMetadataTestBase(TargetFramework.NetStandard20)
     {
         #region AddressOf tests
 
@@ -11803,7 +11803,7 @@ public unsafe class C
         }
     }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource, options: TestOptions.ReleaseExe);
 
             compilation.VerifyDiagnostics();
 

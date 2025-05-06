@@ -226,7 +226,7 @@ enum Enum
     EnumValue
 }
 ";
-            return CreateCompilation(source: new string[] { source });
+            return CreateCompilationWithNetLatest(source: new string[] { source });
         }
 
         private static void TestNameAndPredicate(CSharpCompilation compilation, string name, bool includeNamespace, bool includeType, bool includeMember, int count)

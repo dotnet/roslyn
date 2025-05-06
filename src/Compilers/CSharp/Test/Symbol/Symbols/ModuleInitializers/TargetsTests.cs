@@ -6,12 +6,13 @@
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.ModuleInitializers
 {
     [CompilerTrait(CompilerFeature.ModuleInitializers)]
-    public sealed class TargetsTests : CSharpTestBase
+    public sealed class TargetsTests() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         private static readonly CSharpParseOptions s_parseOptions = TestOptions.Regular9;
 

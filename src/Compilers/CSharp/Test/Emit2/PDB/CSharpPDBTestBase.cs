@@ -15,7 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
-    public class CSharpPDBTestBase : CSharpTestBase
+    public class CSharpPDBTestBase(TargetFramework? targetFramework = null) : CSharpTestBase(targetFramework)
     {
         public static void TestSequencePoints(string markup, CSharpCompilationOptions compilationOptions, CSharpParseOptions parseOptions = null, string methodName = "")
         {

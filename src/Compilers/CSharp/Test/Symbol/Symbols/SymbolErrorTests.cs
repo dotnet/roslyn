@@ -11972,7 +11972,7 @@ public class A4 : Attribute
         }
     }
 }";
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+            CreateCompilationWithNetStandard(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
                 // (70,32): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeHelpers.get_OffsetToStringData'
                 //             fixed (char* ptr = str)
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "str").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "get_OffsetToStringData"));
@@ -17853,7 +17853,7 @@ namespace System
             // TODO (tomat):
             // We should report a path to an assembly rather than the assembly name when reporting an error.
 
-            CreateCompilation(new SyntaxTree[] { Parse(text, "goo.cs") }).VerifyDiagnostics(
+            CreateCompilationWithNetStandard(new SyntaxTree[] { Parse(text, "goo.cs") }).VerifyDiagnostics(
                 // goo.cs(6,15): warning CS0436: The type 'System.Int32' in 'goo.cs' conflicts with the imported type 'int' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in 'goo.cs'.
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Int32").WithArguments("goo.cs", "System.Int32", RuntimeCorLibName.FullName, "int"),
                 // goo.cs(9,13): warning CS0436: The type 'System.Int32' in 'goo.cs' conflicts with the imported type 'int' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in 'goo.cs'.
@@ -17883,7 +17883,7 @@ namespace System
             // TODO (tomat):
             // We should report a path to an assembly rather than the assembly name when reporting an error.
 
-            CreateCompilation(new SyntaxTree[] { Parse(text, "goo.cs") }).VerifyDiagnostics(
+            CreateCompilationWithNetStandard(new SyntaxTree[] { Parse(text, "goo.cs") }).VerifyDiagnostics(
                 // goo.cs(11,17): warning CS0436: The type 'System.Object' in 'goo.cs' conflicts with the imported type 'object' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in 'goo.cs'.
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Object").WithArguments("goo.cs", "System.Object", RuntimeCorLibName.FullName, "object"));
         }
@@ -17941,7 +17941,7 @@ class System { }
 ";
 
             // NOTE: both mscorlib.dll and System.Core.dll define types in the System namespace.
-            var compilation = CreateCompilation(
+            var compilation = CreateCompilationWithNetStandard(
                 Parse(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)));
 
             compilation.VerifyDiagnostics(

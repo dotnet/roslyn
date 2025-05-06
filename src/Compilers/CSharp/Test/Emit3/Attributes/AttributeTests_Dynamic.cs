@@ -1084,7 +1084,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, references: new[] { CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var iterator = c.GetMember<NamedTypeSymbol>("<Goo>d__0");
@@ -1153,7 +1153,7 @@ class C
     }
 }";
 
-            CompileAndVerify(source, references: new[] { CSharpRef }, expectedSignatures: new[]
+            CompileAndVerify(source, expectedSignatures: new[]
             {
                 Signature(
                     "C+<>c",
@@ -1242,7 +1242,7 @@ class C
 {
     static dynamic[] P { get; set; }
 }";
-            CompileAndVerify(source, references: new[] { CSharpRef }, expectedSignatures: new[]
+            CompileAndVerify(source, expectedSignatures: new[]
             {
                 Signature(
                     "C",
@@ -1276,7 +1276,7 @@ class C
         F(new object[0]);
     }
 }";
-            CompileAndVerify(source, references: new[] { CSharpRef }, expectedSignatures: new[]
+            CompileAndVerify(source, expectedSignatures: new[]
             {
                 Signature(
                     "C+<>c__DisplayClass0_0",

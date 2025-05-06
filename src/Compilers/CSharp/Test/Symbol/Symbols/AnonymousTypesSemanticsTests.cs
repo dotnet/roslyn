@@ -636,7 +636,7 @@ IInvocationOperation (virtual System.Boolean System.Object.Equals(System.Object 
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.NetStandard20);
         }
 
         [Fact()]

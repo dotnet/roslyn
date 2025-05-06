@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
-public class FirstClassSpanTests : CSharpTestBase
+public class FirstClassSpanTests() : CSharpTestBase(TargetFramework.NetStandard20)
 {
     public static TheoryData<LanguageVersion> LangVersions()
     {

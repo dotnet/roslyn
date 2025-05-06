@@ -18,7 +18,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
-    public class PartialPropertiesTests : CSharpTestBase
+    public class PartialPropertiesTests() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         [Theory]
         [InlineData("partial int P { get; set; }")]

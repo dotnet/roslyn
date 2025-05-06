@@ -21,7 +21,7 @@ using Xunit.Sdk;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 
 [CompilerTrait(CompilerFeature.Extensions)]
-public class ExtensionTests : CompilingTestBase
+public class ExtensionTests() : CompilingTestBase(TargetFramework.NetStandard20)
 {
     private static string ExpectedOutput(string output)
     {
@@ -11397,7 +11397,7 @@ file {{eSrc}}
             //         _ = new object().Property;
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Property").WithArguments("object", "Property").WithLocation(6, 26));
 
-        static void verify(CSharpTestSource src, params DiagnosticDescription[] expected)
+        void verify(CSharpTestSource src, params DiagnosticDescription[] expected)
         {
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(expected);

@@ -544,7 +544,7 @@ partial class Test
 }
 ";
 
-            CompileAndVerify(text, parseOptions: TestOptions.Regular10).VerifyIL("Test.Main", @"
+            CompileAndVerifyWithNetStandard(text, parseOptions: TestOptions.Regular10).VerifyIL("Test.Main", @"
 {
   // Code size       36 (0x24)
   .maxstack  2

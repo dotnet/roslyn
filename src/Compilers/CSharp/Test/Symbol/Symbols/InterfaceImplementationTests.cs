@@ -2477,7 +2477,7 @@ class OneToOneUnicodeComparer : StringComparer
 
 }
 ";
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilationWithNetStandard(text);
 
             comp.VerifyDiagnostics(
                 // (7,15): warning CS8597: Thrown value may be null.

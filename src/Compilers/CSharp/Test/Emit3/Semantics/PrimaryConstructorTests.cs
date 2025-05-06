@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     using static PrimaryConstructorTests.TestFlags;
 
-    public class PrimaryConstructorTests : CompilingTestBase
+    public class PrimaryConstructorTests() : CompilingTestBase(TargetFramework.NetStandard20)
     {
         [Flags]
         public enum TestFlags
@@ -7779,7 +7779,7 @@ class Attr1 : System.Attribute
             AssertParameterScope(keyword, shadow, isRecord, flags, source);
         }
 
-        private static void AssertParameterScope(string keyword, bool shadow, bool isRecord, TestFlags flags, string source)
+        private void AssertParameterScope(string keyword, bool shadow, bool isRecord, TestFlags flags, string source)
         {
             bool isCaptured = !shadow && (flags & TestFlags.Captured) != 0;
 

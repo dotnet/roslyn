@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     [CompilerTrait(CompilerFeature.Patterns)]
-    public class ITuplePatternTests : EmitMetadataTestBase
+    public class ITuplePatternTests() : EmitMetadataTestBase(TargetFramework.NetStandard20)
     {
         protected CSharpCompilation CreatePatternCompilation(string source, CSharpCompilationOptions options = null)
         {

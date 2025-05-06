@@ -7,12 +7,13 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.IOperation)]
-    public class IOperationTests_IConstructorBodyOperation : SemanticModelTestBase
+    public class IOperationTests_IConstructorBodyOperation() : SemanticModelTestBase(TargetFramework.NetStandard20)
     {
         [Fact]
         public void ConstructorBody_01()

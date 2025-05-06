@@ -71,9 +71,6 @@ public class PatternMatchingTests_NullableTypes : PatternMatchingTestBase
             // (12,32): error CS8985: List patterns may not be used for a value of type 'int'. No suitable 'Length' or 'Count' property was found.
             //         if (obj is int? i4 and []) { }
             Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[]").WithArguments("int").WithLocation(12, 32),
-            // (12,32): error CS0518: Predefined type 'System.Index' is not defined or imported
-            //         if (obj is int? i4 and []) { }
-            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[]").WithArguments("System.Index").WithLocation(12, 32),
             // (12,32): error CS0021: Cannot apply indexing with [] to an expression of type 'int'
             //         if (obj is int? i4 and []) { }
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "[]").WithArguments("int").WithLocation(12, 32));
@@ -136,10 +133,8 @@ public class PatternMatchingTests_NullableTypes : PatternMatchingTestBase
             Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(1, 2)").WithArguments("int[]", "2").WithLocation(11, 34),
             // (12,20): error CS8116: It is not legal to use nullable type 'int[]?' in a pattern; use the underlying type 'int[]' instead.
             //         if (obj is int[]? i4 and []) { }
-            Diagnostic(ErrorCode.ERR_PatternNullableType, "int[]?").WithArguments("int[]").WithLocation(12, 20),
-            // (12,34): error CS0518: Predefined type 'System.Index' is not defined or imported
-            //         if (obj is int[]? i4 and []) { }
-            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[]").WithArguments("System.Index").WithLocation(12, 34));
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "int[]?").WithArguments("int[]").WithLocation(12, 20)
+            );
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]

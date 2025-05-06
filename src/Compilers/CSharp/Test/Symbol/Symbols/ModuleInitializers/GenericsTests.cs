@@ -29,7 +29,7 @@ class C
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
+            var compilation = CreateCompilationWithNetStandard(source, parseOptions: s_parseOptions);
             compilation.VerifyEmitDiagnostics(
                 // (6,6): error CS8798: Module initializer method 'M' must not be generic and must not be contained in a generic type
                 //     [ModuleInitializer]
@@ -48,10 +48,8 @@ class C<T>
     [ModuleInitializer]
     internal static void M() { }
 }
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
+            var compilation = CreateCompilationWithNetCoreApp(source, parseOptions: s_parseOptions);
             compilation.VerifyEmitDiagnostics(
                 // (6,6): error CS8798: Module initializer method 'M' must not be generic and must not be contained in a generic type
                 //     [ModuleInitializer]
@@ -70,10 +68,8 @@ class C<T>
     [ModuleInitializer]
     internal static void M<U>() { }
 }
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
+            var compilation = CreateCompilationWithNetCoreApp(source, parseOptions: s_parseOptions);
             compilation.VerifyEmitDiagnostics(
                 // (6,6): error CS8816: Module initializer method 'M' must not be generic and must not be contained in a generic type
                 //     [ModuleInitializer]
@@ -95,10 +91,8 @@ class C<T>
         internal static void M() { }
     }
 }
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
+            var compilation = CreateCompilationWithNetCoreApp(source, parseOptions: s_parseOptions);
             compilation.VerifyEmitDiagnostics(
                 // (8,10): error CS8798: Module initializer method 'M' must not be generic and must not be contained in a generic type
                 //         [ModuleInitializer]

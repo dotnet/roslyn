@@ -18,7 +18,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.RefLifetime)]
-    public class RefFieldTests : CSharpTestBase
+    public class RefFieldTests() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         internal static string IncludeExpectedOutput(string expectedOutput) => ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null;
 

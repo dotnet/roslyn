@@ -7469,7 +7469,7 @@ public static class Extensions
 {
     public static C.Enumerator2 GetAsyncEnumerator(this C self) => throw null;
 }";
-            CreateCompilationWithCSharp(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9)
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (9,33): error CS8416: Cannot use a collection of dynamic type in an asynchronous foreach
                     //         await foreach (var i in (dynamic)new C())

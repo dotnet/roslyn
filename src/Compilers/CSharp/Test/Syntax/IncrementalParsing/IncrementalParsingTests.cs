@@ -3323,7 +3323,7 @@ class Program
 
             var text2 = @"        Console.WriteLine(""\'\0\a\b\";
 
-            var comp = CSharpTestBase.CreateCompilation(SyntaxFactory.ParseSyntaxTree(String.Empty));
+            var comp = base.CreateCompilation(SyntaxFactory.ParseSyntaxTree(String.Empty));
 
             var oldTree = comp.SyntaxTrees.First();
             var oldIText = oldTree.GetText();

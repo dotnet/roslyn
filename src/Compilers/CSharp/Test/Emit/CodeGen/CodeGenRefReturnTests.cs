@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class RefReturnTests : CompilingTestBase
+    public class RefReturnTests() : CompilingTestBase(TargetFramework.NetStandard20)
     {
         private CompilationVerifier CompileAndVerifyRef(
             string source,

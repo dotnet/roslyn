@@ -17,7 +17,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.RefLifetime)]
-    public class RefStructInterfacesTests : CSharpTestBase
+    public class RefStructInterfacesTests() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         private static readonly TargetFramework s_targetFrameworkSupportingByRefLikeGenerics = TargetFramework.Net90;
 

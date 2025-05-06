@@ -1194,7 +1194,7 @@ public class C
         /// Are the metadata-only assemblies identical with two source code modifications?
         /// Metadata-only assemblies can either include private/internal members or not.
         /// </summary>
-        private static void CompareAssemblies(string sourceTemplate, string change1, string change2, Match expectedMatch, bool includePrivateMembers)
+        private void CompareAssemblies(string sourceTemplate, string change1, string change2, Match expectedMatch, bool includePrivateMembers)
         {
             bool expectMatch = includePrivateMembers ?
                 expectedMatch == Match.BothMetadataAndRefOut :
@@ -1881,7 +1881,7 @@ comp => comp.VerifyDiagnostics(
             }
         }
 
-        private static void VerifyRefAssemblyClient(string lib_cs, string source, Action<CSharpCompilation> validator, EmitOptions emitOptions)
+        private void VerifyRefAssemblyClient(string lib_cs, string source, Action<CSharpCompilation> validator, EmitOptions emitOptions)
         {
             string name = GetUniqueName();
             var libComp = CreateCompilation(lib_cs,
@@ -5413,7 +5413,7 @@ class C4
         return d(ref o, 2);
     }
 }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.ReleaseDll, references: new[] { CSharpRef });
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.ReleaseDll);
             var bytes = compilation.EmitToArray();
             using (var metadata = ModuleMetadata.CreateFromImage(bytes))
             {

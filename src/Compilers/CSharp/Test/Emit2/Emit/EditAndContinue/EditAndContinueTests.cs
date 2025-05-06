@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     /// <summary>
     /// Tip: debug EncVariableSlotAllocator.TryGetPreviousClosure or other TryGet methods to figure out missing markers in your test.
     /// </summary>
-    public class EditAndContinueTests : EditAndContinueTestBase
+    public class EditAndContinueTests() : EditAndContinueTestBase(TargetFramework.NetStandard20)
     {
         private static IEnumerable<string> DumpTypeRefs(MetadataReader[] readers)
         {

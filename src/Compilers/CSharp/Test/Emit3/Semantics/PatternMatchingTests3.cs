@@ -1605,7 +1605,7 @@ IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 
   ExpressionBody: 
     null
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithNetStandard(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(expectedDiagnostics);
             var tree = compilation.SyntaxTrees.Single();
             var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
@@ -1915,7 +1915,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilationWithNetStandard(source);
             compilation.VerifyDiagnostics(
                 // (8,13): error CS0163: Control cannot fall through from one case label ('case (string str, int[] arr) _:') to another
                 //             case (string str, int[] arr) _:
@@ -3275,9 +3275,8 @@ System.Object
 System.Object
 System.Int64
 ";
-            var compilation = CreateCompilation(source + _iTupleSource, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
-            compilation.VerifyDiagnostics(
-                );
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+            compilation.VerifyDiagnostics();
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -3363,9 +3362,8 @@ Base
 Base
 Base
 ";
-            var compilation = CreateCompilation(source + _iTupleSource, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
-            compilation.VerifyDiagnostics(
-                );
+            var compilation = CreateCompilationWithNetStandard(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+            compilation.VerifyDiagnostics();
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 

@@ -2493,7 +2493,7 @@ class C
         }
     }
 }";
-            var comp = CompileAndVerify(src, expectedOutput: "TryCatchS1Finally");
+            var comp = CompileAndVerifyWithNetStandard(src, expectedOutput: "TryCatchS1Finally");
             comp.VerifyIL("C.Main", @"
 {
   // Code size       95 (0x5f)

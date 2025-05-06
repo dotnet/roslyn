@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class IndexAndRangeTests : CompilingTestBase
+    public class IndexAndRangeTests() : CompilingTestBase(TargetFramework.NetStandard20)
     {
         private const string RangeCtorSignature = "System.Range..ctor(System.Index start, System.Index end)";
         private const string RangeStartAtSignature = "System.Range System.Range.StartAt(System.Index start)";

@@ -821,7 +821,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilationWithNetStandard(text, parseOptions: TestOptions.Regular);
 
             // S1
             NamedTypeSymbol namedType = comp.GetTypeByMetadataName("Program+S1");
@@ -906,7 +906,7 @@ class Program
             Assert.False(iNamedType.IsReadOnly);
 
             // S1 from image
-            var clientComp = CreateCompilation("", references: new[] { comp.EmitToImageReference() });
+            var clientComp = CreateCompilationWithNetStandard("", references: new[] { comp.EmitToImageReference() });
             NamedTypeSymbol s1 = clientComp.GetTypeByMetadataName("Program+S1");
             Assert.True(s1.IsReadOnly);
             Assert.Empty(s1.GetAttributes());
@@ -1336,7 +1336,7 @@ public struct S
     public static int P5 { get; set; }
 }
 ";
-            CompileAndVerify(csharp, symbolValidator: validate);
+            CompileAndVerifyWithNetStandard(csharp, symbolValidator: validate);
 
             void validate(ModuleSymbol module)
             {
@@ -1408,7 +1408,7 @@ public struct S
     public readonly ref readonly int P4 { get => ref i; }
 }
 ";
-            CompileAndVerify(csharp, symbolValidator: validate);
+            CompileAndVerifyWithNetStandard(csharp, symbolValidator: validate);
 
             void validate(ModuleSymbol module)
             {
@@ -1474,7 +1474,7 @@ public readonly struct S
     public static int P5 { get; set; }
 }
 ";
-            CompileAndVerify(csharp, symbolValidator: validate);
+            CompileAndVerifyWithNetStandard(csharp, symbolValidator: validate);
 
             void validate(ModuleSymbol module)
             {
@@ -2592,7 +2592,7 @@ public struct S
     public readonly event System.Action E { add { } remove { } }
 }
 ";
-            CompileAndVerify(csharp, symbolValidator: validate).VerifyDiagnostics();
+            CompileAndVerifyWithNetStandard(csharp, symbolValidator: validate).VerifyDiagnostics();
 
             void validate(ModuleSymbol module)
             {

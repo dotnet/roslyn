@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string assemblyName = "Test") =>
             CreateCompilation(
                 source,
-                references,
+                references: references,
                 targetFramework: TargetFramework.Mscorlib40,
                 options: (options ?? TestOptions.ReleaseDll).WithXmlReferenceResolver(XmlFileResolver.Default),
                 parseOptions: TestOptions.RegularWithDocumentationComments,

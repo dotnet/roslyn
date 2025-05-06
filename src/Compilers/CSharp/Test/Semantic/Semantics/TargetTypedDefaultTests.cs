@@ -10,11 +10,12 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using System.Linq;
 using Xunit;
 using Roslyn.Test.Utilities;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     [CompilerTrait(CompilerFeature.DefaultLiteral)]
-    public class DefaultLiteralTests : CompilingTestBase
+    public class DefaultLiteralTests() : CompilingTestBase(TargetFramework.NetStandard20)
     {
         [Fact, WorkItem(30384, "https://github.com/dotnet/roslyn/issues/30384")]
         public void TestCSharp7()

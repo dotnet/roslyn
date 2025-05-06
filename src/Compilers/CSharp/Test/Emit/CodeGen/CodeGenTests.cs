@@ -19,7 +19,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class CodeGenTests : CSharpTestBase
+    public class CodeGenTests() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         [Fact]
         public void EmitWithSuppressedWarnAsError()
@@ -531,7 +531,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib461, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilationWithIL(source, il, TargetFramework.Mscorlib461, options: TestOptions.ReleaseDll);
             var result = CompileAndVerify(compilation);
 
             result.VerifyIL("C.A", @"
@@ -605,7 +605,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib461, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithIL(source, il, TargetFramework.Mscorlib461, options: TestOptions.DebugDll);
             var result = CompileAndVerify(compilation);
 
             result.VerifyIL("C.A",
@@ -864,7 +864,7 @@ class Clazz
     }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib461, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithIL(source, il, TargetFramework.Mscorlib461, options: TestOptions.ReleaseExe);
             var result = CompileAndVerify(compilation, expectedOutput: "Struct1 Struct2 ");
 
             result.VerifyIL("Clazz.Main", @"

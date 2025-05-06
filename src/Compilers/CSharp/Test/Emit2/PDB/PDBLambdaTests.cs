@@ -13,7 +13,7 @@ using static Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests.EditAndCont
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
-    public class PDBLambdaTests : CSharpPDBTestBase
+    public class PDBLambdaTests() : CSharpPDBTestBase(TargetFramework.NetStandard20)
     {
         [WorkItem(539898, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539898")]
         [Fact]

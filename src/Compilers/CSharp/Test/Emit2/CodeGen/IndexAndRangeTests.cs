@@ -4412,7 +4412,7 @@ class Buffer10
     }
 }
 """;
-            var comp = CreateCompilation(new[] { source, IndexWithSideEffects });
+            var comp = CreateCompilationWithNetStandard(new[] { source, IndexWithSideEffects });
             var verifier = CompileAndVerify(comp, expectedOutput: "++ Length Index=7 X=42 Index=7 Y=43 Index=7 Z=44", verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
         }
@@ -4455,7 +4455,7 @@ class Buffer10Container
     }
 }
 """;
-            var comp = CreateCompilation(new[] { source, IndexWithSideEffects });
+            var comp = CreateCompilationWithNetStandard(new[] { source, IndexWithSideEffects });
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped,
                 expectedOutput: "++ ContainerLength ++ ContainerIndex=0 Length ContainerIndex=0 Index=2 X=42 ContainerIndex=0 Index=2 Y=43 " +
                     "++ ContainerLength ++ ContainerIndex=1 Length ContainerIndex=1 Index=3 X=101 ContainerIndex=1 Index=3 Y=102");

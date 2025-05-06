@@ -968,11 +968,11 @@ class C1<T>
 
                 var ilRef = CompileIL(ilSource);
 
-                var originalComp = CreateCompilation($@"
+                var originalComp = CreateCompilationWithNetStandard($@"
 unsafe class Source : Il
 {{
     public override {mOverriddenSignature} M() => throw null;
-}}", new[] { retargeted1Ref, consistentRef, ilRef }, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Standard);
+}}", new[] { retargeted1Ref, consistentRef, ilRef }, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9);
 
                 originalComp.VerifyDiagnostics();
 

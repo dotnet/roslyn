@@ -1400,7 +1400,7 @@ public class C
             VerifyMissingMember(_enumerator, WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator);
 
             // Since MakeTypeMissing doesn't fully simulate a type being absent (it only makes it disappear from GetWellKnownType), we specially verify missing IAsyncEnumerable<T> since it appears in source
-            var comp1 = CreateCompilation(_enumerable);
+            var comp1 = CreateCompilationWithNetStandard(_enumerable);
             comp1.VerifyDiagnostics(
                 // (5,38): error CS0234: The type or namespace name 'IAsyncEnumerable<>' does not exist in the namespace 'System.Collections.Generic' (are you missing an assembly reference?)
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M() { await Task.CompletedTask; yield return 3; }
@@ -1408,7 +1408,7 @@ public class C
                 );
 
             // Also verify on local functions
-            var comp2 = CreateCompilation(@"
+            var comp2 = CreateCompilationWithNetStandard(@"
 using System.Threading.Tasks;
 class C
 {
@@ -1426,7 +1426,7 @@ class C
                 );
 
             // And missing IAsyncEnumerator<T>
-            var comp3 = CreateCompilation(_enumerator);
+            var comp3 = CreateCompilationWithNetStandard(_enumerator);
             comp3.VerifyDiagnostics(
                 // (5,38): error CS0234: The type or namespace name 'IAsyncEnumerator<>' does not exist in the namespace 'System.Collections.Generic' (are you missing an assembly reference?)
                 //     async System.Collections.Generic.IAsyncEnumerator<int> M() { await Task.CompletedTask; yield return 3; }

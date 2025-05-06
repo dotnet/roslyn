@@ -456,7 +456,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            var compilation = CreateCompilationWithNetStandard(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "456").VerifyDiagnostics();
         }
 
@@ -495,7 +495,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            var compilation = CreateCompilationWithNetStandard(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "<default-arg>").VerifyDiagnostics();
         }
 
@@ -2294,7 +2294,7 @@ class Program
         typeof(Program).GetCustomAttribute(typeof(MyAttribute));
     }
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, il, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            var compilation = CreateCompilationWithIL(source, il, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "'3', '0'").VerifyDiagnostics();
             var arguments = compilation.GetTypeByMetadataName("Program").GetAttributes().Single().CommonConstructorArguments;
             Assert.Equal(2, arguments.Length);
@@ -5843,7 +5843,7 @@ void M(int i, [CallerArgumentExpression(""i"")] in string s = ""default value"")
         public string ParameterName { get; }
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilationWithNetStandard(source);
             comp.VerifyDiagnostics(
                 // (5,51): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
                 //         public CallerArgumentExpressionAttribute([CallerArgumentExpression(nameof(parameterName))] string parameterName)
@@ -5938,7 +5938,7 @@ void M(int i, [CallerArgumentExpression(""i"")] in string s = ""default value"")
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(source, expectedOutput: "0", symbolValidator: verify);
+            var verifier = CompileAndVerifyWithNetStandard(source, expectedOutput: "0", symbolValidator: verify);
             verifier.VerifyDiagnostics(
                 // (27,29): warning CS8963: The CallerArgumentExpressionAttribute applied to parameter 'argumentExpression' will have no effect. It is applied with an invalid parameter name.
                 //     public int this[int x, [CallerArgumentExpression("value")] string argumentExpression = "0"]

@@ -25,7 +25,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
-    public class NumericIntPtrTests : CSharpTestBase
+    public class NumericIntPtrTests() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         private static string IncludeExpectedOutput(string expectedOutput) => ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null;
 

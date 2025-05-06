@@ -17,10 +17,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols;
 
 [CompilerTrait(CompilerFeature.RequiredMembers)]
-public class RequiredMembersTests : CSharpTestBase
+public class RequiredMembersTests() : CSharpTestBase(TargetFramework.NetStandard20)
 {
-    private static CSharpCompilation CreateCompilationWithRequiredMembers(CSharpTestSource source, IEnumerable<MetadataReference>? references = null, CSharpParseOptions? parseOptions = null, CSharpCompilationOptions? options = null, string? assemblyName = null, TargetFramework targetFramework = TargetFramework.Standard)
-        => CreateCompilation(new[] { source, RequiredMemberAttribute, SetsRequiredMembersAttribute, CompilerFeatureRequiredAttribute }, references, options: options, parseOptions: parseOptions, assemblyName: assemblyName, targetFramework: targetFramework);
+    private CSharpCompilation CreateCompilationWithRequiredMembers(CSharpTestSource source, IEnumerable<MetadataReference>? references = null, CSharpParseOptions? parseOptions = null, CSharpCompilationOptions? options = null, string? assemblyName = null)
+        => CreateCompilation(new[] { source, RequiredMemberAttribute, SetsRequiredMembersAttribute, CompilerFeatureRequiredAttribute }, references, options: options, parseOptions: parseOptions, assemblyName: assemblyName);
 
     private static Action<ModuleSymbol> ValidateRequiredMembersInModule(string[] memberPaths, string expectedAttributeLayout)
     {
@@ -2200,7 +2200,7 @@ public class Base
 }
 ";
 
-        var baseComp = CreateCompilationWithRequiredMembers(@base, new[] { originalC.ToMetadataReference() }, targetFramework: TargetFramework.Standard);
+        var baseComp = CreateCompilationWithRequiredMembers(@base, new[] { originalC.ToMetadataReference() });
 
         var retargetedC = CreateCompilation(new AssemblyIdentity("Ret", new Version(2, 0, 0, 0), isRetargetable: true), retargetedCode, TargetFrameworkUtil.StandardReferences);
 
@@ -2250,7 +2250,7 @@ public class Base
 ";
 
         var originalCRef = originalC.ToMetadataReference();
-        var baseComp = CreateCompilationWithRequiredMembers(@base, new[] { originalCRef }, targetFramework: TargetFramework.Standard);
+        var baseComp = CreateCompilationWithRequiredMembers(@base, new[] { originalCRef });
 
         var derived = @"
 using System.Diagnostics.CodeAnalysis;
@@ -2295,7 +2295,7 @@ public class Base
 }
 ";
 
-        var baseComp = CreateCompilationWithRequiredMembers(@base, new[] { originalC.ToMetadataReference() }, targetFramework: TargetFramework.Standard);
+        var baseComp = CreateCompilationWithRequiredMembers(@base, new[] { originalC.ToMetadataReference() });
 
         var retargetedC = CreateCompilation(new AssemblyIdentity("Ret", new Version(2, 0, 0, 0), isRetargetable: true), retargetedCode, TargetFrameworkUtil.StandardReferences);
 
@@ -2554,7 +2554,7 @@ public class Base
 }
 ";
 
-        var baseComp = CreateCompilationWithRequiredMembers(@base, new[] { originalC.ToMetadataReference() }, targetFramework: TargetFramework.Standard);
+        var baseComp = CreateCompilationWithRequiredMembers(@base, new[] { originalC.ToMetadataReference() });
         var retargetedC = CreateCompilation(new AssemblyIdentity("Ret", new Version(2, 0, 0, 0), isRetargetable: true), retargetedCode, TargetFrameworkUtil.StandardReferences);
 
         var code = @"
@@ -2585,7 +2585,7 @@ public class Base
 }
 ";
 
-        var baseComp = CreateCompilationWithRequiredMembers(@base, new[] { originalC.ToMetadataReference() }, targetFramework: TargetFramework.Standard);
+        var baseComp = CreateCompilationWithRequiredMembers(@base, new[] { originalC.ToMetadataReference() });
         var retargetedC = CreateCompilation(new AssemblyIdentity("Ret", new Version(2, 0, 0, 0), isRetargetable: true), retargetedCode, TargetFrameworkUtil.StandardReferences);
 
         var code = @"

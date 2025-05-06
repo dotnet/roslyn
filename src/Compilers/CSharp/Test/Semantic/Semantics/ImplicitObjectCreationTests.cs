@@ -14,13 +14,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
-    public class ImplicitObjectCreationTests : CSharpTestBase
+    public class ImplicitObjectCreationTests() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         private static readonly CSharpParseOptions ImplicitObjectCreationTestOptions = TestOptions.Regular9;
 
-        private static CSharpCompilation CreateCompilation(string source, CSharpCompilationOptions options = null, IEnumerable<MetadataReference> references = null)
+        private CSharpCompilation CreateCompilation(string source, CSharpCompilationOptions options = null, IEnumerable<MetadataReference> references = null)
         {
-            return CSharpTestBase.CreateCompilation(source, options: options, parseOptions: ImplicitObjectCreationTestOptions, references: references);
+            return base.CreateCompilation(source, options: options, parseOptions: ImplicitObjectCreationTestOptions, references: references);
         }
 
         [Fact]

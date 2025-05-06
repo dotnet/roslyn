@@ -2290,10 +2290,10 @@ D.M").VerifyDiagnostics(); // No errors
         /// </summary>
         private static CSharpCompilation CreateCompilationWithMscorlibAndReference(string libSource, string exeSource)
         {
-            var libComp = CreateCompilation(libSource, options: TestOptions.ReleaseDll, assemblyName: "OtherAssembly");
+            var libComp = CreateCompilation(libSource, TargetFramework.Mscorlib40, options: TestOptions.ReleaseDll, assemblyName: "OtherAssembly");
             libComp.VerifyDiagnostics();
 
-            var exeComp = CreateCompilation(exeSource, options: TestOptions.ReleaseExe, references: new[] { new CSharpCompilationReference(libComp) });
+            var exeComp = CreateCompilation(exeSource, TargetFramework.Mscorlib40, options: TestOptions.ReleaseExe, references: new[] { new CSharpCompilationReference(libComp) });
             exeComp.VerifyDiagnostics();
 
             return exeComp;

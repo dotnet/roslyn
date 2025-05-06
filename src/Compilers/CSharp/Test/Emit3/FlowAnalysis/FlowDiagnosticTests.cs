@@ -2212,7 +2212,7 @@ public class Test
         long lp2 = (long)uz;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilationWithNetStandard(source).VerifyDiagnostics();
         }
 
         [Fact]

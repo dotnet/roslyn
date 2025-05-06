@@ -23,7 +23,7 @@ using static Microsoft.CodeAnalysis.CSharp.UnitTests.FunctionPointerUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class CodeGenFunctionPointersTests : CSharpTestBase
+    public class CodeGenFunctionPointersTests() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         private CompilationVerifier CompileAndVerifyFunctionPointers(
                 CSharpTestSource sources,

@@ -20,7 +20,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class UsedAssembliesTests : CSharpTestBase
+    public class UsedAssembliesTests() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         [Fact]
         public void NoReferences_01()
@@ -265,7 +265,7 @@ public class C2
             return AssertUsedAssemblyReferences(source, references, references);
         }
 
-        private static void AssertUsedAssemblyReferences(string source, MetadataReference[] references, params DiagnosticDescription[] expected)
+        private void AssertUsedAssemblyReferences(string source, MetadataReference[] references, params DiagnosticDescription[] expected)
         {
             Compilation comp = CreateCompilation(source, references: references);
 
@@ -2312,7 +2312,7 @@ public class C2
 ",
                 "N1.C1");
 
-            static void verify1(MetadataReference reference, string source, params DiagnosticDescription[] expected)
+            void verify1(MetadataReference reference, string source, params DiagnosticDescription[] expected)
             {
                 Compilation comp = CreateCompilation(source, references: new[] { reference });
 

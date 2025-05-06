@@ -1443,12 +1443,12 @@ ulong.MinValue --> 0";
             Assert.Equal(expected, actual);
         }
 
-        private static string ParseAndGetConstantFoldingSteps(string source)
+        private string ParseAndGetConstantFoldingSteps(string source)
         {
             return ParseAndGetConstantFoldingSteps(source, node => node.Kind != BoundKind.Literal && node.Kind != BoundKind.Local);
         }
 
-        private static string ParseAndGetConstantFoldingSteps(string source, Func<BoundNode, bool> predicate)
+        private string ParseAndGetConstantFoldingSteps(string source, Func<BoundNode, bool> predicate)
         {
             var block = ParseAndBindMethodBody(source);
             var constants = BoundTreeSequencer.GetNodes(block).
@@ -3247,7 +3247,7 @@ enum E{0}
         }
 
         [Fact, WorkItem(544941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544941")]
-        public static void ConstantNullNotObject()
+        public void ConstantNullNotObject()
         {
             var source =
 @"class MyTest { }
@@ -3265,7 +3265,7 @@ class MyClass
         }
 
         [Fact, WorkItem(1098197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098197")]
-        public static void Bug1098197_01_WithCSharp6()
+        public void Bug1098197_01_WithCSharp6()
         {
             var source =
 @"
@@ -3297,7 +3297,7 @@ class Program
         }
 
         [Fact]
-        public static void DoubleRecursiveConst()
+        public void DoubleRecursiveConst()
         {
             var source =
 @"using System;
@@ -3316,7 +3316,7 @@ class C
         }
 
         [Fact]
-        public static void DoubleRecursiveConst_NotInvoked()
+        public void DoubleRecursiveConst_NotInvoked()
         {
             var source =
 @"using System;
@@ -3335,7 +3335,7 @@ class C
         }
 
         [Fact]
-        public static void RecursiveConst()
+        public void RecursiveConst()
         {
             var source =
 @"class C
@@ -3353,7 +3353,7 @@ class C
         }
 
         [Fact, WorkItem(1098197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098197")]
-        public static void Bug1098197_02()
+        public void Bug1098197_02()
         {
             var source =
 @"
@@ -3376,7 +3376,7 @@ void f() { if () const int i = 0; }
         }
 
         [Fact, WorkItem(1098605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098605")]
-        public static void Bug1098605_01()
+        public void Bug1098605_01()
         {
             var source =
 @"

@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class GotoTests : EmitMetadataTestBase
+    public class GotoTests() : EmitMetadataTestBase(TargetFramework.NetStandard20)
     {
         [Fact]
         public void Goto()

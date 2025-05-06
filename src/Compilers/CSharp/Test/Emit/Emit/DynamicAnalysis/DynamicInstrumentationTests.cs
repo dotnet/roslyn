@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.Test.Utilities.CSharpInstrumentationChecker;
 
@@ -3646,6 +3647,7 @@ static void Test()
                 options: (options ?? TestOptions.ReleaseExe).WithDeterministic(true),
                 parseOptions: parseOptions,
                 emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)),
+                targetFramework: TargetFramework.NetStandard20,
                 verify: verify);
         }
 

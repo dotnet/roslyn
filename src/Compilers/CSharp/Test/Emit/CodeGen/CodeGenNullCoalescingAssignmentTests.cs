@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     [CompilerTrait(CompilerFeature.NullCoalescingAssignment)]
-    public class CodeGenNullCoalescingAssignmentTests : CompilingTestBase
+    public class CodeGenNullCoalescingAssignmentTests() : CompilingTestBase(TargetFramework.NetStandard20)
     {
         [Fact]
         public void LocalLvalue()

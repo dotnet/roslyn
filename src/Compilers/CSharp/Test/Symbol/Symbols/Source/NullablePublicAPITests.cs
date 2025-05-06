@@ -1024,7 +1024,7 @@ class C
             AssertEx.Equal(expectedAnnotations, actualAnnotations);
         }
 
-        private static void VerifyAcrossCompilations<T>(string source,
+        private void VerifyAcrossCompilations<T>(string source,
                                                  DiagnosticDescription[] nullableEnabledErrors,
                                                  DiagnosticDescription[] nullableDisabledErrors,
                                                  Func<CSharpCompilation, T[]> memberFunc,

@@ -27,7 +27,7 @@ using static TestResources.NetFX.ValueTuple;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     [CompilerTrait(CompilerFeature.Tuples)]
-    public class CodeGenTupleTests : CSharpTestBase
+    public class CodeGenTupleTests() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         private static readonly MetadataReference[] s_valueTupleRefs = new[] { SystemRuntimeFacadeRef, ValueTupleRef };
 
@@ -923,7 +923,7 @@ val: -2
       IL_0001:  ret
     } // end of method C::AllNullNamesMethod
 } // end of class C
-", targetFramework: TargetFramework.Mscorlib40, references: s_valueTupleRefs);
+", references: s_valueTupleRefs);
 
             var c = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
@@ -21291,7 +21291,7 @@ public class C : Base2
     public override (int notA, int notB) M() { return (1, 2); }
 }";
 
-            var compMatching = CreateCompilationWithILAndMscorlib40(sourceWithMatchingNames, ilSource,
+            var compMatching = CreateCompilationWithIL(sourceWithMatchingNames, ilSource,
                 targetFramework: TargetFramework.Mscorlib46Extended,
                 options: TestOptions.DebugDll);
 
@@ -21303,7 +21303,7 @@ public class C : Base2
     public override (int a, int b) M() { return (1, 2); }
 }";
 
-            var compDifferent1 = CreateCompilationWithILAndMscorlib40(sourceWithDifferentNames1, ilSource,
+            var compDifferent1 = CreateCompilationWithIL(sourceWithDifferentNames1, ilSource,
                 targetFramework: TargetFramework.Mscorlib46Extended,
                 options: TestOptions.DebugDll);
 
@@ -21319,7 +21319,7 @@ public class C : Base2
     public override (int, int) M() { return (1, 2); }
 }";
 
-            var compDifferent2 = CreateCompilationWithILAndMscorlib40(sourceWithDifferentNames2, ilSource,
+            var compDifferent2 = CreateCompilationWithIL(sourceWithDifferentNames2, ilSource,
                 targetFramework: TargetFramework.Mscorlib46Extended,
                 options: TestOptions.DebugDll);
 
@@ -22702,7 +22702,7 @@ class Program
         }
 
         [Fact, WorkItem(13705, "https://github.com/dotnet/roslyn/issues/13705")]
-        public static void TupleCoVariance()
+        public void TupleCoVariance()
         {
             var source = @"
 public interface I<out T>
@@ -22719,7 +22719,7 @@ public interface I<out T>
         }
 
         [Fact, WorkItem(13705, "https://github.com/dotnet/roslyn/issues/13705")]
-        public static void TupleCoVariance2()
+        public void TupleCoVariance2()
         {
             var source = @"
 public interface I<out T>
@@ -22736,7 +22736,7 @@ public interface I<out T>
         }
 
         [Fact, WorkItem(13705, "https://github.com/dotnet/roslyn/issues/13705")]
-        public static void TupleContraVariance()
+        public void TupleContraVariance()
         {
             var source = @"
 public interface I<in T>
@@ -23385,7 +23385,7 @@ class C
         }
 
         [Fact]
-        public static void OperatorOverloadingWithDifferentTupleNames()
+        public void OperatorOverloadingWithDifferentTupleNames()
         {
             var source = @"
 public class B1

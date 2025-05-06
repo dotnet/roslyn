@@ -3547,7 +3547,7 @@ class C
             var source =
 @"using System;
 class C { }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilationWithNetStandard(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -3568,7 +3568,7 @@ class C { }";
             var source =
 @"using System;
 class C { }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilationWithNetStandard(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -3762,7 +3762,7 @@ class Derived : Test
             CheckLambdaArgumentInBadCall(source);
         }
 
-        private static void CheckLambdaArgumentInBadCall(string source)
+        private void CheckLambdaArgumentInBadCall(string source)
         {
             var comp = (Compilation)CreateCompilation(source);
 
