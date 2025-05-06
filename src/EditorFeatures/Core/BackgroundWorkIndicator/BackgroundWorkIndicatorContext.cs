@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -17,13 +18,13 @@ internal partial class WpfBackgroundWorkIndicatorFactory
     /// <summary>
     /// Implementation of an <see cref="IUIThreadOperationContext"/> for the background work indicator.
     /// </summary>
-    private sealed class BackgroundWorkIndicatorContext : IBackgroundWorkIndicatorContext
+    private sealed partial class BackgroundWorkIndicatorContext : IBackgroundWorkIndicatorContext
     {
         /// <summary>
         /// Lock controlling mutation of all data in this indicator, or in any sub-scopes. Any read/write of mutable
         /// data must be protected by this.
         /// </summary>
-        public readonly object Gate = new();
+        public readonly object ContextAndScopeMutationGate = new();
 
         private readonly IBackgroundWorkIndicator _backgroundWorkIndicator;
         private readonly string _firstDescription;
@@ -32,7 +33,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
         /// Set of scopes we have.  We always start with one (the one created by the initial call to create the work
         /// indicator). However, the client of the background indicator can add more.
         /// </summary>
-        private ImmutableArray<BackgroundWorkIndicatorScope> _scopes = [];
+        private ImmutableArray<BackgroundWorkIndicatorScope> _scopes;
 
         public PropertyCollection Properties { get; } = new();
 
@@ -55,6 +56,9 @@ internal partial class WpfBackgroundWorkIndicatorFactory
                 });
 
             _firstDescription = firstDescription;
+
+            // Add a single scope representing the how the UI should look initially.
+            AddScope(allowCancellation: true, firstDescription);
         }
 
         public void Dispose()
@@ -69,7 +73,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
 
         public IUIThreadOperationScope AddScope(bool allowCancellation, string description)
         {
-            lock (this.Gate)
+            lock (this.ContextAndScopeMutationGate)
             {
                 var scope = new BackgroundWorkIndicatorScope(this, _backgroundWorkIndicator.AddScope(description), description);
                 _scopes = _scopes.Add(scope);
@@ -77,41 +81,52 @@ internal partial class WpfBackgroundWorkIndicatorFactory
             }
         }
 
-        public void RemoveScope(BackgroundWorkIndicatorScope scope)
+        private void RemoveScopeAndReportTotalProgress(BackgroundWorkIndicatorScope scope)
         {
-            lock (this.Gate)
+            lock (this.ContextAndScopeMutationGate)
             {
                 Contract.ThrowIfFalse(_scopes.Contains(scope));
                 _scopes = _scopes.Remove(scope);
             }
+
+            ReportTotalProgress();
         }
 
-        private (string description, ProgressInfo progressInfo) BuildData()
+        private void ReportTotalProgress()
         {
-            lock (Gate)
+            // Lightup the UI if it supports IProgress
+            if (_backgroundWorkIndicator is IProgress<ProgressInfo> underlyingProgress)
+                underlyingProgress.Report(GetTotalProgress());
+
+            ProgressInfo GetTotalProgress()
             {
-                var description = _firstDescription;
-                var progressInfo = new ProgressInfo();
-
-                foreach (var scope in _scopes)
+                lock (ContextAndScopeMutationGate)
                 {
-                    var scopeData = scope.ReadData_MustBeCalledUnderLock();
+                    var progressInfo = new ProgressInfo();
 
-                    // use the description of the last scope if we have one.  We don't have enough room to show all
-                    // the descriptions at once.
-                    description = scopeData.description;
+                    foreach (var scope in _scopes)
+                    {
+                        var scopeProgressInfo = scope.ProgressInfo_OnlyAccessUnderLock;
+                        progressInfo = new ProgressInfo(
+                            progressInfo.CompletedItems + scopeProgressInfo.CompletedItems,
+                            progressInfo.TotalItems + scopeProgressInfo.TotalItems);
+                    }
 
-                    var scopeProgressInfo = scopeData.progressInfo;
-                    progressInfo = new ProgressInfo(
-                        progressInfo.CompletedItems + scopeProgressInfo.CompletedItems,
-                        progressInfo.TotalItems + scopeProgressInfo.TotalItems);
+                    return progressInfo;
                 }
-
-                return (description, progressInfo);
             }
         }
 
-        string IUIThreadOperationContext.Description => BuildData().description;
+        string IUIThreadOperationContext.Description
+        {
+            get
+            {
+                // use the description of the last scope if we have one.  We don't have enough room to show all
+                // the descriptions at once.
+                lock (this.ContextAndScopeMutationGate)
+                    return _scopes.LastOrDefault()?.Description ?? _firstDescription;
+            }
+        }
 
         bool IUIThreadOperationContext.AllowCancellation => true;
 

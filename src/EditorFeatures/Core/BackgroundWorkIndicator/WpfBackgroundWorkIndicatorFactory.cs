@@ -41,12 +41,7 @@ internal sealed partial class WpfBackgroundWorkIndicatorFactory(
         // If we have an outstanding context in flight, cancel it and create a new one to show the user.
         _currentContext?.Dispose();
 
-        // Create the indicator in its default/empty state.
         _currentContext = new BackgroundWorkIndicatorContext(this, textView, applicableToSpan, description, cancelOnEdit, cancelOnFocusLost);
-
-        // Then add a single scope representing the how the UI should look initially.
-        _currentContext.AddScope(allowCancellation: true, description);
-
         return _currentContext;
     }
 

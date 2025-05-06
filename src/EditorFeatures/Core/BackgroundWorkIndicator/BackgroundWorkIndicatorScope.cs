@@ -3,87 +3,92 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Threading;
+using System.Runtime.Remoting.Contexts;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 
 internal partial class WpfBackgroundWorkIndicatorFactory
 {
-    /// <summary>
-    /// Implementation of an <see cref="IUIThreadOperationScope"/> for the background work indicator. Allows for
-    /// features to create nested work with descriptions/progress that will update the all-up indicator tool-tip
-    /// shown to the user.
-    /// </summary>
-    private sealed class BackgroundWorkIndicatorScope(
-        BackgroundWorkIndicatorContext indicator,
-        BackgroundWorkOperationScope scope,
-        string initialDescription) : IUIThreadOperationScope, IProgress<ProgressInfo>
+    private sealed partial class BackgroundWorkIndicatorContext
     {
-        private readonly BackgroundWorkIndicatorContext _context = indicator;
-        private readonly BackgroundWorkOperationScope _scope = scope;
-
-        // Mutable state of this scope.  Can be mutated by a client, at which point we'll ask our owning context to
-        // update the tooltip accordingly.
-
-        private string _currentDescription = initialDescription;
-        private ProgressInfo _progressInfo;
-
-        public IUIThreadOperationContext Context => _context;
-        public IProgress<ProgressInfo> Progress => this;
-
         /// <summary>
-        /// Retrieves a threadsafe snapshot of our data for our owning context to use to build the tooltip ui.
+        /// Implementation of an <see cref="IUIThreadOperationScope"/> for the background work indicator. Allows for
+        /// features to create nested work with descriptions/progress that will update the all-up indicator tool-tip
+        /// shown to the user.
         /// </summary>
-        public (string description, ProgressInfo progressInfo) ReadData_MustBeCalledUnderLock()
+        private sealed class BackgroundWorkIndicatorScope(
+            BackgroundWorkIndicatorContext indicator,
+            BackgroundWorkOperationScope scope,
+            string initialDescription) : IUIThreadOperationScope, IProgress<ProgressInfo>
         {
-            Contract.ThrowIfFalse(Monitor.IsEntered(_context.Gate));
-            return (_currentDescription, _progressInfo);
-        }
+            private readonly BackgroundWorkIndicatorContext _context = indicator;
+            private readonly BackgroundWorkOperationScope _scope = scope;
 
-        /// <summary>
-        /// On disposal, just remove ourselves from our parent context.  It will update the UI accordingly.
-        /// </summary>
-        void IDisposable.Dispose()
-        {
-            _context.RemoveScope(this);
-            _scope.Dispose();
-        }
+            // Mutable state of this scope.  Can be mutated by a client, at which point we'll ask our owning context to
+            // update the tooltip accordingly.
 
-        bool IUIThreadOperationScope.AllowCancellation
-        {
-            get => true;
-            set { }
-        }
+            private string _currentDescription = initialDescription;
+            public ProgressInfo ProgressInfo_OnlyAccessUnderLock;
 
-        string IUIThreadOperationScope.Description
-        {
-            get
+            public IUIThreadOperationContext Context => _context;
+            public IProgress<ProgressInfo> Progress => this;
+
+            void IDisposable.Dispose()
             {
-                lock (_context.Gate)
-                    return _currentDescription;
+                // Clear out the underlying platform scope.
+                _scope.Dispose();
+
+                // Remove ourselves from our parent context as well. And ensure that any progress showing is updated accordingly.
+                _context.RemoveScopeAndReportTotalProgress(this);
             }
-            set
+
+            bool IUIThreadOperationScope.AllowCancellation
             {
-                lock (_context.Gate)
+                get => true;
+                set { }
+            }
+
+            public string Description
+            {
+                get
                 {
-                    _currentDescription = value;
+                    lock (_context.ContextAndScopeMutationGate)
+                        return _currentDescription;
+                }
+                set
+                {
+                    lock (_context.ContextAndScopeMutationGate)
+                    {
+                        // Nothing to do if the actual value didn't change.
+                        if (value == _currentDescription)
+                            return;
+
+                        _currentDescription = value;
+                    }
+
+                    // Pass through the description to the underlying scope to update the UI.
+                    _scope.Description = value;
+                }
+            }
+
+            void IProgress<ProgressInfo>.Report(ProgressInfo value)
+            {
+                lock (_context.ContextAndScopeMutationGate)
+                {
+                    // Nothing to do if the actual value didn't change.
+                    if (value.TotalItems == ProgressInfo_OnlyAccessUnderLock.TotalItems &&
+                        value.CompletedItems == ProgressInfo_OnlyAccessUnderLock.CompletedItems)
+                    {
+                        return;
+                    }
+
+                    ProgressInfo_OnlyAccessUnderLock = value;
                 }
 
-                _scope.Description = value;
+                // Now update the UI with the total progress so far of all the scopes.
+                _context.ReportTotalProgress();
             }
-        }
-
-        void IProgress<ProgressInfo>.Report(ProgressInfo value)
-        {
-            lock (_context.Gate)
-            {
-                _progressInfo = value;
-            }
-
-            // Lightup the UI if it supports IProgress
-            if (_scope is IProgress<ProgressInfo> underlyingProgress)
-                underlyingProgress.Report(value);
         }
     }
 }
