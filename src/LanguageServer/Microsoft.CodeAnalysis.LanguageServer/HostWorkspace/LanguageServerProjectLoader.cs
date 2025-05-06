@@ -146,7 +146,7 @@ internal abstract class LanguageServerProjectLoader
     }
 
     protected abstract Task<(RemoteProjectFile? projectFile, BuildHostProcessKind preferred, BuildHostProcessKind actual)> TryLoadProjectAsync(
-        BuildHostProcessManager buildHostProcessManager, ProjectToLoad projectToLoad, CancellationToken cancellationToken);
+        BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken);
 
     /// <returns>True if the project needs a NuGet restore, false otherwise.</returns>
     private async Task<bool> LoadOrReloadProjectAsync(ProjectToLoad projectToLoad, ToastErrorReporter toastErrorReporter, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
@@ -157,7 +157,7 @@ internal abstract class LanguageServerProjectLoader
 
         try
         {
-            var (loadedFile, preferredBuildHostKind, actualBuildHostKind) = await TryLoadProjectAsync(buildHostProcessManager, projectToLoad, cancellationToken);
+            var (loadedFile, preferredBuildHostKind, actualBuildHostKind) = await TryLoadProjectAsync(buildHostProcessManager, projectPath, cancellationToken);
             if (preferredBuildHostKind != actualBuildHostKind)
                 preferredBuildHostKindThatWeDidNotGet = preferredBuildHostKind;
 
@@ -191,6 +191,8 @@ internal abstract class LanguageServerProjectLoader
             Dictionary<ProjectFileInfo, ProjectLoadTelemetryReporter.TelemetryInfo> telemetryInfos = [];
             var needsRestore = false;
 
+            // We want to remove projects for targets that don't exist anymore; if we update projects we'll remove them from  
+            // this list -- what's left we can then remove.
             HashSet<LoadedProject> projectsToRemove = [.. existingProjects];
             foreach (var loadedProjectInfo in loadedProjectInfos)
             {
@@ -219,24 +221,22 @@ internal abstract class LanguageServerProjectLoader
                 }
             }
 
-            using var newProjects = TemporaryArray<LoadedProject>.Empty;
-            foreach (var project in existingProjects)
+            if (projectsToRemove.Any())
             {
-                if (projectsToRemove.Contains(project))
+                foreach (var project in existingProjects)
                 {
-                    project.Dispose();
+                    if (projectsToRemove.Contains(project))
+                    {
+                        project.Dispose();
+                    }
                 }
-                else
-                {
-                    newProjects.Add(project);
-                }
-            }
 
-            _loadedProjects.AddOrUpdate(projectPath,
-                // We expect the key always continues to be present in the dictionary during this operation.
-                addValueFactory: (_, _) => throw new InvalidOperationException(),
-                updateValueFactory: static (_, _, newProjects) => newProjects,
-                factoryArgument: newProjects.ToImmutableAndClear());
+                _loadedProjects.AddOrUpdate(projectPath,
+                    // We expect the key always continues to be present in the dictionary during this operation.
+                    addValueFactory: (_, _) => throw new InvalidOperationException(),
+                    updateValueFactory: static (_, existingProjects, projectsToRemove) => existingProjects.RemoveRange(projectsToRemove),
+                    factoryArgument: projectsToRemove);
+            }
 
             if (projectToLoad.ReportTelemetry)
             {

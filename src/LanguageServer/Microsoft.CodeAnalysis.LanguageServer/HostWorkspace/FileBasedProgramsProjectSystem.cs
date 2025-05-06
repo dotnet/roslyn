@@ -141,11 +141,10 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     }
 
     protected override async Task<(RemoteProjectFile? projectFile, BuildHostProcessKind preferred, BuildHostProcessKind actual)> TryLoadProjectAsync(
-        BuildHostProcessManager buildHostProcessManager, ProjectToLoad projectToLoad, CancellationToken cancellationToken)
+        BuildHostProcessManager buildHostProcessManager, string documentPath, CancellationToken cancellationToken)
     {
         const BuildHostProcessKind buildHostKind = BuildHostProcessKind.NetCore;
         var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, cancellationToken);
-        var documentPath = projectToLoad.Path;
         Contract.ThrowIfFalse(Path.GetExtension(documentPath) == ".cs");
 
         var fakeProjectPath = VirtualProject.GetVirtualProjectPath(documentPath);

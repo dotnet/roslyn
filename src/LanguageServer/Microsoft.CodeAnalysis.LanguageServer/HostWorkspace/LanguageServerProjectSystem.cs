@@ -99,9 +99,8 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
     }
 
     protected override async Task<(RemoteProjectFile? projectFile, BuildHostProcessKind preferred, BuildHostProcessKind actual)> TryLoadProjectAsync(
-            BuildHostProcessManager buildHostProcessManager, ProjectToLoad projectToLoad, CancellationToken cancellationToken)
+            BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken)
     {
-        var projectPath = projectToLoad.Path;
         var preferredBuildHostKind = GetKindForProject(projectPath);
         var (buildHost, actualBuildHostKind) = await buildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, projectPath, cancellationToken);
 
