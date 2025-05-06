@@ -38,7 +38,7 @@ internal sealed partial class WpfBackgroundWorkIndicatorFactory(
         _threadingContext.ThrowIfNotOnUIThread();
 
         // If we have an outstanding context in flight, cancel it and create a new one to show the user.
-        _currentContext?.Dispose();
+        _currentContext?.CancelAndDispose();
 
         _currentContext = new BackgroundWorkIndicatorContext(this, textView, applicableToSpan, description, cancelOnEdit, cancelOnFocusLost);
         return _currentContext;

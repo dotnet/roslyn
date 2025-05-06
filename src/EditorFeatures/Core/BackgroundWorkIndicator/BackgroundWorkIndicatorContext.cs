@@ -26,6 +26,8 @@ internal partial class WpfBackgroundWorkIndicatorFactory
         /// </summary>
         public readonly object ContextAndScopeDataMutationGate = new();
 
+        private readonly CancellationTokenSource _cancellationTokenSource;
+
         private readonly WpfBackgroundWorkIndicatorFactory _factory;
         private readonly string _firstDescription;
 
@@ -39,7 +41,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
 
         public PropertyCollection Properties { get; } = new();
 
-        public CancellationToken UserCancellationToken => _backgroundWorkIndicator.CancellationToken;
+        public CancellationToken UserCancellationToken => _cancellationTokenSource.Token;
         public IEnumerable<IUIThreadOperationScope> Scopes => _scopes;
 
         public BackgroundWorkIndicatorContext(
@@ -60,8 +62,19 @@ internal partial class WpfBackgroundWorkIndicatorFactory
                     CancelOnFocusLost = cancelOnFocusLost,
                 });
 
+            // Create a linked token around both the underlying indicator token (which triggers if edits/navigation
+            // cause it to be dismissed), and so we can explicitly cancel (if another feature attempts to open a new
+            // background work indicator).
+            _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_backgroundWorkIndicator.CancellationToken);
+
             // Add a single scope representing the how the UI should look initially.
             AddScope(allowCancellation: true, firstDescription);
+        }
+
+        public void CancelAndDispose()
+        {
+            _cancellationTokenSource.Cancel();
+            this.Dispose();
         }
 
         public void Dispose()
