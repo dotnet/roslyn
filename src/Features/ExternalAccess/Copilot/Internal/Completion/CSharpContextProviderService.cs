@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.Completion;
 
 [Export(typeof(ICSharpCopilotContextProviderService)), Shared]
 [method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: false)]
 internal sealed class CSharpContextProviderService([ImportMany] IEnumerable<IContextProvider> providers)
     : ICSharpCopilotContextProviderService
 {
@@ -25,15 +26,23 @@ internal sealed class CSharpContextProviderService([ImportMany] IEnumerable<ICon
         => ProducerConsumer<IContextItem>.RunParallelStreamAsync(
             _providers,
             static async (provider, callback, args, cancellationToken) =>
-                await provider.ProvideContextItemsAsync(
-                    args.document, args.position, args.activeExperiments,
-                    (items, cancellationToken) =>
-                    {
-                        foreach (var item in items)
-                            callback(item);
+            {
+                try
+                {
+                    await provider.ProvideContextItemsAsync(
+                        args.document, args.position, args.activeExperiments,
+                        (items, cancellationToken) =>
+                        {
+                            foreach (var item in items)
+                                callback(item);
 
-                        return default;
-                    }, cancellationToken).ConfigureAwait(false),
+                            return default;
+                        }, cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception exception) when (FatalError.ReportAndCatchUnlessCanceled(exception, ErrorSeverity.General))
+                { 
+                }
+            },
             args: (document, position, activeExperiments),
             cancellationToken);
 }
