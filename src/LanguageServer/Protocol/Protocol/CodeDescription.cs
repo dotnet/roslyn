@@ -21,7 +21,7 @@ internal sealed class CodeDescription : IEquatable<CodeDescription>
     /// </summary>
     [JsonPropertyName("href")]
     [JsonConverter(typeof(DocumentUriConverter))]
-    public Uri Href
+    public DocumentUri Href
     {
         get;
         set;

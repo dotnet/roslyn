@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ImplementInterface;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.ImplementType;
@@ -25,6 +26,19 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed class ImplementInterfaceTests
 {
     private readonly NamingStylesTestOptionSets _options = new(LanguageNames.CSharp);
+
+    private const string CompilerFeatureRequiredAttribute = """
+
+        namespace System.Runtime.CompilerServices
+        {
+            public sealed class CompilerFeatureRequiredAttribute : Attribute
+            {
+                public CompilerFeatureRequiredAttribute(string featureName)
+                {
+                }
+            }
+        }
+        """;
 
     private static OptionsCollection AllOptionsOff
         => new(LanguageNames.CSharp)
@@ -11198,6 +11212,74 @@ interface I
         }.RunAsync();
     }
 
+    [Theory, CombinatorialData]
+    public async Task TestInstanceIncrementOperator_ImplementExplicitly([CombinatorialValues("++", "--")] string op)
+    {
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = $$$"""
+                interface ITest
+                {
+                    abstract void operator {{{op}}}();
+                }
+                class C : {|CS0535:ITest|}
+                {
+                }
+                """ + CompilerFeatureRequiredAttribute,
+            FixedCode = $$$"""
+                interface ITest
+                {
+                    abstract void operator {{{op}}}();
+                }
+                class C : ITest
+                {
+                    void ITest.operator {{{op}}}()
+                    {
+                        throw new System.NotImplementedException();
+                    }
+                }
+                """ + CompilerFeatureRequiredAttribute,
+            CodeActionVerifier = (codeAction, verifier) => verifier.Equal(CodeFixesResources.Implement_all_members_explicitly, codeAction.Title),
+            CodeActionIndex = 1,
+        }.RunAsync();
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestInstanceCompoundAssignmentOperator_ImplementExplicitly([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+    {
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = $$"""
+                interface ITest
+                {
+                    abstract void operator {{op}}(int y);
+                }
+                class C : {|CS0535:ITest|}
+                {
+                }
+                """ + CompilerFeatureRequiredAttribute,
+            FixedCode = $$"""
+                interface ITest
+                {
+                    abstract void operator {{op}}(int y);
+                }
+                class C : ITest
+                {
+                    void ITest.operator {{op}}(int y)
+                    {
+                        throw new System.NotImplementedException();
+                    }
+                }
+                """ + CompilerFeatureRequiredAttribute,
+            CodeActionVerifier = (codeAction, verifier) => verifier.Equal(CodeFixesResources.Implement_all_members_explicitly, codeAction.Title),
+            CodeActionIndex = 1,
+        }.RunAsync();
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53927")]
     public async Task TestStaticAbstractInterfaceOperator_ImplementImplicitly()
     {
@@ -11268,6 +11350,78 @@ interface I
             }
             """,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(CodeFixesResources.Implement_interface, codeAction.Title),
+        }.RunAsync();
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public async Task TestInstanceIncrementOperator_ImplementImplicitly([CombinatorialValues("++", "--")] string op)
+    {
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = $$"""
+            interface ITest<T> where T : ITest<T>
+            {
+                void operator {{op}}();
+            }
+            class C : {|CS0535:ITest<C>|}
+            {
+            }
+            """ + CompilerFeatureRequiredAttribute,
+            FixedCode = $$"""
+            interface ITest<T> where T : ITest<T>
+            {
+                void operator {{op}}();
+            }
+            class C : ITest<C>
+            {
+                public void operator {{op}}()
+                {
+                    throw new System.NotImplementedException();
+                }
+            }
+            """ + CompilerFeatureRequiredAttribute,
+            CodeActionVerifier = (codeAction, verifier) => verifier.Equal(CodeFixesResources.Implement_interface, codeAction.Title),
+            CodeActionEquivalenceKey = "False;False;True:global::ITest<global::C>;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
+            CodeActionIndex = 0,
+        }.RunAsync();
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public async Task TestInstanceCompoundAssignmentOperator_ImplementImplicitly([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+    {
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = $$"""
+            interface ITest<T> where T : ITest<T>
+            {
+                void operator {{op}}(int y);
+            }
+            class C : {|CS0535:ITest<C>|}
+            {
+            }
+            """ + CompilerFeatureRequiredAttribute,
+            FixedCode = $$"""
+            interface ITest<T> where T : ITest<T>
+            {
+                void operator {{op}}(int y);
+            }
+            class C : ITest<C>
+            {
+                public void operator {{op}}(int y)
+                {
+                    throw new System.NotImplementedException();
+                }
+            }
+            """ + CompilerFeatureRequiredAttribute,
+            CodeActionVerifier = (codeAction, verifier) => verifier.Equal(CodeFixesResources.Implement_interface, codeAction.Title),
+            CodeActionEquivalenceKey = "False;False;True:global::ITest<global::C>;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
+            CodeActionIndex = 0,
         }.RunAsync();
     }
 
@@ -12242,5 +12396,92 @@ interface I
                 public int Prop1 { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
             }
             """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78281")]
+    public async Task TestImplementInstanceAssignmentOperator1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                interface I1
+                {
+                   void operator ++();
+
+                   void operator -=(I1 i);
+                }
+
+                class C1 : {|CS0535:{|CS0535:I1|}|}
+                {
+                }
+                """,
+            FixedCode = """
+                interface I1
+                {
+                   void operator ++();
+                
+                   void operator -=(I1 i);
+                }
+                
+                class C1 : I1
+                {
+                    public void operator -=(I1 i)
+                    {
+                        throw new System.NotImplementedException();
+                    }
+                
+                    public void operator ++()
+                    {
+                        throw new System.NotImplementedException();
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78281")]
+    public async Task TestImplementInstanceAssignmentOperator2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                interface I1
+                {
+                   void operator ++();
+
+                   void operator -=(I1 i);
+                }
+
+                class C1 : {|CS0535:{|CS0535:I1|}|}
+                {
+                }
+                """,
+            FixedCode = """
+                interface I1
+                {
+                   void operator ++();
+                
+                   void operator -=(I1 i);
+                }
+                
+                class C1 : I1
+                {
+                    void I1.operator -=(I1 i)
+                    {
+                        throw new System.NotImplementedException();
+                    }
+                
+                    void I1.operator ++()
+                    {
+                        throw new System.NotImplementedException();
+                    }
+                }
+                """,
+            CodeActionIndex = 1,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
     }
 }

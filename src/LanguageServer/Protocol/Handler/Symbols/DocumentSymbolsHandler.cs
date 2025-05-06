@@ -95,7 +95,7 @@ internal sealed class DocumentSymbolsHandler : ILspServiceDocumentRequestHandler
         var kind = ProtocolConversions.GlyphToSymbolKind(item.Glyph);
         var location = new LSP.Location()
         {
-            Uri = document.GetURI(),
+            DocumentUri = document.GetURI(),
             Range = ProtocolConversions.TextSpanToRange(symbolItem.Location.InDocumentInfo.Value.navigationSpan, text),
         };
 

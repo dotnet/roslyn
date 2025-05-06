@@ -6,6 +6,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
@@ -19,6 +20,6 @@ internal interface ILspMiscellaneousFilesWorkspaceProvider : ILspService
     /// Adds a document to the workspace. Note that the implementation of this method should not depend on anything expensive such as RPC calls.
     /// async is used here to allow taking locks asynchronously and "relatively fast" stuff like that.
     /// </summary>
-    Task<TextDocument?> AddMiscellaneousDocumentAsync(Uri uri, SourceText documentText, string languageId, ILspLogger logger);
-    void TryRemoveMiscellaneousDocument(Uri uri, bool removeFromMetadataWorkspace);
+    Task<TextDocument?> AddMiscellaneousDocumentAsync(DocumentUri uri, SourceText documentText, string languageId, ILspLogger logger);
+    void TryRemoveMiscellaneousDocument(DocumentUri uri, bool removeFromMetadataWorkspace);
 }

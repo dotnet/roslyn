@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.OperatorMemberCref);
                 {
                     N(SyntaxKind.OperatorKeyword);
-                    M(SyntaxKind.PlusToken);
+                    N(SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken);
                 }
                 EOF();
             }
@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void UnqualifiedOperatorMember2()
         {
-            UsingNode("operator +(A)");
+            UsingNode("operator +(A)", TestOptions.RegularWithDocumentationComments);
 
             N(SyntaxKind.OperatorMemberCref);
             {
@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void UnqualifiedOperatorMember2_Checked()
         {
-            UsingNode("operator checked +(A)");
+            UsingNode("operator checked +(A)", TestOptions.RegularWithDocumentationComments);
 
             N(SyntaxKind.OperatorMemberCref);
             {
@@ -529,6 +529,444 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
             }
             EOF();
+        }
+
+        [Theory]
+        [InlineData("+=", SyntaxKind.PlusEqualsToken)]
+        [InlineData("-=", SyntaxKind.MinusEqualsToken)]
+        [InlineData("*=", SyntaxKind.AsteriskEqualsToken)]
+        [InlineData("/=", SyntaxKind.SlashEqualsToken)]
+        [InlineData("%=", SyntaxKind.PercentEqualsToken)]
+        [InlineData("&amp;=", SyntaxKind.AmpersandEqualsToken)]
+        [InlineData("|=", SyntaxKind.BarEqualsToken)]
+        [InlineData("^=", SyntaxKind.CaretEqualsToken)]
+        [InlineData("&lt;&lt;=", SyntaxKind.LessThanLessThanEqualsToken)]
+        [InlineData("}}=", SyntaxKind.GreaterThanGreaterThanEqualsToken)]
+        [InlineData("}}}=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
+        public void CompoundAssignment_01(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingNode("operator " + op, options.WithDocumentationMode(DocumentationMode.Diagnose),
+                    options == TestOptions.Regular13 ?
+                        [
+                            // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator %='
+                            // /// <see cref="operator %="/>
+                            Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator " + op).WithArguments("operator " + op).WithLocation(1, 16),
+                            // (1,25): warning CS1658: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
+                            // /// <see cref="operator %="/>
+                            Diagnostic(ErrorCode.WRN_ErrorOverride, op).WithArguments("The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(1, 25)
+                        ] :
+                        []);
+
+                N(SyntaxKind.OperatorMemberCref);
+                {
+                    N(SyntaxKind.OperatorKeyword);
+                    N(opToken);
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData("+=", SyntaxKind.PlusEqualsToken)]
+        [InlineData("-=", SyntaxKind.MinusEqualsToken)]
+        [InlineData("*=", SyntaxKind.AsteriskEqualsToken)]
+        [InlineData("/=", SyntaxKind.SlashEqualsToken)]
+        [InlineData("%=", SyntaxKind.PercentEqualsToken)]
+        [InlineData("&amp;=", SyntaxKind.AmpersandEqualsToken)]
+        [InlineData("|=", SyntaxKind.BarEqualsToken)]
+        [InlineData("^=", SyntaxKind.CaretEqualsToken)]
+        [InlineData("&lt;&lt;=", SyntaxKind.LessThanLessThanEqualsToken)]
+        [InlineData("}}=", SyntaxKind.GreaterThanGreaterThanEqualsToken)]
+        [InlineData("}}}=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
+        public void CompoundAssignment_02(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingNode("operator checked " + op, options.WithDocumentationMode(DocumentationMode.Diagnose),
+                    options == TestOptions.Regular13 ?
+                        [
+                            // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator checked +='
+                            // /// <see cref="operator checked +="/>
+                            Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator checked " + op).WithArguments("operator checked " + op).WithLocation(1, 16),
+                            // (1,33): warning CS1658: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
+                            // /// <see cref="operator checked +="/>
+                            Diagnostic(ErrorCode.WRN_ErrorOverride, op).WithArguments("The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(1, 33)
+                        ] :
+                        []);
+
+                N(SyntaxKind.OperatorMemberCref);
+                {
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.CheckedKeyword);
+                    N(opToken);
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData("+=", SyntaxKind.PlusEqualsToken)]
+        [InlineData("-=", SyntaxKind.MinusEqualsToken)]
+        [InlineData("*=", SyntaxKind.AsteriskEqualsToken)]
+        [InlineData("/=", SyntaxKind.SlashEqualsToken)]
+        [InlineData("%=", SyntaxKind.PercentEqualsToken)]
+        [InlineData("&amp;=", SyntaxKind.AmpersandEqualsToken)]
+        [InlineData("|=", SyntaxKind.BarEqualsToken)]
+        [InlineData("^=", SyntaxKind.CaretEqualsToken)]
+        [InlineData("&lt;&lt;=", SyntaxKind.LessThanLessThanEqualsToken)]
+        [InlineData("}}=", SyntaxKind.GreaterThanGreaterThanEqualsToken)]
+        [InlineData("}}}=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
+        public void CompoundAssignment_03(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingNode("operator unchecked " + op, options.WithDocumentationMode(DocumentationMode.Diagnose),
+                    options == TestOptions.Regular13 ?
+                        [
+                            // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator unchecked +='
+                            // /// <see cref="operator unchecked +="/>
+                            Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator unchecked " + op).WithArguments("operator unchecked " + op).WithLocation(1, 16),
+                            // (1,25): warning CS1658: Unexpected keyword 'unchecked'. See also error CS9027.
+                            // /// <see cref="operator unchecked +="/>
+                            Diagnostic(ErrorCode.WRN_ErrorOverride, "unchecked").WithArguments("Unexpected keyword 'unchecked'", "9027").WithLocation(1, 25),
+                            // (1,35): warning CS1658: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
+                            // /// <see cref="operator unchecked +="/>
+                            Diagnostic(ErrorCode.WRN_ErrorOverride, op).WithArguments("The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(1, 35)
+                        ] :
+                        [
+                            // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator unchecked +='
+                            // /// <see cref="operator unchecked +="/>
+                            Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator unchecked " + op).WithArguments("operator unchecked " + op).WithLocation(1, 16),
+                            // (1,25): warning CS1658: Unexpected keyword 'unchecked'. See also error CS9027.
+                            // /// <see cref="operator unchecked +="/>
+                            Diagnostic(ErrorCode.WRN_ErrorOverride, "unchecked").WithArguments("Unexpected keyword 'unchecked'", "9027").WithLocation(1, 25)
+                        ]);
+
+                N(SyntaxKind.OperatorMemberCref);
+                {
+                    N(SyntaxKind.OperatorKeyword);
+                    N(opToken);
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData("+=", SyntaxKind.PlusEqualsToken)]
+        [InlineData("-=", SyntaxKind.MinusEqualsToken)]
+        [InlineData("*=", SyntaxKind.AsteriskEqualsToken)]
+        [InlineData("/=", SyntaxKind.SlashEqualsToken)]
+        [InlineData("%=", SyntaxKind.PercentEqualsToken)]
+        [InlineData("&amp;=", SyntaxKind.AmpersandEqualsToken)]
+        [InlineData("|=", SyntaxKind.BarEqualsToken)]
+        [InlineData("^=", SyntaxKind.CaretEqualsToken)]
+        [InlineData("&lt;&lt;=", SyntaxKind.LessThanLessThanEqualsToken)]
+        [InlineData("}}=", SyntaxKind.GreaterThanGreaterThanEqualsToken)]
+        [InlineData("}}}=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
+        public void CompoundAssignment_04(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingNode("operator " + op + "(A)", options.WithDocumentationMode(DocumentationMode.Diagnose),
+                    options == TestOptions.Regular13 ?
+                        [
+                            // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator %='
+                            // /// <see cref="operator %="/>
+                            Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator " + op + "(A)").WithArguments("operator " + op + "(A)").WithLocation(1, 16),
+                            // (1,25): warning CS1658: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
+                            // /// <see cref="operator %="/>
+                            Diagnostic(ErrorCode.WRN_ErrorOverride, op).WithArguments("The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(1, 25)
+                        ] :
+                        []);
+
+                N(SyntaxKind.OperatorMemberCref);
+                {
+                    N(SyntaxKind.OperatorKeyword);
+                    N(opToken);
+                    N(SyntaxKind.CrefParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CrefParameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Theory]
+        [InlineData("+=", SyntaxKind.PlusEqualsToken)]
+        [InlineData("-=", SyntaxKind.MinusEqualsToken)]
+        [InlineData("*=", SyntaxKind.AsteriskEqualsToken)]
+        [InlineData("/=", SyntaxKind.SlashEqualsToken)]
+        [InlineData("%=", SyntaxKind.PercentEqualsToken)]
+        [InlineData("&amp;=", SyntaxKind.AmpersandEqualsToken)]
+        [InlineData("|=", SyntaxKind.BarEqualsToken)]
+        [InlineData("^=", SyntaxKind.CaretEqualsToken)]
+        [InlineData("&lt;&lt;=", SyntaxKind.LessThanLessThanEqualsToken)]
+        [InlineData("}}=", SyntaxKind.GreaterThanGreaterThanEqualsToken)]
+        [InlineData("}}}=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
+        public void CompoundAssignment_05(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingNode("operator " + op + "(A, A)", options.WithDocumentationMode(DocumentationMode.Diagnose),
+                    options == TestOptions.Regular13 ?
+                        [
+                            // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator %='
+                            // /// <see cref="operator %="/>
+                            Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator " + op + "(A, A)").WithArguments("operator " + op + "(A, A)").WithLocation(1, 16),
+                            // (1,25): warning CS1658: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
+                            // /// <see cref="operator %="/>
+                            Diagnostic(ErrorCode.WRN_ErrorOverride, op).WithArguments("The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(1, 25)
+                        ] :
+                        []);
+
+                N(SyntaxKind.OperatorMemberCref);
+                {
+                    N(SyntaxKind.OperatorKeyword);
+                    N(opToken);
+                    N(SyntaxKind.CrefParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CrefParameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.CrefParameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Theory]
+        [InlineData("+=", SyntaxKind.PlusEqualsToken)]
+        [InlineData("-=", SyntaxKind.MinusEqualsToken)]
+        [InlineData("*=", SyntaxKind.AsteriskEqualsToken)]
+        [InlineData("/=", SyntaxKind.SlashEqualsToken)]
+        [InlineData("%=", SyntaxKind.PercentEqualsToken)]
+        [InlineData("&amp;=", SyntaxKind.AmpersandEqualsToken)]
+        [InlineData("|=", SyntaxKind.BarEqualsToken)]
+        [InlineData("^=", SyntaxKind.CaretEqualsToken)]
+        [InlineData("&lt;&lt;=", SyntaxKind.LessThanLessThanEqualsToken)]
+        [InlineData("}}=", SyntaxKind.GreaterThanGreaterThanEqualsToken)]
+        [InlineData("}}}=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
+        public void CompoundAssignment_06(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingNode("operator " + op + "()", options.WithDocumentationMode(DocumentationMode.Diagnose),
+                    options == TestOptions.Regular13 ?
+                        [
+                            // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator %='
+                            // /// <see cref="operator %="/>
+                            Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator " + op + "()").WithArguments("operator " + op + "()").WithLocation(1, 16),
+                            // (1,25): warning CS1658: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
+                            // /// <see cref="operator %="/>
+                            Diagnostic(ErrorCode.WRN_ErrorOverride, op).WithArguments("The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(1, 25)
+                        ] :
+                        []);
+
+                N(SyntaxKind.OperatorMemberCref);
+                {
+                    N(SyntaxKind.OperatorKeyword);
+                    N(opToken);
+                    N(SyntaxKind.CrefParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Theory]
+        [InlineData("+ =", SyntaxKind.PlusToken)]
+        [InlineData("- =", SyntaxKind.MinusToken)]
+        [InlineData("* =", SyntaxKind.AsteriskToken)]
+        [InlineData("/ =", SyntaxKind.SlashToken)]
+        [InlineData("% =", SyntaxKind.PercentToken)]
+        [InlineData("&amp; =", SyntaxKind.AmpersandToken)]
+        [InlineData("| =", SyntaxKind.BarToken)]
+        [InlineData("^ =", SyntaxKind.CaretToken)]
+        [InlineData("&lt;&lt; =", SyntaxKind.LessThanLessThanToken)]
+        [InlineData("}} =", SyntaxKind.GreaterThanGreaterThanToken)]
+        [InlineData("}}} =", SyntaxKind.GreaterThanGreaterThanGreaterThanToken)]
+        public void CompoundAssignment_07(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingNode("operator " + op, options.WithDocumentationMode(DocumentationMode.Diagnose),
+                    // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator + ='
+                    // /// <see cref="operator + ="/>
+                    Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator " + op.Substring(0, op.Length - 2)).WithArguments("operator " + op).WithLocation(1, 16)
+                    );
+
+                N(SyntaxKind.OperatorMemberCref);
+                {
+                    N(SyntaxKind.OperatorKeyword);
+                    N(opToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void CompoundAssignment_08()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingNode("operator &lt; &lt; =", options.WithDocumentationMode(DocumentationMode.Diagnose),
+                    // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator + ='
+                    // /// <see cref="operator + ="/>
+                    Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator &lt;").WithArguments("operator &lt; &lt; =").WithLocation(1, 16)
+                    );
+
+                N(SyntaxKind.OperatorMemberCref);
+                {
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.LessThanToken);
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData("} } =", SyntaxKind.GreaterThanToken)]
+        [InlineData("}} } =", SyntaxKind.GreaterThanGreaterThanToken)]
+        public void CompoundAssignment_09(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingNode("operator " + op, options.WithDocumentationMode(DocumentationMode.Diagnose),
+                    // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator + ='
+                    // /// <see cref="operator + ="/>
+                    Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator " + op.Substring(0, op.Length - 4)).WithArguments("operator " + op).WithLocation(1, 16)
+                    );
+
+                N(SyntaxKind.OperatorMemberCref);
+                {
+                    N(SyntaxKind.OperatorKeyword);
+                    N(opToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void CompoundAssignment_10()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingNode("operator &lt; &lt;=", options.WithDocumentationMode(DocumentationMode.Diagnose),
+                    // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator + ='
+                    // /// <see cref="operator + ="/>
+                    Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator &lt;").WithArguments("operator &lt; &lt;=").WithLocation(1, 16)
+                    );
+
+                N(SyntaxKind.OperatorMemberCref);
+                {
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.LessThanToken);
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData("} }=", SyntaxKind.GreaterThanToken)]
+        [InlineData("}} }=", SyntaxKind.GreaterThanGreaterThanToken)]
+        public void CompoundAssignment_11(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingNode("operator " + op, options.WithDocumentationMode(DocumentationMode.Diagnose),
+                    // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator + ='
+                    // /// <see cref="operator + ="/>
+                    Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator " + op.Substring(0, op.Length - 3)).WithArguments("operator " + op).WithLocation(1, 16)
+                    );
+
+                N(SyntaxKind.OperatorMemberCref);
+                {
+                    N(SyntaxKind.OperatorKeyword);
+                    N(opToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void CompoundAssignment_12()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingNode("operator } } }=", options.WithDocumentationMode(DocumentationMode.Diagnose),
+                    // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator } } }='
+                    // /// <see cref="operator } } }="/>
+                    Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator }").WithArguments("operator } } }=").WithLocation(1, 16)
+                    );
+
+                N(SyntaxKind.OperatorMemberCref);
+                {
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.GreaterThanToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void CompoundAssignment_13()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingNode("operator } }}=", options.WithDocumentationMode(DocumentationMode.Diagnose),
+                    // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator } }}='
+                    // /// <see cref="operator } }}="/>
+                    Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator }").WithArguments("operator } }}=").WithLocation(1, 16)
+                    );
+
+                N(SyntaxKind.OperatorMemberCref);
+                {
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.GreaterThanToken);
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData("++", SyntaxKind.PlusPlusToken)]
+        [InlineData("--", SyntaxKind.MinusMinusToken)]
+        public void Increment_01(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingNode("operator " + op + "()", options.WithDocumentationMode(DocumentationMode.Diagnose));
+
+                N(SyntaxKind.OperatorMemberCref);
+                {
+                    N(SyntaxKind.OperatorKeyword);
+                    N(opToken);
+                    N(SyntaxKind.CrefParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                EOF();
+            }
         }
 
         #endregion Unqualified
@@ -666,6 +1104,566 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.CloseParenToken);
                     }
                 }
+            }
+        }
+
+        [Theory]
+        [InlineData("+=", SyntaxKind.PlusEqualsToken)]
+        [InlineData("-=", SyntaxKind.MinusEqualsToken)]
+        [InlineData("*=", SyntaxKind.AsteriskEqualsToken)]
+        [InlineData("/=", SyntaxKind.SlashEqualsToken)]
+        [InlineData("%=", SyntaxKind.PercentEqualsToken)]
+        [InlineData("&amp;=", SyntaxKind.AmpersandEqualsToken)]
+        [InlineData("|=", SyntaxKind.BarEqualsToken)]
+        [InlineData("^=", SyntaxKind.CaretEqualsToken)]
+        [InlineData("&lt;&lt;=", SyntaxKind.LessThanLessThanEqualsToken)]
+        [InlineData("}}=", SyntaxKind.GreaterThanGreaterThanEqualsToken)]
+        [InlineData("}}}=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
+        public void QualifiedCompoundAssignment_01(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingNode("T.operator " + op, options.WithDocumentationMode(DocumentationMode.Diagnose),
+                    options == TestOptions.Regular13 ?
+                        [
+                            // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator %='
+                            // /// <see cref="T.operator %="/>
+                            Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "T.operator " + op).WithArguments("T.operator " + op).WithLocation(1, 16),
+                            // (1,27): warning CS1658: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
+                            // /// <see cref="T.operator %="/>
+                            Diagnostic(ErrorCode.WRN_ErrorOverride, op).WithArguments("The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(1, 27)
+                        ] :
+                        []);
+
+                N(SyntaxKind.QualifiedCref);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "T");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.OperatorMemberCref);
+                    {
+                        N(SyntaxKind.OperatorKeyword);
+                        N(opToken);
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Theory]
+        [InlineData("+=", SyntaxKind.PlusEqualsToken)]
+        [InlineData("-=", SyntaxKind.MinusEqualsToken)]
+        [InlineData("*=", SyntaxKind.AsteriskEqualsToken)]
+        [InlineData("/=", SyntaxKind.SlashEqualsToken)]
+        [InlineData("%=", SyntaxKind.PercentEqualsToken)]
+        [InlineData("&amp;=", SyntaxKind.AmpersandEqualsToken)]
+        [InlineData("|=", SyntaxKind.BarEqualsToken)]
+        [InlineData("^=", SyntaxKind.CaretEqualsToken)]
+        [InlineData("&lt;&lt;=", SyntaxKind.LessThanLessThanEqualsToken)]
+        [InlineData("}}=", SyntaxKind.GreaterThanGreaterThanEqualsToken)]
+        [InlineData("}}}=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
+        public void QualifiedCompoundAssignment_02(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingNode("T.operator checked " + op, options.WithDocumentationMode(DocumentationMode.Diagnose),
+                    options == TestOptions.Regular13 ?
+                        [
+                            // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator checked +='
+                            // /// <see cref="operator checked +="/>
+                            Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "T.operator checked " + op).WithArguments("T.operator checked " + op).WithLocation(1, 16),
+                            // (1,35): warning CS1658: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
+                            // /// <see cref="operator checked +="/>
+                            Diagnostic(ErrorCode.WRN_ErrorOverride, op).WithArguments("The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(1, 35)
+                        ] :
+                        []);
+
+                N(SyntaxKind.QualifiedCref);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "T");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.OperatorMemberCref);
+                    {
+                        N(SyntaxKind.OperatorKeyword);
+                        N(SyntaxKind.CheckedKeyword);
+                        N(opToken);
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Theory]
+        [InlineData("+=", SyntaxKind.PlusEqualsToken)]
+        [InlineData("-=", SyntaxKind.MinusEqualsToken)]
+        [InlineData("*=", SyntaxKind.AsteriskEqualsToken)]
+        [InlineData("/=", SyntaxKind.SlashEqualsToken)]
+        [InlineData("%=", SyntaxKind.PercentEqualsToken)]
+        [InlineData("&amp;=", SyntaxKind.AmpersandEqualsToken)]
+        [InlineData("|=", SyntaxKind.BarEqualsToken)]
+        [InlineData("^=", SyntaxKind.CaretEqualsToken)]
+        [InlineData("&lt;&lt;=", SyntaxKind.LessThanLessThanEqualsToken)]
+        [InlineData("}}=", SyntaxKind.GreaterThanGreaterThanEqualsToken)]
+        [InlineData("}}}=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
+        public void QualifiedCompoundAssignment_03(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingNode("T.operator unchecked " + op, options.WithDocumentationMode(DocumentationMode.Diagnose),
+                    options == TestOptions.Regular13 ?
+                        [
+                            // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator unchecked +='
+                            // /// <see cref="T.operator unchecked +="/>
+                            Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "T.operator unchecked " + op).WithArguments("T.operator unchecked " + op).WithLocation(1, 16),
+                            // (1,27): warning CS1658: Unexpected keyword 'unchecked'. See also error CS9027.
+                            // /// <see cref="T.operator unchecked +="/>
+                            Diagnostic(ErrorCode.WRN_ErrorOverride, "unchecked").WithArguments("Unexpected keyword 'unchecked'", "9027").WithLocation(1, 27),
+                            // (1,37): warning CS1658: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
+                            // /// <see cref="T.operator unchecked +="/>
+                            Diagnostic(ErrorCode.WRN_ErrorOverride, op).WithArguments("The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(1, 37)
+                        ] :
+                        [
+                            // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator unchecked +='
+                            // /// <see cref="operator unchecked +="/>
+                            Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "T.operator unchecked " + op).WithArguments("T.operator unchecked " + op).WithLocation(1, 16),
+                            // (1,27): warning CS1658: Unexpected keyword 'unchecked'. See also error CS9027.
+                            // /// <see cref="operator unchecked +="/>
+                            Diagnostic(ErrorCode.WRN_ErrorOverride, "unchecked").WithArguments("Unexpected keyword 'unchecked'", "9027").WithLocation(1, 27)
+                        ]);
+
+                N(SyntaxKind.QualifiedCref);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "T");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.OperatorMemberCref);
+                    {
+                        N(SyntaxKind.OperatorKeyword);
+                        N(opToken);
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Theory]
+        [InlineData("+=", SyntaxKind.PlusEqualsToken)]
+        [InlineData("-=", SyntaxKind.MinusEqualsToken)]
+        [InlineData("*=", SyntaxKind.AsteriskEqualsToken)]
+        [InlineData("/=", SyntaxKind.SlashEqualsToken)]
+        [InlineData("%=", SyntaxKind.PercentEqualsToken)]
+        [InlineData("&amp;=", SyntaxKind.AmpersandEqualsToken)]
+        [InlineData("|=", SyntaxKind.BarEqualsToken)]
+        [InlineData("^=", SyntaxKind.CaretEqualsToken)]
+        [InlineData("&lt;&lt;=", SyntaxKind.LessThanLessThanEqualsToken)]
+        [InlineData("}}=", SyntaxKind.GreaterThanGreaterThanEqualsToken)]
+        [InlineData("}}}=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
+        public void QualifiedCompoundAssignment_04(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingNode("T.operator " + op + "(A)", options.WithDocumentationMode(DocumentationMode.Diagnose),
+                    options == TestOptions.Regular13 ?
+                        [
+                            // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator %='
+                            // /// <see cref="operator %="/>
+                            Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "T.operator " + op + "(A)").WithArguments("T.operator " + op + "(A)").WithLocation(1, 16),
+                            // (1,27): warning CS1658: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
+                            // /// <see cref="operator %="/>
+                            Diagnostic(ErrorCode.WRN_ErrorOverride, op).WithArguments("The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(1, 27)
+                        ] :
+                        []);
+
+                N(SyntaxKind.QualifiedCref);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "T");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.OperatorMemberCref);
+                    {
+                        N(SyntaxKind.OperatorKeyword);
+                        N(opToken);
+                        N(SyntaxKind.CrefParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CrefParameter);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "A");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Theory]
+        [InlineData("+=", SyntaxKind.PlusEqualsToken)]
+        [InlineData("-=", SyntaxKind.MinusEqualsToken)]
+        [InlineData("*=", SyntaxKind.AsteriskEqualsToken)]
+        [InlineData("/=", SyntaxKind.SlashEqualsToken)]
+        [InlineData("%=", SyntaxKind.PercentEqualsToken)]
+        [InlineData("&amp;=", SyntaxKind.AmpersandEqualsToken)]
+        [InlineData("|=", SyntaxKind.BarEqualsToken)]
+        [InlineData("^=", SyntaxKind.CaretEqualsToken)]
+        [InlineData("&lt;&lt;=", SyntaxKind.LessThanLessThanEqualsToken)]
+        [InlineData("}}=", SyntaxKind.GreaterThanGreaterThanEqualsToken)]
+        [InlineData("}}}=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
+        public void QualifiedCompoundAssignment_05(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingNode("T.operator " + op + "(A, A)", options.WithDocumentationMode(DocumentationMode.Diagnose),
+                    options == TestOptions.Regular13 ?
+                        [
+                            // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator %='
+                            // /// <see cref="operator %="/>
+                            Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "T.operator " + op + "(A, A)").WithArguments("T.operator " + op + "(A, A)").WithLocation(1, 16),
+                            // (1,27): warning CS1658: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
+                            // /// <see cref="operator %="/>
+                            Diagnostic(ErrorCode.WRN_ErrorOverride, op).WithArguments("The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(1, 27)
+                        ] :
+                        []);
+
+                N(SyntaxKind.QualifiedCref);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "T");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.OperatorMemberCref);
+                    {
+                        N(SyntaxKind.OperatorKeyword);
+                        N(opToken);
+                        N(SyntaxKind.CrefParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CrefParameter);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "A");
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.CrefParameter);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "A");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Theory]
+        [InlineData("+=", SyntaxKind.PlusEqualsToken)]
+        [InlineData("-=", SyntaxKind.MinusEqualsToken)]
+        [InlineData("*=", SyntaxKind.AsteriskEqualsToken)]
+        [InlineData("/=", SyntaxKind.SlashEqualsToken)]
+        [InlineData("%=", SyntaxKind.PercentEqualsToken)]
+        [InlineData("&amp;=", SyntaxKind.AmpersandEqualsToken)]
+        [InlineData("|=", SyntaxKind.BarEqualsToken)]
+        [InlineData("^=", SyntaxKind.CaretEqualsToken)]
+        [InlineData("&lt;&lt;=", SyntaxKind.LessThanLessThanEqualsToken)]
+        [InlineData("}}=", SyntaxKind.GreaterThanGreaterThanEqualsToken)]
+        [InlineData("}}}=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
+        public void QualifiedCompoundAssignment_06(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingNode("T.operator " + op + "()", options.WithDocumentationMode(DocumentationMode.Diagnose),
+                    options == TestOptions.Regular13 ?
+                        [
+                            // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator %='
+                            // /// <see cref="operator %="/>
+                            Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "T.operator " + op + "()").WithArguments("T.operator " + op + "()").WithLocation(1, 16),
+                            // (1,27): warning CS1658: The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
+                            // /// <see cref="operator %="/>
+                            Diagnostic(ErrorCode.WRN_ErrorOverride, op).WithArguments("The feature 'user-defined compound assignment operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(1, 27)
+                        ] :
+                        []);
+
+                N(SyntaxKind.QualifiedCref);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "T");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.OperatorMemberCref);
+                    {
+                        N(SyntaxKind.OperatorKeyword);
+                        N(opToken);
+                        N(SyntaxKind.CrefParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Theory]
+        [InlineData("+ =", SyntaxKind.PlusToken)]
+        [InlineData("- =", SyntaxKind.MinusToken)]
+        [InlineData("* =", SyntaxKind.AsteriskToken)]
+        [InlineData("/ =", SyntaxKind.SlashToken)]
+        [InlineData("% =", SyntaxKind.PercentToken)]
+        [InlineData("&amp; =", SyntaxKind.AmpersandToken)]
+        [InlineData("| =", SyntaxKind.BarToken)]
+        [InlineData("^ =", SyntaxKind.CaretToken)]
+        [InlineData("&lt;&lt; =", SyntaxKind.LessThanLessThanToken)]
+        [InlineData("}} =", SyntaxKind.GreaterThanGreaterThanToken)]
+        [InlineData("}}} =", SyntaxKind.GreaterThanGreaterThanGreaterThanToken)]
+        public void QualifiedCompoundAssignment_07(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingNode("T.operator " + op, options.WithDocumentationMode(DocumentationMode.Diagnose),
+                    // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator + ='
+                    // /// <see cref="T.operator + ="/>
+                    Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "T.operator " + op.Substring(0, op.Length - 2)).WithArguments("T.operator " + op).WithLocation(1, 16)
+                    );
+
+                N(SyntaxKind.QualifiedCref);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "T");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.OperatorMemberCref);
+                    {
+                        N(SyntaxKind.OperatorKeyword);
+                        N(opToken);
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void QualifiedCompoundAssignment_08()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingNode("T.operator &lt; &lt; =", options.WithDocumentationMode(DocumentationMode.Diagnose),
+                    // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator + ='
+                    // /// <see cref="T.operator + ="/>
+                    Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "T.operator &lt;").WithArguments("T.operator &lt; &lt; =").WithLocation(1, 16)
+                    );
+
+                N(SyntaxKind.QualifiedCref);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "T");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.OperatorMemberCref);
+                    {
+                        N(SyntaxKind.OperatorKeyword);
+                        N(SyntaxKind.LessThanToken);
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Theory]
+        [InlineData("} } =", SyntaxKind.GreaterThanToken)]
+        [InlineData("}} } =", SyntaxKind.GreaterThanGreaterThanToken)]
+        public void QualifiedCompoundAssignment_09(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingNode("T.operator " + op, options.WithDocumentationMode(DocumentationMode.Diagnose),
+                    // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator + ='
+                    // /// <see cref="T.operator + ="/>
+                    Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "T.operator " + op.Substring(0, op.Length - 4)).WithArguments("T.operator " + op).WithLocation(1, 16)
+                    );
+
+                N(SyntaxKind.QualifiedCref);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "T");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.OperatorMemberCref);
+                    {
+                        N(SyntaxKind.OperatorKeyword);
+                        N(opToken);
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void QualifiedCompoundAssignment_10()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingNode("T.operator &lt; &lt;=", options.WithDocumentationMode(DocumentationMode.Diagnose),
+                    // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator + ='
+                    // /// <see cref="T.operator + ="/>
+                    Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "T.operator &lt;").WithArguments("T.operator &lt; &lt;=").WithLocation(1, 16)
+                    );
+
+                N(SyntaxKind.QualifiedCref);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "T");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.OperatorMemberCref);
+                    {
+                        N(SyntaxKind.OperatorKeyword);
+                        N(SyntaxKind.LessThanToken);
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Theory]
+        [InlineData("} }=", SyntaxKind.GreaterThanToken)]
+        [InlineData("}} }=", SyntaxKind.GreaterThanGreaterThanToken)]
+        public void QualifiedCompoundAssignment_11(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingNode("T.operator " + op, options.WithDocumentationMode(DocumentationMode.Diagnose),
+                    // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator + ='
+                    // /// <see cref="T.operator + ="/>
+                    Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "T.operator " + op.Substring(0, op.Length - 3)).WithArguments("T.operator " + op).WithLocation(1, 16)
+                    );
+
+                N(SyntaxKind.QualifiedCref);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "T");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.OperatorMemberCref);
+                    {
+                        N(SyntaxKind.OperatorKeyword);
+                        N(opToken);
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void QualifiedCompoundAssignment_12()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingNode("T.operator } } }=", options.WithDocumentationMode(DocumentationMode.Diagnose),
+                    // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'T.operator } } }='
+                    // /// <see cref="T.operator } } }="/>
+                    Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "T.operator }").WithArguments("T.operator } } }=").WithLocation(1, 16)
+                    );
+
+                N(SyntaxKind.QualifiedCref);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "T");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.OperatorMemberCref);
+                    {
+                        N(SyntaxKind.OperatorKeyword);
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void QualifiedCompoundAssignment_13()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingNode("T.operator } }}=", options.WithDocumentationMode(DocumentationMode.Diagnose),
+                    // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'T.operator } }}='
+                    // /// <see cref="T.operator } }}="/>
+                    Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "T.operator }").WithArguments("T.operator } }}=").WithLocation(1, 16)
+                    );
+
+                N(SyntaxKind.QualifiedCref);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "T");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.OperatorMemberCref);
+                    {
+                        N(SyntaxKind.OperatorKeyword);
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Theory]
+        [InlineData("++", SyntaxKind.PlusPlusToken)]
+        [InlineData("--", SyntaxKind.MinusMinusToken)]
+        public void QualifiedIncrement_01(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            {
+                UsingNode("T.operator " + op + "()", options.WithDocumentationMode(DocumentationMode.Diagnose));
+
+                N(SyntaxKind.QualifiedCref);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "T");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.OperatorMemberCref);
+                    {
+                        N(SyntaxKind.OperatorKeyword);
+                        N(opToken);
+                        N(SyntaxKind.CrefParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                }
+                EOF();
             }
         }
 

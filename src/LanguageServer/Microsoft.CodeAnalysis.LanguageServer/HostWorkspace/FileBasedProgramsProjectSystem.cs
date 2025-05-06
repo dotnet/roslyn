@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.MSBuild.BuildHostProcessManager;
 
@@ -59,9 +60,12 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
     public Workspace Workspace => ProjectFactory.Workspace;
 
-    public async Task<TextDocument?> AddMiscellaneousDocumentAsync(Uri uri, SourceText documentText, string languageId, ILspLogger logger)
+    public async Task<TextDocument?> AddMiscellaneousDocumentAsync(DocumentUri uri, SourceText documentText, string languageId, ILspLogger logger)
     {
-        var documentPath = ProtocolConversions.GetDocumentFilePathFromUri(uri);
+        var (documentPath, isFile) = uri.ParsedUri is { } parsedUri
+            ? (ProtocolConversions.GetDocumentFilePathFromUri(parsedUri), isFile: parsedUri.IsFile)
+            : (uri.UriString, isFile: false);
+
         var container = documentText.Container;
         if (_metadataAsSourceFileService.TryAddDocumentToWorkspace(documentPath, container, out var documentId))
         {
@@ -79,7 +83,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             return null;
         }
 
-        if (!uri.IsFile || !GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms))
+        if (!isFile || !GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms))
         {
             // For now, we cannot provide intellisense etc on files which are not on disk or are not C#.
             var sourceTextLoader = new SourceTextLoader(documentText, documentPath);
@@ -135,7 +139,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         return document;
     }
 
-    public void TryRemoveMiscellaneousDocument(Uri uri, bool removeFromMetadataWorkspace)
+    public void TryRemoveMiscellaneousDocument(DocumentUri uri, bool removeFromMetadataWorkspace)
     {
         // support unloading
     }
