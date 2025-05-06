@@ -377,6 +377,7 @@ internal static class ProducerConsumer<TItem>
                     await Task.Yield().ConfigureAwait(false);
 
                     var (produceItems, channel, args) = outerArgs;
+
                     // It's ok to use TryWrite here.  TryWrite always succeeds unless the channel is completed. And the
                     // channel is only ever completed by us (after produceItems completes or throws an exception) or if the
                     // cancellationToken is triggered above in RunAsync. In that latter case, it's ok for writing to the
@@ -398,12 +399,6 @@ internal static class ProducerConsumer<TItem>
         Exception? exception = null;
         try
         {
-            await Task.Yield().ConfigureAwait(false);
-
-            // It's ok to use TryWrite here.  TryWrite always succeeds unless the channel is completed. And the
-            // channel is only ever completed by us (after produceItems completes or throws an exception) or if the
-            // cancellationToken is triggered above in RunAsync. In that latter case, it's ok for writing to the
-            // channel to do nothing as we no longer need to write out those assets to the pipe.
             await action(args, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex) when ((exception = ex) == null)
