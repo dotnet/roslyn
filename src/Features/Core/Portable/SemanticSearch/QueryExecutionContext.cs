@@ -285,7 +285,7 @@ internal sealed class QueryExecutionContext(
         }
     }
 
-    private async ValueTask InvokeUpdateAsync(SyntaxTree oldSyntaxTree, IEnumerable<Span> spans, CancellationTokenSource symbolEnumerationCancellationSource, CancellationToken cancellationToken)
+    private async ValueTask InvokeUpdateAsync(SyntaxTree oldSyntaxTree, IEnumerable<TextSpan> spans, CancellationTokenSource symbolEnumerationCancellationSource, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
