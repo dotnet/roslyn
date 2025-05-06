@@ -165,11 +165,11 @@ internal partial class WpfBackgroundWorkIndicatorFactory
                     return _cancelOnEdit_DoNotAccessDirectly;
             }
 
-            //set
-            //{
-            //    lock (Gate)
-            //        _cancelOnEdit_DoNotAccessDirectly = value;
-            //}
+            set
+            {
+                lock (Gate)
+                    _cancelOnEdit_DoNotAccessDirectly = value;
+            }
         }
 
         public bool CancelOnFocusLost
@@ -180,11 +180,11 @@ internal partial class WpfBackgroundWorkIndicatorFactory
                     return _cancelOnFocusLost_DoNotAccessDirectly;
             }
 
-            //set
-            //{
-            //    lock (Gate)
-            //        _cancelOnFocusLost_DoNotAccessDirectly = value;
-            //}
+            set
+            {
+                lock (Gate)
+                    _cancelOnFocusLost_DoNotAccessDirectly = value;
+            }
         }
 
         private ValueTask UpdateUIAsync(ImmutableSegmentedList<UIUpdateRequest> requests, CancellationToken cancellationToken)
@@ -299,7 +299,22 @@ internal partial class WpfBackgroundWorkIndicatorFactory
 
         public IDisposable SuppressAutoCancel()
         {
-            throw new NotImplementedException();
+            var disposer = new SuppressAutoCancelDisposable(this, this.CancelOnEdit, this.CancelOnFocusLost);
+            this.CancelOnEdit = false;
+            this.CancelOnFocusLost = false;
+            return disposer;
+        }
+    }
+
+    private sealed class SuppressAutoCancelDisposable(
+        BackgroundWorkIndicatorContext context,
+        bool originalCancelOnEdit,
+        bool originalCancelOnFocusLost) : IDisposable
+    {
+        public void Dispose()
+        {
+            context.CancelOnEdit = originalCancelOnEdit;
+            context.CancelOnFocusLost = originalCancelOnFocusLost;
         }
     }
 }

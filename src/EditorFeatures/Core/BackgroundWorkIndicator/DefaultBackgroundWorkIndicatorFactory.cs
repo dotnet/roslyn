@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.Settings.Internal;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -15,7 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 
 /// <summary>
 /// A default implementation of the background work indicator which simply defers to a threaded-wait-dialog to
-/// indicator that background work is happening.
+/// indicator that background work is happening. It does not support actually cancelling an operation if an 
+/// edit is made, or if focus is lost.
 /// </summary>
 [ExportWorkspaceService(typeof(IBackgroundWorkIndicatorFactory)), Shared]
 [method: ImportingConstructor]
@@ -25,6 +27,9 @@ internal sealed class DefaultBackgroundWorkIndicatorFactory(
 {
     private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor = uiThreadOperationExecutor;
 
+    /// <remarks>
+    /// <paramref name="cancelOnEdit"/> and <paramref name="cancelOnFocusLost"/> have no effect for the default implementation.
+    /// </remarks>
     public IBackgroundWorkIndicatorContext Create(
         ITextView textView, SnapshotSpan applicableToSpan, string description, bool cancelOnEdit = true, bool cancelOnFocusLost = true)
     {
@@ -61,8 +66,6 @@ internal sealed class DefaultBackgroundWorkIndicatorFactory(
             => _context.Dispose();
 
         public IDisposable SuppressAutoCancel()
-        {
-            throw new NotImplementedException();
-        }
+            => NoOpDisposable.Instance;
     }
 }
