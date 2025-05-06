@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Formatter = Microsoft.CodeAnalysis.Formatting.Formatter;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.OrganizeImports;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp;
 
@@ -62,16 +63,22 @@ internal sealed class SemanticSearchQueryExecutor(
 
             foreach (var (documentId, changes) in GetDocumentUpdates())
             {
-                var newDocument = newSolution.GetRequiredDocument(documentId);
-                var oldText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var oldText = await newSolution.GetRequiredDocument(documentId).GetTextAsync(cancellationToken).ConfigureAwait(false);
                 if (changes.IsEmpty)
                 {
                     newSolution = newSolution.RemoveDocument(documentId);
                 }
                 else
                 {
-                    // TODO: auto-format changed spans
+                    // TODO: auto-format/clean up changed spans
                     newSolution = newSolution.WithDocumentText(documentId, oldText.WithChanges(changes));
+
+                    var newDocument = newSolution.GetRequiredDocument(documentId);
+                    var organizeImportsService = newDocument.GetRequiredLanguageService<IOrganizeImportsService>();
+                    var options = await newDocument.GetOrganizeImportsOptionsAsync(cancellationToken).ConfigureAwait(false);
+                    newDocument = await organizeImportsService.OrganizeImportsAsync(newDocument, options, cancellationToken).ConfigureAwait(false);
+                    var updatedText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    newSolution = newSolution.WithDocumentText(newDocument.Id, updatedText);
                 }
             }
 
