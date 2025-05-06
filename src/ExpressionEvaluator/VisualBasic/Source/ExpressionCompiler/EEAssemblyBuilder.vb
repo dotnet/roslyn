@@ -2,8 +2,13 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
+Imports System.Diagnostics
+Imports System.Reflection.Metadata
+Imports System.Runtime.InteropServices
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -11,10 +16,6 @@ Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
-Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Reflection.Metadata
-Imports System.Runtime.InteropServices
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator

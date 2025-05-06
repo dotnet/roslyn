@@ -4,6 +4,7 @@
 
 Imports System.Collections.ObjectModel
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
