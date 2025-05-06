@@ -4142,7 +4142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.MakeMemberMissing((WellKnownMember)missingMember);
-            if (typeName is "ICollection"  or "IList")
+            if (typeName is "ICollection" or "IList")
             {
                 switch ((WellKnownMember)missingMember)
                 {

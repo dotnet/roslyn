@@ -1404,10 +1404,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     case CollectionExpressionTypeKind.DictionaryInterface:
                         {
-                            // PROTOTYPE: What if target type has type arguments that are type parameters from the current method?
-                            // If so, the signature method will reference type parameters that are not in scope. If that breaks a compiler
-                            // guarantee, perhaps we should create a synthesized generic type for the signature methods where the
-                            // synthesized type has type parameters for the type arguments of List<T> or Dictionary<K, V>?
+                            // PROTOTYPE: If the target type has type arguments that are type parameters from the current method,
+                            // then the signature method will reference type parameters that are not in scope. Does that break any
+                            // compiler invariant? If so, we could create a synthesized generic type for the signature methods where
+                            // the synthesized type has type parameters for the type arguments of List<T> or Dictionary<K, V>.
                             var comparerType = TypeWithAnnotations.Create(
                                 GetWellKnownType(WellKnownType.System_Collections_Generic_IEqualityComparer_T, diagnostics, node: syntax).Construct([targetType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0]]),
                                 NullableAnnotation.Annotated);
