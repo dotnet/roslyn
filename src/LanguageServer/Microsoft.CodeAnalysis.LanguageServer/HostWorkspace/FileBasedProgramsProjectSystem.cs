@@ -79,7 +79,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             return null;
         }
 
-        if (!uri.IsFile)
+        if (!uri.IsFile || !GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms))
         {
             // For now, we cannot provide intellisense etc on files which are not on disk or are not C#.
             var sourceTextLoader = new SourceTextLoader(documentText, documentPath);

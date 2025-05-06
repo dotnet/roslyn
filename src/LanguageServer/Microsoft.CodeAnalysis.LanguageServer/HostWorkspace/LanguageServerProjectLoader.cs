@@ -36,7 +36,7 @@ internal abstract class LanguageServerProjectLoader
     private readonly ProjectTargetFrameworkManager _targetFrameworkManager;
     private readonly ProjectSystemHostInfo _projectSystemHostInfo;
     private readonly IFileChangeWatcher _fileChangeWatcher;
-    private readonly IGlobalOptionService _globalOptionService;
+    protected readonly IGlobalOptionService GlobalOptionService;
     protected readonly ILoggerFactory LoggerFactory;
     private readonly ILogger _logger;
     private readonly ProjectLoadTelemetryReporter _projectLoadTelemetryReporter;
@@ -67,7 +67,7 @@ internal abstract class LanguageServerProjectLoader
         _targetFrameworkManager = targetFrameworkManager;
         _projectSystemHostInfo = projectSystemHostInfo;
         _fileChangeWatcher = fileChangeWatcher;
-        _globalOptionService = globalOptionService;
+        GlobalOptionService = globalOptionService;
         LoggerFactory = loggerFactory;
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectLoader));
         _projectLoadTelemetryReporter = projectLoadTelemetry;
@@ -129,7 +129,7 @@ internal abstract class LanguageServerProjectLoader
                 args: (@this: this, toastErrorReporter, buildHostProcessManager),
                 cancellationToken).ConfigureAwait(false);
 
-            if (_globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore) && projectsThatNeedRestore.Any())
+            if (GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore) && projectsThatNeedRestore.Any())
             {
                 // Tell the client to restore any projects with unresolved dependencies.
                 // This should eventually move entirely server side once we have a mechanism for reporting generic project load progress.
