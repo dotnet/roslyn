@@ -1283,7 +1283,8 @@ internal sealed partial class SolutionState
         {
             foreach (var relatedDocumentId in relatedDocumentIds)
             {
-                if (relatedDocumentId != documentId)
+                // Don't return documents from the same project
+                if (relatedDocumentId.ProjectId != documentId.ProjectId)
                     return relatedDocumentId;
             }
 
@@ -1303,7 +1304,8 @@ internal sealed partial class SolutionState
         var documentIdsWithFilePath = GetDocumentIdsWithFilePath(filePath);
         foreach (var relatedDocumentId in documentIdsWithFilePath)
         {
-            if (relatedDocumentId != documentId)
+            // Don't return documents from the same project
+            if (relatedDocumentId.ProjectId != documentId.ProjectId)
                 return relatedDocumentId;
         }
 
