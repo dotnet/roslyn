@@ -18,7 +18,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
         /// </summary>
         private sealed class BackgroundWorkIndicatorScope : IUIThreadOperationScope, IProgress<ProgressInfo>
         {
-            private readonly BackgroundWorkIndicatorContext _context;
+            private readonly BackgroundWorkIndicatorContext _owner;
             private readonly BackgroundWorkOperationScope _underlyingScope;
 
             // Mutable state of this scope.  Can be mutated by a client, at which point we'll ask our owning context to
@@ -29,18 +29,18 @@ internal partial class WpfBackgroundWorkIndicatorFactory
             public ProgressInfo ProgressInfo_OnlyAccessUnderLock;
 
             public BackgroundWorkIndicatorScope(
-                BackgroundWorkIndicatorContext context,
+                BackgroundWorkIndicatorContext owner,
                 BackgroundWorkOperationScope scope,
                 string initialDescription)
             {
-                _context = context;
+                _owner = owner;
                 _underlyingScope = scope;
 
                 // Ensure we push through the initial description.
                 this.Description = initialDescription;
             }
 
-            public IUIThreadOperationContext Context => _context;
+            public IUIThreadOperationContext Context => _owner;
             public IProgress<ProgressInfo> Progress => this;
 
             void IDisposable.Dispose()
@@ -49,7 +49,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
                 _underlyingScope.Dispose();
 
                 // Remove ourselves from our parent context as well. And ensure that any progress showing is updated accordingly.
-                _context.RemoveScopeAndReportTotalProgress(this);
+                _owner.RemoveScopeAndReportTotalProgress(this);
             }
 
             bool IUIThreadOperationScope.AllowCancellation
@@ -62,13 +62,13 @@ internal partial class WpfBackgroundWorkIndicatorFactory
             {
                 get
                 {
-                    lock (_context.ContextAndScopeDataMutationGate)
+                    lock (_owner.ContextAndScopeDataMutationGate)
                         return _currentDescription;
                 }
 
                 set
                 {
-                    lock (_context.ContextAndScopeDataMutationGate)
+                    lock (_owner.ContextAndScopeDataMutationGate)
                     {
                         // Nothing to do if the actual value didn't change.
                         if (value == _currentDescription)
@@ -84,7 +84,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
 
             void IProgress<ProgressInfo>.Report(ProgressInfo value)
             {
-                lock (_context.ContextAndScopeDataMutationGate)
+                lock (_owner.ContextAndScopeDataMutationGate)
                 {
                     // Nothing to do if the actual value didn't change.
                     if (value.TotalItems == ProgressInfo_OnlyAccessUnderLock.TotalItems &&
@@ -97,7 +97,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
                 }
 
                 // Now update the UI with the total progress so far of all the scopes.
-                _context.ReportTotalProgress();
+                _owner.ReportTotalProgress();
             }
         }
     }
