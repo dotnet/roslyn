@@ -8197,4 +8197,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_OperatorInExtensionOfStaticClass" xml:space="preserve">
     <value>An extension block extending a static class cannot contain user-defined operators</value>
   </data>
+  <data name="ERR_InstanceOperatorStructExtensionWrongReceiverRefKind" xml:space="preserve">
+    <value>Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter</value>
+  </data>
+  <data name="ERR_InstanceOperatorExtensionWrongReceiverType" xml:space="preserve">
+    <value>Cannot declare instance extension operator for a type that is not known to be a struct and is not known to be a class</value>
+  </data>
 </root>

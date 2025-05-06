@@ -64,6 +64,15 @@ static class Extensions4
     }
 }
 
+static class Extensions5
+{
+    extension(S1?)
+    {
+        public static S1 operator {{{op}}}(S1 x) => default;
+        public static S2 operator {{{op}}}(S1? x) => default;
+    }
+}
+
 struct S1
 {}
 
@@ -92,7 +101,10 @@ static class C1
                 Diagnostic(ErrorCode.ERR_OperatorInExtensionOfStaticClass, op).WithLocation(41, 35),
                 // (41,37): error CS0721: 'C1': static types cannot be used as parameters
                 //         public static S1 operator +(C1 x) => default;
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C1").WithArguments("C1").WithLocation(41, 37)
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C1").WithArguments("C1").WithLocation(41, 37),
+                // (49,35): error CS9551: The parameter of a unary operator must be the extended type.
+                //         public static S1 operator +(S1 x) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, op).WithLocation(49, 35)
                 );
         }
 
@@ -137,6 +149,23 @@ static class Extensions3
     }
 }
 
+static class Extensions4
+{
+    extension(S1?)
+    {
+        public static S1 operator {{{op}}}(S1 x) => default;
+        public static S1 operator {{{op}}}(S1? x) => default;
+    }
+}
+
+static class Extensions5
+{
+    extension(S1?)
+    {
+        public static S1? operator {{{op}}}(S1? x) => default;
+    }
+}
+
 struct S1
 {}
 
@@ -168,7 +197,13 @@ static class C1
                 Diagnostic(ErrorCode.ERR_OperatorInExtensionOfStaticClass, op).WithLocation(33, 35),
                 // (33,38): error CS0721: 'C1': static types cannot be used as parameters
                 //         public static C1 operator ++(C1 x) => default;
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C1").WithArguments("C1").WithLocation(33, 38)
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C1").WithArguments("C1").WithLocation(33, 38),
+                // (41,35): error CS9552: The parameter type for ++ or -- operator must be the extended type.
+                //         public static S1 operator ++(S1 x) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionIncDecSignature, op).WithLocation(41, 35),
+                // (42,35): error CS0448: The return type for ++ or -- operator must match the parameter type or be derived from the parameter type
+                //         public static S1 operator ++(S1? x) => default;
+                Diagnostic(ErrorCode.ERR_BadIncDecRetType, op).WithLocation(42, 35)
                 );
         }
 
@@ -253,6 +288,18 @@ static class Extensions6
     }
 }
 
+static class Extensions7
+{
+    extension(S1?)
+    {
+#line 900
+        public static bool operator true(S1 x) => default;
+        public static bool operator false(S1 x) => default;
+        public static bool operator true(S1? x) => default;
+        public static bool operator false(S1? x) => default;
+    }
+}
+
 struct S1
 {}
 
@@ -264,15 +311,6 @@ static class C1
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
-                // PROTOTYPE: Should the pair check be performed across all extension blocks?
-
-                // (200,37): error CS0216: The operator 'Extensions2.extension(S1).operator true(S1)' requires a matching operator 'false' to also be defined
-                //         public static bool operator true(S1 x) => default;
-                Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "true").WithArguments("Extensions2.extension(S1).operator true(S1)", "false").WithLocation(200, 37),
-                // (300,37): error CS0216: The operator 'Extensions2.extension(S1).operator false(S1)' requires a matching operator 'true' to also be defined
-                //         public static bool operator false(S1 x) => default;
-                Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "false").WithArguments("Extensions2.extension(S1).operator false(S1)", "true").WithLocation(300, 37),
-
                 // (400,37): error CS0216: The operator 'Extensions3.extension(S1).operator true(S1)' requires a matching operator 'false' to also be defined
                 //         public static bool operator true(S1 x) => default;
                 Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "true").WithArguments("Extensions3.extension(S1).operator true(S1)", "false").WithLocation(400, 37),
@@ -308,7 +346,13 @@ static class C1
                 Diagnostic(ErrorCode.ERR_OperatorInExtensionOfStaticClass, "false").WithLocation(801, 37),
                 // (801,43): error CS0721: 'C1': static types cannot be used as parameters
                 //         public static bool operator false(C1 x) => default;
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C1").WithArguments("C1").WithLocation(801, 43)
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C1").WithArguments("C1").WithLocation(801, 43),
+                // (900,37): error CS9551: The parameter of a unary operator must be the extended type.
+                //         public static bool operator true(S1 x) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, "true").WithLocation(900, 37),
+                // (901,37): error CS9551: The parameter of a unary operator must be the extended type.
+                //         public static bool operator false(S1 x) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, "false").WithLocation(901, 37)
                 );
         }
 
@@ -522,12 +566,6 @@ struct S1
 """;
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // PROTOTYPE: Should the pair check be performed across all extension blocks?
-
-                // (100,43): error CS9025: The operator 'Extensions2.extension(S1).operator checked ++(S1)' requires a matching non-checked version of the operator to also be defined
-                //         public static S1 operator checked ++(S1 x) => default;
-                Diagnostic(ErrorCode.ERR_CheckedOperatorNeedsMatch, op).WithArguments("Extensions2.extension(S1).operator checked " + op + "(S1)").WithLocation(100, 43),
-
                 // (112,43): error CS9025: The operator 'Extensions3.extension(S1).operator checked ++(S1)' requires a matching non-checked version of the operator to also be defined
                 //         public static S1 operator checked ++(S1 x) => default;
                 Diagnostic(ErrorCode.ERR_CheckedOperatorNeedsMatch, op).WithArguments("Extensions3.extension(S1).operator checked " + op + "(S1)").WithLocation(112, 43)
@@ -541,7 +579,7 @@ struct S1
             var src = $$$"""
 static class Extensions1
 {
-    extension(S1)
+    extension(ref S1 s1)
     {
         public void operator {{{op}}}() {}
     }
@@ -549,7 +587,7 @@ static class Extensions1
 
 static class Extensions2
 {
-    extension(S1)
+    extension(ref S1 s1)
     {
         public S1 operator {{{op}}}() => throw null;
     }
@@ -557,7 +595,7 @@ static class Extensions2
 
 static class Extensions3
 {
-    extension(S1)
+    extension(ref S1 s1)
     {
         void operator {{{op}}}() {}
     }
@@ -567,10 +605,186 @@ static class Extensions3
     }
 }
 
+static class Extensions4
+{
+    extension(ref S1? s1)
+    {
+        public void operator {{{op}}}() {}
+    }
+}
+
+static class Extensions5
+{
+    extension(S1 s1)
+    {
+#line 600
+        public void operator {{{op}}}() {}
+    }
+#line 700
+    extension(ref C2 c2)
+    {
+        public void operator {{{op}}}() {}
+    }
+}
+
+static class Extensions6
+{
+    extension(C2 c2)
+    {
+        public void operator {{{op}}}() {}
+    }
+}
+
+static class Extensions7
+{
+    extension(in S1 s1)
+    {
+#line 800
+        public void operator {{{op}}}() {}
+    }
+#line 900
+    extension(in C2 c2)
+    {
+        public void operator {{{op}}}() {}
+    }
+}
+
+static class Extensions8
+{
+    extension(ref readonly S1 s1)
+    {
+#line 1000
+        public void operator {{{op}}}() {}
+    }
+#line 1100
+    extension(ref readonly C2 c2)
+    {
+        public void operator {{{op}}}() {}
+    }
+}
+
+static class Extensions9
+{
+    extension<T>(T t) where T : struct
+    {
+#line 1200
+        public void operator {{{op}}}() {}
+    }
+}
+
+static class Extensions10
+{
+    extension<T>(T t) where T : class
+    {
+        public void operator {{{op}}}() {}
+    }
+}
+
+static class Extensions11
+{
+    extension<T>(T t)
+    {
+#line 1300
+        public void operator {{{op}}}() {}
+    }
+}
+
+static class Extensions12
+{
+    extension<T>(ref T t) where T : struct
+    {
+        public void operator {{{op}}}() {}
+    }
+}
+
+static class Extensions13
+{
+#line 1400
+    extension<T>(ref T t) where T : class
+    {
+        public void operator {{{op}}}() {}
+    }
+}
+
+static class Extensions14
+{
+#line 1500
+    extension<T>(ref T t)
+    {
+        public void operator {{{op}}}() {}
+    }
+}
+
+static class Extensions15
+{
+#line 1600
+    extension<T>(in T t) where T : struct
+    {
+        public void operator {{{op}}}() {}
+    }
+}
+
+static class Extensions16
+{
+#line 1700
+    extension<T>(in T t) where T : class
+    {
+        public void operator {{{op}}}() {}
+    }
+}
+
+static class Extensions17
+{
+#line 1800
+    extension<T>(in T t)
+    {
+        public void operator {{{op}}}() {}
+    }
+}
+
+static class Extensions18
+{
+#line 1900
+    extension<T>(ref readonly T t) where T : struct
+    {
+        public void operator {{{op}}}() {}
+    }
+}
+
+static class Extensions19
+{
+#line 2000
+    extension<T>(ref readonly T t) where T : class
+    {
+        public void operator {{{op}}}() {}
+    }
+}
+
+static class Extensions20
+{
+#line 2100
+    extension<T>(ref readonly T t)
+    {
+        public void operator {{{op}}}() {}
+    }
+}
+
+static class Extensions21
+{
+    extension(C2)
+    {
+#line 2200
+        public void operator {{{op}}}() {}
+    }
+}
+
 struct S1
 {}
 
 static class C1
+{}
+
+class C2
 {}
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
@@ -578,12 +792,63 @@ static class C1
                 // (13,28): error CS9503: The return type for this operator must be void
                 //         public S1 operator ++() => throw null;
                 Diagnostic(ErrorCode.ERR_OperatorMustReturnVoid, op).WithLocation(13, 28),
-                // (21,23): error CS9501: User-defined operator 'Extensions3.extension(S1).operator ++()' must be declared public
+                // (21,23): error CS9501: User-defined operator 'Extensions3.extension(ref S1).operator ++()' must be declared public
                 //         void operator ++() {}
-                Diagnostic(ErrorCode.ERR_OperatorsMustBePublic, op).WithArguments("Extensions3.extension(S1).operator " + op + "()").WithLocation(21, 23),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBePublic, op).WithArguments("Extensions3.extension(ref S1).operator " + op + "()").WithLocation(21, 23),
                 // (25,30): error CS9555: An extension block extending a static class cannot contain user-defined operators
                 //         public void operator ++() {}
-                Diagnostic(ErrorCode.ERR_OperatorInExtensionOfStaticClass, op).WithLocation(25, 30)
+                Diagnostic(ErrorCode.ERR_OperatorInExtensionOfStaticClass, op).WithLocation(25, 30),
+                // (600,30): error CS9556: Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter
+                //         public void operator ++() {}
+                Diagnostic(ErrorCode.ERR_InstanceOperatorStructExtensionWrongReceiverRefKind, op).WithLocation(600, 30),
+                // (700,19): error CS9300: The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.
+                //     extension(ref C2 c2)
+                Diagnostic(ErrorCode.ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne, "C2").WithLocation(700, 19),
+                // (800,30): error CS9556: Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter
+                //         public void operator ++() {}
+                Diagnostic(ErrorCode.ERR_InstanceOperatorStructExtensionWrongReceiverRefKind, op).WithLocation(800, 30),
+                // (900,18): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension(in C2 c2)
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "C2").WithLocation(900, 18),
+                // (1000,30): error CS9556: Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter
+                //         public void operator ++() {}
+                Diagnostic(ErrorCode.ERR_InstanceOperatorStructExtensionWrongReceiverRefKind, op).WithLocation(1000, 30),
+                // (1100,28): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension(ref readonly C2 c2)
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "C2").WithLocation(1100, 28),
+                // (1200,30): error CS9556: Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter
+                //         public void operator ++() {}
+                Diagnostic(ErrorCode.ERR_InstanceOperatorStructExtensionWrongReceiverRefKind, op).WithLocation(1200, 30),
+                // (1300,30): error CS9557: Cannot declare instance extension operator for a type that is not known to be a struct and is not known to be a class
+                //         public void operator ++() {}
+                Diagnostic(ErrorCode.ERR_InstanceOperatorExtensionWrongReceiverType, op).WithLocation(1300, 30),
+                // (1400,22): error CS9300: The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.
+                //     extension<T>(ref T t) where T : class
+                Diagnostic(ErrorCode.ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne, "T").WithLocation(1400, 22),
+                // (1500,22): error CS9300: The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.
+                //     extension<T>(ref T t)
+                Diagnostic(ErrorCode.ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne, "T").WithLocation(1500, 22),
+                // (1600,21): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension<T>(in T t) where T : struct
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(1600, 21),
+                // (1700,21): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension<T>(in T t) where T : class
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(1700, 21),
+                // (1800,21): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension<T>(in T t)
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(1800, 21),
+                // (1900,31): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension<T>(ref readonly T t) where T : struct
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(1900, 31),
+                // (2000,31): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension<T>(ref readonly T t) where T : class
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(2000, 31),
+                // (2100,31): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension<T>(ref readonly T t)
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(2100, 31),
+                // (2200,30): error CS9303: 'operator ++': cannot declare instance members in an extension block with an unnamed receiver parameter
+                //         public void operator ++() {}
+                Diagnostic(ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter, op).WithArguments("operator " + op).WithLocation(2200, 30)
                 );
         }
 
@@ -594,7 +859,7 @@ static class C1
             var src = $$$"""
 static class Extensions1
 {
-    extension(S1)
+    extension(ref S1 s1)
     {
         public void operator {{{op}}}() {}
     }
@@ -611,7 +876,7 @@ struct S1
                 var name = CompoundAssignmentOperatorName(op);
                 var method = m.GlobalNamespace.GetMember<MethodSymbol>("Extensions1." + name);
 
-                AssertEx.Equal("Extensions1." + name + "(S1)", method.ToDisplayString());
+                AssertEx.Equal("Extensions1." + name + "(ref S1)", method.ToDisplayString());
                 Assert.Equal(MethodKind.Ordinary, method.MethodKind);
                 Assert.True(method.IsStatic);
                 Assert.False(method.IsExtensionMethod);
@@ -628,14 +893,14 @@ struct S1
             var src = $$$"""
 static class Extensions1
 {
-    extension(S1)
+    extension(S1 s1)
     {
         public void operator {{{op}}}() {}
         public static S1 operator {{{op}}}(S1 x) => default;
     }
 }
 
-struct S1
+class S1
 {}
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
@@ -651,7 +916,7 @@ struct S1
             var src = $$$"""
 static class Extensions1
 {
-    extension(S1)
+    extension(ref S1 s1)
     {
         public void operator checked {{{op}}}() {}
         public void operator {{{op}}}() {}
@@ -660,12 +925,12 @@ static class Extensions1
 
 static class Extensions2
 {
-    extension(S1)
+    extension(ref S1 s1)
     {
 #line 100
         public void operator checked {{{op}}}() {}
     }
-    extension(S1)
+    extension(ref S1 s1)
     {
         public void operator {{{op}}}() {}
     }
@@ -673,7 +938,7 @@ static class Extensions2
 
 static class Extensions3
 {
-    extension(S1)
+    extension(ref S1 s1)
     {
         public void operator checked {{{op}}}() {}
     }
@@ -684,15 +949,9 @@ struct S1
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
-                // PROTOTYPE: Should the pair check be performed across all extension blocks?
-
-                // (100,38): error CS9025: The operator 'Extensions2.extension(S1).operator checked ++()' requires a matching non-checked version of the operator to also be defined
+                // (112,38): error CS9025: The operator 'Extensions3.extension(ref S1).operator checked ++()' requires a matching non-checked version of the operator to also be defined
                 //         public void operator checked ++() {}
-                Diagnostic(ErrorCode.ERR_CheckedOperatorNeedsMatch, op).WithArguments("Extensions2.extension(S1).operator checked " + op + "()").WithLocation(100, 38),
-
-                // (112,38): error CS9025: The operator 'Extensions3.extension(S1).operator checked ++()' requires a matching non-checked version of the operator to also be defined
-                //         public void operator checked ++() {}
-                Diagnostic(ErrorCode.ERR_CheckedOperatorNeedsMatch, op).WithArguments("Extensions3.extension(S1).operator checked " + op + "()").WithLocation(112, 38)
+                Diagnostic(ErrorCode.ERR_CheckedOperatorNeedsMatch, op).WithArguments("Extensions3.extension(ref S1).operator checked " + op + "()").WithLocation(112, 38)
                 );
         }
 
@@ -703,7 +962,7 @@ struct S1
             var src = $$$"""
 static class Extensions1
 {
-    extension(S1)
+    extension(ref S1 s1)
     {
         {{{modifier}}}
         public void operator {{{op}}}() {}
@@ -771,6 +1030,16 @@ static class Extensions4
     }
 }
 
+static class Extensions5
+{
+    extension(S1?)
+    {
+        public static S2 operator {{{op}}}(S1 x, S1 y) => default;
+        public static S2 operator {{{op}}}(S1? x, S2 y) => default;
+        public static S2 operator {{{op}}}(S2 y, S1? x) => default;
+    }
+}
+
 struct S1
 {}
 
@@ -799,7 +1068,10 @@ static class C1
                 Diagnostic(ErrorCode.ERR_OperatorInExtensionOfStaticClass, op).WithLocation(42, 35),
                 // (42,37): error CS0721: 'C1': static types cannot be used as parameters
                 //         public static S1 operator +(C1 x, S1 y) => default;
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C1").WithArguments("C1").WithLocation(42, 37)
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C1").WithArguments("C1").WithLocation(42, 37),
+                // (50,35): error CS9553: One of the parameters of a binary operator must be the extended type.
+                //         public static S2 operator +(S1 x, S1 y) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, op).WithLocation(50, 35)
                 );
         }
 
@@ -849,6 +1121,16 @@ static class Extensions4
     }
 }
 
+static class Extensions5
+{
+    extension(S1?)
+    {
+        public static S2 operator {{{op}}}(S1 x, S1 y) => default;
+        public static S2 operator {{{op}}}(S1? x, S2 y) => default;
+        public static S2 operator {{{op}}}(S2 y, S1? x) => default;
+    }
+}
+
 struct S1
 {}
 
@@ -877,7 +1159,13 @@ static class C1
                 Diagnostic(ErrorCode.ERR_OperatorInExtensionOfStaticClass, op).WithLocation(38, 35),
                 // (38,39): error CS0721: 'C1': static types cannot be used as parameters
                 //         public static S1 operator >>>(C1 x, S1 y) => default;
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C1").WithArguments("C1").WithLocation(38, 39 - (op == ">>>" ? 0 : 1))
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C1").WithArguments("C1").WithLocation(38, 39 - (op == ">>>" ? 0 : 1)),
+                // (46,35): error CS9554: The first operand of an overloaded shift operator must have the same type as the extended type
+                //         public static S2 operator <<(S1 x, S1 y) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionShiftOperatorSignature, op).WithLocation(46, 35),
+                // (48,35): error CS9554: The first operand of an overloaded shift operator must have the same type as the extended type
+                //         public static S2 operator <<(S2 y, S1? x) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionShiftOperatorSignature, op).WithLocation(48, 35)
                 );
         }
 
@@ -966,6 +1254,21 @@ static class Extensions6
     }
 }
 
+static class Extensions7
+{
+    extension(S1?)
+    {
+#line 900
+        public static S2 operator !=(S1 x, S1 y) => default;
+        public static S2 operator !=(S1? x, S2 y) => default;
+        public static S2 operator !=(S2 y, S1? x) => default;
+
+        public static S2 operator ==(S1 x, S1 y) => default;
+        public static S2 operator ==(S1? x, S2 y) => default;
+        public static S2 operator ==(S2 y, S1? x) => default;
+    }
+}
+
 struct S1
 {}
 
@@ -977,15 +1280,6 @@ static class C1
 """;
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // PROTOTYPE: Should the pair check be performed across all extension blocks?
-
-                // (200,37): error CS0216: The operator 'Extensions2.extension(S1).operator !=(S1, S2)' requires a matching operator '==' to also be defined
-                //         public static bool operator !=(S1 x, S2 y) => default;
-                Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "!=").WithArguments("Extensions2.extension(S1).operator !=(S1, S2)", "==").WithLocation(200, 37),
-                // (300,37): error CS0216: The operator 'Extensions2.extension(S1).operator ==(S1, S2)' requires a matching operator '!=' to also be defined
-                //         public static bool operator ==(S1 x, S2 y) => default;
-                Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "==").WithArguments("Extensions2.extension(S1).operator ==(S1, S2)", "!=").WithLocation(300, 37),
-
                 // (400,37): error CS0216: The operator 'Extensions3.extension(S1).operator !=(S1, S2)' requires a matching operator '==' to also be defined
                 //         public static bool operator !=(S1 x, S2 y) => default;
                 Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "!=").WithArguments("Extensions3.extension(S1).operator !=(S1, S2)", "==").WithLocation(400, 37),
@@ -1021,7 +1315,13 @@ static class C1
                 Diagnostic(ErrorCode.ERR_OperatorInExtensionOfStaticClass, "==").WithLocation(801, 35),
                 // (801,38): error CS0721: 'C1': static types cannot be used as parameters
                 //         public static S1 operator ==(C1 x, S1 y) => default;
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C1").WithArguments("C1").WithLocation(801, 38)
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C1").WithArguments("C1").WithLocation(801, 38),
+                // (900,35): error CS9553: One of the parameters of a binary operator must be the extended type.
+                //         public static S2 operator !=(S1 x, S1 y) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "!=").WithLocation(900, 35),
+                // (904,35): error CS9553: One of the parameters of a binary operator must be the extended type.
+                //         public static S2 operator ==(S1 x, S1 y) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "==").WithLocation(904, 35)
                 );
         }
 
@@ -1110,6 +1410,21 @@ static class Extensions6
     }
 }
 
+static class Extensions7
+{
+    extension(S1?)
+    {
+#line 900
+        public static S2 operator >=(S1 x, S1 y) => default;
+        public static S2 operator >=(S1? x, S2 y) => default;
+        public static S2 operator >=(S2 y, S1? x) => default;
+
+        public static S2 operator <=(S1 x, S1 y) => default;
+        public static S2 operator <=(S1? x, S2 y) => default;
+        public static S2 operator <=(S2 y, S1? x) => default;
+    }
+}
+
 struct S1
 {}
 
@@ -1121,15 +1436,6 @@ static class C1
 """;
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // PROTOTYPE: Should the pair check be performed across all extension blocks?
-
-                // (200,37): error CS0216: The operator 'Extensions2.extension(S1).operator >=(S1, S2)' requires a matching operator '<=' to also be defined
-                //         public static bool operator >=(S1 x, S2 y) => default;
-                Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, ">=").WithArguments("Extensions2.extension(S1).operator >=(S1, S2)", "<=").WithLocation(200, 37),
-                // (300,37): error CS0216: The operator 'Extensions2.extension(S1).operator <=(S1, S2)' requires a matching operator '>=' to also be defined
-                //         public static bool operator <=(S1 x, S2 y) => default;
-                Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "<=").WithArguments("Extensions2.extension(S1).operator <=(S1, S2)", ">=").WithLocation(300, 37),
-
                 // (400,37): error CS0216: The operator 'Extensions3.extension(S1).operator >=(S1, S2)' requires a matching operator '<=' to also be defined
                 //         public static bool operator >=(S1 x, S2 y) => default;
                 Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, ">=").WithArguments("Extensions3.extension(S1).operator >=(S1, S2)", "<=").WithLocation(400, 37),
@@ -1165,7 +1471,13 @@ static class C1
                 Diagnostic(ErrorCode.ERR_OperatorInExtensionOfStaticClass, "<=").WithLocation(801, 35),
                 // (801,38): error CS0721: 'C1': static types cannot be used as parameters
                 //         public static S1 operator <=(C1 x, S1 y) => default;
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C1").WithArguments("C1").WithLocation(801, 38)
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C1").WithArguments("C1").WithLocation(801, 38),
+                // (900,35): error CS9553: One of the parameters of a binary operator must be the extended type.
+                //         public static S2 operator >=(S1 x, S1 y) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, ">=").WithLocation(900, 35),
+                // (904,35): error CS9553: One of the parameters of a binary operator must be the extended type.
+                //         public static S2 operator <=(S1 x, S1 y) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "<=").WithLocation(904, 35)
                 );
         }
 
@@ -1254,6 +1566,21 @@ static class Extensions6
     }
 }
 
+static class Extensions7
+{
+    extension(S1?)
+    {
+#line 900
+        public static S2 operator >(S1 x, S1 y) => default;
+        public static S2 operator >(S1? x, S2 y) => default;
+        public static S2 operator >(S2 y, S1? x) => default;
+
+        public static S2 operator <(S1 x, S1 y) => default;
+        public static S2 operator <(S1? x, S2 y) => default;
+        public static S2 operator <(S2 y, S1? x) => default;
+    }
+}
+
 struct S1
 {}
 
@@ -1265,15 +1592,6 @@ static class C1
 """;
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // PROTOTYPE: Should the pair check be performed across all extension blocks?
-
-                // (200,37): error CS0216: The operator 'Extensions2.extension(S1).operator >(S1, S2)' requires a matching operator '<' to also be defined
-                //         public static bool operator >(S1 x, S2 y) => default;
-                Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, ">").WithArguments("Extensions2.extension(S1).operator >(S1, S2)", "<").WithLocation(200, 37),
-                // (300,37): error CS0216: The operator 'Extensions2.extension(S1).operator <(S1, S2)' requires a matching operator '>' to also be defined
-                //         public static bool operator <(S1 x, S2 y) => default;
-                Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "<").WithArguments("Extensions2.extension(S1).operator <(S1, S2)", ">").WithLocation(300, 37),
-
                 // (400,37): error CS0216: The operator 'Extensions3.extension(S1).operator >(S1, S2)' requires a matching operator '<' to also be defined
                 //         public static bool operator >(S1 x, S2 y) => default;
                 Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, ">").WithArguments("Extensions3.extension(S1).operator >(S1, S2)", "<").WithLocation(400, 37),
@@ -1309,7 +1627,13 @@ static class C1
                 Diagnostic(ErrorCode.ERR_OperatorInExtensionOfStaticClass, "<").WithLocation(801, 35),
                 // (801,37): error CS0721: 'C1': static types cannot be used as parameters
                 //         public static S1 operator <(C1 x, S1 y) => default;
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C1").WithArguments("C1").WithLocation(801, 37)
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C1").WithArguments("C1").WithLocation(801, 37),
+                // (900,35): error CS9553: One of the parameters of a binary operator must be the extended type.
+                //         public static S2 operator >(S1 x, S1 y) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, ">").WithLocation(900, 35),
+                // (904,35): error CS9553: One of the parameters of a binary operator must be the extended type.
+                //         public static S2 operator <(S1 x, S1 y) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "<").WithLocation(904, 35)
                 );
         }
 
@@ -1539,12 +1863,6 @@ struct S1
 """;
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // PROTOTYPE: Should the pair check be performed across all extension blocks?
-
-                // (100,43): error CS9025: The operator 'Extensions2.extension(S1).operator checked +(S1, S1)' requires a matching non-checked version of the operator to also be defined
-                //         public static S1 operator checked +(S1 x, S1 y) => default;
-                Diagnostic(ErrorCode.ERR_CheckedOperatorNeedsMatch, op).WithArguments("Extensions2.extension(S1).operator checked " + op + "(S1, S1)").WithLocation(100, 43),
-
                 // (112,43): error CS9025: The operator 'Extensions3.extension(S1).operator checked +(S1, S1)' requires a matching non-checked version of the operator to also be defined
                 //         public static S1 operator checked +(S1 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_CheckedOperatorNeedsMatch, op).WithArguments("Extensions3.extension(S1).operator checked " + op + "(S1, S1)").WithLocation(112, 43)
@@ -1558,7 +1876,7 @@ struct S1
             var src = $$$"""
 static class Extensions1
 {
-    extension(S1)
+    extension(ref S1 s1)
     {
         public void operator {{{op}}}(int x) {}
     }
@@ -1566,7 +1884,7 @@ static class Extensions1
 
 static class Extensions2
 {
-    extension(S1)
+    extension(ref S1 s1)
     {
         public S1 operator {{{op}}}(int x) => throw null;
     }
@@ -1574,7 +1892,7 @@ static class Extensions2
 
 static class Extensions3
 {
-    extension(S1)
+    extension(ref S1 s1)
     {
         void operator {{{op}}}(int x) {}
     }
@@ -1584,10 +1902,186 @@ static class Extensions3
     }
 }
 
+static class Extensions4
+{
+    extension(ref S1? s1)
+    {
+        public void operator {{{op}}}(int x) {}
+    }
+}
+
+static class Extensions5
+{
+    extension(S1 s1)
+    {
+#line 600
+        public void operator {{{op}}}(int x) {}
+    }
+#line 700
+    extension(ref C2 c2)
+    {
+        public void operator {{{op}}}(int x) {}
+    }
+}
+
+static class Extensions6
+{
+    extension(C2 c2)
+    {
+        public void operator {{{op}}}(int x) {}
+    }
+}
+
+static class Extensions7
+{
+    extension(in S1 s1)
+    {
+#line 800
+        public void operator {{{op}}}(int x) {}
+    }
+#line 900
+    extension(in C2 c2)
+    {
+        public void operator {{{op}}}(int x) {}
+    }
+}
+
+static class Extensions8
+{
+    extension(ref readonly S1 s1)
+    {
+#line 1000
+        public void operator {{{op}}}(int x) {}
+    }
+#line 1100
+    extension(ref readonly C2 c2)
+    {
+        public void operator {{{op}}}(int x) {}
+    }
+}
+
+static class Extensions9
+{
+    extension<T>(T t) where T : struct
+    {
+#line 1200
+        public void operator {{{op}}}(int x) {}
+    }
+}
+
+static class Extensions10
+{
+    extension<T>(T t) where T : class
+    {
+        public void operator {{{op}}}(int x) {}
+    }
+}
+
+static class Extensions11
+{
+    extension<T>(T t)
+    {
+#line 1300
+        public void operator {{{op}}}(int x) {}
+    }
+}
+
+static class Extensions12
+{
+    extension<T>(ref T t) where T : struct
+    {
+        public void operator {{{op}}}(int x) {}
+    }
+}
+
+static class Extensions13
+{
+#line 1400
+    extension<T>(ref T t) where T : class
+    {
+        public void operator {{{op}}}(int x) {}
+    }
+}
+
+static class Extensions14
+{
+#line 1500
+    extension<T>(ref T t)
+    {
+        public void operator {{{op}}}(int x) {}
+    }
+}
+
+static class Extensions15
+{
+#line 1600
+    extension<T>(in T t) where T : struct
+    {
+        public void operator {{{op}}}(int x) {}
+    }
+}
+
+static class Extensions16
+{
+#line 1700
+    extension<T>(in T t) where T : class
+    {
+        public void operator {{{op}}}(int x) {}
+    }
+}
+
+static class Extensions17
+{
+#line 1800
+    extension<T>(in T t)
+    {
+        public void operator {{{op}}}(int x) {}
+    }
+}
+
+static class Extensions18
+{
+#line 1900
+    extension<T>(ref readonly T t) where T : struct
+    {
+        public void operator {{{op}}}(int x) {}
+    }
+}
+
+static class Extensions19
+{
+#line 2000
+    extension<T>(ref readonly T t) where T : class
+    {
+        public void operator {{{op}}}(int x) {}
+    }
+}
+
+static class Extensions20
+{
+#line 2100
+    extension<T>(ref readonly T t)
+    {
+        public void operator {{{op}}}(int x) {}
+    }
+}
+
+static class Extensions21
+{
+    extension(C2)
+    {
+#line 2200
+        public void operator {{{op}}}(int x) {}
+    }
+}
+
 struct S1
 {}
 
 static class C1
+{}
+
+class C2
 {}
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
@@ -1595,12 +2089,63 @@ static class C1
                 // (13,28): error CS9503: The return type for this operator must be void
                 //         public S1 operator +=(int x) => throw null;
                 Diagnostic(ErrorCode.ERR_OperatorMustReturnVoid, op).WithLocation(13, 28),
-                // (21,23): error CS9501: User-defined operator 'Extensions3.extension(S1).operator +=(int)' must be declared public
+                // (21,23): error CS9501: User-defined operator 'Extensions3.extension(ref S1).operator +=(int)' must be declared public
                 //         void operator +=(int x) {}
-                Diagnostic(ErrorCode.ERR_OperatorsMustBePublic, op).WithArguments("Extensions3.extension(S1).operator " + op + "(int)").WithLocation(21, 23),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBePublic, op).WithArguments("Extensions3.extension(ref S1).operator " + op + "(int)").WithLocation(21, 23),
                 // (25,30): error CS9555: An extension block extending a static class cannot contain user-defined operators
-                //         public void operator *=(int x) {}
-                Diagnostic(ErrorCode.ERR_OperatorInExtensionOfStaticClass, op).WithLocation(25, 30)
+                //         public void operator +=(int x) {}
+                Diagnostic(ErrorCode.ERR_OperatorInExtensionOfStaticClass, op).WithLocation(25, 30),
+                // (600,30): error CS9556: Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter
+                //         public void operator +=(int x) {}
+                Diagnostic(ErrorCode.ERR_InstanceOperatorStructExtensionWrongReceiverRefKind, op).WithLocation(600, 30),
+                // (700,19): error CS9300: The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.
+                //     extension(ref C2 c2)
+                Diagnostic(ErrorCode.ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne, "C2").WithLocation(700, 19),
+                // (800,30): error CS9556: Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter
+                //         public void operator +=(int x) {}
+                Diagnostic(ErrorCode.ERR_InstanceOperatorStructExtensionWrongReceiverRefKind, op).WithLocation(800, 30),
+                // (900,18): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension(in C2 c2)
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "C2").WithLocation(900, 18),
+                // (1000,30): error CS9556: Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter
+                //         public void operator +=(int x) {}
+                Diagnostic(ErrorCode.ERR_InstanceOperatorStructExtensionWrongReceiverRefKind, op).WithLocation(1000, 30),
+                // (1100,28): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension(ref readonly C2 c2)
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "C2").WithLocation(1100, 28),
+                // (1200,30): error CS9556: Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter
+                //         public void operator +=(int x) {}
+                Diagnostic(ErrorCode.ERR_InstanceOperatorStructExtensionWrongReceiverRefKind, op).WithLocation(1200, 30),
+                // (1300,30): error CS9557: Cannot declare instance extension operator for a type that is not known to be a struct and is not known to be a class
+                //         public void operator +=(int x) {}
+                Diagnostic(ErrorCode.ERR_InstanceOperatorExtensionWrongReceiverType, op).WithLocation(1300, 30),
+                // (1400,22): error CS9300: The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.
+                //     extension<T>(ref T t) where T : class
+                Diagnostic(ErrorCode.ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne, "T").WithLocation(1400, 22),
+                // (1500,22): error CS9300: The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.
+                //     extension<T>(ref T t)
+                Diagnostic(ErrorCode.ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne, "T").WithLocation(1500, 22),
+                // (1600,21): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension<T>(in T t) where T : struct
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(1600, 21),
+                // (1700,21): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension<T>(in T t) where T : class
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(1700, 21),
+                // (1800,21): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension<T>(in T t)
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(1800, 21),
+                // (1900,31): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension<T>(ref readonly T t) where T : struct
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(1900, 31),
+                // (2000,31): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension<T>(ref readonly T t) where T : class
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(2000, 31),
+                // (2100,31): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension<T>(ref readonly T t)
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(2100, 31),
+                // (2200,30): error CS9303: 'operator +=': cannot declare instance members in an extension block with an unnamed receiver parameter
+                //         public void operator +=(int x) {}
+                Diagnostic(ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter, op).WithArguments("operator " + op).WithLocation(2200, 30)
                 );
         }
 
@@ -1611,7 +2156,7 @@ static class C1
             var src = $$$"""
 static class Extensions1
 {
-    extension(S1)
+    extension(ref S1 s1)
     {
         public void operator {{{op}}}(int x) {}
     }
@@ -1628,7 +2173,7 @@ struct S1
                 var name = CompoundAssignmentOperatorName(op);
                 var method = m.GlobalNamespace.GetMember<MethodSymbol>("Extensions1." + name);
 
-                AssertEx.Equal("Extensions1." + name + "(S1, int)", method.ToDisplayString());
+                AssertEx.Equal("Extensions1." + name + "(ref S1, int)", method.ToDisplayString());
                 Assert.Equal(MethodKind.Ordinary, method.MethodKind);
                 Assert.True(method.IsStatic);
                 Assert.False(method.IsExtensionMethod);
@@ -1645,7 +2190,7 @@ struct S1
             var src = $$$"""
 static class Extensions1
 {
-    extension(S1)
+    extension(ref S1 s1)
     {
         {{{modifier}}}
         public void operator {{{op}}}(int x) {}
@@ -1670,7 +2215,7 @@ struct S1
             var src = $$$"""
 static class Extensions1
 {
-    extension(S1)
+    extension(ref S1 s1)
     {
         public void operator checked {{{op}}}(int x) {}
         public void operator {{{op}}}(int x) {}
@@ -1679,12 +2224,12 @@ static class Extensions1
 
 static class Extensions2
 {
-    extension(S1)
+    extension(ref S1 s1)
     {
 #line 100
         public void operator checked {{{op}}}(int x) {}
     }
-    extension(S1)
+    extension(ref S1 s1)
     {
         public void operator {{{op}}}(int x) {}
     }
@@ -1692,7 +2237,7 @@ static class Extensions2
 
 static class Extensions3
 {
-    extension(S1)
+    extension(ref S1 s1)
     {
         public void operator checked {{{op}}}(int x) {}
     }
@@ -1703,15 +2248,9 @@ struct S1
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
-                // PROTOTYPE: Should the pair check be performed across all extension blocks?
-
-                // (100,38): error CS9025: The operator 'Extensions2.extension(S1).operator checked +=(int)' requires a matching non-checked version of the operator to also be defined
+                // (112,38): error CS9025: The operator 'Extensions3.extension(ref S1).operator checked +=(int)' requires a matching non-checked version of the operator to also be defined
                 //         public void operator checked +=(int x) {}
-                Diagnostic(ErrorCode.ERR_CheckedOperatorNeedsMatch, op).WithArguments("Extensions2.extension(S1).operator checked " + op + "(int)").WithLocation(100, 38),
-
-                // (112,38): error CS9025: The operator 'Extensions3.extension(S1).operator checked +=(int)' requires a matching non-checked version of the operator to also be defined
-                //         public void operator checked +=(int x) {}
-                Diagnostic(ErrorCode.ERR_CheckedOperatorNeedsMatch, op).WithArguments("Extensions3.extension(S1).operator checked " + op + "(int)").WithLocation(112, 38)
+                Diagnostic(ErrorCode.ERR_CheckedOperatorNeedsMatch, op).WithArguments("Extensions3.extension(ref S1).operator checked " + op + "(int)").WithLocation(112, 38)
                 );
         }
     }
