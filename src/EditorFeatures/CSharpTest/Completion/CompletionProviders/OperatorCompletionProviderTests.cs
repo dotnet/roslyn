@@ -250,6 +250,55 @@ public class Program
         );
     }
 
+    [Theory]
+    [CombinatorialData]
+    public async Task InstanceIncrementOperators([CombinatorialValues("++", "--")] string op)
+    {
+        var items = await GetCompletionItemsAsync($$$"""
+            public class C
+            {
+                public void operator {{{op}}}(int x) {}
+            }
+
+            public class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c.$$;
+                }
+            }
+            """, SourceCodeKind.Regular);
+
+        Assert.Collection(items,
+            i => Assert.Equal(op, i.DisplayText)
+        );
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public async Task InstanceCompoundAssignmentOperators([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+    {
+        var items = await GetCompletionItemsAsync($$$"""
+            public class C
+            {
+                public void operator {{{op}}}(int x) {}
+            }
+
+            public class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c.$$;
+                }
+            }
+            """, SourceCodeKind.Regular);
+
+        // Compound forms of operators are never offered, see OperatorsAreSortedByImporttanceAndGroupedByTopic unit-test
+        Assert.Empty(items);
+    }
+
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
     [InlineData("bool", 0)]
     [InlineData("System.Boolean", 0)]

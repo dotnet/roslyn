@@ -1012,13 +1012,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // Have to fake >>/>>> because it looks like the closing of nested type parameter lists (e.g. A<A<T>>).
             // Have to fake >= so the lexer doesn't mishandle >>=.
-            if (operatorToken.Kind == SyntaxKind.GreaterThanToken && operatorToken.GetTrailingTriviaWidth() == 0 && CurrentToken.GetLeadingTriviaWidth() == 0)
+            if (operatorToken.Kind == SyntaxKind.GreaterThanToken && LanguageParser.NoTriviaBetween(operatorToken, CurrentToken))
             {
                 if (CurrentToken.Kind == SyntaxKind.GreaterThanToken)
                 {
                     var operatorToken2 = this.EatToken();
 
-                    if (operatorToken2.GetTrailingTriviaWidth() == 0 && CurrentToken.GetLeadingTriviaWidth() == 0 &&
+                    if (LanguageParser.NoTriviaBetween(operatorToken2, CurrentToken) &&
                         CurrentToken.Kind is (SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken))
                     {
                         var operatorToken3 = this.EatToken();
@@ -1036,24 +1036,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         }
                         else
                         {
-                            var nonOverloadableOperator = SyntaxFactory.Token(
+                            operatorToken = SyntaxFactory.Token(
                                 operatorToken.GetLeadingTrivia(),
                                 SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken,
                                 operatorToken.Text + operatorToken2.Text + operatorToken3.Text,
                                 operatorToken.ValueText + operatorToken2.ValueText + operatorToken3.ValueText,
                                 operatorToken3.GetTrailingTrivia());
-
-                            operatorToken = SyntaxFactory.MissingToken(SyntaxKind.PlusToken);
-
-                            // Add non-overloadable operator as skipped token.
-                            operatorToken = AddTrailingSkippedSyntax(operatorToken, nonOverloadableOperator);
-
-                            // Add an appropriate diagnostic.
-                            const int offset = 0;
-                            int width = nonOverloadableOperator.Width;
-                            SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(offset, width, ErrorCode.ERR_OvlOperatorExpected);
-                            SyntaxDiagnosticInfo crefInfo = new SyntaxDiagnosticInfo(offset, width, ErrorCode.WRN_ErrorOverride, rawInfo, rawInfo.Code);
-                            operatorToken = WithAdditionalDiagnostics(operatorToken, crefInfo);
+                            operatorToken = CheckFeatureAvailability(operatorToken, MessageID.IDS_FeatureUserDefinedCompoundAssignmentOperators, forceWarning: true);
                         }
                     }
                     else
@@ -1079,25 +1068,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 else if (CurrentToken.Kind == SyntaxKind.GreaterThanEqualsToken)
                 {
                     var operatorToken2 = this.EatToken();
-                    var nonOverloadableOperator = SyntaxFactory.Token(
+                    operatorToken = SyntaxFactory.Token(
                         operatorToken.GetLeadingTrivia(),
                         SyntaxKind.GreaterThanGreaterThanEqualsToken,
                         operatorToken.Text + operatorToken2.Text,
                         operatorToken.ValueText + operatorToken2.ValueText,
                         operatorToken2.GetTrailingTrivia());
-
-                    operatorToken = SyntaxFactory.MissingToken(SyntaxKind.PlusToken);
-
-                    // Add non-overloadable operator as skipped token.
-                    operatorToken = AddTrailingSkippedSyntax(operatorToken, nonOverloadableOperator);
-
-                    // Add an appropriate diagnostic.
-                    const int offset = 0;
-                    int width = nonOverloadableOperator.Width;
-                    SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(offset, width, ErrorCode.ERR_OvlOperatorExpected);
-                    SyntaxDiagnosticInfo crefInfo = new SyntaxDiagnosticInfo(offset, width, ErrorCode.WRN_ErrorOverride, rawInfo, rawInfo.Code);
-                    operatorToken = WithAdditionalDiagnostics(operatorToken, crefInfo);
+                    operatorToken = CheckFeatureAvailability(operatorToken, MessageID.IDS_FeatureUserDefinedCompoundAssignmentOperators, forceWarning: true);
                 }
+            }
+
+            switch (operatorToken.Kind)
+            {
+                case SyntaxKind.PlusToken:
+                    operatorToken = tryParseCompoundAssignmentOperatorToken(operatorToken, SyntaxKind.PlusEqualsToken);
+                    break;
+                case SyntaxKind.MinusToken:
+                    operatorToken = tryParseCompoundAssignmentOperatorToken(operatorToken, SyntaxKind.MinusEqualsToken);
+                    break;
+                case SyntaxKind.AsteriskToken:
+                    operatorToken = tryParseCompoundAssignmentOperatorToken(operatorToken, SyntaxKind.AsteriskEqualsToken);
+                    break;
+                case SyntaxKind.SlashToken:
+                    operatorToken = tryParseCompoundAssignmentOperatorToken(operatorToken, SyntaxKind.SlashEqualsToken);
+                    break;
+                case SyntaxKind.PercentToken:
+                    operatorToken = tryParseCompoundAssignmentOperatorToken(operatorToken, SyntaxKind.PercentEqualsToken);
+                    break;
+                case SyntaxKind.AmpersandToken:
+                    operatorToken = tryParseCompoundAssignmentOperatorToken(operatorToken, SyntaxKind.AmpersandEqualsToken);
+                    break;
+                case SyntaxKind.BarToken:
+                    operatorToken = tryParseCompoundAssignmentOperatorToken(operatorToken, SyntaxKind.BarEqualsToken);
+                    break;
+                case SyntaxKind.CaretToken:
+                    operatorToken = tryParseCompoundAssignmentOperatorToken(operatorToken, SyntaxKind.CaretEqualsToken);
+                    break;
+                case SyntaxKind.LessThanLessThanToken:
+                    operatorToken = tryParseCompoundAssignmentOperatorToken(operatorToken, SyntaxKind.LessThanLessThanEqualsToken);
+                    break;
+                case SyntaxKind.GreaterThanGreaterThanToken:
+                    operatorToken = tryParseCompoundAssignmentOperatorToken(operatorToken, SyntaxKind.GreaterThanGreaterThanEqualsToken);
+                    break;
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
+                    operatorToken = tryParseCompoundAssignmentOperatorToken(operatorToken, SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken);
+                    break;
             }
 
             Debug.Assert(SyntaxFacts.IsAnyOverloadableOperator(operatorToken.Kind));
@@ -1105,6 +1120,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             CrefParameterListSyntax parameters = ParseCrefParameterList();
 
             return SyntaxFactory.OperatorMemberCref(operatorKeyword, checkedKeyword, operatorToken, parameters);
+
+            SyntaxToken tryParseCompoundAssignmentOperatorToken(SyntaxToken operatorToken, SyntaxKind kind)
+            {
+                if (LanguageParser.NoTriviaBetween(operatorToken, CurrentToken) && CurrentToken.Kind == SyntaxKind.EqualsToken)
+                {
+                    Debug.Assert(kind is not (SyntaxKind.GreaterThanGreaterThanEqualsToken or SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)); // Reaching this code path is not expected
+                    var operatorToken2 = this.EatToken();
+                    operatorToken = SyntaxFactory.Token(
+                        operatorToken.GetLeadingTrivia(),
+                        kind,
+                        operatorToken.Text + operatorToken2.Text,
+                        operatorToken.ValueText + operatorToken2.ValueText,
+                        operatorToken2.GetTrailingTrivia());
+                    operatorToken = CheckFeatureAvailability(operatorToken, MessageID.IDS_FeatureUserDefinedCompoundAssignmentOperators, forceWarning: true);
+                }
+
+                return operatorToken;
+            }
         }
 
         private SyntaxToken TryEatCheckedKeyword(bool isConversion, ref SyntaxToken operatorKeyword)

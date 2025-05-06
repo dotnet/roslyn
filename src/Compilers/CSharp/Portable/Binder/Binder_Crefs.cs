@@ -225,15 +225,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             CrefParameterListSyntax? parameterListSyntax = syntax.Parameters;
             bool isChecked = syntax.CheckedKeyword.IsKind(SyntaxKind.CheckedKeyword);
 
-            // NOTE: Prefer binary to unary, unless there is exactly one parameter.
-            // CONSIDER: we're following dev11 by never using a binary operator name if there's
-            // exactly one parameter, but doing so would allow us to match single-parameter constructors.
             SyntaxKind operatorTokenKind = syntax.OperatorToken.Kind();
-            string? memberName = parameterListSyntax != null && parameterListSyntax.Parameters.Count == 1
-                ? null
-                : OperatorFacts.BinaryOperatorNameFromSyntaxKindIfAny(operatorTokenKind, isChecked);
+            string? memberName;
 
-            memberName = memberName ?? OperatorFacts.UnaryOperatorNameFromSyntaxKindIfAny(operatorTokenKind, isChecked: isChecked);
+            if (SyntaxFacts.IsOverloadableCompoundAssignmentOperator(operatorTokenKind))
+            {
+                memberName = OperatorFacts.CompoundAssignmentOperatorNameFromSyntaxKind(operatorTokenKind, isChecked);
+            }
+            else
+            {
+                // NOTE: Prefer binary to unary, unless there is exactly one parameter.
+                // CONSIDER: we're following dev11 by never using a binary operator name if there's
+                // exactly one parameter, but doing so would allow us to match single-parameter constructors.
+                memberName = parameterListSyntax != null && parameterListSyntax.Parameters.Count == 1
+                    ? null
+                    : OperatorFacts.BinaryOperatorNameFromSyntaxKindIfAny(operatorTokenKind, isChecked);
+
+                memberName = memberName ?? OperatorFacts.UnaryOperatorNameFromSyntaxKindIfAny(operatorTokenKind, isChecked: isChecked);
+            }
 
             if (memberName == null ||
                 (isChecked && !syntax.OperatorToken.IsMissing && !SyntaxFacts.IsCheckedOperator(memberName))) // the operator cannot be checked

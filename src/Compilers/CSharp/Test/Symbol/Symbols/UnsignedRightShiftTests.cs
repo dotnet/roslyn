@@ -2810,19 +2810,16 @@ class C
 
             var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics(
-                // (3,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator >>>='
+                // (3,20): warning CS1574: XML comment has cref attribute 'operator >>>=' that could not be resolved
                 // /// See <see cref="operator >>>="/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator").WithArguments("operator >>>=").WithLocation(3, 20),
-                // (3,28): warning CS1658: Overloadable operator expected. See also error CS1037.
-                // /// See <see cref="operator >>>="/>.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, " >>>").WithArguments("Overloadable operator expected", "1037").WithLocation(3, 28)
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "operator >>>=").WithArguments("operator >>>=").WithLocation(3, 20)
                 );
 
             var crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
             var actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation,
-                // (3,20): warning CS1574: XML comment has cref attribute 'operator' that could not be resolved
+                // (3,20): warning CS1574: XML comment has cref attribute 'operator >>>=' that could not be resolved
                 // /// See <see cref="operator >>>="/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "operator").WithArguments("operator").WithLocation(3, 20)
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "operator >>>=").WithArguments("operator >>>=").WithLocation(3, 20)
                 );
             Assert.Null(actualSymbol);
         }
@@ -2982,12 +2979,9 @@ class C
 
             var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             compilation.VerifyDiagnostics(
-                // (3,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator >>>=(C, int)'
+                // (3,20): warning CS1574: XML comment has cref attribute 'operator >>>=(C, int)' that could not be resolved
                 // /// See <see cref="operator >>>=(C, int)"/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator >>>=(C, int)").WithArguments("operator >>>=(C, int)").WithLocation(3, 20),
-                // (3,28): warning CS1658: Overloadable operator expected. See also error CS1037.
-                // /// See <see cref="operator >>>=(C, int)"/>.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, " >>>").WithArguments("Overloadable operator expected", "1037").WithLocation(3, 28)
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "operator >>>=(C, int)").WithArguments("operator >>>=(C, int)").WithLocation(3, 20)
                 );
 
             var crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();

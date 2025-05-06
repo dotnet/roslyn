@@ -706,6 +706,8 @@ namespace System.Diagnostics.CodeAnalysis
 ";
 
         internal static readonly string CompilerFeatureRequiredAttribute = """
+            #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+
             namespace System.Runtime.CompilerServices
             {
                 [AttributeUsage(AttributeTargets.All, AllowMultiple = true, Inherited = false)]
@@ -719,6 +721,8 @@ namespace System.Diagnostics.CodeAnalysis
                     public bool IsOptional { get; set; }
                 }
             }
+
+            #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
             """;
 
         internal const string CompilerFeatureRequiredAttributeIL = @"
@@ -1339,7 +1343,7 @@ namespace System.Diagnostics.CodeAnalysis
             string? assemblyName = null,
             string sourceFileName = "")
         {
-            parseOptions = parseOptions != null ? parseOptions.WithDocumentationMode(DocumentationMode.Diagnose) : TestOptions.RegularWithDocumentationComments;
+            parseOptions = parseOptions != null ? parseOptions.WithDocumentationMode(DocumentationMode.Diagnose) : TestOptions.RegularPreviewWithDocumentationComments;
             options = (options ?? TestOptions.ReleaseDll).WithXmlReferenceResolver(XmlFileResolver.Default);
             return CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib40, assemblyName, sourceFileName);
         }
@@ -1982,6 +1986,39 @@ namespace System.Diagnostics.CodeAnalysis
                 }
                 return text.Trim();
             }
+        }
+
+        internal static IEnumerable<CrefSyntax> GetCrefSyntaxes(Compilation compilation) => GetCrefSyntaxes((CSharpCompilation)compilation);
+
+        internal static IEnumerable<CrefSyntax> GetCrefSyntaxes(CSharpCompilation compilation)
+        {
+            return compilation.SyntaxTrees.SelectMany(tree =>
+            {
+                var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+                return docComments.SelectMany(docComment => docComment.DescendantNodes().OfType<XmlCrefAttributeSyntax>().Select(attr => attr.Cref));
+            });
+        }
+
+        internal static Symbol? GetReferencedSymbol(CrefSyntax crefSyntax, CSharpCompilation compilation, params DiagnosticDescription[] expectedDiagnostics)
+        {
+            Symbol ambiguityWinner;
+            var references = GetReferencedSymbols(crefSyntax, compilation, out ambiguityWinner, expectedDiagnostics);
+            Assert.Null(ambiguityWinner);
+            Assert.InRange(references.Length, 0, 1); //Otherwise, call GetReferencedSymbols
+
+            return references.FirstOrDefault();
+        }
+
+        internal static ImmutableArray<Symbol> GetReferencedSymbols(CrefSyntax crefSyntax, CSharpCompilation compilation, out Symbol ambiguityWinner, params DiagnosticDescription[] expectedDiagnostics)
+        {
+            var binderFactory = compilation.GetBinderFactory(crefSyntax.SyntaxTree);
+            var binder = binderFactory.GetBinder(crefSyntax);
+
+            DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
+            var references = binder.BindCref(crefSyntax, out ambiguityWinner, diagnostics);
+            diagnostics.Verify(expectedDiagnostics);
+            diagnostics.Free();
+            return references;
         }
 
         #endregion

@@ -2847,6 +2847,110 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
         AssertFormatWithView(expected, code);
     }
 
+    [WpfTheory]
+    [CombinatorialData]
+    public void FormatInstanceIncrementOperator([CombinatorialValues("++", "--")] string op)
+    {
+        var code = $$$"""
+                $$
+                class C
+                {
+                    public void operator{{{op}}} ( ){
+                    }
+                }
+                """;
+
+        var expected = $$$"""
+                $$
+                class C
+                {
+                    public void operator {{{op}}}()
+                    {
+                    }
+                }
+                """;
+
+        AssertFormatWithView(expected, code);
+    }
+
+    [WpfTheory]
+    [CombinatorialData]
+    public void FormatInstanceIncrementOperator_Checked([CombinatorialValues("++", "--")] string op)
+    {
+        var code = $$$"""
+                $$
+                class C
+                {
+                    public void operator  checked{{{op}}} ( ){
+                    }
+                }
+                """;
+
+        var expected = $$$"""
+                $$
+                class C
+                {
+                    public void operator checked {{{op}}}()
+                    {
+                    }
+                }
+                """;
+
+        AssertFormatWithView(expected, code);
+    }
+
+    [WpfTheory]
+    [CombinatorialData]
+    public void FormatInstanceCompoundAssignmentOperator([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+    {
+        var code = $$$"""
+                $$
+                class C
+                {
+                    public void operator{{{op}}} ( C x ){
+                    }
+                }
+                """;
+
+        var expected = $$$"""
+                $$
+                class C
+                {
+                    public void operator {{{op}}}(C x)
+                    {
+                    }
+                }
+                """;
+
+        AssertFormatWithView(expected, code);
+    }
+
+    [WpfTheory]
+    [CombinatorialData]
+    public void FormatInstanceCompoundAssignmentOperator_Checked([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+    {
+        var code = $$$"""
+                $$
+                class C
+                {
+                    public void operator  checked{{{op}}} ( C x ){
+                    }
+                }
+                """;
+
+        var expected = $$$"""
+                $$
+                class C
+                {
+                    public void operator checked {{{op}}}(C x)
+                    {
+                    }
+                }
+                """;
+
+        AssertFormatWithView(expected, code);
+    }
+
     [WpfFact]
     public void FormatCollectionExpressionAfterEquals()
     {
@@ -2903,6 +3007,90 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 interface I1
                 {
                     abstract static I1 operator >>>(I1 x, I1 y);
+                }
+                """;
+
+        AssertFormatAfterTypeChar(code, expected);
+    }
+
+    [WpfTheory]
+    [CombinatorialData]
+    public void FormatInstanceIncrementOperatorOnType([CombinatorialValues("++", "--")] string op)
+    {
+        var code = $$$"""
+                interface I1
+                {
+                    abstract void operator{{{op}}} ( );$$
+                }
+                """;
+
+        var expected = $$$"""
+                interface I1
+                {
+                    abstract void operator {{{op}}}();
+                }
+                """;
+
+        AssertFormatAfterTypeChar(code, expected);
+    }
+
+    [WpfTheory]
+    [CombinatorialData]
+    public void FormatInstanceIncrementOperatorOnType_Checked([CombinatorialValues("++", "--")] string op)
+    {
+        var code = $$$"""
+                interface I1
+                {
+                    abstract void operator  checked{{{op}}} ( );$$
+                }
+                """;
+
+        var expected = $$$"""
+                interface I1
+                {
+                    abstract void operator checked {{{op}}}();
+                }
+                """;
+
+        AssertFormatAfterTypeChar(code, expected);
+    }
+
+    [WpfTheory]
+    [CombinatorialData]
+    public void FormatInstanceCompoundAssignmentOperatorOnType([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+    {
+        var code = $$$"""
+                interface I1
+                {
+                    abstract void operator{{{op}}} ( I1 x );$$
+                }
+                """;
+
+        var expected = $$$"""
+                interface I1
+                {
+                    abstract void operator {{{op}}}(I1 x);
+                }
+                """;
+
+        AssertFormatAfterTypeChar(code, expected);
+    }
+
+    [WpfTheory]
+    [CombinatorialData]
+    public void FormatInstanceCompoundAssignmentOperatorOnType_Checked([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+    {
+        var code = $$$"""
+                interface I1
+                {
+                    abstract void operator  checked{{{op}}} ( I1 x );$$
+                }
+                """;
+
+        var expected = $$$"""
+                interface I1
+                {
+                    abstract void operator checked {{{op}}}(I1 x);
                 }
                 """;
 

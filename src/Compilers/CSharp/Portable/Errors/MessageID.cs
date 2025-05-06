@@ -303,6 +303,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureNullConditionalAssignment = MessageBase + 12854,
         IDS_FeatureExpressionOptionalAndNamedArguments = MessageBase + 12855,
         IDS_CollectionExpression = MessageBase + 12856,
+
+        IDS_FeatureUserDefinedCompoundAssignmentOperators = MessageBase + 12857,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -491,6 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureExtensions:
                 case MessageID.IDS_FeatureNullConditionalAssignment:
                 case MessageID.IDS_FeatureExpressionOptionalAndNamedArguments:
+                case MessageID.IDS_FeatureUserDefinedCompoundAssignmentOperators:
                     return LanguageVersion.Preview;
 
                 // C# 13.0 features.

@@ -32134,7 +32134,18 @@ internal partial class ContextAwareSyntax
             case SyntaxKind.GreaterThanEqualsToken:
             case SyntaxKind.FalseKeyword:
             case SyntaxKind.TrueKeyword:
-            case SyntaxKind.IsKeyword: break;
+            case SyntaxKind.IsKeyword:
+            case SyntaxKind.PlusEqualsToken:
+            case SyntaxKind.MinusEqualsToken:
+            case SyntaxKind.AsteriskEqualsToken:
+            case SyntaxKind.SlashEqualsToken:
+            case SyntaxKind.PercentEqualsToken:
+            case SyntaxKind.AmpersandEqualsToken:
+            case SyntaxKind.BarEqualsToken:
+            case SyntaxKind.CaretEqualsToken:
+            case SyntaxKind.LessThanLessThanEqualsToken:
+            case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+            case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken: break;
             default: throw new ArgumentException(nameof(operatorToken));
         }
         if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
@@ -32641,7 +32652,18 @@ internal partial class ContextAwareSyntax
             case SyntaxKind.GreaterThanToken:
             case SyntaxKind.GreaterThanEqualsToken:
             case SyntaxKind.FalseKeyword:
-            case SyntaxKind.TrueKeyword: break;
+            case SyntaxKind.TrueKeyword:
+            case SyntaxKind.PlusEqualsToken:
+            case SyntaxKind.MinusEqualsToken:
+            case SyntaxKind.AsteriskEqualsToken:
+            case SyntaxKind.SlashEqualsToken:
+            case SyntaxKind.PercentEqualsToken:
+            case SyntaxKind.AmpersandEqualsToken:
+            case SyntaxKind.BarEqualsToken:
+            case SyntaxKind.CaretEqualsToken:
+            case SyntaxKind.LessThanLessThanEqualsToken:
+            case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+            case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken: break;
             default: throw new ArgumentException(nameof(operatorToken));
         }
 #endif
@@ -37465,7 +37487,18 @@ internal static partial class SyntaxFactory
             case SyntaxKind.GreaterThanEqualsToken:
             case SyntaxKind.FalseKeyword:
             case SyntaxKind.TrueKeyword:
-            case SyntaxKind.IsKeyword: break;
+            case SyntaxKind.IsKeyword:
+            case SyntaxKind.PlusEqualsToken:
+            case SyntaxKind.MinusEqualsToken:
+            case SyntaxKind.AsteriskEqualsToken:
+            case SyntaxKind.SlashEqualsToken:
+            case SyntaxKind.PercentEqualsToken:
+            case SyntaxKind.AmpersandEqualsToken:
+            case SyntaxKind.BarEqualsToken:
+            case SyntaxKind.CaretEqualsToken:
+            case SyntaxKind.LessThanLessThanEqualsToken:
+            case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+            case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken: break;
             default: throw new ArgumentException(nameof(operatorToken));
         }
         if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
@@ -37972,7 +38005,18 @@ internal static partial class SyntaxFactory
             case SyntaxKind.GreaterThanToken:
             case SyntaxKind.GreaterThanEqualsToken:
             case SyntaxKind.FalseKeyword:
-            case SyntaxKind.TrueKeyword: break;
+            case SyntaxKind.TrueKeyword:
+            case SyntaxKind.PlusEqualsToken:
+            case SyntaxKind.MinusEqualsToken:
+            case SyntaxKind.AsteriskEqualsToken:
+            case SyntaxKind.SlashEqualsToken:
+            case SyntaxKind.PercentEqualsToken:
+            case SyntaxKind.AmpersandEqualsToken:
+            case SyntaxKind.BarEqualsToken:
+            case SyntaxKind.CaretEqualsToken:
+            case SyntaxKind.LessThanLessThanEqualsToken:
+            case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+            case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken: break;
             default: throw new ArgumentException(nameof(operatorToken));
         }
 #endif
