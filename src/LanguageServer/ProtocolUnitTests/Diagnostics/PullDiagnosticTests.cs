@@ -66,7 +66,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
             testLspServer, document.GetURI(), useVSDiagnostics);
 
         Assert.Equal("CS1513", results.Single().Diagnostics!.Single().Code);
-        Assert.NotNull(results.Single().Diagnostics!.Single().CodeDescription!.Href);
+        Assert.NotNull(results.Single().Diagnostics!.Single().CodeDescription!.Href.ParsedUri);
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/fsharp/issues/15972")]
@@ -483,7 +483,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
             return new VSTextDocumentIdentifier
             {
                 ProjectContext = projectContext,
-                Uri = document.GetURI(),
+                DocumentUri = document.GetURI(),
             };
         }
     }
@@ -611,7 +611,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         // Assert that we have diagnostics even though the option is set to push.
         Assert.Equal("CS1513", results.Single().Diagnostics!.Single().Code);
-        Assert.NotNull(results.Single().Diagnostics!.Single().CodeDescription!.Href);
+        Assert.NotNull(results.Single().Diagnostics!.Single().CodeDescription!.Href.ParsedUri);
     }
 
     [Theory, CombinatorialData]
@@ -631,7 +631,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         // Assert that we have diagnostics even though the option is set to push.
         Assert.Equal("CS1513", results.Single().Diagnostics!.Single().Code);
-        Assert.NotNull(results.Single().Diagnostics!.Single().CodeDescription!.Href);
+        Assert.NotNull(results.Single().Diagnostics!.Single().CodeDescription!.Href.ParsedUri);
     }
 
     [Theory, CombinatorialData]
@@ -688,7 +688,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         if (mutatingLspWorkspace)
         {
             // In the mutating workspace, we just need to update the LSP text (which will flow into the workspace).
-            await testLspServer.ReplaceTextAsync(textLocation.Uri, (textEdit.Range, textEdit.NewText));
+            await testLspServer.ReplaceTextAsync(textLocation.DocumentUri, (textEdit.Range, textEdit.NewText));
             await WaitForWorkspaceOperationsAsync(testLspServer.TestWorkspace);
         }
         else
@@ -697,7 +697,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
             var workspaceText = await document.GetTextAsync(CancellationToken.None);
             var textChange = ProtocolConversions.TextEditToTextChange(textEdit, workspaceText);
             await testLspServer.TestWorkspace.ChangeDocumentAsync(document.Id, workspaceText.WithChanges(textChange));
-            await testLspServer.ReplaceTextAsync(textLocation.Uri, (textEdit.Range, textEdit.NewText));
+            await testLspServer.ReplaceTextAsync(textLocation.DocumentUri, (textEdit.Range, textEdit.NewText));
         }
 
         await testLspServer.WaitForSourceGeneratorsAsync();
@@ -1337,7 +1337,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         static string Inspect(TestDiagnosticResult result)
         {
-            return $"{result.TextDocument.Uri} -> [{string.Join(",", result.Diagnostics?.Select(d => d.Code?.Value) ?? [])}]";
+            return $"{result.TextDocument.DocumentUri} -> [{string.Join(",", result.Diagnostics?.Select(d => d.Code?.Value) ?? [])}]";
         }
     }
 
@@ -1420,7 +1420,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
-        Assert.False(results.Any(r => r.TextDocument!.Uri.LocalPath.Contains(".ts")));
+        Assert.False(results.Any(r => r.TextDocument!.DocumentUri.GetRequiredParsedUri().LocalPath.Contains(".ts")));
     }
 
     [Theory, CombinatorialData]
@@ -1584,7 +1584,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
         Assert.Equal(3, results.Length);
-        Assert.Equal(ProtocolConversions.CreateAbsoluteUri(@"C:\test1.cs"), results[0].TextDocument!.Uri);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test1.cs"), results[0].TextDocument!.DocumentUri);
         Assert.Equal("CS1513", results[0].Diagnostics!.Single().Code);
         Assert.Equal(1, results[0].Diagnostics!.Single().Range.Start.Line);
         AssertEx.Empty(results[1].Diagnostics);
@@ -2014,9 +2014,9 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
         Assert.Equal(3, results.Length);
-        Assert.Equal(@"C:/C.cs", results[0].TextDocument.Uri.AbsolutePath);
-        Assert.Equal(@"C:/CSProj1.csproj", results[1].TextDocument.Uri.AbsolutePath);
-        Assert.Equal(@"C:/C2.cs", results[2].TextDocument.Uri.AbsolutePath);
+        Assert.Equal(@"C:/C.cs", results[0].TextDocument.DocumentUri.GetRequiredParsedUri().AbsolutePath);
+        Assert.Equal(@"C:/CSProj1.csproj", results[1].TextDocument.DocumentUri.GetRequiredParsedUri().AbsolutePath);
+        Assert.Equal(@"C:/C2.cs", results[2].TextDocument.DocumentUri.GetRequiredParsedUri().AbsolutePath);
     }
 
     [Theory, CombinatorialData]

@@ -54,7 +54,7 @@ class A
     private static SimplifyMethodParams CreateSimplifyMethodParams(LSP.Location location, string newText)
         => new SimplifyMethodParams()
         {
-            TextDocument = CreateTextDocumentIdentifier(location.Uri),
+            TextDocument = CreateTextDocumentIdentifier(location.DocumentUri),
             TextEdit = new TextEdit() { Range = location.Range, NewText = newText },
         };
 }
