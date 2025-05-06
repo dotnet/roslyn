@@ -350,7 +350,7 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
                 overloadSelector: parameters => parameters is [var parameterSyntaxTree, var parameterLocations] &&
                   parameterSyntaxTree.ParameterType.IsAssignableTo(typeof(ICompilationUnitSyntax)) &&
                   parameterSyntaxTree.ParameterType.FullName == unitType &&
-                  parameterLocations.ParameterType.IsAssignableTo(typeof(IEnumerable<Location>)),
+                  parameterLocations.ParameterType.IsAssignableTo(typeof(IEnumerable<TextSpan>)),
                 isOptional: true,
                 out function,
                 out var functionName,
