@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Based on bestMatch, find other methods that will be overridden, hidden, or runtime overridden
             // (in bestMatch.ContainingType).
-            FindRelatedMembers(member.IsOverride, memberIsFromSomeCompilation, member.Kind, bestMatch, out overriddenMembers, ref hiddenBuilder);
+            FindRelatedMembers(member.IsOverride, memberIsFromSomeCompilation, member, bestMatch, out overriddenMembers, ref hiddenBuilder);
         }
 
         public static Symbol FindFirstHiddenMemberIfAny(Symbol member, bool memberIsFromSomeCompilation)
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isAccessorOverride(accessor, overriddenAccessor))
             {
                 FindRelatedMembers(
-                    accessor.IsOverride, accessorIsFromSomeCompilation, accessor.Kind, overriddenAccessor, out overriddenAccessors, ref hiddenBuilder);
+                    accessor.IsOverride, accessorIsFromSomeCompilation, accessor, overriddenAccessor, out overriddenAccessors, ref hiddenBuilder);
             }
 
             ImmutableArray<Symbol> hiddenMembers = hiddenBuilder == null ? ImmutableArray<Symbol>.Empty : hiddenBuilder.ToImmutableAndFree();
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         : MemberSignatureComparer.RuntimeSignatureComparer.Equals(accessor, overriddenAccessor)))
             {
                 FindRelatedMembers(
-                    accessor.IsOverride, accessorIsFromSomeCompilation, accessor.Kind, overriddenAccessor, out overriddenAccessors, ref hiddenBuilder);
+                    accessor.IsOverride, accessorIsFromSomeCompilation, accessor, overriddenAccessor, out overriddenAccessors, ref hiddenBuilder);
             }
 
             ImmutableArray<Symbol> hiddenMembers = hiddenBuilder == null ? ImmutableArray<Symbol>.Empty : hiddenBuilder.ToImmutableAndFree();
@@ -496,7 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ArrayBuilder<Symbol> hiddenAndRelatedBuilder = null;
                 foreach (Symbol hidden in hiddenBuilder)
                 {
-                    FindRelatedMembers(member.IsOverride, memberIsFromSomeCompilation, member.Kind, hidden, out overriddenMembers, ref hiddenAndRelatedBuilder);
+                    FindRelatedMembers(member.IsOverride, memberIsFromSomeCompilation, member, hidden, out overriddenMembers, ref hiddenAndRelatedBuilder);
                     Debug.Assert(overriddenMembers.Length == 0);
                 }
                 hiddenBuilder.Free();
@@ -577,7 +577,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     int otherMemberArity = otherMember.GetMemberArity();
                     if (otherMemberArity == memberArity || (memberKind == SymbolKind.Method && otherMemberArity == 0))
                     {
-                        AddHiddenMemberIfApplicable(ref hiddenBuilder, memberKind, otherMember);
+                        AddHiddenMemberIfApplicable(ref hiddenBuilder, member, otherMember);
                     }
                 }
                 else if (!currTypeHasExactMatch)
@@ -704,7 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static void FindRelatedMembers(
             bool isOverride,
             bool overridingMemberIsFromSomeCompilation,
-            SymbolKind overridingMemberKind,
+            Symbol overridingMember,
             Symbol representativeMember,
             out ImmutableArray<Symbol> overriddenMembers,
             ref ArrayBuilder<Symbol> hiddenBuilder)
@@ -735,11 +735,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    AddHiddenMemberIfApplicable(ref hiddenBuilder, overridingMemberKind, representativeMember);
+                    AddHiddenMemberIfApplicable(ref hiddenBuilder, overridingMember, representativeMember);
 
                     if (needToSearchForRelated)
                     {
-                        FindOtherHiddenMembersInContainingType(overridingMemberKind, representativeMember, ref hiddenBuilder);
+                        FindOtherHiddenMembersInContainingType(overridingMember, representativeMember, ref hiddenBuilder);
                     }
                 }
             }
@@ -750,10 +750,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Specifically, methods, properties, and types cannot hide constructors, destructors,
         /// operators, conversions, or accessors.
         /// </summary>
-        private static void AddHiddenMemberIfApplicable(ref ArrayBuilder<Symbol> hiddenBuilder, SymbolKind hidingMemberKind, Symbol hiddenMember)
+        private static void AddHiddenMemberIfApplicable(ref ArrayBuilder<Symbol> hiddenBuilder, Symbol hidingMember, Symbol hiddenMember)
         {
             Debug.Assert((object)hiddenMember != null);
-            if (hiddenMember.Kind != SymbolKind.Method || ((MethodSymbol)hiddenMember).CanBeHiddenByMemberKind(hidingMemberKind))
+            if (hiddenMember.Kind != SymbolKind.Method || ((MethodSymbol)hiddenMember).CanBeHiddenByMember(hidingMember))
             {
                 AccessOrGetInstance(ref hiddenBuilder).Add(hiddenMember);
             }
@@ -837,8 +837,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// properties have the same signature (including custom modifiers, even in a
         /// non-generic type).
         /// </summary>
-        /// <param name="hidingMemberKind">
-        /// This kind of the hiding member.
+        /// <param name="hidingMember">
+        /// The hiding member.
         /// </param>
         /// <param name="representativeMember">
         /// The member that we consider to be hidden (must have exactly the same custom modifiers as the hiding member).
@@ -848,7 +848,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Will have all other members with the same signature (including custom modifiers) as 
         /// representativeMember added.
         /// </param>
-        private static void FindOtherHiddenMembersInContainingType(SymbolKind hidingMemberKind, Symbol representativeMember, ref ArrayBuilder<Symbol> hiddenBuilder)
+        private static void FindOtherHiddenMembersInContainingType(Symbol hidingMember, Symbol representativeMember, ref ArrayBuilder<Symbol> hiddenBuilder)
         {
             Debug.Assert((object)representativeMember != null);
             Debug.Assert(representativeMember.Kind != SymbolKind.Field);
@@ -862,7 +862,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (otherMember != representativeMember && comparer.Equals(otherMember, representativeMember))
                     {
-                        AddHiddenMemberIfApplicable(ref hiddenBuilder, hidingMemberKind, otherMember);
+                        AddHiddenMemberIfApplicable(ref hiddenBuilder, hidingMember, otherMember);
                     }
                 }
             }

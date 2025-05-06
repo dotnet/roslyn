@@ -1408,6 +1408,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     nameof(CompilerFeatureRequiredFeatures.RefStructs) => CompilerFeatureRequiredFeatures.RefStructs,
                     nameof(CompilerFeatureRequiredFeatures.RequiredMembers) => CompilerFeatureRequiredFeatures.RequiredMembers,
+                    nameof(CompilerFeatureRequiredFeatures.UserDefinedCompoundAssignmentOperators) => CompilerFeatureRequiredFeatures.UserDefinedCompoundAssignmentOperators,
                     _ => CompilerFeatureRequiredFeatures.None,
                 };
         }

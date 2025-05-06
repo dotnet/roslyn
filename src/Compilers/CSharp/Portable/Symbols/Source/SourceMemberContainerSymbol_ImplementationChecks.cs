@@ -701,7 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var hiddenMember in currType.GetMembers(symbol.Name))
                 {
-                    if (hiddenMember.Kind == SymbolKind.Method && !((MethodSymbol)hiddenMember).CanBeHiddenByMemberKind(symbol.Kind))
+                    if (hiddenMember.Kind == SymbolKind.Method && !((MethodSymbol)hiddenMember).CanBeHiddenByMember(symbol))
                     {
                         continue;
                     }
@@ -917,6 +917,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // '{0}' must be required because it overrides required member '{1}'
                     diagnostics.Add(ErrorCode.ERR_OverrideMustHaveRequired, overridingMemberLocation, overridingMember, overriddenMember);
+                }
+                else if (overriddenMember is MethodSymbol overridden && overridden.IsOperator() != ((MethodSymbol)overridingMember).IsOperator())
+                {
+                    diagnostics.Add(ErrorCode.ERR_OperatorMismatchOnOverride, overridingMemberLocation, overridingMember, overriddenMember);
                 }
                 else
                 {
@@ -1619,7 +1623,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                if (!hidingMemberIsNew && !IsShadowingSynthesizedRecordMember(hidingMember) && !diagnosticAdded && !hidingMember.IsAccessor() && !hidingMember.IsOperator())
+                if (!hidingMemberIsNew && !IsShadowingSynthesizedRecordMember(hidingMember) && !diagnosticAdded && !hidingMember.IsAccessor() &&
+                    (!hidingMember.IsOperator() || hiddenMembers[0].IsOperator()))
                 {
                     diagnostics.Add(ErrorCode.WRN_NewRequired, hidingMemberLocation, hidingMember, hiddenMembers[0]);
                 }
