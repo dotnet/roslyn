@@ -1494,7 +1494,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var analyzedArguments = AnalyzedArguments.GetInstance();
                 withElement?.GetArguments(analyzedArguments);
-                // PROTOTYPE: The methods are constructors. We should be generating a BoundObjectCreationExpression, not a BoundCall.
                 var result = BindMethodGroupInvocation(
                     syntax,
                     expression: syntax,

@@ -621,15 +621,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             verifier.VerifyIL("Program.EmptyArgs<K, V>", expectedIL);
         }
 
-        // PROTOTYPE: Test nullability of signatures. Specifically, null should be allowed for IEqualityComparer<T>.
-        // PROTOTYPE: Test with named parameter capacity: value.
-        // PROTOTYPE: Test the full shape of the synthesized methods, including 'params', optional values, accessibility, etc.?
-        // PROTOTYPE: Test with implementation method that differs from the expected parameter name when the argument was explicitly named.
-        // PROTOTYPE: Semantic model for collection creation: what method is returned if any?
-        // PROTOTYPE: Test dynamic arguments. Shouldn't result in a BoundDynamicInvocation.
-        // PROTOTYPE: Test success cases for all interface types.
-        // PROTOTYPE: Test that other constructors from List<T> and Dictionary<K, V> are not considered.
-
         [Theory]
         [InlineData("IDictionary")]
         [InlineData("IReadOnlyDictionary")]
@@ -4107,6 +4098,478 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(7, 34));
         }
 
+        // PROTOTYPE: Test nullability of signatures. Specifically, null should be allowed for IEqualityComparer<T>.
+        // PROTOTYPE: Test the full shape of the synthesized methods, including 'params', optional values, accessibility, etc.?
+        // PROTOTYPE: Test with implementation method that differs from the expected parameter name when the argument was explicitly named.
+        // PROTOTYPE: Semantic model for collection creation: what method is returned if any?
+        // PROTOTYPE: Test dynamic arguments. Shouldn't result in a BoundDynamicInvocation.
+
+        [Theory]
+        [CombinatorialData]
+        public void InterfaceTarget_ArrayInterfaces(
+            [CombinatorialValues("IEnumerable", "IReadOnlyCollection", "IReadOnlyList", "ICollection", "IList")] string typeName)
+        {
+            bool isMutable = typeName is "ICollection" or "IList";
+            string sourceA = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Create(1, 2, 3).Report();
+                    }
+                    static {{typeName}}<T> Create<T>(T x, T y, T z)
+                    {
+                        return [with(), x, y, z];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                [sourceA, s_collectionExtensions],
+                options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: "[1, 2, 3], ");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Create<T>", isMutable ?
+                """
+                {
+                  // Code size       28 (0x1c)
+                  .maxstack  3
+                  IL_0000:  ldc.i4.3
+                  IL_0001:  newobj     "System.Collections.Generic.List<T>..ctor(int)"
+                  IL_0006:  dup
+                  IL_0007:  ldarg.0
+                  IL_0008:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                  IL_000d:  dup
+                  IL_000e:  ldarg.1
+                  IL_000f:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                  IL_0014:  dup
+                  IL_0015:  ldarg.2
+                  IL_0016:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                  IL_001b:  ret
+                }
+                """ :
+                """
+                {
+                  // Code size       36 (0x24)
+                  .maxstack  4
+                  IL_0000:  ldc.i4.3
+                  IL_0001:  newarr     "T"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldarg.0
+                  IL_0009:  stelem     "T"
+                  IL_000e:  dup
+                  IL_000f:  ldc.i4.1
+                  IL_0010:  ldarg.1
+                  IL_0011:  stelem     "T"
+                  IL_0016:  dup
+                  IL_0017:  ldc.i4.2
+                  IL_0018:  ldarg.2
+                  IL_0019:  stelem     "T"
+                  IL_001e:  newobj     "<>z__ReadOnlyArray<T>..ctor(T[])"
+                  IL_0023:  ret
+                }
+                """);
+
+            string sourceB = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Create1(2, 1, 2, 3).Report();
+                        Create2(2, 4, 5, 6).Report();
+                    }
+                    static {{typeName}}<T> Create1<T>(int c, T x, T y, T z)
+                    {
+                        return [with(c), x, y, z];
+                    }
+                    static {{typeName}}<T> Create2<T>(int c, T x, T y, T z)
+                    {
+                        return [with(capacity: c), x, y, z];
+                    }
+                }
+                """;
+            comp = CreateCompilation(
+                [sourceB, s_collectionExtensions],
+                options: TestOptions.ReleaseExe);
+            if (isMutable)
+            {
+                verifier = CompileAndVerify(
+                    comp,
+                    expectedOutput: "[1, 2, 3], [4, 5, 6], ");
+                verifier.VerifyDiagnostics();
+                string expectedIL = """
+                    {
+                      // Code size       28 (0x1c)
+                      .maxstack  3
+                      IL_0000:  ldarg.0
+                      IL_0001:  newobj     "System.Collections.Generic.List<T>..ctor(int)"
+                      IL_0006:  dup
+                      IL_0007:  ldarg.1
+                      IL_0008:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                      IL_000d:  dup
+                      IL_000e:  ldarg.2
+                      IL_000f:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                      IL_0014:  dup
+                      IL_0015:  ldarg.3
+                      IL_0016:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                      IL_001b:  ret
+                    }
+                    """;
+                verifier.VerifyIL("Program.Create1<T>", expectedIL);
+                verifier.VerifyIL("Program.Create2<T>", expectedIL);
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (11,16): error CS1501: No overload for method '<signature>' takes 1 arguments
+                    //         return [with(c), x, y, z];
+                    Diagnostic(ErrorCode.ERR_BadArgCount, "[with(c), x, y, z]").WithArguments("<signature>", "1").WithLocation(11, 16),
+                    // (15,22): error CS1739: The best overload for '<signature>' does not have a parameter named 'capacity'
+                    //         return [with(capacity: c), x, y, z];
+                    Diagnostic(ErrorCode.ERR_BadNamedArgument, "capacity").WithArguments("<signature>", "capacity").WithLocation(15, 22));
+            }
+
+            string sourceC = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static {{typeName}}<T> Create1<T>(IEnumerable<T> c, T x, T y, T z)
+                    {
+                        return [with(c), x, y, z];
+                    }
+                    static {{typeName}}<T> Create2<T>(IEnumerable<T> c, T x, T y, T z)
+                    {
+                        return [with(collection: c), x, y, z];
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceC);
+            if (isMutable)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (6,22): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.IEnumerable<T>' to 'int'
+                    //         return [with(c), x, y, z];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "c").WithArguments("1", "System.Collections.Generic.IEnumerable<T>", "int").WithLocation(6, 22),
+                    // (10,22): error CS1739: The best overload for '<signature>' does not have a parameter named 'collection'
+                    //         return [with(collection: c), x, y, z];
+                    Diagnostic(ErrorCode.ERR_BadNamedArgument, "collection").WithArguments("<signature>", "collection").WithLocation(10, 22));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (6,16): error CS1501: No overload for method '<signature>' takes 1 arguments
+                    //         return [with(c), x, y, z];
+                    Diagnostic(ErrorCode.ERR_BadArgCount, "[with(c), x, y, z]").WithArguments("<signature>", "1").WithLocation(6, 16),
+                    // (10,22): error CS1739: The best overload for '<signature>' does not have a parameter named 'collection'
+                    //         return [with(collection: c), x, y, z];
+                    Diagnostic(ErrorCode.ERR_BadNamedArgument, "collection").WithArguments("<signature>", "collection").WithLocation(10, 22));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void InterfaceTarget_DictionaryInterfaces(
+            [CombinatorialValues("IDictionary", "IReadOnlyDictionary")] string typeName)
+        {
+            string sourceA = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Create<int, string>(1, "one", new(2, "two")).Report();
+                    }
+                    static {{typeName}}<K, V> Create<K, V>(K k, V v, KeyValuePair<K, V> x)
+                    {
+                        return [with(), k:v, x];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                [sourceA, s_collectionExtensions],
+                options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: "[[1, one], [2, two]], ");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Create<K, V>", (typeName is "IDictionary") ?
+                """
+                {
+                  // Code size       36 (0x24)
+                  .maxstack  4
+                  .locals init (System.Collections.Generic.KeyValuePair<K, V> V_0)
+                  IL_0000:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor()"
+                  IL_0005:  dup
+                  IL_0006:  ldarg.0
+                  IL_0007:  ldarg.1
+                  IL_0008:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_000d:  ldarg.2
+                  IL_000e:  stloc.0
+                  IL_000f:  dup
+                  IL_0010:  ldloca.s   V_0
+                  IL_0012:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                  IL_0017:  ldloca.s   V_0
+                  IL_0019:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                  IL_001e:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_0023:  ret
+                }
+                """ :
+                """
+                {
+                  // Code size       41 (0x29)
+                  .maxstack  4
+                  .locals init (System.Collections.Generic.KeyValuePair<K, V> V_0)
+                  IL_0000:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor()"
+                  IL_0005:  dup
+                  IL_0006:  ldarg.0
+                  IL_0007:  ldarg.1
+                  IL_0008:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_000d:  ldarg.2
+                  IL_000e:  stloc.0
+                  IL_000f:  dup
+                  IL_0010:  ldloca.s   V_0
+                  IL_0012:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                  IL_0017:  ldloca.s   V_0
+                  IL_0019:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                  IL_001e:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_0023:  newobj     "System.Collections.ObjectModel.ReadOnlyDictionary<K, V>..ctor(System.Collections.Generic.IDictionary<K, V>)"
+                  IL_0028:  ret
+                }
+                """);
+
+            string sourceB = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Create1<int, string>(3, 1, "one", new(2, "two")).Report();
+                        Create2<int, string>(1, 3, "three", new(4, "four")).Report();
+                    }
+                    static {{typeName}}<K, V> Create1<K, V>(int c, K k, V v, KeyValuePair<K, V> x)
+                    {
+                        return [with(c), k:v, x];
+                    }
+                    static {{typeName}}<K, V> Create2<K, V>(int c, K k, V v, KeyValuePair<K, V> x)
+                    {
+                        return [with(capacity: c), k:v, x];
+                    }
+                }
+                """;
+            comp = CreateCompilation(
+                [sourceB, s_collectionExtensions],
+                options: TestOptions.ReleaseExe);
+            string expectedIL;
+            if (typeName is "IDictionary")
+            {
+                verifier = CompileAndVerify(
+                    comp,
+                    expectedOutput: "[[1, one], [2, two]], [[3, three], [4, four]], ");
+                verifier.VerifyDiagnostics();
+                expectedIL = """
+                    {
+                      // Code size       37 (0x25)
+                      .maxstack  4
+                      .locals init (System.Collections.Generic.KeyValuePair<K, V> V_0)
+                      IL_0000:  ldarg.0
+                      IL_0001:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(int)"
+                      IL_0006:  dup
+                      IL_0007:  ldarg.1
+                      IL_0008:  ldarg.2
+                      IL_0009:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                      IL_000e:  ldarg.3
+                      IL_000f:  stloc.0
+                      IL_0010:  dup
+                      IL_0011:  ldloca.s   V_0
+                      IL_0013:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                      IL_0018:  ldloca.s   V_0
+                      IL_001a:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                      IL_001f:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                      IL_0024:  ret
+                    }
+                    """;
+                verifier.VerifyIL("Program.Create1<K, V>", expectedIL);
+                verifier.VerifyIL("Program.Create2<K, V>", expectedIL);
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (11,22): error CS1503: Argument 1: cannot convert from 'int' to 'System.Collections.Generic.IEqualityComparer<K>?'
+                    //         return [with(c), k:v, x];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "c").WithArguments("1", "int", "System.Collections.Generic.IEqualityComparer<K>?").WithLocation(11, 22),
+                    // (15,22): error CS1739: The best overload for '<signature>' does not have a parameter named 'capacity'
+                    //         return [with(capacity: c), k:v, x];
+                    Diagnostic(ErrorCode.ERR_BadNamedArgument, "capacity").WithArguments("<signature>", "capacity").WithLocation(15, 22));
+            }
+
+            string sourceC = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Create1<int, string>(null, 1, "one", new(2, "two")).Report();
+                        Create2<int, string>(null, 3, "three", new(4, "four")).Report();
+                    }
+                    static {{typeName}}<K, V> Create1<K, V>(IEqualityComparer<K> e, K k, V v, KeyValuePair<K, V> x)
+                    {
+                        return [with(e), k:v, x];
+                    }
+                    static {{typeName}}<K, V> Create2<K, V>(IEqualityComparer<K> e, K k, V v, KeyValuePair<K, V> x)
+                    {
+                        return [with(comparer: e), k:v, x];
+                    }
+                }
+                """;
+            comp = CreateCompilation(
+                [sourceC, s_collectionExtensions],
+                options: TestOptions.ReleaseExe);
+            verifier = CompileAndVerify(
+                comp,
+                expectedOutput: "[[1, one], [2, two]], [[3, three], [4, four]], ");
+            verifier.VerifyDiagnostics();
+            expectedIL = (typeName is "IDictionary") ?
+                """
+                {
+                  // Code size       37 (0x25)
+                  .maxstack  4
+                  .locals init (System.Collections.Generic.KeyValuePair<K, V> V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(System.Collections.Generic.IEqualityComparer<K>)"
+                  IL_0006:  dup
+                  IL_0007:  ldarg.1
+                  IL_0008:  ldarg.2
+                  IL_0009:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_000e:  ldarg.3
+                  IL_000f:  stloc.0
+                  IL_0010:  dup
+                  IL_0011:  ldloca.s   V_0
+                  IL_0013:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                  IL_0018:  ldloca.s   V_0
+                  IL_001a:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                  IL_001f:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_0024:  ret
+                }
+                """ :
+                """
+                {
+                  // Code size       42 (0x2a)
+                  .maxstack  4
+                  .locals init (System.Collections.Generic.KeyValuePair<K, V> V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(System.Collections.Generic.IEqualityComparer<K>)"
+                  IL_0006:  dup
+                  IL_0007:  ldarg.1
+                  IL_0008:  ldarg.2
+                  IL_0009:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_000e:  ldarg.3
+                  IL_000f:  stloc.0
+                  IL_0010:  dup
+                  IL_0011:  ldloca.s   V_0
+                  IL_0013:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                  IL_0018:  ldloca.s   V_0
+                  IL_001a:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                  IL_001f:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_0024:  newobj     "System.Collections.ObjectModel.ReadOnlyDictionary<K, V>..ctor(System.Collections.Generic.IDictionary<K, V>)"
+                  IL_0029:  ret
+                }
+                """;
+            verifier.VerifyIL("Program.Create1<K, V>", expectedIL);
+            verifier.VerifyIL("Program.Create2<K, V>", expectedIL);
+
+            string sourceD = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Create1<int, string>(null, 3, 1, "one", new(2, "two")).Report();
+                        Create2<int, string>(null, 1, 3, "three", new(4, "four")).Report();
+                    }
+                    static {{typeName}}<K, V> Create1<K, V>(IEqualityComparer<K> e, int c, K k, V v, KeyValuePair<K, V> x)
+                    {
+                        return [with(c, e), k:v, x];
+                    }
+                    static {{typeName}}<K, V> Create2<K, V>(IEqualityComparer<K> e, int c, K k, V v, KeyValuePair<K, V> x)
+                    {
+                        return [with(capacity: c, comparer: e), k:v, x];
+                    }
+                }
+                """;
+            comp = CreateCompilation(
+                [sourceD, s_collectionExtensions],
+                options: TestOptions.ReleaseExe);
+            if (typeName is "IDictionary")
+            {
+                verifier = CompileAndVerify(
+                    comp,
+                    expectedOutput: "[[1, one], [2, two]], [[3, three], [4, four]], ");
+                verifier.VerifyDiagnostics();
+                expectedIL = """
+                    {
+                      // Code size       39 (0x27)
+                      .maxstack  4
+                      .locals init (System.Collections.Generic.KeyValuePair<K, V> V_0)
+                      IL_0000:  ldarg.1
+                      IL_0001:  ldarg.0
+                      IL_0002:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(int, System.Collections.Generic.IEqualityComparer<K>)"
+                      IL_0007:  dup
+                      IL_0008:  ldarg.2
+                      IL_0009:  ldarg.3
+                      IL_000a:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                      IL_000f:  ldarg.s    V_4
+                      IL_0011:  stloc.0
+                      IL_0012:  dup
+                      IL_0013:  ldloca.s   V_0
+                      IL_0015:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                      IL_001a:  ldloca.s   V_0
+                      IL_001c:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                      IL_0021:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                      IL_0026:  ret
+                    }
+                    """;
+                verifier.VerifyIL("Program.Create1<K, V>", expectedIL);
+                verifier.VerifyIL("Program.Create2<K, V>", expectedIL);
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (11,16): error CS1501: No overload for method '<signature>' takes 2 arguments
+                    //         return [with(c, e), k:v, x];
+                    Diagnostic(ErrorCode.ERR_BadArgCount, "[with(c, e), k:v, x]").WithArguments("<signature>", "2").WithLocation(11, 16),
+                    // (15,22): error CS1739: The best overload for '<signature>' does not have a parameter named 'capacity'
+                    //         return [with(capacity: c, comparer: e), k:v, x];
+                    Diagnostic(ErrorCode.ERR_BadNamedArgument, "capacity").WithArguments("<signature>", "capacity").WithLocation(15, 22));
+            }
+
+            string sourceE = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static {{typeName}}<K, V> Create1<K, V>(IEnumerable<KeyValuePair<K, V>> c, K k, V v)
+                    {
+                        return [with(c), k:v];
+                    }
+                    static {{typeName}}<K, V> Create2<K, V>(IEnumerable<KeyValuePair<K, V>> c, K k, V v)
+                    {
+                        return [with(collection: c), k:v];
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceE);
+            comp.VerifyEmitDiagnostics(
+                // (6,22): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<K, V>>' to 'System.Collections.Generic.IEqualityComparer<K>?'
+                //         return [with(c), k:v];
+                Diagnostic(ErrorCode.ERR_BadArgType, "c").WithArguments("1", "System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<K, V>>", "System.Collections.Generic.IEqualityComparer<K>?").WithLocation(6, 22),
+                // (10,22): error CS1739: The best overload for '<signature>' does not have a parameter named 'collection'
+                //         return [with(collection: c), k:v];
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "collection").WithArguments("<signature>", "collection").WithLocation(10, 22));
+        }
+
         [Theory]
         [CombinatorialData]
         public void InterfaceTarget_MissingMember_01(
@@ -4546,6 +5009,149 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_001b:  ret
                 }
                 """);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void List_KnownLength(
+            [CombinatorialValues("ICollection", "List")] string typeName,
+            [CombinatorialValues("", "with(), ", "with(3), ")] string argsPrefix)
+        {
+            string source = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Create(1, 2, 3).Report();
+                    }
+                    static {{typeName}}<T> Create<T>(params T[] items)
+                    {
+                        return [{{argsPrefix}} ..items];
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensions],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[1, 2, 3], "));
+            verifier.VerifyDiagnostics();
+            string expectedIL;
+            switch (typeName, argsPrefix)
+            {
+                case ("ICollection", "with(3), "):
+                    expectedIL = """
+                        {
+                          // Code size       14 (0xe)
+                          .maxstack  3
+                          IL_0000:  ldc.i4.3
+                          IL_0001:  newobj     "System.Collections.Generic.List<T>..ctor(int)"
+                          IL_0006:  dup
+                          IL_0007:  ldarg.0
+                          IL_0008:  callvirt   "void System.Collections.Generic.List<T>.AddRange(System.Collections.Generic.IEnumerable<T>)"
+                          IL_000d:  ret
+                        }
+                        """;
+                    break;
+                case ("ICollection", _):
+                    expectedIL = """
+                        {
+                          // Code size       69 (0x45)
+                          .maxstack  5
+                          .locals init (T[] V_0,
+                                        int V_1,
+                                        System.Span<T> V_2,
+                                        int V_3,
+                                        System.ReadOnlySpan<T> V_4)
+                          IL_0000:  ldarg.0
+                          IL_0001:  stloc.0
+                          IL_0002:  ldloc.0
+                          IL_0003:  ldlen
+                          IL_0004:  conv.i4
+                          IL_0005:  stloc.1
+                          IL_0006:  ldloc.1
+                          IL_0007:  newobj     "System.Collections.Generic.List<T>..ctor(int)"
+                          IL_000c:  dup
+                          IL_000d:  ldloc.1
+                          IL_000e:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<T>(System.Collections.Generic.List<T>, int)"
+                          IL_0013:  dup
+                          IL_0014:  call       "System.Span<T> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<T>(System.Collections.Generic.List<T>)"
+                          IL_0019:  stloc.2
+                          IL_001a:  ldc.i4.0
+                          IL_001b:  stloc.3
+                          IL_001c:  ldloca.s   V_4
+                          IL_001e:  ldloc.0
+                          IL_001f:  call       "System.ReadOnlySpan<T>..ctor(T[])"
+                          IL_0024:  ldloca.s   V_4
+                          IL_0026:  ldloca.s   V_2
+                          IL_0028:  ldloc.3
+                          IL_0029:  ldloca.s   V_4
+                          IL_002b:  call       "int System.ReadOnlySpan<T>.Length.get"
+                          IL_0030:  call       "System.Span<T> System.Span<T>.Slice(int, int)"
+                          IL_0035:  call       "void System.ReadOnlySpan<T>.CopyTo(System.Span<T>)"
+                          IL_003a:  ldloc.3
+                          IL_003b:  ldloca.s   V_4
+                          IL_003d:  call       "int System.ReadOnlySpan<T>.Length.get"
+                          IL_0042:  add
+                          IL_0043:  stloc.3
+                          IL_0044:  ret
+                        }
+                        """;
+                    break;
+                case ("List", "with(3), "):
+                    expectedIL = """
+                        {
+                          // Code size       40 (0x28)
+                          .maxstack  2
+                          .locals init (System.Collections.Generic.List<T> V_0,
+                                        T[] V_1,
+                                        int V_2,
+                                        T V_3)
+                          IL_0000:  ldc.i4.3
+                          IL_0001:  newobj     "System.Collections.Generic.List<T>..ctor(int)"
+                          IL_0006:  stloc.0
+                          IL_0007:  ldarg.0
+                          IL_0008:  stloc.1
+                          IL_0009:  ldc.i4.0
+                          IL_000a:  stloc.2
+                          IL_000b:  br.s       IL_0020
+                          IL_000d:  ldloc.1
+                          IL_000e:  ldloc.2
+                          IL_000f:  ldelem     "T"
+                          IL_0014:  stloc.3
+                          IL_0015:  ldloc.0
+                          IL_0016:  ldloc.3
+                          IL_0017:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                          IL_001c:  ldloc.2
+                          IL_001d:  ldc.i4.1
+                          IL_001e:  add
+                          IL_001f:  stloc.2
+                          IL_0020:  ldloc.2
+                          IL_0021:  ldloc.1
+                          IL_0022:  ldlen
+                          IL_0023:  conv.i4
+                          IL_0024:  blt.s      IL_000d
+                          IL_0026:  ldloc.0
+                          IL_0027:  ret
+                        }
+                        """;
+                    break;
+                case ("List", _):
+                    expectedIL = """
+                        {
+                          // Code size        7 (0x7)
+                          .maxstack  1
+                          IL_0000:  ldarg.0
+                          IL_0001:  call       "System.Collections.Generic.List<T> System.Linq.Enumerable.ToList<T>(System.Collections.Generic.IEnumerable<T>)"
+                          IL_0006:  ret
+                        }
+                        """;
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((typeName, argsPrefix));
+            }
+            verifier.VerifyIL("Program.Create<T>", expectedIL);
         }
 
         [Fact]
