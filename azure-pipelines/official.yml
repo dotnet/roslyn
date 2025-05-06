@@ -72,33 +72,4 @@ extends:
     - template: /azure-pipelines/prepare-insertion-stages.yml@self
       parameters:
         RealSign: true
-
-    - stage: azure_public_vssdk_feed
-      displayName: azure-public/vssdk feed
-      condition: and(succeeded(), eq(dependencies.Build.outputs['Windows.SetPipelineVariables.SignType'], 'Real'))
-      jobs:
-      - job: azure-public/vssdk feed
-        deployment: push
-        pool:
-          vmImage: ubuntu-latest
-        environment: No-Approval
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-              - download: current
-                artifact: deployables-Windows
-                displayName: Download deployables-Windows artifact
-              - task: NuGetToolInstaller@1
-                displayName: Use NuGet 5.x
-                inputs:
-                  versionSpec: 5.x
-              - task: NuGetCommand@2
-                displayName: NuGet push
-                inputs:
-                  command: push
-                  packagesToPush: $(Pipeline.Workspace)/deployables-Windows/NuGet/*.nupkg
-                  nuGetFeedType: external
-                  publishFeedCredentials: azure-public/vssdk
-                  allowPackageConflicts: true
-                continueOnError: true # until "skip on conflict" is offered as a task input.
+        PackagePush: true

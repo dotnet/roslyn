@@ -40,7 +40,7 @@ stages:
     - ${{ if parameters.PackagePush }}:
       - job: push
         ${{ if parameters.RealSign }}:
-          displayName: azure-public/vs-impl feed
+          displayName: azure-public/vssdk feed
         ${{ else }}:
           displayName: devdiv/vs-impl feed # Leave this as-is, since non-signed builds must not be pushed to public feeds.
         ${{ if parameters.ArchiveSymbols }}:
@@ -59,7 +59,7 @@ stages:
             allowPackageConflicts: true
             ${{ if parameters.RealSign }}:
               nuGetFeedType: external
-              publishFeedCredentials: azure-public/vs-impl
+              publishFeedCredentials: azure-public/vssdk
             ${{ else }}:
               nuGetFeedType: internal
               publishVstsFeed: vs-impl # Leave this as-is, since non-signed builds must not be pushed to public feeds.
@@ -79,4 +79,4 @@ stages:
           - template: WIFtoPATauth.yml
             parameters:
               wifServiceConnectionName: azure-public/vside package push
-              deadPATServiceConnectionId: 207efd62-fd0f-43e7-aeae-17c4febcc660 # azure-public/vs-impl
+              deadPATServiceConnectionId: 42175e93-c771-4a4f-a132-3cca78f44b3b # azure-public/vssdk
