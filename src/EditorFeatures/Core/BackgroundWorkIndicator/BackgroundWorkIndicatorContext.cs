@@ -51,6 +51,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
         //private readonly ITextBuffer _subjectBuffer;
         //private readonly IToolTipPresenter _toolTipPresenter;
         // private readonly ITrackingSpan _trackingSpan;
+        private readonly IBackgroundWorkIndicator _backgroundWorkIndicator;
         private readonly string _firstDescription;
 
         /// <summary>
@@ -89,22 +90,28 @@ internal partial class WpfBackgroundWorkIndicatorFactory
             bool cancelOnFocusLost)
         {
             _factory = factory;
-            _textView = textView;
-            _subjectBuffer = applicableToSpan.Snapshot.TextBuffer;
+            //_textView = textView;
+            //_subjectBuffer = applicableToSpan.Snapshot.TextBuffer;
 
             _cancelOnEdit_DoNotAccessDirectly = cancelOnEdit;
             _cancelOnFocusLost_DoNotAccessDirectly = cancelOnFocusLost;
 
             // Create a tool-tip at the requested position.  Turn off all default behavior for it.  We'll be
             // controlling everything ourselves.
-            _toolTipPresenter = factory._toolTipPresenterFactory.Create(textView, new ToolTipParameters(
-                trackMouse: false,
-                ignoreBufferChange: true,
-                keepOpenFunc: null,
-                ignoreCaretPositionChange: true,
-                dismissWhenOffscreen: false));
+            _backgroundWorkIndicator = factory._backgroundWorkIndicatorService.Create(
+                textView, applicableToSpan, firstDescription, new()
+                {
+                    CancelOnEdit = cancelOnEdit,
+                    CancelOnFocusLost = cancelOnFocusLost,
+                });
+            //_toolTipPresenter = factory._toolTipPresenterFactory.Create(textView, new ToolTipParameters(
+            //    trackMouse: false,
+            //    ignoreBufferChange: true,
+            //    keepOpenFunc: null,
+            //    ignoreCaretPositionChange: true,
+            //    dismissWhenOffscreen: false));
 
-            _trackingSpan = applicableToSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
+            // _trackingSpan = applicableToSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
 
             _firstDescription = firstDescription;
 
@@ -115,9 +122,9 @@ internal partial class WpfBackgroundWorkIndicatorFactory
                 factory._listener,
                 this.ThreadingContext.DisposalToken);
 
-            _toolTipPresenter.Dismissed += OnToolTipPresenterDismissed;
-            _subjectBuffer.Changed += OnTextBufferChanged;
-            textView.LostAggregateFocus += OnTextViewLostAggregateFocus;
+            //_toolTipPresenter.Dismissed += OnToolTipPresenterDismissed;
+            //_subjectBuffer.Changed += OnTextBufferChanged;
+            //textView.LostAggregateFocus += OnTextViewLostAggregateFocus;
         }
 
         public void Dispose()
@@ -213,12 +220,12 @@ internal partial class WpfBackgroundWorkIndicatorFactory
                 //
                 // note we have to disconnect from dismissal notifications so our own dismiss below doesn't cause us to
                 // re-enter and cancel ourselves.
-                _toolTipPresenter.Dismissed -= OnToolTipPresenterDismissed;
-                _subjectBuffer.Changed -= OnTextBufferChanged;
-                _textView.LostAggregateFocus -= OnTextViewLostAggregateFocus;
+                //_toolTipPresenter.Dismissed -= OnToolTipPresenterDismissed;
+                //_subjectBuffer.Changed -= OnTextBufferChanged;
+                //_textView.LostAggregateFocus -= OnTextViewLostAggregateFocus;
 
                 // Finally, dismiss the actual tool-tip.
-                _toolTipPresenter.Dismiss();
+                _backgroundWorkIndicator.Dispose();
 
                 // Let our factory know that we were disposed so it can let go of us as well.
                 _factory.OnContextDisposed(this);
@@ -245,9 +252,10 @@ internal partial class WpfBackgroundWorkIndicatorFactory
 
         public IUIThreadOperationScope AddScope(bool allowCancellation, string description)
         {
-            var scope = new BackgroundWorkIndicatorScope(this, description);
+            BackgroundWorkIndicatorScope scope;
             lock (this.Gate)
             {
+                scope = new(this, _backgroundWorkIndicator.AddScope(description));
                 _scopes = _scopes.Add(scope);
             }
 
