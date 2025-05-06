@@ -173,8 +173,7 @@ namespace CSharpSyntaxGenerator
             private readonly StringBuilder _builder;
             private readonly Encoding? _encoding;
 
-            public StringBuilderText(StringBuilder builder, Encoding? encoding, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
-                 : base(checksumAlgorithm: checksumAlgorithm)
+            public StringBuilderText(StringBuilder builder, Encoding? encoding)
             {
                 _builder = builder;
                 _encoding = encoding;
