@@ -950,10 +950,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool tryDefaultInterfaceImplementation = true;
 
+            if (implementingTypeIsFromSomeCompilation && implicitImpl is MethodSymbol implicitImplMethod && implicitImplMethod.IsOperator() != ((MethodSymbol)interfaceMember).IsOperator())
+            {
+                closestMismatch = implicitImpl;
+                implicitImpl = null;
+                tryDefaultInterfaceImplementation = false;
+            }
             // Dev10 has some extra restrictions and extra wiggle room when finding implicit
             // implementations for interface accessors.  Perform some extra checks and possibly
             // update the result (i.e. implicitImpl).
-            if (interfaceMember.IsAccessor())
+            else if (interfaceMember.IsAccessor())
             {
                 Symbol originalImplicitImpl = implicitImpl;
                 CheckForImplementationOfCorrespondingPropertyOrEvent((MethodSymbol)interfaceMember, implementingType, implementingTypeIsFromSomeCompilation, ref implicitImpl);
@@ -2053,6 +2059,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, interfaceLocation, implementingType, interfaceMember, closestMismatch);
                 }
+                else if (interfaceMember is MethodSymbol interfaceMethod &&
+                         interfaceMethod.IsOperator() != ((MethodSymbol)closestMismatch).IsOperator())
+                {
+                    diagnostics.Add(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, interfaceLocation, implementingType, interfaceMember, closestMismatch);
+                }
                 else
                 {
                     diagnostics.Add(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, interfaceLocation, implementingType, interfaceMember, closestMismatch, interfaceMemberReturnType);
@@ -2178,7 +2189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool? isOperator = null;
 
-            if (interfaceMember is MethodSymbol interfaceMethod)
+            if (interfaceMember is MethodSymbol { IsStatic: true } interfaceMethod)
             {
                 isOperator = interfaceMethod.MethodKind is MethodKind.UserDefinedOperator or MethodKind.Conversion;
             }

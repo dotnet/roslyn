@@ -63,3 +63,5 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.IgnoredDirectiveTrivia(Micros
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.IgnoredDirectiveTrivia(Microsoft.CodeAnalysis.SyntaxToken hashToken, Microsoft.CodeAnalysis.SyntaxToken colonToken, Microsoft.CodeAnalysis.SyntaxToken content, Microsoft.CodeAnalysis.SyntaxToken endOfDirectiveToken, bool isActive) -> Microsoft.CodeAnalysis.CSharp.Syntax.IgnoredDirectiveTriviaSyntax!
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitIgnoredDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.IgnoredDirectiveTriviaSyntax! node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitIgnoredDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.IgnoredDirectiveTriviaSyntax! node) -> TResult?
+
+static Microsoft.CodeAnalysis.CSharp.SyntaxFacts.IsOverloadableCompoundAssignmentOperator(Microsoft.CodeAnalysis.CSharp.SyntaxKind kind) -> bool

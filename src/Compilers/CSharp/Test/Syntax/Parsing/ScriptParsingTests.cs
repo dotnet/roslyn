@@ -9717,7 +9717,7 @@ Console.WriteLine(""Hi!"");", TestOptions.Script);
         public void ShebangNotInScript()
         {
             ParseAndValidate("#!/usr/bin/env csi", TestOptions.Regular,
-                // (1,2): error CS9308: '#!' directives can be only used in scripts or file-based programs
+                // (1,2): error CS9314: '#!' directives can be only used in scripts or file-based programs
                 new ErrorDescription { Code = (int)ErrorCode.ERR_PPShebangInProjectBasedProgram, Line = 1, Column = 2 });
         }
 

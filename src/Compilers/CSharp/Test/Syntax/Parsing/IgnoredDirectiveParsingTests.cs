@@ -34,7 +34,7 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
             }
             : new[]
             {
-                // (1,2): error CS9308: '#!' directives can be only used in scripts or file-based programs
+                // (1,2): error CS9314: '#!' directives can be only used in scripts or file-based programs
                 // #!xyz
                 Diagnostic(ErrorCode.ERR_PPShebangInProjectBasedProgram, "!").WithLocation(1, 2),
                 // (2,2): error CS9282: '#:' directives can be only used in file-based programs ('-features:FileBasedProgram')
@@ -195,7 +195,7 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
                 // (1,2): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
                 //  #!xyz
                 Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 2),
-                // (1,3): error CS9308: '#!' directives can be only used in scripts or file-based programs
+                // (1,3): error CS9314: '#!' directives can be only used in scripts or file-based programs
                 //  #!xyz
                 Diagnostic(ErrorCode.ERR_PPShebangInProjectBasedProgram, "!").WithLocation(1, 3)
             };

@@ -80,7 +80,6 @@ prepare_machine=false
 warn_as_error=false
 properties=""
 source_build=false
-restoreUseStaticGraphEvaluation=true
 solution_to_build="Compilers.slnf"
 
 args=""
@@ -174,10 +173,8 @@ while [[ $# > 0 ]]; do
     --warnaserror)
       warn_as_error=true
       ;;
-    --sourcebuild)
+    --sourcebuild|-sb)
       source_build=true
-      # RestoreUseStaticGraphEvaluation will cause prebuilts
-      restoreUseStaticGraphEvaluation=false
       ;;
     --solution)
       solution_to_build=$2
@@ -307,7 +304,6 @@ function BuildSolution {
     /p:Publish=$publish \
     /p:Sign=$sign \
     /p:RunAnalyzersDuringBuild=$run_analyzers \
-    /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation \
     /p:BootstrapBuildPath="$bootstrap_dir" \
     /p:ContinuousIntegrationBuild=$ci \
     /p:TreatWarningsAsErrors=true \

@@ -485,7 +485,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool IsAnyOverloadableOperator(SyntaxKind kind)
         {
-            return IsOverloadableBinaryOperator(kind) || IsOverloadableUnaryOperator(kind);
+            return IsOverloadableBinaryOperator(kind) ||
+                   IsOverloadableUnaryOperator(kind) ||
+                   IsOverloadableCompoundAssignmentOperator(kind);
         }
 
         public static bool IsOverloadableBinaryOperator(SyntaxKind kind)
@@ -527,6 +529,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.MinusMinusToken:
                 case SyntaxKind.TrueKeyword:
                 case SyntaxKind.FalseKeyword:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        public static bool IsOverloadableCompoundAssignmentOperator(SyntaxKind kind)
+        {
+            switch (kind)
+            {
+                case SyntaxKind.PlusEqualsToken:
+                case SyntaxKind.MinusEqualsToken:
+                case SyntaxKind.AsteriskEqualsToken:
+                case SyntaxKind.SlashEqualsToken:
+                case SyntaxKind.PercentEqualsToken:
+                case SyntaxKind.AmpersandEqualsToken:
+                case SyntaxKind.BarEqualsToken:
+                case SyntaxKind.CaretEqualsToken:
+                case SyntaxKind.LessThanLessThanEqualsToken:
+                case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
                     return true;
                 default:
                     return false;
@@ -1084,6 +1107,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.MinusToken;
 
                 case WellKnownMemberNames.UnaryPlusOperatorName: return SyntaxKind.PlusToken;
+
+                case WellKnownMemberNames.CheckedAdditionAssignmentOperatorName:
+                case WellKnownMemberNames.AdditionAssignmentOperatorName:
+                    return SyntaxKind.PlusEqualsToken;
+
+                case WellKnownMemberNames.CheckedDivisionAssignmentOperatorName:
+                case WellKnownMemberNames.DivisionAssignmentOperatorName:
+                    return SyntaxKind.SlashEqualsToken;
+
+                case WellKnownMemberNames.CheckedMultiplicationAssignmentOperatorName:
+                case WellKnownMemberNames.MultiplicationAssignmentOperatorName:
+                    return SyntaxKind.AsteriskEqualsToken;
+
+                case WellKnownMemberNames.CheckedSubtractionAssignmentOperatorName:
+                case WellKnownMemberNames.SubtractionAssignmentOperatorName:
+                    return SyntaxKind.MinusEqualsToken;
+
+                case WellKnownMemberNames.ModulusAssignmentOperatorName: return SyntaxKind.PercentEqualsToken;
+
+                case WellKnownMemberNames.BitwiseAndAssignmentOperatorName: return SyntaxKind.AmpersandEqualsToken;
+
+                case WellKnownMemberNames.BitwiseOrAssignmentOperatorName: return SyntaxKind.BarEqualsToken;
+
+                case WellKnownMemberNames.ExclusiveOrAssignmentOperatorName: return SyntaxKind.CaretEqualsToken;
+
+                case WellKnownMemberNames.LeftShiftAssignmentOperatorName: return SyntaxKind.LessThanLessThanEqualsToken;
+
+                case WellKnownMemberNames.RightShiftAssignmentOperatorName: return SyntaxKind.GreaterThanGreaterThanEqualsToken;
+
+                case WellKnownMemberNames.UnsignedRightShiftAssignmentOperatorName: return SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken;
+
                 default:
                     return SyntaxKind.None;
             }
@@ -1101,6 +1155,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case WellKnownMemberNames.CheckedMultiplyOperatorName:
                 case WellKnownMemberNames.CheckedSubtractionOperatorName:
                 case WellKnownMemberNames.CheckedExplicitConversionName:
+                case WellKnownMemberNames.CheckedAdditionAssignmentOperatorName:
+                case WellKnownMemberNames.CheckedDivisionAssignmentOperatorName:
+                case WellKnownMemberNames.CheckedMultiplicationAssignmentOperatorName:
+                case WellKnownMemberNames.CheckedSubtractionAssignmentOperatorName:
                     return true;
 
                 default:

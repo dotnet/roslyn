@@ -341,6 +341,17 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
             OperatorKind.True => WellKnownMemberNames.TrueOperatorName,
             OperatorKind.UnaryNegation => WellKnownMemberNames.UnaryNegationOperatorName,
             OperatorKind.UnaryPlus => WellKnownMemberNames.UnaryPlusOperatorName,
+            OperatorKind.AdditionAssignment => WellKnownMemberNames.AdditionAssignmentOperatorName,
+            OperatorKind.SubtractionAssignment => WellKnownMemberNames.SubtractionAssignmentOperatorName,
+            OperatorKind.MultiplicationAssignment => WellKnownMemberNames.MultiplicationAssignmentOperatorName,
+            OperatorKind.DivisionAssignment => WellKnownMemberNames.DivisionAssignmentOperatorName,
+            OperatorKind.ModulusAssignment => WellKnownMemberNames.ModulusAssignmentOperatorName,
+            OperatorKind.ExclusiveOrAssignment => WellKnownMemberNames.ExclusiveOrAssignmentOperatorName,
+            OperatorKind.BitwiseAndAssignment => WellKnownMemberNames.BitwiseAndAssignmentOperatorName,
+            OperatorKind.BitwiseOrAssignment => WellKnownMemberNames.BitwiseOrAssignmentOperatorName,
+            OperatorKind.LeftShiftAssignment => WellKnownMemberNames.LeftShiftAssignmentOperatorName,
+            OperatorKind.RightShiftAssignment => WellKnownMemberNames.RightShiftAssignmentOperatorName,
+            OperatorKind.UnsignedRightShiftAssignment => WellKnownMemberNames.UnsignedRightShiftAssignmentOperatorName,
             _ => throw new ArgumentException("Unknown operator kind."),
         };
 
@@ -3349,6 +3360,7 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
             SpecialType.System_UInt16 => UShortKeyword,
             SpecialType.System_UInt32 => UIntKeyword,
             SpecialType.System_UInt64 => ULongKeyword,
+            SpecialType.System_Void => VoidKeyword,
             _ => throw new NotSupportedException("Unsupported SpecialType"),
         });
 
