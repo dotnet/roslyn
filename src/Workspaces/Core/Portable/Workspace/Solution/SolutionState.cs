@@ -1279,8 +1279,7 @@ internal sealed partial class SolutionState
             return null;
 
         // Do a quick check if the full info for that path has already been computed and cached.
-        var fileMap = _lazyFilePathToRelatedDocumentIds;
-        if (fileMap != null && fileMap.TryGetValue(filePath, out var relatedDocumentIds))
+        if (_lazyFilePathToRelatedDocumentIds.TryGetValue(filePath, out var relatedDocumentIds))
         {
             foreach (var relatedDocumentId in relatedDocumentIds)
             {
@@ -1300,16 +1299,12 @@ internal sealed partial class SolutionState
                 return siblingDocumentId;
         }
 
-        // Wasn't in cache, do the linear search.
-        foreach (var siblingProjectState in this.SortedProjectStates)
+        // Wasn't in the cache or hinted project, do the full linear search and update the cache.
+        var documentIdsWithFilePath = GetDocumentIdsWithFilePath(filePath);
+        foreach (var relatedDocumentId in documentIdsWithFilePath)
         {
-            // Don't want to search the same project that document already came from, or from the related-project we had a hint for.
-            if (siblingProjectState == projectState || siblingProjectState == relatedProject)
-                continue;
-
-            var siblingDocumentId = siblingProjectState.GetFirstDocumentIdWithFilePath(filePath);
-            if (siblingDocumentId is not null)
-                return siblingDocumentId;
+            if (relatedDocumentId != documentId)
+                return relatedDocumentId;
         }
 
         return null;
