@@ -14,12 +14,14 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SemanticSearch;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Formatter = Microsoft.CodeAnalysis.Formatting.Formatter;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp;
@@ -60,15 +62,16 @@ internal sealed class SemanticSearchQueryExecutor(
 
             foreach (var (documentId, changes) in GetDocumentUpdates())
             {
-                var oldText = await newSolution.GetRequiredDocument(documentId).GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var newDocument = newSolution.GetRequiredDocument(documentId);
+                var oldText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 if (changes.IsEmpty)
                 {
                     newSolution = newSolution.RemoveDocument(documentId);
                 }
                 else
                 {
-                    
-                    newSolution = newSolution.WithDocumentText(documentId, oldText.WithChanges(changes), PreservationMode.PreserveValue);
+                    // TODO: auto-format changed spans
+                    newSolution = newSolution.WithDocumentText(documentId, oldText.WithChanges(changes));
                 }
             }
 
