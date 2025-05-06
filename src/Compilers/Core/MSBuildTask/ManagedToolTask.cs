@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         protected abstract void AddResponseFileCommands(CommandLineBuilderExtension commandLine);
 
         /// <summary>
-        /// Thise is the file name the builtin tool that will be executed.
+        /// This is the file name of the builtin tool that will be executed.
         /// </summary>
         /// <remarks>
         /// ToolName is only used in cases where <see cref="UsingBuiltinTool"/> returns true.
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 #if NET
             return false;
 #else
-            // This logic needs to be updated when this issue is fixed. That move csc.exe out to a subdirectory
+            // This logic needs to be updated when this issue is fixed. That moves csc.exe out to a subdirectory
             // and hence the check below will need to change
             //
             // https://github.com/dotnet/roslyn/issues/78001
