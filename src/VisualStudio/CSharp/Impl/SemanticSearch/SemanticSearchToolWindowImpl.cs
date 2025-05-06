@@ -424,7 +424,7 @@ internal sealed partial class SemanticSearchToolWindowImpl(
 
                         if (changedSolution != null && !workspace.TryApplyChanges(changedSolution))
                         {
-                            // report error
+                            // TODO: report error
                         }
                     }
                     else
@@ -433,7 +433,7 @@ internal sealed partial class SemanticSearchToolWindowImpl(
 
                         if (!workspace.TryApplyChanges(changedSolution))
                         {
-                            // report error
+                            // TODO: report error
                         }
                     }
                 }
