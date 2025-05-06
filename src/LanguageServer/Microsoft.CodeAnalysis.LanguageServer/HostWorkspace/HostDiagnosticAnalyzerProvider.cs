@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Reflection;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
@@ -20,15 +20,26 @@ internal sealed class HostDiagnosticAnalyzerProvider(string? razorSourceGenerato
         {
             // we also have to redirect the utilities and object pool assemblies
             var razorDir = Path.GetDirectoryName(razorSourceGenerator) ?? "";
-            var razorUtilities = Path.Combine(razorDir, RazorAnalyzerAssemblyResolver.RazorUtilsAssemblyName + ".dll");
-            var objectPool = Path.Combine(razorDir, RazorAnalyzerAssemblyResolver.ObjectPoolAssemblyName + ".dll");
+            var razorUtilities = GetDependency(razorDir, RazorAnalyzerAssemblyResolver.RazorUtilsAssemblyName);
+            var objectPool = GetDependency(razorDir, RazorAnalyzerAssemblyResolver.ObjectPoolAssemblyName);
 
-            return [
-                    (razorSourceGenerator, ProjectSystemProject.RazorVsixExtensionId),
-                    (razorUtilities, ProjectSystemProject.RazorVsixExtensionId),
-                    (objectPool, ProjectSystemProject.RazorVsixExtensionId)
-                 ];
+            return
+            [
+                (razorSourceGenerator, ProjectSystemProject.RazorVsixExtensionId),
+                (razorUtilities, ProjectSystemProject.RazorVsixExtensionId),
+                (objectPool, ProjectSystemProject.RazorVsixExtensionId)
+            ];
         }
         return [];
+
+        static string GetDependency(string razorDir, string dependencyName)
+        {
+            var dependency = Path.Combine(razorDir, dependencyName + ".dll");
+            if (!File.Exists(dependency))
+            {
+                throw new FileNotFoundException($"Could not find razor dependency {dependency}");
+            }
+            return dependency;
+        }
     }
 }

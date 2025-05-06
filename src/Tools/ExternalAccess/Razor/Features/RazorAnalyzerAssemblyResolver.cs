@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 return null;
             }
 
+            // https://github.com/dotnet/roslyn/issues/76868
             // load the complete closure of razor assemblies if we're asked to load any of them. Subsequent requests for the others will just return the ones loaded here
             LoadAssemblyByFileName(compilerLoadContext, RazorCompilerAssemblyName, directory);
             LoadAssemblyByFileName(compilerLoadContext, RazorUtilsAssemblyName, directory);
@@ -59,6 +60,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
             static Assembly? LoadAssemblyByFileName(AssemblyLoadContext compilerLoadContext, string fileName, string directory)
             {
+                // This is kind of odd that we find the assembly on disk, read it to get its assemblyName, then load it by assemblyName,
+                // which in turn attempts to find it on the disk, but ensures we go through the correct loading logic later on.
                 var onDiskName = Path.Combine(directory, $"{fileName}.dll");
                 if (File.Exists(onDiskName))
                 {
