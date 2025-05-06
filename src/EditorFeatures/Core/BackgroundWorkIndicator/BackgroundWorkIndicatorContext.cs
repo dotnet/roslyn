@@ -29,11 +29,11 @@ internal partial class WpfBackgroundWorkIndicatorFactory
         /// What sort of UI update request we've enqueued to <see cref="_uiUpdateQueue"/>.  This effectively is just a
         /// boolean, but with clearer names to make it obvious what is going on.
         /// </summary>
-        private enum UIUpdateRequest
-        {
-            UpdateTooltip,
-            DismissTooltip,
-        }
+        //private enum UIUpdateRequest
+        //{
+        //    UpdateTooltip,
+        //    DismissTooltip,
+        //}
 
         /// <summary>
         /// Cancellation token exposed to clients through <see cref="UserCancellationToken"/>.
@@ -54,11 +54,11 @@ internal partial class WpfBackgroundWorkIndicatorFactory
         private readonly IBackgroundWorkIndicator _backgroundWorkIndicator;
         private readonly string _firstDescription;
 
-        /// <summary>
-        /// Work queue used to batch up UI update and Dispose requests.  A value of <see langword="true"/> means
-        /// just update the tool-tip. A value of <see langword="false"/> means we want to dismiss the tool-tip.
-        /// </summary>
-        private readonly AsyncBatchingWorkQueue<UIUpdateRequest> _uiUpdateQueue;
+        ///// <summary>
+        ///// Work queue used to batch up UI update and Dispose requests.  A value of <see langword="true"/> means
+        ///// just update the tool-tip. A value of <see langword="false"/> means we want to dismiss the tool-tip.
+        ///// </summary>
+        //private readonly AsyncBatchingWorkQueue<UIUpdateRequest> _uiUpdateQueue;
 
         /// <summary>
         /// Set of scopes we have.  We always start with one (the one created by the initial call to create the work
@@ -115,12 +115,12 @@ internal partial class WpfBackgroundWorkIndicatorFactory
 
             _firstDescription = firstDescription;
 
-            _uiUpdateQueue = new AsyncBatchingWorkQueue<UIUpdateRequest>(
-                DelayTimeSpan.Short,
-                UpdateUIAsync,
-                EqualityComparer<UIUpdateRequest>.Default,
-                factory._listener,
-                this.ThreadingContext.DisposalToken);
+            //_uiUpdateQueue = new AsyncBatchingWorkQueue<UIUpdateRequest>(
+            //    DelayTimeSpan.Short,
+            //    UpdateUIAsync,
+            //    EqualityComparer<UIUpdateRequest>.Default,
+            //    factory._listener,
+            //    this.ThreadingContext.DisposalToken);
 
             //_toolTipPresenter.Dismissed += OnToolTipPresenterDismissed;
             //_subjectBuffer.Changed += OnTextBufferChanged;
@@ -128,13 +128,13 @@ internal partial class WpfBackgroundWorkIndicatorFactory
         }
 
         public void Dispose()
-            => _uiUpdateQueue.AddWork(UIUpdateRequest.DismissTooltip);
+            => _backgroundWorkIndicator.Dispose();// _uiUpdateQueue.AddWork(UIUpdateRequest.DismissTooltip);
 
-        /// <summary>
-        /// Called after anyone consuming us makes a change that should be reflected in the UI.
-        /// </summary>
-        internal void EnqueueUIUpdate()
-            => _uiUpdateQueue.AddWork(UIUpdateRequest.UpdateTooltip);
+        ///// <summary>
+        ///// Called after anyone consuming us makes a change that should be reflected in the UI.
+        ///// </summary>
+        //internal void EnqueueUIUpdate()
+        //    => _uiUpdateQueue.AddWork(UIUpdateRequest.UpdateTooltip);
 
         /// <summary>
         /// The same as Dispose.  Anyone taking ownership of this context wants to show their own UI, so we can just
@@ -143,112 +143,112 @@ internal partial class WpfBackgroundWorkIndicatorFactory
         public void TakeOwnership()
             => this.Dispose();
 
-        private void OnTextBufferChanged(object? sender, TextContentChangedEventArgs e)
-        {
-            if (CancelOnEdit)
-                CancelAndDispose();
-        }
+        //private void OnTextBufferChanged(object? sender, TextContentChangedEventArgs e)
+        //{
+        //    if (CancelOnEdit)
+        //        CancelAndDispose();
+        //}
 
-        private void OnTextViewLostAggregateFocus(object? sender, EventArgs e)
-        {
-            if (CancelOnFocusLost)
-                CancelAndDispose();
-        }
+        //private void OnTextViewLostAggregateFocus(object? sender, EventArgs e)
+        //{
+        //    if (CancelOnFocusLost)
+        //        CancelAndDispose();
+        //}
 
-        private void OnToolTipPresenterDismissed(object sender, EventArgs e)
-            => CancelAndDispose();
+        //private void OnToolTipPresenterDismissed(object sender, EventArgs e)
+        //    => CancelAndDispose();
 
-        public void CancelAndDispose()
-        {
-            _cancellationTokenSource.Cancel();
-            this.Dispose();
-        }
+        //public void CancelAndDispose()
+        //{
+        //    _cancellationTokenSource.Cancel();
+        //    this.Dispose();
+        //}
 
-        public bool CancelOnEdit
-        {
-            get
-            {
-                lock (Gate)
-                    return _cancelOnEdit_DoNotAccessDirectly;
-            }
+        //public bool CancelOnEdit
+        //{
+        //    get
+        //    {
+        //        lock (Gate)
+        //            return _cancelOnEdit_DoNotAccessDirectly;
+        //    }
 
-            set
-            {
-                lock (Gate)
-                    _cancelOnEdit_DoNotAccessDirectly = value;
-            }
-        }
+        //    set
+        //    {
+        //        lock (Gate)
+        //            _cancelOnEdit_DoNotAccessDirectly = value;
+        //    }
+        //}
 
-        public bool CancelOnFocusLost
-        {
-            get
-            {
-                lock (Gate)
-                    return _cancelOnFocusLost_DoNotAccessDirectly;
-            }
+        //public bool CancelOnFocusLost
+        //{
+        //    get
+        //    {
+        //        lock (Gate)
+        //            return _cancelOnFocusLost_DoNotAccessDirectly;
+        //    }
 
-            set
-            {
-                lock (Gate)
-                    _cancelOnFocusLost_DoNotAccessDirectly = value;
-            }
-        }
+        //    set
+        //    {
+        //        lock (Gate)
+        //            _cancelOnFocusLost_DoNotAccessDirectly = value;
+        //    }
+        //}
 
-        private ValueTask UpdateUIAsync(ImmutableSegmentedList<UIUpdateRequest> requests, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfTrue(requests.IsDefault || requests.IsEmpty, "We must have gotten an actual request to process.");
-            Contract.ThrowIfTrue(requests.Count > 2, "At most we can have two requests in the queue (one to update, one to dismiss).");
-            Contract.ThrowIfFalse(
-                requests.Contains(UIUpdateRequest.DismissTooltip) || requests.Contains(UIUpdateRequest.UpdateTooltip),
-                "We didn't get an actual event we know about.");
+        //private ValueTask UpdateUIAsync(ImmutableSegmentedList<UIUpdateRequest> requests, CancellationToken cancellationToken)
+        //{
+        //    Contract.ThrowIfTrue(requests.IsDefault || requests.IsEmpty, "We must have gotten an actual request to process.");
+        //    Contract.ThrowIfTrue(requests.Count > 2, "At most we can have two requests in the queue (one to update, one to dismiss).");
+        //    Contract.ThrowIfFalse(
+        //        requests.Contains(UIUpdateRequest.DismissTooltip) || requests.Contains(UIUpdateRequest.UpdateTooltip),
+        //        "We didn't get an actual event we know about.");
 
-            return requests.Contains(UIUpdateRequest.DismissTooltip)
-                ? DismissUIAsync()
-                : UpdateUIAsync();
+        //    return requests.Contains(UIUpdateRequest.DismissTooltip)
+        //        ? DismissUIAsync()
+        //        : UpdateUIAsync();
 
-            async ValueTask DismissUIAsync()
-            {
-                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        //    async ValueTask DismissUIAsync()
+        //    {
+        //        await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-                // Ensure we only dismiss once.
-                if (_dismissed)
-                    return;
+        //        // Ensure we only dismiss once.
+        //        if (_dismissed)
+        //            return;
 
-                _dismissed = true;
+        //        _dismissed = true;
 
-                // Unhook any event handlers we've setup.
-                //
-                // note we have to disconnect from dismissal notifications so our own dismiss below doesn't cause us to
-                // re-enter and cancel ourselves.
-                //_toolTipPresenter.Dismissed -= OnToolTipPresenterDismissed;
-                //_subjectBuffer.Changed -= OnTextBufferChanged;
-                //_textView.LostAggregateFocus -= OnTextViewLostAggregateFocus;
+        //        // Unhook any event handlers we've setup.
+        //        //
+        //        // note we have to disconnect from dismissal notifications so our own dismiss below doesn't cause us to
+        //        // re-enter and cancel ourselves.
+        //        //_toolTipPresenter.Dismissed -= OnToolTipPresenterDismissed;
+        //        //_subjectBuffer.Changed -= OnTextBufferChanged;
+        //        //_textView.LostAggregateFocus -= OnTextViewLostAggregateFocus;
 
-                // Finally, dismiss the actual tool-tip.
-                _backgroundWorkIndicator.Dispose();
+        //        // Finally, dismiss the actual tool-tip.
+        //        _backgroundWorkIndicator.Dispose();
 
-                // Let our factory know that we were disposed so it can let go of us as well.
-                _factory.OnContextDisposed(this);
-            }
+        //        // Let our factory know that we were disposed so it can let go of us as well.
+        //        _factory.OnContextDisposed(this);
+        //    }
 
-            async ValueTask UpdateUIAsync()
-            {
-                // Build the current description in the background, then switch to the UI thread to actually update the
-                // tool-tip with it.
-                var data = this.BuildData();
+        //    //async ValueTask UpdateUIAsync()
+        //    //{
+        //    //    // Build the current description in the background, then switch to the UI thread to actually update the
+        //    //    // tool-tip with it.
+        //    //    var data = this.BuildData();
 
-                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        //    //    await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-                // If we've been dismissed already, then no point in continuing.
-                if (_dismissed)
-                    return;
+        //    //    // If we've been dismissed already, then no point in continuing.
+        //    //    if (_dismissed)
+        //    //        return;
 
-                // Todo: build a richer tool-tip that makes use of things like the progress reported, and perhaps has a
-                // close button.
-                _toolTipPresenter.StartOrUpdate(
-                    _trackingSpan, [string.Format(EditorFeaturesResources._0_Esc_to_cancel, data.description)]);
-            }
-        }
+        //    //    // Todo: build a richer tool-tip that makes use of things like the progress reported, and perhaps has a
+        //    //    // close button.
+        //    //    _toolTipPresenter.StartOrUpdate(
+        //    //        _trackingSpan, [string.Format(EditorFeaturesResources._0_Esc_to_cancel, data.description)]);
+        //    //}
+        //}
 
         public IUIThreadOperationScope AddScope(bool allowCancellation, string description)
         {
@@ -260,7 +260,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
             }
 
             // We changed.  Enqueue work to make sure the UI reflects this.
-            this.EnqueueUIUpdate();
+            // this.EnqueueUIUpdate();
             return scope;
         }
 
@@ -273,7 +273,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
             }
 
             // We changed.  Enqueue work to make sure the UI reflects this.
-            this.EnqueueUIUpdate();
+            // this.EnqueueUIUpdate();
         }
 
         private (string description, ProgressInfo progressInfo) BuildData()
@@ -307,22 +307,23 @@ internal partial class WpfBackgroundWorkIndicatorFactory
 
         public IDisposable SuppressAutoCancel()
         {
-            var disposer = new SuppressAutoCancelDisposable(this, this.CancelOnEdit, this.CancelOnFocusLost);
-            this.CancelOnEdit = false;
-            this.CancelOnFocusLost = false;
-            return disposer;
+            return _backgroundWorkIndicator.SuppressAutoCancel();
+            //var disposer = new SuppressAutoCancelDisposable(this, this.CancelOnEdit, this.CancelOnFocusLost);
+            //this.CancelOnEdit = false;
+            //this.CancelOnFocusLost = false;
+            //return disposer;
         }
     }
 
-    private sealed class SuppressAutoCancelDisposable(
-        BackgroundWorkIndicatorContext context,
-        bool originalCancelOnEdit,
-        bool originalCancelOnFocusLost) : IDisposable
-    {
-        public void Dispose()
-        {
-            context.CancelOnEdit = originalCancelOnEdit;
-            context.CancelOnFocusLost = originalCancelOnFocusLost;
-        }
-    }
+    //private sealed class SuppressAutoCancelDisposable(
+    //    BackgroundWorkIndicatorContext context,
+    //    bool originalCancelOnEdit,
+    //    bool originalCancelOnFocusLost) : IDisposable
+    //{
+    //    public void Dispose()
+    //    {
+    //        context.CancelOnEdit = originalCancelOnEdit;
+    //        context.CancelOnFocusLost = originalCancelOnFocusLost;
+    //    }
+    //}
 }

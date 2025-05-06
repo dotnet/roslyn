@@ -18,6 +18,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
     private sealed class BackgroundWorkIndicatorScope : IUIThreadOperationScope, IProgress<ProgressInfo>
     {
         private readonly BackgroundWorkIndicatorContext _context;
+        private readonly BackgroundWorkOperationScope _scope;
 
         // Mutable state of this scope.  Can be mutated by a client, at which point we'll ask our owning context to
         // update the tooltip accordingly.
@@ -29,9 +30,10 @@ internal partial class WpfBackgroundWorkIndicatorFactory
         public IProgress<ProgressInfo> Progress => this;
 
         public BackgroundWorkIndicatorScope(
-            BackgroundWorkIndicatorContext indicator, string description)
+            BackgroundWorkIndicatorContext indicator, BackgroundWorkOperationScope scope, string description)
         {
             _context = indicator;
+            _scope = scope;
             _description = description;
         }
 
@@ -48,7 +50,9 @@ internal partial class WpfBackgroundWorkIndicatorFactory
         /// On disposal, just remove ourselves from our parent context.  It will update the UI accordingly.
         /// </summary>
         void IDisposable.Dispose()
-            => _context.RemoveScope(this);
+        {
+            _context.RemoveScope(this);
+        }
 
         bool IUIThreadOperationScope.AllowCancellation
         {
@@ -70,8 +74,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
                     _description = value;
                 }
 
-                // We changed.  Enqueue work to make sure the UI reflects this.
-                _context.EnqueueUIUpdate();
+                _scope.Description = value; 
             }
         }
 
@@ -82,8 +85,11 @@ internal partial class WpfBackgroundWorkIndicatorFactory
                 _progressInfo = value;
             }
 
-            // We changed.  Enqueue work to make sure the UI reflects this.
-            _context.EnqueueUIUpdate();
+            //// We changed.  Enqueue work to make sure the UI reflects this.
+            //_context.EnqueueUIUpdate();
+
+            if (_scope is IProgress<ProgressInfo> underlyingProgress)
+                underlyingProgress.Report(value);
         }
     }
 }
