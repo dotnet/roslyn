@@ -59,119 +59,119 @@ namespace GenerateDocumentationAndConfigFiles
 
         public static Task<int> Main(string[] args)
         {
-            var rootCommand = new RootCommand("Generate documentation and configuration files for analyzers");
+            var rootCommand = new CliRootCommand("Generate documentation and configuration files for analyzers");
 
-            var validateOnlyOption = new Option<bool>("--validateOnly")
+            var validateOnlyOption = new CliOption<bool>("--validateOnly")
             {
                 Description = "Validate files instead of generating them",
                 Required = true
             };
-            var analyzerRulesetsDirOption = new Option<string>("--analyzerRulesetsDir")
+            var analyzerRulesetsDirOption = new CliOption<string>("--analyzerRulesetsDir")
             {
                 Description = "Directory for analyzer rulesets",
                 Required = true
             };
-            var analyzerEditorConfigsDirOption = new Option<string>("--analyzerEditorconfigsDir")
+            var analyzerEditorConfigsDirOption = new CliOption<string>("--analyzerEditorconfigsDir")
             {
                 Description = "Directory for analyzer editorconfigs",
                 Required = true
             };
-            var analyzerGlobalConfigsDirOption = new Option<string>("--analyzerGlobalconfigsDir")
+            var analyzerGlobalConfigsDirOption = new CliOption<string>("--analyzerGlobalconfigsDir")
             {
                 Description = "Directory for analyzer global configs",
                 Required = true
             };
-            var binDirectoryOption = new Option<string>("--binDirectory")
+            var binDirectoryOption = new CliOption<string>("--binDirectory")
             {
                 Description = "Binary directory path",
                 Required = true
             };
-            var configurationOption = new Option<string>("--configuration")
+            var configurationOption = new CliOption<string>("--configuration")
             {
                 Description = "Build configuration",
                 Required = true
             };
-            var tfmOption = new Option<string>("--tfm")
+            var tfmOption = new CliOption<string>("--tfm")
             {
                 Description = "Target framework moniker",
                 Required = true
             };
-            var assembliesOption = new Option<string>("--assemblies")
+            var assembliesOption = new CliOption<string>("--assemblies")
             {
                 Description = "Semicolon-separated list of assemblies",
                 Required = true
             };
-            var propsFileDirOption = new Option<string>("--propsFileDir")
+            var propsFileDirOption = new CliOption<string>("--propsFileDir")
             {
                 Description = "Props file directory",
                 Required = true
             };
-            var propsFileNameOption = new Option<string>("--propsFileName")
+            var propsFileNameOption = new CliOption<string>("--propsFileName")
             {
                 Description = "Props file name",
                 Required = true
             };
-            var targetsFileDirOption = new Option<string>("--targetsFileDir")
+            var targetsFileDirOption = new CliOption<string>("--targetsFileDir")
             {
                 Description = "Targets file directory",
                 Required = true
             };
-            var targetsFileNameOption = new Option<string>("--targetsFileName")
+            var targetsFileNameOption = new CliOption<string>("--targetsFileName")
             {
                 Description = "Targets file name",
                 Required = true
             };
-            var propsFileToDisableNetAnalyzersInNuGetPackageNameOption = new Option<string>("--propsFileToDisableNetAnalyzers")
+            var propsFileToDisableNetAnalyzersInNuGetPackageNameOption = new CliOption<string>("--propsFileToDisableNetAnalyzers")
             {
                 Description = "Props file name to disable .NET analyzers",
                 Required = true
             };
-            var analyzerDocumentationFileDirOption = new Option<string>("--analyzerDocumentationFileDir")
+            var analyzerDocumentationFileDirOption = new CliOption<string>("--analyzerDocumentationFileDir")
             {
                 Description = "Documentation file directory",
                 Required = true
             };
-            var analyzerDocumentationFileNameOption = new Option<string>("--analyzerDocumentationFileName")
+            var analyzerDocumentationFileNameOption = new CliOption<string>("--analyzerDocumentationFileName")
             {
                 Description = "Documentation file name",
                 Required = true
             };
-            var analyzerSarifFileDirOption = new Option<string>("--analyzerSarifFileDir")
+            var analyzerSarifFileDirOption = new CliOption<string>("--analyzerSarifFileDir")
             {
                 Description = "SARIF file directory",
                 Required = true
             };
-            var analyzerSarifFileNameOption = new Option<string>("--analyzerSarifFileName")
+            var analyzerSarifFileNameOption = new CliOption<string>("--analyzerSarifFileName")
             {
                 Description = "SARIF file name",
                 Required = true
             };
-            var analyzerVersionOption = new Option<string>("--analyzerVersion")
+            var analyzerVersionOption = new CliOption<string>("--analyzerVersion")
             {
                 Description = "Analyzer version",
                 Required = true
             };
-            var analyzerPackageNameOption = new Option<string>("--analyzerPackageName")
+            var analyzerPackageNameOption = new CliOption<string>("--analyzerPackageName")
             {
                 Description = "Analyzer package name",
                 Required = true
             };
-            var containsPortedFxCopRulesOption = new Option<bool>("--containsPortedFxcopRules")
+            var containsPortedFxCopRulesOption = new CliOption<bool>("--containsPortedFxcopRules")
             {
                 Description = "Indicates if contains ported FxCop rules",
                 Required = true
             };
-            var generateAnalyzerRulesMissingDocumentationFileOption = new Option<bool>("--generateAnalyzerRulesMissingDocumentationFile")
+            var generateAnalyzerRulesMissingDocumentationFileOption = new CliOption<bool>("--generateAnalyzerRulesMissingDocumentationFile")
             {
                 Description = "Generate a file listing rules with missing documentation",
                 Required = true
             };
-            var releaseTrackingOptOutOption = new Option<bool>("--releaseTrackingOptOut")
+            var releaseTrackingOptOutOption = new CliOption<bool>("--releaseTrackingOptOut")
             {
                 Description = "Opt out of release tracking",
                 Required = true
             };
-            var validateOfflineOption = new Option<bool>("--validateOffline")
+            var validateOfflineOption = new CliOption<bool>("--validateOffline")
             {
                 Description = "Validate files without checking external links",
                 Required = true
