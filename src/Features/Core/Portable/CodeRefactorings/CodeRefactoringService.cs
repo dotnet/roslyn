@@ -81,7 +81,7 @@ internal sealed class CodeRefactoringService(
     {
         var allRefactorings = ImmutableArray<CodeRefactoringProvider>.Empty;
 
-        // Include providers which apply to all extensions, unless we picked it up because document had no extension
+        // Include providers which apply to all extensions
         var key = new ProviderKey(document.Project.Language, document.Kind, "");
         if (LanguageDocumentToProvidersMap.TryGetValue(key, out var lazyProviders))
         {
