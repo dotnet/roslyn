@@ -123,7 +123,7 @@ namespace CSharpSyntaxGenerator
                 }
 
                 // And create a SourceText from the StringBuilder, once again avoiding allocating a single massive string
-                var sourceText = SourceText.From(new StringBuilderReader(stringBuilder), stringBuilder.Length, encoding: Encoding.UTF8);
+                var sourceText = new StringBuilderText(stringBuilder, encoding: Encoding.UTF8);
                 context.AddSource(hintName, sourceText);
             }
         }
@@ -168,44 +168,26 @@ namespace CSharpSyntaxGenerator
             }
         }
 
-        private sealed class StringBuilderReader : TextReader
+        private sealed class StringBuilderText : SourceText
         {
-            private readonly StringBuilder _stringBuilder;
-            private int _position;
+            private readonly StringBuilder _builder;
+            private readonly Encoding? _encoding;
 
-            public StringBuilderReader(StringBuilder stringBuilder)
+            public StringBuilderText(StringBuilder builder, Encoding? encoding)
             {
-                _stringBuilder = stringBuilder;
-                _position = 0;
+                _builder = builder;
+                _encoding = encoding;
             }
 
-            public override int Peek()
-            {
-                if (_position == _stringBuilder.Length)
-                {
-                    return -1;
-                }
+            public override Encoding? Encoding => _encoding;
+            public override int Length => _builder.Length;
+            public override char this[int position] => _builder[position];
 
-                return _stringBuilder[_position];
-            }
+            public override string ToString(TextSpan span)
+                => _builder.ToString(span.Start, span.Length);
 
-            public override int Read()
-            {
-                if (_position == _stringBuilder.Length)
-                {
-                    return -1;
-                }
-
-                return _stringBuilder[_position++];
-            }
-
-            public override int Read(char[] buffer, int index, int count)
-            {
-                var charsToCopy = Math.Min(count, _stringBuilder.Length - _position);
-                _stringBuilder.CopyTo(_position, buffer, index, charsToCopy);
-                _position += charsToCopy;
-                return charsToCopy;
-            }
+            public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
+                => _builder.CopyTo(sourceIndex, destination, destinationIndex, count);
         }
     }
 }
