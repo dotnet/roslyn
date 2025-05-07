@@ -157,6 +157,10 @@ internal partial class WpfBackgroundWorkIndicatorFactory
             {
                 // use the description of the last scope if we have one.  We don't have enough room to show all
                 // the descriptions at once.
+                //
+                // Note: if we do not have a last scope, return the first description.  This is the fallback value
+                // that is always shown which we passed through to the underlying indicator.  We hold onto it ourselves
+                // as the underlying indicator gives us no way to get it back once we set it.
                 lock (this.ContextAndScopeDataMutationGate)
                     return _scopes_onlyAccessUnderLock.LastOrDefault()?.Description ?? _firstDescription;
             }
