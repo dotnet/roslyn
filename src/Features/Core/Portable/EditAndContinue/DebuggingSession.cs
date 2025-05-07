@@ -481,7 +481,7 @@ internal sealed class DebuggingSession : IDisposable
                 return [];
             }
 
-            var analysis = await EditSession.Analyses.GetDocumentAnalysisAsync(LastCommittedSolution, oldDocument, document, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+            var analysis = await EditSession.Analyses.GetDocumentAnalysisAsync(LastCommittedSolution, document.Project.Solution, oldDocument, document, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
             if (analysis.HasChanges)
             {
                 // Once we detected a change in a document let the debugger know that the corresponding loaded module
@@ -553,13 +553,13 @@ internal sealed class DebuggingSession : IDisposable
         }
 
         using var _ = ArrayBuilder<ProjectDiagnostics>.GetInstance(out var rudeEditDiagnostics);
-        foreach (var (projectId, projectRudeEdits) in solutionUpdate.DocumentsWithRudeEdits.GroupBy(static e => e.DocumentId.ProjectId).OrderBy(static id => id))
+        foreach (var (projectId, documentsWithRudeEdits) in solutionUpdate.DocumentsWithRudeEdits.GroupBy(static e => e.Id.ProjectId).OrderBy(static id => id))
         {
-            foreach (var (documentId, rudeEdits) in projectRudeEdits)
+            foreach (var documentWithRudeEdits in documentsWithRudeEdits)
             {
-                var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-                var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                rudeEditDiagnostics.Add(new(projectId, rudeEdits.SelectAsArray(static (rudeEdit, tree) => rudeEdit.ToDiagnostic(tree), tree)));
+                var document = await solution.GetDocumentAsync(documentWithRudeEdits.Id, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                var tree = (document != null) ? await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false) : null;
+                rudeEditDiagnostics.Add(new(projectId, documentWithRudeEdits.RudeEdits.SelectAsArray(static (rudeEdit, tree) => rudeEdit.ToDiagnostic(tree), tree)));
             }
         }
 
@@ -754,9 +754,10 @@ internal sealed class DebuggingSession : IDisposable
                     var oldDocumentActiveStatements = await baseActiveStatements.GetOldActiveStatementsAsync(analyzer, oldDocument, cancellationToken).ConfigureAwait(false);
 
                     var analysis = await analyzer.AnalyzeDocumentAsync(
+                        newDocument.Id,
                         oldProject,
+                        newProject,
                         EditSession.BaseActiveStatements,
-                        newDocument,
                         newActiveStatementSpans: [],
                         EditSession.Capabilities,
                         AnalysisLog,
@@ -882,7 +883,7 @@ internal sealed class DebuggingSession : IDisposable
                     continue;
                 }
 
-                var analysis = await EditSession.Analyses.GetDocumentAnalysisAsync(LastCommittedSolution, oldUnmappedDocument, newUnmappedDocument, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+                var analysis = await EditSession.Analyses.GetDocumentAnalysisAsync(LastCommittedSolution, newUnmappedDocument.Project.Solution, oldUnmappedDocument, newUnmappedDocument, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
                 // Document content did not change or unable to determine active statement spans in a document with syntax errors:
                 if (!analysis.ActiveStatements.IsDefault)
