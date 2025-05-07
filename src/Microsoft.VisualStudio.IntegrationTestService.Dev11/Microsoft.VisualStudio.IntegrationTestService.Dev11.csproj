@@ -49,9 +49,9 @@
 
   <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.targets" />
 
-  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="Exists('$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets')" />
-  <PropertyGroup>
-    <VsSdkTargetsImported Condition="Exists('$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets')">true</VsSdkTargetsImported>
+  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(SkipVsixBuild)' != 'true' AND Exists('$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets')" />
+  <PropertyGroup Condition="'$(SkipVsixBuild)' != 'true' AND Exists('$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets')">
+    <VsSdkTargetsImported>true</VsSdkTargetsImported>
     <VsSdkUnzipTargetImported>true</VsSdkUnzipTargetImported>
   </PropertyGroup>
 

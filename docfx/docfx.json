@@ -3,7 +3,7 @@
 		{
 			"src": [
 				{
-					"src": "../src/Library",
+					"src": "../src/Microsoft.VisualStudio.Extensibility.Testing.Xunit",
 					"files": [
 						"**/*.csproj"
 					]
@@ -39,8 +39,8 @@
 			"modern"
 		],
 		"globalMetadata": {
-			"_appName": "Library",
-			"_appTitle": "Library",
+			"_appName": "Visual Studio Extension Testing",
+			"_appTitle": "Visual Studio Extension Testing",
 			"_enableSearch": true,
 			"pdf": false
 		}

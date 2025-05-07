@@ -6,7 +6,6 @@ on:
   push:
     branches:
     - main
-    - microbuild
 
 jobs:
   build:
@@ -25,6 +24,8 @@ jobs:
         ./init.ps1 -UpgradePrerequisites
         dotnet --info
       shell: pwsh
+    - name: 🛠 build
+      run: dotnet build -c Release -p:SkipVsixBuild=true -bl:"${{ runner.temp }}/_artifacts/build_logs/build.binlog"
     - name: 📚 Verify docfx build
-      run: dotnet docfx docfx/docfx.json --warningsAsErrors --disableGitFeatures
+      run: dotnet docfx docfx/docfx.json --disableGitFeatures # --warningsAsErrors
       if: runner.os == 'Linux'

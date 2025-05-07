@@ -43,7 +43,7 @@
     <EmbeddedResource Include="$(RepoRootPath)bin\Microsoft.VisualStudio.IntegrationTestService.Dev17\$(Configuration)\net472\Microsoft.VisualStudio.IntegrationTestService.dll" Visible="false" ManifestResourceName="Microsoft.VisualStudio.IntegrationTestService.dll" />
 
     <!-- Embedded extensions -->
-    <EmbeddedResource Include="$(RepoRootPath)bin\Microsoft.VisualStudio.IntegrationTestService.Dev17\$(Configuration)\net472\Microsoft.VisualStudio.IntegrationTestService.vsix" Visible="false" ManifestResourceName="Microsoft.VisualStudio.IntegrationTestService.vsix" />
+    <EmbeddedResource Condition="'$(SkipVsixBuild)' != 'true'" Include="$(RepoRootPath)bin\Microsoft.VisualStudio.IntegrationTestService.Dev17\$(Configuration)\net472\Microsoft.VisualStudio.IntegrationTestService.vsix" Visible="false" ManifestResourceName="Microsoft.VisualStudio.IntegrationTestService.vsix" />
   </ItemGroup>
 
   <Import Project="..\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Shared\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Shared.projitems" Label="Shared" />
