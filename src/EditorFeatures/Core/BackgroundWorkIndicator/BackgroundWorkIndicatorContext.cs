@@ -40,7 +40,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
         /// Set of scopes we have.  We always start with one (the one created by the initial call to create the work
         /// indicator). However, the client of the background indicator can add more.
         /// </summary>
-        private ImmutableArray<BackgroundWorkIndicatorScope> _scopes_onlyAccessUnderLock;
+        private ImmutableArray<BackgroundWorkIndicatorScope> _scopes_onlyAccessUnderLock = [];
 
         public BackgroundWorkIndicatorContext(
             WpfBackgroundWorkIndicatorFactory factory,
