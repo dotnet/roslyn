@@ -83,7 +83,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             return null;
         }
 
-        if (!isFile || !GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms))
+        if (!isFile || languageInformation.LanguageName != LanguageNames.CSharp || !GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms))
         {
             // For now, we cannot provide intellisense etc on files which are not on disk or are not C#.
             var sourceTextLoader = new SourceTextLoader(documentText, documentPath);
@@ -103,17 +103,15 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         }
 
         // We have a file on disk. Light up the file-based program experience.
-        // For Razor files we need to override the language name to C# as that's what code is generated
-        var isRazor = languageInformation.LanguageName == "Razor";
-        var languageName = isRazor ? LanguageNames.CSharp : languageInformation.LanguageName;
+        var projectLanguageName = LanguageNames.CSharp;
         var documentFileInfo = new DocumentFileInfo(documentPath, logicalPath: documentPath, isLinked: false, isGenerated: false, folders: default);
         var projectFileInfo = new ProjectFileInfo()
         {
-            Language = languageName,
+            Language = projectLanguageName,
             FilePath = VirtualProject.GetVirtualProjectPath(documentPath),
             CommandLineArgs = ["/langversion:preview", "/features:FileBasedProgram=true"],
-            Documents = isRazor ? [] : [documentFileInfo],
-            AdditionalDocuments = isRazor ? [documentFileInfo] : [],
+            Documents = [documentFileInfo],
+            AdditionalDocuments = [],
             AnalyzerConfigDocuments = [],
             ProjectReferences = [],
             PackageReferences = [],
@@ -126,7 +124,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         Project workspaceProject;
         using (await projectSet.Semaphore.DisposableWaitAsync())
         {
-            var loadedProject = await this.CreateAndTrackInitialProjectAsync_NoLock(projectSet, documentPath, language: languageName);
+            var loadedProject = await this.CreateAndTrackInitialProject_NoLockAsync(projectSet, documentPath, language: projectLanguageName);
             await loadedProject.UpdateWithNewProjectInfoAsync(projectFileInfo, hasAllInformation: false, _logger);
 
             ProjectsToLoadAndReload.AddWork(new ProjectToLoad(documentPath, ProjectGuid: null, ReportTelemetry: true));
@@ -134,14 +132,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             workspaceProject = ProjectFactory.Workspace.CurrentSolution.GetRequiredProject(loadedProject.ProjectId);
         }
 
-        var document = isRazor ? workspaceProject.AdditionalDocuments.Single() : workspaceProject.Documents.Single();
-
-        _ = Task.Run(async () =>
-        {
-            await ProjectsToLoadAndReload.WaitUntilCurrentBatchCompletesAsync();
-            await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync();
-        });
-
+        var document = workspaceProject.Documents.Single();
         Contract.ThrowIfFalse(document.FilePath == documentPath);
         return document;
     }

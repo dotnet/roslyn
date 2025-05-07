@@ -107,6 +107,7 @@ internal sealed class LoadedProject : IDisposable
         _fileChangeContext.Dispose();
         _optionsProcessor.Dispose();
         _projectSystemProject.RemoveFromWorkspace();
+        NeedsReload = null;
     }
 
     public async ValueTask<(ProjectLoadTelemetryReporter.TelemetryInfo, bool NeedsRestore)> UpdateWithNewProjectInfoAsync(ProjectFileInfo newProjectInfo, bool hasAllInformation, ILogger logger)

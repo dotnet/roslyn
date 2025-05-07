@@ -229,7 +229,7 @@ internal abstract class LanguageServerProjectLoader
                     }
                     else
                     {
-                        var loadedProject = await CreateAndTrackInitialProjectAsync_NoLock(
+                        var loadedProject = await CreateAndTrackInitialProject_NoLockAsync(
                             loadedProjectSet,
                             projectPath,
                             loadedProjectInfo.Language,
@@ -333,7 +333,7 @@ internal abstract class LanguageServerProjectLoader
         }
     }
 
-    protected async Task<LoadedProject> CreateAndTrackInitialProjectAsync_NoLock(LoadedProjectSet projectSet, string projectPath, string language, string? targetFramework = null, string? intermediateOutputFilePath = null)
+    protected async Task<LoadedProject> CreateAndTrackInitialProject_NoLockAsync(LoadedProjectSet projectSet, string projectPath, string language, string? targetFramework = null, string? intermediateOutputFilePath = null)
     {
         var projectSystemName = targetFramework is null ? projectPath : $"{projectPath} (${targetFramework})";
 
