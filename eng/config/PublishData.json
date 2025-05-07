@@ -44,6 +44,7 @@
       "Microsoft.CodeAnalysis.CSharp.EditorFeatures": "vssdk",
       "Microsoft.CodeAnalysis.InteractiveHost": "vssdk",
       "Microsoft.CodeAnalysis.VisualBasic.EditorFeatures": "vssdk",
+      "Microsoft.CodeAnalysis.EditorFeatures.Wpf": "vssdk",
       "Microsoft.CodeAnalysis.EditorFeatures.Cocoa": "vssdk",
       "Microsoft.VisualStudio.IntegrationTest.Utilities": "vs-impl",
       "Microsoft.VisualStudio.LanguageServices.DevKit": "vs-impl",
