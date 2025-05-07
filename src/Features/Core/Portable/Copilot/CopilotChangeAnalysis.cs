@@ -15,10 +15,17 @@ namespace Microsoft.CodeAnalysis.Copilot;
 [DataContract]
 internal readonly record struct CopilotChangeAnalysis(
     [property: DataMember(Order = 0)] bool Succeeded,
-    [property: DataMember(Order = 1)] TimeSpan TotalAnalysisTime,
-    [property: DataMember(Order = 2)] TimeSpan TotalDiagnosticComputationTime,
-    [property: DataMember(Order = 3)] ImmutableArray<CopilotDiagnosticAnalysis> DiagnosticAnalyses,
-    [property: DataMember(Order = 4)] CopilotCodeFixAnalysis CodeFixAnalysis);
+    [property: DataMember(Order = 1)] int OldDocumentLength,
+    [property: DataMember(Order = 2)] int NewDocumentLength,
+    [property: DataMember(Order = 3)] int TextChangeDelta,
+    [property: DataMember(Order = 4)] int ProjectDocumentCount,
+    [property: DataMember(Order = 5)] int ProjectSourceGeneratedDocumentCount,
+    [property: DataMember(Order = 6)] int ProjectConeCount,
+    [property: DataMember(Order = 7)] TimeSpan TotalAnalysisTime,
+    [property: DataMember(Order = 8)] TimeSpan ForkingTime,
+    [property: DataMember(Order = 9)] TimeSpan TotalDiagnosticComputationTime,
+    [property: DataMember(Order = 10)] ImmutableArray<CopilotDiagnosticAnalysis> DiagnosticAnalyses,
+    [property: DataMember(Order = 11)] CopilotCodeFixAnalysis CodeFixAnalysis);
 
 /// <param name="Kind">What diagnostic kind this is analysis data for.</param>
 /// <param name="ComputationTime">How long it took to produce the diagnostics for this diagnostic kind.</param>
