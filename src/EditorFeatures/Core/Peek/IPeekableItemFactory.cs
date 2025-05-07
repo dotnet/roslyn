@@ -18,7 +18,7 @@ using Microsoft.VisualStudio.Language.Intellisense;
 
 namespace Microsoft.CodeAnalysis.Editor.Peek;
 
-public interface IPeekableItemFactory
+internal interface IPeekableItemFactory
 {
     Task<IEnumerable<IPeekableItem>> GetPeekableItemsAsync(ISymbol symbol, Project project, IPeekResultFactory peekResultFactory, CancellationToken cancellationToken);
 }
