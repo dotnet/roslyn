@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int result = typeComparer.GetHashCode(op.Method.OriginalDefinition.ContainingType.ContainingType);
                 result = Hash.Combine(result, new SourceMemberContainerTypeSymbol.ExtensionGroupingKey(op.Method.OriginalDefinition.ContainingType).GetHashCode());
 
-                foreach(var typeWithAnnotations in op.Method.OriginalDefinition.ParameterTypesWithAnnotations)
+                foreach (var typeWithAnnotations in op.Method.OriginalDefinition.ParameterTypesWithAnnotations)
                 {
                     result = Hash.Combine(result, typeComparer.GetHashCode(typeWithAnnotations.Type));
                 }
