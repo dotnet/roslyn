@@ -12871,17 +12871,15 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : handle conversion on receiver
         try
         {
+            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : assertion in NullableWalker
             var comp = CreateCompilation(src);
             CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
         }
         catch (InvalidOperationException)
         {
-            return;
         }
-        Assert.False(true);
     }
 
     [Fact]
@@ -20351,7 +20349,7 @@ static class E
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
-        CompileAndVerify(comp, expectedOutput: "C").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("C"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -20926,17 +20924,8 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : handle conversion on receiver
-        try
-        {
-            var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "pin 2", verify: Verification.Skipped).VerifyDiagnostics();
-        }
-        catch (InvalidOperationException)
-        {
-            return;
-        }
-        Assert.False(true);
+        var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe);
+        CompileAndVerify(comp, expectedOutput: "pin 2", verify: Verification.Skipped).VerifyDiagnostics();
     }
 
     [Fact]
@@ -22136,7 +22125,6 @@ class C
     {
         var src = """
 var c = new C();
-
 _ = c is { Property: 42 };
 
 class C { }
@@ -22166,7 +22154,6 @@ static class E
     {
         var src = """
 var c = new C();
-
 _ = c is { Property: 42 };
 
 class C { }
@@ -22182,17 +22169,8 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : handle conversion on receiver
-        try
-        {
-            var comp = CreateCompilation(src);
-            CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
-        }
-        catch (InvalidOperationException)
-        {
-            return;
-        }
-        Assert.False(true);
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
     }
 
     [Fact]
@@ -22228,6 +22206,66 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var expressionColon = GetSyntax<ExpressionColonSyntax>(tree, "Property.Property2:");
         Assert.Equal("System.Int32 E2.<>E__0.Property2 { get; }", model.GetSymbolInfo(expressionColon.Expression).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_Patterns_ExtendedPropertyPattern_Conversion()
+    {
+        var src = """
+var c = new C();
+
+_ = c is { Property.Property2: 43 };
+
+class C { }
+
+static class E1
+{
+    extension(object o)
+    {
+        public int Property { get { System.Console.Write("property "); return 42; } }
+    }
+}
+
+static class E2
+{
+    extension(int i)
+    {
+        public int Property2 { get { System.Console.Write("property2"); return 43; } }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "property property2").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_Patterns_ExtendedPropertyPattern_Conversion_02()
+    {
+        var src = """
+var c = new C();
+
+_ = c is { Property.Property2: 43 };
+
+class C { }
+
+static class E1
+{
+    extension(C c)
+    {
+        public C Property { get { System.Console.Write("property "); return c; } }
+    }
+}
+
+static class E2
+{
+    extension(object o)
+    {
+        public int Property2 { get { System.Console.Write("property2"); return 43; } }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "property property2").VerifyDiagnostics();
     }
 
     [Fact]
@@ -22269,9 +22307,7 @@ static class E
     public void ExtensionMemberLookup_ObjectInitializer()
     {
         var src = """
-/*<bind>*/
 _ = new C() { Property = 42 };
-/*</bind>*/
 
 class C { }
 
@@ -22297,9 +22333,7 @@ static class E
     public void ExtensionMemberLookup_ObjectInitializer_Conversion()
     {
         var src = """
-/*<bind>*/
 _ = new C() { Property = 42 };
-/*</bind>*/
 
 class C { }
 
@@ -22312,17 +22346,8 @@ static class E
 }
 """;
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : handle conversion on receiver
-        try
-        {
-            var comp = CreateCompilation(src);
-            CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
-        }
-        catch (InvalidOperationException)
-        {
-            return;
-        }
-        Assert.False(true);
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
     }
 
     [Fact]
@@ -38561,9 +38586,9 @@ public class MyCollection : IEnumerable<object>
     IEnumerator IEnumerable.GetEnumerator() => throw null!;
 }
 """;
+        // Tracked by https://github.com/dotnet/roslyn/issues/78452 : assertion hit during nullability analysis
         try
         {
-            // Assertion tracked by https://github.com/dotnet/roslyn/issues/78452
             comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics();
         }
@@ -38649,17 +38674,11 @@ static class E
 }
 """;
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : handle conversion on receiver
-        try
-        {
-            var comp = CreateCompilation(src);
-            comp.VerifyEmitDiagnostics();
-        }
-        catch (InvalidOperationException)
-        {
-            return;
-        }
-        Assert.False(true);
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,31): warning CS8601: Possible null reference assignment.
+            // _ = new S() with { Property = oNull };
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNull").WithLocation(4, 31));
     }
 
     [Fact]
@@ -38685,21 +38704,46 @@ static class E
 }
 """;
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : handle conversion on receiver
-        try
-        {
-            var comp = CreateCompilation(src);
-            comp.VerifyEmitDiagnostics();
-        }
-        catch (InvalidOperationException)
-        {
-            return;
-        }
-        Assert.False(true);
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,5): warning CS8602: Dereference of a possibly null reference.
+            // _ = cNull with { Property = 42 };
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "cNull").WithLocation(4, 5));
     }
 
     [Fact]
     public void Nullability_With_03()
+    {
+        var src = """
+#nullable enable
+
+C? cNull = null;
+_ = cNull with { Property = 42 };
+
+C cNotNull = new C();
+_ = cNotNull with { Property = 42 };
+
+record C { }
+
+static class E
+{
+    extension(object? o)
+    {
+        public int Property { set { } }
+    }
+}
+""";
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : unexpected nullability warning
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,5): warning CS8602: Dereference of a possibly null reference.
+            // _ = cNull with { Property = 42 };
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "cNull").WithLocation(4, 5));
+    }
+
+    [Fact]
+    public void Nullability_With_04()
     {
         var src = """
 #nullable enable
@@ -38729,7 +38773,7 @@ static class E
     }
 
     [Fact]
-    public void Nullability_With_04()
+    public void Nullability_With_05()
     {
         var src = """
 #nullable enable

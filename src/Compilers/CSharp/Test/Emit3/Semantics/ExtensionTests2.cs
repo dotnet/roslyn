@@ -18,8 +18,6 @@ public partial class ExtensionTests : CompilingTestBase
         var src = """
 var (x, y) = "";
 
-class C { }
-
 static class E
 {
     extension(object o)
@@ -46,8 +44,6 @@ static class E
     {
         var src = """
 var (x, y) = "";
-
-class C { }
 
 static class E
 {
@@ -152,6 +148,31 @@ static class E
     }
 
     [Fact]
+    public void ForeachDeconstruct_Conversion()
+    {
+        var src = """
+C[] c = new C[] { new C() };
+foreach (var (x1, x2) in c)
+{
+    System.Console.Write(x1.ToString());
+}
+
+class C { }
+
+static class E
+{
+    extension(object o)
+    {
+        public void Deconstruct(out int i1, out int i2) { i1 = i2 = 42; }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
+    }
+
+    [Fact]
     public void PositionalPattern_01()
     {
         var src = """
@@ -170,6 +191,26 @@ static class E
             // (1,19): error CS8517: The name 'other' does not match the corresponding 'Deconstruct' parameter 'j'.
             // _ = "" is (i: 42, other: 43);
             Diagnostic(ErrorCode.ERR_DeconstructParameterNameMismatch, "other").WithArguments("other", "j").WithLocation(1, 19));
+    }
+
+    [Fact]
+    public void PositionalPattern_02()
+    {
+        var src = """
+_ = new C() is var (x, y);
+
+class C { }
+
+static class E
+{
+    extension(object o)
+    {
+        public void Deconstruct(out int i, out int j) => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -198,6 +239,5 @@ static class E
             // null.M2("");
             Diagnostic(ErrorCode.ERR_BadUnaryOp, "null.M2").WithArguments(".", "<null>").WithLocation(2, 1));
     }
-
 }
 
