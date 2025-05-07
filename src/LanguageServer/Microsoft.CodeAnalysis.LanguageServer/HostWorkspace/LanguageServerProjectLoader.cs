@@ -43,6 +43,17 @@ internal abstract class LanguageServerProjectLoader
     private readonly BinlogNamer _binlogNamer;
     protected readonly ImmutableDictionary<string, string> AdditionalProperties;
 
+    /// <summary>
+    /// Stores LoadedProjects representing all the TFMs of a single project (whose file path is the key in <see cref="_loadedProjects"/>)
+    /// </summary>
+    /// <param name="Semaphore">
+    /// Synchronizes access to and disposal of items in <see cref="LoadedProjects"/>.
+    /// This must be obtained prior to any actions on LoadedProjects.
+    /// </param>
+    /// <param name="CancellationTokenSource">
+    /// When cancelled, signals that some thread has started disposing the <see cref="LoadedProjects"/>.
+    /// This must be checked after acquiring <see cref="Semaphore"/>, prior to performing any actions on LoadedProjects.
+    /// </param>
     protected record LoadedProjectSet(List<LoadedProject> LoadedProjects, SemaphoreSlim Semaphore, CancellationTokenSource CancellationTokenSource);
 
     private readonly ConcurrentDictionary<string, LoadedProjectSet> _loadedProjects = [];
