@@ -1188,4 +1188,152 @@ public sealed class RemoveUnreachableCodeTests
             LanguageVersion = LanguageVersion.CSharp13,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75605")]
+    public async Task Test_ThrowsAndScopesAfterNestedScopedReturn()
+    {
+        var code = """
+            using System;
+
+            class C
+            {
+                public static int Add(int a, int b)
+                {
+                    {
+                        {
+                            return a + b;
+                        }
+            [|            throw new InvalidOperationException();
+            |]        }
+            [|
+                    {
+                        throw new InvalidOperationException();
+                    }
+
+                    {
+                        const int x = 523;
+                        throw new InvalidOperationException();
+                    }
+
+                    {
+                        throw new InvalidOperationException();
+                    }
+            |]
+                }
+            }
+            """;
+        var fixedCode = """
+            using System;
+            
+            class C
+            {
+                public static int Add(int a, int b)
+                {
+                    {
+                        {
+                            return a + b;
+                        }
+                    }
+
+                }
+            }
+            """;
+        await new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = fixedCode,
+            LanguageVersion = LanguageVersion.CSharp13,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75605")]
+    public async Task Test_ThrowsAndNestedScopesAfterComplexNestedScopedReturn()
+    {
+        var code = """
+            using System;
+
+            class C
+            {
+                public static int Add(int a, int b)
+                {
+                    {
+                        if (a == b)
+                        {
+                            const int c = 1;
+                            return a + c;
+                        }
+
+                        if (a > b)
+                        {
+                            throw new InvalidOperationException();
+                        }
+
+                        var p = a * b;
+                        {
+                            return a + b;
+                        }
+            [|            throw new InvalidOperationException();
+            |]            {
+            [|                const int d = 2;
+            |]                {
+            [|                    throw new InvalidOperationException();
+            |]                }
+                        }
+                    }
+            [|
+                    {
+                        throw new InvalidOperationException();
+                    }
+
+                    throw new InvalidOperationException();
+
+                    {
+                        const int x = 523;
+                        throw new InvalidOperationException();
+                    }
+
+                    throw new InvalidOperationException();
+            |]
+                }
+            }
+            """;
+        var fixedCode = """
+            using System;
+            
+            class C
+            {
+                public static int Add(int a, int b)
+                {
+                    {
+                        if (a == b)
+                        {
+                            const int c = 1;
+                            return a + c;
+                        }
+
+                        if (a > b)
+                        {
+                            throw new InvalidOperationException();
+                        }
+
+                        var p = a * b;
+                        {
+                            return a + b;
+                        }
+                        {
+                            {
+                            }
+                        }
+                    }
+
+                }
+            }
+            """;
+        await new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = fixedCode,
+            LanguageVersion = LanguageVersion.CSharp13,
+        }.RunAsync();
+    }
 }
