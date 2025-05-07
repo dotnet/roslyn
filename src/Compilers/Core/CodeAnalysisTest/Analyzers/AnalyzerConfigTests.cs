@@ -484,8 +484,8 @@ dotnet_analyzer_diagnostic.category-Minor\x2020Code\x2020Smell.severity = error
                         KeyValuePair.Create("r", "b c"),
                         KeyValuePair.Create("s b", "c"),
                         KeyValuePair.Create("t . b", "c"),
-                        KeyValuePair.Create("dotnet_analyzer_diagnostic.category-Minor Code Smell.severity", "suggestion"),
-                        KeyValuePair.Create(@"dotnet_analyzer_diagnostic.category-Minor\x2020Code\x2020Smell.severity", "error") },
+                        KeyValuePair.Create("dotnet_analyzer_diagnostic.category-minor code smell.severity", "suggestion"),
+                        KeyValuePair.Create(@"dotnet_analyzer_diagnostic.category-minor\x2020code\x2020smell.severity", "error") },
                 properties);
         }
 
