@@ -454,7 +454,7 @@ r=b c#d;e
 s b=c
  t . b = c # d ; e
 dotnet_analyzer_diagnostic.category-Minor Code Smell.severity = suggestion
-dotnet_analyzer_diagnostic.category-Minor\x0020Code\x0020Smell.severity = error
+dotnet_analyzer_diagnostic.category-Minor\x2020Code\x2020Smell.severity = error
 ");
 
             Assert.Equal(0, config.NamedSections.Length);
@@ -485,7 +485,7 @@ dotnet_analyzer_diagnostic.category-Minor\x0020Code\x0020Smell.severity = error
                         KeyValuePair.Create("s b", "c"),
                         KeyValuePair.Create("t . b", "c"),
                         KeyValuePair.Create("dotnet_analyzer_diagnostic.category-Minor Code Smell.severity", "suggestion"),
-                        KeyValuePair.Create(@"dotnet_analyzer_diagnostic.category-Minor\x0020Code\x0020Smell.severity", "error") },
+                        KeyValuePair.Create(@"dotnet_analyzer_diagnostic.category-Minor\x2020Code\x2020Smell.severity", "error") },
                 properties);
         }
 
