@@ -2480,7 +2480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private readonly struct ExtensionGroupingKey : IEquatable<ExtensionGroupingKey>
+        internal readonly struct ExtensionGroupingKey : IEquatable<ExtensionGroupingKey>
         {
             public readonly int ExtensionArity;
             public readonly TypeSymbol ReceiverType;

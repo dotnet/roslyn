@@ -1568,6 +1568,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.OverloadResolution.UnaryOperatorOverloadResolution(kind, isChecked: CheckOverflowAtRuntime, operand, result, ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
 
+            UnaryOperatorAnalysisResult possiblyBest = AnalyzeUnaryOperatorOverloadResolutionResult(result, kind, operand, node, diagnostics, out resultKind, out originalUserDefinedOperators);
+
+            result.Free();
+            return possiblyBest;
+        }
+
+        UnaryOperatorAnalysisResult AnalyzeUnaryOperatorOverloadResolutionResult(
+            UnaryOperatorOverloadResolutionResult result,
+            UnaryOperatorKind kind,
+            BoundExpression operand,
+            CSharpSyntaxNode node,
+            BindingDiagnosticBag diagnostics,
+            out LookupResultKind resultKind,
+            out ImmutableArray<MethodSymbol> originalUserDefinedOperators)
+        {
             var possiblyBest = result.Best;
 
             if (result.Results.Any())
@@ -1624,7 +1639,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportUseSite(bestMethod, diagnostics, node);
             }
 
-            result.Free();
             return possiblyBest;
 
             static bool isNuint(TypeSymbol type)
@@ -1632,6 +1646,57 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return type.SpecialType == SpecialType.System_UIntPtr
                     && type.IsNativeIntegerType;
             }
+        }
+
+        private UnaryOperatorAnalysisResult? UnaryOperatorExtensionOverloadResolution(
+            UnaryOperatorKind kind,
+            BoundExpression operand,
+            CSharpSyntaxNode node,
+            BindingDiagnosticBag diagnostics,
+            out LookupResultKind resultKind,
+            out ImmutableArray<MethodSymbol> originalUserDefinedOperators)
+        {
+            resultKind = LookupResultKind.Empty;
+            originalUserDefinedOperators = [];
+
+            if (operand.IsLiteralDefault() || // Reported not being able to target-type `default` elsewhere, so we can doing more work
+                (object)operand.Type == null || // GetUserDefinedOperators performs this check too, let's optimize early
+                !this.Compilation.LanguageVersion.AllowNewExtensions())
+            {
+                return null;
+            }
+
+            bool isChecked = CheckOverflowAtRuntime;
+            string name1 = OperatorFacts.UnaryOperatorNameFromOperatorKind(kind, isChecked);
+            string name2Opt = null;
+
+            if (isChecked && SyntaxFacts.IsCheckedOperator(name1))
+            {
+                name2Opt = OperatorFacts.UnaryOperatorNameFromOperatorKind(kind, isChecked: false);
+            }
+
+            var result = UnaryOperatorOverloadResolutionResult.GetInstance();
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            var extensionDeclarationsInSingleScope = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+            UnaryOperatorAnalysisResult? possiblyBest = null;
+
+            foreach (var scope in new ExtensionScopes(this))
+            {
+                extensionDeclarationsInSingleScope.Clear();
+                scope.Binder.GetExtensionDeclarations(extensionDeclarationsInSingleScope, this);
+
+                if (this.OverloadResolution.UnaryOperatorExtensionOverloadResolutionInSingleScope(extensionDeclarationsInSingleScope, kind, isChecked, name1, name2Opt, operand, result, ref useSiteInfo))
+                {
+                    possiblyBest = AnalyzeUnaryOperatorOverloadResolutionResult(result, kind, operand, node, diagnostics, out resultKind, out originalUserDefinedOperators);
+                    break;
+                }
+            }
+
+            diagnostics.Add(node, useSiteInfo);
+
+            extensionDeclarationsInSingleScope.Free();
+            result.Free();
+            return possiblyBest;
         }
 
         private static object FoldDecimalBinaryOperators(BinaryOperatorKind kind, ConstantValue valueLeft, ConstantValue valueRight)
@@ -2457,6 +2522,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasErrors: false);
             }
 
+            // PROTOTYPE: handle extensions
+
             // Try an in-place user-defined operator
             BoundIncrementOperator? inPlaceResult = tryApplyUserDefinedInstanceOperator(node, operatorToken, kind, operand, diagnostics);
             if (inPlaceResult is not null)
@@ -2466,7 +2533,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             LookupResultKind resultKind;
             ImmutableArray<MethodSymbol> originalUserDefinedOperators;
-            var best = this.UnaryOperatorOverloadResolution(kind, operand, node, diagnostics, out resultKind, out originalUserDefinedOperators);
+            var best = this.UnaryOperatorOverloadResolution(kind, operand, node, diagnostics, out resultKind, out originalUserDefinedOperators); 
             if (!best.HasValue)
             {
                 ReportUnaryOperatorError(node, diagnostics, operatorToken.Text, operand, resultKind);
@@ -3164,18 +3231,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             var best = this.UnaryOperatorOverloadResolution(kind, operand, node, diagnostics, out resultKind, out originalUserDefinedOperators);
             if (!best.HasValue)
             {
-                ReportUnaryOperatorError(node, diagnostics, operatorText, operand, resultKind);
-                return new BoundUnaryOperator(
-                    node,
-                    kind,
-                    operand,
-                    ConstantValue.NotAvailable,
-                    methodOpt: null,
-                    constrainedToTypeOpt: null,
-                    resultKind,
-                    originalUserDefinedOperators,
-                    CreateErrorType(),
-                    hasErrors: true);
+                if (resultKind != LookupResultKind.Ambiguous)
+                {
+                    LookupResultKind extensionResultKind;
+                    ImmutableArray<MethodSymbol> extensionOriginalUserDefinedOperators;
+                    UnaryOperatorAnalysisResult? extensionBest = this.UnaryOperatorExtensionOverloadResolution(kind, operand, node, diagnostics, out extensionResultKind, out extensionOriginalUserDefinedOperators);
+
+                    if (extensionBest.HasValue && (extensionBest.GetValueOrDefault().HasValue || (originalUserDefinedOperators.IsEmpty && !extensionOriginalUserDefinedOperators.IsEmpty)))
+                    {
+                        best = extensionBest.GetValueOrDefault();
+                        resultKind = extensionResultKind;
+                        originalUserDefinedOperators = extensionOriginalUserDefinedOperators;
+                    }
+                }
+
+                if (!best.HasValue)
+                {
+                    ReportUnaryOperatorError(node, diagnostics, operatorText, operand, resultKind);
+                    return new BoundUnaryOperator(
+                        node,
+                        kind,
+                        operand,
+                        ConstantValue.NotAvailable,
+                        methodOpt: null,
+                        constrainedToTypeOpt: null,
+                        resultKind,
+                        originalUserDefinedOperators,
+                        CreateErrorType(),
+                        hasErrors: true);
+                }
             }
 
             var signature = best.Signature;
