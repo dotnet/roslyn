@@ -688,8 +688,8 @@ public sealed class RemoveUnreachableCodeTests
                 void M(object o)
                 {
                     if (false)
-                        throw new System.Exception();
-
+            [|            throw new System.Exception();
+            |]
                     throw new System.Exception();
             [|        return;
             |]    }
@@ -701,7 +701,8 @@ public sealed class RemoveUnreachableCodeTests
                 void M(object o)
                 {
                     if (false)
-                        throw new System.Exception();
+                    {
+                    }
 
                     throw new System.Exception();
                 }
