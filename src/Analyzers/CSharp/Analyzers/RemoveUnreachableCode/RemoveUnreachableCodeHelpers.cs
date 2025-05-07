@@ -82,16 +82,6 @@ internal static class RemoveUnreachableCodeHelpers
         for (int i = firstUnreachableStatementIndex, n = siblingStatements.Length; i < n; i++)
         {
             var currentStatement = siblingStatements[i];
-            if (currentStatement.IsKind(SyntaxKind.LabeledStatement))
-            {
-                // In the case of a subsequent labeled statement, we don't want to consider it 
-                // unreachable as there may be a 'goto' somewhere else to that label.  If the 
-                // compiler actually thinks that label is unreachable, it will give an diagnostic 
-                // on that label itself  and we can use that diagnostic to handle it and any 
-                // subsequent sections.
-                break;
-            }
-
             if (currentStatement.IsKind(SyntaxKind.LocalFunctionStatement))
             {
                 // In the case of local functions, it is legal for a local function to be declared
@@ -105,6 +95,16 @@ internal static class RemoveUnreachableCodeHelpers
 
             if (i > firstUnreachableStatementIndex)
             {
+                if (currentStatement.IsKind(SyntaxKind.LabeledStatement))
+                {
+                    // In the case of a subsequent labeled statement, we don't want to consider it 
+                    // unreachable as there may be a 'goto' somewhere else to that label.  If the 
+                    // compiler actually thinks that label is unreachable, it will give an diagnostic 
+                    // on that label itself  and we can use that diagnostic to handle it and any 
+                    // subsequent sections.
+                    break;
+                }
+
                 currentSection.Add(currentStatement);
                 continue;
             }
