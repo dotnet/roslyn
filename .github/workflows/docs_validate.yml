@@ -27,5 +27,5 @@ jobs:
     - name: 🛠 build
       run: dotnet build -c Release -p:SkipVsixBuild=true -bl:"${{ runner.temp }}/_artifacts/build_logs/build.binlog"
     - name: 📚 Verify docfx build
-      run: dotnet docfx docfx/docfx.json --disableGitFeatures # --warningsAsErrors
+      run: dotnet docfx docfx/docfx.json --warningsAsErrors --disableGitFeatures
       if: runner.os == 'Linux'

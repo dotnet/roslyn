@@ -17,9 +17,6 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
 
-    <!-- https://github.com/dotnet/msbuild/blob/main/documentation/ProjectReference-Protocol.md#setplatform-negotiation -->
-    <EnableDynamicPlatformResolution>true</EnableDynamicPlatformResolution>
-
     <!-- Opt in till https://github.com/NuGet/Home/issues/9803 makes this the default. -->
     <!-- Opt back out until an SDK with the fix for https://github.com/NuGet/Home/issues/12177 is generally available. -->
     <RestoreUseStaticGraphEvaluation>false</RestoreUseStaticGraphEvaluation>
@@ -40,24 +37,21 @@
     <IncludeSymbols Condition=" '$(DebugType)' != 'embedded' ">true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
 
-    <MicroBuildVersion>2.0.146</MicroBuildVersion>
+    <MicroBuildVersion>2.0.187</MicroBuildVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Internal.MicroBuild.VisualStudio" Version="$(MicroBuildVersion)" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="4.3.1" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="all" />
-    <PackageReference Include="Nerdbank.GitVersioning" Version="3.6.133" PrivateAssets="all" />
+    <!-- The condition works around https://github.com/dotnet/sdk/issues/44951 -->
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.7.115" PrivateAssets="all" Condition="!('$(TF_BUILD)'=='true' and '$(dotnetformat)'=='true')" />
     <PackageReference Include="Nullable" Version="1.3.1" PrivateAssets="all" />
-    <PackageReference Include="CSharpIsNullAnalyzer" Version="0.1.495" PrivateAssets="all" />
-    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.507" PrivateAssets="all" />
+    <PackageReference Include="CSharpIsNullAnalyzer" Version="0.1.593" PrivateAssets="all" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556" PrivateAssets="all" />
     <PackageReference Include="DotNetAnalyzers.DocumentationAnalyzers" Version="1.0.0-beta.59" PrivateAssets="all" />
   </ItemGroup>
 
   <PropertyGroup>
-    <LangVersion Condition="'$(MSBuildProjectExtension)'=='.csproj'">10</LangVersion>
+    <LangVersion Condition="'$(MSBuildProjectExtension)'=='.csproj'">13</LangVersion>
     <LangVersion Condition="'$(MSBuildProjectExtension)'=='.vbproj'">16.9</LangVersion>
   </PropertyGroup>
 

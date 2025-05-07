@@ -27,4 +27,5 @@ jobs:
   parameters:
     Is1ESPT: false
     RunTests: ${{ parameters.RunTests }}
+    # Cannot enable format check due to https://github.com/dotnet/format/issues/1998
     EnableDotNetFormatCheck: false

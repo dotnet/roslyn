@@ -68,6 +68,7 @@ extends:
           windowsPool: VSEngSS-MicroBuild2022-1ES
           RunTests: ${{ parameters.RunTests }}
           PublishCodeCoverage: ${{ parameters.PublishCodeCoverage }}
+          # Cannot enable format check due to https://github.com/dotnet/format/issues/1998
           EnableDotNetFormatCheck: false
     - template: /azure-pipelines/prepare-insertion-stages.yml@self
       parameters:
