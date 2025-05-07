@@ -877,7 +877,7 @@ namespace System.Diagnostics.CodeAnalysis
             """;
 
         #region A string containing expression-tree dumping utilities
-        protected const string ExpressionTestLibrary = @"
+        protected const string ExpressionTestLibrary = """
 using System;
 using System.Globalization;
 using System.Linq.Expressions;
@@ -897,10 +897,9 @@ public class TestBase
     {
         if (expected != actual)
         {
-            Console.WriteLine(""FAIL"");
-            Console.WriteLine(""expected: "" + expected);
-            Console.WriteLine(""actual:   "" + actual);
-//            throw new Exception(""expected='"" + expected + ""'; actual='"" + actual + ""'"");
+            Console.WriteLine("FAIL");
+            Console.WriteLine("expected: " + expected);
+            Console.WriteLine("actual:   " + actual);
         }
     }
 }
@@ -926,103 +925,102 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
 
     public override Expression Visit(Expression node)
     {
-        if (node == null) { s.Append(""null""); return null; }
+        if (node == null) { s.Append("null"); return null; }
         s.Append(node.NodeType.ToString());
-        s.Append(""("");
+        s.Append("(");
         base.Visit(node);
-        s.Append("" Type:"" + node.Type);
-        s.Append("")"");
+        s.Append(" Type:" + node.Type);
+        s.Append(")");
         return null;
     }
 
     protected override MemberBinding VisitMemberBinding(MemberBinding node)
     {
-        if (node == null) { s.Append(""null""); return null; }
+        if (node == null) { s.Append("null"); return null; }
         return base.VisitMemberBinding(node);
     }
 
     protected override MemberMemberBinding VisitMemberMemberBinding(MemberMemberBinding node)
     {
-        s.Append(""MemberMemberBinding(Member="");
+        s.Append("MemberMemberBinding(Member=");
         s.Append(node.Member.ToString());
         foreach (var b in node.Bindings)
         {
-            s.Append("" "");
+            s.Append(" ");
             VisitMemberBinding(b);
         }
-        s.Append("")"");
+        s.Append(")");
         return null;
     }
 
     protected override MemberListBinding VisitMemberListBinding(MemberListBinding node)
     {
-        s.Append(""MemberListBinding(Member="");
+        s.Append("MemberListBinding(Member=");
         s.Append(node.Member.ToString());
         foreach (var i in node.Initializers)
         {
-            s.Append("" "");
+            s.Append(" ");
             VisitElementInit(i);
         }
-        s.Append("")"");
+        s.Append(")");
         return null;
     }
 
     protected override MemberAssignment VisitMemberAssignment(MemberAssignment node)
     {
-        s.Append(""MemberAssignment(Member="");
+        s.Append("MemberAssignment(Member=");
         s.Append(node.Member.ToString());
-        s.Append("" Expression="");
+        s.Append(" Expression=");
         Visit(node.Expression);
-        s.Append("")"");
+        s.Append(")");
         return null;
     }
 
     protected override Expression VisitMemberInit(MemberInitExpression node)
     {
-        s.Append(""NewExpression: "");
+        s.Append("NewExpression: ");
         Visit(node.NewExpression);
-        s.Append("" Bindings:["");
+        s.Append(" Bindings:[");
         bool first = true;
         foreach (var b in node.Bindings)
         {
-            if (!first) s.Append("" "");
+            if (!first) s.Append(" ");
             VisitMemberBinding(b);
             first = false;
         }
-        s.Append(""]"");
+        s.Append("]");
         return null;
     }
 
     protected override Expression VisitBinary(BinaryExpression node)
     {
         Visit(node.Left);
-        s.Append("" "");
+        s.Append(" ");
         Visit(node.Right);
         if (node.Conversion != null)
         {
-            s.Append("" Conversion:"");
+            s.Append(" Conversion:");
             Visit(node.Conversion);
         }
-        if (node.IsLifted) s.Append("" Lifted"");
-        if (node.IsLiftedToNull) s.Append("" LiftedToNull"");
-        if (node.Method != null) s.Append("" Method:["" + node.Method + ""]"");
+        if (node.IsLifted) s.Append(" Lifted");
+        if (node.IsLiftedToNull) s.Append(" LiftedToNull");
+        if (node.Method != null) s.Append(" Method:[" + node.Method + "]");
         return null;
     }
 
     protected override Expression VisitConditional(ConditionalExpression node)
     {
         Visit(node.Test);
-        s.Append("" ? "");
+        s.Append(" ? ");
         Visit(node.IfTrue);
-        s.Append("" : "");
+        s.Append(" : ");
         Visit(node.IfFalse);
         return null;
     }
 
     protected override Expression VisitConstant(ConstantExpression node)
     {
-        // s.Append(node.Value == null ? ""null"" : node.Value.ToString());
-        s.Append(node.Value == null ? ""null"" : GetCultureInvariantString(node.Value));
+        s.Append(node.Value == null ? "null" : GetCultureInvariantString(node.Value));
         return null;
     }
 
@@ -1034,60 +1032,60 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
     protected override Expression VisitIndex(IndexExpression node)
     {
         Visit(node.Object);
-        s.Append(""["");
+        s.Append("[");
         int n = node.Arguments.Count;
         for (int i = 0; i < n; i++)
         {
-            if (i != 0) s.Append("" "");
+            if (i != 0) s.Append(" ");
             Visit(node.Arguments[i]);
         }
-        s.Append(""]"");
-        if (node.Indexer != null) s.Append("" Indexer:"" + node.Indexer);
+        s.Append("]");
+        if (node.Indexer != null) s.Append(" Indexer:" + node.Indexer);
         return null;
     }
 
     protected override Expression VisitInvocation(InvocationExpression node)
     {
         Visit(node.Expression);
-        s.Append(""("");
+        s.Append("(");
         int n = node.Arguments.Count;
         for (int i = 0; i < n; i++)
         {
-            if (i != 0) s.Append("" "");
+            if (i != 0) s.Append(" ");
             Visit(node.Arguments[i]);
         }
-        s.Append("")"");
+        s.Append(")");
         return null;
     }
 
     protected override Expression VisitLambda<T>(Expression<T> node)
     {
-        s.Append(""("");
+        s.Append("(");
         int n = node.Parameters.Count;
         for (int i = 0; i < n; i++)
         {
-            if (i != 0) s.Append("" "");
+            if (i != 0) s.Append(" ");
             Visit(node.Parameters[i]);
         }
-        s.Append("") => "");
+        s.Append(") => ");
         if (node.Name != null) s.Append(node.Name);
         Visit(node.Body);
-        if (node.ReturnType != null) s.Append("" ReturnType:"" + node.ReturnType);
-        if (node.TailCall) s.Append("" TailCall"");
+        if (node.ReturnType != null) s.Append(" ReturnType:" + node.ReturnType);
+        if (node.TailCall) s.Append(" TailCall");
         return null;
     }
 
     protected override Expression VisitListInit(ListInitExpression node)
     {
         Visit(node.NewExpression);
-        s.Append(""{"");
+        s.Append("{");
         int n = node.Initializers.Count;
         for (int i = 0; i < n; i++)
         {
-            if (i != 0) s.Append("" "");
+            if (i != 0) s.Append(" ");
             Visit(node.Initializers[i]);
         }
-        s.Append(""}"");
+        s.Append("}");
         return null;
     }
 
@@ -1099,21 +1097,21 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
 
     private void Visit(ElementInit node)
     {
-        s.Append(""ElementInit("");
+        s.Append("ElementInit(");
         s.Append(node.AddMethod);
         int n = node.Arguments.Count;
         for (int i = 0; i < n; i++)
         {
-            s.Append("" "");
+            s.Append(" ");
             Visit(node.Arguments[i]);
         }
-        s.Append("")"");
+        s.Append(")");
     }
 
     protected override Expression VisitMember(MemberExpression node)
     {
         Visit(node.Expression);
-        s.Append(""."");
+        s.Append(".");
         s.Append(node.Member.Name);
         return null;
     }
@@ -1121,42 +1119,42 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
     protected override Expression VisitMethodCall(MethodCallExpression node)
     {
         Visit(node.Object);
-        s.Append("".["" + node.Method + ""]"");
-        s.Append(""("");
+        s.Append(".[" + node.Method + "]");
+        s.Append("(");
         int n = node.Arguments.Count;
         for (int i = 0; i < n; i++)
         {
-            if (i != 0) s.Append("", "");
+            if (i != 0) s.Append(", ");
             Visit(node.Arguments[i]);
         }
-        s.Append("")"");
+        s.Append(")");
         return null;
     }
 
     protected override Expression VisitNew(NewExpression node)
     {
-        s.Append((node.Constructor != null) ? ""["" + node.Constructor + ""]"" : ""<.ctor>"");
-        s.Append(""("");
+        s.Append((node.Constructor != null) ? "[" + node.Constructor + "]" : "<.ctor>");
+        s.Append("(");
         int n = node.Arguments.Count;
         for (int i = 0; i < n; i++)
         {
-            if (i != 0) s.Append("", "");
+            if (i != 0) s.Append(", ");
             Visit(node.Arguments[i]);
         }
-        s.Append("")"");
+        s.Append(")");
         if (node.Members != null)
         {
             n = node.Members.Count;
             if (n != 0)
             {
-                s.Append(""{"");
+                s.Append("{");
                 for (int i = 0; i < n; i++)
                 {
                     var info = node.Members[i];
-                    if (i != 0) s.Append("" "");
+                    if (i != 0) s.Append(" ");
                     s.Append(info);
                 }
-                s.Append(""}"");
+                s.Append("}");
             }
         }
         return null;
@@ -1164,37 +1162,37 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
 
     protected override Expression VisitNewArray(NewArrayExpression node)
     {
-        s.Append(""["");
+        s.Append("[");
         int n = node.Expressions.Count;
         for (int i = 0; i < n; i++)
         {
-            if (i != 0) s.Append("" "");
+            if (i != 0) s.Append(" ");
             Visit(node.Expressions[i]);
         }
-        s.Append(""]"");
+        s.Append("]");
         return null;
     }
 
     protected override Expression VisitParameter(ParameterExpression node)
     {
         s.Append(node.Name);
-        if (node.IsByRef) s.Append("" ByRef"");
+        if (node.IsByRef) s.Append(" ByRef");
         return null;
     }
 
     protected override Expression VisitTypeBinary(TypeBinaryExpression node)
     {
         Visit(node.Expression);
-        s.Append("" TypeOperand:"" + node.TypeOperand);
+        s.Append(" TypeOperand:" + node.TypeOperand);
         return null;
     }
 
     protected override Expression VisitUnary(UnaryExpression node)
     {
         Visit(node.Operand);
-        if (node.IsLifted) s.Append("" Lifted"");
-        if (node.IsLiftedToNull) s.Append("" LiftedToNull"");
-        if (node.Method != null) s.Append("" Method:["" + node.Method + ""]"");
+        if (node.IsLifted) s.Append(" Lifted");
+        if (node.IsLiftedToNull) s.Append(" LiftedToNull");
+        if (node.Method != null) s.Append(" Method:[" + node.Method + "]");
         return null;
     }
 
@@ -1208,7 +1206,7 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
 
         if (valueType == typeof(DateTime))
         {
-            return ((DateTime)value).ToString(""M/d/yyyy h:mm:ss tt"", CultureInfo.InvariantCulture);
+            return ((DateTime)value).ToString("M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture);
         }
 
         if (valueType == typeof(float))
@@ -1229,7 +1227,7 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
         return value.ToString();
     }
 }
-";
+""";
         #endregion A string containing expression-tree dumping utilities
 
         protected static T GetSyntax<T>(SyntaxTree tree, string text)

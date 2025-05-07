@@ -702,6 +702,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                          _compilation.Conversions.HasImplicitConversionToOrImplementsVarianceCompatibleInterface(rewrittenReceiver.Type, memberSymbol.ContainingType, ref discardedUseSiteInfo, out _));
             // It is possible there are use site diagnostics from the above, but none that we need report as we aren't generating code for the conversion
 #endif
+            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : handle creating a conversion on receiver
+            // TODO2
 
             switch (memberSymbol.Kind)
             {

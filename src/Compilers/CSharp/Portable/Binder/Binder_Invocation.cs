@@ -137,9 +137,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression result = BindInvocationExpression(
-                node, node, methodName, boundExpression, analyzedArguments, diagnostics, queryClause,
-                ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter,
-                disallowExpandedNonArrayParams: disallowExpandedNonArrayParams, acceptOnlyMethods: !allowFieldsAndProperties);
+                node, node, methodName, boundExpression, analyzedArguments, diagnostics, acceptOnlyMethods: !allowFieldsAndProperties,
+                queryClause, ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter,
+                disallowExpandedNonArrayParams: disallowExpandedNonArrayParams);
 
             // Query operator can't be called dynamically.
             if (queryClause != null && result.Kind == BoundKind.DynamicInvocation)
@@ -324,10 +324,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression boundExpression,
             AnalyzedArguments analyzedArguments,
             BindingDiagnosticBag diagnostics,
+            bool acceptOnlyMethods,
             CSharpSyntaxNode queryClause = null,
             bool ignoreNormalFormIfHasValidParamsParameter = false,
-            bool disallowExpandedNonArrayParams = false,
-            bool acceptOnlyMethods = false)
+            bool disallowExpandedNonArrayParams = false)
         {
             //
             // !!! ATTENTION !!!

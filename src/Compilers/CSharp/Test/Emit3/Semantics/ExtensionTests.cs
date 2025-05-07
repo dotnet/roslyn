@@ -15835,13 +15835,31 @@ public class MyCollection : IEnumerable<int>
     IEnumerator IEnumerable.GetEnumerator() => throw null;
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit how delegate-returning properties play into pattern-based constructs
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (4,18): error CS1061: 'MyCollection' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection' could be found (are you missing a using directive or an assembly reference?)
             // MyCollection c = [42];
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[42]").WithArguments("MyCollection", "Add").WithLocation(4, 18)
             );
+
+        source = """
+using System.Collections;
+using System.Collections.Generic;
+
+MyCollection c = [42];
+
+public class MyCollection : IEnumerable<int>
+{
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public System.Action<int> Add => (int i) => { };
+}
+""";
+        comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (4,18): error CS0118: 'Add' is a property but is used like a method
+            // MyCollection c = [42];
+            Diagnostic(ErrorCode.ERR_BadSKknown, "[42]").WithArguments("Add", "property", "method").WithLocation(4, 18));
     }
 
     [Fact]
@@ -15867,12 +15885,30 @@ public class MyCollection : IEnumerable<int>
     IEnumerator IEnumerable.GetEnumerator() => throw null;
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit how dynamic-returning properties play into pattern-based constructs
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (4,18): error CS1061: 'MyCollection' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection' could be found (are you missing a using directive or an assembly reference?)
             // MyCollection c = [42];
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[42]").WithArguments("MyCollection", "Add").WithLocation(4, 18));
+
+        source = """
+using System.Collections;
+using System.Collections.Generic;
+
+MyCollection c = [42];
+
+public class MyCollection : IEnumerable<int>
+{
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public dynamic Add => throw null;
+}
+""";
+        comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (4,18): error CS0118: 'Add' is a property but is used like a method
+            // MyCollection c = [42];
+            Diagnostic(ErrorCode.ERR_BadSKknown, "[42]").WithArguments("Add", "property", "method").WithLocation(4, 18));
     }
 
     [Fact]
@@ -20183,7 +20219,6 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit how delegate-returning properties play into pattern-based constructs
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (3,19): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
@@ -20194,10 +20229,29 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var loop = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
         Assert.Null(model.GetForEachStatementInfo(loop).GetEnumeratorMethod);
+
+        src = """
+using System.Collections;
+
+foreach (var x in new C()) { }
+
+class C
+{
+    public System.Func<IEnumerator> GetEnumerator => throw null;
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,19): warning CS0280: 'C' does not implement the 'collection' pattern. 'C.GetEnumerator' has the wrong signature.
+            // foreach (var x in new C()) { }
+            Diagnostic(ErrorCode.WRN_PatternBadSignature, "new C()").WithArguments("C", "collection", "C.GetEnumerator").WithLocation(3, 19),
+            // (3,19): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
+            // foreach (var x in new C()) { }
+            Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(3, 19));
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBased_ForEach_DynamicTypeProperty()
+    public void ExtensionMemberLookup_PatternBased_ForEach_GetEnumerator_DynamicTypeProperty()
     {
         var src = """
 using System.Collections;
@@ -20214,7 +20268,6 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit how dynamic-returning properties play into pattern-based constructs
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (3,19): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
@@ -20225,10 +20278,27 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var loop = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
         Assert.Null(model.GetForEachStatementInfo(loop).GetEnumeratorMethod);
+
+        src = """
+foreach (var x in new C()) { }
+
+class C
+{
+    public dynamic GetEnumerator => throw null;
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,19): warning CS0280: 'C' does not implement the 'collection' pattern. 'C.GetEnumerator' has the wrong signature.
+            // foreach (var x in new C()) { }
+            Diagnostic(ErrorCode.WRN_PatternBadSignature, "new C()").WithArguments("C", "collection", "C.GetEnumerator").WithLocation(1, 19),
+            // (1,19): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
+            // foreach (var x in new C()) { }
+            Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(1, 19));
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBased_ForEach_Generic()
+    public void ExtensionMemberLookup_PatternBased_ForEach_GetEnumerator_Generic()
     {
         var src = """
 using System.Collections.Generic;
@@ -20259,7 +20329,7 @@ static class E
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBased_AwaitForEach()
+    public void ExtensionMemberLookup_PatternBased_AwaitForEach_GetAsyncEnumerator()
     {
         var src = """
 using System.Collections.Generic;
@@ -20428,7 +20498,6 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit how delegate-returning properties play into pattern-based constructs
         comp.VerifyDiagnostics(
             // (1,6): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x1'.
             // var (x1, y1) = new C1();
@@ -20787,6 +20856,20 @@ static class E
             // (1,1): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
             // using var x1 = new S1();
             Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using var x1 = new S1();").WithArguments("S1").WithLocation(1, 1));
+
+        src = """
+using var x1 = new S1();
+
+ref struct S1
+{
+    public System.Action Dispose => throw null;
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyDiagnostics(
+            // (1,1): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
+            // using var x1 = new S1();
+            Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using var x1 = new S1();").WithArguments("S1").WithLocation(1, 1));
     }
 
     [Fact]
@@ -20894,7 +20977,6 @@ static class E
 }
 ";
         var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit how delegate-returning properties play into pattern-based constructs
         comp.VerifyEmitDiagnostics(
             // (6,25): error CS8385: The given expression cannot be used in a fixed statement
             //         fixed (int* p = new Fixable1())
@@ -20932,7 +21014,30 @@ static class E
 }
 ";
         var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit how dynamic-returning properties play into pattern-based constructs
+        comp.VerifyEmitDiagnostics(
+            // (6,25): error CS8385: The given expression cannot be used in a fixed statement
+            //         fixed (int* p = new Fixable1())
+            Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable1()").WithLocation(6, 25));
+
+        text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable1())
+        {
+        }
+    }
+}
+
+class Fixable1
+{
+    public dynamic GetPinnableReference => throw null;
+}
+
+delegate ref int MyDelegate();
+";
+        comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe);
         comp.VerifyEmitDiagnostics(
             // (6,25): error CS8385: The given expression cannot be used in a fixed statement
             //         fixed (int* p = new Fixable1())
@@ -21203,7 +21308,6 @@ static class E
 }
 ";
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit how delegate-returning properties play into pattern-based constructs
         var comp = CreateCompilation(text);
         comp.VerifyEmitDiagnostics(
             // (5,9): error CS1061: 'C' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
@@ -21267,7 +21371,6 @@ static class E
 }
 ";
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit how dynamic-returning properties play into pattern-based constructs
         var comp = CreateCompilation(text);
         comp.VerifyEmitDiagnostics(
             // (5,9): error CS1061: 'C' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
@@ -21401,7 +21504,6 @@ static class E
     }
 }
 ";
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit how delegate-returning properties play into pattern-based constructs
         var comp = CreateCompilation(text);
         comp.VerifyEmitDiagnostics(
             // (5,9): error CS0117: 'D' does not contain a definition for 'GetResult'
@@ -22532,7 +22634,6 @@ public class MyCollection : IEnumerable<int>
     IEnumerator IEnumerable.GetEnumerator() => throw null;
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit how delegate-returning properties play into pattern-based constructs
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (4,39): error CS1061: 'MyCollection' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection' could be found (are you missing a using directive or an assembly reference?)
@@ -22582,7 +22683,6 @@ public class MyCollection : IEnumerable<int>
     IEnumerator IEnumerable.GetEnumerator() => throw null;
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit how dynamic-returning properties play into pattern-based constructs
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (4,39): error CS1061: 'MyCollection' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection' could be found (are you missing a using directive or an assembly reference?)
