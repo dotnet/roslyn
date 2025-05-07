@@ -19252,6 +19252,82 @@ class Program
                 VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreachableCode, @"Console"));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75605")]
+        public void CS0162WRN_UnreachableCode08_ThrowAfterScopedReturn()
+        {
+            var text = """
+                using System;
+                class Program
+                {
+                    static int Add(int a, int b)
+                    {
+                        {
+                            return a + b;
+                        }
+
+                        throw new InvalidOperationException();
+
+                        {
+                            throw new InvalidOperationException();
+                        }
+
+                        {
+                            const int x = 523;
+                            throw new InvalidOperationException();
+                        }
+
+                        {
+                            throw new InvalidOperationException();
+                        }
+                    }
+                }
+                """;
+            CreateCompilation(text).VerifyDiagnostics(
+                // (10,9): warning CS0162: Unreachable code detected
+                //         throw new InvalidOperationException();
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "throw").WithLocation(10, 9),
+                // (17,23): warning CS0219: The variable 'x' is assigned but its value is never used
+                //             const int x = 523;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(17, 23));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75605")]
+        public void CS0162WRN_UnreachableCode09_ScopedThrowAfterScopedReturn()
+        {
+            var text = """
+                using System;
+                class Program
+                {
+                    static int Add(int a, int b)
+                    {
+                        {
+                            return a + b;
+                        }
+
+                        {
+                            throw new InvalidOperationException();
+                        }
+
+                        {
+                            const int x = 523;
+                            throw new InvalidOperationException();
+                        }
+
+                        {
+                            throw new InvalidOperationException();
+                        }
+                    }
+                }
+                """;
+            CreateCompilation(text).VerifyDiagnostics(
+                // (11,13): warning CS0162: Unreachable code detected
+                //             throw new InvalidOperationException();
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "throw").WithLocation(11, 13),
+                // (15,23): warning CS0219: The variable 'x' is assigned but its value is never used
+                //             const int x = 523;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(15, 23));
+        }
+
         [Fact]
         public void CS0164WRN_UnreferencedLabel()
         {
