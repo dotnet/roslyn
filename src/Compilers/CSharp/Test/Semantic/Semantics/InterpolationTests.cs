@@ -3822,7 +3822,8 @@ value:2");
   .maxstack  4
   .locals init (int V_0, //i1
                 int V_1, //i2
-                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_2)
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_2,
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_3)
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
   IL_0002:  ldc.i4.2
@@ -3836,14 +3837,14 @@ value:2");
   IL_0010:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)""
   IL_0015:  ldloca.s   V_2
   IL_0017:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
-  IL_001c:  ldloca.s   V_2
+  IL_001c:  ldloca.s   V_3
   IL_001e:  ldc.i4.0
   IL_001f:  ldc.i4.1
   IL_0020:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
-  IL_0025:  ldloca.s   V_2
+  IL_0025:  ldloca.s   V_3
   IL_0027:  ldloc.1
   IL_0028:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)""
-  IL_002d:  ldloca.s   V_2
+  IL_002d:  ldloca.s   V_3
   IL_002f:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
   IL_0034:  call       ""string string.Concat(string, string)""
   IL_0039:  call       ""void System.Console.WriteLine(string)""
@@ -10151,14 +10152,15 @@ StructLogger#2:
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size      175 (0xaf)
+  // Code size      177 (0xb1)
   .maxstack  4
   .locals init (int V_0, //i
                 StructLogger V_1, //s
                 StructLogger V_2,
                 DummyHandler V_3,
                 bool V_4,
-                StructLogger& V_5)
+                StructLogger& V_5,
+                DummyHandler V_6)
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_2
@@ -10207,32 +10209,32 @@ StructLogger#2:
   IL_0064:  ldobj      ""StructLogger""
   IL_0069:  ldloca.s   V_4
   IL_006b:  newobj     ""DummyHandler..ctor(int, int, StructLogger, out bool)""
-  IL_0070:  stloc.3
-  IL_0071:  ldloc.s    V_4
-  IL_0073:  brfalse.s  IL_008f
-  IL_0075:  ldloca.s   V_3
-  IL_0077:  ldstr      ""log:""
-  IL_007c:  call       ""void DummyHandler.AppendLiteral(string)""
-  IL_0081:  nop
-  IL_0082:  ldloca.s   V_3
-  IL_0084:  ldloc.0
-  IL_0085:  dup
-  IL_0086:  ldc.i4.1
-  IL_0087:  add
-  IL_0088:  stloc.0
-  IL_0089:  call       ""void DummyHandler.AppendFormatted<int>(int)""
-  IL_008e:  nop
-  IL_008f:  ldloc.s    V_5
-  IL_0091:  ldloc.3
-  IL_0092:  call       ""void StructLogger.Log(DummyHandler)""
-  IL_0097:  nop
-  IL_0098:  ldstr      ""(2) i={0}""
-  IL_009d:  ldloc.0
-  IL_009e:  box        ""int""
-  IL_00a3:  call       ""string string.Format(string, object)""
-  IL_00a8:  call       ""void System.Console.WriteLine(string)""
-  IL_00ad:  nop
-  IL_00ae:  ret
+  IL_0070:  stloc.s    V_6
+  IL_0072:  ldloc.s    V_4
+  IL_0074:  brfalse.s  IL_0090
+  IL_0076:  ldloca.s   V_6
+  IL_0078:  ldstr      ""log:""
+  IL_007d:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_0082:  nop
+  IL_0083:  ldloca.s   V_6
+  IL_0085:  ldloc.0
+  IL_0086:  dup
+  IL_0087:  ldc.i4.1
+  IL_0088:  add
+  IL_0089:  stloc.0
+  IL_008a:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_008f:  nop
+  IL_0090:  ldloc.s    V_5
+  IL_0092:  ldloc.s    V_6
+  IL_0094:  call       ""void StructLogger.Log(DummyHandler)""
+  IL_0099:  nop
+  IL_009a:  ldstr      ""(2) i={0}""
+  IL_009f:  ldloc.0
+  IL_00a0:  box        ""int""
+  IL_00a5:  call       ""string string.Format(string, object)""
+  IL_00aa:  call       ""void System.Console.WriteLine(string)""
+  IL_00af:  nop
+  IL_00b0:  ret
 }
 ");
         }
@@ -16800,13 +16802,14 @@ value:3");
 
             verifier.VerifyIL("Program.<<Main>$>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      244 (0xf4)
+  // Code size      245 (0xf5)
   .maxstack  4
   .locals init (int V_0,
                 int V_1,
                 System.Runtime.CompilerServices.TaskAwaiter<int> V_2,
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_3,
-                System.Exception V_4)
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_4,
+                System.Exception V_5)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int Program.<<Main>$>d__0.<>1__state""
   IL_0006:  stloc.0
@@ -16839,7 +16842,7 @@ value:3");
     IL_0042:  ldloca.s   V_2
     IL_0044:  ldarg.0
     IL_0045:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<<Main>$>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<<Main>$>d__0)""
-    IL_004a:  leave      IL_00f3
+    IL_004a:  leave      IL_00f4
     IL_004f:  ldarg.0
     IL_0050:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1""
     IL_0055:  stloc.2
@@ -16871,36 +16874,36 @@ value:3");
     IL_009f:  ldc.i4.0
     IL_00a0:  ldc.i4.1
     IL_00a1:  newobj     ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
-    IL_00a6:  stloc.3
-    IL_00a7:  ldloca.s   V_3
-    IL_00a9:  ldarg.0
-    IL_00aa:  ldfld      ""int Program.<<Main>$>d__0.<i2>5__3""
-    IL_00af:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)""
-    IL_00b4:  ldloca.s   V_3
-    IL_00b6:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
-    IL_00bb:  call       ""string string.Concat(string, string, string)""
-    IL_00c0:  call       ""void System.Console.WriteLine(string)""
-    IL_00c5:  leave.s    IL_00e0
+    IL_00a6:  stloc.s    V_4
+    IL_00a8:  ldloca.s   V_4
+    IL_00aa:  ldarg.0
+    IL_00ab:  ldfld      ""int Program.<<Main>$>d__0.<i2>5__3""
+    IL_00b0:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)""
+    IL_00b5:  ldloca.s   V_4
+    IL_00b7:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+    IL_00bc:  call       ""string string.Concat(string, string, string)""
+    IL_00c1:  call       ""void System.Console.WriteLine(string)""
+    IL_00c6:  leave.s    IL_00e1
   }
   catch System.Exception
   {
-    IL_00c7:  stloc.s    V_4
-    IL_00c9:  ldarg.0
-    IL_00ca:  ldc.i4.s   -2
-    IL_00cc:  stfld      ""int Program.<<Main>$>d__0.<>1__state""
-    IL_00d1:  ldarg.0
-    IL_00d2:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder""
-    IL_00d7:  ldloc.s    V_4
-    IL_00d9:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
-    IL_00de:  leave.s    IL_00f3
+    IL_00c8:  stloc.s    V_5
+    IL_00ca:  ldarg.0
+    IL_00cb:  ldc.i4.s   -2
+    IL_00cd:  stfld      ""int Program.<<Main>$>d__0.<>1__state""
+    IL_00d2:  ldarg.0
+    IL_00d3:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder""
+    IL_00d8:  ldloc.s    V_5
+    IL_00da:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00df:  leave.s    IL_00f4
   }
-  IL_00e0:  ldarg.0
-  IL_00e1:  ldc.i4.s   -2
-  IL_00e3:  stfld      ""int Program.<<Main>$>d__0.<>1__state""
-  IL_00e8:  ldarg.0
-  IL_00e9:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder""
-  IL_00ee:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
-  IL_00f3:  ret
+  IL_00e1:  ldarg.0
+  IL_00e2:  ldc.i4.s   -2
+  IL_00e4:  stfld      ""int Program.<<Main>$>d__0.<>1__state""
+  IL_00e9:  ldarg.0
+  IL_00ea:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder""
+  IL_00ef:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00f4:  ret
 }");
         }
 
