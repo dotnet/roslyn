@@ -21,7 +21,7 @@ internal abstract class AbstractRefreshQueue :
     ILspService,
     IDisposable
 {
-    private AsyncBatchingWorkQueue<Uri?>? _refreshQueue;
+    private AsyncBatchingWorkQueue<DocumentUri?>? _refreshQueue;
 
     private readonly LspWorkspaceManager _lspWorkspaceManager;
     private readonly IClientLanguageServerManager _notificationManager;
@@ -64,11 +64,11 @@ internal abstract class AbstractRefreshQueue :
             // sending too many notifications at once.  This ensures we batch up workspace notifications,
             // but also means we send soon enough after a compilation-computation to not make the user wait
             // an enormous amount of time.
-            _refreshQueue = new AsyncBatchingWorkQueue<Uri?>(
+            _refreshQueue = new AsyncBatchingWorkQueue<DocumentUri?>(
                 delay: TimeSpan.FromMilliseconds(2000),
                 processBatchAsync: (documentUris, cancellationToken)
                     => FilterLspTrackedDocumentsAsync(_lspWorkspaceManager, _notificationManager, documentUris, cancellationToken),
-                equalityComparer: EqualityComparer<Uri?>.Default,
+                equalityComparer: EqualityComparer<DocumentUri?>.Default,
                 asyncListener: _asyncListener,
                 _disposalTokenSource.Token);
             _isQueueCreated = true;
@@ -95,7 +95,7 @@ internal abstract class AbstractRefreshQueue :
         }
     }
 
-    protected void EnqueueRefreshNotification(Uri? documentUri)
+    protected void EnqueueRefreshNotification(DocumentUri? documentUri)
     {
         if (_isQueueCreated)
         {
@@ -107,7 +107,7 @@ internal abstract class AbstractRefreshQueue :
     private ValueTask FilterLspTrackedDocumentsAsync(
         LspWorkspaceManager lspWorkspaceManager,
         IClientLanguageServerManager notificationManager,
-        ImmutableSegmentedList<Uri?> documentUris,
+        ImmutableSegmentedList<DocumentUri?> documentUris,
         CancellationToken cancellationToken)
     {
         var trackedDocuments = lspWorkspaceManager.GetTrackedLspText();

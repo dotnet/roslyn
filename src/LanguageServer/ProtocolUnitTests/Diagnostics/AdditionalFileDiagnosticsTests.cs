@@ -40,7 +40,7 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
             @"C:\C.cs: []",
             @$"C:\Test.txt: [{MockAdditionalFileDiagnosticAnalyzer.Id}]",
             @"C:\CSProj1.csproj: []"
-        ], results.Select(r => $"{r.Uri.LocalPath}: [{string.Join(", ", r.Diagnostics!.Select(d => d.Code?.Value?.ToString()))}]"));
+        ], results.Select(r => $"{r.Uri.GetRequiredParsedUri().LocalPath}: [{string.Join(", ", r.Diagnostics!.Select(d => d.Code?.Value?.ToString()))}]"));
 
         // Asking again should give us back an unchanged diagnostic.
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
@@ -65,7 +65,7 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
 
         AssertEx.Empty(results[0].Diagnostics);
         Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[1].Diagnostics!.Single().Code);
-        Assert.Equal(@"C:\Test.txt", results[1].Uri.LocalPath);
+        Assert.Equal(@"C:\Test.txt", results[1].Uri.GetRequiredParsedUri().LocalPath);
         AssertEx.Empty(results[2].Diagnostics);
 
         var initialSolution = testLspServer.GetCurrentSolution();
@@ -101,10 +101,10 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
         Assert.Equal(6, results.Length);
 
         Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[1].Diagnostics!.Single().Code);
-        Assert.Equal(@"C:\Test.txt", results[1].Uri.LocalPath);
+        Assert.Equal(@"C:\Test.txt", results[1].Uri.GetRequiredParsedUri().LocalPath);
         Assert.Equal("CSProj1", ((LSP.VSDiagnostic)results[1].Diagnostics!.Single()).Projects!.First().ProjectName);
         Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[4].Diagnostics!.Single().Code);
-        Assert.Equal(@"C:\Test.txt", results[4].Uri.LocalPath);
+        Assert.Equal(@"C:\Test.txt", results[4].Uri.GetRequiredParsedUri().LocalPath);
         Assert.Equal("CSProj2", ((LSP.VSDiagnostic)results[4].Diagnostics!.Single()).Projects!.First().ProjectName);
 
         // Asking again should give us back an unchanged diagnostic.

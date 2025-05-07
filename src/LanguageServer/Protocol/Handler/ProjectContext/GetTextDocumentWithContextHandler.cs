@@ -28,7 +28,7 @@ internal class GetTextDocumentWithContextHandler : ILspServiceDocumentRequestHan
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => true;
 
-    public TextDocumentIdentifier GetTextDocumentIdentifier(VSGetProjectContextsParams request) => new TextDocumentIdentifier { Uri = request.TextDocument.Uri };
+    public TextDocumentIdentifier GetTextDocumentIdentifier(VSGetProjectContextsParams request) => new TextDocumentIdentifier { DocumentUri = request.TextDocument.DocumentUri };
 
     public Task<VSProjectContextList?> HandleRequestAsync(VSGetProjectContextsParams request, RequestContext context, CancellationToken cancellationToken)
     {
@@ -37,7 +37,7 @@ internal class GetTextDocumentWithContextHandler : ILspServiceDocumentRequestHan
 
         // We specifically don't use context.Document here because we want multiple. We also don't need
         // all of the document info, just the Id is enough
-        var documentIds = context.Solution.GetDocumentIds(request.TextDocument.Uri);
+        var documentIds = context.Solution.GetDocumentIds(request.TextDocument.DocumentUri);
 
         if (!documentIds.Any())
         {

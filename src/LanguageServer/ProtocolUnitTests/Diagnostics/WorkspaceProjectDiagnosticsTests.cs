@@ -30,7 +30,7 @@ public sealed class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTes
         Assert.Equal(2, results.Length);
         AssertEx.Empty(results[0].Diagnostics);
         Assert.Equal(MockProjectDiagnosticAnalyzer.Id, results[1].Diagnostics!.Single().Code);
-        Assert.Equal(ProtocolConversions.CreateAbsoluteUri(testLspServer.GetCurrentSolution().Projects.First().FilePath!), results[1].Uri);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(testLspServer.GetCurrentSolution().Projects.First().FilePath!), results[1].Uri);
 
         // Asking again should give us back an unchanged diagnostic.
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
@@ -47,7 +47,7 @@ public sealed class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTes
         Assert.Equal(2, results.Length);
         AssertEx.Empty(results[0].Diagnostics);
         Assert.Equal(MockProjectDiagnosticAnalyzer.Id, results[1].Diagnostics!.Single().Code);
-        Assert.Equal(ProtocolConversions.CreateAbsoluteUri(testLspServer.GetCurrentSolution().Projects.First().FilePath!), results[1].Uri);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(testLspServer.GetCurrentSolution().Projects.First().FilePath!), results[1].Uri);
 
         var initialSolution = testLspServer.GetCurrentSolution();
         var newSolution = initialSolution.RemoveProject(initialSolution.Projects.First().Id);

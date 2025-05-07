@@ -266,8 +266,6 @@ function BuildSolution() {
   $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
 
-  $restoreUseStaticGraphEvaluation = $true
-
   try {
     MSBuild $toolsetBuildProj `
       $bl `
@@ -287,7 +285,6 @@ function BuildSolution() {
       /p:TreatWarningsAsErrors=$warnAsError `
       /p:EnableNgenOptimization=$applyOptimizationData `
       /p:IbcOptimizationDataDir=$ibcDir `
-      /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation `
       /p:VisualStudioIbcDrop=$ibcDropName `
       /p:VisualStudioDropAccessToken=$officialVisualStudioDropAccessToken `
       $suppressExtensionDeployment `

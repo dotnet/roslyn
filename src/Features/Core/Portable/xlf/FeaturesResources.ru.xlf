@@ -4191,8 +4191,8 @@ Do you want to continue?</source>
         <note />
       </trans-unit>
       <trans-unit id="_0_1">
-        <source>    {0} - {1}</source>
-        <target state="translated">    {0} - {1}</target>
+        <source>{0} - {1}</source>
+        <target state="needs-review-translation">    {0} - {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source">

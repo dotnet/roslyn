@@ -287,7 +287,7 @@ internal sealed class RemoteLanguageServiceWorkspace : CodeAnalysis.Workspace, I
 
     public async Task<DocumentSpan?> GetDocumentSpanFromLocationAsync(LSP.Location location, CancellationToken cancellationToken)
     {
-        var document = GetOrAddDocument(location.Uri.LocalPath);
+        var document = GetOrAddDocument(location.DocumentUri.GetRequiredParsedUri().LocalPath);
         if (document == null)
         {
             return null;

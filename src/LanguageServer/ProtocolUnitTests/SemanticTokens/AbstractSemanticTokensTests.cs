@@ -54,20 +54,20 @@ public abstract class AbstractSemanticTokensTests : AbstractLanguageServerProtoc
     private static LSP.SemanticTokensFullParams CreateSemanticTokensFullParams(LSP.Location caret)
         => new LSP.SemanticTokensFullParams
         {
-            TextDocument = new LSP.TextDocumentIdentifier { Uri = caret.Uri }
+            TextDocument = new LSP.TextDocumentIdentifier { DocumentUri = caret.DocumentUri }
         };
 
     private static LSP.SemanticTokensRangeParams CreateSemanticTokensRangeParams(LSP.Location caret, LSP.Range range)
         => new LSP.SemanticTokensRangeParams
         {
-            TextDocument = new LSP.TextDocumentIdentifier { Uri = caret.Uri },
+            TextDocument = new LSP.TextDocumentIdentifier { DocumentUri = caret.DocumentUri },
             Range = range
         };
 
     private static SemanticTokensRangesParams CreateSemanticTokensRangesParams(LSP.Location caret, Range[] ranges)
         => new SemanticTokensRangesParams
         {
-            TextDocument = new LSP.TextDocumentIdentifier { Uri = caret.Uri },
+            TextDocument = new LSP.TextDocumentIdentifier { DocumentUri = caret.DocumentUri },
             Ranges = ranges
         };
 
