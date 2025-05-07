@@ -48,6 +48,9 @@ internal sealed class DefaultCopilotChangeAnalysisService(
 
     private readonly ICodeFixService _codeFixService = codeFixService;
 
+    private static bool IsSorted<T>(ImmutableArray<T> array, Comparison<T> comparison)
+        => array.IsSorted(Comparer<T>.Create(comparison));
+
     public async Task<CopilotChangeAnalysis> AnalyzeChangeAsync(
         Document document,
         ImmutableArray<TextChange> changes,
@@ -55,7 +58,7 @@ internal sealed class DefaultCopilotChangeAnalysisService(
     {
         Contract.ThrowIfFalse(document.SupportsSemanticModel);
 
-        Contract.ThrowIfTrue(!changes.IsSorted(static (c1, c2) => c1.Span.Start - c2.Span.Start), "'changes' was not sorted.");
+        Contract.ThrowIfTrue(!IsSorted(changes, static (c1, c2) => c1.Span.Start - c2.Span.Start), "'changes' was not sorted.");
         Contract.ThrowIfTrue(new NormalizedTextSpanCollection(changes.Select(c => c.Span)).Count != changes.Length, "'changes' was not normalized.");
 
         var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
