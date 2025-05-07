@@ -98,7 +98,7 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         // those cases, we do not need to add an additional workspace to manage new files we hear about.  So only
         // add the LspMiscellaneousFilesWorkspace for hosts that have not already brought their own.
         if (serverKind == WellKnownLspServerKinds.CSharpVisualBasicLspServer)
-            AddLazyService<LspMiscellaneousFilesWorkspace>(lspServices => lspServices.GetRequiredService<LspMiscellaneousFilesWorkspaceProvider>().CreateLspMiscellaneousFilesWorkspace(lspServices, hostServices));
+            AddLazyService<ILspMiscellaneousFilesWorkspaceProvider>(lspServices => lspServices.GetRequiredService<ILspMiscellaneousFilesWorkspaceProviderFactory>().CreateLspMiscellaneousFilesWorkspaceProvider(lspServices, hostServices));
 
         return baseServiceMap.ToFrozenDictionary(
             keySelector: kvp => kvp.Key,
@@ -189,13 +189,13 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         // { "textDocument": { "uri": "<uri>" ... } ... }
         //
         // We can easily identify the URI for the request by looking for this structure
-        Uri? uri = null;
+        DocumentUri? uri = null;
         if (parameters.TryGetProperty("textDocument", out var textDocumentToken) ||
             parameters.TryGetProperty("_vs_textDocument", out textDocumentToken))
         {
-            var uriToken = textDocumentToken.GetProperty("uri");
-            uri = JsonSerializer.Deserialize<Uri>(uriToken, ProtocolConversions.LspJsonSerializerOptions);
-            Contract.ThrowIfNull(uri, "Failed to deserialize uri property");
+            var textDocumentIdentifier = JsonSerializer.Deserialize<TextDocumentIdentifier>(textDocumentToken, ProtocolConversions.LspJsonSerializerOptions);
+            Contract.ThrowIfNull(textDocumentIdentifier, "Failed to deserialize text document identifier property");
+            uri = textDocumentIdentifier.DocumentUri;
         }
         else if (parameters.TryGetProperty("data", out var dataToken))
         {
@@ -206,7 +206,7 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
             //var dataToken = parameters["data"];
             var data = JsonSerializer.Deserialize<DocumentResolveData>(dataToken, ProtocolConversions.LspJsonSerializerOptions);
             Contract.ThrowIfNull(data, "Failed to document resolve data object");
-            uri = data.TextDocument.Uri;
+            uri = data.TextDocument.DocumentUri;
         }
 
         if (uri == null)

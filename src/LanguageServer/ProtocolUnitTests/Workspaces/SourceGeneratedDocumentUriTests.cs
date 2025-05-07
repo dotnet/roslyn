@@ -32,8 +32,8 @@ public sealed class SourceGeneratedDocumentUrisTests : AbstractLanguageServerPro
             new SourceGeneratorIdentity("GeneratorAssembly", "Generator.dll", new Version(1, 0), "GeneratorType"), HintName);
 
         var uri = SourceGeneratedDocumentUri.Create(identity);
-        Assert.Equal(SourceGeneratedDocumentUri.Scheme, uri.Scheme);
-        var deserialized = SourceGeneratedDocumentUri.DeserializeIdentity(testLspServer.TestWorkspace.CurrentSolution, uri);
+        Assert.Equal(SourceGeneratedDocumentUri.Scheme, uri.GetRequiredParsedUri().Scheme);
+        var deserialized = SourceGeneratedDocumentUri.DeserializeIdentity(testLspServer.TestWorkspace.CurrentSolution, uri.GetRequiredParsedUri());
 
         AssertEx.NotNull(deserialized);
         Assert.Equal(identity, deserialized.Value);

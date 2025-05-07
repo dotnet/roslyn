@@ -33,7 +33,7 @@ internal sealed class NotebookCell
     [JsonPropertyName("document")]
     [JsonConverter(typeof(DocumentUriConverter))]
     [JsonRequired]
-    public Uri Document { get; init; }
+    public DocumentUri Document { get; init; }
 
     /// <summary>
     /// Additional metadata stored with the cell.

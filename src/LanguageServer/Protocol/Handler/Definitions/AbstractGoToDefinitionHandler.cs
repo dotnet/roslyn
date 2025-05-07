@@ -88,7 +88,7 @@ internal abstract class AbstractGoToDefinitionHandler : ILspServiceDocumentReque
                 var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                 locations.Add(new LSP.Location
                 {
-                    Uri = ProtocolConversions.CreateAbsoluteUri(declarationFile.FilePath!),
+                    DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(declarationFile.FilePath!),
                     Range = ProtocolConversions.LinePositionToRange(linePosSpan),
                 });
             }

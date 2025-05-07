@@ -5264,43 +5264,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method = reinferredMethod;
 
                 var parameters = method.Parameters;
-                visitOperandConversionAndPostConditions(left, leftOperand, leftConversion, parameters[0], leftUnderlyingType);
-                visitOperandConversionAndPostConditions(right, rightOperand, rightConversion, parameters[1], rightUnderlyingType);
-
-                void visitOperandConversionAndPostConditions(
-                    BoundExpression expr,
-                    BoundExpression operand,
-                    Conversion conversion,
-                    ParameterSymbol parameter,
-                    TypeWithState operandType)
-                {
-                    var parameterAnnotations = GetParameterAnnotations(parameter);
-                    var targetTypeWithNullability = ApplyLValueAnnotations(parameter.TypeWithAnnotations, parameterAnnotations);
-
-                    if (isLifted && targetTypeWithNullability.Type.IsNonNullableValueType())
-                    {
-                        targetTypeWithNullability = TypeWithAnnotations.Create(MakeNullableOf(targetTypeWithNullability));
-                    }
-
-                    var resultType = VisitConversion(
-                        expr as BoundConversion,
-                        operand,
-                        conversion,
-                        targetTypeWithNullability,
-                        operandType,
-                        checkConversion: true,
-                        fromExplicitCast: false,
-                        useLegacyWarnings: false,
-                        AssignmentKind.Argument,
-                        parameter);
-
-                    if (CheckDisallowedNullAssignment(resultType, parameterAnnotations, expr.Syntax, operand))
-                    {
-                        LearnFromNonNullTest(operand, ref State);
-                    }
-
-                    LearnFromPostConditions(operand, parameterAnnotations);
-                }
+                VisitBinaryOperatorOperandConversionAndPostConditions(left, leftOperand, leftConversion, parameters[0], leftUnderlyingType, isLifted);
+                VisitBinaryOperatorOperandConversionAndPostConditions(right, rightOperand, rightConversion, parameters[1], rightUnderlyingType, isLifted);
             }
             else
             {
@@ -5364,6 +5329,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 return null;
             }
+        }
+
+        private void VisitBinaryOperatorOperandConversionAndPostConditions(BoundExpression expr, BoundExpression operand, Conversion conversion, ParameterSymbol parameter, TypeWithState operandType, bool isLifted)
+        {
+            var parameterAnnotations = GetParameterAnnotations(parameter);
+            var targetTypeWithNullability = ApplyLValueAnnotations(parameter.TypeWithAnnotations, parameterAnnotations);
+
+            if (isLifted && targetTypeWithNullability.Type.IsNonNullableValueType())
+            {
+                targetTypeWithNullability = TypeWithAnnotations.Create(MakeNullableOf(targetTypeWithNullability));
+            }
+
+            var resultType = VisitConversion(
+                expr as BoundConversion,
+                operand,
+                conversion,
+                targetTypeWithNullability,
+                operandType,
+                checkConversion: true,
+                fromExplicitCast: false,
+                useLegacyWarnings: false,
+                AssignmentKind.Argument,
+                parameter);
+
+            if (CheckDisallowedNullAssignment(resultType, parameterAnnotations, expr.Syntax, operand))
+            {
+                LearnFromNonNullTest(operand, ref State);
+            }
+
+            LearnFromPostConditions(operand, parameterAnnotations);
         }
 
         private void AfterLeftChildHasBeenVisited(
@@ -10748,6 +10743,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (this.State.Reachable)
             {
+                if (node.MethodOpt is { } method ?
+                        !method.IsStatic :
+                        (!node.OriginalUserDefinedOperatorsOpt.IsDefaultOrEmpty && !node.OriginalUserDefinedOperatorsOpt[0].IsStatic))
+                {
+                    CheckCallReceiver(node.Operand, operandType, node.MethodOpt ?? node.OriginalUserDefinedOperatorsOpt[0]);
+                    SetNotNullResult(node);
+                    return null;
+                }
+
                 // https://github.com/dotnet/roslyn/issues/29961 Update increment method based on operand type.
                 MethodSymbol? incrementOperator = (node.OperatorKind.IsUserDefined() && node.MethodOpt?.ParameterCount == 1) ? node.MethodOpt : null;
                 TypeWithAnnotations targetTypeOfOperandConversion;
@@ -10840,10 +10844,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
         {
-            // for an operator like: 'TResult operator op(TLeftParam left, TRightParam right);'
-            // and usage like: 'x op= y;'
-            // expansion is (roughly): 'x = (TLeftArg)((TLeftParam)x op (TRightParam)y);'
-
             // visit 'x'
             Visit(node.Left);
             Unsplit();
@@ -10856,6 +10856,33 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // visit 'y'
             var rightTypeWithState = VisitRvalueWithState(rightConversionOperand);
+
+            if (node.Operator.Method is { } method)
+            {
+                if (!method.IsStatic)
+                {
+                    // Update method based on inferred operand type.
+                    var reinferredMethod = (MethodSymbol)AsMemberOfType(leftTypeWithState.Type, method);
+                    SetUpdatedSymbol(node, method, reinferredMethod);
+                    method = reinferredMethod;
+
+                    CheckCallReceiver(node.Left, leftTypeWithState, method);
+                    VisitBinaryOperatorOperandConversionAndPostConditions(node.Right, rightConversionOperand, rightConversion, method.Parameters[0], rightTypeWithState, isLifted: false);
+
+                    SetNotNullResult(node);
+                    return null;
+                }
+            }
+            else if (!node.OriginalUserDefinedOperatorsOpt.IsDefaultOrEmpty && !node.OriginalUserDefinedOperatorsOpt[0].IsStatic)
+            {
+                // This is an error scenario 
+                SetNotNullResult(node);
+                return null;
+            }
+
+            // for an operator like: 'TResult operator op(TLeftParam left, TRightParam right);'
+            // and usage like: 'x op= y;'
+            // expansion is (roughly): 'x = (TLeftArg)((TLeftParam)x op (TRightParam)y);'
 
             // visit '(TLeftParam)x op (TRightParam)y'
             var resultTypeWithState = ReinferAndVisitBinaryOperator(

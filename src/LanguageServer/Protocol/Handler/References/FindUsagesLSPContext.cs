@@ -218,7 +218,7 @@ internal sealed class FindUsagesLSPContext : FindUsagesContext
             DefinitionText = definitionText,    // Only definitions should have a non-null DefinitionText
             DefinitionIcon = new ImageElement(definitionGlyph.ToLSPImageId()),
             Location = location,
-            DisplayPath = location?.Uri.LocalPath,
+            DisplayPath = location?.DocumentUri.GetRequiredParsedUri().LocalPath,
             Id = id,
             Kind = symbolUsageInfo.HasValue ? ProtocolConversions.SymbolUsageInfoToReferenceKinds(symbolUsageInfo.Value) : [],
             ResolutionStatus = VSInternalResolutionStatusKind.ConfirmedAsReference,
@@ -276,7 +276,7 @@ internal sealed class FindUsagesLSPContext : FindUsagesContext
         {
             return new LSP.Location
             {
-                Uri = ProtocolConversions.CreateAbsoluteUri(declarationFile.FilePath),
+                DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(declarationFile.FilePath),
                 Range = ProtocolConversions.LinePositionToRange(linePosSpan),
             };
         }
