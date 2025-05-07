@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
@@ -17,7 +15,6 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
     private readonly ProjectSystemProject _project;
     private readonly SolutionServices _workspaceServices;
     private readonly ICommandLineParserService _commandLineParserService;
-    private readonly ITemporaryStorageServiceInternal _temporaryStorageService;
 
     /// <summary>
     /// Gate to guard all mutable fields in this class.
@@ -33,12 +30,9 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
     private Checksum? _commandLineChecksum;
 
     /// <summary>
-    /// To save space in the managed heap, we dump the entire command-line string to our
-    /// temp-storage-service. This is helpful as compiler command-lines can grow extremely large
-    /// (especially in cases with many references).
-    /// </summary>
-    /// <remarks>Note: this will be null in the case that the command line is an empty array.</remarks>
-    private ITemporaryStorageStreamHandle? _commandLineStorageHandle;
+    /// To save space in the managed heap, we only cache the command line if we have an
+    /// effective ruleset.
+    private ImmutableArray<string> _commandLine;
 
     private CommandLineArguments _commandLineArgumentsForCommandLine;
     private string? _explicitRuleSetFilePath;
@@ -51,7 +45,6 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
         _project = project ?? throw new ArgumentNullException(nameof(project));
         _workspaceServices = workspaceServices;
         _commandLineParserService = workspaceServices.GetLanguageServices(project.Language).GetRequiredService<ICommandLineParserService>();
-        _temporaryStorageService = workspaceServices.GetRequiredService<ITemporaryStorageServiceInternal>();
 
         // Set up _commandLineArgumentsForCommandLine to a default. No lock taken since we're in
         // the constructor so nothing can race.
@@ -72,23 +65,9 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
 
         ReparseCommandLine_NoLock(arguments);
 
-        // Dispose the existing stored command-line and then persist the new one so we can
-        // recover it later.  Only bother persisting things if we have a non-empty string
-        // and there is an effective ruleset (as that ends up adding RuleSetFile_UpdatedOnDisk
-        // as an event handler which is the only consumer of _commandLineStorageHandle)
-
-        _commandLineStorageHandle = null;
-        if (!arguments.IsEmpty && GetEffectiveRulesetFilePath() != null)
-        {
-            using var stream = SerializableBytes.CreateWritableStream();
-            using var writer = new StreamWriter(stream);
-
-            foreach (var value in arguments)
-                writer.WriteLine(value);
-
-            writer.Flush();
-            _commandLineStorageHandle = _temporaryStorageService.WriteToTemporaryStorage(stream, CancellationToken.None);
-        }
+        // Only bother storing the command line if there is an effective ruleset, as that may
+        // require a later reparse using it.
+        _commandLine = GetEffectiveRulesetFilePath() != null ? arguments : [];
 
         return true;
     }
@@ -251,23 +230,9 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
             // effective values was potentially done by the act of parsing the command line. Even though the command line didn't change textually,
             // the effective result did. Then we call UpdateProjectOptions_NoLock to reapply any values; that will also re-acquire the new ruleset
             // includes in the IDE so we can be watching for changes again.
-            var commandLine = _commandLineStorageHandle == null
-                ? []
-                : EnumerateLines(_commandLineStorageHandle).ToImmutableArray();
-
             DisposeOfRuleSetFile_NoLock();
-            ReparseCommandLine_NoLock(commandLine);
+            ReparseCommandLine_NoLock(_commandLine);
             UpdateProjectOptions_NoLock();
-        }
-
-        static IEnumerable<string> EnumerateLines(
-            ITemporaryStorageStreamHandle storageHandle)
-        {
-            using var stream = storageHandle.ReadFromTemporaryStorage();
-            using var reader = new StreamReader(stream);
-
-            while (reader.ReadLine() is string line)
-                yield return line;
         }
     }
 
