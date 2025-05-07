@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
         private const string s_sectionMatcherPattern = @"^\s*\[(([^#;]|\\#|\\;)+)\]\s*([#;].*)?$";
 
         // Matches EditorConfig property such as "indent_style = space", see https://editorconfig.org for details
-        private const string s_propertyMatcherPattern = @"^(?!\[.*\]$)(?:.*|[^\S\r\n]*((?:[^=:\s]+[^\S\r\n]*?)+?)[^\S\r\n]*[=:][^\S\r\n]*(.*?)[^\S\r\n]*([#;].*)?)$";
+        private const string s_propertyMatcherPattern = @"^[^\S\r\n]*((?:[^=:\s]+[^\S\r\n]*?)+?)[^\S\r\n]*[=:][^\S\r\n]*(.*?)[^\S\r\n]*([#;].*)?$";
 
 #if NET
 
