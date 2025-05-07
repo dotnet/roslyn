@@ -21,5 +21,5 @@ internal interface ILspMiscellaneousFilesWorkspaceProvider : ILspService
     /// async is used here to allow taking locks asynchronously and "relatively fast" stuff like that.
     /// </summary>
     Task<TextDocument?> AddMiscellaneousDocumentAsync(DocumentUri uri, SourceText documentText, string languageId, ILspLogger logger);
-    void TryRemoveMiscellaneousDocument(DocumentUri uri, bool removeFromMetadataWorkspace);
+    ValueTask TryRemoveMiscellaneousDocumentAsync(DocumentUri uri, bool removeFromMetadataWorkspace);
 }

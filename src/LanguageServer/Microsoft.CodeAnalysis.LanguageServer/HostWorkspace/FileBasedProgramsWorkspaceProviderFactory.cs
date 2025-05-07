@@ -37,7 +37,6 @@ internal sealed class FileBasedProgramsWorkspaceProviderFactory(
 {
     public ILspMiscellaneousFilesWorkspaceProvider CreateLspMiscellaneousFilesWorkspaceProvider(ILspServices lspServices, HostServices hostServices)
     {
-        // TODO(fbp): check feature flag and maybe give base misc workspace
         return new FileBasedProgramsProjectSystem(lspServices, metadataAsSourceFileService, workspaceFactory, fileChangeWatcher, globalOptionService, loggerFactory, listenerProvider, projectLoadTelemetry, serverConfigurationFactory, binlogNamer);
     }
 }

@@ -74,6 +74,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
 
             foreach (var project in await buildHost.GetProjectsInSolutionAsync(solutionFilePath, CancellationToken.None))
             {
+                _ = AddLoadedProjectSet(project.ProjectPath);
                 ProjectsToLoadAndReload.AddWork(new ProjectToLoad(project.ProjectPath, project.ProjectGuid, ReportTelemetry: true));
             }
 
@@ -90,7 +91,11 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
 
         using (await _gate.DisposableWaitAsync())
         {
-            ProjectsToLoadAndReload.AddWork(projectFilePaths.Select(p => new ProjectToLoad(p, ProjectGuid: null, ReportTelemetry: true)));
+            foreach (var projectPath in projectFilePaths)
+            {
+                _ = AddLoadedProjectSet(projectPath);
+                ProjectsToLoadAndReload.AddWork(new ProjectToLoad(projectPath, ProjectGuid: null, ReportTelemetry: true));
+            }
 
             // Wait for the in progress batch to complete and send a project initialized notification to the client.
             await ProjectsToLoadAndReload.WaitUntilCurrentBatchCompletesAsync();

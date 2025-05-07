@@ -106,7 +106,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         // For Razor files we need to override the language name to C# as that's what code is generated
         var isRazor = languageInformation.LanguageName == "Razor";
         var languageName = isRazor ? LanguageNames.CSharp : languageInformation.LanguageName;
-        var loadedProject = await CreateAndTrackInitialProjectAsync(documentPath, language: languageName);
         var documentFileInfo = new DocumentFileInfo(documentPath, logicalPath: documentPath, isLinked: false, isGenerated: false, folders: default);
         var projectFileInfo = new ProjectFileInfo()
         {
@@ -122,12 +121,20 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             ContentFilePaths = [],
             FileGlobs = []
         };
-        await loadedProject.UpdateWithNewProjectInfoAsync(projectFileInfo, hasAllInformation: false, _logger);
-        var workspaceProject = ProjectFactory.Workspace.CurrentSolution.GetRequiredProject(loadedProject.ProjectId);
-        var document = isRazor ? workspaceProject.AdditionalDocuments.Single() : workspaceProject.Documents.Single();
 
-        ProjectsToLoadAndReload.AddWork(new ProjectToLoad(documentPath, ProjectGuid: null, ReportTelemetry: true));
-        loadedProject.NeedsReload += (_, _) => ProjectsToLoadAndReload.AddWork(new ProjectToLoad(documentPath, ProjectGuid: null, ReportTelemetry: false));
+        var projectSet = AddLoadedProjectSet(documentPath);
+        Project workspaceProject;
+        using (await projectSet.Semaphore.DisposableWaitAsync())
+        {
+            var loadedProject = await this.CreateAndTrackInitialProjectAsync_NoLock(projectSet, documentPath, language: languageName);
+            await loadedProject.UpdateWithNewProjectInfoAsync(projectFileInfo, hasAllInformation: false, _logger);
+
+            ProjectsToLoadAndReload.AddWork(new ProjectToLoad(documentPath, ProjectGuid: null, ReportTelemetry: true));
+            loadedProject.NeedsReload += (_, _) => ProjectsToLoadAndReload.AddWork(new ProjectToLoad(documentPath, ProjectGuid: null, ReportTelemetry: false));
+            workspaceProject = ProjectFactory.Workspace.CurrentSolution.GetRequiredProject(loadedProject.ProjectId);
+        }
+
+        var document = isRazor ? workspaceProject.AdditionalDocuments.Single() : workspaceProject.Documents.Single();
 
         _ = Task.Run(async () =>
         {
@@ -139,9 +146,23 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         return document;
     }
 
-    public void TryRemoveMiscellaneousDocument(DocumentUri uri, bool removeFromMetadataWorkspace)
+    public async ValueTask TryRemoveMiscellaneousDocumentAsync(DocumentUri uri, bool removeFromMetadataWorkspace)
     {
-        // support unloading
+        var documentPath = uri.ParsedUri is { } parsedUri ? ProtocolConversions.GetDocumentFilePathFromUri(parsedUri) : uri.UriString;
+        await TryUnloadProjectSetAsync(documentPath);
+
+        // also do an unload in case this was the non-file scenario
+        if (removeFromMetadataWorkspace && uri.ParsedUri is not null && _metadataAsSourceFileService.TryRemoveDocumentFromWorkspace(ProtocolConversions.GetDocumentFilePathFromUri(uri.ParsedUri)))
+        {
+            return;
+        }
+
+        var matchingDocument = Workspace.CurrentSolution.GetDocumentIds(uri).SingleOrDefault();
+        if (matchingDocument != null)
+        {
+            var project = Workspace.CurrentSolution.GetRequiredProject(matchingDocument.ProjectId);
+            Workspace.OnProjectRemoved(project.Id);
+        }
     }
 
     protected override async Task<(RemoteProjectFile? projectFile, bool hasAllInformation, BuildHostProcessKind preferred, BuildHostProcessKind actual)> TryLoadProjectAsync(
