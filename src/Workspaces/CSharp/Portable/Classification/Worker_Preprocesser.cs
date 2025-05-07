@@ -338,7 +338,7 @@ internal ref partial struct Worker
         if (node.Content.Text.IndexOfAny([' ', '\t']) is > 0 and var firstSpaceIndex)
         {
             var keywordSpan = new TextSpan(node.Content.SpanStart, firstSpaceIndex);
-            var stringLiteralSpan = new TextSpan(node.Content.SpanStart + firstSpaceIndex, node.Content.Span.Length - firstSpaceIndex);
+            var stringLiteralSpan = TextSpan.FromBounds(node.Content.SpanStart + firstSpaceIndex, node.Content.FullSpan.End);
 
             AddClassification(keywordSpan, ClassificationTypeNames.PreprocessorKeyword);
             AddClassification(stringLiteralSpan, ClassificationTypeNames.StringLiteral);
