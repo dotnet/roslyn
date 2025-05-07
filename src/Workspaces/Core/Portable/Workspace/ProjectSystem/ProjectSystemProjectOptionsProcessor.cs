@@ -32,6 +32,7 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
     /// <summary>
     /// To save space in the managed heap, we only cache the command line if we have an
     /// effective ruleset.
+    /// </summary>
     private ImmutableArray<string> _commandLine;
 
     private CommandLineArguments _commandLineArgumentsForCommandLine;
