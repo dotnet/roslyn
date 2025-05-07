@@ -1,0 +1,121 @@
+trigger: none
+pr: none
+schedules:
+- cron: "0 3 * * Fri" # Thu @ 8 or 9 PM Mountain Time (depending on DST)
+  displayName: Weekly OptProf run
+  branches:
+    include:
+    - 'v*.*'
+    - main
+  always: true # we must keep data fresh since optimizationdata drops are purged after 30 days
+
+# Avoid errant CI builds: https://developercommunity.visualstudio.com/content/problem/1154409/azure-pipeline-is-triggering-due-to-events-that-ne.html
+#resources:
+#  repositories:
+#  - repository: scripts
+#    type: git
+#    name: DeploymentScripts
+#    ref: refs/heads/test
+
+parameters:
+  - name: ShouldSkipOptimize
+    displayName: Skip OptProf optimization
+    type: boolean
+    default: false # Should usually be false so that optprof LKG can apply when tests fail, but may need to be set to true in a manually queued pipeline run if all drops have expired.
+
+variables:
+- template: GlobalVariables.yml
+- name: PublicRelease
+  value: false # avoid using nice version since we're building a preliminary/unoptimized package
+- name: IsOptProf
+  value: true
+- name: MicroBuild_NuPkgSigningEnabled
+  value: false # test-signed nuget packages fail to restore in the VS insertion PR validations. Just don't sign them *at all*.
+
+stages:
+- stage: Library
+  variables:
+  - name: OptProf
+    value: true
+  - template: BuildStageVariables.yml
+  jobs:
+  - template: build.yml
+    parameters:
+      Is1ESPT: false
+      RealSign: false
+      windowsPool: VSEngSS-MicroBuild2022-1ES
+      EnableMacOSBuild: false
+      ShouldSkipOptimize: ${{ parameters.ShouldSkipOptimize }}
+      IsOptProf: true
+      RunTests: false
+      SkipCodesignVerify: true
+- stage: QueueVSBuild
+  jobs:
+  - job: QueueOptProf
+    pool: VSEngSS-MicroBuild2022-1ES
+    variables:
+      InsertPayloadName: LibraryName
+      InsertTopicBranch: team/VS-IDE/LibraryName-OptProf-run-$(Build.BuildId)
+    steps:
+    - checkout: none # We don't need source from our own repo
+      clean: true
+
+    # Pipeline YAML does not yet support checking out other repos. So we'll do it by hand.
+#    - checkout: scripts # We DO need source from the DeploymentScripts repo
+#      clean: true
+#      path: $(Agent.TempDirectory)/DeploymentScripts
+#      fetchDepth: 1
+    - script: 'git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" clone https://devdiv.visualstudio.com/DevDiv/_git/DeploymentScripts --depth 1 --branch test "$(Agent.TempDirectory)/DeploymentScripts"'
+      displayName: Download DeploymentScripts repo
+
+    - task: DownloadBuildArtifacts@0
+      displayName: Download insertion artifacts
+      inputs:
+        artifactName: VSInsertion-Windows
+        downloadPath: $(Agent.TempDirectory)
+    - task: DownloadBuildArtifacts@0
+      displayName: Download variables artifacts
+      inputs:
+        artifactName: Variables-Windows
+        downloadPath: $(Agent.TempDirectory)
+    - task: PowerShell@2
+      displayName: Set pipeline variables based on artifacts
+      inputs:
+        targetType: filePath
+        filePath: $(Agent.TempDirectory)/Variables-Windows/_define.ps1
+    - task: NuGetCommand@2
+      displayName: Push VS-repo packages to VS feed
+      inputs:
+        command: push
+        packagesToPush: $(Agent.TempDirectory)/VSInsertion-Windows/*.nupkg
+        publishVstsFeed: 97a41293-2972-4f48-8c0e-05493ae82010 # VS feed
+        allowPackageConflicts: true
+    - task: MicroBuildInsertVsPayload@5
+      displayName: Insert VS Payload
+      inputs:
+        TeamName: $(TeamName)
+        TeamEmail: $(TeamEmail)
+        SkipCreatePR: true
+        CustomScriptExecutionCommand: src\VSSDK\NuGet\AllowUnstablePackages.ps1
+    - task: benjhuser.tfs-extensions-build-tasks.trigger-build-task.TriggerBuild@3
+      displayName: Trigger a new build of DD-CB-TestSignVS-devCI
+      inputs:
+        buildDefinition: DD-CB-TestSignVS-devCI
+        useSameBranch: false
+        branchToUse: $(InsertTopicBranch)
+        storeInEnvironmentVariable: true
+        queueBuildForUserThatTriggeredBuild: false
+        authenticationMethod: OAuth Token
+        password: $(System.AccessToken)
+    - task: PowerShell@2
+      displayName: Associate InsertionOutputs artifacts with CloudBuild
+      inputs:
+        targetType: filePath
+        filePath: $(Agent.TempDirectory)/DeploymentScripts/Scripts/Insertion/WriteArtifact.ps1
+        arguments: '-oldBuildID $(Build.BuildId) -newBuildID $(TriggeredBuildIds) -artifactName "InsertionOutputs" -accessToken $(System.AccessToken)'
+    - task: PowerShell@2
+      displayName: Tag the build with LibraryName-insertion
+      inputs:
+        targetType: filePath
+        filePath: $(Agent.TempDirectory)/DeploymentScripts/Scripts/Insertion/TagBuild.ps1
+        arguments: '-buildID $(TriggeredBuildIds) -tagName "LibraryName-insertion" -accessToken $(System.AccessToken)'

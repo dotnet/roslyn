@@ -45,14 +45,14 @@ if ($env:GITHUB_ACTIONS) {
 
 $CmdEnvScript = ''
 $Variables.GetEnumerator() |% {
-    Set-Item -Path env:$($_.Key) -Value $_.Value
+    Set-Item -LiteralPath env:$($_.Key) -Value $_.Value
 
     # If we're running in a cloud CI, set these environment variables so they propagate.
     if ($env:TF_BUILD) {
         Write-Host "##vso[task.setvariable variable=$($_.Key);]$($_.Value)"
     }
     if ($env:GITHUB_ACTIONS) {
-        Add-Content -Path $env:GITHUB_ENV -Value "$($_.Key)=$($_.Value)"
+        Add-Content -LiteralPath $env:GITHUB_ENV -Value "$($_.Key)=$($_.Value)"
     }
 
     if ($cmdInstructions) {
@@ -70,7 +70,7 @@ if ($IsMacOS -or $IsLinux) {
 if ($PrependPath) {
     $PrependPath |% {
         $newPathValue = "$_$pathDelimiter$env:PATH"
-        Set-Item -Path env:PATH -Value $newPathValue
+        Set-Item -LiteralPath env:PATH -Value $newPathValue
         if ($cmdInstructions) {
             Write-Host "SET PATH=$newPathValue"
         }
@@ -79,7 +79,7 @@ if ($PrependPath) {
             Write-Host "##vso[task.prependpath]$_"
         }
         if ($env:GITHUB_ACTIONS) {
-            Add-Content -Path $env:GITHUB_PATH -Value $_
+            Add-Content -LiteralPath $env:GITHUB_PATH -Value $_
         }
 
         $CmdEnvScript += "SET PATH=$_$pathDelimiter%PATH%"
@@ -88,10 +88,10 @@ if ($PrependPath) {
 
 if ($env:CmdEnvScriptPath) {
     if (Test-Path $env:CmdEnvScriptPath) {
-        $CmdEnvScript = (Get-Content -Path $env:CmdEnvScriptPath) + $CmdEnvScript
+        $CmdEnvScript = (Get-Content -LiteralPath $env:CmdEnvScriptPath) + $CmdEnvScript
     }
 
-    Set-Content -Path $env:CmdEnvScriptPath -Value $CmdEnvScript
+    Set-Content -LiteralPath $env:CmdEnvScriptPath -Value $CmdEnvScript
 }
 
 return !$cmdInstructions

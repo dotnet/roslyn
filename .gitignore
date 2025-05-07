@@ -37,6 +37,9 @@ bld/
 # Uncomment if you have tasks that create the project's static files in wwwroot
 #wwwroot/
 
+# Jetbrains Rider cache directory
+.idea/
+
 # Visual Studio 2017 auto generated files
 Generated\ Files/
 
@@ -352,3 +355,6 @@ MigrationBackup/
 
 # mac-created file to track user view preferences for a directory
 .DS_Store
+
+# Analysis results
+*.sarif

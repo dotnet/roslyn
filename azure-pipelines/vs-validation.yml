@@ -5,77 +5,115 @@
 trigger: none # We only want to trigger manually or based on resources
 pr: none
 
-stages:
-- stage: Build
-  variables:
-    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
-    NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages
-    SignTypeSelection: Real
-    BuildConfiguration: Release
-    ValidationBuild: true
+# parameters:
+# - name: ShouldSkipOptimize # Uncomment this and references to it below when setting EnableOptProf to true in build.yml.
+#   displayName: Skip OptProf optimization
+#   type: boolean
+#   default: false
 
-  jobs:
-  - template: build.yml
-    parameters:
-      windowsPool: VSEngSS-MicroBuild2022-1ES
-      includeMacOS: false
-      RunTests: false
+resources:
+  repositories:
+  - repository: MicroBuildTemplate
+    type: git
+    name: 1ESPipelineTemplates/MicroBuildTemplate
+    ref: refs/tags/release
 
-- template: prepare-insertion-stages.yml
+variables:
+- template: GlobalVariables.yml
+- name: MicroBuild_NuPkgSigningEnabled
+  value: false # test-signed nuget packages fail to restore in the VS insertion PR validations. Just don't sign them *at all*.
+
+extends:
+  template: azure-pipelines/MicroBuild.1ES.Unofficial.yml@MicroBuildTemplate
   parameters:
-    ArchiveSymbols: false
+    sdl:
+      sourceAnalysisPool: VSEngSS-MicroBuild2022-1ES
 
-- stage: insertion
-  displayName: VS insertion
-  jobs:
-  - job: insertion
-    displayName: VS insertion
-    pool: VSEngSS-MicroBuild2022-1ES
-    steps:
-    - checkout: self
-      clean: true
-      fetchDepth: 1
-    - task: UseDotNet@2
-      displayName: ⚙️ Install .NET SDK
-      inputs:
-        packageType: sdk
-        version: 6.x
-    - task: NuGetAuthenticate@1
-      displayName: 🔏 Authenticate NuGet feeds
-      inputs:
-        forceReinstallCredentialProvider: true
-    - download: current
-      artifact: Variables-Windows
-      displayName: 🔻 Download Variables-Windows artifact
-    - powershell: $(Pipeline.Workspace)/Variables-Windows/_pipelines.ps1
-      displayName: ⚙️ Set pipeline variables based on artifacts
-    - download: current
-      artifact: VSInsertion-Windows
-      displayName: 🔻 Download VSInsertion-Windows artifact
-    - script: dotnet nuget push VSInsertion-windows\*.nupkg -s https://pkgs.dev.azure.com/devdiv/_packaging/VS/nuget/v3/index.json -k azdo --skip-duplicate
-      displayName: 📦 Push CoreXT packages to VS feed
-      workingDirectory: $(Pipeline.Workspace)
-    - task: MicroBuildInsertVsPayload@4
-      displayName: 🏭 Insert VS Payload
-      inputs:
-        TeamName: $(TeamName)
-        TeamEmail: $(TeamEmail)
-        InsertionPayloadName: $(Build.Repository.Name) VALIDATION BUILD $(Build.BuildNumber) ($(Build.SourceBranch)) [Skip-SymbolCheck]
-        InsertionDescription: |
-          This PR is for **validation purposes only** for !$(System.PullRequest.PullRequestId). **Do not complete**.
-        CustomScriptExecutionCommand: src/VSSDK/NuGet/AllowUnstablePackages.ps1
-        InsertionBuildPolicy: Request Perf DDRITs
-        InsertionReviewers: $(Build.RequestedForEmail)
-        AutoCompletePR: false
-    - powershell: |
-        $insertionPRId = azure-pipelines/Get-InsertionPRId.ps1
-        $Markdown = @"
-        Validation insertion pull request created: !$insertionPRId
-        Please check status there before proceeding to merge this PR.
-        Remember to Abandon and (if allowed) to Delete Source Branch on that insertion PR when validation is complete.
-        "@
-        azure-pipelines/PostPRMessage.ps1 -AccessToken '$(System.AccessToken)' -Markdown $Markdown -Verbose
-      displayName: ✏️ Comment on pull request
-      condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
-    - task: MicroBuildCleanup@1
-      displayName: ☎️ Send Telemetry
+    stages:
+    - stage: Build
+      variables:
+      - template: /azure-pipelines/BuildStageVariables.yml@self
+      - name: SkipCodesignVerify
+        value: true
+
+      jobs:
+      - template: /azure-pipelines/build.yml@self
+        parameters:
+          Is1ESPT: true
+          RealSign: false
+          # ShouldSkipOptimize: ${{ parameters.ShouldSkipOptimize }}
+          windowsPool: VSEngSS-MicroBuild2022-1ES
+          linuxPool:
+            name: AzurePipelines-EO
+            demands:
+            - ImageOverride -equals 1ESPT-Ubuntu22.04
+            os: Linux
+          macOSPool:
+            name: Azure Pipelines
+            vmImage: macOS-14
+            os: macOS
+          EnableMacOSBuild: false
+          RunTests: false
+          SkipCodesignVerify: true
+
+    - template: /azure-pipelines/prepare-insertion-stages.yml@self
+      parameters:
+        ArchiveSymbols: false
+        RealSign: false
+
+    - stage: insertion
+      displayName: VS insertion
+      jobs:
+      - job: insertion
+        displayName: VS insertion
+        pool: VSEngSS-MicroBuild2022-1ES
+        steps:
+        - checkout: self
+          clean: true
+          fetchDepth: 1
+        - download: current
+          artifact: Variables-Windows
+          displayName: 🔻 Download Variables-Windows artifact
+        - powershell: $(Pipeline.Workspace)/Variables-Windows/_define.ps1
+          displayName: ⚙️ Set pipeline variables based on artifacts
+        - download: current
+          artifact: VSInsertion-Windows
+          displayName: 🔻 Download VSInsertion-Windows artifact
+        - ${{ if eq(variables['ContainsVsix'], 'true') }}:
+          - task: 1ES.MicroBuildVstsDrop@1
+            displayName: 🔺 Upload VSTS Drop
+            inputs:
+              dropFolder: $(Pipeline.Workspace)/VSInsertion-windows/Vsix
+              dropName: $(VstsDropNames)
+              accessToken: $(System.AccessToken)
+        - task: 1ES.PublishNuget@1
+          displayName: 📦 Push VS-repo packages to VS feed
+          inputs:
+            packagesToPush: '$(Pipeline.Workspace)/VSInsertion-Windows/*.nupkg'
+            packageParentPath: $(Pipeline.Workspace)/VSInsertion-Windows
+            allowPackageConflicts: true
+            publishVstsFeed: VS
+        - task: MicroBuildInsertVsPayload@5
+          displayName: 🏭 Insert VS Payload
+          inputs:
+            TeamName: $(TeamName)
+            TeamEmail: $(TeamEmail)
+            InsertionPayloadName: $(Build.Repository.Name) VALIDATION BUILD $(Build.BuildNumber) ($(Build.SourceBranch)) [Skip-SymbolCheck] [Skip-HashCheck] [Skip-SignCheck]
+            InsertionDescription: |
+              This PR is for **validation purposes only** for !$(System.PullRequest.PullRequestId). **Do not complete**.
+            CustomScriptExecutionCommand: src/VSSDK/NuGet/AllowUnstablePackages.ps1
+            InsertionBuildPolicies: Request Perf DDRITs
+            InsertionReviewers: $(Build.RequestedFor)
+            DraftPR: false # set to true and update InsertionBuildPolicy when we can specify all the validations we want to run (https://dev.azure.com/devdiv/DevDiv/_workitems/edit/2224288)
+            AutoCompletePR: false
+            ShallowClone: true
+        - powershell: |
+            $insertionPRId = azure-pipelines/Get-InsertionPRId.ps1
+            $Markdown = @"
+            Validation insertion pull request created: !$insertionPRId
+            Please check status there before proceeding to merge this PR.
+            Remember to Abandon and (if allowed) to Delete Source Branch on that insertion PR when validation is complete.
+            "@
+            azure-pipelines/PostPRMessage.ps1 -AccessToken '$(System.AccessToken)' -Markdown $Markdown -Verbose
+          displayName: ✏️ Comment on pull request
+          condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))

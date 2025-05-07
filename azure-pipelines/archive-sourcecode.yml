@@ -11,6 +11,13 @@ schedules:
     include:
     - main
 
+resources:
+  repositories:
+  - repository: MicroBuildTemplate
+    type: git
+    name: 1ESPipelineTemplates/MicroBuildTemplate
+    ref: refs/tags/release
+
 parameters:
 - name: notes
   displayName: Notes to include in the SCA request
@@ -23,36 +30,59 @@ parameters:
 
 variables:
 - group: VS Core team # Expected to provide ManagerAlias, SourceCodeArchivalUri
+- template: GlobalVariables.yml
 
-pool:
-  name: AzurePipelines-EO
-  vmImage: AzurePipelinesUbuntu20.04compliant
+extends:
+  template: azure-pipelines/MicroBuild.1ES.Official.yml@MicroBuildTemplate
+  parameters:
+    sdl:
+      sourceAnalysisPool: VSEngSS-MicroBuild2022-1ES
 
-steps:
-- checkout: self
-  clean: true
-  fetchDepth: 0
-- powershell: tools/Install-DotNetSdk.ps1
-  displayName: ⚙ Install .NET SDK
-- task: NuGetAuthenticate@1
-  displayName: 🔏 Authenticate NuGet feeds
-  inputs:
-    forceReinstallCredentialProvider: true
-- script: dotnet tool restore
-  displayName: ⚙️ Restore CLI tools
-- powershell: azure-pipelines/variables/_pipelines.ps1
-  failOnStderr: true
-  displayName: ⚙ Set pipeline variables based on source
-- powershell: >
-    $TeamAlias = '$(TeamEmail)'.Substring(0, '$(TeamEmail)'.IndexOf('@'))
+    stages:
+    - stage: archive
+      jobs:
+      - job: archive
+        pool:
+          name: AzurePipelines-EO
+          demands:
+          - ImageOverride -equals 1ESPT-Ubuntu22.04
+          os: Linux
 
-    azure-pipelines/Archive-SourceCode.ps1
-    -ManagerAlias '$(ManagerAlias)'
-    -TeamAlias $TeamAlias
-    -BusinessGroupName '$(BusinessGroupName)'
-    -ProductName '$(SymbolsFeatureName)'
-    -ProductLanguage English
-    -Notes '${{ parameters.notes }}'
-    -Verbose
-    -WhatIf:$${{ parameters.whatif }}
-  displayName: 🗃️ Submit archival request
+        steps:
+        - checkout: self
+          clean: true
+          fetchDepth: 0
+        - powershell: tools/Install-DotNetSdk.ps1
+          displayName: ⚙ Install .NET SDK
+        - task: NuGetAuthenticate@1
+          displayName: 🔏 Authenticate NuGet feeds
+          inputs:
+            forceReinstallCredentialProvider: true
+        - script: dotnet tool restore
+          displayName: ⚙️ Restore CLI tools
+        - powershell: tools/variables/_define.ps1
+          failOnStderr: true
+          displayName: ⚙ Set pipeline variables based on source
+        - task: AzureCLI@2
+          displayName: 🔏 Authenticate with WIF service connection
+          inputs:
+            azureSubscription: VS Core Source Code Archival
+            scriptType: pscore
+            scriptLocation: inlineScript
+            inlineScript: |
+              $accessToken = az account get-access-token --query accessToken --resource api://177cf50a-4bf5-4481-8b7e-f32900dfc8e6 -o tsv
+              Write-Host "##vso[task.setvariable variable=scaToken;issecret=true]$accessToken"
+        - pwsh: >
+            $TeamAlias = '$(TeamEmail)'.Substring(0, '$(TeamEmail)'.IndexOf('@'))
+
+            azure-pipelines/Archive-SourceCode.ps1
+            -ManagerAlias '$(ManagerAlias)'
+            -TeamAlias $TeamAlias
+            -BusinessGroupName '$(BusinessGroupName)'
+            -ProductName '$(SymbolsFeatureName)'
+            -ProductLanguage English
+            -Notes '${{ parameters.notes }}'
+            -AccessToken '$(scaToken)'
+            -Verbose
+            -WhatIf:$${{ parameters.whatif }}
+          displayName: 🗃️ Submit archival request

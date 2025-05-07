@@ -1,90 +1,75 @@
-trigger:
-  batch: true
-  branches:
-    include:
-    - main
-    - 'validate/*'
-  paths:
-    exclude:
-    - doc/
-    - '*.md'
-    - .vscode/
-    - azure-pipelines/release.yml
-    - azure-pipelines/vs-insertion.yml
+trigger: none # We only want to trigger manually or based on a schedule
+pr: none
 #schedules:
 #- cron: "0 3 * * *" # Daily @ 8 PM PST
 #  displayName: Daily vs-insertion
 #  branches:
 #    include:
 #    - microbuild
-pr: none
 
 parameters:
-- name: SignTypeSelection
-  displayName: Sign type
-  type: string
-  default: Test
-  values: [ 'Test', 'Real' ]
+# As an entrypoint pipeline yml file, all parameters here show up in the Queue Run dialog.
+# If any paramaters should NOT be queue-time options, they should be removed from here
+# and references to them in this file replaced with hard-coded values.
+# - name: ShouldSkipOptimize # Uncomment this and references to it below when setting EnableOptProf to true in build.yml.
+#   displayName: Skip OptProf optimization
+#   type: boolean
+#   default: false
 - name: RunTests
   displayName: Run tests
   type: boolean
   default: false
-- name: EnableCompliance
-  displayName: Run Compliance Tools
-  type: boolean
-  default: true
 - name: EnableAPIScan
-  displayName: Include APIScan with Compliance tools
+  displayName: Include APIScan with compliance tools
+  type: boolean
+  default: false # enable in individual repos only AFTER updating TSAOptions.json with your own values
+- name: PublishCodeCoverage
+  displayName: Publish code coverage
   type: boolean
   default: true
 
-stages:
+resources:
+  repositories:
+  - repository: MicroBuildTemplate
+    type: git
+    name: 1ESPipelineTemplates/MicroBuildTemplate
+    ref: refs/tags/release
 
-- stage: Build
-  variables:
-    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
-    BuildConfiguration: Release
-    NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages
-    MicroBuild_DoNotStrongNameSign: true
-    SignTypeSelection: ${{ parameters.SignTypeSelection }}
-    Packaging.EnableSBOMSigning: false
-    Codeql.Enabled: true
+variables:
+- template: GlobalVariables.yml
 
-  jobs:
-  - template: build.yml
-    parameters:
-      EnableCompliance: ${{ parameters.EnableCompliance }}
-      EnableAPIScan: ${{ parameters.EnableAPIScan }}
-      windowsPool: VSEngSS-MicroBuild2019-1ES
-      RunTests: ${{ parameters.RunTests }}
-
-- template: prepare-insertion-stages.yml
-
-- stage: azure_public_vssdk_feed
-  displayName: azure-public/vssdk feed
-  condition: and(succeeded(), eq(dependencies.Build.outputs['Windows.SetPipelineVariables.SignType'], 'Real'))
-  jobs:
-  - deployment: push
-    pool:
-      vmImage: ubuntu-latest
-    environment: No-Approval
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - download: current
-            artifact: deployables-Windows
-            displayName: Download deployables-Windows artifact
-          - task: NuGetToolInstaller@1
-            displayName: Use NuGet 5.x
-            inputs:
-              versionSpec: 5.x
-          - task: NuGetCommand@2
-            displayName: NuGet push
-            inputs:
-              command: push
-              packagesToPush: $(Pipeline.Workspace)/deployables-Windows/NuGet/*.nupkg
-              nuGetFeedType: external
-              publishFeedCredentials: azure-public/vssdk
-              allowPackageConflicts: true
-            continueOnError: true # until "skip on conflict" is offered as a task input.
+extends:
+  template: azure-pipelines/MicroBuild.1ES.Official.yml@MicroBuildTemplate
+  parameters:
+    sdl:
+      sourceAnalysisPool: VSEngSS-MicroBuild2022-1ES
+      codeSignValidation:
+        enabled: true
+        break: true
+        additionalTargetsGlobPattern: -|Variables-*\*.ps1;-|LocBin-*\**;-|APIScanInputs-*\**;-|test_symbols-*\**;-|MicroBuild\**
+      policheck:
+        enabled: true
+        exclusionsFile: $(System.DefaultWorkingDirectory)\azure-pipelines\PoliCheckExclusions.xml
+      suppression:
+        suppressionFile: $(System.DefaultWorkingDirectory)\azure-pipelines\falsepositives.gdnsuppress
+      sbom:
+        enabled: false # Skip 1ES SBOM because microbuild has our own sbom system
+    stages:
+    - stage: Build
+      variables:
+      - template: /azure-pipelines/BuildStageVariables.yml@self
+      jobs:
+      - template: /azure-pipelines/build.yml@self
+        parameters:
+          Is1ESPT: true
+          RealSign: true
+          # ShouldSkipOptimize: ${{ parameters.ShouldSkipOptimize }}
+          EnableAPIScan: ${{ parameters.EnableAPIScan }}
+          windowsPool: VSEngSS-MicroBuild2022-1ES
+          RunTests: ${{ parameters.RunTests }}
+          PublishCodeCoverage: ${{ parameters.PublishCodeCoverage }}
+          EnableDotNetFormatCheck: false
+    - template: /azure-pipelines/prepare-insertion-stages.yml@self
+      parameters:
+        RealSign: true
+        PackagePush: true

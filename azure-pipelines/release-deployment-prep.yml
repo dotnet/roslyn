@@ -2,5 +2,5 @@ steps:
 - download: CI
   artifact: Variables-Windows
   displayName: 🔻 Download Variables-Windows artifact
-- powershell: $(Pipeline.Workspace)/CI/Variables-Windows/_pipelines.ps1
+- powershell: $(Pipeline.Workspace)/CI/Variables-Windows/_define.ps1
   displayName: ⚙️ Set pipeline variables based on artifacts

@@ -3,7 +3,7 @@
 This project allows Visual Studio extension developers to write integration tests that run inside an experimental
 instance of Visual Studio.
 
-[![License](https://img.shields.io/github/license/Microsoft/vs-extension-testing.svg)](https://raw.githubusercontent.com/Microsoft/vs-extension-testing/master/LICENSE) [![NuGet package](https://img.shields.io/nuget/v/Microsoft.VisualStudio.Extensibility.Testing.Xunit.svg)](https://nuget.org/packages/Microsoft.VisualStudio.Extensibility.Testing.Xunit)
+[![License](https://img.shields.io/github/license/Microsoft/vs-extension-testing.svg)](https://raw.githubusercontent.com/Microsoft/vs-extension-testing/master/LICENSE) [![Azure Artifacts](https://img.shields.io/badge/dynamic/json.svg?style=flat&color=e05d44&logo=nuget&label=azure%20artifacts&query=$.versions[0]&url=https%3A%2F%2Fpkgs.dev.azure.com%2Fazure-public%2Fvside%2F_packaging%2Fvssdk%2Fnuget%2Fv3%2Fflat2%2Fmicrosoft.visualstudio.extensibility.testing.xunit%2Findex.json)](https://dev.azure.com/azure-public/vside/_artifacts/feed/vssdk/NuGet/Microsoft.VisualStudio.Extensibility.Testing.Xunit/)
 
 # Installation and Use
 
