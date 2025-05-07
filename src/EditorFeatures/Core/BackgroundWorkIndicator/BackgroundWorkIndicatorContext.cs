@@ -109,6 +109,10 @@ internal partial class WpfBackgroundWorkIndicatorFactory
                 _scopes_onlyAccessUnderLock = _scopes_onlyAccessUnderLock.Add(scope);
                 return scope;
             }
+
+            // No need to report progress here (like we do in RemoveScopeAndReportTotalProgress).
+            // That's because the new scope is effectively at 0-completed, 0-total. So it won't
+            // have any effect on the total progress.
         }
 
         private void RemoveScopeAndReportTotalProgress(BackgroundWorkIndicatorScope scope)
