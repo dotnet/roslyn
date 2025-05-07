@@ -8,6 +8,12 @@
 
     <!-- Set 'NoDefaultExcludes' to ensure that we can package .editorconfig files into our analyzer NuGet packages -->
     <NoDefaultExcludes>true</NoDefaultExcludes>
+
+    <!--
+      Disabled TransitivePinning to workaround source-build issues in SDK insertions.
+      A proper fix is being tracked by https://github.com/dotnet/roslyn/issues/78036
+    -->
+    <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
 
   <!--
