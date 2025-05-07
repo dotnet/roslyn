@@ -4570,6 +4570,56 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_BadNamedArgument, "collection").WithArguments("<signature>", "collection").WithLocation(10, 22));
         }
 
+        // PROTOTYPE: Verify evaluation order.
+        [Fact]
+        public void InterfaceTarget_ReorderedArguments()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Create<int, string>(null, 3, 1, "one", new(2, "two")).Report();
+                    }
+                    static IDictionary<K, V> Create<K, V>(IEqualityComparer<K> e, int c, K k, V v, KeyValuePair<K, V> x)
+                    {
+                        return [with(comparer: e, capacity: c), k:v, x];
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensions],
+                    expectedOutput: "[[1, one], [2, two]], ");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Create<K, V>", """
+                {
+                  // Code size       41 (0x29)
+                  .maxstack  4
+                  .locals init (System.Collections.Generic.KeyValuePair<K, V> V_0,
+                                System.Collections.Generic.IEqualityComparer<K> V_1)
+                  IL_0000:  ldarg.0
+                  IL_0001:  stloc.1
+                  IL_0002:  ldarg.1
+                  IL_0003:  ldloc.1
+                  IL_0004:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(int, System.Collections.Generic.IEqualityComparer<K>)"
+                  IL_0009:  dup
+                  IL_000a:  ldarg.2
+                  IL_000b:  ldarg.3
+                  IL_000c:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_0011:  ldarg.s    V_4
+                  IL_0013:  stloc.0
+                  IL_0014:  dup
+                  IL_0015:  ldloca.s   V_0
+                  IL_0017:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                  IL_001c:  ldloca.s   V_0
+                  IL_001e:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                  IL_0023:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_0028:  ret
+                }
+                """);
+        }
+
         [Theory]
         [CombinatorialData]
         public void InterfaceTarget_MissingMember_01(

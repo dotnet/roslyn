@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.CollectionCreation is BoundCall { Method: CollectionArgumentsSignatureOnlyMethodSymbol });
             Debug.Assert(node.Placeholder is null);
 
-            if (node.CollectionCreation is not BoundCall { Method: CollectionArgumentsSignatureOnlyMethodSymbol { WellKnownConstructor: var constructor }, Arguments: var constructorArguments })
+            if (node.CollectionCreation is not BoundCall { Method: CollectionArgumentsSignatureOnlyMethodSymbol { WellKnownConstructor: var constructor } })
             {
                 throw ExceptionUtilities.UnexpectedValue(node.CollectionCreation);
             }
@@ -485,6 +485,61 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private BoundExpression VisitAndRewriteCollectionArgumentsSignatureOnlyMethodCall(BoundCall node, NamedTypeSymbol collectionType)
+        {
+            if (node.Method is not CollectionArgumentsSignatureOnlyMethodSymbol { WellKnownConstructor: var constructor })
+            {
+                throw ExceptionUtilities.UnexpectedValue(node);
+            }
+
+            constructor = constructor.AsMember(collectionType);
+
+            // var instance = new(args);
+            var syntax = node.Syntax;
+            ArrayBuilder<LocalSymbol>? tempsBuilder = null;
+            BoundExpression? rewrittenReceiver = null;
+            var argumentRefKindsOpt = node.ArgumentRefKindsOpt;
+            var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
+                ref rewrittenReceiver,
+                captureReceiverMode: ReceiverCaptureMode.Default,
+                node.Arguments,
+                constructor,
+                node.ArgsToParamsOpt,
+                argumentRefKindsOpt,
+                storesOpt: null,
+                ref tempsBuilder);
+            rewrittenArguments = MakeArguments(
+                rewrittenArguments,
+                constructor,
+                expanded: node.Expanded,
+                node.ArgsToParamsOpt,
+                ref argumentRefKindsOpt, // PROTOTYPE: Test case where this makes a difference.
+                ref tempsBuilder);
+            BoundExpression result = new BoundObjectCreationExpression(
+                syntax,
+                constructor,
+                rewrittenArguments,
+                argumentNamesOpt: default,
+                argumentRefKindsOpt,
+                expanded: false,
+                argsToParamsOpt: default,
+                defaultArguments: default,
+                constantValueOpt: null,
+                initializerExpressionOpt: null,
+                collectionType);
+            Debug.Assert(result.Type is { });
+            if (tempsBuilder is { })
+            {
+                result = new BoundSequence(
+                    syntax,
+                    tempsBuilder.ToImmutableAndFree(),
+                    sideEffects: [],
+                    result,
+                    result.Type);
+            }
+            return result;
+        }
+
         private BoundExpression VisitDictionaryInterfaceCollectionExpression(BoundCollectionExpression node)
         {
             Debug.Assert(!_inExpressionLambda);
@@ -498,14 +553,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var typeArguments = interfaceType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
             var collectionType = _factory.WellKnownType(WellKnownType.System_Collections_Generic_Dictionary_KV).Construct(typeArguments);
 
-            if (node.CollectionCreation is not BoundCall { Method: CollectionArgumentsSignatureOnlyMethodSymbol { WellKnownConstructor: var constructor }, Arguments: var constructorArguments })
-            {
-                throw ExceptionUtilities.UnexpectedValue(node.CollectionCreation);
-            }
-
             // Dictionary<K, V> dictionary = new(args);
-            constructor = constructor.AsMember(collectionType);
-            var rewrittenReceiver = _factory.New(constructor, constructorArguments);
+            var rewrittenReceiver = VisitAndRewriteCollectionArgumentsSignatureOnlyMethodCall((BoundCall)node.CollectionCreation, collectionType);
             var collection = PopulateDictionary(node, collectionType, rewrittenReceiver);
 
             if ((object)interfaceType.OriginalDefinition == _compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IReadOnlyDictionary_KV))
@@ -1069,7 +1118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol? setCount = null;
             MethodSymbol? asSpan = null;
             BoundAssignmentOperator assignmentToTemp;
-            BoundObjectCreationExpression rewrittenReceiver;
+            BoundExpression rewrittenReceiver;
 
             // Create a temp for the knownLength
             BoundLocal? knownLengthTemp = null;
@@ -1078,14 +1127,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // creation does not use the parameterless List<T> constructor, use the collection
             // creation as is. Otherwise, consider optimizations.
             // PROTOTYPE: Should we skip optimizations if there was an explicit empty 'with()'?
-            if (node.CollectionCreation is BoundCall { Method: CollectionArgumentsSignatureOnlyMethodSymbol { WellKnownConstructor: var wellKnownConstructor }, Arguments: var constructorArguments } &&
+            if (node.CollectionCreation is BoundCall { Method: CollectionArgumentsSignatureOnlyMethodSymbol { WellKnownConstructor: var wellKnownConstructor } } &&
                 (object)wellKnownConstructor.OriginalDefinition != _compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor))
             {
                 numberIncludingLastSpread = 0;
 
                 // List<ElementType> list = new(args);
-                var constructor = wellKnownConstructor.AsMember(collectionType);
-                rewrittenReceiver = _factory.New(constructor, constructorArguments);
+                rewrittenReceiver = VisitAndRewriteCollectionArgumentsSignatureOnlyMethodCall((BoundCall)node.CollectionCreation, collectionType);
             }
             else
             {
