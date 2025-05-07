@@ -16,9 +16,8 @@ internal static class CopilotChangeAnalysisUtilities
     public static IDisposable LogCopilotChangeAnalysis(
         string featureId, bool accepted, string proposalId, CopilotChangeAnalysis analysisResult, CancellationToken cancellationToken)
     {
-        return Logger.LogBlock(FunctionId.Copilot_AnalyzeChange, KeyValueLogMessage.Create(static (d, args) =>
+        return Logger.LogBlock(FunctionId.Copilot_AnalyzeChange, KeyValueLogMessage.Create(d =>
         {
-            var (featureId, accepted, proposalId, analysisResult) = args;
             d["Accepted"] = accepted;
             d["FeatureId"] = featureId;
             d["ProposalId"] = proposalId;
@@ -49,7 +48,7 @@ internal static class CopilotChangeAnalysisUtilities
             d["CodeFixAnalysis_DiagnosticIdToApplicationTime"] = StringifyDictionary(analysisResult.CodeFixAnalysis.DiagnosticIdToApplicationTime);
             d["CodeFixAnalysis_DiagnosticIdToProviderName"] = StringifyDictionary(analysisResult.CodeFixAnalysis.DiagnosticIdToProviderName);
             d["CodeFixAnalysis_ProviderNameToApplicationTime"] = StringifyDictionary(analysisResult.CodeFixAnalysis.ProviderNameToApplicationTime);
-        }, args: (featureId, accepted, proposalId, analysisResult)),
+        }),
         cancellationToken);
     }
 
