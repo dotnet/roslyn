@@ -84,7 +84,7 @@ internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationL
 
     private void OnCompletionSuggestionEvent(bool accepted, ProposalBase? proposal)
     {
-        if (proposal is not { Edits.Count: 0 })
+        if (proposal is not { Edits.Count: > 0 })
             return;
 
         _completionWorkQueue.AddWork((accepted, proposal));
