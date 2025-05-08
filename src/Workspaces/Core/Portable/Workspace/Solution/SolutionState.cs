@@ -1280,16 +1280,7 @@ internal sealed partial class SolutionState
 
         // Do a quick check if the full info for that path has already been computed and cached.
         if (_lazyFilePathToRelatedDocumentIds.TryGetValue(filePath, out var relatedDocumentIds))
-        {
-            foreach (var relatedDocumentId in relatedDocumentIds)
-            {
-                // Don't return documents from the same project
-                if (relatedDocumentId.ProjectId != documentId.ProjectId)
-                    return relatedDocumentId;
-            }
-
-            return null;
-        }
+            return FindRelatedDocument(documentId, relatedDocumentIds);
 
         var relatedProject = relatedProjectIdHint is null ? null : GetProjectState(relatedProjectIdHint);
         Contract.ThrowIfTrue(relatedProject == projectState);
@@ -1302,14 +1293,20 @@ internal sealed partial class SolutionState
 
         // Wasn't in the cache or hinted project, do the full linear search and update the cache.
         var documentIdsWithFilePath = GetDocumentIdsWithFilePath(filePath);
-        foreach (var relatedDocumentId in documentIdsWithFilePath)
-        {
-            // Don't return documents from the same project
-            if (relatedDocumentId.ProjectId != documentId.ProjectId)
-                return relatedDocumentId;
-        }
 
-        return null;
+        return FindRelatedDocument(documentId, documentIdsWithFilePath);
+
+        static DocumentId? FindRelatedDocument(DocumentId documentId, ImmutableArray<DocumentId> relatedDocumentIds)
+        {
+            foreach (var relatedDocumentId in relatedDocumentIds)
+            {
+                // Don't return documents from the same project
+                if (relatedDocumentId.ProjectId != documentId.ProjectId)
+                    return relatedDocumentId;
+            }
+
+            return null;
+        }
     }
 
     public ImmutableArray<DocumentId> GetRelatedDocumentIds(DocumentId documentId, bool includeDifferentLanguages)
