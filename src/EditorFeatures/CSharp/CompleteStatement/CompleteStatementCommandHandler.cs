@@ -333,11 +333,12 @@ internal sealed class CompleteStatementCommandHandler(
             // actually move it.
             if (!speculative)
             {
-                Logger.Log(FunctionId.CommandHandler_CompleteStatement, KeyValueLogMessage.Create(LogType.UserAction, m =>
+                Logger.Log(FunctionId.CommandHandler_CompleteStatement, KeyValueLogMessage.Create(LogType.UserAction, static (m, args) =>
                 {
+                    var (isInsideDelimiters, statementNode) = args;
                     m[nameof(isInsideDelimiters)] = isInsideDelimiters;
                     m[nameof(statementNode)] = statementNode.Kind();
-                }));
+                }, (isInsideDelimiters, statementNode)));
 
                 if (!args.TextView.TryMoveCaretToAndEnsureVisible(targetPosition))
                     return SemicolonBehavior.None;

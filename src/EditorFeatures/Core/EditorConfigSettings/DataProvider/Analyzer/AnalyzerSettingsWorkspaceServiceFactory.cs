@@ -16,9 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Analyz
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class AnalyzerSettingsWorkspaceServiceFactory(
-    IDiagnosticAnalyzerService analyzerService,
     IGlobalOptionService globalOptionService) : IWorkspaceServiceFactory
 {
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        => new AnalyzerSettingsProviderFactory(workspaceServices.Workspace, analyzerService, globalOptionService);
+        => new AnalyzerSettingsProviderFactory(workspaceServices.Workspace, globalOptionService);
 }

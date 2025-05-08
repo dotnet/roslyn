@@ -11,6 +11,8 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -1038,6 +1040,46 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
     }
 
     [Theory, CombinatorialData]
+    public async Task WithSyntaxRootWorksOnSourceGeneratedDocument_OldCSharpVersion(TestHost testHost)
+    {
+        using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
+        var generatorRan = false;
+        var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Hello World!"));
+        var project = AddEmptyProject(workspace.CurrentSolution)
+            .WithParseOptions(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7))
+            .AddAnalyzerReference(analyzerReference)
+            .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
+
+        // Ensure generators are ran
+        var objectReference = await project.GetCompilationAsync();
+
+        Assert.True(generatorRan);
+
+        var generatedDocuments = await project.GetSourceGeneratedDocumentsAsync();
+        var sourceGeneratedDocument = generatedDocuments.First();
+        var root = await sourceGeneratedDocument.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+        var modifiedRoot = SyntaxFactory.ParseCompilationUnit("// Changed document");
+        // Default tree is the default language version
+        Assert.NotEqual(LanguageVersion.CSharp7, modifiedRoot.SyntaxTree.Options.LanguageVersion());
+
+        sourceGeneratedDocument = sourceGeneratedDocument.WithSyntaxRoot(modifiedRoot);
+        var sourceText = await sourceGeneratedDocument.GetTextAsync();
+        Assert.Equal("// Changed document", sourceText.ToString());
+
+        var newTree = await sourceGeneratedDocument.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+        Assert.Equal(LanguageVersion.CSharp7, newTree.Options.LanguageVersion());
+
+        generatedDocuments = await sourceGeneratedDocument.Project.GetSourceGeneratedDocumentsAsync();
+        var updatedDocument = Assert.Single(generatedDocuments);
+        sourceText = await updatedDocument.GetTextAsync();
+        Assert.Equal("// Changed document", sourceText.ToString());
+
+        newTree = await updatedDocument.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+        Assert.Equal(LanguageVersion.CSharp7, newTree.Options.LanguageVersion());
+    }
+
+    [Theory, CombinatorialData]
     public async Task WithSyntaxRootWorksOnSourceGeneratedDocument_SameRoot_Noop(TestHost testHost)
     {
         using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
@@ -1387,8 +1429,8 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
 
         var workspaceConfigurationService = workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
 
-        var remoteProcessId = await client.TryInvokeAsync<IRemoteProcessTelemetryService, int>(
-            (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options with { SourceGeneratorExecution = executionPreference }, cancellationToken),
+        _ = await client.TryInvokeAsync<IRemoteInitializationService, (int, string?)>(
+            (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options with { SourceGeneratorExecution = executionPreference }, TempRoot.Root, cancellationToken),
             CancellationToken.None).ConfigureAwait(false);
 
         var solution = workspace.CurrentSolution;

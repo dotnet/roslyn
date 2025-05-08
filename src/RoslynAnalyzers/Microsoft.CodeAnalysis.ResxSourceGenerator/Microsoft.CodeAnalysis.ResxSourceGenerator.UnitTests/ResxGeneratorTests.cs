@@ -245,7 +245,7 @@ build_metadata.AdditionalFiles.GenerateSource = false
         }
 
         [Theory]
-        [InlineData("", Skip = "Empty root namespaces are not supported")]
+        [InlineData("")]
         [InlineData("NS")]
         [InlineData("NS1.NS2")]
         public async Task SingleString_RootNamespaceCSharpAsync(string rootNamespace)
@@ -275,7 +275,7 @@ build_property.RootNamespace = {rootNamespace}
         }
 
         [Theory]
-        [InlineData("", Skip = "Empty root namespaces are not supported")]
+        [InlineData("")]
         [InlineData("NS")]
         [InlineData("NS1.NS2")]
         public async Task SingleString_RootNamespaceVisualBasicAsync(string rootNamespace)

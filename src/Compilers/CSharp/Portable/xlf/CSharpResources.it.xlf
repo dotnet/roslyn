@@ -217,6 +217,11 @@
         <target state="translated">Un braccio dell'espressione switch non inizia con una parola chiave 'case'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadCompoundAssignmentOpArgs">
+        <source>Overloaded compound assignment operator '{0}' takes one parameter</source>
+        <target state="new">Overloaded compound assignment operator '{0}' takes one parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
         <source>Cannot use a collection of dynamic type in an asynchronous foreach</source>
         <target state="translated">Non è possibile usare una raccolta di tipo dinamico in un'istruzione foreach asincrona</target>
@@ -445,6 +450,11 @@
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberNotStatic">
         <source>'{0}' does not implement static interface member '{1}'. '{2}' cannot implement the interface member because it is not static.</source>
         <target state="translated">'{0}' non implementa il membro di interfaccia statico '{1}'. '{2}' non può implementare il membro di interfaccia perché è di tipo statico.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CloseUnimplementedInterfaceMemberOperatorMismatch">
+        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because one of them is not an operator.</source>
+        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because one of them is not an operator.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberWrongInitOnly">
@@ -1682,6 +1692,26 @@
         <target state="translated">Impossibile dichiarare controllato l'operatore '{0}' definito dall'utente</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OperatorMismatchOnOverride">
+        <source>'{0}': cannot override inherited member '{1}' because one of them is not an operator.</source>
+        <target state="new">'{0}': cannot override inherited member '{1}' because one of them is not an operator.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OperatorMustReturnVoid">
+        <source>The return type for this operator must be void</source>
+        <target state="new">The return type for this operator must be void</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OperatorsMustBePublic">
+        <source>User-defined operator '{0}' must be declared public</source>
+        <target state="new">User-defined operator '{0}' must be declared public</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OperatorsMustBeStaticAndPublic">
+        <source>User-defined operator '{0}' must be declared static and public</source>
+        <target state="new">User-defined operator '{0}' must be declared static and public</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OutAttrOnRefReadonlyParam">
         <source>A ref readonly parameter cannot have the Out attribute.</source>
         <target state="translated">Un parametro ref readonly non può avere l'attributo Out.</target>
@@ -1725,6 +1755,11 @@
       <trans-unit id="ERR_PPIgnoredNeedsFileBasedProgram">
         <source>'#:' directives can be only used in file-based programs ('-features:FileBasedProgram')</source>
         <target state="new">'#:' directives can be only used in file-based programs ('-features:FileBasedProgram')</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PPShebangInProjectBasedProgram">
+        <source>'#!' directives can be only used in scripts or file-based programs</source>
+        <target state="new">'#!' directives can be only used in scripts or file-based programs</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
@@ -2552,6 +2587,11 @@
         <target state="translated">override del generatore di metodi asincroni</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_CollectionExpression">
+        <source>collection expression</source>
+        <target state="new">collection expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureAllowsRefStructConstraint">
         <source>allows ref struct constraint</source>
         <target state="translated">consente il vincolo di struct di riferimento</target>
@@ -2795,6 +2835,11 @@
       <trans-unit id="IDS_FeatureUnsignedRightShift">
         <source>unsigned right shift</source>
         <target state="translated">spostamento a destra senza segno</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUserDefinedCompoundAssignmentOperators">
+        <source>user-defined compound assignment operators</source>
+        <target state="new">user-defined compound assignment operators</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUtf8StringLiterals">
@@ -7710,11 +7755,6 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
       <trans-unit id="ERR_DuplicateConversionInClass">
         <source>Duplicate user-defined conversion in type '{0}'</source>
         <target state="translated">Conversione definita dall'utente duplicata nel tipo '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_OperatorsMustBeStatic">
-        <source>User-defined operator '{0}' must be declared static and public</source>
-        <target state="translated">L'operatore definito dall'utente '{0}' deve essere dichiarato come static e public</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIncDecSignature">

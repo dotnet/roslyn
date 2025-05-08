@@ -156,14 +156,13 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
         };
     }
 
-    private TextSpan ComputeDestinationSpan(SyntaxNode insertionRoot)
+    private TextSpan ComputeDestinationSpan(SyntaxNode insertionRoot, SourceText text)
     {
         var startToken = insertionRoot.GetAnnotatedTokens(_replaceStartAnnotation).FirstOrNull();
         Contract.ThrowIfNull(startToken);
         var endToken = insertionRoot.GetAnnotatedTokens(_replaceEndAnnotation).FirstOrNull();
         Contract.ThrowIfNull(endToken);
 
-        var text = insertionRoot.GetText();
         var line = text.Lines.GetLineFromPosition(endToken.Value.Span.End);
 
         return TextSpan.FromBounds(startToken.Value.SpanStart, line.EndIncludingLineBreak);
@@ -183,7 +182,8 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
         //     [Attribute] public void M() {}
         // ```
         // returns a destination node (array syntax) containing both the `override Eq` and the `[Attribute]` on the line below.
-        var destinationSpan = ComputeDestinationSpan(root);
+        var text = await memberContainingDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+        var destinationSpan = ComputeDestinationSpan(root, text);
         var destinationNode = root.FindNode(destinationSpan, true);
         var syntaxFacts = memberContainingDocument.Project.Services.GetRequiredService<ISyntaxFactsService>();
 
@@ -225,8 +225,8 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
 
         // Formatting/simplification changed the tree, so recompute the destination span.
         root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        destinationSpan = ComputeDestinationSpan(root);
-        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+        destinationSpan = ComputeDestinationSpan(root, text);
 
         // We have basically the final tree.  Calculate the new caret position while we still have the annotations.
         TextSpan? newSpan = null;

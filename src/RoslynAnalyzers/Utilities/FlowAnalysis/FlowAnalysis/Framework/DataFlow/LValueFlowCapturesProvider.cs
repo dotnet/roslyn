@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 {
                     if (!rvalueFlowCaptureIds.TryGetValue(flowCaptureReference.Id, out var operations))
                     {
-                        operations = new HashSet<IFlowCaptureReferenceOperation>();
+                        operations = [];
                         rvalueFlowCaptureIds[flowCaptureReference.Id] = operations;
                     }
 

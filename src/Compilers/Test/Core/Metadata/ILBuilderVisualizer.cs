@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,12 +23,12 @@ namespace Roslyn.Test.Utilities
     internal sealed class ILBuilderVisualizer : ILVisualizer
     {
         private readonly ITokenDeferral _tokenDeferral;
-        private readonly SymbolDisplayFormat _ilVisualizationFormat;
+        private readonly SymbolDisplayFormat _symbolDisplayFormat;
 
-        public ILBuilderVisualizer(ITokenDeferral tokenDeferral, SymbolDisplayFormat ilVisualizationFormat)
+        public ILBuilderVisualizer(ITokenDeferral tokenDeferral, SymbolDisplayFormat? symbolDisplayFormat = null)
         {
             _tokenDeferral = tokenDeferral;
-            _ilVisualizationFormat = ilVisualizationFormat;
+            _symbolDisplayFormat = symbolDisplayFormat ?? SymbolDisplayFormat.ILVisualizationFormat;
         }
 
         public override string VisualizeUserString(uint token)
@@ -61,20 +59,20 @@ namespace Roslyn.Test.Utilities
             }
 
             object reference = _tokenDeferral.GetReferenceFromToken(token);
-            ISymbol symbol = ((reference as ISymbolInternal) ?? (reference as Cci.IReference)?.GetInternalSymbol())?.GetISymbol();
-            return string.Format("\"{0}\"", symbol == null ? (object)reference : symbol.ToDisplayString(_ilVisualizationFormat));
+            ISymbol? symbol = ((reference as ISymbolInternal) ?? (reference as Cci.IReference)?.GetInternalSymbol())?.GetISymbol();
+            return string.Format("\"{0}\"", symbol == null ? (object)reference : symbol.ToDisplayString(_symbolDisplayFormat));
         }
 
-        public override string VisualizeLocalType(object type)
+        public override string? VisualizeLocalType(object type)
         {
-            return (((type as ISymbolInternal) ?? (type as Cci.IReference)?.GetInternalSymbol()) is ISymbolInternal symbol) ? symbol.GetISymbol().ToDisplayString(_ilVisualizationFormat) : type.ToString();
+            return (((type as ISymbolInternal) ?? (type as Cci.IReference)?.GetInternalSymbol()) is ISymbolInternal symbol) ? symbol.GetISymbol().ToDisplayString(_symbolDisplayFormat) : type.ToString();
         }
 
         /// <summary>
         /// Determine the list of spans ordered by handler
         /// block start, with outer handlers before inner.
         /// </summary>
-        private static List<HandlerSpan> GetHandlerSpans(ImmutableArray<Cci.ExceptionHandlerRegion> regions)
+        private static List<HandlerSpan>? GetHandlerSpans(ImmutableArray<Cci.ExceptionHandlerRegion> regions)
         {
             if (regions.IsDefaultOrEmpty)
             {
@@ -138,12 +136,11 @@ namespace Roslyn.Test.Utilities
         /// </remarks>
         internal static string ILBuilderToString(
             ILBuilder builder,
-            Func<Cci.ILocalDefinition, LocalInfo> mapLocal = null,
-            IReadOnlyDictionary<int, string> markers = null,
-            SymbolDisplayFormat ilSymbolDisplayFormat = null)
+            Func<Cci.ILocalDefinition, LocalInfo>? mapLocal = null,
+            IReadOnlyDictionary<int, string>? markers = null,
+            SymbolDisplayFormat? ilFormat = null)
         {
             var sb = new StringBuilder();
-            ilSymbolDisplayFormat ??= SymbolDisplayFormat.ILVisualizationFormat;
 
             var ilStream = builder.RealizedIL;
             if (mapLocal == null)
@@ -152,7 +149,7 @@ namespace Roslyn.Test.Utilities
             }
 
             var locals = builder.LocalSlotManager.LocalsInOrder().SelectAsArray(mapLocal);
-            var visualizer = new ILBuilderVisualizer(builder.module, ilSymbolDisplayFormat);
+            var visualizer = new ILBuilderVisualizer(builder.module, ilFormat);
 
             if (!ilStream.IsDefault)
             {
@@ -167,7 +164,7 @@ namespace Roslyn.Test.Utilities
                 var current = builder.leaderBlock;
                 while (current != null)
                 {
-                    DumpBlockIL(current, sb, ilSymbolDisplayFormat);
+                    DumpBlockIL(current, sb);
                     current = current.NextBlock;
                 }
 
@@ -179,8 +176,7 @@ namespace Roslyn.Test.Utilities
 
         internal static string LocalSignatureToString(
             ILBuilder builder,
-            Func<Cci.ILocalDefinition, LocalInfo> mapLocal = null,
-            SymbolDisplayFormat ilVisualizationFormat = null)
+            Func<Cci.ILocalDefinition, LocalInfo>? mapLocal = null)
         {
             var sb = new StringBuilder();
 
@@ -190,31 +186,31 @@ namespace Roslyn.Test.Utilities
             }
 
             var locals = builder.LocalSlotManager.LocalsInOrder().SelectAsArray(mapLocal);
-            var visualizer = new ILBuilderVisualizer(builder.module, ilVisualizationFormat ?? SymbolDisplayFormat.ILVisualizationFormat);
+            var visualizer = new ILBuilderVisualizer(builder.module);
 
             visualizer.VisualizeHeader(sb, -1, -1, locals);
             return sb.ToString();
         }
 
-        private static void DumpBlockIL(ILBuilder.BasicBlock block, StringBuilder sb, SymbolDisplayFormat ilSymbolDisplayFormat)
+        private static void DumpBlockIL(ILBuilder.BasicBlock block, StringBuilder sb)
         {
             if (block is ILBuilder.SwitchBlock switchBlock)
             {
-                DumpSwitchBlockIL(switchBlock, sb, ilSymbolDisplayFormat);
+                DumpSwitchBlockIL(switchBlock, sb);
             }
             else
             {
-                DumpBasicBlockIL(block, sb, ilSymbolDisplayFormat);
+                DumpBasicBlockIL(block, sb);
             }
         }
 
-        private static void DumpBasicBlockIL(ILBuilder.BasicBlock block, StringBuilder sb, SymbolDisplayFormat ilSymbolDisplayFormat)
+        private static void DumpBasicBlockIL(ILBuilder.BasicBlock block, StringBuilder sb)
         {
             var instrCnt = block.RegularInstructionsLength;
             if (instrCnt != 0)
             {
                 var il = block.RegularInstructions.ToImmutableArray();
-                new ILBuilderVisualizer(block.builder.module, ilSymbolDisplayFormat).DumpILBlock(il, instrCnt, sb, Array.Empty<ILVisualizer.HandlerSpan>(), block.Start);
+                new ILBuilderVisualizer(block.builder.module).DumpILBlock(il, instrCnt, sb, Array.Empty<ILVisualizer.HandlerSpan>(), block.Start);
             }
 
             if (block.BranchCode != ILOpCode.Nop)
@@ -240,10 +236,10 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        private static void DumpSwitchBlockIL(ILBuilder.SwitchBlock block, StringBuilder sb, SymbolDisplayFormat ilSymbolDisplayFormat)
+        private static void DumpSwitchBlockIL(ILBuilder.SwitchBlock block, StringBuilder sb)
         {
             var il = block.RegularInstructions.ToImmutableArray();
-            new ILBuilderVisualizer(block.builder.module, ilSymbolDisplayFormat).DumpILBlock(il, il.Length, sb, Array.Empty<HandlerSpan>(), block.Start);
+            new ILBuilderVisualizer(block.builder.module).DumpILBlock(il, il.Length, sb, Array.Empty<HandlerSpan>(), block.Start);
 
             // switch (N, t1, t2... tN)
             //  IL ==> ILOpCode.Switch < unsigned int32 > < int32 >... < int32 >

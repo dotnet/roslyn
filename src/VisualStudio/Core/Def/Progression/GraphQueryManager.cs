@@ -50,7 +50,7 @@ internal sealed class GraphQueryManager
         // indicating a change happened.  And when UpdateExistingQueriesAsync fires, it will just see that there are
         // no live queries and immediately return.  So it's just simple to do things this way instead of trying to 
         // have state management where we try to decide if we should listen or not.
-        _workspace.WorkspaceChanged += (_, _) => _updateQueue.AddWork();
+        _ = _workspace.RegisterWorkspaceChangedHandler((_) => _updateQueue.AddWork());
     }
 
     public async Task AddQueriesAsync(IGraphContext context, ImmutableArray<IGraphQuery> graphQueries, CancellationToken disposalToken)

@@ -351,6 +351,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         private static IEnumerable<string> GetCommandLineWindows(IEnumerable<string> args)
         {
+            Debug.Assert(PlatformInformation.IsWindows);
+
             IntPtr ptr = NativeMethods.GetCommandLine();
             if (ptr == IntPtr.Zero)
             {

@@ -149,11 +149,10 @@ public sealed class SnippetCompletionProviderTests : AbstractCSharpCompletionPro
         }
 
         public IEnumerable<SnippetInfo> GetSnippetsIfAvailable()
-            => new List<SnippetInfo>
-                {
-                    new SnippetInfo(SnippetShortcut, SnippetTitle, SnippetDescription, SnippetPath),
-                    new SnippetInfo(PreProcessorSnippetShortcut, PreProcessorSnippetTitle, PreProcessorSnippetDescription, PreProcessorSnippetPath)
-                };
+            => [
+                new SnippetInfo(SnippetShortcut, SnippetTitle, SnippetDescription, SnippetPath),
+                new SnippetInfo(PreProcessorSnippetShortcut, PreProcessorSnippetTitle, PreProcessorSnippetDescription, PreProcessorSnippetPath)
+            ];
 
         public bool SnippetShortcutExists_NonBlocking(string shortcut)
             => string.Equals(shortcut, SnippetShortcut, StringComparison.OrdinalIgnoreCase) ||

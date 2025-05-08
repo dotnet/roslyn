@@ -180,7 +180,7 @@ internal sealed class ChangeSignatureLogger
 
     internal static void ReportTelemetry()
     {
-        Logger.Log(FunctionId.ChangeSignature_Data, KeyValueLogMessage.Create(m =>
+        Logger.Log(FunctionId.ChangeSignature_Data, KeyValueLogMessage.Create(static m =>
         {
             foreach (var kv in s_countLogAggregator)
             {

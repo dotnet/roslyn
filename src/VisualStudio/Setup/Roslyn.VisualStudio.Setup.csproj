@@ -79,8 +79,14 @@
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
+    <ProjectReference Include="..\..\Tools\ExternalAccess\Razor\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj">
+      <Name>Microsoft.CodeAnalysis.ExternalAccess.Razor.Features</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <PkgDefEntry>BindingRedirect</PkgDefEntry>
+    </ProjectReference>
     <ProjectReference Include="..\..\Tools\ExternalAccess\Razor\EditorFeatures\Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures.csproj">
-      <Name>Microsoft.CodeAnalysis.ExternalAccess.Razor</Name>
+      <Name>Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
@@ -123,12 +129,6 @@
     </ProjectReference>
     <ProjectReference Include="..\..\EditorFeatures\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj">
       <Name>EditorFeatures</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <PkgDefEntry>BindingRedirect</PkgDefEntry>
-    </ProjectReference>
-    <ProjectReference Include="..\..\EditorFeatures\Core.Wpf\Microsoft.CodeAnalysis.EditorFeatures.Wpf.csproj">
-      <Name>EditorFeatures.Wpf</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
@@ -337,11 +337,16 @@
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <Ngen>false</Ngen>
     </ProjectReference>
+    <ProjectReference Include="..\..\RoslynAnalyzers\Microsoft.CodeAnalysis.AnalyzerUtilities\Microsoft.CodeAnalysis.AnalyzerUtilities.csproj">
+      <Name>AnalyzerUtilities</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <PkgDefEntry>BindingRedirect</PkgDefEntry>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Humanizer.Core" ForceIncludeInVsix="true" PkgDefEntry="CodeBase" />
     <PackageReference Include="ICSharpCode.Decompiler" ForceIncludeInVsix="true" PkgDefEntry="CodeBase" />
-    <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities" ForceIncludeInVsix="true" PkgDefEntry="CodeBase" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Elfie" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" />
     <PackageReference Include="SQLitePCLRaw.core" ForceIncludeInVsix="true" PkgDefEntry="CodeBase" />

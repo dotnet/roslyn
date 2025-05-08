@@ -25,12 +25,13 @@ internal static class OptionLogger
 
     private static KeyValueLogMessage Create(OptionKey2 optionKey, object? oldValue, object? currentValue)
     {
-        return KeyValueLogMessage.Create(m =>
+        return KeyValueLogMessage.Create(static (m, args) =>
         {
+            var (optionKey, oldValue, currentValue) = args;
             m[ConfigName] = optionKey.Option.Definition.ConfigName;
             m[Language] = optionKey.Language ?? All;
             m[Change] = CreateOptionValue(oldValue, currentValue);
-        });
+        }, (optionKey, oldValue, currentValue));
     }
 
     private static string CreateOptionValue(object? oldValue, object? currentValue)

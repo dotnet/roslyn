@@ -102,6 +102,7 @@ internal abstract class VisualStudioOptionStorage
 
     public static readonly IReadOnlyDictionary<string, VisualStudioOptionStorage> Storages = new Dictionary<string, VisualStudioOptionStorage>()
     {
+        {"dotnet_analyze_copilot_changes", new FeatureFlagStorage(@"Roslyn.AnalyzeCopilotChanges")},
         {"dotnet_collapse_empty_metadata_implementations_when_first_opened", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.CollapseEmptyMetadataImplementationsWhenFirstOpened")},
         {"dotnet_collapse_imports_when_first_opened", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.CollapseImportsWhenFirstOpened")},
         {"dotnet_collapse_metadata_implementations_when_first_opened", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.CollapseMetadataImplementationsWhenFirstOpened")},
@@ -367,8 +368,6 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_highlight_related_json_components", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.HighlightRelatedJsonComponentsUnderCursor")},
         {"dotnet_unsupported_report_invalid_json_patterns", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ReportInvalidJsonPatterns")},
         {"visual_studio_enable_key_binding_reset", new FeatureFlagStorage("Roslyn.KeybindingResetEnabled")},
-        {"visual_studio_enable_semantic_search", new FeatureFlagStorage("Roslyn.SemanticSearchEnabled")},
-        {"visual_studio_enable_semantic_search_prompt", new FeatureFlagStorage("Roslyn.ShowPromptInSemanticSearch")},
         {"visual_studio_enable_copilot_rename_context", new FeatureFlagStorage("Roslyn.CopilotRenameGetContext")},
         {"visual_studio_key_binding_needs_reset", new LocalUserProfileStorage(@"Roslyn\Internal\KeybindingsStatus", "NeedsReset")},
         {"visual_studio_key_binding_reset_never_show_again", new LocalUserProfileStorage(@"Roslyn\Internal\KeybindingsStatus", "NeverShowAgain")},

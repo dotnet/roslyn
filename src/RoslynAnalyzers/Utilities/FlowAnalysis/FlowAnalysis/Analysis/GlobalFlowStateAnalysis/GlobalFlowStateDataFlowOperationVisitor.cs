@@ -101,10 +101,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
         }
 
         public override DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> GetEmptyAnalysisData()
-            => new();
+            => [];
 
         protected sealed override DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> GetClonedAnalysisData(DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> analysisData)
-            => new(analysisData);
+            => [.. analysisData];
 
         protected sealed override void AddTrackedEntities(DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> analysisData, HashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
             => builder.UnionWith(analysisData.Keys);

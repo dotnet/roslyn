@@ -34,7 +34,7 @@ internal sealed class ReferencingSyntaxFinder(Solution solution, CancellationTok
     {
         using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var cachedRoots);
 
-        // Kick off the SymbolFinder.FindReferencesAsync call on the provided symbol/solution.  As it finds
+        // Kick off the SymbolFinder.FindReferencesAsync call on the provided symbol/solution. As it finds
         // ReferenceLocations, it will push those into the 'callback' delegate passed into it. ProducerConsumer will
         // then convert this to a simple IAsyncEnumerable<ReferenceLocation> that we can iterate over, converting those
         // locations to SyntaxNodes in the corresponding C# or VB document.

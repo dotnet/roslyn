@@ -10,6 +10,7 @@
     <IsVisualStudioBuildPackage>true</IsVisualStudioBuildPackage>
 
     <IsPackable>true</IsPackable>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
     <PackageId>VS.ExternalAPIs.Roslyn</PackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <PackageDescription>CoreXT package for the VS build</PackageDescription>
@@ -26,7 +27,6 @@
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" PrivateAssets="all" />
-    <ProjectReference Include="..\..\EditorFeatures\Core.Wpf\Microsoft.CodeAnalysis.EditorFeatures.Wpf.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\EditorFeatures\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\EditorFeatures\CSharp\Microsoft.CodeAnalysis.CSharp.EditorFeatures.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\EditorFeatures\ExternalAccess\Debugger\Microsoft.CodeAnalysis.ExternalAccess.Debugger.csproj" PrivateAssets="all" />
@@ -72,22 +72,21 @@
 
   <Target Name="_GetFilesToPackage">
     <ItemGroup>
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.EditorFeatures\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.EditorFeatures\$(Configuration)\net472\Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Features\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.Features.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Scripting\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.Scripting.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Workspaces\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.Workspaces.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.EditorFeatures.Text\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.EditorFeatures.Text.dll" TargetDir="" />
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.EditorFeatures.Wpf\$(Configuration)\net472\Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll" TargetDir="" />
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.EditorFeatures\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.EditorFeatures.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.EditorFeatures\$(Configuration)\net472\Microsoft.CodeAnalysis.EditorFeatures.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.Apex\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.Apex.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.AspNetCore\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.Copilot\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.Copilot.dll" TargetDir="" />
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.Debugger\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.ExternalAccess.Debugger.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.Debugger\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.Debugger.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.Extensions\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.ExternalAccess.Extensions.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.FSharp\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.FSharp.dll" TargetDir="" />
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.Razor.Features\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Features\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Features.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.InteractiveHost\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.InteractiveHost.dll" TargetDir="" />
@@ -95,7 +94,7 @@
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Remote.ServiceHub\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Remote.ServiceHub.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Remote.Workspaces\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Remote.Workspaces.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Scripting\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Scripting.dll" TargetDir="" />
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.EditorFeatures\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.EditorFeatures\$(Configuration)\net472\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.Features\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.VisualBasic.Features.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.Workspaces\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.VisualBasic.dll" TargetDir="" />

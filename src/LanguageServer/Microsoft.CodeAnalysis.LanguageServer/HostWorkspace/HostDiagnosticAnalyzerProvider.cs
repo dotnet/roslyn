@@ -3,49 +3,43 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Reflection;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
-internal sealed class HostDiagnosticAnalyzerProvider : IHostDiagnosticAnalyzerProvider
+
+internal sealed class HostDiagnosticAnalyzerProvider(string? razorSourceGenerator) : IHostDiagnosticAnalyzerProvider
 {
+    public ImmutableArray<(AnalyzerFileReference reference, string extensionId)> GetAnalyzerReferencesInExtensions() => [];
 
-    private readonly ImmutableArray<(AnalyzerFileReference reference, string extensionId)> _analyzerReferences;
-
-    public HostDiagnosticAnalyzerProvider(string? razorSourceGenerator)
+    public ImmutableArray<(string path, string extensionId)> GetRazorAssembliesInExtensions()
     {
-        if (razorSourceGenerator == null || !File.Exists(razorSourceGenerator))
+        if (File.Exists(razorSourceGenerator))
         {
-            _analyzerReferences = [];
-        }
-        else
-        {
-            _analyzerReferences = [(
-                new AnalyzerFileReference(razorSourceGenerator, new SimpleAnalyzerAssemblyLoader()),
-                ProjectSystemProject.RazorVsixExtensionId
-            )];
-        }
-    }
+            // we also have to redirect the utilities and object pool assemblies
+            var razorDir = Path.GetDirectoryName(razorSourceGenerator) ?? "";
+            var razorUtilities = GetDependency(razorDir, RazorAnalyzerAssemblyResolver.RazorUtilsAssemblyName);
+            var objectPool = GetDependency(razorDir, RazorAnalyzerAssemblyResolver.ObjectPoolAssemblyName);
 
-    public ImmutableArray<(AnalyzerFileReference reference, string extensionId)> GetAnalyzerReferencesInExtensions()
-    {
-        return _analyzerReferences;
-    }
-
-    private sealed class SimpleAnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
-    {
-        public void AddDependencyLocation(string fullPath)
-        {
-            // This method is used to add a path that should be probed for analyzer dependencies.
-            // In this simple implementation, we do nothing.
+            return
+            [
+                (razorSourceGenerator, ProjectSystemProject.RazorVsixExtensionId),
+                (razorUtilities, ProjectSystemProject.RazorVsixExtensionId),
+                (objectPool, ProjectSystemProject.RazorVsixExtensionId)
+            ];
         }
+        return [];
 
-        public Assembly LoadFromPath(string fullPath)
+        static string GetDependency(string razorDir, string dependencyName)
         {
-            // This method is used to load an analyzer assembly from the specified path.
-            // In this simple implementation, we use Assembly.LoadFrom to load the assembly.
-            return Assembly.LoadFrom(fullPath);
+            var dependency = Path.Combine(razorDir, dependencyName + ".dll");
+            if (!File.Exists(dependency))
+            {
+                throw new FileNotFoundException($"Could not find razor dependency {dependency}");
+            }
+            return dependency;
         }
     }
 }

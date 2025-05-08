@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Text.Json.Serialization;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Extensions;
@@ -15,5 +16,4 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Extensions;
 internal readonly record struct ExtensionMessageResponse(
     [property: JsonPropertyName("response"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Response,
     [property: JsonPropertyName("extensionWasUnloaded"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool ExtensionWasUnloaded,
-    [property: JsonPropertyName("extensionException"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        ExtensionException? ExtensionException);
+    [property: JsonPropertyName("extensionException"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Exception? ExtensionException);

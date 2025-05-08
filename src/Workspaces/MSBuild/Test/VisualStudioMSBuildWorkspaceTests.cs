@@ -1321,9 +1321,6 @@ class C1
             .WithFile(@"CSharpProject\bin\Debug\CSharpProject.dll", Resources.Dlls.CSharpProject));
         var projectFilePath = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
 
-        // keep metadata reference from holding files open
-        Workspace.TestHookStandaloneProjectsDoNotHoldReferences = true;
-
         using var workspace = CreateMSBuildWorkspace();
         var project = await workspace.OpenProjectAsync(projectFilePath);
 
@@ -1344,9 +1341,6 @@ class C1
             .WithFile(@"CSharpProject\bin\Debug\CSharpProject.dll", Resources.Dlls.CSharpProject));
         var projectFilePath = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
 
-        // keep metadata reference from holding files open
-        Workspace.TestHookStandaloneProjectsDoNotHoldReferences = true;
-
         using var workspace = CreateMSBuildWorkspace();
         workspace.SkipUnrecognizedProjects = false;
         var project = await workspace.OpenProjectAsync(projectFilePath);
@@ -1365,9 +1359,6 @@ class C1
             .WithFile(@"CSharpProject\CSharpProject.noproj", Resources.Dlls.CSharpProject)); // use metadata file as stand-in for bad project file
 
         var projectFilePath = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
-
-        // keep metadata reference from holding files open
-        Workspace.TestHookStandaloneProjectsDoNotHoldReferences = true;
 
         using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
         workspace.SkipUnrecognizedProjects = true;
@@ -1389,9 +1380,6 @@ class C1
 
         var projectFilePath = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
 
-        // keep metadata reference from holding files open
-        Workspace.TestHookStandaloneProjectsDoNotHoldReferences = true;
-
         using var workspace = CreateMSBuildWorkspace();
         workspace.LoadMetadataForReferencedProjects = true;
         var project = await workspace.OpenProjectAsync(projectFilePath);
@@ -1408,9 +1396,6 @@ class C1
     {
         CreateFiles(GetMultiProjectSolutionFiles());
         var projectFilePath = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
-
-        // keep metadata reference from holding files open
-        Workspace.TestHookStandaloneProjectsDoNotHoldReferences = true;
 
         // Warning:Found project reference without a matching metadata reference
         using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
@@ -1431,9 +1416,6 @@ class C1
             .WithFile(@"CSharpProject\bin\Debug\CSharpProject.dll", Resources.Dlls.CSharpProject));
         var vbProjectFilePath = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
         var csProjectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
-
-        // keep metadata reference from holding files open
-        Workspace.TestHookStandaloneProjectsDoNotHoldReferences = true;
 
         // first open vb project that references c# project, but only reference the c# project's built metadata
         using var workspace = CreateMSBuildWorkspace();
@@ -1464,9 +1446,6 @@ class C1
         CreateFiles(files);
 
         var projectFilePath = GetSolutionFileName("VisualBasicProject_3_5.vbproj");
-
-        // keep metadata reference from holding files open
-        Workspace.TestHookStandaloneProjectsDoNotHoldReferences = true;
 
         // The reference assemblies for .NETFramework,Version=v4.0 were not found.
         using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);

@@ -43,7 +43,7 @@ internal sealed class SolutionAssetCache
     /// </summary>
     private readonly TimeSpan _purgeAfterTimeSpan;
 
-    private readonly ConcurrentDictionary<Checksum, Entry> _assets = new();
+    private readonly ConcurrentDictionary<Checksum, Entry> _assets = [];
 
     // constructor for testing
     public SolutionAssetCache()

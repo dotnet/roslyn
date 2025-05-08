@@ -388,7 +388,7 @@ static class C
                 </Workspace>,
                 host,
                 Item("C.extension(string)", Glyph.ClassPublic), False,
-                Item("Goo()", Glyph.MethodPublic), False)
+                Item("Goo()", Glyph.ExtensionMethodPublic), False)
         End Function
     End Class
 End Namespace

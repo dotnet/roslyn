@@ -31,12 +31,12 @@ internal static class InheritanceMarginLogger
     {
         Logger.Log(FunctionId.InheritanceMargin_GetInheritanceMemberItems,
             KeyValueLogMessage.Create(
-            m =>
+            static m =>
             {
-                var histogramLogAggragator = s_histogramLogAggregator.GetValue(ActionInfo.GetInheritanceMarginMembers);
-                if (histogramLogAggragator != null)
+                var histogramLogAggregator = s_histogramLogAggregator.GetValue(ActionInfo.GetInheritanceMarginMembers);
+                if (histogramLogAggregator != null)
                 {
-                    histogramLogAggragator.WriteTelemetryPropertiesTo(m, nameof(ActionInfo.GetInheritanceMarginMembers) + ".");
+                    histogramLogAggregator.WriteTelemetryPropertiesTo(m, nameof(ActionInfo.GetInheritanceMarginMembers) + ".");
                 }
             }));
     }

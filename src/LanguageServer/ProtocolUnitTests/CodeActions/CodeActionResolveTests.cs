@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -174,12 +171,12 @@ class {|caret:ABC|}
             diagnostics: null);
 
         var testWorkspace = testLspServer.TestWorkspace;
-        var documentBefore = testWorkspace.CurrentSolution.GetDocument(testWorkspace.Documents.Single().Id);
+        var documentBefore = testWorkspace.CurrentSolution.GetDocument(testWorkspace.Documents.Single().Id)!;
         var documentUriBefore = documentBefore.GetUriForRenamedDocument();
 
         var actualResolvedAction = await RunGetCodeActionResolveAsync(testLspServer, unresolvedCodeAction);
 
-        var documentAfter = testWorkspace.CurrentSolution.GetDocument(testWorkspace.Documents.Single().Id);
+        var documentAfter = testWorkspace.CurrentSolution.GetDocument(testWorkspace.Documents.Single().Id)!;
         var documentUriAfter = documentBefore.WithName("ABC.cs").GetUriForRenamedDocument();
 
         var expectedCodeAction = CodeActionsTests.CreateCodeAction(
@@ -193,7 +190,7 @@ class {|caret:ABC|}
             groupName: "Roslyn2",
             applicableRange: new LSP.Range { Start = new Position { Line = 0, Character = 6 }, End = new Position { Line = 0, Character = 9 } },
             diagnostics: null,
-            edit: GenerateRenameFileEdit(new List<(Uri, Uri)> { (documentUriBefore, documentUriAfter) }));
+            edit: GenerateRenameFileEdit(new List<(DocumentUri, DocumentUri)> { (documentUriBefore, documentUriAfter) }));
 
         AssertJsonEquals(expectedCodeAction, actualResolvedAction);
     }
@@ -244,10 +241,10 @@ class {|caret:ABC|}
         var actualResolvedAction = await RunGetCodeActionResolveAsync(testLspServer, unresolvedCodeAction);
 
         AssertEx.NotNull(actualResolvedAction.Edit);
-        var textDocumentEdit = (LSP.TextDocumentEdit[])actualResolvedAction.Edit.DocumentChanges.Value;
+        var textDocumentEdit = (LSP.TextDocumentEdit[])actualResolvedAction.Edit.DocumentChanges!.Value;
         Assert.Single(textDocumentEdit);
-        var originalText = await testLspServer.GetDocumentTextAsync(textDocumentEdit[0].TextDocument.Uri);
-        var edits = textDocumentEdit[0].Edits.Select(e => (LSP.TextEdit)e.Value).ToArray();
+        var originalText = await testLspServer.GetDocumentTextAsync(textDocumentEdit[0].TextDocument.DocumentUri);
+        var edits = textDocumentEdit[0].Edits.Select(e => (LSP.TextEdit)e.Value!).ToArray();
         var updatedText = ApplyTextEdits(edits, originalText);
         Assert.Equal(expectedText, updatedText);
 
@@ -295,18 +292,18 @@ class BCD
         var actualResolvedAction = await RunGetCodeActionResolveAsync(testLspServer, unresolvedCodeAction);
 
         var project = testWorkspace.CurrentSolution.Projects.Single();
-        var newDocumentUri = ProtocolConversions.CreateAbsoluteUri(Path.Combine(Path.GetDirectoryName(project.FilePath), "ABC.cs"));
+        var newDocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(Path.Combine(Path.GetDirectoryName(project.FilePath)!, "ABC.cs"));
         var existingDocumentUri = testWorkspace.CurrentSolution.GetRequiredDocument(testWorkspace.Documents.Single().Id).GetURI();
         var workspaceEdit = new WorkspaceEdit()
         {
             DocumentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]
             {
                 // Create file
-                new CreateFile() { Uri = newDocumentUri },
+                new CreateFile() { DocumentUri = newDocumentUri },
                 // Add content to file
                 new TextDocumentEdit()
                 {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = newDocumentUri },
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = newDocumentUri },
                     Edits =
                     [
                         new TextEdit()
@@ -334,7 +331,7 @@ class BCD
                 // Remove the declaration from existing file
                 new TextDocumentEdit()
                 {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier() { Uri = existingDocumentUri },
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = existingDocumentUri },
                     Edits =
                     [
                         new TextEdit()
@@ -422,18 +419,18 @@ class {|caret:BCD|}
         var existingDocumentUri = existingDocument.GetURI();
 
         Assert.Contains(Path.Combine("dir1", "dir2", "dir3"), existingDocument.FilePath);
-        var newDocumentUri = ProtocolConversions.CreateAbsoluteUri(
-            Path.Combine(Path.GetDirectoryName(existingDocument.FilePath), "BCD.cs"));
+        var newDocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(
+            Path.Combine(Path.GetDirectoryName(existingDocument.FilePath)!, "BCD.cs"));
         var workspaceEdit = new WorkspaceEdit()
         {
             DocumentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]
             {
                 // Create file
-                new CreateFile() { Uri = newDocumentUri },
+                new CreateFile() { DocumentUri = newDocumentUri },
                 // Add content to file
                 new TextDocumentEdit()
                 {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = newDocumentUri },
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = newDocumentUri },
                     Edits =
                     [
                         new TextEdit()
@@ -460,7 +457,7 @@ class {|caret:BCD|}
                 // Remove the declaration from existing file
                 new TextDocumentEdit()
                 {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier() { Uri = existingDocumentUri },
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = existingDocumentUri },
                     Edits =
                     [
                         new TextEdit()
@@ -505,9 +502,9 @@ class {|caret:BCD|}
         TestLspServer testLspServer,
         VSInternalCodeAction unresolvedCodeAction)
     {
-        var result = (VSInternalCodeAction)await testLspServer.ExecuteRequestAsync<LSP.CodeAction, LSP.CodeAction>(
+        var result = (VSInternalCodeAction?)await testLspServer.ExecuteRequestAsync<LSP.CodeAction, LSP.CodeAction>(
             LSP.Methods.CodeActionResolveName, unresolvedCodeAction, CancellationToken.None);
-        return result;
+        return result!;
     }
 
     private static LSP.TextEdit GenerateTextEdit(string newText, LSP.Range range)
@@ -528,17 +525,17 @@ class {|caret:BCD|}
                 {
                     TextDocument = new OptionalVersionedTextDocumentIdentifier
                     {
-                        Uri = locations.Single().Uri
+                        DocumentUri = locations.Single().DocumentUri
                     },
                     Edits = edits,
                 }
             }
         };
 
-    private static WorkspaceEdit GenerateRenameFileEdit(IList<(Uri oldUri, Uri newUri)> renameLocations)
+    private static WorkspaceEdit GenerateRenameFileEdit(IList<(DocumentUri oldUri, DocumentUri newUri)> renameLocations)
         => new()
         {
             DocumentChanges = renameLocations.Select(
-                locations => new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>(new RenameFile() { OldUri = locations.oldUri, NewUri = locations.newUri })).ToArray()
+                locations => new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>(new RenameFile() { OldDocumentUri = locations.oldUri, NewDocumentUri = locations.newUri })).ToArray()
         };
 }
