@@ -1278,6 +1278,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // dictionary[(TKey)element.Key] = (TValue)element.Value;
                         assignItemFromKeyValuePairConversion(keyValuePairConversion, dictionaryTemp, setMethod, localsBuilder, sideEffects);
                         break;
+                    case BoundExpression expressionElement:
+                        // dictionary[element.Key] = element.Value;
+                        assignItemFromExpression(expressionElement, dictionaryTemp, setMethod, localsBuilder, sideEffects);
+                        break;
                     case BoundCollectionExpressionSpreadElement spreadElement:
                         {
                             var rewrittenExpression = VisitExpression(spreadElement.Expression);
@@ -1310,10 +1314,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 });
                             sideEffects.Add(rewrittenElement);
                         }
-                        break;
-                    case BoundExpression expressionElement:
-                        // dictionary[element.Key] = element.Value;
-                        assignItemFromExpression(expressionElement, dictionaryTemp, setMethod, localsBuilder, sideEffects);
                         break;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(element);

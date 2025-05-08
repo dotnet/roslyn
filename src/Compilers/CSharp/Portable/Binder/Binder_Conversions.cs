@@ -1127,20 +1127,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                             keyType.Equals(key.Type, TypeCompareKind.AllIgnoreOptions) &&
                             valueType.Equals(value.Type, TypeCompareKind.AllIgnoreOptions));
 #endif
-                        BoundExpression keyValuePair = (keyValuePairConstructor is null) ?
-                            new BoundBadExpression(
+                        if (keyValuePairConstructor is null)
+                        {
+                            return new BoundBadExpression(
                                 keyValuePairSyntax,
                                 LookupResultKind.Empty,
                                 symbols: [],
-                                childBoundNodes: [],
+                                childBoundNodes: [key, value],
                                 elementType)
-                            { WasCompilerGenerated = true } :
-                            new BoundObjectCreationExpression(
-                                keyValuePairSyntax,
-                                keyValuePairConstructor.AsMember((NamedTypeSymbol)elementType),
-                                key,
-                                value)
                             { WasCompilerGenerated = true };
+                        }
+                        var keyValuePair = new BoundObjectCreationExpression(
+                            keyValuePairSyntax,
+                            keyValuePairConstructor.AsMember((NamedTypeSymbol)elementType),
+                            key,
+                            value)
+                        { WasCompilerGenerated = true };
                         return binder.BindCollectionInitializerElementAddMethod(
                             keyValuePairSyntax,
                             [keyValuePair],
