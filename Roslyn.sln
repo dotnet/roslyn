@@ -703,8 +703,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NuGet", "NuGet", "{7F040742
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Analyzers.Package", "src\RoslynAnalyzers\NuGet\Microsoft.CodeAnalysis.Analyzers\Microsoft.CodeAnalysis.Analyzers.Package.csproj", "{BEF66A04-80EF-F6FD-E969-F441F709ECDA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.AnalyzerUtilities.Package", "src\RoslynAnalyzers\NuGet\Microsoft.CodeAnalysis.AnalyzerUtilities\Microsoft.CodeAnalysis.AnalyzerUtilities.Package.csproj", "{612E7B7D-8BE1-C279-2BD9-6191A97F2D03}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.BannedApiAnalyzers.Package", "src\RoslynAnalyzers\NuGet\Microsoft.CodeAnalysis.BannedApiAnalyzers\Microsoft.CodeAnalysis.BannedApiAnalyzers.Package.csproj", "{491BC06C-DEEC-0D65-985A-E192EC710BEF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Metrics.Package", "src\RoslynAnalyzers\NuGet\Microsoft.CodeAnalysis.Metrics\Microsoft.CodeAnalysis.Metrics.Package.csproj", "{E297099A-564C-A98A-BED5-547AD4799C81}"
@@ -1747,10 +1745,6 @@ Global
 		{BEF66A04-80EF-F6FD-E969-F441F709ECDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BEF66A04-80EF-F6FD-E969-F441F709ECDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BEF66A04-80EF-F6FD-E969-F441F709ECDA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{612E7B7D-8BE1-C279-2BD9-6191A97F2D03}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{612E7B7D-8BE1-C279-2BD9-6191A97F2D03}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{612E7B7D-8BE1-C279-2BD9-6191A97F2D03}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{612E7B7D-8BE1-C279-2BD9-6191A97F2D03}.Release|Any CPU.Build.0 = Release|Any CPU
 		{491BC06C-DEEC-0D65-985A-E192EC710BEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{491BC06C-DEEC-0D65-985A-E192EC710BEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{491BC06C-DEEC-0D65-985A-E192EC710BEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -2127,7 +2121,6 @@ Global
 		{3F65D29D-ED95-2D6F-B927-47C5CF070AA5} = {0DDCFE67-7D4E-4709-9882-EC032A031789}
 		{7F040742-3C10-406A-A0FF-7FE621DEF671} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{BEF66A04-80EF-F6FD-E969-F441F709ECDA} = {7F040742-3C10-406A-A0FF-7FE621DEF671}
-		{612E7B7D-8BE1-C279-2BD9-6191A97F2D03} = {7F040742-3C10-406A-A0FF-7FE621DEF671}
 		{491BC06C-DEEC-0D65-985A-E192EC710BEF} = {7F040742-3C10-406A-A0FF-7FE621DEF671}
 		{E297099A-564C-A98A-BED5-547AD4799C81} = {7F040742-3C10-406A-A0FF-7FE621DEF671}
 		{839F00DC-B547-E6C3-AB0B-EFABD62C5C82} = {7F040742-3C10-406A-A0FF-7FE621DEF671}
