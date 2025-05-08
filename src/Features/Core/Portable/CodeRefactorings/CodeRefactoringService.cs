@@ -89,7 +89,7 @@ internal sealed class CodeRefactoringService(
         }
 
         // Get providers for specific combination of language, doc kind and extension,
-        // e.g. (C#, AdditoinalDocument, .xaml)
+        // e.g. (C#, AdditionalDocument, .xaml)
         if (FileNameUtilities.GetExtension(document.FilePath) is string documentExtension && documentExtension.Length > 0)
         {
             key = new ProviderKey(document.Project.Language, document.Kind, documentExtension);
@@ -314,6 +314,19 @@ internal sealed class CodeRefactoringService(
         public override int GetHashCode()
         {
             return (Language, DocumentKind, StringComparer.OrdinalIgnoreCase.GetHashCode(DocumentExtension)).GetHashCode();
+        }
+    }
+
+    private sealed class OrderableLanguageDocumentMetadata : OrderableLanguageMetadata
+    {
+        public TextDocumentKind DocumentKind { get; }
+        public string DocumentExtension { get; }
+
+        public OrderableLanguageDocumentMetadata(string name, string language, TextDocumentKind documentKind, string documentExtension, IEnumerable<string> after, IEnumerable<string> before)
+            : base(name, language, after, before)
+        {
+            DocumentKind = documentKind;
+            DocumentExtension = documentExtension;
         }
     }
 }

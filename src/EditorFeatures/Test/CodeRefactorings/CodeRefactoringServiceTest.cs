@@ -274,7 +274,7 @@ public sealed class CodeRefactoringServiceTest
 
     private static void VerifyProviders(CodeRefactorings.CodeRefactoringService service, TextDocument document, params Type[] expectedProviderTypes)
     {
-        // Exclude provides which have not been setup by test
+        // Exclude providers which have not been setup by test
         var assembly = Assembly.GetExecutingAssembly();
         var actualProviders = service.GetProviders(document)
             .Where(p => p.GetType().Assembly == assembly)
