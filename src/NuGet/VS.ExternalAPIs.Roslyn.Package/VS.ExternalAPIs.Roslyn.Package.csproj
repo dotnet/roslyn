@@ -10,6 +10,7 @@
     <IsVisualStudioBuildPackage>true</IsVisualStudioBuildPackage>
 
     <IsPackable>true</IsPackable>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
     <PackageId>VS.ExternalAPIs.Roslyn</PackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <PackageDescription>CoreXT package for the VS build</PackageDescription>
