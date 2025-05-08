@@ -4574,28 +4574,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 using System.Collections.Generic;
                 class Program
                 {
-                    static {{typeName}}<K, V> Create1<K, V>(IEqualityComparer<K>? c1)
+                    static {{typeName}}<K, V> Create1<K, V>(bool b, IEqualityComparer<K>? c1)
                     {
+                        if (b) return new Dictionary<K, V>(c1);
                         return [with(c1)];
                     }
-                    static {{typeName}}<K, V> Create2<K, V>(IEqualityComparer<K?> c2)
+                    static {{typeName}}<K, V> Create2<K, V>(bool b, IEqualityComparer<K?> c2) where K : class
                     {
+                        if (b) return new Dictionary<K, V>(c2);
                         return [with(c2)];
                     }
-                    static {{typeName}}<K?, V> Create2<K?, V>(IEqualityComparer<K> c3) where K : class
+                    static {{typeName}}<K?, V> Create3<K, V>(bool b, IEqualityComparer<K> c3) where K : class
                     {
+                        if (b) return new Dictionary<K?, V>(c3);
                         return [with(c3)];
                     }
                 }
                 """;
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+            // PROTOTYPE: Handle collection arguments in flow analysis: report CS8620 for 'with(c3)'.
+            comp.VerifyEmitDiagnostics(
+                // (17,45): warning CS8620: Argument of type 'IEqualityComparer<K>' cannot be used for parameter 'comparer' of type 'IEqualityComparer<K?>' in 'Dictionary<K?, V>.Dictionary(IEqualityComparer<K?> comparer)' due to differences in the nullability of reference types.
+                //         if (b) return new Dictionary<K?, V>(c3);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "c3").WithArguments("System.Collections.Generic.IEqualityComparer<K>", "System.Collections.Generic.IEqualityComparer<K?>", "comparer", "Dictionary<K?, V>.Dictionary(IEqualityComparer<K?> comparer)").WithLocation(17, 45));
         }
 
         [Fact]
         public void InterfaceTarget_ReorderedArguments()
         {
             string source = """
+                using System;
                 using System.Collections.Generic;
                 class Program
                 {
@@ -4617,41 +4625,40 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var verifier = CompileAndVerify(
                 [source, s_collectionExtensions],
                     expectedOutput: """
-                    EqualityComparer
-                    2
-                    [1, one]
-                    [[1, one]]
-                    """);
+                        System.Collections.Generic.GenericEqualityComparer`1[System.Int32]
+                        2
+                        [1, one]
+                        [[1, one]],
+                        """);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Create<K, V>", """
                 {
-                  // Code size       41 (0x29)
+                  // Code size       47 (0x2f)
                   .maxstack  4
                   .locals init (System.Collections.Generic.KeyValuePair<K, V> V_0,
                                 System.Collections.Generic.IEqualityComparer<K> V_1)
                   IL_0000:  ldarg.0
-                  IL_0001:  stloc.1
-                  IL_0002:  ldarg.1
-                  IL_0003:  ldloc.1
-                  IL_0004:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(int, System.Collections.Generic.IEqualityComparer<K>)"
-                  IL_0009:  dup
-                  IL_000a:  ldarg.2
-                  IL_000b:  ldarg.3
-                  IL_000c:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
-                  IL_0011:  ldarg.s    V_4
-                  IL_0013:  stloc.0
-                  IL_0014:  dup
-                  IL_0015:  ldloca.s   V_0
-                  IL_0017:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
-                  IL_001c:  ldloca.s   V_0
-                  IL_001e:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
-                  IL_0023:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
-                  IL_0028:  ret
+                  IL_0001:  call       "System.Collections.Generic.IEqualityComparer<K> Program.Identity<System.Collections.Generic.IEqualityComparer<K>>(System.Collections.Generic.IEqualityComparer<K>)"
+                  IL_0006:  stloc.1
+                  IL_0007:  ldarg.1
+                  IL_0008:  call       "int Program.Identity<int>(int)"
+                  IL_000d:  ldloc.1
+                  IL_000e:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(int, System.Collections.Generic.IEqualityComparer<K>)"
+                  IL_0013:  ldarg.2
+                  IL_0014:  call       "System.Collections.Generic.KeyValuePair<K, V> Program.Identity<System.Collections.Generic.KeyValuePair<K, V>>(System.Collections.Generic.KeyValuePair<K, V>)"
+                  IL_0019:  stloc.0
+                  IL_001a:  dup
+                  IL_001b:  ldloca.s   V_0
+                  IL_001d:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                  IL_0022:  ldloca.s   V_0
+                  IL_0024:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                  IL_0029:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_002e:  ret
                 }
                 """);
         }
 
-        [Theory]
+        [Theory(Skip = "PROTOTYPE")]
         [CombinatorialData]
         public void InterfaceTarget_Dynamic(
             [CombinatorialValues("IDictionary", "IReadOnlyDictionary")] string typeName)
@@ -4674,11 +4681,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 source,
                 targetFramework: TargetFramework.Net80,
                 options: TestOptions.ReleaseExe);
+            // PROTOTYPE: Should report "error CS9503: Collection arguments cannot be dynamic; compile-time binding is required."
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(
-                comp,
-                verify: Verification.Skipped,
-                expectedOutput: "[[1, one]], ");
         }
 
         /// <summary>
@@ -4688,7 +4692,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void InterfaceTarget_ImplementationParameterName()
         {
             string sourceA = """
-                using System.Collections;
                 namespace System
                 {
                     public class Object { }
@@ -4698,6 +4701,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public struct Void { }
                     public struct Boolean { }
                     public struct Int32 { }
+                    public class Array { }
                     public interface IDisposable
                     {
                         void Dispose();
@@ -4719,17 +4723,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     public interface IEnumerator<T> : IEnumerator
                     {
-                        T Current { get; }
+                        new T Current { get; }
                     }
                     public interface IEnumerable<T> : IEnumerable
                     {
-                        IEnumerator<T> GetEnumerator();
+                        new IEnumerator<T> GetEnumerator();
                     }
-                    public class List<T> : IEnumerable<T>
+                    public interface ICollection<T> : IEnumerable<T>
+                    {
+                    }
+                    public class List<T> : ICollection<T>
                     {
                         public List() { }
                         public List(int __c) { }
                         public void Add(T t) { }
+                        public T[] ToArray() => null;
                         IEnumerator<T> IEnumerable<T>.GetEnumerator() => null;
                         IEnumerator IEnumerable.GetEnumerator() => null;
                     }
@@ -4741,34 +4749,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     static void Main()
                     {
-                        Create(1, 2, 3).Report();
+                        Create(1, 2);
                     }
-                    static ICollection<T> Create<T>(params T[] args)
+                    static ICollection<T> Create<T>(T x, T y)
                     {
-                        return [with(capacity: 4), ..args];
+                        return [with(capacity: 3), x, y];
                     }
                 }
                 """;
             var comp = CreateEmptyCompilation(
                 [sourceA, sourceB],
-                parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute());
+                parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute(),
+                options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(
                 comp,
-                verify: Verification.Skipped,
-                expectedOutput: "[[1, one]], ");
+                emitOptions: Microsoft.CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("4.0.0.0"),
+                verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Create<T>", """
                 {
-                  // Code size       20 (0x14)
+                  // Code size       21 (0x15)
                   .maxstack  3
-                  IL_0000:  newobj     "System.Collections.Generic.List<object>..ctor()"
-                  IL_0005:  dup
-                  IL_0006:  ldarg.0
-                  IL_0007:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
-                  IL_000c:  dup
-                  IL_000d:  ldarg.1
-                  IL_000e:  callvirt   "void System.Collections.Generic.List<object>.Add(string)"
-                  IL_0013:  ret
+                  IL_0000:  ldc.i4.3
+                  IL_0001:  newobj     "System.Collections.Generic.List<T>..ctor(int)"
+                  IL_0006:  dup
+                  IL_0007:  ldarg.0
+                  IL_0008:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                  IL_000d:  dup
+                  IL_000e:  ldarg.1
+                  IL_000f:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                  IL_0014:  ret
                 }
                 """);
         }

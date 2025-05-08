@@ -65,11 +65,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override RefKind RefKind => RefKind.None;
 
-        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => throw ExceptionUtilities.Unreachable();
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => default;
 
-        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => throw ExceptionUtilities.Unreachable();
+        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
 
-        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => throw ExceptionUtilities.Unreachable();
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => default;
 
         public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations => GetTypeParametersAsTypeArguments();
 
@@ -77,13 +77,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers => [];
 
-        public override Symbol AssociatedSymbol => throw ExceptionUtilities.Unreachable();
+        public override Symbol? AssociatedSymbol => null;
 
         public override bool AreLocalsZeroed => throw ExceptionUtilities.Unreachable();
 
-        public override ImmutableArray<Location> Locations => throw ExceptionUtilities.Unreachable();
+        public override ImmutableArray<Location> Locations => [];
 
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => throw ExceptionUtilities.Unreachable();
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => [];
 
         public override Accessibility DeclaredAccessibility => Accessibility.Public;
 
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
 
-        internal override bool HasSpecialName => throw ExceptionUtilities.Unreachable();
+        internal override bool HasSpecialName => true;
 
         internal override System.Reflection.MethodImplAttributes ImplementationAttributes => throw ExceptionUtilities.Unreachable();
 
@@ -129,17 +129,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree) => throw ExceptionUtilities.Unreachable();
 
-        internal override ImmutableArray<string> GetAppliedConditionalSymbols() => throw ExceptionUtilities.Unreachable();
+        internal override ImmutableArray<string> GetAppliedConditionalSymbols() => [];
 
         internal override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation() => throw ExceptionUtilities.Unreachable();
 
         internal override UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => null;
 
-        internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument) => throw ExceptionUtilities.Unreachable();
+        internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            builderArgument = null;
+            return false;
+        }
 
-        internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => throw ExceptionUtilities.Unreachable();
+        internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
 
-        internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None) => throw ExceptionUtilities.Unreachable();
+        internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None) => false;
 
         internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable();
 
