@@ -26,7 +26,6 @@
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" PrivateAssets="all" />
-    <ProjectReference Include="..\..\EditorFeatures\Core.Wpf\Microsoft.CodeAnalysis.EditorFeatures.Wpf.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\EditorFeatures\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\EditorFeatures\CSharp\Microsoft.CodeAnalysis.CSharp.EditorFeatures.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\EditorFeatures\ExternalAccess\Debugger\Microsoft.CodeAnalysis.ExternalAccess.Debugger.csproj" PrivateAssets="all" />
@@ -78,7 +77,6 @@
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Workspaces\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.Workspaces.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.EditorFeatures.Text\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.EditorFeatures.Text.dll" TargetDir="" />
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.EditorFeatures.Wpf\$(Configuration)\net472\Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.EditorFeatures\$(Configuration)\net472\Microsoft.CodeAnalysis.EditorFeatures.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.Apex\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.Apex.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.AspNetCore\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.dll" TargetDir="" />
