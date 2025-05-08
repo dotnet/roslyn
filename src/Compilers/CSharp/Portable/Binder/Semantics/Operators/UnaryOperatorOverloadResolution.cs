@@ -134,6 +134,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (NamedTypeSymbol extensionDeclaration in extensionDeclarationsInSingleScope)
                 {
+                    Debug.Assert(extensionDeclaration.IsExtension);
+
                     if (extensionDeclaration.ExtensionParameter is null)
                     {
                         continue;

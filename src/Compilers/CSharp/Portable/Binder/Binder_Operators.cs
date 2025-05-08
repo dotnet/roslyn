@@ -1659,7 +1659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             resultKind = LookupResultKind.Empty;
             originalUserDefinedOperators = [];
 
-            if (operand.IsLiteralDefault() || // Reported not being able to target-type `default` elsewhere, so we can doing more work
+            if (operand.IsLiteralDefault() || // Reported not being able to target-type `default` elsewhere, so we can avoid doing more work
                 (object)operand.Type == null || // GetUserDefinedOperators performs this check too, let's optimize early
                 !this.Compilation.LanguageVersion.AllowNewExtensions())
             {

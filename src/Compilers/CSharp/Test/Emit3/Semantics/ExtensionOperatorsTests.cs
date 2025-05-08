@@ -574,8 +574,9 @@ struct S1
                 );
         }
 
-        [Fact]
-        public void Unary_010_Consumption()
+        [Theory]
+        [CombinatorialData]
+        public void Unary_010_Consumption(bool fromMetadata)
         {
             var src1 = $$$"""
 public static class Extensions1
@@ -606,8 +607,9 @@ class Program
 """;
 
             var comp1 = CreateCompilation(src1);
+            var comp1Ref = fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference();
 
-            var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            var comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe);
             CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
 
             var tree = comp2.SyntaxTrees.First();
@@ -623,10 +625,10 @@ class Program
             var group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
-            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
             CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
 
-            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyDiagnostics(
                 // (6,13): error CS0023: Operator '+' cannot be applied to operand of type 'S1'
                 //         _ = +s1;
@@ -643,7 +645,7 @@ class Program
     }
 }
 """;
-            var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            var comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe);
             CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
 
             var src4 = $$$"""
@@ -657,7 +659,7 @@ class Program
     }
 }
 """;
-            var comp4 = CreateCompilation(src4, references: [comp1.ToMetadataReference()]);
+            var comp4 = CreateCompilation(src4, references: [comp1Ref]);
             comp4.VerifyDiagnostics(
                 // (6,12): error CS1061: 'S1' does not contain a definition for 'op_UnaryPlus' and no accessible extension method 'op_UnaryPlus' accepting a first argument of type 'S1' could be found (are you missing a using directive or an assembly reference?)
                 //         s1.op_UnaryPlus();
