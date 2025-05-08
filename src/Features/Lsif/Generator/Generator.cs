@@ -212,7 +212,7 @@ internal sealed class Generator
 
         var contentBase64Encoded = await GetBase64EncodedContentAsync(document, cancellationToken);
 
-        var documentVertex = new Graph.LsifDocument(document.GetURI(), GetLanguageKind(semanticModel.Language), contentBase64Encoded, idFactory);
+        var documentVertex = new Graph.LsifDocument(document.GetURI().GetRequiredParsedUri(), GetLanguageKind(semanticModel.Language), contentBase64Encoded, idFactory);
         lsifJsonWriter.Write(documentVertex);
         lsifJsonWriter.Write(new Event(Event.EventKind.Begin, documentVertex.GetId(), idFactory));
 

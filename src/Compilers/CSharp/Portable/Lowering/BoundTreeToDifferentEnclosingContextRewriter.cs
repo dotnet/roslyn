@@ -19,9 +19,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal abstract class BoundTreeToDifferentEnclosingContextRewriter : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
     {
         // A mapping from every local variable to its replacement local variable.  Local variables are replaced when
-        // their types change due to being inside of a generic method.  Otherwise we reuse the original local (even
+        // their types change due to being inside of a generic method.  Otherwise we may reuse the original local (even
         // though its containing method is not correct because the code is moved into another method)
         private readonly Dictionary<LocalSymbol, LocalSymbol> localMap = new Dictionary<LocalSymbol, LocalSymbol>();
+
+        //to handle type changes (e.g. type parameters) we need to update placeholders
+        private readonly Dictionary<BoundValuePlaceholderBase, BoundExpression> _placeholderMap = new Dictionary<BoundValuePlaceholderBase, BoundExpression>();
 
         // A mapping for types in the original method to types in its replacement.  This is mainly necessary
         // when the original method was generic, as type parameters in the original method are mapping into
@@ -29,6 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected abstract TypeMap TypeMap { get; }
 
         protected abstract MethodSymbol CurrentMethod { get; }
+
+        protected abstract bool EnforceAccurateContainerForLocals { get; }
 
         public override BoundNode DefaultVisit(BoundNode node)
         {
@@ -55,7 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var newType = VisitType(local.Type);
-            if (TypeSymbol.Equals(newType, local.Type, TypeCompareKind.ConsiderEverything2))
+            if (TypeSymbol.Equals(newType, local.Type, TypeCompareKind.ConsiderEverything2) &&
+                (!EnforceAccurateContainerForLocals || local.ContainingSymbol == CurrentMethod))
             {
                 newLocal = local;
             }
@@ -111,6 +117,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             return TypeMap.SubstituteType(type).Type;
         }
 
+        public override BoundNode VisitAwaitableInfo(BoundAwaitableInfo node)
+        {
+            var awaitablePlaceholder = node.AwaitableInstancePlaceholder;
+            if (awaitablePlaceholder is null)
+            {
+                return node;
+            }
+
+            var rewrittenPlaceholder = awaitablePlaceholder.Update(VisitType(awaitablePlaceholder.Type));
+            _placeholderMap.Add(awaitablePlaceholder, rewrittenPlaceholder);
+
+            var getAwaiter = (BoundExpression?)this.Visit(node.GetAwaiter);
+            var isCompleted = VisitPropertySymbol(node.IsCompleted);
+            var getResult = VisitMethodSymbol(node.GetResult);
+
+            _placeholderMap.Remove(awaitablePlaceholder);
+
+            return node.Update(rewrittenPlaceholder, node.IsDynamic, getAwaiter, isCompleted, getResult);
+        }
+
+        public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
+        {
+            return _placeholderMap[node];
+        }
+
         protected override BoundBinaryOperator.UncommonData? VisitBinaryOperatorData(BoundBinaryOperator node)
         {
             // Local rewriter should have already rewritten interpolated strings into their final form of calls and gotos
@@ -137,6 +168,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.ConstantValueOpt,
                 node.ConversionGroupOpt,
                 VisitType(node.Type));
+        }
+
+        [return: NotNullIfNotNull(nameof(property))]
+        public override PropertySymbol? VisitPropertySymbol(PropertySymbol? property)
+        {
+            if (property is null)
+            {
+                return null;
+            }
+            if (property.ContainingType.IsAnonymousType)
+            {
+                //at this point we expect that the code is lowered and that getters of anonymous types are accessed
+                //only via their corresponding get-methods (see VisitMethodSymbol)
+                throw ExceptionUtilities.Unreachable();
+            }
+            return ((PropertySymbol)property.OriginalDefinition)
+                    .AsMember((NamedTypeSymbol)TypeMap.SubstituteType(property.ContainingType).AsTypeSymbolOnly())
+                    ;
         }
 
         [return: NotNullIfNotNull(nameof(method))]

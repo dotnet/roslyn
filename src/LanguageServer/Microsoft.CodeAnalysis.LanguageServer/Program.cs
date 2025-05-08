@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.CommandLine;
 using System.Diagnostics;
 using System.IO.Pipes;
@@ -17,10 +16,8 @@ using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
-using Roslyn.Utilities;
 using RoslynLog = Microsoft.CodeAnalysis.Internal.Log;
 
 // Setting the title can fail if the process is run without a window, such
@@ -99,11 +96,11 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     var cacheDirectory = Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location)!, "cache");
 
-    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(extensionManager, assemblyLoader, serverConfiguration.DevKitDependencyPath, cacheDirectory, loggerFactory);
+    using var exportProvider = await LanguageServerExportProviderBuilder.CreateExportProviderAsync(extensionManager, assemblyLoader, serverConfiguration.DevKitDependencyPath, cacheDirectory, loggerFactory, cancellationToken);
 
     // LSP server doesn't have the pieces yet to support 'balanced' mode for source-generators.  Hardcode us to
     // 'automatic' for now.
-    var globalOptionService = exportProvider.GetExportedValue<IGlobalOptionService>();
+    var globalOptionService = exportProvider.GetExportedValue<Microsoft.CodeAnalysis.Options.IGlobalOptionService>();
     globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Automatic);
 
     // The log file directory passed to us by VSCode might not exist yet, though its parent directory is guaranteed to exist.
@@ -172,79 +169,79 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     }
 }
 
-static CliConfiguration CreateCommandLineParser()
+static CommandLineConfiguration CreateCommandLineParser()
 {
-    var debugOption = new CliOption<bool>("--debug")
+    var debugOption = new Option<bool>("--debug")
     {
         Description = "Flag indicating if the debugger should be launched on startup.",
         Required = false,
         DefaultValueFactory = _ => false,
     };
-    var brokeredServicePipeNameOption = new CliOption<string?>("--brokeredServicePipeName")
+    var brokeredServicePipeNameOption = new Option<string?>("--brokeredServicePipeName")
     {
         Description = "The name of the pipe used to connect to a remote process (if one exists).",
         Required = false,
     };
 
-    var logLevelOption = new CliOption<LogLevel>("--logLevel")
+    var logLevelOption = new Option<LogLevel>("--logLevel")
     {
         Description = "The minimum log verbosity.",
         Required = true,
     };
-    var starredCompletionsPathOption = new CliOption<string?>("--starredCompletionComponentPath")
+    var starredCompletionsPathOption = new Option<string?>("--starredCompletionComponentPath")
     {
         Description = "The location of the starred completion component (if one exists).",
         Required = false,
     };
 
-    var telemetryLevelOption = new CliOption<string?>("--telemetryLevel")
+    var telemetryLevelOption = new Option<string?>("--telemetryLevel")
     {
         Description = "Telemetry level, Defaults to 'off'. Example values: 'all', 'crash', 'error', or 'off'.",
         Required = false,
     };
-    var extensionLogDirectoryOption = new CliOption<string>("--extensionLogDirectory")
+    var extensionLogDirectoryOption = new Option<string>("--extensionLogDirectory")
     {
         Description = "The directory where we should write log files to",
         Required = true,
     };
 
-    var sessionIdOption = new CliOption<string?>("--sessionId")
+    var sessionIdOption = new Option<string?>("--sessionId")
     {
         Description = "Session Id to use for telemetry",
         Required = false
     };
 
-    var extensionAssemblyPathsOption = new CliOption<string[]?>("--extension")
+    var extensionAssemblyPathsOption = new Option<string[]?>("--extension")
     {
         Description = "Full paths of extension assemblies to load (optional).",
         Required = false
     };
 
-    var devKitDependencyPathOption = new CliOption<string?>("--devKitDependencyPath")
+    var devKitDependencyPathOption = new Option<string?>("--devKitDependencyPath")
     {
         Description = "Full path to the Roslyn dependency used with DevKit (optional).",
         Required = false
     };
 
-    var razorSourceGeneratorOption = new CliOption<string?>("--razorSourceGenerator")
+    var razorSourceGeneratorOption = new Option<string?>("--razorSourceGenerator")
     {
         Description = "Full path to the Razor source generator (optional).",
         Required = false
     };
 
-    var razorDesignTimePathOption = new CliOption<string?>("--razorDesignTimePath")
+    var razorDesignTimePathOption = new Option<string?>("--razorDesignTimePath")
     {
         Description = "Full path to the Razor design time target path (optional).",
         Required = false
     };
 
-    var serverPipeNameOption = new CliOption<string?>("--pipe")
+    var serverPipeNameOption = new Option<string?>("--pipe")
     {
         Description = "The name of the pipe the server will connect to.",
         Required = false
     };
 
-    var useStdIoOption = new CliOption<bool>("--stdio")
+    var useStdIoOption = new Option<bool>("--stdio")
     {
         Description = "Use stdio for communication with the client.",
         Required = false,
@@ -252,7 +249,7 @@ static CliConfiguration CreateCommandLineParser()
 
     };
 
-    var rootCommand = new CliRootCommand()
+    var rootCommand = new RootCommand()
     {
         debugOption,
         brokeredServicePipeNameOption,
@@ -301,7 +298,7 @@ static CliConfiguration CreateCommandLineParser()
         return RunAsync(serverConfiguration, cancellationToken);
     });
 
-    var config = new CliConfiguration(rootCommand)
+    var config = new CommandLineConfiguration(rootCommand)
     {
         // By default, System.CommandLine will catch all exceptions, log them to the console, and return a non-zero exit code.
         // Unfortunately this makes .NET's crash dump collection environment variables (e.g. 'DOTNET_DbgEnableMiniDump')

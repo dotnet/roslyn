@@ -17,8 +17,9 @@ internal static class Diagnostics
 {
     public static async Task<ImmutableArray<LSP.Diagnostic>> GetDocumentDiagnosticsAsync(Document document, bool supportsVisualStudioExtensions, CancellationToken cancellationToken)
     {
-        var globalOptionsService = document.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
-        var diagnosticAnalyzerService = document.Project.Solution.Services.ExportProvider.GetService<IDiagnosticAnalyzerService>();
+        var solutionServices = document.Project.Solution.Services;
+        var globalOptionsService = solutionServices.ExportProvider.GetService<IGlobalOptionService>();
+        var diagnosticAnalyzerService = solutionServices.GetRequiredService<IDiagnosticAnalyzerService>();
 
         var diagnostics = await diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(
             document, range: null, DiagnosticKind.All, cancellationToken).ConfigureAwait(false);

@@ -151,6 +151,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly ImmutableHashSet<Symbol> _allCapturedVariables;
 
+        /// <summary>
+        /// Containing Symbols are not checked after this step - for performance reasons we can allow inaccurate locals
+        /// </summary>
+        protected override bool EnforceAccurateContainerForLocals => false;
+
 #nullable enable
 
         private ClosureConversion(

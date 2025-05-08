@@ -26,17 +26,17 @@ internal static class Program
 {
     public static Task Main(string[] args)
     {
-        var solution = new CliOption<FileInfo>("--solution") { Description = "input solution file" }.AcceptExistingOnly();
-        var project = new CliOption<FileInfo>("--project") { Description = "input project file" }.AcceptExistingOnly();
-        var compilerInvocation = new CliOption<FileInfo>("--compiler-invocation") { Description = "path to a .json file that contains the information for a csc/vbc invocation" }.AcceptExistingOnly();
-        var binLog = new CliOption<FileInfo>("--binlog") { Description = "path to a MSBuild binlog that csc/vbc invocations will be extracted from" }.AcceptExistingOnly();
-        var output = new CliOption<string?>("--output") { Description = "file to write the LSIF output to, instead of the console", DefaultValueFactory = _ => null };
+        var solution = new Option<FileInfo>("--solution") { Description = "input solution file" }.AcceptExistingOnly();
+        var project = new Option<FileInfo>("--project") { Description = "input project file" }.AcceptExistingOnly();
+        var compilerInvocation = new Option<FileInfo>("--compiler-invocation") { Description = "path to a .json file that contains the information for a csc/vbc invocation" }.AcceptExistingOnly();
+        var binLog = new Option<FileInfo>("--binlog") { Description = "path to a MSBuild binlog that csc/vbc invocations will be extracted from" }.AcceptExistingOnly();
+        var output = new Option<string?>("--output") { Description = "file to write the LSIF output to, instead of the console", DefaultValueFactory = _ => null };
         output.AcceptLegalFilePathsOnly();
-        var outputFormat = new CliOption<LsifFormat>("--output-format") { Description = "format of LSIF output", DefaultValueFactory = _ => LsifFormat.Line };
-        var log = new CliOption<string?>("--log") { Description = "file to write a log to", DefaultValueFactory = _ => null };
+        var outputFormat = new Option<LsifFormat>("--output-format") { Description = "format of LSIF output", DefaultValueFactory = _ => LsifFormat.Line };
+        var log = new Option<string?>("--log") { Description = "file to write a log to", DefaultValueFactory = _ => null };
         log.AcceptLegalFilePathsOnly();
 
-        var generateCommand = new CliRootCommand("generates an LSIF file")
+        var generateCommand = new RootCommand("generates an LSIF file")
         {
             solution,
             project,
@@ -182,7 +182,7 @@ internal static class Program
         var solutionLoadStopwatch = Stopwatch.StartNew();
 
         using var msbuildWorkspace = MSBuildWorkspace.Create(await Composition.CreateHostServicesAsync());
-        msbuildWorkspace.WorkspaceFailed += (s, e) => logger.Log(e.Diagnostic.Kind == WorkspaceDiagnosticKind.Failure ? LogLevel.Error : LogLevel.Warning, "Problem while loading: " + e.Diagnostic.Message);
+        _ = msbuildWorkspace.RegisterWorkspaceFailedHandler((e) => logger.Log(e.Diagnostic.Kind == WorkspaceDiagnosticKind.Failure ? LogLevel.Error : LogLevel.Warning, "Problem while loading: " + e.Diagnostic.Message));
 
         var solution = await openAsync(msbuildWorkspace, cancellationToken);
 

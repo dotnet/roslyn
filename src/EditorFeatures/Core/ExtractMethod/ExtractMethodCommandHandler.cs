@@ -201,7 +201,8 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
         using var undoTransaction = _undoManager.GetTextBufferUndoManager(textBuffer).TextBufferUndoHistory.CreateTransaction("Extract Method");
 
         // We're about to make an edit ourselves.  so disable the cancellation that happens on editing.
-        waitContext.CancelOnEdit = false;
+        using var _ = waitContext.SuppressAutoCancel();
+
         textBuffer.ApplyChanges(changes);
 
         // apply changes

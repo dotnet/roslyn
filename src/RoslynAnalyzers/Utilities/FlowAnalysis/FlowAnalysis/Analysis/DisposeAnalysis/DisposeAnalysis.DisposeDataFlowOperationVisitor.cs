@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 
                 if (analysisContext.TrackInstanceFields)
                 {
-                    _trackedInstanceFieldLocations = new Dictionary<IFieldSymbol, PointsToAbstractValue>();
+                    _trackedInstanceFieldLocations = [];
                 }
             }
 

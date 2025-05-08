@@ -566,7 +566,7 @@ Do you want to continue?</value>
     <value>Not Available ⚠</value>
   </data>
   <data name="_0_1" xml:space="preserve">
-    <value>    {0} - {1}</value>
+    <value>{0} - {1}</value>
   </data>
   <data name="You_can_use_the_navigation_bar_to_switch_contexts" xml:space="preserve">
     <value>You can use the navigation bar to switch contexts.</value>
@@ -2680,6 +2680,9 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="ChangesRequiredSynthesizedType" xml:space="preserve">
     <value>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</value>
+  </data>
+  <data name="Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit" xml:space="preserve">
+    <value>Changing source file '{0}' in a stale project has no effect until the project is rebuit.</value>
   </data>
   <data name="Miscellaneous_Files" xml:space="preserve">
     <value>Miscellaneous Files</value>

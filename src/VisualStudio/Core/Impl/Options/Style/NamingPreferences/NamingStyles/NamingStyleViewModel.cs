@@ -29,14 +29,14 @@ internal sealed class NamingStyleViewModel : AbstractNotifyPropertyChanged, INam
         ItemName = style.Name;
         CanBeDeleted = canBeDeleted;
 
-        CapitalizationSchemes = new List<CapitalizationDisplay>
-            {
+        CapitalizationSchemes =
+            [
                 new CapitalizationDisplay(Capitalization.PascalCase, ServicesVSResources.Pascal_Case_Name),
                 new CapitalizationDisplay(Capitalization.CamelCase, ServicesVSResources.camel_Case_Name),
                 new CapitalizationDisplay(Capitalization.FirstUpper, ServicesVSResources.First_word_upper),
                 new CapitalizationDisplay(Capitalization.AllUpper, ServicesVSResources.ALL_UPPER),
                 new CapitalizationDisplay(Capitalization.AllLower, ServicesVSResources.all_lower)
-            };
+            ];
 
         CapitalizationSchemeIndex = CapitalizationSchemes.IndexOf(CapitalizationSchemes.Single(s => s.Capitalization == style.CapitalizationScheme));
     }

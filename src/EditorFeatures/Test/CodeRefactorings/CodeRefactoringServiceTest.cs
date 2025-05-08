@@ -132,7 +132,7 @@ public sealed class CodeRefactoringServiceTest
 
         public StubAnalyzerReference() : this(new StubRefactoring()) { }
 
-        public StubAnalyzerReference(params CodeRefactoringProvider[] codeRefactorings)
+        public StubAnalyzerReference(params ReadOnlySpan<CodeRefactoringProvider> codeRefactorings)
             => _refactorings = [.. codeRefactorings];
 
         public override string Display => nameof(StubAnalyzerReference);

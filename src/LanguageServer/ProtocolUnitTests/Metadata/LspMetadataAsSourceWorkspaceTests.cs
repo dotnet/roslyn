@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.MetadataAsSource;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -45,13 +46,13 @@ public sealed class LspMetadataAsSourceWorkspaceTests : AbstractLanguageServerPr
         AssertEx.NotNull(definition);
 
         // Open the metadata file and verify it gets added to the metadata workspace.
-        await testLspServer.OpenDocumentAsync(definition.Single().Uri, text: string.Empty).ConfigureAwait(false);
+        await testLspServer.OpenDocumentAsync(definition.Single().DocumentUri, text: string.Empty).ConfigureAwait(false);
 
-        Assert.Equal(WorkspaceKind.MetadataAsSource, (await GetWorkspaceForDocument(testLspServer, definition.Single().Uri)).Kind);
+        Assert.Equal(WorkspaceKind.MetadataAsSource, (await GetWorkspaceForDocument(testLspServer, definition.Single().DocumentUri)).Kind);
         AssertMiscFileWorkspaceEmpty(testLspServer);
 
         // Close the metadata file and verify it gets removed from the metadata workspace.
-        await testLspServer.CloseDocumentAsync(definition.Single().Uri).ConfigureAwait(false);
+        await testLspServer.CloseDocumentAsync(definition.Single().DocumentUri).ConfigureAwait(false);
 
         AssertMetadataFileWorkspaceEmpty(testLspServer);
     }
@@ -93,8 +94,8 @@ public sealed class LspMetadataAsSourceWorkspaceTests : AbstractLanguageServerPr
 
         // Open the metadata file and verify it gets added to the metadata workspace.
         // We don't have the real metadata source, so just populate it with our fake metadata source.
-        await testLspServer.OpenDocumentAsync(definition.Single().Uri, text: metadataSource).ConfigureAwait(false);
-        var workspaceForDocument = await GetWorkspaceForDocument(testLspServer, definition.Single().Uri);
+        await testLspServer.OpenDocumentAsync(definition.Single().DocumentUri, text: metadataSource).ConfigureAwait(false);
+        var workspaceForDocument = await GetWorkspaceForDocument(testLspServer, definition.Single().DocumentUri);
         Assert.Equal(WorkspaceKind.MetadataAsSource, workspaceForDocument.Kind);
         AssertMiscFileWorkspaceEmpty(testLspServer);
 
@@ -104,7 +105,7 @@ public sealed class LspMetadataAsSourceWorkspaceTests : AbstractLanguageServerPr
 
         var locationOfStringKeyword = new LSP.Location
         {
-            Uri = definition.Single().Uri,
+            DocumentUri = definition.Single().DocumentUri,
             Range = new LSP.Range
             {
                 Start = new LSP.Position { Line = 4, Character = 40 },
@@ -117,12 +118,12 @@ public sealed class LspMetadataAsSourceWorkspaceTests : AbstractLanguageServerPr
 
         Assert.NotNull(definitionFromMetadata);
         Assert.NotEmpty(definitionFromMetadata);
-        Assert.Contains("String.cs", definitionFromMetadata.Single().Uri.LocalPath);
+        Assert.Contains("String.cs", definitionFromMetadata.Single().DocumentUri.UriString);
     }
 
-    private static async Task<Workspace> GetWorkspaceForDocument(TestLspServer testLspServer, Uri fileUri)
+    private static async Task<Workspace> GetWorkspaceForDocument(TestLspServer testLspServer, DocumentUri fileUri)
     {
-        var (lspWorkspace, _, _) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = fileUri }, CancellationToken.None);
+        var (lspWorkspace, _, _) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = fileUri }, CancellationToken.None);
         return lspWorkspace!;
     }
 

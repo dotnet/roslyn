@@ -151,12 +151,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             /// <summary>
             /// Map of invocations from code fix providers to invocations that create a code action using the static "Create" methods on <see cref="CodeAction"/>.
             /// </summary>
-            private readonly Dictionary<INamedTypeSymbol, HashSet<IInvocationOperation>> _codeActionCreateInvocations = new();
+            private readonly Dictionary<INamedTypeSymbol, HashSet<IInvocationOperation>> _codeActionCreateInvocations = [];
 
             /// <summary>
             /// Map of invocations from code fix providers to object creations that create a code action using sub-types of <see cref="CodeAction"/>.
             /// </summary>
-            private readonly Dictionary<INamedTypeSymbol, HashSet<IObjectCreationOperation>> _codeActionObjectCreations = new();
+            private readonly Dictionary<INamedTypeSymbol, HashSet<IObjectCreationOperation>> _codeActionObjectCreations = [];
 
             public NamedTypeAnalyzer(AnalysisTypes analysisTypes)
             {
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                 {
                     if (!map.TryGetValue(namedType, out HashSet<T> value))
                     {
-                        value = new HashSet<T>();
+                        value = [];
                         map[namedType] = value;
                     }
 

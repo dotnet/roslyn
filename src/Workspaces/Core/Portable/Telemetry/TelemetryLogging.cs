@@ -62,11 +62,12 @@ internal static class TelemetryLogging
         if (GetHistogramLog(functionId) is not { } aggregatingLog)
             return;
 
-        var logMessage = KeyValueLogMessage.Create(m =>
+        var logMessage = KeyValueLogMessage.Create(static (m, args) =>
         {
+            var (name, value) = args;
             m[KeyName] = name.GetFormattedText();
             m[KeyValue] = value;
-        });
+        }, (name, value));
 
         aggregatingLog.Log(logMessage);
         logMessage.Free();
@@ -91,10 +92,10 @@ internal static class TelemetryLogging
         if (GetHistogramLog(functionId) is not { } aggregatingLog)
             return null;
 
-        var logMessage = KeyValueLogMessage.Create(m =>
+        var logMessage = KeyValueLogMessage.Create(static (m, metricName) =>
         {
             m[KeyName] = metricName.GetFormattedText();
-        });
+        }, metricName);
 
         return aggregatingLog.LogBlockTime(logMessage, minThresholdMs);
     }

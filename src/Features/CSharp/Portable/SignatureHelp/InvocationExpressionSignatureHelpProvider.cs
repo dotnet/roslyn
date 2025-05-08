@@ -89,7 +89,7 @@ internal partial class InvocationExpressionSignatureHelpProviderBase : AbstractO
             .GetMemberGroup(invocationExpression.Expression, cancellationToken)
             .OfType<IMethodSymbol>()
             .ToImmutableArray()
-            .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation);
+            .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation, inclusionFilter: static s => true);
         methods = GetAccessibleMethods(invocationExpression, semanticModel, within, methods, cancellationToken);
         methods = methods.Sort(semanticModel, invocationExpression.SpanStart);
 

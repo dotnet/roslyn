@@ -35,8 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected readonly BindingDiagnosticBag Diagnostics;
         protected readonly VariableSlotAllocator? slotAllocator;
 
-        private readonly Dictionary<BoundValuePlaceholderBase, BoundExpression> _placeholderMap;
-
         protected MethodToClassRewriter(VariableSlotAllocator? slotAllocator, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(compilationState != null);
@@ -46,7 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.CompilationState = compilationState;
             this.Diagnostics = diagnostics;
             this.slotAllocator = slotAllocator;
-            this._placeholderMap = new Dictionary<BoundValuePlaceholderBase, BoundExpression>();
         }
 
         /// <summary>
@@ -268,11 +265,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var getAwaiter = (BoundExpression?)this.Visit(node.GetAwaiter);
             var isCompleted = VisitPropertySymbol(node.IsCompleted);
             var getResult = VisitMethodSymbol(node.GetResult);
-            var runtimeAsyncAwaitMethod = VisitMethodSymbol(node.RuntimeAsyncAwaitMethod);
 
             _placeholderMap.Remove(awaitablePlaceholder);
 
-            return node.Update(rewrittenPlaceholder, node.IsDynamic, getAwaiter, isCompleted, getResult, runtimeAsyncAwaitMethod);
+            return node.Update(rewrittenPlaceholder, node.IsDynamic, getAwaiter, isCompleted, getResult);
         }
 
         public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)

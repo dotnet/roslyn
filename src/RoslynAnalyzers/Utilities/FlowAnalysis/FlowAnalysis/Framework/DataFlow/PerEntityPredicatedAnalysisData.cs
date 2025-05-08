@@ -23,12 +23,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 if (truePredicatedData != null)
                 {
-                    TruePredicatedData = new DictionaryAnalysisData<TKey, TValue>(truePredicatedData);
+                    TruePredicatedData = [.. truePredicatedData];
                 }
 
                 if (falsePredicatedData != null)
                 {
-                    FalsePredicatedData = new DictionaryAnalysisData<TKey, TValue>(falsePredicatedData);
+                    FalsePredicatedData = [.. falsePredicatedData];
                 }
             }
 

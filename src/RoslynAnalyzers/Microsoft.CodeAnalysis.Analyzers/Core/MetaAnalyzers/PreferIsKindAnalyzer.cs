@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 //  Microsoft.CodeAnalysis.CSharpExtensions.IsKind
                 //  Microsoft.CodeAnalysis.VisualBasicExtensions.IsKind
 
-                Dictionary<INamedTypeSymbol, INamedTypeSymbol> containingTypeMap = new Dictionary<INamedTypeSymbol, INamedTypeSymbol>();
+                Dictionary<INamedTypeSymbol, INamedTypeSymbol> containingTypeMap = [];
                 if (context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisCSharpCSharpExtensions) is { } csharpKindExtensions
                     && context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisCSharpExtensions) is { } csharpIsKindExtensions)
                 {

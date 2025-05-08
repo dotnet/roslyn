@@ -121,7 +121,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
 
         using (Logger.LogBlock(
             functionId,
-            KeyValueLogMessage.Create(LogType.UserAction, m =>
+            KeyValueLogMessage.Create(LogType.UserAction, static (m, correlationId) =>
             {
                 // only set when correlation id is given
                 // we might not have this info for suppression
@@ -129,7 +129,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
                 {
                     m[FixAllLogger.CorrelationId] = correlationId;
                 }
-            }),
+            }, correlationId),
             cancellationToken))
         {
             var glyph = language == null
@@ -165,11 +165,11 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
 
         using (Logger.LogBlock(
             functionId,
-            KeyValueLogMessage.Create(LogType.UserAction, m =>
+            KeyValueLogMessage.Create(LogType.UserAction, static (m, fixAllContext) =>
             {
                 m[FixAllLogger.CorrelationId] = fixAllContext.State.CorrelationId;
                 m[FixAllLogger.FixAllScope] = fixAllContext.State.Scope.ToString();
-            }),
+            }, fixAllContext),
             fixAllContext.CancellationToken))
         {
             CodeAction? action = null;

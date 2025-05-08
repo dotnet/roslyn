@@ -107,7 +107,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
             document, position, restrictToDeclarations, cancellationToken).ConfigureAwait(false);
 
         // Cross-language symbols will show as metadata, so map it to source if possible.
-        symbol = SymbolFinder.FindSourceDefinition(symbol, document.Project.Solution, cancellationToken) ?? symbol;
+        symbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, document.Project.Solution, cancellationToken).ConfigureAwait(false) ?? symbol;
         if (symbol == null)
             return new CannotChangeSignatureAnalyzedContext(ChangeSignatureFailureKind.IncorrectKind);
 

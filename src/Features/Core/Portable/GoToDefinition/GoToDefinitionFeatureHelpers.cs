@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition;
 
 internal static class GoToDefinitionFeatureHelpers
 {
-    public static ISymbol? TryGetPreferredSymbol(
+    public static async ValueTask<ISymbol?> TryGetPreferredSymbolAsync(
         Solution solution, ISymbol? symbol, CancellationToken cancellationToken)
     {
         if (symbol is null)
@@ -43,7 +43,7 @@ internal static class GoToDefinitionFeatureHelpers
                 symbol = alias.Target;
         }
 
-        var definition = SymbolFinder.FindSourceDefinition(symbol, solution, cancellationToken);
+        var definition = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
 
         symbol = definition ?? symbol;
@@ -66,7 +66,7 @@ internal static class GoToDefinitionFeatureHelpers
         bool thirdPartyNavigationAllowed,
         CancellationToken cancellationToken)
     {
-        symbol = TryGetPreferredSymbol(solution, symbol, cancellationToken);
+        symbol = await TryGetPreferredSymbolAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
         if (symbol is null)
             return [];
 

@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (!IsStatic && this.GetIsNewExtensionMember() && ContainingType.ExtensionParameter is { } extensionParameter)
+            if (this.GetIsNewExtensionMember() && ContainingType.ExtensionParameter is { } extensionParameter)
             {
                 if (!extensionParameter.TypeWithAnnotations.IsAtLeastAsVisibleAs(this, ref useSiteInfo))
                 {

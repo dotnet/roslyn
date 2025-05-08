@@ -27,6 +27,11 @@
         <target state="translated">Převést řazenou kolekci členů na refaktoring struktury</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_CopilotChangeAnalysis">
+        <source>Copilot change analysis</source>
+        <target state="new">Copilot change analysis</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_DependentTypeFinder">
         <source>Dependent type finder</source>
         <target state="translated">Vyhledávání závislých typů</target>
@@ -85,6 +90,11 @@
       <trans-unit id="FeatureName_InheritanceMargin">
         <source>Inheritance margin</source>
         <target state="translated">Míra dědičnosti</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_Initialization">
+        <source>Initialization</source>
+        <target state="new">Initialization</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_KeepAlive">

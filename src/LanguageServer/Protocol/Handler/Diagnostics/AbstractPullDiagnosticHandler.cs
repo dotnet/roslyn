@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 /// <typeparam name="TReport">The LSP type that is reported via IProgress</typeparam>
 /// <typeparam name="TReturn">The LSP type that is returned on completion of the request.</typeparam>
 internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn>(
-    IDiagnosticAnalyzerService diagnosticAnalyzerService,
     IDiagnosticsRefresher diagnosticRefresher,
     IGlobalOptionService globalOptions)
     : ILspServiceRequestHandler<TDiagnosticsParams, TReturn?>
@@ -43,7 +42,6 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
     private readonly IDiagnosticsRefresher _diagnosticRefresher = diagnosticRefresher;
 
     protected readonly IGlobalOptionService GlobalOptions = globalOptions;
-    protected readonly IDiagnosticAnalyzerService DiagnosticAnalyzerService = diagnosticAnalyzerService;
 
     /// <summary>
     /// Map of diagnostic category to the diagnostics cache for that category.
@@ -299,7 +297,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
     {
         foreach (var removedResult in removedPreviousResults)
         {
-            context.TraceInformation($"Clearing diagnostics for removed document: {removedResult.TextDocument.Uri}");
+            context.TraceInformation($"Clearing diagnostics for removed document: {removedResult.TextDocument.DocumentUri}");
 
             // Client is asking server about a document that no longer exists (i.e. was removed/deleted from
             // the workspace). Report a (null-diagnostics, null-result-id) response to the client as that
