@@ -25,11 +25,10 @@ internal sealed partial class PublicWorkspacePullDiagnosticsHandler : AbstractWo
     public PublicWorkspacePullDiagnosticsHandler(
         LspWorkspaceManager workspaceManager,
         LspWorkspaceRegistrationService registrationService,
-        IDiagnosticAnalyzerService analyzerService,
         IDiagnosticSourceManager diagnosticSourceManager,
         IDiagnosticsRefresher diagnosticRefresher,
         IGlobalOptionService globalOptions)
-        : base(workspaceManager, registrationService, analyzerService, diagnosticSourceManager, diagnosticRefresher, globalOptions)
+        : base(workspaceManager, registrationService, diagnosticSourceManager, diagnosticRefresher, globalOptions)
     {
     }
 

@@ -24,11 +24,10 @@ internal sealed partial class PublicDocumentPullDiagnosticsHandler : AbstractDoc
 
     public PublicDocumentPullDiagnosticsHandler(
         IClientLanguageServerManager clientLanguageServerManager,
-        IDiagnosticAnalyzerService analyzerService,
         IDiagnosticSourceManager diagnosticSourceManager,
         IDiagnosticsRefresher diagnosticsRefresher,
         IGlobalOptionService globalOptions)
-        : base(analyzerService, diagnosticsRefresher, diagnosticSourceManager, globalOptions)
+        : base(diagnosticsRefresher, diagnosticSourceManager, globalOptions)
     {
         _clientLanguageServerManager = clientLanguageServerManager;
     }

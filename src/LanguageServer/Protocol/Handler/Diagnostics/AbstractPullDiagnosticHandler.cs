@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 /// <typeparam name="TReport">The LSP type that is reported via IProgress</typeparam>
 /// <typeparam name="TReturn">The LSP type that is returned on completion of the request.</typeparam>
 internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn>(
-    IDiagnosticAnalyzerService diagnosticAnalyzerService,
     IDiagnosticsRefresher diagnosticRefresher,
     IGlobalOptionService globalOptions)
     : ILspServiceRequestHandler<TDiagnosticsParams, TReturn?>
@@ -43,7 +42,6 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
     private readonly IDiagnosticsRefresher _diagnosticRefresher = diagnosticRefresher;
 
     protected readonly IGlobalOptionService GlobalOptions = globalOptions;
-    protected readonly IDiagnosticAnalyzerService DiagnosticAnalyzerService = diagnosticAnalyzerService;
 
     /// <summary>
     /// Map of diagnostic category to the diagnostics cache for that category.
