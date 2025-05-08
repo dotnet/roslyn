@@ -131,10 +131,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var getAwaiter = (BoundExpression?)this.Visit(node.GetAwaiter);
             var isCompleted = VisitPropertySymbol(node.IsCompleted);
             var getResult = VisitMethodSymbol(node.GetResult);
+            var runtimeAsyncAwaitMethod = VisitMethodSymbol(node.RuntimeAsyncAwaitMethod);
 
             _placeholderMap.Remove(awaitablePlaceholder);
 
-            return node.Update(rewrittenPlaceholder, node.IsDynamic, getAwaiter, isCompleted, getResult);
+            return node.Update(rewrittenPlaceholder, node.IsDynamic, getAwaiter, isCompleted, getResult, runtimeAsyncAwaitMethod);
         }
 
         public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)

@@ -501,7 +501,7 @@ class Test
                       IL_001a:  pop
                       IL_001b:  ldsfld     "Test.<>c Test.<>c.<>9"
                       IL_0020:  ldftn      "void Test.<>c.<F>b__1_0()"
-                      IL_0026:  newobj     "System.Action..ctor(object, nint)"
+                      IL_0026:  newobj     "System.Action..ctor(object, System.IntPtr)"
                       IL_002b:  dup
                       IL_002c:  stsfld     "System.Action Test.<>c.<>9__1_0"
                       IL_0031:  callvirt   "System.Threading.Tasks.Task System.Threading.Tasks.TaskFactory.StartNew(System.Action)"
@@ -625,7 +625,7 @@ class Test
                   IL_000d:  pop
                   IL_000e:  ldsfld     "Test.<>c Test.<>c.<>9"
                   IL_0013:  ldftn      "void Test.<>c.<F>b__1_0()"
-                  IL_0019:  newobj     "System.Action..ctor(object, nint)"
+                  IL_0019:  newobj     "System.Action..ctor(object, System.IntPtr)"
                   IL_001e:  dup
                   IL_001f:  stsfld     "System.Action Test.<>c.<>9__1_0"
                   IL_0024:  callvirt   "System.Threading.Tasks.Task System.Threading.Tasks.TaskFactory.StartNew(System.Action)"
@@ -752,7 +752,7 @@ O brave new world...
                   IL_000d:  pop
                   IL_000e:  ldsfld     "Test.<>c Test.<>c.<>9"
                   IL_0013:  ldftn      "string Test.<>c.<F>b__0_0()"
-                  IL_0019:  newobj     "System.Func<string>..ctor(object, nint)"
+                  IL_0019:  newobj     "System.Func<string>..ctor(object, System.IntPtr)"
                   IL_001e:  dup
                   IL_001f:  stsfld     "System.Func<string> Test.<>c.<>9__0_0"
                   IL_0024:  callvirt   "System.Threading.Tasks.Task<string> System.Threading.Tasks.TaskFactory.StartNew<string>(System.Func<string>)"
@@ -900,7 +900,7 @@ class Test
                       IL_0008:  pop
                       IL_0009:  ldsfld     "Test.<>c Test.<>c.<>9"
                       IL_000e:  ldftn      "string Test.<>c.<F>b__0_0()"
-                      IL_0014:  newobj     "System.Func<string>..ctor(object, nint)"
+                      IL_0014:  newobj     "System.Func<string>..ctor(object, System.IntPtr)"
                       IL_0019:  dup
                       IL_001a:  stsfld     "System.Func<string> Test.<>c.<>9__0_0"
                       IL_001f:  newobj     "System.Threading.Tasks.Task<string>..ctor(System.Func<string>)"
@@ -8179,7 +8179,7 @@ class Test1
                   IL_000f:  brtrue.s   IL_0026
                   IL_0011:  ldsfld     "Program.<>c Program.<>c.<>9"
                   IL_0016:  ldftn      "System.Threading.Tasks.Task Program.<>c.<Main>b__0_0()"
-                  IL_001c:  newobj     "System.Func<System.Threading.Tasks.Task>..ctor(object, nint)"
+                  IL_001c:  newobj     "System.Func<System.Threading.Tasks.Task>..ctor(object, System.IntPtr)"
                   IL_0021:  stsfld     "System.Func<System.Threading.Tasks.Task> Program.<>c.<>9__0_0"
                   IL_0026:  ret
                 }

@@ -251,31 +251,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        public override BoundNode VisitAwaitableInfo(BoundAwaitableInfo node)
-        {
-            var awaitablePlaceholder = node.AwaitableInstancePlaceholder;
-            if (awaitablePlaceholder is null)
-            {
-                return node;
-            }
-
-            var rewrittenPlaceholder = awaitablePlaceholder.Update(VisitType(awaitablePlaceholder.Type));
-            _placeholderMap.Add(awaitablePlaceholder, rewrittenPlaceholder);
-
-            var getAwaiter = (BoundExpression?)this.Visit(node.GetAwaiter);
-            var isCompleted = VisitPropertySymbol(node.IsCompleted);
-            var getResult = VisitMethodSymbol(node.GetResult);
-
-            _placeholderMap.Remove(awaitablePlaceholder);
-
-            return node.Update(rewrittenPlaceholder, node.IsDynamic, getAwaiter, isCompleted, getResult);
-        }
-
-        public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
-        {
-            return _placeholderMap[node];
-        }
-
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
         {
             BoundExpression originalLeft = node.Left;
