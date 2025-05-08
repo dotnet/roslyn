@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         internal static bool IsOptionName(string optionName, ReadOnlySpan<char> value)
         {
-            Debug.Assert(isAllAscii(optionName.AsSpan()));
+            assertAllAscii(optionName.AsSpan());
 
             if (optionName.Length != value.Length)
                 return false;
@@ -120,17 +120,18 @@ namespace Microsoft.CodeAnalysis
 
             return true;
 
-#if DEBUG
-            static bool isAllAscii(ReadOnlySpan<char> span)
+            [Conditional("DEBUG")]
+            static void assertAllAscii(ReadOnlySpan<char> span)
             {
                 foreach (char ch in span)
                 {
                     if (ch > 127)
-                        return false;
+                    {
+                        Debug.Assert(false);
+                        break;
+                    }
                 }
-                return true;
             }
-#endif
         }
 
         internal static bool IsOption(string arg) => IsOption(arg.AsSpan());
