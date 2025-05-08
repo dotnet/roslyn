@@ -9,16 +9,10 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 [ExportCSharpVisualBasicLspServiceFactory(typeof(RequestTelemetryLogger)), Shared]
-internal class RequestTelemetryLoggerFactory : ILspServiceFactory
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class RequestTelemetryLoggerFactory() : ILspServiceFactory
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public RequestTelemetryLoggerFactory()
-    {
-    }
-
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-    {
-        return new RequestTelemetryLogger(serverKind.ToTelemetryString());
-    }
+        => new RequestTelemetryLogger(serverKind.ToTelemetryString());
 }
