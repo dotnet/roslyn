@@ -252,7 +252,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Select Case symbol.TypeKind
                 Case TypeKind.Class,
-                     TypeKind.Submission
+                     TypeKind.Submission,
+                     TypeKind.Extension ' PROTOTYPE: Confirm this is the way we want to handle C# extensions
                     partKind = SymbolDisplayPartKind.ClassName
                 Case TypeKind.Delegate
                     partKind = SymbolDisplayPartKind.DelegateName
