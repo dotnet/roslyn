@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Assert that binding layer agrees with lowering layer about whether this collection-expr will allocate.
                     Debug.Assert(!IsAllocatingRefStructCollectionExpression(node, collectionTypeKind, elementType.Type, _compilation));
                     var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array)).AsMember(spanType);
-                    var rewrittenElements = elements.SelectAsArray(static (element, rewriter) => rewriter.VisitExpression((BoundExpression)element), this);
+                    var rewrittenElements = elements.SelectAsArray(static (element, rewriter) => rewriter.VisitAndRewriteCollectionElementExpression(element, allowSpreadElement: false), this);
                     return _factory.New(constructor, _factory.Array(elementType.Type, rewrittenElements));
                 }
 
@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression fieldValue = kind switch
                     {
                         // fieldValue = e1;
-                        SynthesizedReadOnlyListKind.SingleElement => this.VisitExpression((BoundExpression)elements.Single()),
+                        SynthesizedReadOnlyListKind.SingleElement => VisitAndRewriteCollectionElementExpression(elements.Single(), allowSpreadElement: false),
                         // fieldValue = new ElementType[] { e1, ..., eN };
                         SynthesizedReadOnlyListKind.Array => createArray(node, ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType)),
                         // fieldValue = new List<ElementType> { e1, ..., eN };
@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool asReadOnlySpan)
         {
             Debug.Assert(elements.Length > 0);
-            Debug.Assert(elements.All(e => e is BoundExpression));
+            Debug.Assert(elements.All(e => e is BoundExpression or BoundKeyValuePairElement));
             Debug.Assert(_factory.ModuleBuilderOpt is { });
             Debug.Assert(_diagnostics.DiagnosticBag is { });
             Debug.Assert(_compilation.Assembly.RuntimeSupportsInlineArrayTypes);
@@ -585,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     .WellKnownType(asReadOnlySpan ? WellKnownType.System_ReadOnlySpan_T : WellKnownType.System_Span_T)
                     .Construct([elementType]);
                 var constructor = spanRefConstructor.AsMember(spanType);
-                var element = VisitExpression((BoundExpression)elements[0]);
+                var element = VisitAndRewriteCollectionElementExpression(elements[0], allowSpreadElement: false);
                 var temp = _factory.StoreToTemp(element, out var assignment);
                 _additionalLocals.Add(temp.LocalSymbol);
                 var call = _factory.New(constructor, arguments: [temp], argumentRefKinds: [asReadOnlySpan ? RefKindExtensions.StrictIn : RefKind.Ref]);
@@ -613,7 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // ...
             for (int i = 0; i < arrayLength; i++)
             {
-                var element = VisitExpression((BoundExpression)elements[i]);
+                var element = VisitAndRewriteCollectionElementExpression(elements[i], allowSpreadElement: false);
                 var call = _factory.Call(null, elementRef, inlineArrayLocal, _factory.Literal(i), useStrictArgumentRefKinds: true);
                 var assignment = new BoundAssignmentOperator(syntax, call, element, type: call.Type) { WasCompilerGenerated = true };
                 sideEffects.Add(assignment);
@@ -685,7 +685,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node is { Elements: [BoundCollectionExpressionSpreadElement { Expression: { } spreadExpression } spreadElement] }
                 && spreadElement.IteratorBody is BoundExpressionStatement expressionStatement)
             {
-                var spreadElementHasIdentityConversion = expressionStatement.Expression is not BoundConversion;
+                var spreadElementHasIdentityConversion = expressionStatement.Expression is not (BoundConversion or BoundKeyValuePairConversion);
                 var spreadTypeOriginalDefinition = spreadExpression.Type!.OriginalDefinition;
 
                 if (spreadElementHasIdentityConversion
@@ -766,7 +766,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var initialization = new BoundArrayInitialization(
                     syntax,
                     isInferred: false,
-                    elements.SelectAsArray(static (element, rewriter) => rewriter.VisitExpression((BoundExpression)element), this));
+                    elements.SelectAsArray(static (element, rewriter) => rewriter.VisitAndRewriteCollectionElementExpression(element, allowSpreadElement: false), this));
                 return new BoundArrayCreation(
                     syntax,
                     ImmutableArray.Create<BoundExpression>(
@@ -783,7 +783,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var localsBuilder = ArrayBuilder<BoundLocal>.GetInstance();
             var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
 
-            RewriteCollectionExpressionElementsIntoTemporaries(elements, numberIncludingLastSpread, localsBuilder, sideEffects);
+            VisitAndRewriteCollectionElementsIntoTemporaries(elements, numberIncludingLastSpread, localsBuilder, sideEffects);
 
             // int index = 0;
             BoundLocal indexTemp = _factory.StoreToTemp(
@@ -967,7 +967,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Cannot use CopyTo when spread element has non-identity conversion to target element type.
             // Could do a covariant conversion of ReadOnlySpan in future: https://github.com/dotnet/roslyn/issues/71106
-            if (spreadElement.IteratorBody is not BoundExpressionStatement expressionStatement || expressionStatement.Expression is BoundConversion)
+            if (spreadElement.IteratorBody is not BoundExpressionStatement expressionStatement || expressionStatement.Expression is BoundConversion or BoundKeyValuePairConversion)
                 return null;
 
             if (_factory.WellKnownMethod(WellKnownMember.System_Span_T__Slice_Int_Int, isOptional: true) is not { } spanSliceMethod)
@@ -1054,7 +1054,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             int numberIncludingLastSpread;
             bool useKnownLength = ShouldUseKnownLength(node, out numberIncludingLastSpread);
-            RewriteCollectionExpressionElementsIntoTemporaries(elements, numberIncludingLastSpread, localsBuilder, sideEffects);
+            VisitAndRewriteCollectionElementsIntoTemporaries(elements, numberIncludingLastSpread, localsBuilder, sideEffects);
 
             bool useOptimizations = false;
             MethodSymbol? setCount = null;
@@ -1252,7 +1252,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             sideEffects.Add(assignmentToTemp);
 
             var placeholder = node.Placeholder;
+            var setMethod = node.IndexerSetMethod;
             Debug.Assert(placeholder is { });
+            Debug.Assert(setMethod is { });
 
             AddPlaceholderReplacement(placeholder, dictionaryTemp);
 
@@ -1263,25 +1265,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKeyValuePairElement keyValuePairElement:
                         {
                             // dictionary[key] = value;
-                            Debug.Assert(keyValuePairElement is { Key: { }, Value: { }, KeyPlaceholder: { }, ValuePlaceholder: { }, IndexerAssignment: { } });
-                            AddPlaceholderReplacement(keyValuePairElement.KeyPlaceholder, VisitExpression(keyValuePairElement.Key));
-                            AddPlaceholderReplacement(keyValuePairElement.ValuePlaceholder, VisitExpression(keyValuePairElement.Value));
-                            sideEffects.Add(VisitExpression(keyValuePairElement.IndexerAssignment));
-                            RemovePlaceholderReplacement(keyValuePairElement.ValuePlaceholder);
-                            RemovePlaceholderReplacement(keyValuePairElement.KeyPlaceholder);
+                            VisitAndRewriteKeyValuePairElement(keyValuePairElement, out var rewrittenKey, out var rewrittenValue);
+                            sideEffects.Add(
+                                _factory.Call(
+                                    dictionaryTemp,
+                                    setMethod,
+                                    rewrittenKey,
+                                    rewrittenValue));
                         }
                         break;
-                    case BoundKeyValuePairExpressionElement keyValuePairExpressionElement:
-                        {
-                            // dictionary[element.Key] = element.Value;
-                            var rewrittenExpression = VisitExpression(keyValuePairExpressionElement.Expression);
-                            BoundLocal exprTemp = _factory.StoreToTemp(rewrittenExpression, out assignmentToTemp);
-                            localsBuilder.Add(exprTemp);
-                            sideEffects.Add(assignmentToTemp);
-                            AddPlaceholderReplacement(keyValuePairExpressionElement.ExpressionPlaceholder, exprTemp);
-                            sideEffects.Add(VisitExpression(keyValuePairExpressionElement.IndexerAssignment));
-                            RemovePlaceholderReplacement(keyValuePairExpressionElement.ExpressionPlaceholder);
-                        }
+                    case BoundKeyValuePairConversion keyValuePairConversion:
+                        // dictionary[(TKey)element.Key] = (TValue)element.Value;
+                        assignItemFromKeyValuePairConversion(keyValuePairConversion, dictionaryTemp, setMethod, localsBuilder, sideEffects);
+                        break;
+                    case BoundExpression expressionElement:
+                        // dictionary[element.Key] = element.Value;
+                        assignItemFromExpression(expressionElement, dictionaryTemp, setMethod, localsBuilder, sideEffects);
                         break;
                     case BoundCollectionExpressionSpreadElement spreadElement:
                         {
@@ -1291,9 +1290,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 rewrittenExpression,
                                 iteratorBody =>
                                 {
-                                    // dictionary[item.Key] = item.Value;
-                                    var expr = VisitExpression(((BoundExpressionStatement)iteratorBody).Expression);
-                                    return new BoundExpressionStatement(expr.Syntax, expr);
+                                    var localsBuilder = ArrayBuilder<BoundLocal>.GetInstance();
+                                    var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
+                                    var expr = ((BoundExpressionStatement)iteratorBody).Expression;
+                                    switch (expr)
+                                    {
+                                        case BoundKeyValuePairConversion keyValuePairConversion:
+                                            // dictionary[(TKey)item.Key] = (TValue)item.Value;
+                                            assignItemFromKeyValuePairConversion(keyValuePairConversion, dictionaryTemp, setMethod, localsBuilder, sideEffects);
+                                            break;
+                                        case BoundExpression expressionElement:
+                                            // dictionary[element.Key] = element.Value;
+                                            assignItemFromExpression(expressionElement, dictionaryTemp, setMethod, localsBuilder, sideEffects);
+                                            break;
+                                        default:
+                                            throw ExceptionUtilities.UnexpectedValue(element);
+                                    }
+                                    var locals = localsBuilder.SelectAsArray(local => local.LocalSymbol);
+                                    var statements = sideEffects.SelectAsArray(expr => (BoundStatement)new BoundExpressionStatement(expr.Syntax, expr));
+                                    sideEffects.Free();
+                                    localsBuilder.Free();
+                                    return new BoundBlock(iteratorBody.Syntax, locals, statements);
                                 });
                             sideEffects.Add(rewrittenElement);
                         }
@@ -1314,17 +1331,146 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sideEffects.ToImmutableAndFree(),
                 dictionaryTemp,
                 collectionType);
+
+            // dictionary[(TKey)kvp.Key] = (TValue)kvp.Value;
+            void assignItemFromKeyValuePairConversion(
+                BoundKeyValuePairConversion keyValuePairConversion,
+                BoundLocal dictionaryTemp,
+                MethodSymbol setMethod,
+                ArrayBuilder<BoundLocal> localsBuilder,
+                ArrayBuilder<BoundExpression> sideEffects)
+            {
+                VisitAndRewriteKeyValuePairConversion(keyValuePairConversion, out var rewrittenKeyConversion, out var rewrittenValueConversion, localsBuilder, sideEffects);
+                var assignment = _factory.Call(
+                    dictionaryTemp,
+                    setMethod,
+                    rewrittenKeyConversion,
+                    rewrittenValueConversion);
+                sideEffects.Add(assignment);
+            }
+
+            // dictionary[expr.Key] = expr.Value;
+            void assignItemFromExpression(
+                BoundExpression expression,
+                BoundLocal dictionaryTemp,
+                MethodSymbol setMethod,
+                ArrayBuilder<BoundLocal> localsBuilder,
+                ArrayBuilder<BoundExpression> sideEffects)
+            {
+                var rewrittenExpression = VisitExpression(expression);
+
+                BoundAssignmentOperator assignmentToTemp;
+                BoundLocal exprTemp = _factory.StoreToTemp(rewrittenExpression, out assignmentToTemp);
+                localsBuilder.Add(exprTemp);
+                sideEffects.Add(assignmentToTemp);
+
+                var getKey = GetKeyValuePairKeyOrValue(exprTemp, WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key);
+                var getValue = GetKeyValuePairKeyOrValue(exprTemp, WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value);
+                var assignment = _factory.Call(
+                    dictionaryTemp,
+                    setMethod,
+                    getKey,
+                    getValue);
+                sideEffects.Add(assignment);
+            }
         }
 
-        private BoundExpression RewriteCollectionExpressionElementExpression(BoundNode element)
+        private void VisitAndRewriteKeyValuePairElement(
+            BoundKeyValuePairElement keyValuePairElement,
+            out BoundExpression rewrittenKey,
+            out BoundExpression rewrittenValue)
         {
-            var expression = element is BoundCollectionExpressionSpreadElement spreadElement ?
-                spreadElement.Expression :
-                (BoundExpression)element;
-            return VisitExpression(expression);
+            rewrittenKey = VisitExpression(keyValuePairElement.Key);
+            rewrittenValue = VisitExpression(keyValuePairElement.Value);
         }
 
-        private void RewriteCollectionExpressionElementsIntoTemporaries(
+        private void VisitAndRewriteKeyValuePairConversion(
+            BoundKeyValuePairConversion keyValuePairConversion,
+            out BoundExpression rewrittenKeyConversion,
+            out BoundExpression rewrittenValueConversion,
+            ArrayBuilder<BoundLocal> localsBuilder,
+            ArrayBuilder<BoundExpression> sideEffects)
+        {
+            var rewrittenExpression = VisitExpression(keyValuePairConversion.Expression);
+
+            BoundAssignmentOperator assignmentToTemp;
+            BoundLocal exprTemp = _factory.StoreToTemp(rewrittenExpression, out assignmentToTemp);
+            localsBuilder.Add(exprTemp);
+            sideEffects.Add(assignmentToTemp);
+
+            AddPlaceholderReplacement(keyValuePairConversion.KeyPlaceholder, GetKeyValuePairKeyOrValue(exprTemp, WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key));
+            rewrittenKeyConversion = VisitExpression(keyValuePairConversion.KeyConversion);
+            RemovePlaceholderReplacement(keyValuePairConversion.KeyPlaceholder);
+
+            AddPlaceholderReplacement(keyValuePairConversion.ValuePlaceholder, GetKeyValuePairKeyOrValue(exprTemp, WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value));
+            rewrittenValueConversion = VisitExpression(keyValuePairConversion.ValueConversion);
+            RemovePlaceholderReplacement(keyValuePairConversion.ValuePlaceholder);
+        }
+
+        private BoundExpression GetKeyValuePairKeyOrValue(
+            BoundExpression rewrittenExpression,
+            WellKnownMember getKeyOrValueMember)
+        {
+            Debug.Assert(getKeyOrValueMember is
+                WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key or
+                WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value);
+            Debug.Assert(rewrittenExpression.Type is { });
+            Debug.Assert(ConversionsBase.IsKeyValuePairType(_compilation, rewrittenExpression.Type, WellKnownType.System_Collections_Generic_KeyValuePair_KV, out _, out _));
+
+            var keyValuePairType = (NamedTypeSymbol)rewrittenExpression.Type;
+            var getMethod = _factory.WellKnownMethod(getKeyOrValueMember).AsMember(keyValuePairType);
+            return _factory.Call(rewrittenExpression, getMethod);
+        }
+
+        private BoundExpression CreateKeyValuePair(
+            BoundExpression key,
+            BoundExpression value)
+        {
+            Debug.Assert(key.Type is { });
+            Debug.Assert(value.Type is { });
+
+            var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__ctor));
+            var type = constructor.ContainingType.Construct(key.Type, value.Type);
+            constructor = constructor.AsMember(type);
+            return _factory.New(constructor, key, value);
+        }
+
+        private BoundExpression VisitAndRewriteCollectionElementExpression(BoundNode element, bool allowSpreadElement)
+        {
+            switch (element)
+            {
+                case BoundKeyValuePairElement keyValuePairElement:
+                    {
+                        VisitAndRewriteKeyValuePairElement(keyValuePairElement, out var rewrittenKey, out var rewrittenValue);
+                        return CreateKeyValuePair(rewrittenKey, rewrittenValue);
+                    }
+                case BoundExpression expression:
+                    return VisitExpression(expression);
+                case BoundCollectionExpressionSpreadElement spreadElement when allowSpreadElement:
+                    return VisitExpression(spreadElement.Expression);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(element);
+            }
+        }
+
+        public override BoundNode? VisitKeyValuePairConversion(BoundKeyValuePairConversion node)
+        {
+            var localsBuilder = ArrayBuilder<BoundLocal>.GetInstance();
+            var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
+            VisitAndRewriteKeyValuePairConversion(node, out var rewrittenKeyConversion, out var rewrittenValueConversion, localsBuilder, sideEffects);
+            var value = CreateKeyValuePair(rewrittenKeyConversion, rewrittenValueConversion);
+            Debug.Assert(value.Type is { });
+            var locals = localsBuilder.SelectAsArray(local => local.LocalSymbol);
+            localsBuilder.Free();
+            return new BoundSequence(
+                node.Syntax,
+                locals,
+                sideEffects.ToImmutableAndFree(),
+                value,
+                value.Type);
+        }
+
+        private void VisitAndRewriteCollectionElementsIntoTemporaries(
             ImmutableArray<BoundNode> elements,
             int numberIncludingLastSpread,
             ArrayBuilder<BoundLocal> locals,
@@ -1332,7 +1478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             for (int i = 0; i < numberIncludingLastSpread; i++)
             {
-                var rewrittenExpression = RewriteCollectionExpressionElementExpression(elements[i]);
+                var rewrittenExpression = VisitAndRewriteCollectionElementExpression(elements[i], allowSpreadElement: true);
                 BoundAssignmentOperator assignmentToTemp;
                 BoundLocal temp = _factory.StoreToTemp(rewrittenExpression, out assignmentToTemp);
                 locals.Add(temp);
@@ -1354,7 +1500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var element = elements[i];
                 var rewrittenExpression = i < numberIncludingLastSpread ?
                     rewrittenExpressions[i] :
-                    RewriteCollectionExpressionElementExpression(element);
+                    VisitAndRewriteCollectionElementExpression(element, allowSpreadElement: true);
 
                 if (element is BoundCollectionExpressionSpreadElement spreadElement)
                 {
@@ -1366,7 +1512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         rewrittenExpression,
                         iteratorBody =>
                         {
-                            var rewrittenValue = VisitExpression(((BoundExpressionStatement)iteratorBody).Expression);
+                            var rewrittenValue = VisitAndRewriteCollectionElementExpression(((BoundExpressionStatement)iteratorBody).Expression, allowSpreadElement: false);
                             var builder = ArrayBuilder<BoundExpression>.GetInstance();
                             addElement(builder, rewrittenReceiver, rewrittenValue, false);
                             var statements = builder.SelectAsArray(expr => (BoundStatement)new BoundExpressionStatement(expr.Syntax, expr));

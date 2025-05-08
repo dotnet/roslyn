@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var elementKeyValueTypes = TryGetCollectionKeyValuePairTypes(Compilation, collectionTypeKind, elementType);
+            var elementKeyValueTypes = TryGetCollectionKeyValuePairTypes(Compilation, elementType);
             var builder = ArrayBuilder<Conversion>.GetInstance(elements.Length);
             foreach (var element in elements)
             {
@@ -253,6 +253,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var valueConversion = ClassifyImplicitConversionFromType(itemValueType, valueType, ref useSiteInfo);
                                 if (keyConversion.Exists && valueConversion.Exists)
                                 {
+                                    // If key and value conversions are both identity, GetCollectionExpressionSpreadElementConversion()
+                                    // should have returned an identity conversion.
+                                    Debug.Assert(!keyConversion.IsIdentity || !valueConversion.IsIdentity);
                                     return Conversion.CreateKeyValuePairConversion(keyConversion, valueConversion);
                                 }
                             }
@@ -287,6 +290,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var valueConversion = ClassifyImplicitConversionFromType(elementValueType, valueType, ref useSiteInfo);
                             if (keyConversion.Exists && valueConversion.Exists)
                             {
+                                // If key and value conversions are both identity, ClassifyImplicitConversionFromExpression()
+                                // should have returned an identity conversion for the entire expression.
+                                Debug.Assert(!keyConversion.IsIdentity || !valueConversion.IsIdentity);
                                 return Conversion.CreateKeyValuePairConversion(keyConversion, valueConversion);
                             }
                         }

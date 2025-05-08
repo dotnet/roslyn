@@ -1771,17 +1771,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static (TypeSymbol Key, TypeSymbol Value)? TryGetCollectionKeyValuePairTypes(
             CSharpCompilation compilation,
-            CollectionExpressionTypeKind collectionTypeKind,
             TypeSymbol elementType)
         {
-            // https://github.com/dotnet/roslyn/issues/77871: Should apply to any collection of KeyValuePair<,>, not just dictionaries.
-            if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer or CollectionExpressionTypeKind.DictionaryInterface)
+            if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureDictionaryExpressions) &&
+                IsKeyValuePairType(compilation, elementType, out var keyType, out var valueType))
             {
-                if (IsKeyValuePairType(compilation, elementType, out var keyType, out var valueType))
-                {
-                    return (keyType, valueType);
-                }
-                Debug.Assert(false);
+                return (keyType, valueType);
             }
             return null;
         }
