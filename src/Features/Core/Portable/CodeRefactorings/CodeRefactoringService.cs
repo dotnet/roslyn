@@ -306,6 +306,11 @@ internal sealed class CodeRefactoringService(
     {
         public bool Equals(ProviderKey other)
         {
+            // We create keys from two sources:
+            //   * MEF's ExportCodeRefactoringProviderAttribute when building the map for available providers.
+            //   * TextDocument when looking up the map for available providers.
+            // Text documents can point to files with different extensions, e.g. MyPage.xaml and MyControl.XAML.
+            // Thus we need case insensitive comparison for DocumentExtension.
             return Language == other.Language &&
                    DocumentKind == other.DocumentKind &&
                    StringComparer.OrdinalIgnoreCase.Equals(DocumentExtension, other.DocumentExtension);
@@ -314,19 +319,6 @@ internal sealed class CodeRefactoringService(
         public override int GetHashCode()
         {
             return (Language, DocumentKind, StringComparer.OrdinalIgnoreCase.GetHashCode(DocumentExtension)).GetHashCode();
-        }
-    }
-
-    private sealed class OrderableLanguageDocumentMetadata : OrderableLanguageMetadata
-    {
-        public TextDocumentKind DocumentKind { get; }
-        public string DocumentExtension { get; }
-
-        public OrderableLanguageDocumentMetadata(string name, string language, TextDocumentKind documentKind, string documentExtension, IEnumerable<string> after, IEnumerable<string> before)
-            : base(name, language, after, before)
-        {
-            DocumentKind = documentKind;
-            DocumentExtension = documentExtension;
         }
     }
 }
