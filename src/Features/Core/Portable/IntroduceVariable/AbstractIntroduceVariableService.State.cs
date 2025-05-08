@@ -104,7 +104,7 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
                 if (globalStatement != null)
                 {
                     InGlobalStatementContext = true;
-                    return true;
+                    return CanIntroduceVariable(textSpan.IsEmpty, cancellationToken);
                 }
 
                 return false;
