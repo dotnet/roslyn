@@ -120,6 +120,7 @@ namespace Microsoft.CodeAnalysis
 
             return true;
 
+#if DEBUG
             static bool isAllAscii(ReadOnlySpan<char> span)
             {
                 foreach (char ch in span)
@@ -129,6 +130,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 return true;
             }
+#endif
         }
 
         internal static bool IsOption(string arg) => IsOption(arg.AsSpan());
@@ -1071,7 +1073,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     inQuotes = !inQuotes;
                 }
-                else if (!inQuotes && separators.IndexOf(c) >= 0)
+                else if (!inQuotes && separators.Contains(c))
                 {
                     var current = memory.Slice(nextPiece, i - nextPiece);
                     if (current.Length > 0 || !removeEmptyEntries)
