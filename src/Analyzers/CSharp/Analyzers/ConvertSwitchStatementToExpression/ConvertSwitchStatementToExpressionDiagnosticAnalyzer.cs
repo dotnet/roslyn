@@ -63,7 +63,7 @@ internal sealed partial class ConvertSwitchStatementToExpressionDiagnosticAnalyz
 
         var additionalLocations = ArrayBuilder<Location>.GetInstance();
         additionalLocations.Add(switchStatement.GetLocation());
-        additionalLocations.AddOptional(declaratorToRemoveOpt?.GetLocation());
+        additionalLocations.AddIfNotNull(declaratorToRemoveOpt?.GetLocation());
 
         context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor,
             // Report the diagnostic on the "switch" keyword.
