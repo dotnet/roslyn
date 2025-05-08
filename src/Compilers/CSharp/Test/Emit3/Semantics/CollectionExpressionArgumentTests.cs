@@ -4098,12 +4098,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(7, 34));
         }
 
-        // PROTOTYPE: Test nullability of signatures. Specifically, null should be allowed for IEqualityComparer<T>.
-        // PROTOTYPE: Test the full shape of the synthesized methods, including 'params', optional values, accessibility, etc.?
-        // PROTOTYPE: Test with implementation method that differs from the expected parameter name when the argument was explicitly named.
-        // PROTOTYPE: Semantic model for collection creation: what method is returned if any?
-        // PROTOTYPE: Test dynamic arguments. Shouldn't result in a BoundDynamicInvocation.
-
         [Theory]
         [CombinatorialData]
         public void InterfaceTarget_ArrayInterfaces(
@@ -4570,7 +4564,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_BadNamedArgument, "collection").WithArguments("<signature>", "collection").WithLocation(10, 22));
         }
 
-        // PROTOTYPE: Verify evaluation order.
+        [Theory]
+        [CombinatorialData]
+        public void InterfaceTarget_Nullability(
+            [CombinatorialValues("IDictionary", "IReadOnlyDictionary")] string typeName)
+        {
+            string source = $$"""
+                #nullable enable
+                using System.Collections.Generic;
+                class Program
+                {
+                    static {{typeName}}<K, V> Create1<K, V>(IEqualityComparer<K>? c1)
+                    {
+                        return [with(c1)];
+                    }
+                    static {{typeName}}<K, V> Create2<K, V>(IEqualityComparer<K?> c2)
+                    {
+                        return [with(c2)];
+                    }
+                    static {{typeName}}<K?, V> Create2<K?, V>(IEqualityComparer<K> c3) where K : class
+                    {
+                        return [with(c3)];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
         [Fact]
         public void InterfaceTarget_ReorderedArguments()
         {
@@ -4580,17 +4601,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     static void Main()
                     {
-                        Create<int, string>(null, 3, 1, "one", new(2, "two")).Report();
+                        Create<int, string>(EqualityComparer<int>.Default, 2, new(1, "one")).Report();
                     }
-                    static IDictionary<K, V> Create<K, V>(IEqualityComparer<K> e, int c, K k, V v, KeyValuePair<K, V> x)
+                    static IDictionary<K, V> Create<K, V>(IEqualityComparer<K> e, int c, KeyValuePair<K, V> x)
                     {
-                        return [with(comparer: e, capacity: c), k:v, x];
+                        return [with(comparer: Identity(e), capacity: Identity(c)), Identity(x)];
+                    }
+                    static T Identity<T>(T value)
+                    {
+                        Console.WriteLine(value);
+                        return value;
                     }
                 }
                 """;
             var verifier = CompileAndVerify(
                 [source, s_collectionExtensions],
-                    expectedOutput: "[[1, one], [2, two]], ");
+                    expectedOutput: """
+                    EqualityComparer
+                    2
+                    [1, one]
+                    [[1, one]]
+                    """);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Create<K, V>", """
                 {
@@ -4619,6 +4650,130 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """);
         }
+
+        [Theory]
+        [CombinatorialData]
+        public void InterfaceTarget_Dynamic(
+            [CombinatorialValues("IDictionary", "IReadOnlyDictionary")] string typeName)
+        {
+            string source = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Create(null, 1, "one").Report();
+                    }
+                    static {{typeName}}<K, V> Create<K, V>(dynamic d, K k, V v)
+                    {
+                        return [with(d), k:v];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                source,
+                targetFramework: TargetFramework.Net80,
+                options: TestOptions.ReleaseExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(
+                comp,
+                verify: Verification.Skipped,
+                expectedOutput: "[[1, one]], ");
+        }
+
+        /// <summary>
+        /// Implementation of List(int) uses a name other than capacity.
+        /// </summary>
+        [Fact]
+        public void InterfaceTarget_ImplementationParameterName()
+        {
+            string sourceA = """
+                using System.Collections;
+                namespace System
+                {
+                    public class Object { }
+                    public abstract class ValueType { }
+                    public class String { }
+                    public class Type { }
+                    public struct Void { }
+                    public struct Boolean { }
+                    public struct Int32 { }
+                    public interface IDisposable
+                    {
+                        void Dispose();
+                    }
+                }
+                namespace System.Collections
+                {
+                    public interface IEnumerator
+                    {
+                        bool MoveNext();
+                        object Current { get; }
+                    }
+                    public interface IEnumerable
+                    {
+                        IEnumerator GetEnumerator();
+                    }
+                }
+                namespace System.Collections.Generic
+                {
+                    public interface IEnumerator<T> : IEnumerator
+                    {
+                        T Current { get; }
+                    }
+                    public interface IEnumerable<T> : IEnumerable
+                    {
+                        IEnumerator<T> GetEnumerator();
+                    }
+                    public class List<T> : IEnumerable<T>
+                    {
+                        public List() { }
+                        public List(int __c) { }
+                        public void Add(T t) { }
+                        IEnumerator<T> IEnumerable<T>.GetEnumerator() => null;
+                        IEnumerator IEnumerable.GetEnumerator() => null;
+                    }
+                }
+                """;
+            string sourceB = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Create(1, 2, 3).Report();
+                    }
+                    static ICollection<T> Create<T>(params T[] args)
+                    {
+                        return [with(capacity: 4), ..args];
+                    }
+                }
+                """;
+            var comp = CreateEmptyCompilation(
+                [sourceA, sourceB],
+                parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute());
+            var verifier = CompileAndVerify(
+                comp,
+                verify: Verification.Skipped,
+                expectedOutput: "[[1, one]], ");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Create<T>", """
+                {
+                  // Code size       20 (0x14)
+                  .maxstack  3
+                  IL_0000:  newobj     "System.Collections.Generic.List<object>..ctor()"
+                  IL_0005:  dup
+                  IL_0006:  ldarg.0
+                  IL_0007:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                  IL_000c:  dup
+                  IL_000d:  ldarg.1
+                  IL_000e:  callvirt   "void System.Collections.Generic.List<object>.Add(string)"
+                  IL_0013:  ret
+                }
+                """);
+        }
+
+        // PROTOTYPE: Semantic model for collection creation: what method is returned if any?
 
         [Theory]
         [CombinatorialData]
