@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Razor;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(SimplifyMethodHandler)), Shared]
 [Method(SimplifyMethodMethodName)]
-internal sealed class SimplifyMethodHandler : ILspServiceDocumentRequestHandler<SimplifyMethodParams, TextEdit[]?>
+internal class SimplifyMethodHandler : ILspServiceDocumentRequestHandler<SimplifyMethodParams, TextEdit[]?>
 {
     public const string SimplifyMethodMethodName = "roslyn/simplifyMethod";
 

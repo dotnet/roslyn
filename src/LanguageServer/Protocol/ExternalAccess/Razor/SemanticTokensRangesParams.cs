@@ -7,7 +7,7 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Razor;
 
-internal sealed class SemanticTokensRangesParams : SemanticTokensParams
+internal class SemanticTokensRangesParams : SemanticTokensParams
 {
     [JsonPropertyName("ranges")]
     public required Range[] Ranges { get; set; }
