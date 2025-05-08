@@ -98,20 +98,20 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
             if (containingType?.TypeKind is TypeKind.Interface)
                 return false;
 
+            if (!CanIntroduceVariable(textSpan.IsEmpty, cancellationToken))
+                return false;
+
             if (containingType is null)
             {
                 var globalStatement = Expression.AncestorsAndSelf().FirstOrDefault(syntaxFacts.IsGlobalStatement);
                 if (globalStatement != null)
                 {
                     InGlobalStatementContext = true;
-                    return CanIntroduceVariable(textSpan.IsEmpty, cancellationToken);
+                    return true;
                 }
 
                 return false;
             }
-
-            if (!CanIntroduceVariable(textSpan.IsEmpty, cancellationToken))
-                return false;
 
             IsConstant = IsExpressionConstant(Document, Expression, _service, cancellationToken);
 
