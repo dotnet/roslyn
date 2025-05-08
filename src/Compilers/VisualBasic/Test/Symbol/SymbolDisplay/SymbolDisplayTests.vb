@@ -6032,8 +6032,8 @@ end class"
                 actual:=displayParts)
         End Sub
 
-        <Fact>
-        Public Sub TestExtensionBlockCSharp_01()
+        <Theory, CombinatorialData>
+        Public Sub TestExtensionBlockCSharp_01(useMetadata As Boolean)
             Dim text =
 <text>
 static class E
@@ -6059,7 +6059,14 @@ static class E
                                 miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
 
             Dim parseOptions = CSharp.CSharpParseOptions.Default.WithLanguageVersion(CSharp.LanguageVersion.Preview)
-            Dim comp = CreateCSharpCompilation("c", text, parseOptions:=parseOptions)
+            Dim comp As Compilation
+            If useMetadata Then
+                Dim libComp = CreateCSharpCompilation("c", text, parseOptions:=parseOptions)
+                comp = CreateCompilation("", references:={libComp.EmitToImageReference()})
+            Else
+                comp = CreateCSharpCompilation("c", text, parseOptions:=parseOptions)
+            End If
+
             Dim e = DirectCast(comp.GlobalNamespace.GetMembers("E").Single(), ITypeSymbol)
             Dim extension = e.GetMembers().OfType(Of ITypeSymbol).Single()
 
@@ -6073,11 +6080,15 @@ static class E
                    SymbolDisplayPartKind.ClassName)
 
             Dim skeletonM = extension.GetMembers("M").Single()
-            Assert.Equal("Public Sub E.<>E__0.M()", SymbolDisplay.ToDisplayString(skeletonM, format))
+            If useMetadata Then
+                Assert.Equal("Public Overloads Sub E.<>E__0.M()", SymbolDisplay.ToDisplayString(skeletonM, format))
+            Else
+                Assert.Equal("Public Sub E.<>E__0.M()", SymbolDisplay.ToDisplayString(skeletonM, format))
+            End If
         End Sub
 
-        <Fact>
-        Public Sub TestExtensionBlockCSharp_02()
+        <Theory, CombinatorialData>
+        Public Sub TestExtensionBlockCSharp_02(useMetadata As Boolean)
             Dim text =
 <text>
     <![CDATA[
@@ -6106,27 +6117,55 @@ static class E
                                 miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
 
             Dim parseOptions = CSharp.CSharpParseOptions.Default.WithLanguageVersion(CSharp.LanguageVersion.Preview)
-            Dim comp = CreateCSharpCompilation("c", text, parseOptions:=parseOptions)
+            Dim comp As Compilation
+            If useMetadata Then
+                Dim libComp = CreateCSharpCompilation("c", text, parseOptions:=parseOptions)
+                comp = CreateCompilation("", references:={libComp.EmitToImageReference()})
+            Else
+                comp = CreateCSharpCompilation("c", text, parseOptions:=parseOptions)
+            End If
+
             Dim e = DirectCast(comp.GlobalNamespace.GetMembers("E").Single(), ITypeSymbol)
             Dim extension = e.GetMembers().OfType(Of ITypeSymbol).Single()
 
             ' Tracked by https://github.com/dotnet/roslyn/issues/76130 : the arity should not be included in the extension type name
-            Assert.Equal("E.<>E__0`1(Of T)", SymbolDisplay.ToDisplayString(extension, format))
+            If useMetadata Then
+                Assert.Equal("E.<>E__0(Of T)", SymbolDisplay.ToDisplayString(extension, format))
+            Else
+                Assert.Equal("E.<>E__0`1(Of T)", SymbolDisplay.ToDisplayString(extension, format))
+            End If
 
             Dim parts = SymbolDisplay.ToDisplayParts(extension, format)
-            Verify(parts,
-                   "E.<>E__0`1(Of T)",
-                   SymbolDisplayPartKind.ClassName,
-                   SymbolDisplayPartKind.Operator,
-                   SymbolDisplayPartKind.ClassName,
-                   SymbolDisplayPartKind.Punctuation,
-                   SymbolDisplayPartKind.Keyword,
-                   SymbolDisplayPartKind.Space,
-                   SymbolDisplayPartKind.TypeParameterName,
-                   SymbolDisplayPartKind.Punctuation)
+            If useMetadata Then
+                Verify(parts,
+                       "E.<>E__0(Of T)",
+                       SymbolDisplayPartKind.ClassName,
+                       SymbolDisplayPartKind.Operator,
+                       SymbolDisplayPartKind.ClassName,
+                       SymbolDisplayPartKind.Punctuation,
+                       SymbolDisplayPartKind.Keyword,
+                       SymbolDisplayPartKind.Space,
+                       SymbolDisplayPartKind.TypeParameterName,
+                       SymbolDisplayPartKind.Punctuation)
+            Else
+                Verify(parts,
+                       "E.<>E__0`1(Of T)",
+                       SymbolDisplayPartKind.ClassName,
+                       SymbolDisplayPartKind.Operator,
+                       SymbolDisplayPartKind.ClassName,
+                       SymbolDisplayPartKind.Punctuation,
+                       SymbolDisplayPartKind.Keyword,
+                       SymbolDisplayPartKind.Space,
+                       SymbolDisplayPartKind.TypeParameterName,
+                       SymbolDisplayPartKind.Punctuation)
+            End If
 
             Dim skeletonM = extension.GetMembers("M").Single()
-            Assert.Equal("Public Sub E.<>E__0`1(Of T).M()", SymbolDisplay.ToDisplayString(skeletonM, format))
+            If useMetadata Then
+                Assert.Equal("Public Overloads Sub E.<>E__0(Of T).M()", SymbolDisplay.ToDisplayString(skeletonM, format))
+            Else
+                Assert.Equal("Public Sub E.<>E__0`1(Of T).M()", SymbolDisplay.ToDisplayString(skeletonM, format))
+            End If
         End Sub
 
 #Region "Helpers"
