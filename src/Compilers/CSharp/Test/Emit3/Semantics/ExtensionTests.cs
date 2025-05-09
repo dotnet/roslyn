@@ -38206,6 +38206,70 @@ static class E
             // (13,73): error CS0103: The name 'P' does not exist in the current context
             //         [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, nameof(P))]
             Diagnostic(ErrorCode.ERR_NameNotInContext, "P").WithArguments("P").WithLocation(13, 73));
+
+        src = """
+#nullable enable
+
+object o = new object();
+if (o.M())
+    o.P.ToString(); // 1
+else
+    o.P.ToString(); // 2
+
+static class E
+{
+    extension(object o)
+    {
+        [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, nameof(object.P))]
+        public bool M() => throw null!;
+
+        public object? P => null;
+    }
+}
+""";
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (5,5): warning CS8602: Dereference of a possibly null reference.
+            //     o.P.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(5, 5),
+            // (7,5): warning CS8602: Dereference of a possibly null reference.
+            //     o.P.ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(7, 5),
+            // (13,73): error CS9286: 'object' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            //         [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, nameof(object.P))]
+            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.P").WithArguments("object", "P").WithLocation(13, 73));
+
+        src = """
+#nullable enable
+
+object o = new object();
+if (o.M())
+    o.P.ToString(); // 1
+else
+    o.P.ToString(); // 2
+
+static class E
+{
+    extension(object o)
+    {
+        [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, nameof(new object().P))]
+        public bool M() => throw null!;
+
+        public object? P => null;
+    }
+}
+""";
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (5,5): warning CS8602: Dereference of a possibly null reference.
+            //     o.P.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(5, 5),
+            // (7,5): warning CS8602: Dereference of a possibly null reference.
+            //     o.P.ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(7, 5),
+            // (13,73): error CS8082: Sub-expression cannot be used in an argument to nameof.
+            //         [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, nameof(new object().P))]
+            Diagnostic(ErrorCode.ERR_SubexpressionNotInNameof, "new object()").WithLocation(13, 73));
     }
 
     [Fact]
