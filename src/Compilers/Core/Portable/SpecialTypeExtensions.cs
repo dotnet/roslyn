@@ -273,8 +273,6 @@ namespace Microsoft.CodeAnalysis
 
         public static SpecialType FromRuntimeTypeOfLiteralValue(object value)
         {
-            RoslynDebug.Assert(value != null);
-
             // Perf: Note that JIT optimizes each expression val.GetType() == typeof(T) to a single register comparison.
             // Also the checks are sorted by commonality of the checked types.
 
@@ -371,7 +369,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal static ulong ConvertUnderlyingValueToUInt64(this SpecialType enumUnderlyingType, object value)
         {
-            RoslynDebug.Assert(value != null);
             Debug.Assert(value.GetType().IsPrimitive);
 
             unchecked
