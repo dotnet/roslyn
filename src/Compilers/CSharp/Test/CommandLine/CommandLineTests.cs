@@ -1730,10 +1730,8 @@ class C
             // 2. update all the tests that call this canary
             // 3. update _MaxAvailableLangVersion (a relevant test should break when new version is introduced)
             // 4. email release management to add to the release notes (see csharp-version in release.json in previous example: https://github.com/dotnet/core/pull/9493)
-            // 5. update the language history on csharplang
-            // 6. move the speclets into appropriate subfolder on csharplang ("/proposals/csharp-<version>/") and update references from championed issues and test plans
-            // 7. update championed issue titles to document shipped VS and .NET versions. For example: "Primary Constructors (VS 17.6, .NET 8)"
-            // 8. push the list of specs to Codex. See previous example: https://devdiv.visualstudio.com/OnlineServices/_git/CodexV2Data/pullrequest/618779
+            // 5. make csharplang updates documented at https://github.com/dotnet/csharplang/blob/main/Design-Process.md#steps-to-move-a-triaged-feature-to-an-implemented-feature
+            // 6. push the list of specs to Codex. See previous example: https://devdiv.visualstudio.com/OnlineServices/_git/CodexV2Data/pullrequest/618779
             AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "7.3", "8.0", "9.0", "10.0", "11.0", "12.0", "13.0", "latest", "latestmajor", "preview" },
                 Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>().Select(v => v.ToDisplayString()));
             // For minor versions and new major versions, the format should be "x.y", such as "7.1"
