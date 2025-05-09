@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     // Add the key-value pair to the dictionary
-                    activeSectionProperties[loweredKeyPart] = valuePart.TrimEnd().ToLower(); // remove trailing whitespace for the value part, allowing for "" value part, lower casing the value part
+                    activeSectionProperties[loweredKeyPart] = valuePart.TrimEnd(); // remove trailing whitespace for the value part, allowing for "" value part, lower casing the value part
                     continue;
                 }
             }
