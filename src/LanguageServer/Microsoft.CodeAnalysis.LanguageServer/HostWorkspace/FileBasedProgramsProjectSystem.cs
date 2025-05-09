@@ -62,106 +62,75 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
     public async Task<TextDocument?> AddMiscellaneousDocumentAsync(DocumentUri uri, SourceText documentText, string languageId, ILspLogger logger)
     {
-        var (documentPath, isFile) = uri.ParsedUri is { } parsedUri
-            ? (ProtocolConversions.GetDocumentFilePathFromUri(parsedUri), isFile: parsedUri.IsFile)
-            : (uri.UriString, isFile: false);
+        var documentFilePath = uri.ParsedUri is not null ? ProtocolConversions.GetDocumentFilePathFromUri(uri.ParsedUri) : uri.UriString;
 
-        var container = documentText.Container;
-        if (_metadataAsSourceFileService.TryAddDocumentToWorkspace(documentPath, container, out var documentId))
+        // https://github.com/dotnet/roslyn/issues/78421: MAS should be its own workspace
+        if (_metadataAsSourceFileService.TryAddDocumentToWorkspace(documentFilePath, documentText.Container, out var documentId))
         {
             var metadataWorkspace = _metadataAsSourceFileService.TryGetWorkspace();
             Contract.ThrowIfNull(metadataWorkspace);
-            var metadataDoc = metadataWorkspace.CurrentSolution.GetRequiredDocument(documentId);
-            return metadataDoc;
+            var document = metadataWorkspace.CurrentSolution.GetRequiredDocument(documentId);
+            return document;
         }
 
-        var languageInfoProvider = _lspServices.GetRequiredService<ILanguageInfoProvider>();
-        if (!languageInfoProvider.TryGetLanguageInformation(uri, languageId, out var languageInformation))
+        var primordialDoc = AddPrimordialDocument(uri, documentText, languageId);
+
+        if (uri.ParsedUri?.IsFile is true
+            && primordialDoc.Project.Language == LanguageNames.CSharp
+            && GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms))
         {
-            // Only log here since throwing here could take down the LSP server.
-            logger.LogError($"Could not find language information for {uri} with absolute path {documentPath}");
-            return null;
+            Contract.ThrowIfNull(primordialDoc.FilePath);
+            await BeginLoadingProjectAsync(primordialDoc.FilePath, primordialProjectId: primordialDoc.Project.Id);
         }
 
-        if (!isFile || languageInformation.LanguageName != LanguageNames.CSharp || !GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms))
+        return primordialDoc;
+
+        TextDocument AddPrimordialDocument(DocumentUri uri, SourceText documentText, string languageId)
         {
-            // For now, we cannot provide intellisense etc on files which are not on disk or are not C#.
-            var sourceTextLoader = new SourceTextLoader(documentText, documentPath);
+            var languageInfoProvider = _lspServices.GetRequiredService<ILanguageInfoProvider>();
+            if (!languageInfoProvider.TryGetLanguageInformation(uri, languageId, out var languageInformation))
+            {
+                Contract.Fail($"Could not find language information for {uri} with absolute path {documentFilePath}");
+            }
+
+            var workspace = Workspace;
+            var sourceTextLoader = new SourceTextLoader(documentText, documentFilePath);
             var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
-                Workspace, documentPath, sourceTextLoader, languageInformation, documentText.ChecksumAlgorithm, Workspace.CurrentSolution.Services, []);
-            await ProjectFactory.ApplyChangeToWorkspaceAsync(ws => ws.OnProjectAdded(projectInfo), cancellationToken: default);
+                workspace, documentFilePath, sourceTextLoader, languageInformation, documentText.ChecksumAlgorithm, workspace.Services.SolutionServices, []);
 
-            var newSolution = Workspace.CurrentSolution;
+            // Ensure that syntax errors for `#:` directives are not reported on the primordial project.
+            Contract.ThrowIfNull(projectInfo.ParseOptions);
+            projectInfo = projectInfo.WithParseOptions(projectInfo.ParseOptions.WithFeatures([new("FileBasedProgram", "true")]));
+
+            workspace.OnProjectAdded(projectInfo);
+
             if (languageInformation.LanguageName == "Razor")
             {
                 var docId = projectInfo.AdditionalDocuments.Single().Id;
-                return newSolution.GetRequiredAdditionalDocument(docId);
+                return workspace.CurrentSolution.GetRequiredAdditionalDocument(docId);
             }
 
             var id = projectInfo.Documents.Single().Id;
-            return newSolution.GetRequiredDocument(id);
+            return workspace.CurrentSolution.GetRequiredDocument(id);
         }
-
-        // We have a file on disk. Light up the file-based program experience.
-        var projectLanguageName = LanguageNames.CSharp;
-        var documentFileInfo = new DocumentFileInfo(documentPath, logicalPath: documentPath, isLinked: false, isGenerated: false, folders: default);
-        var projectFileInfo = new ProjectFileInfo()
-        {
-            Language = projectLanguageName,
-            FilePath = VirtualProject.GetVirtualProjectPath(documentPath),
-            CommandLineArgs = ["/langversion:preview", "/features:FileBasedProgram=true"],
-            Documents = [documentFileInfo],
-            AdditionalDocuments = [],
-            AnalyzerConfigDocuments = [],
-            ProjectReferences = [],
-            PackageReferences = [],
-            ProjectCapabilities = [],
-            ContentFilePaths = [],
-            FileGlobs = []
-        };
-
-        var projectSet = AddLoadedProjectSet(documentPath);
-        Project workspaceProject;
-        using (await projectSet.Semaphore.DisposableWaitAsync())
-        {
-            var loadedProject = await this.CreateAndTrackInitialProject_NoLockAsync(projectSet, documentPath, language: projectLanguageName);
-            await loadedProject.UpdateWithNewProjectInfoAsync(projectFileInfo, hasAllInformation: false, _logger);
-
-            ProjectsToLoadAndReload.AddWork(new ProjectToLoad(documentPath, ProjectGuid: null, ReportTelemetry: true));
-            loadedProject.NeedsReload += (_, _) => ProjectsToLoadAndReload.AddWork(new ProjectToLoad(documentPath, ProjectGuid: null, ReportTelemetry: false));
-            workspaceProject = ProjectFactory.Workspace.CurrentSolution.GetRequiredProject(loadedProject.ProjectId);
-        }
-
-        var document = workspaceProject.Documents.Single();
-        Contract.ThrowIfFalse(document.FilePath == documentPath);
-        return document;
     }
 
     public async ValueTask TryRemoveMiscellaneousDocumentAsync(DocumentUri uri, bool removeFromMetadataWorkspace)
     {
         var documentPath = uri.ParsedUri is { } parsedUri ? ProtocolConversions.GetDocumentFilePathFromUri(parsedUri) : uri.UriString;
-        await TryUnloadProjectSetAsync(documentPath);
-
-        // also do an unload in case this was the non-file scenario
-        if (removeFromMetadataWorkspace && uri.ParsedUri is not null && _metadataAsSourceFileService.TryRemoveDocumentFromWorkspace(ProtocolConversions.GetDocumentFilePathFromUri(uri.ParsedUri)))
+        if (removeFromMetadataWorkspace && _metadataAsSourceFileService.TryRemoveDocumentFromWorkspace(documentPath))
         {
             return;
         }
 
-        var matchingDocument = Workspace.CurrentSolution.GetDocumentIds(uri).SingleOrDefault();
-        if (matchingDocument != null)
-        {
-            var project = Workspace.CurrentSolution.GetRequiredProject(matchingDocument.ProjectId);
-            Workspace.OnProjectRemoved(project.Id);
-        }
+        await UnloadProjectAsync(documentPath);
     }
 
-    protected override async Task<(RemoteProjectFile? projectFile, bool hasAllInformation, BuildHostProcessKind preferred, BuildHostProcessKind actual)> TryLoadProjectAsync(
+    protected override async Task<(RemoteProjectFile projectFile, bool hasAllInformation, BuildHostProcessKind preferred, BuildHostProcessKind actual)?> TryLoadRemoteProjectAsync(
         BuildHostProcessManager buildHostProcessManager, string documentPath, CancellationToken cancellationToken)
     {
         const BuildHostProcessKind buildHostKind = BuildHostProcessKind.NetCore;
         var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, cancellationToken);
-        Contract.ThrowIfFalse(Path.GetExtension(documentPath) == ".cs");
 
         var fakeProjectPath = VirtualProject.GetVirtualProjectPath(documentPath);
         var loader = ProjectFactory.CreateFileTextLoader(documentPath);
