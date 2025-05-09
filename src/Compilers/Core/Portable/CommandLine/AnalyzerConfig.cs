@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis
                 int keyStart = trimmedLine.IndexOfAny(['=', ':']);
                 if (keyStart > 0 && (keyPart = trimmedLine[..keyStart].TrimEnd()).Length > 0) // remove trailing whitespace for the key part, and ensure keyPart has a non-trimmable content (it can't have a content if keyStart is zero)
                 {
-                    string loweredKeyPart = CaseInsensitiveComparison.ToLower(keyPart); // lower casing the key part
+                    string loweredKeyPart = keyPart.ToLower(); // lower casing the key part
                     string valueComment = trimmedLine[(keyStart + 1)..].TrimStart(); // remove leading whitespace for the value part
                     string valuePart;
 
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     // Add the key-value pair to the dictionary
-                    activeSectionProperties[loweredKeyPart] = CaseInsensitiveComparison.ToLower(valuePart.TrimEnd()); // remove trailing whitespace for the value part, allowing for "" value part, lower casing the value part
+                    activeSectionProperties[loweredKeyPart] = valuePart.TrimEnd().ToLower(); // remove trailing whitespace for the value part, allowing for "" value part, lower casing the value part
                     continue;
                 }
             }
