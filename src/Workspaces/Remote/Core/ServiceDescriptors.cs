@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EncapsulateField;
-using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
