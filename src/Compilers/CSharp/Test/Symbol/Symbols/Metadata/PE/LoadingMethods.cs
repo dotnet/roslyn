@@ -1384,5 +1384,28 @@ public class D
                 Diagnostic(ErrorCode.ERR_BadAccess, "C2").WithArguments("C.C2").WithLocation(8, 13)
                 );
         }
+
+        [Fact]
+        public void MethodKind_GeneratedMethods()
+        {
+            string source = @"
+void L()
+{
+    _ = new System.Action(static () => {});
+}        
+";
+            var libCompilation = CreateCompilation(source);
+            var libReference = libCompilation.EmitToImageReference();
+            var compilation = CreateCompilation("", [libReference], TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var main = compilation.GetMember<IMethodSymbol>("Program.<Main>$");
+            Assert.Equal(MethodKind.Ordinary, main.MethodKind);
+
+            var lambda = compilation.GetMember<IMethodSymbol>("Program.<>c.<<Main>$>b__0_1");
+            Assert.Equal(MethodKind.LambdaMethod, lambda.MethodKind);
+
+            var localFunction = compilation.GetMember<IMethodSymbol>("Program.<<Main>$>g__L|0_0");
+            Assert.Equal(MethodKind.LocalFunction, localFunction.MethodKind);
+        }
     }
 }
