@@ -30,7 +30,7 @@ internal sealed class CodeActionResolveHelper
             data,
             operations,
             context.GetRequiredClientCapabilities().Workspace?.WorkspaceEdit?.ResourceOperations ?? [],
-            context.TraceInformation,
+            context.TraceDebug,
             cancellationToken);
     }
 

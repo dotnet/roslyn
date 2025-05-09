@@ -27,7 +27,7 @@ internal class DidCloseHandler() : ILspServiceNotificationHandler<LSP.DidCloseTe
     public async Task HandleNotificationAsync(LSP.DidCloseTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
     {
         // GetTextDocumentIdentifier returns null to avoid creating the solution, so the queue is not able to log the uri.
-        context.TraceInformation($"didClose for {request.TextDocument.DocumentUri}");
+        context.TraceDebug($"didClose for {request.TextDocument.DocumentUri}");
 
         await context.StopTrackingAsync(request.TextDocument.DocumentUri, cancellationToken).ConfigureAwait(false);
     }
