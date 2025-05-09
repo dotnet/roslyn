@@ -492,7 +492,7 @@ internal static partial class ProtocolConversions
 
         if (uri == null)
         {
-            context?.TraceDebug($"Could not convert '{mappedSpan.FilePath}' to uri");
+            context?.TraceWarning($"Could not convert '{mappedSpan.FilePath}' to uri");
             return null;
         }
 

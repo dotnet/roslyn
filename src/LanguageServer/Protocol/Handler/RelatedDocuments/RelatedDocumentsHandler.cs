@@ -41,8 +41,6 @@ internal sealed class RelatedDocumentsHandler
     public async Task<VSInternalRelatedDocumentReport[]?> HandleRequestAsync(
         VSInternalRelatedDocumentParams requestParams, RequestContext context, CancellationToken cancellationToken)
     {
-        context.TraceDebug($"{this.GetType()} started getting related documents");
-
         var solution = context.Solution;
         var document = context.Document;
         Contract.ThrowIfNull(solution);
@@ -85,7 +83,6 @@ internal sealed class RelatedDocumentsHandler
 
         // If we had a progress object, then we will have been reporting to that.  Otherwise, take what we've been
         // collecting and return that.
-        context.TraceDebug($"{this.GetType()} finished getting related documents");
         return progress.GetFlattenedValues();
     }
 }
