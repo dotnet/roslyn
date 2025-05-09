@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 constructor,
                 expanded: node.Expanded,
                 node.ArgsToParamsOpt,
-                ref argumentRefKindsOpt, // PROTOTYPE: Test case where this makes a difference.
+                ref argumentRefKindsOpt,
                 ref tempsBuilder);
             BoundExpression result = new BoundObjectCreationExpression(
                 syntax,

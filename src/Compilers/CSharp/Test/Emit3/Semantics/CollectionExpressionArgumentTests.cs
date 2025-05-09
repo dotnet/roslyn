@@ -5049,7 +5049,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 switch ((WellKnownMember)missingMember)
                 {
                     case WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor:
-                        // PROTOTYPE: Why are we reporting ERR_MissingPredefinedMember twice for (10, 13) and twice for (11, 13)?
                         comp.VerifyEmitDiagnostics(
                             // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                             //         c = [];
