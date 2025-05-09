@@ -14,23 +14,6 @@ internal static class EditorConfigParser
 {
     // Matches EditorConfig section header such as "[*.{js,py}]", see https://editorconfig.org for details
     private static readonly Regex s_sectionMatcher = new(@"^\s*\[(([^#;]|\\#|\\;)+)\]\s*([#;].*)?$", RegexOptions.Compiled);
-    // Matches EditorConfig property such as "indent_style = space", see https://editorconfig.org for details
-    private static readonly Regex s_propertyMatcher = new(@"^\s*([\w\.\-_]+)\s*[=:]\s*(.*?)\s*([#;].*)?$", RegexOptions.Compiled);
-
-    private static ImmutableHashSet<string> ReservedKeys { get; }
-        = ImmutableHashSet.CreateRange(AnalyzerConfigOptions.KeyComparer, [
-            "root",
-            "indent_style",
-            "indent_size",
-            "tab_width",
-            "end_of_line",
-            "charset",
-            "trim_trailing_whitespace",
-            "insert_final_newline",
-        ]);
-
-    private static ImmutableHashSet<string> ReservedValues { get; }
-        = ImmutableHashSet.CreateRange(CaseInsensitiveComparison.Comparer, ["unset"]);
 
     public static TEditorConfigFile Parse<TEditorConfigFile, TResult, TAccumulator>(string text, string? pathToFile, TAccumulator accumulator)
         where TAccumulator : IEditorConfigOptionAccumulator<TEditorConfigFile, TResult>
@@ -60,7 +43,7 @@ internal static class EditorConfigParser
                 continue;
             }
 
-            if (IsComment(line))
+            if (AnalyzerConfig.IsComment(line))
             {
                 continue;
             }
@@ -82,23 +65,8 @@ internal static class EditorConfigParser
             }
 
             // property matching
-            var propMatches = s_propertyMatcher.Matches(line);
-            if (propMatches is [{ Groups.Count: > 1 }, ..])
+            if (AnalyzerConfig.ExtractKeyValue(line, activeSectionValues, out var key))
             {
-                var key = propMatches[0].Groups[1].Value;
-                var value = propMatches[0].Groups[2].Value;
-
-                Debug.Assert(!string.IsNullOrEmpty(key));
-                Debug.Assert(key == key.Trim());
-                Debug.Assert(value == value.Trim());
-
-                key = CaseInsensitiveComparison.ToLower(key);
-                if (ReservedKeys.Contains(key) || ReservedValues.Contains(value))
-                {
-                    value = CaseInsensitiveComparison.ToLower(value);
-                }
-
-                activeSectionValues[key] = value;
                 activeSectionLines[key] = textLine;
                 activeSectionEnd = textLine.End;
 
@@ -118,19 +86,6 @@ internal static class EditorConfigParser
             var sectionSpan = new TextSpan(activeSectionStart, activeSectionEnd);
             var previousSection = new Section(pathToFile, isGlobal, sectionSpan, activeSectionName, fullText);
             accumulator.ProcessSection(previousSection, activeSectionValues, activeSectionLines);
-        }
-
-        static bool IsComment(string line)
-        {
-            foreach (var c in line)
-            {
-                if (!char.IsWhiteSpace(c))
-                {
-                    return c == '#' || c == ';';
-                }
-            }
-
-            return false;
         }
     }
 }

@@ -3,11 +3,9 @@ Microsoft.CodeAnalysis.IEventSymbol.PartialDefinitionPart.get -> Microsoft.CodeA
 Microsoft.CodeAnalysis.IEventSymbol.PartialImplementationPart.get -> Microsoft.CodeAnalysis.IEventSymbol?
 Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext.AddEmbeddedAttributeDefinition() -> void
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.ToString() -> string!
-
 Microsoft.CodeAnalysis.ITypeSymbol.IsExtension.get -> bool
 Microsoft.CodeAnalysis.TypeKind.Extension = 14 -> Microsoft.CodeAnalysis.TypeKind
 Microsoft.CodeAnalysis.ITypeSymbol.ExtensionParameter.get -> Microsoft.CodeAnalysis.IParameterSymbol?
-
 const Microsoft.CodeAnalysis.WellKnownMemberNames.AdditionAssignmentOperatorName = "op_AdditionAssignment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.BitwiseAndAssignmentOperatorName = "op_BitwiseAndAssignment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.BitwiseOrAssignmentOperatorName = "op_BitwiseOrAssignment" -> string!
@@ -23,3 +21,5 @@ const Microsoft.CodeAnalysis.WellKnownMemberNames.MultiplicationAssignmentOperat
 const Microsoft.CodeAnalysis.WellKnownMemberNames.RightShiftAssignmentOperatorName = "op_RightShiftAssignment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.SubtractionAssignmentOperatorName = "op_SubtractionAssignment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.UnsignedRightShiftAssignmentOperatorName = "op_UnsignedRightShiftAssignment" -> string!
+static Microsoft.CodeAnalysis.AnalyzerConfig.ExtractKeyValue(string! line, System.Collections.Immutable.ImmutableDictionary<string!, string!>.Builder! activeSectionProperties, out string! key) -> bool
+static Microsoft.CodeAnalysis.AnalyzerConfig.IsComment(string! line) -> bool

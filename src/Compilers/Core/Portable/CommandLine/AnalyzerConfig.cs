@@ -208,6 +208,7 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
+                // Section matching
                 var sectionMatches = GetSectionMatcherRegex().Matches(line);
                 if (sectionMatches.Count > 0 && sectionMatches[0].Groups.Count > 0)
                 {
@@ -222,32 +223,9 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                // Look for a key-value pair
-                string trimmedLine = line.TrimStart(); // remove leading whitespace for the key part
-                string keyPart;
-
-                // Look for a non-empty key part
-                int keyStart = trimmedLine.IndexOfAny(['=', ':']);
-                if (keyStart > 0 && (keyPart = trimmedLine[..keyStart].TrimEnd()).Length > 0) // remove trailing whitespace for the key part, and ensure keyPart has a non-trimmable content (it can't have a content if keyStart is zero)
+                // property matching
+                if (ExtractKeyValue(line, activeSectionProperties, out var _))
                 {
-                    string loweredKeyPart = keyPart.ToLower(); // lower casing the key part
-                    string valueComment = trimmedLine[(keyStart + 1)..].TrimStart(); // remove leading whitespace for the value part
-                    string valuePart;
-
-                    // Look for an inline comment in the value part
-                    int commentStart = valueComment.IndexOfAny(['#', ';']);
-                    if (commentStart > -1)
-                    {
-                        // Remove inline comment from the value part
-                        valuePart = valueComment[..commentStart];
-                    }
-                    else
-                    {
-                        valuePart = valueComment;
-                    }
-
-                    // Add the key-value pair to the dictionary
-                    activeSectionProperties[loweredKeyPart] = valuePart.TrimEnd(); // remove trailing whitespace for the value part, allowing for "" value part, lower casing the value part
                     continue;
                 }
             }
@@ -278,17 +256,65 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static bool IsComment(string line)
+        /// <summary>
+        /// Extracts a key-value pair from the given line. The line content be trimmed
+        /// </summary>
+        /// <param name="line">Line to extract key/value from as an expected form of key{:|=}[value[{#|;}inline comment]]</param>
+        /// <param name="activeSectionProperties">Property collection builder</param>
+        /// <param name="key">Optional key found; default is "" because nullability is flagged by return</param>
+        /// <returns>Actual key found flag</returns>
+        internal static bool ExtractKeyValue(string line, ImmutableDictionary<string, string>.Builder activeSectionProperties, out string key)
         {
-            foreach (char c in line)
+            // Look for a key-value pair
+            var trimmedLine = line.TrimStart(); // remove leading whitespace for the key part
+            string keyPart;
+
+            // Look for a non-empty key part
+            var keyStart = trimmedLine.IndexOfAny(['=', ':']);
+            if (keyStart <= 0 || (keyPart = trimmedLine[..keyStart].TrimEnd()).Length == 0) // remove trailing whitespace for the key part, and ensure keyPart has a non-trimmable content (it can't have a content if keyStart is below second character)
             {
-                if (!char.IsWhiteSpace(c))
-                {
-                    return c == '#' || c == ';';
-                }
+                key = "";
+                return false;
             }
 
-            return false;
+            key = keyPart.ToLower(); // lower casing the key part
+            var valueComment = trimmedLine[(keyStart + 1)..].TrimStart(); // remove leading whitespace for the value part
+            string valuePart;
+
+            // Look for an inline comment in the value part
+            var commentStart = valueComment.IndexOfAny(['#', ';']);
+            if (commentStart > -1)
+            {
+                // Remove inline comment from the value part
+                valuePart = valueComment[..commentStart];
+            }
+            else
+            {
+                valuePart = valueComment;
+            }
+
+            string value;
+            if (ReservedKeys.Contains(key) || ReservedValues.Contains(valuePart))
+            {
+                // Lower case the value part if the key is reserved
+                value = valuePart.ToLower();
+            }
+            else
+            {
+                value = valuePart;
+            }
+
+            // Add the key-value pair to the dictionary
+            activeSectionProperties[key] = value.TrimEnd(); // remove trailing whitespace for the value part, allowing for "" values
+            return true;
+        }
+
+        /// <summary>
+        /// Checks if the line is a comment. A line is considered a comment if its first non-space character is either # or ;
+        /// </summary>
+        internal static bool IsComment(string line)
+        {
+            return line.TrimStart().IndexOfAny(['#', ';']) == 0;
         }
 
         /// <summary>
