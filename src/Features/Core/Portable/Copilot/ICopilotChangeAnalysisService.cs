@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared;
@@ -43,6 +42,7 @@ internal interface ICopilotChangeAnalysisService : IWorkspaceService
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class DefaultCopilotChangeAnalysisService(
     ICodeFixService codeFixService) : ICopilotChangeAnalysisService
+      
 {
     private const string RoslynPrefix = "Microsoft.CodeAnalysis.";
 
@@ -255,13 +255,14 @@ internal sealed class DefaultCopilotChangeAnalysisService(
         var diagnosticIdToApplicationTime = new Dictionary<string, TimeSpan>();
         var diagnosticIdToProviderName = new Dictionary<string, HashSet<string>>();
         var providerNameToApplicationTime = new Dictionary<string, TimeSpan>();
+        var providerNameToHasConflict = new Dictionary<string, bool>();
 
         var totalApplicationTimeStopWatch = SharedStopwatch.StartNew();
         await ProducerConsumer<(CodeFixCollection collection, TimeSpan elapsedTime)>.RunParallelAsync(
             codeFixCollections,
             produceItems: static async (codeFixCollection, callback, args, cancellationToken) =>
             {
-                var (@this, solution, _, _, _, _) = args;
+                var (@this, solution, _, _, _, _, _) = args;
                 var firstAction = GetFirstAction(codeFixCollection.Fixes[0]);
 
                 var applicationTimeStopWatch = SharedStopwatch.StartNew();
@@ -270,19 +271,41 @@ internal sealed class DefaultCopilotChangeAnalysisService(
             },
             consumeItems: static async (values, args, cancellationToken) =>
             {
-                var (@this, solution, diagnosticIdToCount, diagnosticIdToApplicationTime, diagnosticIdToProviderName, providerNameToApplicationTime) = args;
+                var (@this, solution, diagnosticIdToCount, diagnosticIdToApplicationTime, diagnosticIdToProviderName, providerNameToApplicationTime, providerNameToHasConflict) = args;
+
+                var intervalTree = new SimpleMutableIntervalTree<CodeFixCollection, CodeFixCollectionIntervalIntrospector>(new CodeFixCollectionIntervalIntrospector());
+
                 await foreach (var (codeFixCollection, applicationTime) in values)
                 {
                     var diagnosticId = codeFixCollection.FirstDiagnostic.Id;
-                    var providerName = codeFixCollection.Provider.GetType().FullName![RoslynPrefix.Length..];
+                    var providerName = GetProviderName(codeFixCollection);
 
                     IncrementCount(diagnosticIdToCount, diagnosticId);
                     IncrementElapsedTime(diagnosticIdToApplicationTime, diagnosticId, applicationTime);
                     diagnosticIdToProviderName.MultiAdd(diagnosticId, providerName);
                     IncrementElapsedTime(providerNameToApplicationTime, providerName, applicationTime);
+
+                    intervalTree.AddIntervalInPlace(codeFixCollection);
+                }
+
+                using var intersectingCollections = TemporaryArray<CodeFixCollection>.Empty;
+                foreach (var codeFixCollection in intervalTree)
+                {
+                    intersectingCollections.Clear();
+                    intervalTree.FillWithIntervalsThatIntersectWith(
+                        codeFixCollection.TextSpan.Start,
+                        codeFixCollection.TextSpan.Length,
+                        ref intersectingCollections.AsRef());
+
+                    var providerName = GetProviderName(codeFixCollection);
+
+                    var newHasConflictValue = intersectingCollections.Count > 0;
+                    var storedHasConflictValue = providerNameToHasConflict.TryGetValue(providerName, out var currentHasConflictValue) && currentHasConflictValue;
+
+                    providerNameToHasConflict[providerName] = storedHasConflictValue || newHasConflictValue;
                 }
             },
-            args: (@this: this, newDocument.Project.Solution, diagnosticIdToCount, diagnosticIdToApplicationTime, diagnosticIdToProviderName, providerNameToApplicationTime),
+            args: (@this: this, newDocument.Project.Solution, diagnosticIdToCount, diagnosticIdToApplicationTime, diagnosticIdToProviderName, providerNameToApplicationTime, providerNameToHasConflict),
             cancellationToken).ConfigureAwait(false);
         var totalApplicationTime = totalApplicationTimeStopWatch.Elapsed;
 
@@ -292,7 +315,8 @@ internal sealed class DefaultCopilotChangeAnalysisService(
             diagnosticIdToCount,
             diagnosticIdToApplicationTime,
             diagnosticIdToProviderName,
-            providerNameToApplicationTime);
+            providerNameToApplicationTime,
+            providerNameToHasConflict);
 
         Task<ImmutableArray<CodeFixCollection>> ComputeCodeFixCollectionsAsync()
         {
@@ -300,8 +324,6 @@ internal sealed class DefaultCopilotChangeAnalysisService(
                 newSpans,
                 static async (span, callback, args, cancellationToken) =>
                 {
-                    var intervalTree = new TextSpanMutableIntervalTree();
-
                     var (@this, newDocument) = args;
                     await foreach (var codeFixCollection in @this._codeFixService.StreamFixesAsync(
                         newDocument, span, cancellationToken).ConfigureAwait(false))
@@ -316,11 +338,6 @@ internal sealed class DefaultCopilotChangeAnalysisService(
                             IsVisibleDiagnostic(codeFix.PrimaryDiagnostic.IsSuppressed, codeFix.PrimaryDiagnostic.Severity) &&
                             (codeFixCollection.Provider.GetType().Namespace ?? "").StartsWith(RoslynPrefix))
                         {
-                            // The first for a particular span is the one we would apply.  Ignore others that fix the same span.
-                            if (intervalTree.HasIntervalThatOverlapsWith(codeFixCollection.TextSpan))
-                                continue;
-
-                            intervalTree.AddIntervalInPlace(codeFixCollection.TextSpan);
                             callback(codeFixCollection);
                         }
                     }
@@ -328,5 +345,14 @@ internal sealed class DefaultCopilotChangeAnalysisService(
                 args: (@this: this, newDocument),
                 cancellationToken);
         }
+
+        static string GetProviderName(CodeFixCollection codeFixCollection)
+            => codeFixCollection.Provider.GetType().FullName![RoslynPrefix.Length..];
+    }
+
+    private readonly struct CodeFixCollectionIntervalIntrospector : IIntervalIntrospector<CodeFixCollection>
+    {
+        public TextSpan GetSpan(CodeFixCollection value)
+            => value.TextSpan;
     }
 }
