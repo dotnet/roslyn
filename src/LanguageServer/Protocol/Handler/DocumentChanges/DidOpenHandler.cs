@@ -16,14 +16,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(DidOpenHandler)), Shared]
 [Method(LSP.Methods.TextDocumentDidOpenName)]
-internal class DidOpenHandler : ILspServiceNotificationHandler<LSP.DidOpenTextDocumentParams>, ITextDocumentIdentifierHandler<LSP.DidOpenTextDocumentParams, TextDocumentItem>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class DidOpenHandler() : ILspServiceNotificationHandler<LSP.DidOpenTextDocumentParams>, ITextDocumentIdentifierHandler<LSP.DidOpenTextDocumentParams, TextDocumentItem>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public DidOpenHandler()
-    {
-    }
-
     public bool MutatesSolutionState => true;
     public bool RequiresLSPSolution => false;
 
