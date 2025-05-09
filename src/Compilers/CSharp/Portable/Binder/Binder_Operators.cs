@@ -1648,6 +1648,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
+
         private UnaryOperatorAnalysisResult? UnaryOperatorExtensionOverloadResolution(
             UnaryOperatorKind kind,
             BoundExpression operand,
@@ -1660,7 +1662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             originalUserDefinedOperators = [];
 
             if (operand.IsLiteralDefault() || // Reported not being able to target-type `default` elsewhere, so we can avoid doing more work
-                (object)operand.Type == null || // GetUserDefinedOperators performs this check too, let's optimize early
+                operand.Type is null || // GetUserDefinedOperators performs this check too, let's optimize early
                 !this.Compilation.LanguageVersion.AllowNewExtensions())
             {
                 return null;
@@ -1668,7 +1670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool isChecked = CheckOverflowAtRuntime;
             string name1 = OperatorFacts.UnaryOperatorNameFromOperatorKind(kind, isChecked);
-            string name2Opt = null;
+            string? name2Opt = null;
 
             if (isChecked && SyntaxFacts.IsCheckedOperator(name1))
             {
@@ -1698,6 +1700,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             result.Free();
             return possiblyBest;
         }
+
+#nullable disable
 
         private static object FoldDecimalBinaryOperators(BinaryOperatorKind kind, ConstantValue valueLeft, ConstantValue valueRight)
         {

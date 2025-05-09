@@ -59,17 +59,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             UnaryOperatorOverloadResolution(operand, result, ref useSiteInfo);
         }
 
+#nullable enable 
+
         public bool UnaryOperatorExtensionOverloadResolutionInSingleScope(
             ArrayBuilder<NamedTypeSymbol> extensionDeclarationsInSingleScope,
             UnaryOperatorKind kind,
             bool isChecked,
             string name1,
-            string name2Opt,
+            string? name2Opt,
             BoundExpression operand,
             UnaryOperatorOverloadResolutionResult result,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(isChecked || name2Opt is null);
+            Debug.Assert(operand.Type is not null);
 
             var operators = ArrayBuilder<UnaryOperatorSignature>.GetInstance();
 
@@ -80,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddLiftedUserDefinedUnaryOperators(constrainedToTypeOpt: null, kind, operators);
             }
 
-            removeInapplicableToReceiverType(kind, operand, operators, ref useSiteInfo);
+            inferTypeArgumentsAndRemoveInapplicableToReceiverType(kind, operand, operators, ref useSiteInfo);
 
             bool hadApplicableCandidates = false;
 
@@ -99,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return hadApplicableCandidates;
 
-            static void getDeclaredUserDefinedUnaryOperatorsInScope(ArrayBuilder<NamedTypeSymbol> extensionDeclarationsInSingleScope, UnaryOperatorKind kind, string name1, string name2Opt, ArrayBuilder<UnaryOperatorSignature> operators)
+            static void getDeclaredUserDefinedUnaryOperatorsInScope(ArrayBuilder<NamedTypeSymbol> extensionDeclarationsInSingleScope, UnaryOperatorKind kind, string name1, string? name2Opt, ArrayBuilder<UnaryOperatorSignature> operators)
             {
                 getDeclaredUserDefinedUnaryOperators(extensionDeclarationsInSingleScope, kind, name1, operators);
 
@@ -145,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            void removeInapplicableToReceiverType(UnaryOperatorKind kind, BoundExpression operand, ArrayBuilder<UnaryOperatorSignature> operators, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            void inferTypeArgumentsAndRemoveInapplicableToReceiverType(UnaryOperatorKind kind, BoundExpression operand, ArrayBuilder<UnaryOperatorSignature> operators, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
                 for (int i = operators.Count - 1; i >= 0; i--)
                 {
@@ -212,17 +215,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool isApplicableToReceiver(UnaryOperatorSignature candidate, BoundExpression operand, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
+                Debug.Assert(operand.Type is not null);
+                Debug.Assert(candidate.Method.ContainingType.ExtensionParameter is not null);
+
                 if (candidate.Kind.IsLifted())
                 {
                     Debug.Assert(operand.Type.IsNullableType());
 
-                    if (!candidate.Method.ContainingType.ExtensionParameter.Type.IsValidNullableTypeArgument())
+                    if (!candidate.Method.ContainingType.ExtensionParameter.Type.IsValidNullableTypeArgument() ||
+                        !Conversions.ConvertExtensionMethodThisArg(MakeNullable(candidate.Method.ContainingType.ExtensionParameter.Type), operand.Type, ref useSiteInfo, isMethodGroupConversion: false).Exists)
                     {
                         return false;
-                    }
-                    else if (!Conversions.ConvertExtensionMethodThisArg(MakeNullable(candidate.Method.ContainingType.ExtensionParameter.Type), operand.Type, ref useSiteInfo, isMethodGroupConversion: false).Exists)
-                    {
-                        return false; // Conversion to 'this' parameter failed
                     }
                 }
                 else if (!Conversions.ConvertExtensionMethodThisArg(candidate.Method.ContainingType.ExtensionParameter.Type, operand.Type, ref useSiteInfo, isMethodGroupConversion: false).Exists)
@@ -263,6 +266,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
         }
+
+#nullable disable
 
         // Takes a list of candidates and mutates the list to throw out the ones that are worse than
         // another applicable candidate.

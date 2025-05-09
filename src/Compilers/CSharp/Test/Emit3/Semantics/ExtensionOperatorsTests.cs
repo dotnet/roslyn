@@ -648,6 +648,12 @@ class Program
             var comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe);
             CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
 
+            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+
+            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+
             var src4 = $$$"""
 class Program
 {
@@ -671,7 +677,7 @@ class Program
         }
 
         [Fact]
-        public void Unary_010_Consumption_PredefinedComesFirst()
+        public void Unary_011_Consumption_PredefinedComesFirst()
         {
             var src = $$$"""
 public static class Extensions1
@@ -719,7 +725,7 @@ class Program
         }
 
         [Fact]
-        public void Unary_010_Consumption_NonExtensionComesFirst()
+        public void Unary_012_Consumption_NonExtensionComesFirst()
         {
             var src = $$$"""
 public static class Extensions1
@@ -767,7 +773,7 @@ class Program
         }
 
         [Fact]
-        public void Unary_011_Consumption_ScopeByScope()
+        public void Unary_013_Consumption_ScopeByScope()
         {
             var src = $$$"""
 public static class Extensions1
@@ -838,7 +844,7 @@ namespace NS1
         }
 
         [Fact]
-        public void Unary_012_Consumption_NonExtensionAmbiguity()
+        public void Unary_014_Consumption_NonExtensionAmbiguity()
         {
             var src = $$$"""
 public interface I1
@@ -900,7 +906,7 @@ class Test2 : I2
         }
 
         [Fact]
-        public void Unary_013_Consumption_ExtensionAmbiguity()
+        public void Unary_015_Consumption_ExtensionAmbiguity()
         {
             var src = $$$"""
 public interface I1;
@@ -967,7 +973,7 @@ namespace NS1
         }
 
         [Fact]
-        public void Unary_014_Consumption_Lifted()
+        public void Unary_016_Consumption_Lifted()
         {
             var src = $$$"""
 public static class Extensions1
@@ -1003,7 +1009,7 @@ class Program
         }
 
         [Fact]
-        public void Unary_015_Consumption_LiftedIsWorse()
+        public void Unary_017_Consumption_LiftedIsWorse()
         {
             var src = $$$"""
 public static class Extensions1
@@ -1043,7 +1049,7 @@ class Program
         }
 
         [Fact]
-        public void Unary_016_Consumption_ExtendedTypeIsNullable()
+        public void Unary_018_Consumption_ExtendedTypeIsNullable()
         {
             var src = $$$"""
 public static class Extensions1
@@ -1084,7 +1090,7 @@ class Program
         }
 
         [Fact]
-        public void Unary_017_Consumption_ReceiverTypeMismatch()
+        public void Unary_019_Consumption_ReceiverTypeMismatch()
         {
             var src = $$$"""
 public static class Extensions1
@@ -1133,7 +1139,7 @@ class Program
         }
 
         [Fact]
-        public void Unary_018_Consumption_Generic()
+        public void Unary_020_Consumption_Generic()
         {
             var src = $$$"""
 public static class Extensions1
@@ -1173,7 +1179,7 @@ class Program
         }
 
         [Fact]
-        public void Unary_019_Consumption_Generic_ConstraintsViolation()
+        public void Unary_021_Consumption_Generic_ConstraintsViolation()
         {
             var src = $$$"""
 public static class Extensions1
@@ -1206,7 +1212,7 @@ class Program
         }
 
         [Fact]
-        public void Unary_020_Consumption_OverloadResolutionPriority()
+        public void Unary_022_Consumption_OverloadResolutionPriority()
         {
             var src = $$$"""
 using System.Runtime.CompilerServices;
@@ -1271,7 +1277,7 @@ class Program
         }
 
         [Fact]
-        public void Unary_021_Consumption_Checked()
+        public void Unary_023_Consumption_Checked()
         {
             var src = $$$"""
 public static class Extensions1
@@ -1308,94 +1314,94 @@ class Program
         }
 
         [Fact]
-        public void Unary_022_Consumption_Checked()
-        {
-            var src = $$$"""
-public static class Extensions1
-{
-    extension(C1)
-    {
-        public static C1 operator -(C1 x)
-        {
-            System.Console.Write("regular");
-            return x;
-        }
-        public static C1 operator checked -(C1 x)
-        {
-            System.Console.Write("checked");
-            return x;
-        }
-    }
-}
-
-public class C1;
-
-class Program
-{
-    static void Main()
-    {
-        var c1 = new C1();
-        _ = -c1;
-
-        checked
-        {
-            _ = -c1;
-        }
-    }
-}
-""";
-
-            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "regularchecked").VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void Unary_023_Consumption_Checked()
-        {
-            var src = $$$"""
-public static class Extensions1
-{
-    extension(C1)
-    {
-        public static C1 operator -(C1 x)
-        {
-            System.Console.Write("regular");
-            return x;
-        }
-    }
-    extension(C1)
-    {
-        public static C1 operator checked -(C1 x)
-        {
-            System.Console.Write("checked");
-            return x;
-        }
-    }
-}
-
-public class C1;
-
-class Program
-{
-    static void Main()
-    {
-        var c1 = new C1();
-        _ = -c1;
-
-        checked
-        {
-            _ = -c1;
-        }
-    }
-}
-""";
-
-            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "regularchecked").VerifyDiagnostics();
-        }
-
-        [Fact]
         public void Unary_024_Consumption_Checked()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(C1)
+    {
+        public static C1 operator -(C1 x)
+        {
+            System.Console.Write("regular");
+            return x;
+        }
+        public static C1 operator checked -(C1 x)
+        {
+            System.Console.Write("checked");
+            return x;
+        }
+    }
+}
+
+public class C1;
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1();
+        _ = -c1;
+
+        checked
+        {
+            _ = -c1;
+        }
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "regularchecked").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Unary_025_Consumption_Checked()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(C1)
+    {
+        public static C1 operator -(C1 x)
+        {
+            System.Console.Write("regular");
+            return x;
+        }
+    }
+    extension(C1)
+    {
+        public static C1 operator checked -(C1 x)
+        {
+            System.Console.Write("checked");
+            return x;
+        }
+    }
+}
+
+public class C1;
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1();
+        _ = -c1;
+
+        checked
+        {
+            _ = -c1;
+        }
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "regularchecked").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Unary_026_Consumption_Checked()
         {
             var src = $$$"""
 public static class Extensions1
@@ -1465,7 +1471,7 @@ class Program
         }
 
         [Fact]
-        public void Unary_025_Consumption_CheckLiftedIsWorse()
+        public void Unary_027_Consumption_CheckLiftedIsWorse()
         {
             var src = $$$"""
 public static class Extensions1
@@ -1509,7 +1515,7 @@ class Program
         }
 
         [Fact]
-        public void Unary_026_Consumption_OverloadResolutionPlusRegularVsChecked()
+        public void Unary_028_Consumption_OverloadResolutionPlusRegularVsChecked()
         {
             var src = $$$"""
 public static class Extensions1
@@ -1569,7 +1575,7 @@ class Program
         }
 
         [Fact]
-        public void Unary_027_Consumption()
+        public void Unary_029_Consumption()
         {
             var src = $$$"""
 public static class Extensions1
@@ -1612,7 +1618,7 @@ class Program
         }
 
         [Fact]
-        public void Unary_028_Consumption_OnObject()
+        public void Unary_030_Consumption_OnObject()
         {
             var src = $$$"""
 public static class Extensions1
@@ -1642,7 +1648,7 @@ class Program
         }
 
         [Fact]
-        public void Unary_029_Consumption_NotOnDynamic()
+        public void Unary_031_Consumption_NotOnDynamic()
         {
             var src = $$$"""
 public static class Extensions1
@@ -1679,7 +1685,7 @@ class Program
         }
 
         [Fact]
-        public void Unary_030_Consumption_BadOperand()
+        public void Unary_032_Consumption_BadOperand()
         {
             var src = $$$"""
 public static class Extensions1
@@ -1726,7 +1732,7 @@ class Program
         }
 
         [Fact]
-        public void Unary_031_Consumption_BadReceiver()
+        public void Unary_033_Consumption_BadReceiver()
         {
             var src = $$$"""
 public static class Extensions1
