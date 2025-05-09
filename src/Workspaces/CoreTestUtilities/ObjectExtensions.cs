@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             if (fieldInfo == null)
             {
-                throw new FieldAccessException("Field " + fieldName + " was not found on type " + type.ToString());
+                throw new FieldAccessException($"Field '{fieldName}' was not found on type '{instance.GetType()}'");
             }
 
             var result = fieldInfo.GetValue(instance);
