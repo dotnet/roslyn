@@ -155,6 +155,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(binaryOperator);
             }
 
+            // PROTOTYPE: handle extensions
+
             LookupResultKind resultKind;
             ImmutableArray<MethodSymbol> originalUserDefinedOperators;
             BoundExpression comparisonResult = new BoundTupleOperandPlaceholder(node, type);

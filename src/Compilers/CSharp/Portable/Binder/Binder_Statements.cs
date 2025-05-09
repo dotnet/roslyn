@@ -2717,6 +2717,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics: diagnostics);
             }
 
+            // PROTOTYPE: handle extensions
+
             // It was not. Does it implement operator true?
             expr = BindToNaturalType(expr, diagnostics);
             var best = this.UnaryOperatorOverloadResolution(UnaryOperatorKind.True, expr, node, diagnostics, out LookupResultKind resultKind, out ImmutableArray<MethodSymbol> originalUserDefinedOperators);

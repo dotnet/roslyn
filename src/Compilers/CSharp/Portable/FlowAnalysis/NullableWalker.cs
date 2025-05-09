@@ -11607,7 +11607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 default:
                     if (node.OperatorKind.IsUserDefined() &&
-                        node.MethodOpt is MethodSymbol method &&
+                        node.MethodOpt is MethodSymbol { ContainingType.IsExtension: false } method && // PROTOTYPE: Follow up
                         method.ParameterCount == 1)
                     {
                         var (operand, conversion) = RemoveConversion(node.Operand, includeExplicitConversions: false);
