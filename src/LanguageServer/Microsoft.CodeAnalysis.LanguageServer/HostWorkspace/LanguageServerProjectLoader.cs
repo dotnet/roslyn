@@ -72,7 +72,7 @@ internal abstract class LanguageServerProjectLoader
         /// <summary>
         /// The initial state used when we are asked to design-time build a project for the first time.
         /// </summary>
-        internal sealed record BeginLoading : ProjectLoadState;
+        public sealed record BeginLoading : ProjectLoadState;
 
         /// <summary>
         /// Similar to <see cref="BeginLoading"/>, except including a <see cref="ProjectId"/> for a "primordial project".
@@ -81,7 +81,7 @@ internal abstract class LanguageServerProjectLoader
         /// ID of the project which LSP uses to fulfill requests until the first design-time build is complete.
         /// The project with this ID is removed from the workspace when unloading or when transitioning to <see cref="Loaded"/> state.
         /// </param>
-        internal sealed record BeginLoadingWithPrimordial(ProjectId PrimordialProjectId) : ProjectLoadState;
+        public sealed record BeginLoadingWithPrimordial(ProjectId PrimordialProjectId) : ProjectLoadState;
 
         /// <summary>
         /// The state after the first design-time build is finished.
@@ -89,12 +89,12 @@ internal abstract class LanguageServerProjectLoader
         /// The <see cref="LoadedProjectTargets"/> are disposed when unloading.
         /// </summary>
         /// <param name="LoadedProjectTargets">List of target frameworks which have been loaded for this project so far.</param>
-        internal sealed record Loaded(List<LoadedProject> LoadedProjectTargets) : ProjectLoadState;
+        public sealed record Loaded(List<LoadedProject> LoadedProjectTargets) : ProjectLoadState;
 
         /// <summary>
         /// Tracks a primordial project for which we never intend to do a design-time build, for example, due to it not being on disk.
         /// </summary>
-        internal sealed record PrimordialOnly(ProjectId PrimordialProjectId) : ProjectLoadState;
+        public sealed record PrimordialOnly(ProjectId PrimordialProjectId) : ProjectLoadState;
     }
 
     protected LanguageServerProjectLoader(
