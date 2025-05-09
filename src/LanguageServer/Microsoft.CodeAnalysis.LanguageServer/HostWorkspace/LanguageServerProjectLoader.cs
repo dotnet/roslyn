@@ -49,7 +49,7 @@ internal abstract class LanguageServerProjectLoader
     /// Guards access to <see cref="_loadedProjects"/>.
     /// To keep the LSP queue responsive, <see cref="_gate"/> must not be held while performing design-time builds.
     /// </summary>
-    private readonly SemaphoreSlim _gate = new SemaphoreSlim(1);
+    private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
     /// <summary>
     /// Guarded by <see cref="_gate"/>.
