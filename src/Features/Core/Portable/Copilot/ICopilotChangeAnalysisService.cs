@@ -42,7 +42,6 @@ internal interface ICopilotChangeAnalysisService : IWorkspaceService
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class DefaultCopilotChangeAnalysisService(
     ICodeFixService codeFixService) : ICopilotChangeAnalysisService
-      
 {
     private const string RoslynPrefix = "Microsoft.CodeAnalysis.";
 
