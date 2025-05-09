@@ -719,6 +719,9 @@ namespace Microsoft.CodeAnalysis
         System_Text_Encoding__GetString,
 
         System_Collections_Generic_Dictionary_KV__ctor,
+        System_Collections_Generic_Dictionary_KV__ctor_IEqualityComparer_K,
+        System_Collections_Generic_Dictionary_KV__ctor_Int32,
+        System_Collections_Generic_Dictionary_KV__ctor_Int32_IEqualityComparer_K,
         System_Collections_Generic_Dictionary_KV__set_Item,
         System_Collections_Generic_KeyValuePair_KV__ctor,
         System_Collections_Generic_KeyValuePair_KV__get_Key,

@@ -5123,31 +5123,56 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.MakeTypeMissing(WellKnownType.System_Collections_Generic_List_T);
-            comp.VerifyEmitDiagnostics(
-                // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
-                //         c = [];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(7, 13),
-                // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
-                //         c = [];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(7, 13),
-                // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.Add'
-                //         c = [];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", "Add").WithLocation(7, 13),
-                // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
-                //         c = [];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(7, 13),
-                // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
-                //         c = [..e];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(8, 13),
-                // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
-                //         c = [..e];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(8, 13),
-                // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.Add'
-                //         c = [..e];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", "Add").WithLocation(8, 13),
-                // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
-                //         c = [..e];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(8, 13));
+            if (collectionType is "ICollection<object>" or "IList<int>")
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                    //         c = [];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(7, 13),
+                    // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                    //         c = [];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(7, 13),
+                    // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.Add'
+                    //         c = [];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", "Add").WithLocation(7, 13),
+                    // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
+                    //         c = [];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(7, 13),
+                    // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                    //         c = [..e];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(8, 13),
+                    // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                    //         c = [..e];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(8, 13),
+                    // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.Add'
+                    //         c = [..e];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", "Add").WithLocation(8, 13),
+                    // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
+                    //         c = [..e];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(8, 13));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.Add'
+                    //         c = [];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", "Add").WithLocation(7, 13),
+                    // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
+                    //         c = [];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(7, 13),
+                    // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                    //         c = [];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(7, 13),
+                    // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.Add'
+                    //         c = [..e];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", "Add").WithLocation(8, 13),
+                    // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
+                    //         c = [..e];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(8, 13),
+                    // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                    //         c = [..e];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(8, 13));
+            }
         }
 
         [Fact]
@@ -13922,18 +13947,12 @@ namespace System
                 // (6,30): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
                 //         IEnumerable<int> x = [0];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[0]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(6, 30),
-                // (6,30): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
-                //         IEnumerable<int> x = [0];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[0]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(6, 30),
                 // (6,30): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.Add'
                 //         IEnumerable<int> x = [0];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[0]").WithArguments("System.Collections.Generic.List`1", "Add").WithLocation(6, 30),
                 // (6,30): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
                 //         IEnumerable<int> x = [0];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[0]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(6, 30),
-                // (7,30): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
-                //         IEnumerable<int> y = [..x];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..x]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(7, 30),
                 // (7,30): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
                 //         IEnumerable<int> y = [..x];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..x]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(7, 30),

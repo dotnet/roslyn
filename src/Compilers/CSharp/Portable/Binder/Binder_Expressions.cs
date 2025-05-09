@@ -5338,25 +5338,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             MessageID.IDS_FeatureCollectionExpressionArguments.CheckFeatureAvailability(diagnostics, syntax.WithKeyword);
 
-            var arguments = AnalyzedArguments.GetInstance();
-            BindArgumentsAndNames(syntax.ArgumentList, diagnostics, arguments, allowArglist: true);
-            var result = new BoundCollectionExpressionWithElement(
-                syntax,
-                arguments.Arguments.ToImmutable(),
-                arguments.Names.ToImmutableOrNull(),
-                arguments.RefKinds.ToImmutableOrNull(),
-                binder: this);
-            arguments.Free();
+            var analyzedArguments = AnalyzedArguments.GetInstance();
+            BindArgumentsAndNames(syntax.ArgumentList, diagnostics, analyzedArguments, allowArglist: true);
 
-            foreach (var arg in result.Arguments)
+            var arguments = analyzedArguments.Arguments;
+            for (int i = 0; i < arguments.Count; i++)
             {
+                var arg = arguments[i];
                 if (arg.Type is { TypeKind: TypeKind.Dynamic })
                 {
                     diagnostics.Add(ErrorCode.ERR_CollectionArgumentsDynamicBinding, arg.Syntax);
-                    break;
+                    arguments[i] = new BoundBadExpression(arg.Syntax, LookupResultKind.Empty, symbols: [], childBoundNodes: [arg], type: Compilation.GetSpecialType(SpecialType.System_Object));
                 }
             }
 
+            var result = new BoundCollectionExpressionWithElement(
+                syntax,
+                arguments.ToImmutable(),
+                analyzedArguments.Names.ToImmutableOrNull(),
+                analyzedArguments.RefKinds.ToImmutableOrNull(),
+                binder: this);
+            analyzedArguments.Free();
             return result;
         }
 
