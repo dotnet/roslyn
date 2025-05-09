@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="activeSectionProperties">Property collection builder</param>
         /// <param name="key">Optional key found; default is "" because nullability is flagged by return</param>
         /// <returns>Actual key found flag</returns>
-        internal static bool ExtractKeyValue(string line, ImmutableDictionary<string, string>.Builder activeSectionProperties, out string key)
+        public static bool ExtractKeyValue(string line, ImmutableDictionary<string, string>.Builder activeSectionProperties, out string key)
         {
             // Look for a key-value pair
             var trimmedLine = line.TrimStart(); // remove leading whitespace for the key part
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Checks if the line is a comment. A line is considered a comment if its first non-space character is either # or ;
         /// </summary>
-        internal static bool IsComment(string line)
+        public static bool IsComment(string line)
         {
             return line.TrimStart().IndexOfAny(['#', ';']) == 0;
         }
