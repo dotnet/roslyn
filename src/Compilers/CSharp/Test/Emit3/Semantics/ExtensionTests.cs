@@ -919,7 +919,7 @@ public static partial class Extensions
     }
 
     [Fact]
-    public void ExtensionIndex_TwoExtensions_SameSignatures_01()
+    public void ExtensionIndex_TwoExtensions_01()
     {
         var src = """
 public static class Extensions
@@ -1560,7 +1560,7 @@ public static class IntExt
     }
 
     [Fact]
-    public void ExtensionIndex_TwoExtensions_SameSignatures_02()
+    public void ExtensionIndex_TwoExtensions_02()
     {
         var src = """
 public static class Extensions
@@ -1585,12 +1585,12 @@ public static class Extensions
         var extension2 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Last();
         var symbol2 = model.GetDeclaredSymbol(extension2);
         var sourceExtension2 = symbol2.GetSymbol<SourceNamedTypeSymbol>();
-        Assert.Equal("<>E__2`1", symbol2.MetadataName);
-        Assert.Equal("Extensions.<>E__2<T>", symbol2.ToTestDisplayString());
+        Assert.Equal("<>E__1`1", symbol2.MetadataName);
+        Assert.Equal("Extensions.<>E__1<T>", symbol2.ToTestDisplayString());
     }
 
     [Fact]
-    public void ExtensionIndex_TwoExtensions_SameSignatures_03()
+    public void ExtensionIndex_TwoExtensions_03()
     {
         var src = """
 extension<T>(T) { }
@@ -1618,12 +1618,12 @@ extension<T>(T) { }
         var extension2 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Last();
         var symbol2 = model.GetDeclaredSymbol(extension2);
         var sourceExtension2 = symbol2.GetSymbol<SourceNamedTypeSymbol>();
-        Assert.Equal("<>E__2`1", symbol2.MetadataName);
-        Assert.Equal("<>E__2<T>", symbol2.ToTestDisplayString());
+        Assert.Equal("<>E__1`1", symbol2.MetadataName);
+        Assert.Equal("<>E__1<T>", symbol2.ToTestDisplayString());
     }
 
     [Fact]
-    public void ExtensionIndex_TwoExtensions_DifferentSignatures_01()
+    public void ExtensionIndex_TwoExtensions_05()
     {
         var src = """
 public static class Extensions
@@ -1652,7 +1652,7 @@ public static class Extensions
     }
 
     [Fact]
-    public void ExtensionIndex_TwoExtensions_DifferentSignatures_02()
+    public void ExtensionIndex_TwoExtensions_06()
     {
         var src = """
 public static class Extensions
@@ -1695,6 +1695,7 @@ public static class Extensions
     extension<T8>(T8 o8) { }
     extension<T9>(T9 o9) { }
     extension<T10>(T10 o10) { }
+    class C { }
     extension<T11>(T11 o11) { }
 }
 """;
