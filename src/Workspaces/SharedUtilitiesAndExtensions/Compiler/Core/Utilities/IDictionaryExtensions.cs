@@ -224,4 +224,42 @@ internal static class IDictionaryExtensions
             }
         }
     }
+
+    /// <summary>
+    /// Removes entries from a dictionary based on a specified condition. The condition is defined by a function that
+    /// evaluates each key-value pair.
+    /// </summary>
+    public static void RemoveAll<TKey, TValue, TArg>(this Dictionary<TKey, TValue> dictionary, Func<TKey, TValue, TArg, bool> predicate, TArg arg)
+        where TKey : notnull
+    {
+#if NET
+        // .NET supports removing while enumerating:
+        foreach (var entry in dictionary)
+        {
+            if (predicate(entry.Key, entry.Value, arg))
+            {
+                dictionary.Remove(entry.Key);
+            }
+        }
+#else
+        if (dictionary.Count == 0)
+        {
+            return;
+        }
+
+        using var _ = ArrayBuilder<TKey>.GetInstance(out var keysToRemove);
+        foreach (var entry in dictionary)
+        {
+            if (predicate(entry.Key, entry.Value, arg))
+            {
+                keysToRemove.Add(entry.Key);
+            }
+        }
+
+        foreach (var key in keysToRemove)
+        {
+            dictionary.Remove(key);
+        }
+#endif
+    }
 }
