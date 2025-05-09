@@ -6062,7 +6062,7 @@ static class E
             Dim comp As Compilation
             If useMetadata Then
                 Dim libComp = CreateCSharpCompilation("c", text, parseOptions:=parseOptions)
-                comp = CreateCompilation("", references:={libComp.EmitToImageReference()})
+                comp = CreateCSharpCompilation("d", code:="", parseOptions:=parseOptions, referencedAssemblies:={libComp.EmitToImageReference()})
             Else
                 comp = CreateCSharpCompilation("c", text, parseOptions:=parseOptions)
             End If
@@ -6081,7 +6081,7 @@ static class E
 
             Dim skeletonM = extension.GetMembers("M").Single()
             If useMetadata Then
-                Assert.Equal("Public Overloads Sub E.<>E__0.M()", SymbolDisplay.ToDisplayString(skeletonM, format))
+                Assert.Equal("Public Sub E.<>E__0.M()", SymbolDisplay.ToDisplayString(skeletonM, format))
             Else
                 Assert.Equal("Public Sub E.<>E__0.M()", SymbolDisplay.ToDisplayString(skeletonM, format))
             End If
@@ -6120,7 +6120,7 @@ static class E
             Dim comp As Compilation
             If useMetadata Then
                 Dim libComp = CreateCSharpCompilation("c", text, parseOptions:=parseOptions)
-                comp = CreateCompilation("", references:={libComp.EmitToImageReference()})
+                comp = CreateCSharpCompilation("d", code:="", parseOptions:=parseOptions, referencedAssemblies:={libComp.EmitToImageReference()})
             Else
                 comp = CreateCSharpCompilation("c", text, parseOptions:=parseOptions)
             End If
@@ -6129,43 +6129,22 @@ static class E
             Dim extension = e.GetMembers().OfType(Of ITypeSymbol).Single()
 
             ' Tracked by https://github.com/dotnet/roslyn/issues/76130 : the arity should not be included in the extension type name
-            If useMetadata Then
-                Assert.Equal("E.<>E__0(Of T)", SymbolDisplay.ToDisplayString(extension, format))
-            Else
-                Assert.Equal("E.<>E__0`1(Of T)", SymbolDisplay.ToDisplayString(extension, format))
-            End If
+            Assert.Equal("E.<>E__0`1(Of T)", SymbolDisplay.ToDisplayString(extension, format))
 
             Dim parts = SymbolDisplay.ToDisplayParts(extension, format)
-            If useMetadata Then
-                Verify(parts,
-                       "E.<>E__0(Of T)",
-                       SymbolDisplayPartKind.ClassName,
-                       SymbolDisplayPartKind.Operator,
-                       SymbolDisplayPartKind.ClassName,
-                       SymbolDisplayPartKind.Punctuation,
-                       SymbolDisplayPartKind.Keyword,
-                       SymbolDisplayPartKind.Space,
-                       SymbolDisplayPartKind.TypeParameterName,
-                       SymbolDisplayPartKind.Punctuation)
-            Else
-                Verify(parts,
-                       "E.<>E__0`1(Of T)",
-                       SymbolDisplayPartKind.ClassName,
-                       SymbolDisplayPartKind.Operator,
-                       SymbolDisplayPartKind.ClassName,
-                       SymbolDisplayPartKind.Punctuation,
-                       SymbolDisplayPartKind.Keyword,
-                       SymbolDisplayPartKind.Space,
-                       SymbolDisplayPartKind.TypeParameterName,
-                       SymbolDisplayPartKind.Punctuation)
-            End If
+            Verify(parts,
+               "E.<>E__0`1(Of T)",
+               SymbolDisplayPartKind.ClassName,
+               SymbolDisplayPartKind.Operator,
+               SymbolDisplayPartKind.ClassName,
+               SymbolDisplayPartKind.Punctuation,
+               SymbolDisplayPartKind.Keyword,
+               SymbolDisplayPartKind.Space,
+               SymbolDisplayPartKind.TypeParameterName,
+               SymbolDisplayPartKind.Punctuation)
 
             Dim skeletonM = extension.GetMembers("M").Single()
-            If useMetadata Then
-                Assert.Equal("Public Overloads Sub E.<>E__0(Of T).M()", SymbolDisplay.ToDisplayString(skeletonM, format))
-            Else
-                Assert.Equal("Public Sub E.<>E__0`1(Of T).M()", SymbolDisplay.ToDisplayString(skeletonM, format))
-            End If
+            Assert.Equal("Public Sub E.<>E__0`1(Of T).M()", SymbolDisplay.ToDisplayString(skeletonM, format))
         End Sub
 
 #Region "Helpers"
