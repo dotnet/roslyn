@@ -7,6 +7,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -23,6 +24,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SpellCheck;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Text.Adornments;
 using Roslyn.Utilities;
 using Logger = Microsoft.CodeAnalysis.Internal.Log.Logger;
@@ -106,6 +108,7 @@ internal static partial class ProtocolConversions
     {
         LSP.VSInternalExtensionUtilities.AddVSInternalExtensionConverters(options);
         options.Converters.Add(new LSP.NaturalObjectConverter());
+        options.Converters.Add(new DocumentUriConverter());
         return options;
     }
 
@@ -211,7 +214,20 @@ internal static partial class ProtocolConversions
         }
     }
 
-    internal static Uri CreateRelativePatternBaseUri(string path)
+    /// <summary>
+    /// Converts an absolute local file path or an absolute URL string to <see cref="DocumentUri"/>.
+    /// For use with callers (generally LSP) that require <see cref="DocumentUri"/>
+    /// </summary>
+    /// <exception cref="UriFormatException">
+    /// The <paramref name="absolutePath"/> can't be represented as <see cref="Uri"/>.
+    /// For example, UNC paths with invalid characters in server name.
+    /// </exception>
+    public static DocumentUri CreateAbsoluteDocumentUri(string absolutePath)
+    {
+        return new(CreateAbsoluteUri(absolutePath));
+    }
+
+    internal static DocumentUri CreateRelativePatternBaseUri(string path)
     {
         // According to VSCode LSP RelativePattern spec,
         // found at https://github.com/microsoft/vscode/blob/9e1974682eb84eebb073d4ae775bad1738c281f6/src/vscode-dts/vscode.d.ts#L2226
@@ -224,7 +240,7 @@ internal static partial class ProtocolConversions
 
         Debug.Assert(!path.Split(System.IO.Path.DirectorySeparatorChar).Any(p => p == "." || p == ".."));
 
-        return CreateAbsoluteUri(path);
+        return new(CreateAbsoluteUri(path));
     }
 
     // Implements workaround for https://github.com/dotnet/runtime/issues/89538:
@@ -284,10 +300,10 @@ internal static partial class ProtocolConversions
     }
 
     public static LSP.TextDocumentIdentifier DocumentToTextDocumentIdentifier(TextDocument document)
-        => new() { Uri = document.GetURI() };
+        => new() { DocumentUri = document.GetURI() };
 
     public static LSP.VersionedTextDocumentIdentifier DocumentToVersionedTextDocumentIdentifier(Document document)
-        => new() { Uri = document.GetURI() };
+        => new() { DocumentUri = document.GetURI() };
 
     public static LinePosition PositionToLinePosition(LSP.Position position)
         => new(position.Line, position.Character);
@@ -363,7 +379,7 @@ internal static partial class ProtocolConversions
 
         return location == null ? null : new LSP.VSInternalLocation
         {
-            Uri = location.Uri,
+            DocumentUri = location.DocumentUri,
             Range = location.Range,
             Text = text
         };
@@ -376,7 +392,7 @@ internal static partial class ProtocolConversions
     public static async Task<LSP.TextDocumentEdit[]> ChangedDocumentsToTextDocumentEditsAsync<T>(IEnumerable<DocumentId> changedDocuments, Func<DocumentId, T> getNewDocumentFunc,
             Func<DocumentId, T> getOldDocumentFunc, IDocumentTextDifferencingService? textDiffService, CancellationToken cancellationToken) where T : TextDocument
     {
-        using var _ = ArrayBuilder<(Uri Uri, LSP.TextEdit TextEdit)>.GetInstance(out var uriToTextEdits);
+        using var _ = ArrayBuilder<(DocumentUri Uri, LSP.TextEdit TextEdit)>.GetInstance(out var uriToTextEdits);
 
         foreach (var docId in changedDocuments)
         {
@@ -419,7 +435,7 @@ internal static partial class ProtocolConversions
                     var textChange = textChanges[i];
                     if (!mappedSpan.IsDefault)
                     {
-                        uriToTextEdits.Add((CreateAbsoluteUri(mappedSpan.FilePath), new LSP.TextEdit
+                        uriToTextEdits.Add((CreateAbsoluteDocumentUri(mappedSpan.FilePath), new LSP.TextEdit
                         {
                             Range = MappedSpanResultToRange(mappedSpan),
                             NewText = textChange.NewText ?? string.Empty
@@ -431,7 +447,7 @@ internal static partial class ProtocolConversions
 
         var documentEdits = uriToTextEdits.GroupBy(uriAndEdit => uriAndEdit.Uri, uriAndEdit => new LSP.SumType<LSP.TextEdit, LSP.AnnotatedTextEdit>(uriAndEdit.TextEdit), (uri, edits) => new LSP.TextDocumentEdit
         {
-            TextDocument = new LSP.OptionalVersionedTextDocumentIdentifier { Uri = uri },
+            TextDocument = new LSP.OptionalVersionedTextDocumentIdentifier { DocumentUri = uri },
             Edits = [.. edits],
         }).ToArray();
 
@@ -464,11 +480,11 @@ internal static partial class ProtocolConversions
         if (mappedSpan.IsDefault)
             return await ConvertTextSpanToLocationAsync(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
 
-        Uri? uri = null;
+        DocumentUri? uri = null;
         try
         {
             if (PathUtilities.IsAbsolute(mappedSpan.FilePath))
-                uri = CreateAbsoluteUri(mappedSpan.FilePath);
+                uri = CreateAbsoluteDocumentUri(mappedSpan.FilePath);
         }
         catch (UriFormatException)
         {
@@ -476,13 +492,13 @@ internal static partial class ProtocolConversions
 
         if (uri == null)
         {
-            context?.TraceInformation($"Could not convert '{mappedSpan.FilePath}' to uri");
+            context?.TraceWarning($"Could not convert '{mappedSpan.FilePath}' to uri");
             return null;
         }
 
         return new LSP.Location
         {
-            Uri = uri,
+            DocumentUri = uri,
             Range = MappedSpanResultToRange(mappedSpan)
         };
 
@@ -508,11 +524,11 @@ internal static partial class ProtocolConversions
             return ConvertTextSpanWithTextToLocation(span, text, uri);
         }
 
-        static LSP.Location ConvertTextSpanWithTextToLocation(TextSpan span, SourceText text, Uri documentUri)
+        static LSP.Location ConvertTextSpanWithTextToLocation(TextSpan span, SourceText text, DocumentUri documentUri)
         {
             var location = new LSP.Location
             {
-                Uri = documentUri,
+                DocumentUri = documentUri,
                 Range = TextSpanToRange(span, text),
             };
 
@@ -521,7 +537,7 @@ internal static partial class ProtocolConversions
     }
 
     public static LSP.CodeDescription? HelpLinkToCodeDescription(Uri? uri)
-        => (uri != null) ? new LSP.CodeDescription { Href = uri } : null;
+        => (uri != null) ? new LSP.CodeDescription { Href = new(uri) } : null;
 
     public static LSP.SymbolKind NavigateToKindToSymbolKind(string kind)
     {

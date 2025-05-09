@@ -181,7 +181,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
 
     public virtual bool TryGetLanguageForRequest(string methodName, object? serializedRequest, [NotNullWhen(true)] out string? language)
     {
-        Logger.LogInformation($"Using default language handler for {methodName}");
+        Logger.LogDebug($"Using default language handler for {methodName}");
         language = LanguageServerConstants.DefaultLanguageName;
         return true;
     }

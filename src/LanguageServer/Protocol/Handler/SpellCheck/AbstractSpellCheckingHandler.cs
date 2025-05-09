@@ -62,7 +62,7 @@ internal abstract class AbstractSpellCheckHandler<TParams, TReport>
     public async Task<TReport[]?> HandleRequestAsync(
         TParams requestParams, RequestContext context, CancellationToken cancellationToken)
     {
-        context.TraceInformation($"{this.GetType()} started getting spell checking spans");
+        context.TraceDebug($"{this.GetType()} started getting spell checking spans");
 
         // The progress object we will stream reports to.
         using var progress = BufferedProgress.Create(requestParams.PartialResultToken);
@@ -70,7 +70,7 @@ internal abstract class AbstractSpellCheckHandler<TParams, TReport>
         // Get the set of results the request said were previously reported.  We can use this to determine both
         // what to skip, and what files we have to tell the client have been removed.
         var previousResults = GetPreviousResults(requestParams) ?? [];
-        context.TraceInformation($"previousResults.Length={previousResults.Length}");
+        context.TraceDebug($"previousResults.Length={previousResults.Length}");
 
         // First, let the client know if any workspace documents have gone away.  That way it can remove those for
         // the user from squiggles or error-list.
@@ -84,16 +84,16 @@ internal abstract class AbstractSpellCheckHandler<TParams, TReport>
         // Next process each file in priority order. Determine if spans are changed or unchanged since the
         // last time we notified the client.  Report back either to the client so they can update accordingly.
         var orderedDocuments = GetOrderedDocuments(context, cancellationToken);
-        context.TraceInformation($"Processing {orderedDocuments.Length} documents");
+        context.TraceDebug($"Processing {orderedDocuments.Length} documents");
 
         foreach (var document in orderedDocuments)
         {
-            context.TraceInformation($"Processing: {document.FilePath}");
+            context.TraceDebug($"Processing: {document.FilePath}");
 
             var languageService = document.GetLanguageService<ISpellCheckSpanService>();
             if (languageService == null)
             {
-                context.TraceInformation($"Ignoring document '{document.FilePath}' because it does not support spell checking");
+                context.TraceDebug($"Ignoring document '{document.FilePath}' because it does not support spell checking");
                 continue;
             }
 
@@ -107,7 +107,7 @@ internal abstract class AbstractSpellCheckHandler<TParams, TReport>
             if (newResult != null)
             {
                 var (newResultId, spans) = newResult.Value;
-                context.TraceInformation($"Spans were changed for document: {document.FilePath}");
+                context.TraceDebug($"Spans were changed for document: {document.FilePath}");
                 foreach (var report in ReportCurrentSpans(
                     document, spans, newResultId))
                 {
@@ -116,7 +116,7 @@ internal abstract class AbstractSpellCheckHandler<TParams, TReport>
             }
             else
             {
-                context.TraceInformation($"Spans were unchanged for document: {document.FilePath}");
+                context.TraceDebug($"Spans were unchanged for document: {document.FilePath}");
 
                 // Nothing changed between the last request and this one.  Report a (null-spans, same-result-id)
                 // response to the client as that means they should just preserve the current spans they have for
@@ -128,7 +128,7 @@ internal abstract class AbstractSpellCheckHandler<TParams, TReport>
 
         // If we had a progress object, then we will have been reporting to that.  Otherwise, take what we've been
         // collecting and return that.
-        context.TraceInformation($"{this.GetType()} finished getting spans");
+        context.TraceDebug($"{this.GetType()} finished getting spans");
         return progress.GetFlattenedValues();
     }
 
@@ -212,7 +212,7 @@ internal abstract class AbstractSpellCheckHandler<TParams, TReport>
                 var document = await context.Solution.GetTextDocumentAsync(textDocument, cancellationToken).ConfigureAwait(false);
                 if (document == null)
                 {
-                    context.TraceInformation($"Clearing spans for removed document: {textDocument.Uri}");
+                    context.TraceDebug($"Clearing spans for removed document: {textDocument.DocumentUri}");
 
                     // Client is asking server about a document that no longer exists (i.e. was removed/deleted from
                     // the workspace). Report a (null-spans, null-result-id) response to the client as that means

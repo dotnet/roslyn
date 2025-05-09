@@ -6,6 +6,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 using System;
 using System.Text.Json.Serialization;
+using Microsoft.CodeAnalysis.LanguageServer;
 
 /// <summary>
 /// Class representing a create file operation.
@@ -30,10 +31,18 @@ internal sealed class CreateFile : IAnnotatedChange
     [JsonPropertyName("uri")]
     [JsonRequired]
     [JsonConverter(typeof(DocumentUriConverter))]
-    public Uri Uri
+    public DocumentUri DocumentUri
     {
         get;
         set;
+    }
+
+    [Obsolete("Use DocumentUri instead. This property will be removed in a future version.")]
+    [JsonIgnore]
+    public Uri Uri
+    {
+        get => DocumentUri.GetRequiredParsedUri();
+        set => DocumentUri = new DocumentUri(value);
     }
 
     /// <summary>

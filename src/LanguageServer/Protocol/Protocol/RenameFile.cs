@@ -6,6 +6,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 using System;
 using System.Text.Json.Serialization;
+using Microsoft.CodeAnalysis.LanguageServer;
 
 /// <summary>
 /// Class representing a rename file operation.
@@ -30,10 +31,18 @@ internal sealed class RenameFile : IAnnotatedChange
     [JsonPropertyName("oldUri")]
     [JsonRequired]
     [JsonConverter(typeof(DocumentUriConverter))]
-    public Uri OldUri
+    public DocumentUri OldDocumentUri
     {
         get;
         set;
+    }
+
+    [Obsolete("Use OldDocumentUri instead. This property will be removed in a future version.")]
+    [JsonIgnore]
+    public Uri OldUri
+    {
+        get => OldDocumentUri.GetRequiredParsedUri();
+        set => OldDocumentUri = new DocumentUri(value);
     }
 
     /// <summary>
@@ -42,10 +51,18 @@ internal sealed class RenameFile : IAnnotatedChange
     [JsonPropertyName("newUri")]
     [JsonRequired]
     [JsonConverter(typeof(DocumentUriConverter))]
-    public Uri NewUri
+    public DocumentUri NewDocumentUri
     {
         get;
         set;
+    }
+
+    [Obsolete("Use NewDocumentUri instead. This property will be removed in a future version.")]
+    [JsonIgnore]
+    public Uri NewUri
+    {
+        get => NewDocumentUri.GetRequiredParsedUri();
+        set => NewDocumentUri = new DocumentUri(value);
     }
 
     /// <summary>
