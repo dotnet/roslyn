@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     [CompilerTrait(CompilerFeature.RecordStructs)]
     public class RecordStructTests : CompilingTestBase
     {
-        private static CSharpCompilation CreateCompilation(CSharpTestSource source)
-            => CSharpTestBase.CreateCompilation(new[] { source, IsExternalInitTypeDefinition },
+        private CSharpCompilation CreateCompilation(CSharpTestSource source)
+            => base.CreateCompilation(new[] { source, IsExternalInitTypeDefinition },
                 parseOptions: TestOptions.RegularPreview);
 
         private CompilationVerifier CompileAndVerify(

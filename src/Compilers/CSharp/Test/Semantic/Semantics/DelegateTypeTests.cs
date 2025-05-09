@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class DelegateTypeTests : CSharpTestBase
+    public class DelegateTypeTests() : CSharpTestBase(TargetFramework.Standard)
     {
         private const string s_utils =
 @"using System;

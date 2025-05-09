@@ -458,7 +458,7 @@ class F
                 ("F", "1.cs"));
         }
 
-        private static void TestTypeDefinitionDocuments(string[] sources, params (string typeName, string documentName)[] expected)
+        private void TestTypeDefinitionDocuments(string[] sources, params (string typeName, string documentName)[] expected)
         {
             var trees = sources.Select((s, i) => SyntaxFactory.ParseSyntaxTree(s, path: $"{i + 1}.cs", encoding: Encoding.UTF8)).ToArray();
             var compilation = CreateCompilation(trees, options: TestOptions.DebugDll);

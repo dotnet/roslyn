@@ -11397,7 +11397,7 @@ file {{eSrc}}
             //         _ = new object().Property;
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Property").WithArguments("object", "Property").WithLocation(6, 26));
 
-        static void verify(CSharpTestSource src, params DiagnosticDescription[] expected)
+        void verify(CSharpTestSource src, params DiagnosticDescription[] expected)
         {
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(expected);

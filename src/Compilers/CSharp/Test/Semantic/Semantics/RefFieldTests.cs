@@ -18,7 +18,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.RefLifetime)]
-    public class RefFieldTests : CSharpTestBase
+    public class RefFieldTests() : CSharpTestBase(TargetFramework.Standard)
     {
         internal static string IncludeExpectedOutput(string expectedOutput) => ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null;
 
@@ -20070,7 +20070,7 @@ class Program
         r.F(out s);
     }
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), targetFramework: TargetFramework.Net50);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), targetFramework: TargetFramework.Net50);
             if (languageVersion == LanguageVersion.CSharp10)
             {
                 comp.VerifyDiagnostics(

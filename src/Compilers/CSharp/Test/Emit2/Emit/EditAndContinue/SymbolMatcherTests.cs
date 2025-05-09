@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     public class SymbolMatcherTests : EditAndContinueTestBase
     {
-        private static PEAssemblySymbol CreatePEAssemblySymbol(string source)
+        private PEAssemblySymbol CreatePEAssemblySymbol(string source)
         {
             var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
             var reference = compilation.EmitToImageReference();
@@ -1291,7 +1291,7 @@ unsafe class C
 
             verify(source1, source2);
 
-            static void verify(string source1, string source2)
+            void verify(string source1, string source2)
             {
                 var compilation0 = CreateCompilation(source1, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular9);
                 var compilation1 = compilation0.WithSource(source2);

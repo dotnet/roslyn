@@ -8308,7 +8308,7 @@ public class C : CodeAccessSecurityAttribute
 
 
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilationWithNetStandard(source);
             comp.VerifyDiagnostics(
                 // (16,35): error CS1001: Identifier expected
                 //     public A(params SecurityAction)
