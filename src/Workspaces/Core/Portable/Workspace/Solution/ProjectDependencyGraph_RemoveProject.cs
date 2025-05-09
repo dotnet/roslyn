@@ -145,6 +145,7 @@ public partial class ProjectDependencyGraph
                     // exclusively through this reference are no longer valid. Remove the project from the map and the
                     // new transitive references will be recomputed the first time they are needed.
                     builder.Remove(project);
+                    break;
                 }
             }
         }
@@ -179,6 +180,7 @@ public partial class ProjectDependencyGraph
                     // from the map and the new transitive reverse references will be recomputed the first time they are
                     // needed.
                     builder.Remove(project);
+                    break;
                 }
             }
         }
