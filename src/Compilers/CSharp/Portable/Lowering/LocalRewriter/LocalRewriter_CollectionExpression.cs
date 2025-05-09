@@ -1126,7 +1126,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If explicit collection creation was generated in initial binding, and collection
             // creation does not use the parameterless List<T> constructor, use the collection
             // creation as is. Otherwise, consider optimizations.
-            // PROTOTYPE: Should we skip optimizations if there was an explicit empty 'with()'?
             if (node.CollectionCreation is BoundCall { Method: CollectionArgumentsSignatureOnlyMethodSymbol { WellKnownConstructor: var wellKnownConstructor } } &&
                 (object)wellKnownConstructor.OriginalDefinition != _compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor))
             {

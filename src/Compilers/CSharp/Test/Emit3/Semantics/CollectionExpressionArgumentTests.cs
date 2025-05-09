@@ -3860,6 +3860,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (13,19): error CS9503: Collection arguments cannot be dynamic; compile-time binding is required.
                 //         c = [with((dynamic)1, (dynamic)"2"), 3];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "(dynamic)1").WithLocation(13, 19),
+                // (13,31): error CS9503: Collection arguments cannot be dynamic; compile-time binding is required.
+                //         c = [with((dynamic)1, (dynamic)"2"), 3];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, @"(dynamic)""2""").WithLocation(13, 31),
                 // (14,21): error CS8917: The delegate type could not be inferred.
                 //         c = [with(x => { })];
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(14, 21));
@@ -4658,31 +4661,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
         }
 
-        [Theory(Skip = "PROTOTYPE")]
-        [CombinatorialData]
-        public void InterfaceTarget_Dynamic(
-            [CombinatorialValues("IDictionary", "IReadOnlyDictionary")] string typeName)
+        [Fact]
+        public void InterfaceTarget_Dynamic()
         {
-            string source = $$"""
+            string source = """
                 using System.Collections.Generic;
                 class Program
                 {
                     static void Main()
                     {
-                        Create(null, 1, "one").Report();
+                        CreateReadOnlyDictionary(null, 1, "one");
+                        CreateDictionary(2, null, 2, "two");
                     }
-                    static {{typeName}}<K, V> Create<K, V>(dynamic d, K k, V v)
+                    static IReadOnlyDictionary<K, V> CreateReadOnlyDictionary<K, V>(dynamic d, K k, V v)
                     {
                         return [with(d), k:v];
                     }
+                    static IDictionary<K, V> CreateDictionary<K, V>(dynamic x, dynamic y, K k, V v)
+                    {
+                        return [with(x, y), k:v];
+                    }
                 }
                 """;
-            var comp = CreateCompilation(
-                source,
-                targetFramework: TargetFramework.Net80,
-                options: TestOptions.ReleaseExe);
-            // PROTOTYPE: Should report "error CS9503: Collection arguments cannot be dynamic; compile-time binding is required."
-            comp.VerifyEmitDiagnostics();
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (11,22): error CS9503: Collection arguments cannot be dynamic; compile-time binding is required.
+                //         return [with(d), k:v];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "d").WithLocation(11, 22),
+                // (15,22): error CS9503: Collection arguments cannot be dynamic; compile-time binding is required.
+                //         return [with(x, y), k:v];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "x").WithLocation(15, 22),
+                // (15,25): error CS9503: Collection arguments cannot be dynamic; compile-time binding is required.
+                //         return [with(x, y), k:v];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "y").WithLocation(15, 25));
         }
 
         /// <summary>

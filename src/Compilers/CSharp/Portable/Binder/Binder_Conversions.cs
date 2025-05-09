@@ -1474,6 +1474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     disallowExpandedNonArrayParams: true,
                     acceptOnlyMethods: true).MakeCompilerGenerated();
                 analyzedArguments.Free();
+                Debug.Assert(result.Kind != BoundKind.DynamicInvocation);
                 Debug.Assert(targetType.Equals(result.Type, TypeCompareKind.AllIgnoreOptions));
                 return result;
             }
