@@ -21,25 +21,15 @@ namespace Microsoft.CodeAnalysis
         // Matches EditorConfig section header such as "[*.{js,py}]", see https://editorconfig.org for details
         private const string s_sectionMatcherPattern = @"^\s*\[(([^#;]|\\#|\\;)+)\]\s*([#;].*)?$";
 
-        // Matches EditorConfig property such as "indent_style = space", see https://editorconfig.org for details
-        private const string s_propertyMatcherPattern = @"^\s*([\w\.\-_]+)\s*[=:]\s*(.*?)\s*([#;].*)?$";
-
 #if NET
 
         [GeneratedRegex(s_sectionMatcherPattern)]
         private static partial Regex GetSectionMatcherRegex();
 
-        [GeneratedRegex(s_propertyMatcherPattern)]
-        private static partial Regex GetPropertyMatcherRegex();
-
 #else
         private static readonly Regex s_sectionMatcher = new Regex(s_sectionMatcherPattern, RegexOptions.Compiled);
 
-        private static readonly Regex s_propertyMatcher = new Regex(s_propertyMatcherPattern, RegexOptions.Compiled);
-
         private static Regex GetSectionMatcherRegex() => s_sectionMatcher;
-
-        private static Regex GetPropertyMatcherRegex() => s_propertyMatcher;
 
 #endif
 
@@ -232,23 +222,32 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                var propMatches = GetPropertyMatcherRegex().Matches(line);
-                if (propMatches.Count > 0 && propMatches[0].Groups.Count > 1)
+                // Look for a key-value pair
+                string trimmedLine = line.TrimStart(); // remove leading whitespace for the key part
+                string keyPart;
+
+                // Look for a non-empty key part
+                int keyStart = trimmedLine.IndexOfAny(['=', ':']);
+                if (keyStart > 0 && (keyPart = trimmedLine[..keyStart].TrimEnd()).Length > 0) // remove trailing whitespace for the key part, and ensure keyPart has a non-trimmable content (it can't have a content if keyStart is zero)
                 {
-                    var key = propMatches[0].Groups[1].Value;
-                    var value = propMatches[0].Groups[2].Value;
+                    string loweredKeyPart = keyPart.ToLower(); // lower casing the key part
+                    string valueComment = trimmedLine[(keyStart + 1)..].TrimStart(); // remove leading whitespace for the value part
+                    string valuePart;
 
-                    Debug.Assert(!string.IsNullOrEmpty(key));
-                    Debug.Assert(key == key.Trim());
-                    Debug.Assert(value == value?.Trim());
-
-                    key = CaseInsensitiveComparison.ToLower(key);
-                    if (ReservedKeys.Contains(key) || ReservedValues.Contains(value))
+                    // Look for an inline comment in the value part
+                    int commentStart = valueComment.IndexOfAny(['#', ';']);
+                    if (commentStart > -1)
                     {
-                        value = CaseInsensitiveComparison.ToLower(value);
+                        // Remove inline comment from the value part
+                        valuePart = valueComment[..commentStart];
+                    }
+                    else
+                    {
+                        valuePart = valueComment;
                     }
 
-                    activeSectionProperties[key] = value ?? "";
+                    // Add the key-value pair to the dictionary
+                    activeSectionProperties[loweredKeyPart] = valuePart.TrimEnd(); // remove trailing whitespace for the value part, allowing for "" value part, lower casing the value part
                     continue;
                 }
             }
