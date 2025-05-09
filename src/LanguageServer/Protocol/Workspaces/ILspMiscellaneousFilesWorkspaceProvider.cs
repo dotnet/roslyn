@@ -20,6 +20,6 @@ internal interface ILspMiscellaneousFilesWorkspaceProvider : ILspService
     /// Adds a document to the workspace. Note that the implementation of this method should not depend on anything expensive such as RPC calls.
     /// async is used here to allow taking locks asynchronously and "relatively fast" stuff like that.
     /// </summary>
-    Task<TextDocument?> AddMiscellaneousDocumentAsync(DocumentUri uri, SourceText documentText, string languageId, ILspLogger logger);
+    ValueTask<TextDocument?> AddMiscellaneousDocumentAsync(DocumentUri uri, SourceText documentText, string languageId, ILspLogger logger);
     ValueTask TryRemoveMiscellaneousDocumentAsync(DocumentUri uri, bool removeFromMetadataWorkspace);
 }

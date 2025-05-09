@@ -102,12 +102,14 @@ internal sealed class LoadedProject : IDisposable
         return _mostRecentFileInfo.TargetFramework;
     }
 
+    /// <summary>
+    /// Unloads the project and removes it from the workspace.
+    /// </summary>
     public void Dispose()
     {
         _fileChangeContext.Dispose();
         _optionsProcessor.Dispose();
         _projectSystemProject.RemoveFromWorkspace();
-        NeedsReload = null;
     }
 
     public async ValueTask<(ProjectLoadTelemetryReporter.TelemetryInfo, bool NeedsRestore)> UpdateWithNewProjectInfoAsync(ProjectFileInfo newProjectInfo, bool hasAllInformation, ILogger logger)

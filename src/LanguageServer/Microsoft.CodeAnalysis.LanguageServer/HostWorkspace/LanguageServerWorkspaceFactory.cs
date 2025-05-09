@@ -53,12 +53,14 @@ internal sealed class LanguageServerWorkspaceFactory
             CancellationToken.None); // TODO: do we need to introduce a shutdown cancellation token for this?
         workspace.ProjectSystemProjectFactory = HostProjectFactory;
 
-        var fbpWorkspace = new LanguageServerWorkspace(hostServicesProvider.HostServices, WorkspaceKind.MiscellaneousFiles);
-        fbpWorkspace.SetCurrentSolution(s => s.WithAnalyzerReferences(CreateSolutionLevelAnalyzerReferencesForWorkspace(fbpWorkspace)), WorkspaceChangeKind.SolutionChanged);
+        // TODO: Move this workspace creation to 'FileBasedProgramsWorkspaceProviderFactory'.
+        // 'CreateSolutionLevelAnalyzerReferencesForWorkspace' needs to be broken out into its own service for us to be able to move this.
+        var fileBasedProgramsWorkspace = new LanguageServerWorkspace(hostServicesProvider.HostServices, WorkspaceKind.MiscellaneousFiles);
+        fileBasedProgramsWorkspace.SetCurrentSolution(s => s.WithAnalyzerReferences(CreateSolutionLevelAnalyzerReferencesForWorkspace(fileBasedProgramsWorkspace)), WorkspaceChangeKind.SolutionChanged);
 
         FileBasedProgramsProjectFactory = new ProjectSystemProjectFactory(
-            fbpWorkspace, fileChangeWatcher, static (_, _) => Task.CompletedTask, _ => { }, CancellationToken.None);
-        fbpWorkspace.ProjectSystemProjectFactory = FileBasedProgramsProjectFactory;
+            fileBasedProgramsWorkspace, fileChangeWatcher, static (_, _) => Task.CompletedTask, _ => { }, CancellationToken.None);
+        fileBasedProgramsWorkspace.ProjectSystemProjectFactory = FileBasedProgramsProjectFactory;
 
         var razorSourceGenerator = serverConfigurationFactory?.ServerConfiguration?.RazorSourceGenerator;
         ProjectSystemHostInfo = new ProjectSystemHostInfo(

@@ -60,11 +60,11 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
     public Workspace Workspace => ProjectFactory.Workspace;
 
-    public async Task<TextDocument?> AddMiscellaneousDocumentAsync(DocumentUri uri, SourceText documentText, string languageId, ILspLogger logger)
+    public async ValueTask<TextDocument?> AddMiscellaneousDocumentAsync(DocumentUri uri, SourceText documentText, string languageId, ILspLogger logger)
     {
         var documentFilePath = uri.ParsedUri is not null ? ProtocolConversions.GetDocumentFilePathFromUri(uri.ParsedUri) : uri.UriString;
 
-        // https://github.com/dotnet/roslyn/issues/78421: MAS should be its own workspace
+        // https://github.com/dotnet/roslyn/issues/78421: MetadataAsSource should be its own workspace
         if (_metadataAsSourceFileService.TryAddDocumentToWorkspace(documentFilePath, documentText.Container, out var documentId))
         {
             var metadataWorkspace = _metadataAsSourceFileService.TryGetWorkspace();
@@ -74,13 +74,17 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         }
 
         var primordialDoc = AddPrimordialDocument(uri, documentText, languageId);
+        Contract.ThrowIfNull(primordialDoc.FilePath);
 
         if (uri.ParsedUri?.IsFile is true
             && primordialDoc.Project.Language == LanguageNames.CSharp
             && GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms))
         {
-            Contract.ThrowIfNull(primordialDoc.FilePath);
             await BeginLoadingProjectAsync(primordialDoc.FilePath, primordialProjectId: primordialDoc.Project.Id);
+        }
+        else
+        {
+            await TrackPrimordialOnlyProjectAsync(primordialDoc.FilePath, primordialDoc.Project.Id);
         }
 
         return primordialDoc;
@@ -104,7 +108,9 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
             workspace.OnProjectAdded(projectInfo);
 
-            if (languageInformation.LanguageName == "Razor")
+            // https://github.com/dotnet/roslyn/pull/78267
+            // Work around an issue where opening a Razor file in the misc workspace causes a crash.
+            if (languageInformation.LanguageName == LanguageInfoProvider.RazorLanguageName)
             {
                 var docId = projectInfo.AdditionalDocuments.Single().Id;
                 return workspace.CurrentSolution.GetRequiredAdditionalDocument(docId);
@@ -126,18 +132,20 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         await UnloadProjectAsync(documentPath);
     }
 
-    protected override async Task<(RemoteProjectFile projectFile, bool hasAllInformation, BuildHostProcessKind preferred, BuildHostProcessKind actual)?> TryLoadRemoteProjectAsync(
+    protected override async Task<(RemoteProjectFile projectFile, bool hasAllInformation, BuildHostProcessKind preferred, BuildHostProcessKind actual)?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string documentPath, CancellationToken cancellationToken)
     {
         const BuildHostProcessKind buildHostKind = BuildHostProcessKind.NetCore;
         var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, cancellationToken);
 
-        var fakeProjectPath = VirtualProject.GetVirtualProjectPath(documentPath);
         var loader = ProjectFactory.CreateFileTextLoader(documentPath);
         var textAndVersion = await loader.LoadTextAsync(new LoadTextOptions(SourceHashAlgorithms.Default), cancellationToken: default);
-        var (contentToLoad, isFileBasedProgram) = VirtualProject.MakeVirtualProjectContent(documentPath, textAndVersion.Text);
+        var (virtualProjectContent, isFileBasedProgram) = VirtualProject.MakeVirtualProjectContent(documentPath, textAndVersion.Text);
 
-        var loadedFile = await buildHost.LoadProjectAsync(fakeProjectPath, contentToLoad, languageName: LanguageNames.CSharp, cancellationToken);
+        // When loading a virtual project, the path to the on-disk source file is not used. Instead the path is adjusted to end with .csproj.
+        // This is necessary in order to get msbuild to apply the standard c# props/targets to the project.
+        var virtualProjectPath = VirtualProject.GetVirtualProjectPath(documentPath);
+        var loadedFile = await buildHost.LoadProjectAsync(virtualProjectPath, virtualProjectContent, languageName: LanguageNames.CSharp, cancellationToken);
         return (loadedFile, hasAllInformation: isFileBasedProgram, preferred: buildHostKind, actual: buildHostKind);
     }
 }

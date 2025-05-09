@@ -40,8 +40,8 @@ internal sealed class LspMiscellaneousFilesWorkspaceProvider(ILspServices lspSer
     /// Calls to this method and <see cref="TryRemoveMiscellaneousDocumentAsync(DocumentUri, bool)"/> are made
     /// from LSP text sync request handling which do not run concurrently.
     /// </summary>
-    public Task<TextDocument?> AddMiscellaneousDocumentAsync(DocumentUri uri, SourceText documentText, string languageId, ILspLogger logger)
-        => Task.FromResult(AddMiscellaneousDocument(uri, documentText, languageId, logger));
+    public ValueTask<TextDocument?> AddMiscellaneousDocumentAsync(DocumentUri uri, SourceText documentText, string languageId, ILspLogger logger)
+        => ValueTaskFactory.FromResult(AddMiscellaneousDocument(uri, documentText, languageId, logger));
 
     private TextDocument? AddMiscellaneousDocument(DocumentUri uri, SourceText documentText, string languageId, ILspLogger logger)
     {

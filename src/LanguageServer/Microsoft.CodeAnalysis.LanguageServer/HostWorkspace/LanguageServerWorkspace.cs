@@ -107,7 +107,9 @@ internal sealed class LanguageServerWorkspace : Workspace, ILspWorkspace
                 {
                     TextLoader loader;
                     var document = textDocument as Document;
-                    if (document is not null && (document.DocumentState.Attributes.DesignTimeOnly == true || !PathUtilities.IsAbsolute(filePath)))
+
+                    // 'DesignTimeOnly == true' or 'filePath' not being absolute indicates the document is for a virtual file (in-memory, not on-disk).
+                    if (document is not null && (document.DocumentState.Attributes.DesignTimeOnly || !PathUtilities.IsAbsolute(filePath)))
                     {
                         // Dynamic files don't exist on disk so if we were to use the FileTextLoader we'd effectively be emptying out the document.
                         // We also assume they're not user editable, and hence can't have "unsaved" changes that are expected to go away on close.
