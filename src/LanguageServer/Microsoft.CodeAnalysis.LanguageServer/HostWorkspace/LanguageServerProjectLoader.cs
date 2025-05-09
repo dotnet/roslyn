@@ -256,20 +256,20 @@ internal abstract class LanguageServerProjectLoader
                 }
 
                 Contract.ThrowIfTrue(currentLoadState is ProjectLoadState.PrimordialOnly);
-                var existingProjects = currentLoadState is ProjectLoadState.Loaded loaded ? loaded.LoadedProjectTargets : [];
+                var existingProjectTargets = currentLoadState is ProjectLoadState.Loaded loaded ? loaded.LoadedProjectTargets : [];
                 // We want to remove projects for targets that don't exist anymore; if we update projects we'll remove them from  
                 // this list -- what's left we can then remove.
-                var projectsToRemove = new HashSet<LoadedProject>(existingProjects);
+                var projectTargetsToUnload = new HashSet<LoadedProject>(existingProjectTargets);
                 foreach (var loadedProjectInfo in loadedProjectInfos)
                 {
-                    var existingTarget = existingProjects.FirstOrDefault(p => p.GetTargetFramework() == loadedProjectInfo.TargetFramework);
+                    var existingProjectTarget = existingProjectTargets.FirstOrDefault(p => p.GetTargetFramework() == loadedProjectInfo.TargetFramework);
                     bool targetNeedsRestore;
                     ProjectLoadTelemetryReporter.TelemetryInfo targetTelemetryInfo;
 
-                    if (existingTarget != null)
+                    if (existingProjectTarget != null)
                     {
-                        projectsToRemove.Remove(existingTarget);
-                        (targetTelemetryInfo, targetNeedsRestore) = await existingTarget.UpdateWithNewProjectInfoAsync(loadedProjectInfo, hasAllInformation, _logger);
+                        projectTargetsToUnload.Remove(existingProjectTarget);
+                        (targetTelemetryInfo, targetNeedsRestore) = await existingProjectTarget.UpdateWithNewProjectInfoAsync(loadedProjectInfo, hasAllInformation, _logger);
                     }
                     else
                     {
@@ -291,7 +291,7 @@ internal abstract class LanguageServerProjectLoader
                             _projectSystemHostInfo);
 
                         var loadedProject = new LoadedProject(projectSystemProject, ProjectFactory.Workspace.Services.SolutionServices, _fileChangeWatcher, _targetFrameworkManager);
-                        existingProjects.Add(loadedProject);
+                        existingProjectTargets.Add(loadedProject);
 
                         loadedProject.NeedsReload += (_, _) => _projectsToLoadAndReload.AddWork(projectToLoad with { ReportTelemetry = false });
 
@@ -302,10 +302,10 @@ internal abstract class LanguageServerProjectLoader
                     }
                 }
 
-                foreach (var project in projectsToRemove)
+                foreach (var project in projectTargetsToUnload)
                 {
                     project.Dispose();
-                    existingProjects.Remove(project);
+                    existingProjectTargets.Remove(project);
                 }
 
                 if (projectToLoad.ReportTelemetry)
@@ -322,7 +322,7 @@ internal abstract class LanguageServerProjectLoader
                 // Transition state machine
                 if (currentLoadState is ProjectLoadState.BeginLoadingWithPrimordial or ProjectLoadState.BeginLoading)
                 {
-                    _loadedProjects[projectPath] = new ProjectLoadState.Loaded(existingProjects);
+                    _loadedProjects[projectPath] = new ProjectLoadState.Loaded(existingProjectTargets);
                 }
             }
 
@@ -375,36 +375,33 @@ internal abstract class LanguageServerProjectLoader
     {
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
-            // Note that we don't expect consecutive calls to begin loading the same project.
-            // If that starts happening (i.e. Add throws here), we need to revisit that assumption.
+            if (_loadedProjects.ContainsKey(projectPath))
+            {
+                return;
+            }
+
             _loadedProjects.Add(projectPath, new ProjectLoadState.BeginLoadingWithPrimordial(primordialProjectId));
             _projectsToLoadAndReload.AddWork(new ProjectToLoad(projectPath, ProjectGuid: null, ReportTelemetry: true));
         }
     }
 
-    protected async Task LoadProjectsAsync(ImmutableArray<string> projectPaths, CancellationToken cancellationToken)
-    {
-        using (await _gate.DisposableWaitAsync(cancellationToken))
-        {
-            foreach (var projectPath in projectPaths)
-            {
-                _loadedProjects.Add(projectPath, new ProjectLoadState.BeginLoading());
-                _projectsToLoadAndReload.AddWork(new ProjectToLoad(projectPath, ProjectGuid: null, ReportTelemetry: true));
-            }
-        }
-
-        await _projectsToLoadAndReload.WaitUntilCurrentBatchCompletesAsync();
-    }
-
-    protected async Task LoadProjectsAsync(ImmutableArray<(string ProjectPath, string ProjectGuid)> projectPaths, CancellationToken cancellationToken)
+    protected async Task LoadProjectsAsync(ImmutableArray<(string ProjectPath, string? ProjectGuid)> projectPaths, CancellationToken cancellationToken)
     {
         using (await _gate.DisposableWaitAsync(cancellationToken))
         {
             foreach (var (path, guid) in projectPaths)
             {
+                if (_loadedProjects.ContainsKey(path))
+                {
+                    continue;
+                }
+
                 _loadedProjects.Add(path, new ProjectLoadState.BeginLoading());
                 _projectsToLoadAndReload.AddWork(new ProjectToLoad(Path: path, ProjectGuid: guid, ReportTelemetry: true));
             }
+
+            // TODO: since this method is used to implement 'OpenSolution' and 'OpenProjects',
+            // it seems like currently loaded projects which are not included in 'projectPaths' should be unloaded.
         }
 
         await _projectsToLoadAndReload.WaitUntilCurrentBatchCompletesAsync();

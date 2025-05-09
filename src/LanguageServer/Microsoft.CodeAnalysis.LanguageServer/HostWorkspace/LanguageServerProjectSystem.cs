@@ -70,11 +70,15 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         }
 
         var projects = await buildHost.GetProjectsInSolutionAsync(solutionFilePath, CancellationToken.None);
-        await LoadProjectsAsync(projects, CancellationToken.None);
+        // TODO: this '!' is doing a "nullable covariant" conversion of the ImmutableArray tuple elements.
+        // This doesn't introduce any null safety issue as the elements can't be modified.
+        // It's not clear if there's a simple pattern that lets us get rid of this,
+        // except perhaps by making the nullabilities exactly match all the way down the chain that this value flows from.
+        await LoadProjectsAsync(projects!, CancellationToken.None);
         await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync();
     }
 
-    public async Task OpenProjectsAsync(ImmutableArray<string> projectFilePaths)
+    public async Task OpenProjectsAsync(ImmutableArray<(string ProjectPath, string? ProjectGuid)> projectFilePaths)
     {
         if (!projectFilePaths.Any())
             return;
