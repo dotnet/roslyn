@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Threading;
@@ -29,27 +30,31 @@ namespace Microsoft.CodeAnalysis.Copilot;
 [TextViewRole(PredefinedTextViewRoles.Document)]
 internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationListener
 {
+    private readonly IGlobalOptionService _globalOptions;
     private readonly IThreadingContext _threadingContext;
     private readonly Lazy<SuggestionServiceBase> _suggestionServiceBase;
     private readonly IAsynchronousOperationListener _listener;
 
-    private readonly AsyncBatchingWorkQueue<SuggestionAcceptedEventArgs> _workQueue;
+    private readonly AsyncBatchingWorkQueue<(bool accepted, ProposalBase proposal)> _completionWorkQueue;
 
     private int _started;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public CopilotWpfTextViewCreationListener(
+        IGlobalOptionService globalOptions,
         IThreadingContext threadingContext,
         Lazy<SuggestionServiceBase> suggestionServiceBase,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
+        _globalOptions = globalOptions;
         _threadingContext = threadingContext;
         _suggestionServiceBase = suggestionServiceBase;
         _listener = listenerProvider.GetListener(FeatureAttribute.CopilotChangeAnalysis);
-        _workQueue = new AsyncBatchingWorkQueue<SuggestionAcceptedEventArgs>(
+
+        _completionWorkQueue = new AsyncBatchingWorkQueue<(bool accepted, ProposalBase proposal)>(
             DelayTimeSpan.Idle,
-            ProcessEventsAsync,
+            ProcessCompletionEventsAsync,
             _listener,
             _threadingContext.DisposalToken);
     }
@@ -64,30 +69,41 @@ internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationL
             Task.Run(() =>
             {
                 var suggestionService = _suggestionServiceBase.Value;
-                suggestionService.SuggestionAccepted += OnSuggestionAccepted;
+                suggestionService.SuggestionAccepted += OnCompletionSuggestionAccepted;
+                suggestionService.SuggestionDismissed += OnCompletionSuggestionDismissed;
             }).CompletesAsyncOperation(token);
         }
     }
 
-    private void OnSuggestionAccepted(object sender, SuggestionAcceptedEventArgs e)
+    private void OnCompletionSuggestionAccepted(object sender, SuggestionAcceptedEventArgs e)
+        => OnCompletionSuggestionEvent(accepted: true, e.FinalProposal);
+
+    private void OnCompletionSuggestionDismissed(object sender, SuggestionDismissedEventArgs e)
+        => OnCompletionSuggestionEvent(accepted: false, e.FinalProposal);
+
+    private void OnCompletionSuggestionEvent(bool accepted, ProposalBase? proposal)
     {
-        if (e.FinalProposal.Edits.Count == 0)
+        if (proposal is not { Edits.Count: > 0 })
             return;
 
-        _workQueue.AddWork(e);
+        _completionWorkQueue.AddWork((accepted, proposal));
     }
 
-    private async ValueTask ProcessEventsAsync(
-        ImmutableSegmentedList<SuggestionAcceptedEventArgs> list, CancellationToken cancellationToken)
+    private async ValueTask ProcessCompletionEventsAsync(
+        ImmutableSegmentedList<(bool accepted, ProposalBase proposal)> list, CancellationToken cancellationToken)
     {
-        foreach (var eventArgs in list)
-            await ProcessEventAsync(eventArgs, cancellationToken).ConfigureAwait(false);
+        // Ignore if analyzing changes is disabled for this user.
+        if (!_globalOptions.GetOption(CopilotOptions.AnalyzeCopilotChanges))
+            return;
+
+        foreach (var (accepted, proposal) in list)
+            await ProcessCompletionEventAsync(accepted, proposal, cancellationToken).ConfigureAwait(false);
     }
 
-    private static async ValueTask ProcessEventAsync(
-        SuggestionAcceptedEventArgs eventArgs, CancellationToken cancellationToken)
+    private static async ValueTask ProcessCompletionEventAsync(
+        bool accepted, ProposalBase proposal, CancellationToken cancellationToken)
     {
-        var proposal = eventArgs.FinalProposal;
+        const string featureId = "Completion";
         var proposalId = proposal.ProposalId;
 
         foreach (var editGroup in proposal.Edits.GroupBy(e => e.Span.Snapshot))
@@ -100,13 +116,22 @@ internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationL
             if (document is null)
                 continue;
 
+            // Currently we do not support analyzing languges other than C# and VB.  This is because we only want to do
+            // this analsis in our OOP process to avoid perf impact on the VS process.  And we don't have OOP for other
+            // languages yet.
+            if (!document.SupportsSemanticModel)
+                continue;
+
             var normalizedEdits = Normalize(editGroup);
             if (normalizedEdits.IsDefaultOrEmpty)
                 continue;
 
             var changeAnalysisService = document.Project.Solution.Services.GetRequiredService<ICopilotChangeAnalysisService>();
-            await changeAnalysisService.AnalyzeChangeAsync(
-                document, normalizedEdits, proposalId, cancellationToken).ConfigureAwait(false);
+            var analysisResult = await changeAnalysisService.AnalyzeChangeAsync(
+                document, normalizedEdits, cancellationToken).ConfigureAwait(false);
+
+            CopilotChangeAnalysisUtilities.LogCopilotChangeAnalysis(
+                featureId, accepted, proposalId, analysisResult, cancellationToken).Dispose();
         }
     }
 

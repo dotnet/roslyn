@@ -46,7 +46,6 @@ try {
 
 # Rebuilds with output differences
   " --exclude net472\Microsoft.CodeAnalysis.EditorFeatures.dll" +
-  " --exclude net472\Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll" +
   " --exclude net472\Microsoft.VisualStudio.LanguageServices.CSharp.dll" +
   " --exclude net472\Microsoft.VisualStudio.LanguageServices.dll" +
   " --exclude net472\Microsoft.VisualStudio.LanguageServices.Implementation.dll" +
