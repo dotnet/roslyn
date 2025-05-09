@@ -11,7 +11,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers;
 [DataContract]
 internal sealed class SerializableUnimportedExtensionMethods(
     ImmutableArray<SerializableImportCompletionItem> completionItems,
-    bool isPartialResult,
     TimeSpan getSymbolsTime,
     TimeSpan createItemsTime,
     TimeSpan? remoteAssetSyncTime)
@@ -20,14 +19,11 @@ internal sealed class SerializableUnimportedExtensionMethods(
     public readonly ImmutableArray<SerializableImportCompletionItem> CompletionItems = completionItems;
 
     [DataMember(Order = 1)]
-    public readonly bool IsPartialResult = isPartialResult;
-
-    [DataMember(Order = 2)]
     public TimeSpan GetSymbolsTime { get; set; } = getSymbolsTime;
 
-    [DataMember(Order = 3)]
+    [DataMember(Order = 2)]
     public readonly TimeSpan CreateItemsTime = createItemsTime;
 
-    [DataMember(Order = 4)]
+    [DataMember(Order = 3)]
     public readonly TimeSpan? RemoteAssetSyncTime = remoteAssetSyncTime;
 }

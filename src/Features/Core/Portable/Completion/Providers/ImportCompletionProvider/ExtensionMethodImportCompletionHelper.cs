@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
@@ -26,7 +27,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers;
 /// <remarks>It runs out-of-proc if it's enabled</remarks>
 internal static partial class ExtensionMethodImportCompletionHelper
 {
-    private static readonly ConditionalWeakTable<ProjectState, ExtensionMethodImportCompletionCacheEntry> s_projectItemsCache = new();
+    /// <summary>
+    /// Technically never gets cleared out.  However, as we're only really storing information about extension
+    /// methods in a project, this should not be too bad.  It's only really a leak if the project is truly 
+    /// unloaded, and not too bad in that case.
+    /// </summary>
+    private static readonly ConcurrentDictionary<ProjectId, ExtensionMethodImportCompletionCacheEntry> s_projectItemsCache = new();
 
     public static async Task WarmUpCacheAsync(Project project, CancellationToken cancellationToken)
     {
@@ -57,12 +63,9 @@ internal static partial class ExtensionMethodImportCompletionHelper
         bool hideAdvancedMembers,
         CancellationToken cancellationToken)
     {
-        SerializableUnimportedExtensionMethods? result = null;
         var document = syntaxContext.Document;
         var position = syntaxContext.Position;
         var project = document.Project;
-
-        var totalTime = SharedStopwatch.StartNew();
 
         var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
         if (client != null)
@@ -79,26 +82,14 @@ internal static partial class ExtensionMethodImportCompletionHelper
                      targetTypesSymbolKeyData, forceCacheCreation, hideAdvancedMembers, cancellationToken),
                  cancellationToken).ConfigureAwait(false);
 
-            result = remoteResult.HasValue ? remoteResult.Value : null;
+            return remoteResult.HasValue ? remoteResult.Value : null;
         }
         else
         {
-            result = await GetUnimportedExtensionMethodsInCurrentProcessAsync(
+            return await GetUnimportedExtensionMethodsInCurrentProcessAsync(
                 document, syntaxContext.SemanticModel, position, receiverTypeSymbol, namespaceInScope, targetTypesSymbols, forceCacheCreation, hideAdvancedMembers, remoteAssetSyncTime: null, cancellationToken)
                 .ConfigureAwait(false);
         }
-
-        if (result is not null)
-        {
-            // report telemetry:
-            CompletionProvidersLogger.LogExtensionMethodCompletionTicksDataPoint(
-                totalTime.Elapsed, result.GetSymbolsTime, result.CreateItemsTime, result.RemoteAssetSyncTime);
-
-            if (result.IsPartialResult)
-                CompletionProvidersLogger.LogExtensionMethodCompletionPartialResultCount();
-        }
-
-        return result;
     }
 
     public static async Task<SerializableUnimportedExtensionMethods> GetUnimportedExtensionMethodsInCurrentProcessAsync(
@@ -120,7 +111,7 @@ internal static partial class ExtensionMethodImportCompletionHelper
         semanticModel ??= await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var symbolComputer = new SymbolComputer(
             document, semanticModel, receiverTypeSymbol, position, namespaceInScope);
-        var (extensionMethodSymbols, isPartialResult) = await symbolComputer.GetExtensionMethodSymbolsAsync(forceCacheCreation, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
+        var extensionMethodSymbols = await symbolComputer.GetExtensionMethodSymbolsAsync(forceCacheCreation, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
 
         var getSymbolsTime = stopwatch.Elapsed;
         stopwatch = SharedStopwatch.StartNew();
@@ -130,7 +121,7 @@ internal static partial class ExtensionMethodImportCompletionHelper
 
         var createItemsTime = stopwatch.Elapsed;
 
-        return new SerializableUnimportedExtensionMethods(items, isPartialResult, getSymbolsTime, createItemsTime, remoteAssetSyncTime);
+        return new SerializableUnimportedExtensionMethods(items, getSymbolsTime, createItemsTime, remoteAssetSyncTime);
     }
 
     public static async ValueTask BatchUpdateCacheAsync(ImmutableSegmentedList<Project> projects, CancellationToken cancellationToken)
@@ -250,15 +241,16 @@ internal static partial class ExtensionMethodImportCompletionHelper
 
     private static async Task<ExtensionMethodImportCompletionCacheEntry> GetUpToDateCacheEntryAsync(
         Project project,
-        IImportCompletionCacheService<ExtensionMethodImportCompletionCacheEntry, object> cacheService,
         CancellationToken cancellationToken)
     {
+        var projectId = project.Id;
+
         // While we are caching data from SyntaxTreeInfo, all the things we cared about here are actually based on sources symbols.
         // So using source symbol checksum would suffice.
         var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
 
         // Cache miss, create all requested items.
-        if (!s_projectItemsCache.TryGetValue(project.State, out var cacheEntry) ||
+        if (!s_projectItemsCache.TryGetValue(projectId, out var cacheEntry) ||
             cacheEntry.Checksum != checksum ||
             cacheEntry.Language != project.Language)
         {
@@ -281,12 +273,7 @@ internal static partial class ExtensionMethodImportCompletionHelper
             }
 
             cacheEntry = builder.ToCacheEntry();
-#if NET
-            s_projectItemsCache.AddOrUpdate(project.State, cacheEntry);
-#else
-            s_projectItemsCache.Remove(project.State);
-            s_projectItemsCache.GetValue(project.State, _ => cacheEntry);
-#endif
+            s_projectItemsCache[projectId] = cacheEntry;
         }
 
         return cacheEntry;

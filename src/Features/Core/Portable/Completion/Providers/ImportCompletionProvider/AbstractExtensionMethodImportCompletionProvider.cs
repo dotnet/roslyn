@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
@@ -43,10 +44,11 @@ internal abstract class AbstractExtensionMethodImportCompletionProvider : Abstra
             var syntaxFacts = completionContext.Document.GetRequiredLanguageService<ISyntaxFactsService>();
             if (TryGetReceiverTypeSymbol(syntaxContext, syntaxFacts, cancellationToken, out var receiverTypeSymbol))
             {
-
                 var inferredTypes = completionContext.CompletionOptions.TargetTypedCompletionFilter
                     ? syntaxContext.InferredTypes
                     : [];
+
+                var totalTime = SharedStopwatch.StartNew();
 
                 var result = await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsAsync(
                     syntaxContext,
@@ -59,6 +61,9 @@ internal abstract class AbstractExtensionMethodImportCompletionProvider : Abstra
 
                 if (result is not null)
                 {
+                    CompletionProvidersLogger.LogExtensionMethodCompletionTicksDataPoint(
+                        totalTime.Elapsed, result.GetSymbolsTime, result.CreateItemsTime, result.RemoteAssetSyncTime);
+
                     var receiverTypeKey = SymbolKey.CreateString(receiverTypeSymbol, cancellationToken);
                     completionContext.AddItems(result.CompletionItems.Select(i => Convert(i, receiverTypeKey)));
                 }
