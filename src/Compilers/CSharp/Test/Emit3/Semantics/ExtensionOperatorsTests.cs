@@ -1770,6 +1770,51 @@ class Program
                 );
         }
 
+        [Fact]
+        public void Unary_034_Consumption_Checked_Generic()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension<T1>(C1<T1>)
+    {
+        public static C1<T1> operator -(C1<T1> x)
+        {
+            System.Console.Write("regular");
+            return x;
+        }
+    }
+    extension<T2>(C1<T2>)
+    {
+        public static C1<T2> operator checked -(C1<T2> x)
+        {
+            System.Console.Write("checked");
+            return x;
+        }
+    }
+}
+
+public class C1<T>;
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1<int>();
+        _ = -c1;
+
+        checked
+        {
+            _ = -c1;
+        }
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "regularchecked").VerifyDiagnostics();
+        }
+
         [Theory]
         [CombinatorialData]
         public void Increment_001_Declaration([CombinatorialValues("++", "--")] string op)

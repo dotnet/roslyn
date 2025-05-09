@@ -2482,25 +2482,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal readonly struct ExtensionGroupingKey : IEquatable<ExtensionGroupingKey>
         {
-            public readonly int ExtensionArity;
-            public readonly TypeSymbol ReceiverType;
+            public readonly NamedTypeSymbol NormalizedExtension;
 
             public ExtensionGroupingKey(NamedTypeSymbol extension)
             {
-                ExtensionArity = extension.Arity;
-
                 if (extension.Arity != 0)
                 {
                     extension = extension.Construct(IndexedTypeParameterSymbol.Take(extension.Arity));
                 }
 
-                if (extension.ExtensionParameter is { } receiverParameter)
+                NormalizedExtension = extension;
+            }
+
+            private readonly int ExtensionArity
+            {
+                get
                 {
-                    ReceiverType = receiverParameter.Type;
+                    return NormalizedExtension.Arity;
                 }
-                else
+            }
+
+            private readonly TypeSymbol ReceiverType
+            {
+                get
                 {
-                    ReceiverType = ErrorTypeSymbol.UnknownResultType;
+                    if (NormalizedExtension.ExtensionParameter is { } receiverParameter)
+                    {
+                        return receiverParameter.Type;
+                    }
+                    else
+                    {
+                        return ErrorTypeSymbol.UnknownResultType;
+                    }
                 }
             }
 
