@@ -2387,8 +2387,9 @@ class C
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(17, 15));
         }
 
-        [Fact]
-        public void NullCoalescing_CondAccess_NonNullConstantLeft()
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/78386")]
+        public void NullCoalescing_CondAccess_NonNullConstantLeft(
+            [CombinatorialValues(TargetFramework.Standard, TargetFramework.NetCoreApp)] TargetFramework targetFramework)
         {
             var source = @"
 #nullable enable
@@ -2414,7 +2415,7 @@ static class C
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source, targetFramework: targetFramework).VerifyDiagnostics(
                 // (21,30): error CS0165: Use of unassigned local variable 'z'
                 //             : x.ToString() + z.ToString(); // 1
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "z").WithArguments("z").WithLocation(21, 30)

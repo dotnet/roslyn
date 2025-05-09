@@ -8,9 +8,5 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 [MetadataAttribute]
-internal class MethodAttribute : LanguageServerEndpointAttribute
-{
-    public MethodAttribute(string method) : base(method, LanguageServerConstants.DefaultLanguageName)
-    {
-    }
-}
+internal class MethodAttribute(string method)
+    : LanguageServerEndpointAttribute(method, LanguageServerConstants.DefaultLanguageName);

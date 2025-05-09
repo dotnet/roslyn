@@ -51,7 +51,7 @@ internal sealed class CompletionResolveHandler : ILspServiceRequestHandler<LSP.C
         if (!completionListCache.TryGetCompletionListCacheEntry(completionItem, out var cacheEntry))
         {
             // Don't have a cache associated with this completion item, cannot resolve.
-            context.TraceInformation("No cache entry found for the provided completion item at resolve time.");
+            context.TraceWarning("No cache entry found for the provided completion item at resolve time.");
             return Task.FromResult(completionItem);
         }
 
