@@ -3890,8 +3890,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         VisitRvalue(keyValuePair.Value);
                         // https://github.com/dotnet/roslyn/issues/77875: Check nullability from conversions of key and value.
                         break;
-                    case BoundKeyValuePairExpressionElement keyValuePairExpressionElement:
-                        VisitRvalue(keyValuePairExpressionElement.Expression);
+                    case BoundKeyValuePairConversion keyValuePairConversion:
+                        VisitRvalue(keyValuePairConversion);
                         // https://github.com/dotnet/roslyn/issues/77875: Check nullability from conversions of key and value.
                         break;
                     default:
@@ -4014,6 +4014,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(node.EnumeratorInfoOpt is null);
             }
 
+            return null;
+        }
+
+        public override BoundNode? VisitKeyValuePairConversion(BoundKeyValuePairConversion node)
+        {
+            VisitRvalue(node.Expression);
+            SetUnknownResultNullability(node);
             return null;
         }
 

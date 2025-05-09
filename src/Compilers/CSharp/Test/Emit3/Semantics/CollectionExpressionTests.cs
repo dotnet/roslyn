@@ -4531,15 +4531,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (9,31): warning CS8601: Possible null reference assignment.
+                // (9,29): warning CS8601: Possible null reference assignment.
                 //         object[] ab = [..a, ..b]; // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "b").WithLocation(9, 31),
-                // (10,26): warning CS8601: Possible null reference assignment.
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "..b").WithLocation(9, 29),
+                // (10,24): warning CS8601: Possible null reference assignment.
                 //         object[] bb = [..b, ..b]; // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "b").WithLocation(10, 26),
-                // (10,31): warning CS8601: Possible null reference assignment.
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "..b").WithLocation(10, 24),
+                // (10,29): warning CS8601: Possible null reference assignment.
                 //         object[] bb = [..b, ..b]; // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "b").WithLocation(10, 31));
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "..b").WithLocation(10, 29));
         }
 
         [Fact]
@@ -4562,15 +4562,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (10,44): warning CS8619: Nullability of reference types in value of type 'IEnumerable<string?>' doesn't match target type 'IEnumerable<object>'.
+                // (10,42): warning CS8619: Nullability of reference types in value of type 'IEnumerable<string?>' doesn't match target type 'IEnumerable<object>'.
                 //         IEnumerable<object>[] ab = [..a, ..b]; // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b").WithArguments("System.Collections.Generic.IEnumerable<string?>", "System.Collections.Generic.IEnumerable<object>").WithLocation(10, 44),
-                // (11,39): warning CS8619: Nullability of reference types in value of type 'IEnumerable<string?>' doesn't match target type 'IEnumerable<object>'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "..b").WithArguments("System.Collections.Generic.IEnumerable<string?>", "System.Collections.Generic.IEnumerable<object>").WithLocation(10, 42),
+                // (11,37): warning CS8619: Nullability of reference types in value of type 'IEnumerable<string?>' doesn't match target type 'IEnumerable<object>'.
                 //         IEnumerable<object>[] bb = [..b, ..b]; // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b").WithArguments("System.Collections.Generic.IEnumerable<string?>", "System.Collections.Generic.IEnumerable<object>").WithLocation(11, 39),
-                // (11,44): warning CS8619: Nullability of reference types in value of type 'IEnumerable<string?>' doesn't match target type 'IEnumerable<object>'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "..b").WithArguments("System.Collections.Generic.IEnumerable<string?>", "System.Collections.Generic.IEnumerable<object>").WithLocation(11, 37),
+                // (11,42): warning CS8619: Nullability of reference types in value of type 'IEnumerable<string?>' doesn't match target type 'IEnumerable<object>'.
                 //         IEnumerable<object>[] bb = [..b, ..b]; // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b").WithArguments("System.Collections.Generic.IEnumerable<string?>", "System.Collections.Generic.IEnumerable<object>").WithLocation(11, 44));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "..b").WithArguments("System.Collections.Generic.IEnumerable<string?>", "System.Collections.Generic.IEnumerable<object>").WithLocation(11, 42));
         }
 
         [Fact]
@@ -14252,9 +14252,9 @@ namespace System
                 }
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,21): warning CS8601: Possible null reference assignment.
+                // (5,19): warning CS8601: Possible null reference assignment.
                 //     object[] b = [..a];
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "a").WithLocation(5, 21));
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "..a").WithLocation(5, 19));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75560")]
@@ -14297,9 +14297,9 @@ namespace System
                 bool m() => throw null!;
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,22): warning CS8601: Possible null reference assignment.
+                // (6,19): warning CS8601: Possible null reference assignment.
                 //     object[] b = [..(m() ? a1 : a2)];
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "m() ? a1 : a2").WithLocation(6, 22));
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "..(m() ? a1 : a2)").WithLocation(6, 19));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75560")]
@@ -43493,12 +43493,12 @@ class Program
                 // (11,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         object x = null;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(11, 20),
-                // (13,25): warning CS8601: Possible null reference assignment.
+                // (13,23): warning CS8601: Possible null reference assignment.
                 //         object[] z = [..y];
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y").WithLocation(13, 25),
-                // (14,16): warning CS8601: Possible null reference assignment.
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "..y").WithLocation(13, 23),
+                // (14,14): warning CS8601: Possible null reference assignment.
                 //         z = [..y];
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y").WithLocation(14, 16));
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "..y").WithLocation(14, 14));
         }
 
         [Fact]
@@ -43520,9 +43520,9 @@ class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (8,37): warning CS8601: Possible null reference assignment.
+                // (8,35): warning CS8601: Possible null reference assignment.
                 //         IEnumerable<object> y1 = [..x1];
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x1").WithLocation(8, 37));
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "..x1").WithLocation(8, 35));
         }
 
         [Fact]
@@ -43598,9 +43598,9 @@ class Program
                 // (14,14): warning CS8601: Possible null reference assignment.
                 //         z = [x, ..F(x)];
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x").WithLocation(14, 14),
-                // (14,19): warning CS8601: Possible null reference assignment.
+                // (14,17): warning CS8601: Possible null reference assignment.
                 //         z = [x, ..F(x)];
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "F(x)").WithLocation(14, 19),
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "..F(x)").WithLocation(14, 17),
                 // (16,26): warning CS8604: Possible null reference argument for parameter 'x' in 'IEnumerable<string> Program.F<string>(string x)'.
                 //         z = [..F<string>(x)];
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "IEnumerable<string> Program.F<string>(string x)").WithLocation(16, 26));
