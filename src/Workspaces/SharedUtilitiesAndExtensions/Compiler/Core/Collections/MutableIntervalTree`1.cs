@@ -23,19 +23,13 @@ internal partial class MutableIntervalTree<T> : IIntervalTree<T>
 
     protected Node? root;
 
-    //public void Add<TIntrospector>(in TIntrospector introspector, T value)
-    //    where TIntrospector : struct, IIntervalIntrospector<T>
-    //{
-    //    this.root = Insert(this.root, new Node(value), in introspector);
-    //}
-
     public static MutableIntervalTree<T> Create<TIntrospector>(in TIntrospector introspector, IEnumerable<T> values)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
         var result = new MutableIntervalTree<T>();
 
         foreach (var value in values)
-            result.Add(introspector, value);
+            result.root = Insert(result.root, new Node(value), in introspector);
 
         return result;
     }
