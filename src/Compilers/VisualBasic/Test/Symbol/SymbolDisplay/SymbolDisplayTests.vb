@@ -6080,11 +6080,7 @@ static class E
                    SymbolDisplayPartKind.ClassName)
 
             Dim skeletonM = extension.GetMembers("M").Single()
-            If useMetadata Then
-                Assert.Equal("Public Sub E.<>E__0.M()", SymbolDisplay.ToDisplayString(skeletonM, format))
-            Else
-                Assert.Equal("Public Sub E.<>E__0.M()", SymbolDisplay.ToDisplayString(skeletonM, format))
-            End If
+            Assert.Equal("Public Sub E.<>E__0.M()", SymbolDisplay.ToDisplayString(skeletonM, format))
         End Sub
 
         <Theory, CombinatorialData>
