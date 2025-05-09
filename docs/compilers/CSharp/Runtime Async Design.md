@@ -57,7 +57,7 @@ namespace System.Runtime.CompilerServices;
 
 public enum MethodImplOptions
 {
-    Async = 1024
+    Async = 0x2000
 }
 ```
 

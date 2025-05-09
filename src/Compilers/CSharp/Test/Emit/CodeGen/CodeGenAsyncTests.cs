@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenAsyncTests : EmitMetadataTestBase
     {
         // PROTOTYPE: Use the real value when possible
-        private const MethodImplAttributes MethodImplOptionsAsync = (MethodImplAttributes)1024;
+        private const MethodImplAttributes MethodImplOptionsAsync = (MethodImplAttributes)0x2000;
         private static CSharpParseOptions WithRuntimeAsync(CSharpParseOptions options) => options.WithFeature("runtime-async", "on");
 
         internal static string ExpectedOutput(string output, bool isRuntimeAsync = false)

@@ -1762,7 +1762,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // PROTOTYPE: Use real value from MethodImplAttributes when available
                     // When a method is emitted using runtime async, we add MethodImplAttributes.Async to indicate to the 
                     // runtime to generate the state machine
-                    result |= (System.Reflection.MethodImplAttributes)1024;
+                    result |= (System.Reflection.MethodImplAttributes)0x2000;
                 }
 
                 return result;
