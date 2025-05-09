@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Extracts a key-value pair from the given line. The line content be trimmed
+        /// Extracts a key-value pair from the given line. The line content will be trimmed
         /// </summary>
         /// <param name="line">Line to extract key/value from as an expected form of key{:|=}[value[{#|;}inline comment]]</param>
         /// <param name="activeSectionProperties">Property collection builder</param>
