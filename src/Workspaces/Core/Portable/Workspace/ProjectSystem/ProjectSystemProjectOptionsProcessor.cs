@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
@@ -30,8 +31,7 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
     private Checksum? _commandLineChecksum;
 
     /// <summary>
-    /// To save space in the managed heap, we only cache the command line if we have an
-    /// effective ruleset.
+    /// To save space in the managed heap, we only cache the command line if we have a ruleset.
     /// </summary>
     private ImmutableArray<string> _commandLine;
 
@@ -68,7 +68,7 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
 
         // Only bother storing the command line if there is an effective ruleset, as that may
         // require a later reparse using it.
-        _commandLine = GetEffectiveRulesetFilePath() != null ? arguments : [];
+        _commandLine = GetEffectiveRulesetFilePath() != null ? arguments : default;
 
         return true;
     }
@@ -144,6 +144,9 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
 
     private void ReparseCommandLine_NoLock(ImmutableArray<string> arguments)
     {
+        // If arguments isn't set, we somehow lost the command line
+        Debug.Assert(!arguments.IsDefault);
+
         _commandLineArgumentsForCommandLine = _commandLineParserService.Parse(arguments, Path.GetDirectoryName(_project.FilePath), isInteractive: false, sdkDirectory: null);
     }
 
