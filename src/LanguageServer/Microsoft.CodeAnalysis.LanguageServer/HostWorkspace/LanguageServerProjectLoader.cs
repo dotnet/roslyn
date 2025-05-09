@@ -375,6 +375,7 @@ internal abstract class LanguageServerProjectLoader
     {
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
+            // If project has already begun loading, no need to do any further work.
             if (_loadedProjects.ContainsKey(projectPath))
             {
                 return;
