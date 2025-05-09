@@ -1918,8 +1918,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 OneOrMany<Symbol> highestSymbols = GetSemanticSymbols(
                     highestBoundExpr, boundNodeForSyntacticParent, binderOpt, options, out highestIsDynamic, out highestResultKind, out unusedHighestMemberGroup);
 
-                if ((symbols.Count != 1 || resultKind == LookupResultKind.OverloadResolutionFailure) && highestSymbols.Count > 0
-                    && highestBoundExpr.Kind != BoundKind.Conversion)
+                if ((symbols.Count != 1 || resultKind == LookupResultKind.OverloadResolutionFailure) && highestSymbols.Count > 0)
                 {
                     symbols = highestSymbols;
                     resultKind = highestResultKind;
