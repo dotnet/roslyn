@@ -1,0 +1,9 @@
+﻿+T:*
+-T:Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLine*
+-M:Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.#ctor*
+-M:Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.CommonWithCryptoKeyContainer*
+-M:Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.CommonWithCryptoKeyFile*
+-M:Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.CommonWithCryptoPublicKey*
+-M:Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.WithCryptoKeyContainer*
+-M:Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.WithCryptoKeyFile*
+-M:Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.WithCryptoPublicKey*

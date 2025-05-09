@@ -4,16 +4,21 @@
 #if NET6_0_OR_GREATER
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
@@ -22,8 +27,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.SemanticSearch;
 
 internal sealed class QueryExecutionContext(
+    Solution solution,
     SourceText queryText,
-    MethodInfo method,
+    QueryFunctions functions,
     ISemanticSearchResultsObserver resultsObserver,
     OptionsProvider<ClassificationOptions> classificationOptions,
     TraceSource traceSource)
@@ -42,6 +48,9 @@ internal sealed class QueryExecutionContext(
     public long ExecutionTime => _executionTime;
     public int ProcessedProjectCount => _processedProjectCount;
 
+    private readonly ConcurrentDictionary<SyntaxTree, ArrayBuilder<TextSpan>>? _updateInputs
+        = functions.UpdateCSharp != null || functions.UpdateVisualBasic != null ? new() : null;
+
     public async Task InvokeAsync(Solution solution, QueryKind queryKind, CancellationToken cancellationToken)
     {
         // Invoke query on projects and types in parallel and on members serially.
@@ -51,6 +60,7 @@ internal sealed class QueryExecutionContext(
 
         try
         {
+            // Find
             await Parallel.ForEachAsync(solution.Projects, symbolEnumerationCancellationSource.Token, async (project, cancellationToken) =>
             {
                 try
@@ -67,13 +77,13 @@ internal sealed class QueryExecutionContext(
                     switch (queryKind)
                     {
                         case QueryKind.Compilation:
-                            await InvokeAsync(project, compilation, entity: compilation, symbolEnumerationCancellationSource: symbolEnumerationCancellationSource, cancellationToken: cancellationToken).ConfigureAwait(false);
+                            await InvokeFindAsync(project, compilation, entity: compilation, symbolEnumerationCancellationSource: symbolEnumerationCancellationSource, cancellationToken: cancellationToken).ConfigureAwait(false);
                             break;
 
                         case QueryKind.Namespace:
                             await Parallel.ForEachAsync(rootNamespace.GetAllNamespaces(cancellationToken), cancellationToken, async (namespaceSymbol, cancellationToken) =>
                             {
-                                await InvokeAsync(project, compilation, entity: namespaceSymbol, symbolEnumerationCancellationSource: symbolEnumerationCancellationSource, cancellationToken: cancellationToken).ConfigureAwait(false);
+                                await InvokeFindAsync(project, compilation, entity: namespaceSymbol, symbolEnumerationCancellationSource: symbolEnumerationCancellationSource, cancellationToken: cancellationToken).ConfigureAwait(false);
                             }).ConfigureAwait(false);
                             break;
 
@@ -89,7 +99,7 @@ internal sealed class QueryExecutionContext(
                             {
                                 if (kind == SymbolKind.NamedType)
                                 {
-                                    await InvokeAsync(project, compilation, entity: type, symbolEnumerationCancellationSource: symbolEnumerationCancellationSource, cancellationToken: cancellationToken).ConfigureAwait(false);
+                                    await InvokeFindAsync(project, compilation, entity: type, symbolEnumerationCancellationSource: symbolEnumerationCancellationSource, cancellationToken: cancellationToken).ConfigureAwait(false);
                                 }
                                 else
                                 {
@@ -97,7 +107,7 @@ internal sealed class QueryExecutionContext(
                                     {
                                         if (member.Kind == kind)
                                         {
-                                            await InvokeAsync(project, compilation, entity: member, symbolEnumerationCancellationSource: symbolEnumerationCancellationSource, cancellationToken: cancellationToken).ConfigureAwait(false);
+                                            await InvokeFindAsync(project, compilation, entity: member, symbolEnumerationCancellationSource: symbolEnumerationCancellationSource, cancellationToken: cancellationToken).ConfigureAwait(false);
                                         }
                                     }
                                 }
@@ -112,6 +122,29 @@ internal sealed class QueryExecutionContext(
                     await resultsObserver.ItemsCompletedAsync(1, cancellationToken).ConfigureAwait(false);
                 }
             }).ConfigureAwait(false);
+
+            // Update
+            if (_updateInputs == null)
+            {
+                return;
+            }
+
+            Contract.ThrowIfNull(_updateInputs);
+
+            await Parallel.ForEachAsync(_updateInputs, symbolEnumerationCancellationSource.Token, async (treeAndSpans, cancellationToken) =>
+            {
+                var (syntaxTree, spans) = treeAndSpans;
+                try
+                {
+                    await InvokeUpdateAsync(syntaxTree, spans, symbolEnumerationCancellationSource, cancellationToken).ConfigureAwait(false);
+                }
+                finally
+                {
+                    spans.Free();
+
+                    // TODO: report progress
+                }
+            }).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (symbolEnumerationCancellationSource.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
         {
@@ -119,7 +152,7 @@ internal sealed class QueryExecutionContext(
         }
     }
 
-    private async ValueTask InvokeAsync(Project project, Compilation compilation, object entity, CancellationTokenSource symbolEnumerationCancellationSource, CancellationToken cancellationToken)
+    private async ValueTask InvokeFindAsync(Project project, Compilation compilation, object entity, CancellationTokenSource symbolEnumerationCancellationSource, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -131,31 +164,39 @@ internal sealed class QueryExecutionContext(
 
             try
             {
-                var symbols = method.Invoke(null, [entity]) switch
+                var results = functions.Find.Invoke(null, [entity]) switch
                 {
-                    IAsyncEnumerable<ISymbol> asyncEnumerableSymbols => asyncEnumerableSymbols,
-                    IEnumerable<ISymbol> enumerableSymbols => enumerableSymbols.AsAsyncEnumerable(),
-                    null => Array.Empty<ISymbol>().AsAsyncEnumerable(),
+                    IAsyncEnumerable<ISymbol> asyncEnumerableSymbols => SelectAsync<ISymbol, (ISymbol?, Location?)>(asyncEnumerableSymbols, static symbol => (symbol, null), cancellationToken),
+                    IEnumerable<ISymbol> enumerableSymbols => enumerableSymbols.Select<ISymbol, (ISymbol?, Location?)>(static symbol => (symbol, null)).AsAsyncEnumerable(),
+                    IAsyncEnumerable<Location> asyncEnumerableLocations => SelectAsync<Location, (ISymbol?, Location?)>(asyncEnumerableLocations, static location => (null, location), cancellationToken),
+                    IEnumerable<Location> enumerableLocations => enumerableLocations.Select<Location, (ISymbol?, Location?)>(static location => (null, location)).AsAsyncEnumerable(),
+                    null => Array.Empty<(ISymbol?, Location?)>().AsAsyncEnumerable(),
 
                     // we shouldn't have compiled the query:
                     var other => throw ExceptionUtilities.UnexpectedValue(other)
                 };
 
-                await foreach (var symbol in symbols.WithCancellation(cancellationToken).ConfigureAwait(false))
+                await foreach (var (symbol, location) in results.WithCancellation(cancellationToken).ConfigureAwait(false))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (symbol == null)
+                    if (symbol == null && location == null)
                     {
-                        return;
+                        continue;
                     }
 
                     executionTime += Stopwatch.GetElapsedTime(executionStart);
 
+                    AddUpdateInput(symbol, location);
+
                     try
                     {
-                        var definitionItem = await symbol.ToClassifiedDefinitionItemAsync(
-                            classificationOptions, project.Solution, s_findReferencesSearchOptions, isPrimary: true, includeHiddenLocations: false, cancellationToken).ConfigureAwait(false);
+                        var definitionItem = await CreateDefinitionItemAsync(project, symbol, location, cancellationToken).ConfigureAwait(false);
+
+                        if (definitionItem == null)
+                        {
+                            continue;
+                        }
 
                         await resultsObserver.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
                     }
@@ -186,8 +227,8 @@ internal sealed class QueryExecutionContext(
             projectName ??= project.Name;
             var projectDisplay = string.IsNullOrEmpty(projectFlavor) ? projectName : $"{projectName} ({projectFlavor})";
 
-            Contract.ThrowIfNull(method.DeclaringType);
-            FormatStackTrace(e, method.DeclaringType.Assembly, out var position, out var stackTraceTaggedText);
+            Contract.ThrowIfNull(functions.Find.DeclaringType);
+            FormatStackTrace(e, functions.Find.DeclaringType.Assembly, out var position, out var stackTraceTaggedText);
             var span = queryText.Lines.GetTextSpan(new LinePositionSpan(position, position));
 
             var exceptionNameTaggedText = GetExceptionTypeTaggedText(e, compilation);
@@ -201,6 +242,170 @@ internal sealed class QueryExecutionContext(
 
         Interlocked.Add(ref _executionTime, executionTime.Ticks);
     }
+
+    private void AddUpdateInput(ISymbol? symbol, Location? location)
+    {
+        if (_updateInputs == null)
+        {
+            return;
+        }
+
+        if (location != null)
+        {
+            AddLocation(location);
+        }
+
+        if (symbol != null)
+        {
+            foreach (var symbolLocation in symbol.Locations)
+            {
+                AddLocation(symbolLocation);
+            }
+        }
+
+        void AddLocation(Location location)
+        {
+            if (location is not { SourceTree: { } tree })
+            {
+                // skip non-source locations
+                return;
+            }
+
+            if (!solution.GetDocument(tree).CanApplyChange())
+            {
+                // skip immutable documents
+                return;
+            }
+
+            var spans = _updateInputs.GetOrAdd(tree, static _ => ArrayBuilder<TextSpan>.GetInstance());
+            lock (spans)
+            {
+                spans.Add(location.SourceSpan);
+            }
+        }
+    }
+
+    private async ValueTask InvokeUpdateAsync(SyntaxTree oldSyntaxTree, IEnumerable<TextSpan> spans, CancellationTokenSource symbolEnumerationCancellationSource, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var executionTime = TimeSpan.Zero;
+
+        try
+        {
+            var executionStart = Stopwatch.GetTimestamp();
+
+            try
+            {
+                var updateFunction = oldSyntaxTree.Options.Language == LanguageNames.CSharp ? functions.UpdateCSharp : functions.UpdateVisualBasic;
+                if (updateFunction == null)
+                {
+                    return;
+                }
+
+                var oldRoot = await oldSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+                var newRoot = (SyntaxNode?)updateFunction.Invoke(null, [oldRoot, spans]);
+
+                var oldDocument = solution.GetRequiredDocument(oldSyntaxTree);
+
+                // null means delete the document:
+                var changes = newRoot != null ? oldSyntaxTree.WithRootAndOptions(newRoot, oldSyntaxTree.Options).GetChanges(oldSyntaxTree) : [];
+
+                await resultsObserver.OnDocumentUpdatedAsync(oldDocument.Id, changes.ToImmutableArrayOrEmpty(), cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                executionTime += Stopwatch.GetElapsedTime(executionStart);
+            }
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            // TODO:
+            // exception from user code
+            //TerminatedWithException = true;
+
+            //if (e is TargetInvocationException { InnerException: { } innerException })
+            //{
+            //    e = innerException;
+            //}
+
+            //var (projectName, projectFlavor) = project.State.NameAndFlavor;
+            //projectName ??= project.Name;
+            //var projectDisplay = string.IsNullOrEmpty(projectFlavor) ? projectName : $"{projectName} ({projectFlavor})";
+
+            //Contract.ThrowIfNull(findMethod.DeclaringType);
+            //FormatStackTrace(e, findMethod.DeclaringType.Assembly, out var position, out var stackTraceTaggedText);
+            //var span = queryText.Lines.GetTextSpan(new LinePositionSpan(position, position));
+
+            //var exceptionNameTaggedText = GetExceptionTypeTaggedText(e, compilation);
+
+            //await resultsObserver.OnUserCodeExceptionAsync(new UserCodeExceptionInfo(projectDisplay, e.Message, exceptionNameTaggedText, stackTraceTaggedText, span), cancellationToken).ConfigureAwait(false);
+
+            //traceSource.TraceInformation($"Semantic query execution failed due to user code exception: {e}");
+
+            //symbolEnumerationCancellationSource.Cancel();
+        }
+
+        Interlocked.Add(ref _executionTime, executionTime.Ticks);
+    }
+
+    private static async IAsyncEnumerable<TResult> SelectAsync<TSource, TResult>(IAsyncEnumerable<TSource> sequence, Func<TSource, TResult> selector, [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        await foreach (var item in sequence.WithCancellation(cancellationToken).ConfigureAwait(false))
+        {
+            yield return selector(item);
+        }
+    }
+
+    private async Task<DefinitionItem?> CreateDefinitionItemAsync(Project project, ISymbol? symbol, Location? location, CancellationToken cancellationToken)
+    {
+        if (symbol != null)
+        {
+            return await symbol.ToClassifiedDefinitionItemAsync(
+                classificationOptions, project.Solution, s_findReferencesSearchOptions, isPrimary: true, includeHiddenLocations: false, cancellationToken).ConfigureAwait(false);
+        }
+
+        Contract.ThrowIfNull(location);
+
+        if (location.Kind == LocationKind.None)
+        {
+            return null;
+        }
+
+        if (location.MetadataModule is { } module)
+        {
+            var metadataLocation = DefinitionItemFactory.GetMetadataLocation(module.ContainingAssembly, project.Solution, out var originatingProjectId);
+
+            return DefinitionItem.Create(
+                tags: [],
+                displayParts: [],
+                sourceSpans: [],
+                classifiedSpans: [],
+                metadataLocations: [metadataLocation],
+                properties: ImmutableDictionary<string, string>.Empty.WithMetadataSymbolProperties(module.ContainingAssembly, originatingProjectId));
+        }
+
+        if (project.Solution.GetDocument(location.SourceTree) is { } document)
+        {
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var displaySpan = Clip(location.SourceSpan, maxLength: 100);
+            var displayText = new TaggedText(TextTags.Text, text.ToString(displaySpan));
+
+            return DefinitionItem.Create(
+                tags: [],
+                displayParts: displaySpan.Length == location.SourceSpan.Length ? [displayText] : [displayText, new TaggedText(TextTags.Punctuation, "…")],
+                sourceSpans: [new DocumentSpan(document, location.SourceSpan)],
+                classifiedSpans: [],
+                metadataLocations: []);
+        }
+
+        return DefinitionItem.CreateNonNavigableItem(
+            tags: [],
+            displayParts: [new TaggedText(TextTags.Text, location.ToString())]);
+    }
+
+    private static TextSpan Clip(TextSpan span, int maxLength)
+        => new(span.Start, Math.Min(span.Length, maxLength));
 
     private static SymbolKind GetSymbolKind(QueryKind targetEntity)
         => targetEntity switch
