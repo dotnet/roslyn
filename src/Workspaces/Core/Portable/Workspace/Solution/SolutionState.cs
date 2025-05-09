@@ -1279,8 +1279,18 @@ internal sealed partial class SolutionState
             return null;
 
         // Do a quick check if the full info for that path has already been computed and cached.
-        if (_lazyFilePathToRelatedDocumentIds.TryGetValue(filePath, out var relatedDocumentIds))
-            return FindRelatedDocument(documentId, relatedDocumentIds);
+        var fileMap = _lazyFilePathToRelatedDocumentIds;
+        if (fileMap != null && fileMap.TryGetValue(filePath, out var relatedDocumentIds))
+        {
+            foreach (var relatedDocumentId in relatedDocumentIds)
+            {
+                // Match the linear search behavior below and do not return documents from the same project.
+                if (relatedDocumentId != documentId && relatedDocumentId.ProjectId != documentId.ProjectId)
+                    return relatedDocumentId;
+            }
+
+            return null;
+        }
 
         var relatedProject = relatedProjectIdHint is null ? null : GetProjectState(relatedProjectIdHint);
         Contract.ThrowIfTrue(relatedProject == projectState);
@@ -1291,22 +1301,19 @@ internal sealed partial class SolutionState
                 return siblingDocumentId;
         }
 
-        // Wasn't in the cache or hinted project, do the full linear search and update the cache.
-        var documentIdsWithFilePath = GetDocumentIdsWithFilePath(filePath);
-
-        return FindRelatedDocument(documentId, documentIdsWithFilePath);
-
-        static DocumentId? FindRelatedDocument(DocumentId documentId, ImmutableArray<DocumentId> relatedDocumentIds)
+        // Wasn't in cache, do the linear search.
+        foreach (var siblingProjectState in this.SortedProjectStates)
         {
-            foreach (var relatedDocumentId in relatedDocumentIds)
-            {
-                // Don't return documents from the same project
-                if (relatedDocumentId.ProjectId != documentId.ProjectId)
-                    return relatedDocumentId;
-            }
+            // Don't want to search the same project that document already came from, or from the related-project we had a hint for.
+            if (siblingProjectState == projectState || siblingProjectState == relatedProject)
+                continue;
 
-            return null;
+            var siblingDocumentId = siblingProjectState.GetFirstDocumentIdWithFilePath(filePath);
+            if (siblingDocumentId is not null)
+                return siblingDocumentId;
         }
+
+        return null;
     }
 
     public ImmutableArray<DocumentId> GetRelatedDocumentIds(DocumentId documentId, bool includeDifferentLanguages)
