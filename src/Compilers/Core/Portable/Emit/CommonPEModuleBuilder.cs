@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private IEnumerable<EmbeddedText> _embeddedTexts = SpecializedCollections.EmptyEnumerable<EmbeddedText>();
         private ArrayMethods? _lazyArrayMethods;
 
-        // Calculted when emitting EnC deltas.
+        // Calculated when emitting EnC deltas.
         private IReadOnlyDictionary<Cci.ITypeDefinition, ArrayBuilder<Cci.IMethodDefinition>>? _encDeletedMethodDefinitions;
 
         // Only set when running tests to allow inspection of the emitted data.
