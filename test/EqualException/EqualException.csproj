@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <Nullable>disable</Nullable>
   </PropertyGroup>
@@ -14,11 +14,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="EnvDTE" VersionOverride="8.0.2" />
-    <PackageReference Include="EnvDTE80" VersionOverride="8.0.3" />
-    <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy" VersionOverride="$(GITBUILDVERSIONSIMPLE)-*" />
-    <PackageReference Include="Microsoft.VisualStudio.Threading" VersionOverride="12.0.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.12.0" VersionOverride="12.0.30111" />
+    <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.Xunit" VersionOverride="$(GITBUILDVERSIONSIMPLE)-*" />
+    <PackageReference Include="Microsoft.VisualStudio.SDK" VersionOverride="17.0.31902.203" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
   </ItemGroup>

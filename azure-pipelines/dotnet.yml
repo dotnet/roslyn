@@ -7,7 +7,7 @@ parameters:
   type: boolean
 
 steps:
-- powershell: '&"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\devenv.exe" /RootSuffix Exp /ResetSettings General.vssettings /Command File.Exit'
+- powershell: '&"C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\devenv.exe" /RootSuffix Exp /ResetSettings General.vssettings /Command File.Exit'
   failOnStderr: true
   displayName: ⚙ Prepare Visual Studio
   condition: and(succeededOrFailed(), ${{ parameters.RunTests }})
@@ -51,9 +51,15 @@ steps:
       testRunTitle: net472-$(Agent.JobName)
     condition: and(succeededOrFailed(), ${{ parameters.RunTests }})
 
-  - powershell: test/EqualExceptionLegacy/Test.ps1 -binlog "$(Build.ArtifactStagingDirectory)/build_logs/EqualExceptionLegacy.binlog"
+# Need to condition this on VS2019
+#  - powershell: test/EqualExceptionLegacy/Test.ps1 -binlog "$(Build.ArtifactStagingDirectory)/build_logs/EqualExceptionLegacy.binlog"
+#    failOnStderr: false
+#    displayName: 🧪 Test EqualExceptionLegacy
+#    condition: and(succeededOrFailed(), ${{ parameters.RunTests }})
+
+  - powershell: test/EqualException/Test.ps1 -binlog "$(Build.ArtifactStagingDirectory)/build_logs/EqualException.binlog"
     failOnStderr: false
-    displayName: 🧪 Test EqualExceptionLegacy
+    displayName: 🧪 Test EqualException
     condition: and(succeededOrFailed(), ${{ parameters.RunTests }})
 
 - ${{ if parameters.IsOptProf }}:

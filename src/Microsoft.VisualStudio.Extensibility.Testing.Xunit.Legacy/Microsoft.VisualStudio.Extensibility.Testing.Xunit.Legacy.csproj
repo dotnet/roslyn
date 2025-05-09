@@ -20,18 +20,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="EnvDTE" Version="8.0.2" PrivateAssets="all" />
-    <PackageReference Include="EnvDTE80" Version="8.0.3" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.VisualStudio.OLE.Interop" Version="7.10.6071" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="1.16.30" PrivateAssets="compile" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop" Version="7.10.6072" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.8.0" Version="8.0.50728" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.1.619-beta" PrivateAssets="all" />
-    <PackageReference Include="stdole" Version="7.0.3303" PrivateAssets="all" />
-    <PackageReference Include="System.Collections.Immutable" Version="1.1.36" />
-    <PackageReference Include="xunit.assert" Version="2.4.1" />
-    <PackageReference Include="xunit.extensibility.core" Version="2.4.1" />
-    <PackageReference Include="xunit.extensibility.execution" Version="2.4.1" />
+    <PackageReference Include="EnvDTE" VersionOverride="8.0.2" PrivateAssets="all" />
+    <PackageReference Include="EnvDTE80" VersionOverride="8.0.3" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.OLE.Interop" VersionOverride="7.10.6071" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" VersionOverride="1.16.30" PrivateAssets="compile" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop" VersionOverride="7.10.6072" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.8.0" VersionOverride="8.0.50728" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Windows.CsWin32" PrivateAssets="all" />
+    <PackageReference Include="stdole" VersionOverride="7.0.3303" PrivateAssets="all" />
+    <PackageReference Include="System.Collections.Immutable" VersionOverride="1.1.36" />
+    <PackageReference Include="xunit.assert" />
+    <PackageReference Include="xunit.extensibility.core" />
+    <PackageReference Include="xunit.extensibility.execution" />
   </ItemGroup>
 
   <ItemGroup>

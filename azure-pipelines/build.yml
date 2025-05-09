@@ -87,7 +87,7 @@ parameters:
 - name: windowsPool
   type: object
   default:
-    vmImage: windows-2019-vs2019
+    vmImage: windows-2022
 
 jobs:
 - job: Windows

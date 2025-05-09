@@ -26,9 +26,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.SupportFiles" GeneratePathProperty="true" Version="1.1.0" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.VisualStudio.Settings.15.0" Version="15.0.26201" />
-    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="15.6.56" />
+    <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.SupportFiles" GeneratePathProperty="true" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Settings.15.0" VersionOverride="15.0.26201" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading" VersionOverride="15.6.56" />
   </ItemGroup>
 
   <Import Project="..\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems" Label="Shared" />
