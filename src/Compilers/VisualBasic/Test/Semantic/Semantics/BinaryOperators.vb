@@ -1561,6 +1561,34 @@ End Module
             Assert.Equal(stringTextBuilder.ToString(), literalOperation.ConstantValue.Value)
         End Sub
 
+		<Fact>
+		Public Sub PrintBitsOnAllPlatforms()
+			Dim US As UShort = 24
+            Dim UI As UInteger = 26
+
+			Dim test1ResultA = UI ^ US
+			Dim test1ResultABits = BitConverter.DoubleToInt64Bits(test1ResultA)
+
+		    Dim De As Decimal = -9D
+			Dim [Do] As Double = -11
+
+			Dim test1ResultB = De ^ [Do]
+			Dim test1ResultBBits = BitConverter.DoubleToInt64Bits(test1ResultB)
+
+		    Dim test5Result = 26UI ^ 24US
+			Dim test5ResultBits = BitConverter.DoubleToInt64Bits(test5Result)
+
+            AssertEx.Equal("", $"Test 1 Expr A: 26UI ^ 24US
+Test 1 Result A: {test1ResultA}
+Test 1 Result A Bits: {test1ResultABits}
+Test 1 Expr B: -9D ^ -11R
+Test 1 Result B: {test1ResultB}
+Test 1 Result B Bits: {test1ResultBBits}
+Test 5 Expr: 26UI ^ 24US
+Test 5 Result: {test5Result}
+Test 5 Result Bits: {test5ResultBits}")
+		End Sub
+
     End Class
 
 End Namespace
