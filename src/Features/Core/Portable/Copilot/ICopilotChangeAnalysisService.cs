@@ -273,6 +273,10 @@ internal sealed class DefaultCopilotChangeAnalysisService(
             {
                 var (@this, solution, diagnosticIdToCount, diagnosticIdToApplicationTime, diagnosticIdToProviderName, providerNameToApplicationTime, providerNameToHasConflict) = args;
 
+                // Track which text span each code fix says it will be fixing.  We can use this to efficiently determine
+                // which codefixes 'conflict' with some other codefix (in that that multiple features think they can fix
+                // the same span of code).  We would need some mechanism to determine which we would prefer to take in
+                // order to have a good experience in such a case.
                 var intervalTree = new SimpleMutableIntervalTree<CodeFixCollection, CodeFixCollectionIntervalIntrospector>(new CodeFixCollectionIntervalIntrospector());
 
                 await foreach (var (codeFixCollection, applicationTime) in values)
@@ -288,6 +292,7 @@ internal sealed class DefaultCopilotChangeAnalysisService(
                     intervalTree.AddIntervalInPlace(codeFixCollection);
                 }
 
+                // Now go over the fixed spans and see which intersect with other spans
                 using var intersectingCollections = TemporaryArray<CodeFixCollection>.Empty;
                 foreach (var codeFixCollection in intervalTree)
                 {
@@ -299,7 +304,9 @@ internal sealed class DefaultCopilotChangeAnalysisService(
 
                     var providerName = GetProviderName(codeFixCollection);
 
-                    var newHasConflictValue = intersectingCollections.Count > 0;
+                    // >= 2 because we want to see how many total fixers fix a particular span, and we only care if
+                    // we're seeing multiple.
+                    var newHasConflictValue = intersectingCollections.Count >= 2;
                     var storedHasConflictValue = providerNameToHasConflict.TryGetValue(providerName, out var currentHasConflictValue) && currentHasConflictValue;
 
                     providerNameToHasConflict[providerName] = storedHasConflictValue || newHasConflictValue;
