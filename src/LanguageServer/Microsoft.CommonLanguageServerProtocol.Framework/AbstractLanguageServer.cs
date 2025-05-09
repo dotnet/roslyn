@@ -65,6 +65,9 @@ internal abstract class AbstractLanguageServer<TRequestContext>
         _jsonRpc = jsonRpc;
         TypeRefResolver = typeRefResolver ?? TypeRef.DefaultResolver.Instance;
 
+        // We have no need to continue running LSP requests after the connection is closed.
+        _jsonRpc.CancelLocallyInvokedMethodsWhenConnectionIsClosed = true;
+
         _jsonRpc.AddLocalRpcTarget(this);
         _jsonRpc.Disconnected += JsonRpc_Disconnected;
         _lspServices = new Lazy<ILspServices>(() => ConstructLspServices());
