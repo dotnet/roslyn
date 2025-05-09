@@ -62,11 +62,6 @@
         <target state="translated">Encapsular a refatoração de campo</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_ExtensionMessageHandler">
-        <source>Extension message handler</source>
-        <target state="new">Extension message handler</target>
-        <note />
-      </trans-unit>
       <trans-unit id="FeatureName_ExtensionMethodImportCompletion">
         <source>Extension method import completion</source>
         <target state="translated">Conclusão da importação do método de extensão</target>
@@ -90,11 +85,6 @@
       <trans-unit id="FeatureName_InheritanceMargin">
         <source>Inheritance margin</source>
         <target state="translated">Margem de herança</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="FeatureName_Initialization">
-        <source>Initialization</source>
-        <target state="new">Initialization</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_KeepAlive">
