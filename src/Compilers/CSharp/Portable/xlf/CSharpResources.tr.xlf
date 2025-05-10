@@ -6004,8 +6004,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisIndexerParam">
-        <source>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer '{0}'</source>
-        <target state="translated">Tutarsız erişilebilirlik: '{1}' parametre türü, '{0}' dizin oluşturucusundan daha az erişilebilir</target>
+        <source>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer or property '{0}'</source>
+        <target state="needs-review-translation">Tutarsız erişilebilirlik: '{1}' parametre türü, '{0}' dizin oluşturucusundan daha az erişilebilir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisOpReturn">

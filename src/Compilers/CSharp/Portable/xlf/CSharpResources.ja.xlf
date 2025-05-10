@@ -6004,8 +6004,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisIndexerParam">
-        <source>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer '{0}'</source>
-        <target state="translated">アクセシビリティに一貫性がありません。パラメーター型 '{1}' のアクセシビリティはインデクサー '{0}' よりも低く設定されています</target>
+        <source>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer or property '{0}'</source>
+        <target state="needs-review-translation">アクセシビリティに一貫性がありません。パラメーター型 '{1}' のアクセシビリティはインデクサー '{0}' よりも低く設定されています</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisOpReturn">

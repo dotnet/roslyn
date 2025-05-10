@@ -431,6 +431,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AssignmentExpression(Syntax, left, right, isRef: isRef, wasCompilerGenerated: true);
         }
 
+        public BoundExpression ConvertReceiverForExtensionMemberIfNeeded(Symbol member, BoundExpression receiver)
+        {
+            if (member.GetIsNewExtensionMember())
+            {
+                ParameterSymbol? extensionParameter = member.ContainingType.ExtensionParameter;
+                Debug.Assert(extensionParameter is not null);
+#if DEBUG
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                Debug.Assert(Conversions.IsValidExtensionMethodThisArgConversion(this.Compilation.Conversions.ClassifyConversionFromType(receiver.Type, extensionParameter.Type, isChecked: false, ref discardedUseSiteInfo)));
+#endif
+
+                return this.Convert(extensionParameter.Type, receiver);
+            }
+
+            return receiver;
+        }
+
         /// <summary>
         /// Creates a general assignment that might be instrumented.
         /// </summary>
