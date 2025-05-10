@@ -31,7 +31,7 @@ internal sealed class OpenProjectHandler : ILspServiceNotificationHandler<OpenPr
 
     Task INotificationHandler<NotificationParams, RequestContext>.HandleNotificationAsync(NotificationParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
-        return _projectSystem.OpenProjectsAsync(request.Projects.SelectAsArray(p => p.LocalPath));
+        return _projectSystem.OpenProjectsAsync(request.Projects.SelectAsArray(p => (ProjectPath: p.LocalPath, ProjectGuid: (string?)null)));
     }
 
     internal sealed class NotificationParams
