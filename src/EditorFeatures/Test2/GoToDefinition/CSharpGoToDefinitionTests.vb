@@ -4533,7 +4533,7 @@ public partial class Program
 
         <WorkItem("https://github.com/dotnet/roslyn/issues/77545")>
         <WpfFact>
-        Public Async Function TestCSharpGoToConstructorWithMismatchingArguments_ImplicitConversion() As Task
+        Public Async Function TestCSharpGoToConstructorWithMismatchingArguments_ImplicitConversion1() As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
@@ -4560,12 +4560,104 @@ public partial class Program
 
         <WorkItem("https://github.com/dotnet/roslyn/issues/77545")>
         <WpfFact>
+        Public Async Function TestCSharpGoToConstructorWithMismatchingArguments_ImplicitConversion2() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+        <Document>
+            record [|R|](int I)
+            {
+                public R(short s)
+                    : this((int)s) { }
+            }
+
+            class C
+            {
+                public C Repro()
+                {
+                    M(new $$R(1u));
+                    return new R(1u);
+                }
+
+                public static void M(C c) { }
+                public static implicit operator C(R r) => throw null;
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/77545")>
+        <WpfFact>
+        Public Async Function TestCSharpGoToConstructorWithMismatchingArguments_ImplicitConversion3() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+        <Document>
+            record [|R|];
+
+            class C
+            {
+                public C Repro()
+                {
+                    M(new $$R(1u));
+                    return new R(1u);
+                }
+
+                public static void M(C c) { }
+                public static implicit operator C(R r) => throw null;
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/77545")>
+        <WpfFact>
+        Public Async Function TestCSharpGoToConstructorWithMismatchingArguments_ImplicitConversion4() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+        <Document>
+            record R
+            {
+                public [|R|](int i) { }
+            }
+
+            class C
+            {
+                public C Repro()
+                {
+                    M(new $$R(1u));
+                    return new R(1u);
+                }
+
+                public static void M(C c) { }
+                public static implicit operator C(R r) => throw null;
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/77545")>
+        <WpfFact>
         Public Async Function TestCSharpGoToConstructorWithMismatchingArguments_ExplicitConversion() As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
         <Document>
-            record [|R|](int I);
+            record [|R|](int I)
+            {
+                public R(short s)
+                    : this((int)s) { }
+            }
 
             class C
             {

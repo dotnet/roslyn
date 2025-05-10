@@ -1910,7 +1910,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             OneOrMany<Symbol> symbols = GetSemanticSymbols(
                 boundExpr, boundNodeForSyntacticParent, binderOpt, options, out bool isDynamic, out LookupResultKind resultKind, out ImmutableArray<Symbol> unusedMemberGroup);
 
-            var overloadResolutionSuffices = symbols.Count == 1 && resultKind == LookupResultKind.OverloadResolutionFailure
+            // If we receive a BadExpression that represents an object creation expression, and the expression
+            // is contained within a conversion expression, we want to match a candidate constructor and avoid
+            // returning the conversion symbol, the higher bound node, which could be a conversion operator method.
+            // However, we do want to preserve the behavior for lambdas and method groups so we filter against those.
+            var overloadResolutionSuffices = resultKind == LookupResultKind.OverloadResolutionFailure
                 && boundExpr.Kind is not BoundKind.Lambda and not BoundKind.MethodGroup && highestBoundNode.Kind == BoundKind.Conversion;
             if (!overloadResolutionSuffices && highestBoundNode is BoundExpression highestBoundExpr)
             {
