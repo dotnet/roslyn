@@ -27,6 +27,11 @@
         <target state="translated">Refaktoryzacja konwersji krotki na strukturę</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_CopilotChangeAnalysis">
+        <source>Copilot change analysis</source>
+        <target state="new">Copilot change analysis</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_DependentTypeFinder">
         <source>Dependent type finder</source>
         <target state="translated">Wyszukiwanie typów zależnych</target>

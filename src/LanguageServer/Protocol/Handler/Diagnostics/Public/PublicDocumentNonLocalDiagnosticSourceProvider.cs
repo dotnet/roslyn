@@ -19,8 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class PublicDocumentNonLocalDiagnosticSourceProvider(
-    [Import] IGlobalOptionService globalOptions,
-    [Import] IDiagnosticAnalyzerService diagnosticAnalyzerService)
+    [Import] IGlobalOptionService globalOptions)
     : IDiagnosticSourceProvider
 {
     public const string NonLocal = nameof(NonLocal);
@@ -36,7 +35,7 @@ internal sealed class PublicDocumentNonLocalDiagnosticSourceProvider(
             globalOptions.GetBackgroundAnalysisScope(textDocument.Project.Language) == BackgroundAnalysisScope.FullSolution)
         {
             // NOTE: Compiler does not report any non-local diagnostics, so we bail out for compiler analyzer.
-            return new([new NonLocalDocumentDiagnosticSource(textDocument, diagnosticAnalyzerService, a => !a.IsCompilerAnalyzer())]);
+            return new([new NonLocalDocumentDiagnosticSource(textDocument, a => !a.IsCompilerAnalyzer())]);
         }
 
         return new([]);
