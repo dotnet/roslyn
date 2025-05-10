@@ -16,6 +16,9 @@ internal class NuGetPublish
     internal static readonly string[] RoslynPackageIds =
     [
         "Microsoft.CodeAnalysis",
+        "Microsoft.CodeAnalysis.Analyzers",
+        "Microsoft.CodeAnalysis.AnalyzerUtilities",
+        "Microsoft.CodeAnalysis.BannedApiAnalyzers",
         "Microsoft.CodeAnalysis.Common",
         "Microsoft.CodeAnalysis.Compilers",
         "Microsoft.CodeAnalysis.CSharp",
@@ -25,6 +28,11 @@ internal class NuGetPublish
         "Microsoft.CodeAnalysis.CSharp.Workspaces",
         "Microsoft.CodeAnalysis.EditorFeatures.Text",
         "Microsoft.CodeAnalysis.Features",
+        "Microsoft.CodeAnalysis.Metrics",
+        "Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers",
+        "Microsoft.CodeAnalysis.PublicApiAnalyzers",
+        "Microsoft.CodeAnalysis.ResxSourceGenerator",
+        "Microsoft.CodeAnalysis.RulesetToEditorconfigConverter",
         "Microsoft.CodeAnalysis.Scripting",
         "Microsoft.CodeAnalysis.Scripting.Common",
         "Microsoft.CodeAnalysis.VisualBasic",
@@ -35,7 +43,9 @@ internal class NuGetPublish
         "Microsoft.CodeAnalysis.Workspaces.MSBuild",
         "Microsoft.Net.Compilers.Toolset",
         "Microsoft.Net.Compilers.Toolset.Framework",
-        "Microsoft.VisualStudio.LanguageServices"
+        "Microsoft.VisualStudio.LanguageServices",
+        "Roslyn.Diagnostics.Analyzers",
+        "Text.Analyzers"
     ];
 
     internal static readonly string[] RoslynSdkPackageIds =
