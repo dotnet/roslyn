@@ -409,8 +409,7 @@ internal static partial class ISymbolExtensions
     {
         Debug.Assert(within is INamedTypeSymbol or IAssemblySymbol);
 
-        var withinType = within as INamedTypeSymbol;
-        if (withinType == null)
+        if (within is not INamedTypeSymbol withinType)
         {
             // If we're not within a type, we can't access a private symbol
             return false;
