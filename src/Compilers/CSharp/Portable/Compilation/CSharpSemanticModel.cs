@@ -1910,7 +1910,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             OneOrMany<Symbol> symbols = GetSemanticSymbols(
                 boundExpr, boundNodeForSyntacticParent, binderOpt, options, out bool isDynamic, out LookupResultKind resultKind, out ImmutableArray<Symbol> unusedMemberGroup);
 
-            if (highestBoundNode is BoundExpression highestBoundExpr)
+            var overloadResolutionSuffices = symbols.Count == 1 && resultKind == LookupResultKind.OverloadResolutionFailure
+                && boundExpr.Kind is not BoundKind.Lambda and not BoundKind.MethodGroup && highestBoundNode.Kind == BoundKind.Conversion;
+            if (!overloadResolutionSuffices && highestBoundNode is BoundExpression highestBoundExpr)
             {
                 LookupResultKind highestResultKind;
                 bool highestIsDynamic;
