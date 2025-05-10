@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Threading;
 /// cref="CancellationToken.IsCancellationRequested"/>.
 /// </para>
 /// </summary>
-internal class AsyncBatchingWorkQueue<TItem, TResult>
+internal class AsyncBatchingWorkQueue<TItem, TResult> : IDisposable
 {
     /// <summary>
     /// Delay we wait after finishing the processing of one batch and starting up on then.
@@ -119,6 +121,11 @@ internal class AsyncBatchingWorkQueue<TItem, TResult>
         // Combine with the queue cancellation token so that any batch is controlled by that token as well.
         _cancellationSeries = new CancellationSeries(_entireQueueCancellationToken);
         CancelExistingWork();
+    }
+
+    public void Dispose()
+    {
+        _cancellationSeries.Dispose();
     }
 
     /// <summary>

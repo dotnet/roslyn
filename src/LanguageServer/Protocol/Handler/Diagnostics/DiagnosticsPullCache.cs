@@ -47,7 +47,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
         public override async Task<ImmutableArray<DiagnosticData>> ComputeDataAsync(DiagnosticsRequestState state, CancellationToken cancellationToken)
         {
             var diagnostics = await state.DiagnosticSource.GetDiagnosticsAsync(state.Context, cancellationToken).ConfigureAwait(false);
-            state.Context.TraceInformation($"Found {diagnostics.Length} diagnostics for {state.DiagnosticSource.ToDisplayString()}");
+            state.Context.TraceDebug($"Found {diagnostics.Length} diagnostics for {state.DiagnosticSource.ToDisplayString()}");
             return diagnostics;
         }
 

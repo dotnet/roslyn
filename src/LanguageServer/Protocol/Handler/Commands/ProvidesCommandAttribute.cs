@@ -9,9 +9,5 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 
 [MetadataAttribute]
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-internal class CommandAttribute : MethodAttribute
-{
-    public CommandAttribute(string command) : base(AbstractExecuteWorkspaceCommandHandler.GetRequestNameForCommandName(command))
-    {
-    }
-}
+internal class CommandAttribute(string command)
+    : MethodAttribute(AbstractExecuteWorkspaceCommandHandler.GetRequestNameForCommandName(command));

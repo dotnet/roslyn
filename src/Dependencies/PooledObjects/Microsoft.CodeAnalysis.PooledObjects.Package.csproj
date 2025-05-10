@@ -21,8 +21,5 @@
   <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" />
   </ItemGroup>
-  <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Debugging.Package"/>
-  </ItemGroup>
   <Import Project="..\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
 </Project>
