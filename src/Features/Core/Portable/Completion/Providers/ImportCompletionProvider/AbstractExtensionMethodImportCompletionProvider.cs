@@ -50,7 +50,7 @@ internal abstract class AbstractExtensionMethodImportCompletionProvider : Abstra
 
                 var totalTime = SharedStopwatch.StartNew();
 
-                var result = await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsAsync(
+                var completionItems = await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsAsync(
                     syntaxContext,
                     receiverTypeSymbol,
                     namespaceInScope,
@@ -59,13 +59,10 @@ internal abstract class AbstractExtensionMethodImportCompletionProvider : Abstra
                     hideAdvancedMembers: completionContext.CompletionOptions.MemberDisplayOptions.HideAdvancedMembers,
                     cancellationToken).ConfigureAwait(false);
 
-                if (result is not null)
+                if (!completionItems.IsDefault)
                 {
-                    CompletionProvidersLogger.LogExtensionMethodCompletionTicksDataPoint(
-                        totalTime.Elapsed, result.GetSymbolsTime, result.CreateItemsTime, result.RemoteAssetSyncTime);
-
                     var receiverTypeKey = SymbolKey.CreateString(receiverTypeSymbol, cancellationToken);
-                    completionContext.AddItems(result.CompletionItems.Select(i => Convert(i, receiverTypeKey)));
+                    completionContext.AddItems(completionItems.Select(i => Convert(i, receiverTypeKey)));
                 }
             }
         }

@@ -54,7 +54,7 @@ internal static partial class ExtensionMethodImportCompletionHelper
     public static void WarmUpCacheInCurrentProcess(Project project)
         => SymbolComputer.QueueCacheWarmUpTask(project);
 
-    public static async Task<SerializableUnimportedExtensionMethods?> GetUnimportedExtensionMethodsAsync(
+    public static async Task<ImmutableArray<SerializableImportCompletionItem>> GetUnimportedExtensionMethodsAsync(
         SyntaxContext syntaxContext,
         ITypeSymbol receiverTypeSymbol,
         ISet<string> namespaceInScope,
@@ -75,24 +75,24 @@ internal static partial class ExtensionMethodImportCompletionHelper
 
             // Call the project overload.  Add-import-for-extension-method doesn't search outside of the current
             // project cone.
-            var remoteResult = await client.TryInvokeAsync<IRemoteExtensionMethodImportCompletionService, SerializableUnimportedExtensionMethods?>(
+            var remoteResult = await client.TryInvokeAsync<IRemoteExtensionMethodImportCompletionService, ImmutableArray<SerializableImportCompletionItem>>(
                  project,
                  (service, solutionInfo, cancellationToken) => service.GetUnimportedExtensionMethodsAsync(
                      solutionInfo, document.Id, position, receiverTypeSymbolKeyData, [.. namespaceInScope],
                      targetTypesSymbolKeyData, forceCacheCreation, hideAdvancedMembers, cancellationToken),
                  cancellationToken).ConfigureAwait(false);
 
-            return remoteResult.HasValue ? remoteResult.Value : null;
+            return remoteResult.HasValue ? remoteResult.Value : default;
         }
         else
         {
             return await GetUnimportedExtensionMethodsInCurrentProcessAsync(
-                document, syntaxContext.SemanticModel, position, receiverTypeSymbol, namespaceInScope, targetTypesSymbols, forceCacheCreation, hideAdvancedMembers, remoteAssetSyncTime: null, cancellationToken)
+                document, syntaxContext.SemanticModel, position, receiverTypeSymbol, namespaceInScope, targetTypesSymbols, forceCacheCreation, hideAdvancedMembers, cancellationToken)
                 .ConfigureAwait(false);
         }
     }
 
-    public static async Task<SerializableUnimportedExtensionMethods> GetUnimportedExtensionMethodsInCurrentProcessAsync(
+    public static async Task<ImmutableArray<SerializableImportCompletionItem>> GetUnimportedExtensionMethodsInCurrentProcessAsync(
         Document document,
         SemanticModel? semanticModel,
         int position,
@@ -101,11 +101,8 @@ internal static partial class ExtensionMethodImportCompletionHelper
         ImmutableArray<ITypeSymbol> targetTypes,
         bool forceCacheCreation,
         bool hideAdvancedMembers,
-        TimeSpan? remoteAssetSyncTime,
         CancellationToken cancellationToken)
     {
-        var stopwatch = SharedStopwatch.StartNew();
-
         // First find symbols of all applicable extension methods.
         // Workspace's syntax/symbol index is used to avoid iterating every method symbols in the solution.
         semanticModel ??= await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -113,15 +110,10 @@ internal static partial class ExtensionMethodImportCompletionHelper
             document, semanticModel, receiverTypeSymbol, position, namespaceInScope);
         var extensionMethodSymbols = await symbolComputer.GetExtensionMethodSymbolsAsync(forceCacheCreation, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
 
-        var getSymbolsTime = stopwatch.Elapsed;
-        stopwatch = SharedStopwatch.StartNew();
-
         var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
         var items = ConvertSymbolsToCompletionItems(compilation, extensionMethodSymbols, targetTypes, cancellationToken);
 
-        var createItemsTime = stopwatch.Elapsed;
-
-        return new SerializableUnimportedExtensionMethods(items, getSymbolsTime, createItemsTime, remoteAssetSyncTime);
+        return items;
     }
 
     public static async ValueTask BatchUpdateCacheAsync(ImmutableSegmentedList<Project> projects, CancellationToken cancellationToken)
