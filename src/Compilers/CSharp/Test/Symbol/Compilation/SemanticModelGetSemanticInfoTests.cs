@@ -15550,5 +15550,46 @@ class K
                 Assert.Equal(SymbolKind.Method, candidate1.Kind);
             }
         }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/77545")]
+        [Fact]
+        public void IncompatibleConstructorIntoImplicitConversion4()
+        {
+            string source = """
+                static class R;
+
+                class C
+                {
+                    public C Repro()
+                    {
+                        M(new R(1u));
+                        return new R(1u);
+                    }
+
+                    public static void M(C c) { }
+                    public static implicit operator C(R r) => throw null;
+                }
+                """;
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var creations = tree.GetCompilationUnitRoot().DescendantNodes().Where(n => n.Kind() == SyntaxKind.ObjectCreationExpression)
+                .ToArray();
+
+            Assert.Equal(2, creations.Length);
+            foreach (var creation in creations)
+            {
+                var semanticInfo = model.GetSemanticInfoSummary(creation);
+                Assert.Equal(CandidateReason.NotCreatable, semanticInfo.CandidateReason);
+                Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
+
+                var candidate = semanticInfo.CandidateSymbols[0];
+                Assert.Equal("R", candidate.ToTestDisplayString());
+                Assert.Equal(SymbolKind.NamedType, candidate.Kind);
+
+                Assert.Equal("R", semanticInfo.Type.ToTestDisplayString());
+                Assert.Equal(SymbolKind.NamedType, semanticInfo.Type.Kind);
+            }
+        }
     }
 }
