@@ -2866,8 +2866,7 @@ public sealed class SolutionTests : TestBase
                     {
                         compilation.References.Single(r =>
                         {
-                            var cr = r as CompilationReference;
-                            return cr != null && cr.Compilation == compilationReference.Compilation;
+                            return r is CompilationReference cr && cr.Compilation == compilationReference.Compilation;
                         });
                     }
                 }
