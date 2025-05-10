@@ -254,7 +254,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
                           "Dummy",
                           LanguageNames.CSharp));
 
-        var service = Assert.IsType<DiagnosticAnalyzerService>(exportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
+        var service = Assert.IsType<DiagnosticAnalyzerService>(workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>());
 
         var analyzers = await service.GetTestAccessor().GetAnalyzersAsync(project, CancellationToken.None).ConfigureAwait(false);
         var analyzersArray = analyzers.ToArray();
