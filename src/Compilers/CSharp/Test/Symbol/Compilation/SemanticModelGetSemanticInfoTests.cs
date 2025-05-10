@@ -15430,5 +15430,125 @@ class K
             var info = model.GetSemanticInfoSummary(syntax);
             Assert.Equal("C", info.Type.Name);
         }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/77545")]
+        [Fact]
+        public void IncompatibleConstructorIntoImplicitConversion1()
+        {
+            string source = """
+                record R(int I);
+
+                class C
+                {
+                    public C Repro()
+                    {
+                        M(new R(1u));
+                        return new R(1u);
+                    }
+
+                    public static void M(C c) { }
+                    public static implicit operator C(R r) => throw null;
+                }
+                """;
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var creations = tree.GetCompilationUnitRoot().DescendantNodes().Where(n => n.Kind() == SyntaxKind.ObjectCreationExpression)
+                .ToArray();
+
+            Assert.Equal(2, creations.Length);
+            foreach (var creation in creations)
+            {
+                var semanticInfo = model.GetSemanticInfoSummary(creation);
+                Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
+                var candidate = semanticInfo.CandidateSymbols[0];
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
+                Assert.Equal("R..ctor(System.Int32 I)", candidate.ToTestDisplayString());
+                Assert.Equal(SymbolKind.Method, candidate.Kind);
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/77545")]
+        [Fact]
+        public void IncompatibleConstructorIntoImplicitConversion2()
+        {
+            string source = """
+                record R;
+
+                class C
+                {
+                    public C Repro()
+                    {
+                        M(new R(1u));
+                        return new R(1u);
+                    }
+
+                    public static void M(C c) { }
+                    public static implicit operator C(R r) => throw null;
+                }
+                """;
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var creations = tree.GetCompilationUnitRoot().DescendantNodes().Where(n => n.Kind() == SyntaxKind.ObjectCreationExpression)
+                .ToArray();
+
+            Assert.Equal(2, creations.Length);
+            foreach (var creation in creations)
+            {
+                var semanticInfo = model.GetSemanticInfoSummary(creation);
+                Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
+                var candidate = semanticInfo.CandidateSymbols[0];
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
+                Assert.Equal("R..ctor()", candidate.ToTestDisplayString());
+                Assert.Equal(SymbolKind.Method, candidate.Kind);
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/77545")]
+        [Fact]
+        public void IncompatibleConstructorIntoImplicitConversion3()
+        {
+            string source = """
+                record R(int I)
+                {
+                    public R(short s)
+                        : this((int)s) { }
+                }
+
+                class C
+                {
+                    public C Repro()
+                    {
+                        M(new R(1u));
+                        return new R(1u);
+                    }
+
+                    public static void M(C c) { }
+                    public static implicit operator C(R r) => throw null;
+                }
+                """;
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var creations = tree.GetCompilationUnitRoot().DescendantNodes().Where(n => n.Kind() == SyntaxKind.ObjectCreationExpression)
+                .ToArray();
+
+            Assert.Equal(2, creations.Length);
+            foreach (var creation in creations)
+            {
+                var semanticInfo = model.GetSemanticInfoSummary(creation);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
+                Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
+
+                var candidate0 = semanticInfo.CandidateSymbols[0];
+                Assert.Equal("R..ctor(System.Int32 I)", candidate0.ToTestDisplayString());
+                Assert.Equal(SymbolKind.Method, candidate0.Kind);
+
+                var candidate1 = semanticInfo.CandidateSymbols[1];
+                Assert.Equal("R..ctor(System.Int16 s)", candidate1.ToTestDisplayString());
+                Assert.Equal(SymbolKind.Method, candidate1.Kind);
+            }
+        }
     }
 }
