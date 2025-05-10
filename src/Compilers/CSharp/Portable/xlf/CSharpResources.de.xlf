@@ -2397,6 +2397,11 @@
         <target state="translated">Das Rohzeichenfolgenliteral beginnt nicht mit genügend Anführungszeichen, um so viele aufeinanderfolgende Anführungszeichen als Inhalt zuzulassen.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_TooManyUserStrings_RestartRequired">
+        <source>Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.</source>
+        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TopLevelStatementAfterNamespaceOrType">
         <source>Top-level statements must precede namespace and type declarations.</source>
         <target state="translated">Anweisungen der obersten Ebene müssen vor Namespace- und Typdeklarationen stehen.</target>

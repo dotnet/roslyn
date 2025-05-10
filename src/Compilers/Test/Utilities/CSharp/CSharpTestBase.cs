@@ -2114,6 +2114,8 @@ namespace System.Diagnostics.CodeAnalysis
                 return ImmutableArray.Create<ILVisualizer.LocalInfo>();
             }
 
+            Debug.Assert(builder.LocalSlotManager != null);
+
             var result = new ILVisualizer.LocalInfo[localInfos.Length];
             for (int i = 0; i < result.Length; i++)
             {

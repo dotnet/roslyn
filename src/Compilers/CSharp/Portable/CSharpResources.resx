@@ -5314,6 +5314,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_TooManyUserStrings" xml:space="preserve">
     <value>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</value>
   </data>
+  <data name="ERR_TooManyUserStrings_RestartRequired" xml:space="preserve">
+    <value>Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.</value>
+  </data>
   <data name="ERR_PatternNullableType" xml:space="preserve">
     <value>It is not legal to use nullable type '{0}?' in a pattern; use the underlying type '{0}' instead.</value>
   </data>
